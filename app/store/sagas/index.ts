@@ -175,7 +175,8 @@ export function* handleDeeplinkSaga() {
     }
 
     const existingUser: boolean = yield select(selectExistingUser);
-    const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink || '';
+    const onboardingDeeplink =
+      AppStateEventProcessor.pendingDeeplink || 'https://invalid.url';
 
     const url = new UrlParser(onboardingDeeplink);
     // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
