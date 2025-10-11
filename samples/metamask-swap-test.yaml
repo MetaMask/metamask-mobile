@@ -1,0 +1,47 @@
+appId: io.metamask
+tags:
+  - android
+  - swap
+  - smoke
+---
+# MetaMask Mobile Swap Test - ETH to USDC
+# This test mimics the e2e/specs/swaps/swap-action-smoke.spec.ts functionality
+
+# Launch MetaMask Mobile app
+- launchApp
+
+# Complete onboarding flow
+- runFlow: subflows/onboarding-flow.yaml
+
+# Navigate to swap functionality
+- tapOn:
+    text: "Swap"
+
+# Enter swap amount
+- tapOn:
+    text: "0"
+- inputText: "1"
+
+# Select destination token (USDC)
+- tapOn:
+    text: "Select token"
+- tapOn:
+    text: "USDC"
+
+# Wait for quote to load and confirm swap
+- assertVisible:
+    text: "Review"
+
+- tapOn:
+    text: "Review"
+
+# Confirm the swap
+- assertVisible:
+    text: "Confirm"
+
+- tapOn:
+    text: "Confirm"
+
+# Wait for transaction to complete
+- assertVisible:
+    text: "Transaction submitted"
