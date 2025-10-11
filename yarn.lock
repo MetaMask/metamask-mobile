@@ -6950,7 +6950,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^79.0.0":
+"@metamask/assets-controllers@npm:79.0.0":
   version: 79.0.0
   resolution: "@metamask/assets-controllers@npm:79.0.0"
   dependencies:
@@ -7000,6 +7000,56 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A79.0.0#./.yarn/patches/@metamask-assets-controllers-npm-79.0.0-8b55992ea9.patch::locator=metamask%40workspace%3A.":
+  version: 79.0.0
+  resolution: "@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A79.0.0#./.yarn/patches/@metamask-assets-controllers-npm-79.0.0-8b55992ea9.patch::version=79.0.0&hash=08a834&locator=metamask%40workspace%3A."
+  dependencies:
+    "@ethereumjs/util": ^9.1.0
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/address": ^5.7.0
+    "@ethersproject/bignumber": ^5.7.0
+    "@ethersproject/contracts": ^5.7.0
+    "@ethersproject/providers": ^5.7.0
+    "@metamask/abi-utils": ^2.0.3
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/contract-metadata": ^2.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/eth-query": ^4.0.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/metamask-eth-abis": ^3.1.1
+    "@metamask/polling-controller": ^14.0.0
+    "@metamask/rpc-errors": ^7.0.2
+    "@metamask/snaps-sdk": ^9.0.0
+    "@metamask/snaps-utils": ^11.0.0
+    "@metamask/utils": ^11.8.1
+    "@types/bn.js": ^5.1.5
+    "@types/uuid": ^8.3.0
+    async-mutex: ^0.5.0
+    bitcoin-address-validation: ^2.2.3
+    bn.js: ^5.2.1
+    immer: ^9.0.6
+    lodash: ^4.17.21
+    multiformats: ^13.1.0
+    reselect: ^5.1.1
+    single-call-balance-checker-abi: ^1.0.0
+    uuid: ^8.3.2
+  peerDependencies:
+    "@metamask/account-tree-controller": ^1.0.0
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/approval-controller": ^7.0.0
+    "@metamask/keyring-controller": ^23.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/permission-controller": ^11.0.0
+    "@metamask/phishing-controller": ^14.0.0
+    "@metamask/preferences-controller": ^20.0.0
+    "@metamask/providers": ^22.0.0
+    "@metamask/snaps-controllers": ^14.0.0
+    "@metamask/transaction-controller": ^60.0.0
+    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
+  checksum: 92317f31c401a739cacbefc8a947092b6b3b30a7906b64360421598cea6c382d4b4290539f1883053c8891bde91c5075e2d978e46411d82424d7308cb321f296
+  languageName: node
+  linkType: hard
+
 "@metamask/auth-network-utils@npm:^0.3.0, @metamask/auth-network-utils@npm:^0.3.1":
   version: 0.3.1
   resolution: "@metamask/auth-network-utils@npm:0.3.1"
@@ -7028,10 +7078,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/bitcoin-wallet-snap@npm:1.2.0"
-  checksum: 74e8ea6af7a399141cdaecdc5fee0ddef217819d7f9042cbb15d4ba3ac07f8b50011d6ca20db91fc83a167e51b91cb2a089db9ea21b576955048a6cab0714212
+"@metamask/bitcoin-wallet-snap@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@metamask/bitcoin-wallet-snap@npm:1.3.0"
+  checksum: bdfcdb7a78fe9a8067224e94e63c13384b10b04ab38dca3a2cdae62adb5562eab9571cf4118d830d99e1c8a8178ee0dfb15a08e50baa6b7ccbe6184977fcc10a
   languageName: node
   linkType: hard
 
@@ -34037,7 +34087,7 @@ __metadata:
     "@metamask/approval-controller": ^7.1.3
     "@metamask/assets-controllers": ^79.0.0
     "@metamask/base-controller": ^8.3.0
-    "@metamask/bitcoin-wallet-snap": ^1.2.0
+    "@metamask/bitcoin-wallet-snap": ^1.3.0
     "@metamask/bridge-controller": ^48.0.0
     "@metamask/bridge-status-controller": ^48.0.0
     "@metamask/browser-passworder": ^5.0.0
