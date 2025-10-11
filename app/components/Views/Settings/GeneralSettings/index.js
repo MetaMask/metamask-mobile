@@ -76,16 +76,6 @@ export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
   metrics.addTraitsToUser(traits);
-  metrics.trackEvent(
-    MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE,
-    )
-      .addProperties({
-        ...traits,
-        location: 'app_settings',
-      })
-      .build(),
-  );
 };
 
 const createStyles = (colors) =>
