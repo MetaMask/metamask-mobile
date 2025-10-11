@@ -76,7 +76,7 @@ export const calculateAssetPrice = ({
       priceDiff = currentPrice - comparePrice;
     }
   } else if (multichainAssetRates?.rate) {
-    // Non-EVM price calculation
+    // Non-EVM price calculation - Use multichainAssetRates if available (primary source)
     currentPrice = multichainAssetRates.rate;
     priceDiff = currentPrice - comparePrice;
 
@@ -84,7 +84,13 @@ export const calculateAssetPrice = ({
     const marketDataKey = TIME_PERIOD_TO_MARKET_DATA_KEY[timePeriod];
     pricePercentChange =
       multichainAssetRates.marketData?.pricePercentChange?.[marketDataKey];
+  } else if (exchangeRate) {
+    // Non-EVM fallback - use exchangeRate if multichainAssetRates not available
+    // For non-EVM, exchangeRate is already in fiat (USD), so use directly
+    currentPrice = exchangeRate;
+    priceDiff = currentPrice - comparePrice;
   }
+  // If no rate data available for non-EVM, priceDiff stays 0 (don't show misleading -100%)
 
   return {
     currentPrice,
