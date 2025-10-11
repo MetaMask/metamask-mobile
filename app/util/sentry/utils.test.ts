@@ -821,8 +821,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.url).toBe('https:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.url).toBe('https:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should rewrite breadcrumb to field to protocol only', () => {
@@ -835,8 +835,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.to).toBe('http:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.to).toBe('http:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should rewrite breadcrumb from field to protocol only', () => {
@@ -849,8 +849,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.from).toBe('https:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.from).toBe('https:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should handle breadcrumb with multiple URL fields', () => {
@@ -864,9 +864,9 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.url).toBe('https:');
-    expect(result.data.to).toBe('http:');
-    expect(result.data.from).toBe('ftp:');
+    expect(result.data?.url).toBe('https:');
+    expect(result.data?.to).toBe('http:');
+    expect(result.data?.from).toBe('ftp:');
   });
 
   it('should handle breadcrumb without data', () => {
@@ -916,10 +916,10 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].stacktrace.frames).toHaveLength(1);
-    expect(result.exception.values[0].stacktrace.frames[0].filename).toBe(
-      'app:///main.js',
-    );
+    expect(result.exception?.values?.[0]?.stacktrace?.frames).toHaveLength(1);
+    expect(
+      result.exception?.values?.[0]?.stacktrace?.frames?.[0]?.filename,
+    ).toBe('app:///main.js');
   });
 
   it('should simplify complex error messages', () => {
@@ -1005,7 +1005,7 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].value).toBe('Exception with URL **');
+    expect(result.exception?.values?.[0]?.value).toBe('Exception with URL **');
   });
 
   it('should sanitize Ethereum addresses from error messages', () => {
@@ -1040,7 +1040,9 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].value).toBe('Transaction failed for **');
+    expect(result.exception?.values?.[0]?.value).toBe(
+      'Transaction failed for **',
+    );
   });
 
   it('should sanitize multiple addresses from error messages', () => {
@@ -1083,9 +1085,9 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.contexts.device.timezone).toBe(null);
-    expect(result.contexts.device.name).toBe(null);
-    expect(result.contexts.device.other).toBe('should remain');
+    expect(result.contexts?.device?.timezone).toBe(null);
+    expect(result.contexts?.device?.name).toBe(null);
+    expect(result.contexts?.device?.other).toBe('should remain');
   });
 
   it('should handle report without device context', () => {
