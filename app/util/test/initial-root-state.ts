@@ -22,7 +22,10 @@ export const backgroundState: EngineState =
   initialBackgroundState as unknown as EngineState;
 
 const initialRootState: RootState = {
-  legalNotices: undefined,
+  legalNotices: {
+    newPrivacyPolicyToastClickedOrClosed: false,
+    newPrivacyPolicyToastShownDate: null,
+  },
   collectibles: undefined,
   engine: { backgroundState },
   cronjobController: {
@@ -44,7 +47,9 @@ const initialRootState: RootState = {
   navigation: initialNavigationState,
   networkOnboarded: undefined,
   security: initialSecurityState,
-  signatureRequest: undefined,
+  signatureRequest: {
+    securityAlertResponse: undefined,
+  },
   qrKeyringScanner: initialQrKeyringScannerState,
   sdk: {
     connections: {},
@@ -54,7 +59,9 @@ const initialRootState: RootState = {
   },
   experimentalSettings: undefined,
   rpcEvents: undefined,
-  accounts: undefined,
+  accounts: {
+    reloadAccounts: false,
+  },
   inpageProvider: initialInpageProvider,
   confirmationMetrics,
   originThrottling,
