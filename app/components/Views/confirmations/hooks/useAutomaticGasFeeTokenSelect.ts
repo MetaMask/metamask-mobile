@@ -1,23 +1,19 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { useCallback, useState } from 'react';
-
+import { useCallback, useEffect, useState } from 'react';
+import { updateSelectedGasFeeToken } from '../../../../util/transaction-controller';
+import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { useIsGaslessSupported } from './gas/useIsGaslessSupported';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useIsInsufficientBalance } from './useIsInsufficientBalance';
-import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
-import { updateSelectedGasFeeToken } from '../../../../util/transaction-controller';
-import { useAsyncResult } from '../../../hooks/useAsyncResult';
 
 export function useAutomaticGasFeeTokenSelect() {
   const { isSupported: isGaslessSupported, isSmartTransaction } =
     useIsGaslessSupported();
-  const [firstCheck, setFirstCheck] = useState(true);
-
+  const hasInsufficientBalance = useIsInsufficientBalance();
   const transactionMeta =
     (useTransactionMetadataRequest() as TransactionMeta) ??
     ({} as TransactionMeta);
-
-  const hasInsufficientBalance = useIsInsufficientBalance();
+  const [checked, setChecked] = useState(false);
 
   const {
     gasFeeTokens,
@@ -25,31 +21,30 @@ export function useAutomaticGasFeeTokenSelect() {
     selectedGasFeeToken,
   } = transactionMeta;
 
-  let firstGasFeeTokenAddress = gasFeeTokens?.[0]?.tokenAddress;
+  const [first, second] = gasFeeTokens || [];
+  const firstGasFeeTokenAddress =
+    !isSmartTransaction && first?.tokenAddress === NATIVE_TOKEN_ADDRESS
+      ? second?.tokenAddress
+      : first?.tokenAddress;
 
-  if (!isSmartTransaction && firstGasFeeTokenAddress === NATIVE_TOKEN_ADDRESS) {
-    firstGasFeeTokenAddress = gasFeeTokens?.[1]?.tokenAddress;
-  }
-
-  const selectFirstToken = useCallback(async () => {
-    await updateSelectedGasFeeToken(transactionId, firstGasFeeTokenAddress);
+  const selectFirstToken = useCallback(() => {
+    if (!transactionId || !firstGasFeeTokenAddress) {
+      return;
+    }
+    updateSelectedGasFeeToken(transactionId, firstGasFeeTokenAddress);
   }, [transactionId, firstGasFeeTokenAddress]);
 
   const shouldSelect =
+    !checked &&
     isGaslessSupported &&
     hasInsufficientBalance &&
     !selectedGasFeeToken &&
     Boolean(firstGasFeeTokenAddress);
 
-  useAsyncResult(async () => {
-    if (!gasFeeTokens || !transactionId || !firstCheck) {
-      return;
-    }
-
-    setFirstCheck(false);
-
+  useEffect(() => {
     if (shouldSelect) {
-      await selectFirstToken();
+      selectFirstToken();
+      setChecked(true);
     }
-  }, [shouldSelect, selectFirstToken, firstCheck, gasFeeTokens, transactionId]);
+  }, [shouldSelect, selectFirstToken]);
 }

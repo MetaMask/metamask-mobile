@@ -170,7 +170,7 @@ export const getNetworkNonce = async (
   return nextNonce;
 };
 
-export async function updateSelectedGasFeeToken(
+export function updateSelectedGasFeeToken(
   transactionId: string,
   selectedGasFeeToken?: Hex,
 ) {

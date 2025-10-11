@@ -94,7 +94,7 @@ describe('useAutomaticGasFeeTokenSelect', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     useIsInsufficientBalanceMock.mockReturnValue(false);
-    updateSelectedGasFeeTokenMock.mockResolvedValue();
+    updateSelectedGasFeeTokenMock.mockReturnValue();
 
     useIsGaslessSupportedMock.mockReturnValue({
       isSupported: true,
