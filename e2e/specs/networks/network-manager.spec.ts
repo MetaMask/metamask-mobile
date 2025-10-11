@@ -268,6 +268,8 @@ const isMultichainAccountsState2Enabled =
                 name: 'Dai Stablecoin',
               },
             ])
+            // Limit enabled EVM networks to Ethereum only to avoid duplicate asset-ETH in "all networks" mode
+            .withNetworkEnabledMap({ eip155: { '0x1': true } })
             .build(),
           restartDevice: true,
         },
