@@ -1,3 +1,44 @@
+// Mock SDK first - must be hoisted before imports
+const mockLogoutFromProvider = jest.fn();
+const mockSetIsAuthenticated = jest.fn();
+const mockSdk = {
+  get isBaanxLoginEnabled() {
+    return true;
+  },
+  get isCardEnabled() {
+    return true;
+  },
+  get supportedTokens() {
+    return [];
+  },
+  isCardHolder: jest.fn(),
+  getGeoLocation: jest.fn(),
+  getSupportedTokensAllowances: jest.fn(),
+  getPriorityToken: jest.fn(),
+  initiateCardProviderAuthentication: jest.fn(),
+  login: jest.fn(),
+  authorize: jest.fn(),
+  exchangeToken: jest.fn(),
+  refreshLocalToken: jest.fn(),
+};
+
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(() => ({
+    sdk: mockSdk,
+    isAuthenticated: false,
+    setIsAuthenticated: mockSetIsAuthenticated,
+    isLoading: false,
+    logoutFromProvider: mockLogoutFromProvider,
+    userCardLocation: 'international' as const,
+  })),
+  withCardSDK: (component: React.ComponentType) => component,
+}));
+
+jest.mock('../../hooks/isBaanxLoginEnabled', () => ({
+  __esModule: true,
+  default: jest.fn(() => true),
+}));
+
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
@@ -20,6 +61,7 @@ import {
 } from '../../../../../selectors/featureFlagController/deposit';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
@@ -172,11 +214,6 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-// Mock Card SDK
-jest.mock('../../sdk', () => ({
-  withCardSDK: (Component: React.ComponentType) => Component,
-}));
-
 // Mock token constants
 jest.mock('../../../Tokens/constants', () => ({
   TOKEN_BALANCE_LOADING: 'tokenBalanceLoading',
@@ -295,6 +332,10 @@ function render() {
 describe('CardHome Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Clear SDK mocks
+    mockLogoutFromProvider.mockClear();
+    mockSetIsAuthenticated.mockClear();
 
     mockFetchPriorityToken.mockImplementation(async () => mockPriorityToken);
     mockDispatch.mockClear();
