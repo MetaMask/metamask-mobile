@@ -12,6 +12,7 @@ import XrpLevmImg from '../../../../../images/xrp-logo.png';
 import SophonImg from '../../../../../images/sophon.png';
 import SophonTestnetImg from '../../../../../images/sophon-testnet.png';
 import MegaethTestnetImg from '../../../../../images/megaeth-testnet-logo.png';
+import LuksoImg from '../../../../../images/lukso.png';
 
 export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: FlareMainnetImg,
@@ -28,4 +29,5 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.SOPHON_TESTNET]: SophonTestnetImg,
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: ethImg,
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: MegaethTestnetImg,
+  [NETWORK_CHAIN_ID.LUKSO]: LuksoImg,
 };
