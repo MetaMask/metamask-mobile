@@ -836,12 +836,6 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
-  describe('WebSocket Monitoring', () => {
-    // Note: WebSocket monitoring tests removed as they tested implementation details
-    // (trace/logging calls) rather than behavior. The actual subscription behavior
-    // is already covered by other tests like 'should subscribe to price updates successfully'.
-  });
-
   describe('Cleanup and Error Handling', () => {
     it('should clear all subscriptions and cache', async () => {
       service.clearAll();

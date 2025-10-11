@@ -677,7 +677,6 @@ describe('PerpsConnectionManager', () => {
   describe('reconnectWithNewContext', () => {
     beforeEach(() => {
       mockPerpsController.reconnectWithNewContext.mockResolvedValue();
-      // getAccountState is no longer called during reconnection - account data fetched via WebSocket subscriptions
     });
 
     it('should clear StreamManager caches', async () => {
@@ -734,7 +733,4 @@ describe('PerpsConnectionManager', () => {
       );
     });
   });
-
-  // Note: Retry logic tests removed as getAccountState is no longer called during initial connection.
-  // Account data is now fetched via WebSocket subscriptions during preload phase (see comments in reconnectWithNewContext tests).
 });
