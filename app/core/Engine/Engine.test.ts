@@ -211,7 +211,7 @@ describe('Engine', () => {
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        claimTransactions: {},
+        claimTransaction: null,
         isOnboarded: {},
       },
       GatorPermissionsController: {
