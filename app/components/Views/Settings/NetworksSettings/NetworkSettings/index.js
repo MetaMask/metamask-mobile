@@ -2256,7 +2256,7 @@ export class NetworkSettings extends PureComponent {
                       this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     isDisabled={!!warningRpcUrl}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
@@ -2325,7 +2325,7 @@ export class NetworkSettings extends PureComponent {
                       this.onBlockExplorerItemAdd(blockExplorerUrlForm);
                     }}
                     width={ButtonWidthTypes.Full}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     isDisabled={
                       !blockExplorerUrl ||
                       !blockExplorerUrlForm ||
@@ -2401,7 +2401,7 @@ export class NetworkSettings extends PureComponent {
                     }}
                     testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                   />
                 </View>
               </ScrollView>
@@ -2509,7 +2509,7 @@ export class NetworkSettings extends PureComponent {
                       this.closeRpcModal();
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
                 </View>
