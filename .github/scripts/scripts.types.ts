@@ -5,6 +5,9 @@
 export enum PullRequestTriggerType {
   ReadyForReview = 'ready_for_review',
   Labeled = 'labeled',
+  Opened = 'opened',
+  Reopened = 'reopened',
+  Synchronize = 'synchronize',
 }
 
 /**
