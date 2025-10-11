@@ -3,6 +3,7 @@ import {
   MultichainAccountServiceMessenger,
   BtcAccountProvider,
   TrxAccountProvider,
+  AccountProviderWrapper,
 } from '@metamask/multichain-account-service';
 import { ControllerInitFunction } from '../../types';
 import Engine from '../../Engine';
@@ -22,7 +23,11 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   MultichainAccountServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  const btcProvider = new BtcAccountProvider(controllerMessenger);
+  // Create Bitcoin provider wrapped for feature flag control
+  const btcProvider = new AccountProviderWrapper(
+    controllerMessenger,
+    new BtcAccountProvider(controllerMessenger),
+  );
   /// END:ONLY_INCLUDE_IF
 
   /// BEGIN:ONLY_INCLUDE_IF(tron)
@@ -42,6 +47,12 @@ export const multichainAccountServiceInit: ControllerInitFunction<
     messenger: controllerMessenger,
     providers,
   });
+
+  /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  // Bitcoin provider enabled by default when bitcoin feature is built
+  // Controlled by Basic Functionality toggle at runtime (same pattern as Solana)
+  btcProvider.setEnabled(true);
+  /// END:ONLY_INCLUDE_IF
 
   // TODO: Move this logic to the SnapKeyring directly.
   initMessenger.subscribe(

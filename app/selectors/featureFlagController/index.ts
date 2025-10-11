@@ -15,3 +15,6 @@ export const selectRemoteFeatureFlags = createSelector(
     return remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
   },
 );
+
+// Note: selectIsAddBitcoinAccountEnabled should be imported directly from './addBitcoinAccount'
+// to avoid circular dependency issues

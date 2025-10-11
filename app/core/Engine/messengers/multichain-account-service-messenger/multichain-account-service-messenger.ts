@@ -35,8 +35,6 @@ type Actions =
 type Events =
   | KeyringControllerStateChangeEvent
   | AccountsControllerAccountAddedEvent
-  | AccountsControllerAccountRemovedEvent
-  | AccountsControllerAccountAddedEvent
   | AccountsControllerAccountRemovedEvent;
 
 export type MultichainAccountServiceMessenger = ReturnType<
