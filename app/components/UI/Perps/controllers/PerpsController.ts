@@ -15,7 +15,6 @@ import {
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
-import type { Span } from '@sentry/core';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -28,6 +27,7 @@ import {
   endTrace,
   TraceName,
   TraceOperation,
+  type TraceContext,
 } from '../../../../util/trace';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
@@ -557,7 +557,7 @@ export class PerpsController extends BaseController<
    * @private
    */
   private async calculateUserFeeDiscount(
-    parentSpan?: Span,
+    parentSpan?: TraceContext,
   ): Promise<number | undefined> {
     // Only create standalone trace if no parent span provided
     const traceId = parentSpan ? undefined : uuidv4();
@@ -568,11 +568,11 @@ export class PerpsController extends BaseController<
       const traceSpan =
         parentSpan ||
         (traceId
-          ? (trace({
+          ? trace({
               name: TraceName.PerpsRewardsAPICall,
               id: traceId,
               op: TraceOperation.PerpsOperation,
-            }) as Span)
+            })
           : undefined);
 
       if (!traceSpan) {
@@ -824,7 +824,7 @@ export class PerpsController extends BaseController<
           isBuy: params.isBuy,
           orderPrice: params.price || '',
         },
-      }) as Span;
+      });
       const provider = this.getActiveProvider();
 
       // Calculate fee discount at execution time (fresh, secure)
@@ -1264,14 +1264,13 @@ export class PerpsController extends BaseController<
         name: TraceName.PerpsClosePosition,
         id: traceId,
         op: TraceOperation.PerpsPositionManagement,
-        parentContext: null,
         tags: {
           provider: this.state.activeProvider,
           coin: params.coin,
           closeSize: params.size || 'full',
           isTestnet: this.state.isTestnet,
         },
-      }) as Span;
+      });
 
       // Measure position loading time
       const positionLoadStart = performance.now();
@@ -1581,7 +1580,7 @@ export class PerpsController extends BaseController<
           takeProfitPrice: params.takeProfitPrice || '',
           stopLossPrice: params.stopLossPrice || '',
         },
-      }) as Span;
+      });
 
       const provider = this.getActiveProvider();
 
@@ -2240,7 +2239,7 @@ export class PerpsController extends BaseController<
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
         },
-      }) as Span;
+      });
 
       const provider = this.getActiveProvider();
       const result = await provider.getOpenOrders(params);
@@ -3187,18 +3186,17 @@ export class PerpsController extends BaseController<
     const traceId = _traceId || uuidv4();
 
     // Start trace only on first attempt
-    let traceSpan: Span | undefined;
+    let traceSpan: TraceContext;
     if (retryCount === 0) {
       traceSpan = trace({
         name: TraceName.PerpsDataLakeReport,
         op: TraceOperation.PerpsOperation,
         id: traceId,
-        parentContext: null,
         tags: {
           action,
           coin,
         },
-      }) as Span;
+      });
     }
 
     // Log the attempt
