@@ -151,11 +151,11 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#121314",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#121314",
+                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -184,7 +184,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#ffffff",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -207,11 +207,11 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#121314",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#121314",
+                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -233,14 +233,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               <SvgMock
                 fill="currentColor"
                 height={24}
-                name="apple"
+                name="apple-white"
                 width={24}
               />
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#ffffff",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -565,11 +565,11 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#121314",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#121314",
+                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -598,7 +598,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#ffffff",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -621,11 +621,11 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#121314",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#121314",
+                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -647,14 +647,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               <SvgMock
                 fill="currentColor"
                 height={24}
-                name="apple"
+                name="apple-white"
                 width={24}
               />
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#ffffff",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
