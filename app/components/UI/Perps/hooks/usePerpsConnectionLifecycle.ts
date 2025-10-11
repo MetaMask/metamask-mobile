@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 interface UsePerpsConnectionLifecycleParams {
   isVisible?: boolean;
@@ -90,11 +91,23 @@ export function usePerpsConnectionLifecycle({
         nextAppState === 'active'
       ) {
         // App coming to foreground - reconnect if needed and visible
+        // Add a small delay to allow system to stabilize after background
         if (
           !hasConnected.current &&
           (isVisible === true || isVisible === undefined)
         ) {
-          handleConnection();
+          // Delay reconnection slightly to avoid race conditions with system wake-up
+          const timer = setTimeout(() => {
+            // Double-check we still need to connect
+            if (
+              !hasConnected.current &&
+              (isVisible === true || isVisible === undefined)
+            ) {
+              handleConnection();
+            }
+          }, PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
+          // Store timer to clean up if component unmounts
+          return () => clearTimeout(timer);
         }
       }
 

@@ -4,7 +4,7 @@ import { usePerpsTrading } from './usePerpsTrading';
 
 // Mock dependencies
 jest.mock('./usePerpsTrading');
-jest.mock('../providers/PerpsConnectionProvider', () => ({
+jest.mock('./usePerpsConnection', () => ({
   usePerpsConnection: jest.fn(),
 }));
 
@@ -20,9 +20,7 @@ describe('usePerpsPrices', () => {
       subscribeToPrices: mockSubscribeToPrices,
     });
 
-    const { usePerpsConnection } = jest.requireMock(
-      '../providers/PerpsConnectionProvider',
-    );
+    const { usePerpsConnection } = jest.requireMock('./usePerpsConnection');
     usePerpsConnection.mockReturnValue({
       isInitialized: true,
     });
@@ -90,9 +88,7 @@ describe('usePerpsPrices', () => {
   });
 
   it('should not subscribe when not initialized', () => {
-    const { usePerpsConnection } = jest.requireMock(
-      '../providers/PerpsConnectionProvider',
-    );
+    const { usePerpsConnection } = jest.requireMock('./usePerpsConnection');
     usePerpsConnection.mockReturnValue({
       isInitialized: false,
     });

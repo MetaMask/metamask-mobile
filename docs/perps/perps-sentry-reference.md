@@ -437,6 +437,102 @@ adb logcat | grep PERPSMARK_SENTRY_WS
 adb logcat | grep PERPSMARK_
 ```
 
+## Error Logging Best Practices
+
+### Standard Pattern
+
+All errors should be logged with consistent context using `Logger.error()`:
+
+```typescript
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../utils/perpsErrorHandler';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+
+try {
+  await someOperation();
+} catch (error) {
+  Logger.error(ensureError(error), {
+    feature: PERPS_CONSTANTS.FEATURE_NAME,
+    context: 'PerpsController.placeOrder',
+    provider: this.state.activeProvider,
+    network: this.state.isTestnet ? 'testnet' : 'mainnet',
+    message: 'Optional human-readable context',
+  });
+  throw error;
+}
+```
+
+### Context Helper Pattern (Controllers)
+
+Controllers should implement a `getErrorContext()` helper for consistency:
+
+```typescript
+/**
+ * Generate standard error context for Logger.error calls
+ * Ensures consistent error reporting to Sentry with minimal but complete context
+ */
+private getErrorContext(
+  method: string,
+  extra?: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    feature: PERPS_CONSTANTS.FEATURE_NAME,
+    context: `PerpsController.${method}`,
+    provider: this.state.activeProvider,
+    network: this.state.isTestnet ? 'testnet' : 'mainnet',
+    ...extra,
+  };
+}
+
+// Usage in catch blocks
+try {
+  const positions = await this.provider.getPositions(params);
+  return positions;
+} catch (error) {
+  Logger.error(ensureError(error), this.getErrorContext('getPositions'));
+  throw error;
+}
+```
+
+### Required Context Fields
+
+| Field      | Type   | Purpose                         | Example                    |
+| ---------- | ------ | ------------------------------- | -------------------------- |
+| `feature`  | string | Feature name for Sentry queries | `'perps'`                  |
+| `context`  | string | Component + method path         | `'PerpsController.method'` |
+| `provider` | string | Active provider name            | `'hyperliquid'`            |
+| `network`  | string | Network environment             | `'testnet'` or `'mainnet'` |
+
+### Optional Context Fields
+
+| Field     | Type   | Purpose                 | Example                            |
+| --------- | ------ | ----------------------- | ---------------------------------- |
+| `message` | string | Human-readable context  | `'Error reconnecting'`             |
+| Custom    | any    | Operation-specific data | `{ orderId: '123', asset: 'BTC' }` |
+
+### Error Helper: `ensureError()`
+
+Always wrap caught errors with `ensureError()` to guarantee Error instances:
+
+```typescript
+import { ensureError } from '../utils/perpsErrorHandler';
+
+catch (error) {
+  // Converts unknown error types to Error instances
+  Logger.error(ensureError(error), context);
+}
+```
+
+### When to Log Errors
+
+1. **Always log** in controller/service catch blocks
+2. **Always log** in connection management catch blocks
+3. **Always log** in async callbacks that might fail silently
+4. **Don't log** in UI components (let errors bubble to controllers)
+5. **Don't log** expected validation errors (e.g., insufficient balance)
+
+---
+
 ## Best Practices
 
 1. **Always use unique trace IDs** for manual traces with `uuidv4()`
@@ -447,6 +543,8 @@ adb logcat | grep PERPSMARK_
 6. **Always clean up** in finally blocks
 7. **Parent-child relationships**: Pass parent span to child traces for nested measurements
 8. **Cache API calls**: Use cached values in Rewards API to avoid redundant calls
+9. **Use `Logger.error()` with context** for all error logging (see Error Logging Best Practices)
+10. **Use `ensureError()` helper** to normalize caught errors before logging
 
 ## Related Files
 

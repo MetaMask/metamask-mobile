@@ -15,7 +15,6 @@ import {
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
-import type { Span } from '@sentry/core';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -28,6 +27,7 @@ import {
   endTrace,
   TraceName,
   TraceOperation,
+  type TraceContext,
 } from '../../../../util/trace';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
@@ -35,6 +35,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../constants/eventNames';
+import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
@@ -42,6 +43,7 @@ import {
   DATA_LAKE_API_CONFIG,
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -89,27 +91,8 @@ import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remo
 const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Error codes for PerpsController
- * These codes are returned to the UI layer for translation
- */
-export const PERPS_ERROR_CODES = {
-  CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
-  CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
-  PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
-  TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
-  BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
-  WITHDRAW_FAILED: 'WITHDRAW_FAILED',
-  POSITIONS_FAILED: 'POSITIONS_FAILED',
-  ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
-  MARKETS_FAILED: 'MARKETS_FAILED',
-  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-  // Provider-agnostic order errors
-  ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
-} as const;
-
-export type PerpsErrorCode =
-  (typeof PERPS_ERROR_CODES)[keyof typeof PERPS_ERROR_CODES];
+// Re-export error codes from separate file to avoid circular dependencies
+export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
 
 const ON_RAMP_GEO_BLOCKING_URLS = {
   DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
@@ -519,11 +502,7 @@ export class PerpsController extends BaseController<
     this.providers = new Map();
 
     this.initializeProviders().catch((error) => {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error initializing providers',
-        context: 'PerpsController.constructor',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(ensureError(error), this.getErrorContext('constructor'));
     });
   }
 
@@ -540,7 +519,10 @@ export class PerpsController extends BaseController<
     }
 
     this.refreshEligibility().catch((error) => {
-      Logger.error(error as Error, 'Error refreshing eligibility');
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('setBlockedRegionList', { source }),
+      );
     });
   }
 
@@ -575,7 +557,7 @@ export class PerpsController extends BaseController<
    * @private
    */
   private async calculateUserFeeDiscount(
-    parentSpan?: Span,
+    parentSpan?: TraceContext,
   ): Promise<number | undefined> {
     // Only create standalone trace if no parent span provided
     const traceId = parentSpan ? undefined : uuidv4();
@@ -586,11 +568,11 @@ export class PerpsController extends BaseController<
       const traceSpan =
         parentSpan ||
         (traceId
-          ? (trace({
+          ? trace({
               name: TraceName.PerpsRewardsAPICall,
               id: traceId,
               op: TraceOperation.PerpsOperation,
-            }) as Span)
+            })
           : undefined);
 
       if (!traceSpan) {
@@ -619,13 +601,10 @@ export class PerpsController extends BaseController<
       if (!chainId) {
         Logger.error(
           new Error('Chain ID not found for fee discount calculation'),
-          {
-            message:
-              'PerpsController: Missing chain ID prevents reward discount calculation',
-            context: 'PerpsController.calculateUserFeeDiscount',
+          this.getErrorContext('calculateUserFeeDiscount', {
             selectedNetworkClientId,
             networkClientExists: !!networkClient,
-          },
+          }),
         );
         return undefined;
       }
@@ -638,14 +617,11 @@ export class PerpsController extends BaseController<
       if (!caipAccountId) {
         Logger.error(
           new Error('Failed to format CAIP account ID for fee discount'),
-          {
-            message:
-              'PerpsController: CAIP account ID formatting failed, preventing reward discount calculation',
-            context: 'PerpsController.calculateUserFeeDiscount',
+          this.getErrorContext('calculateUserFeeDiscount', {
             address: evmAccount.address,
             chainId,
             selectedNetworkClientId,
-          },
+          }),
         );
         return undefined;
       }
@@ -680,10 +656,10 @@ export class PerpsController extends BaseController<
 
       return discountBips;
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Fee discount calculation failed',
-        context: 'PerpsController.calculateUserFeeDiscount',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('calculateUserFeeDiscount'),
+      );
 
       traceData = {
         success: false,
@@ -765,6 +741,27 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Generate standard error context for Logger.error calls
+   * Ensures consistent error reporting to Sentry with minimal but complete context
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields
+   * @returns Standardized error context object
+   * @private
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+      context: `PerpsController.${method}`,
+      provider: this.state.activeProvider,
+      network: this.state.isTestnet ? 'testnet' : 'mainnet',
+      ...extra,
+    };
+  }
+
+  /**
    * Get the currently active provider
    * @returns The active provider
    * @throws Error if provider is not initialized or reinitializing
@@ -827,7 +824,7 @@ export class PerpsController extends BaseController<
           isBuy: params.isBuy,
           orderPrice: params.price || '',
         },
-      }) as Span;
+      });
       const provider = this.getActiveProvider();
 
       // Calculate fee discount at execution time (fresh, secure)
@@ -915,8 +912,11 @@ export class PerpsController extends BaseController<
             : undefined,
         }).catch((error) => {
           Logger.error(
-            error as Error,
-            'Error reporting open order to data lake',
+            ensureError(error),
+            this.getErrorContext('placeOrder', {
+              operation: 'reportOrderToDataLake',
+              coin: params.coin,
+            }),
           );
         });
 
@@ -998,11 +998,12 @@ export class PerpsController extends BaseController<
           provider.setUserFeeDiscount(undefined);
         }
       } catch (cleanupError) {
-        Logger.error(cleanupError as Error, {
-          message:
-            'PerpsController: Failed to clear fee discount during error cleanup',
-          context: 'PerpsController.placeOrder',
-        });
+        Logger.error(
+          ensureError(cleanupError),
+          this.getErrorContext('placeOrder', {
+            operation: 'clearFeeDiscount',
+          }),
+        );
       }
 
       traceData = {
@@ -1263,14 +1264,13 @@ export class PerpsController extends BaseController<
         name: TraceName.PerpsClosePosition,
         id: traceId,
         op: TraceOperation.PerpsPositionManagement,
-        parentContext: null,
         tags: {
           provider: this.state.activeProvider,
           coin: params.coin,
           closeSize: params.size || 'full',
           isTestnet: this.state.isTestnet,
         },
-      }) as Span;
+      });
 
       // Measure position loading time
       const positionLoadStart = performance.now();
@@ -1291,7 +1291,25 @@ export class PerpsController extends BaseController<
       }
 
       const provider = this.getActiveProvider();
-      const result = await provider.closePosition(params);
+
+      // Calculate fee discount at execution time (same as placeOrder)
+      const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
+
+      // Set discount context in provider for this close operation
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
+      }
+
+      let result: OrderResult;
+      try {
+        result = await provider.closePosition(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      }
+
       const completionDuration = performance.now() - startTime;
 
       if (result.success && position) {
@@ -1305,8 +1323,11 @@ export class PerpsController extends BaseController<
           coin: params.coin,
         }).catch((error) => {
           Logger.error(
-            error as Error,
-            'Error reporting close order to data lake',
+            ensureError(error),
+            this.getErrorContext('closePosition', {
+              operation: 'reportOrderToDataLake',
+              coin: params.coin,
+            }),
           );
         });
 
@@ -1559,7 +1580,7 @@ export class PerpsController extends BaseController<
           takeProfitPrice: params.takeProfitPrice || '',
           stopLossPrice: params.stopLossPrice || '',
         },
-      }) as Span;
+      });
 
       const provider = this.getActiveProvider();
 
@@ -1954,10 +1975,12 @@ export class PerpsController extends BaseController<
 
         // Trigger account state refresh after withdrawal
         this.getAccountState({ source: 'post_withdrawal' }).catch((error) => {
-          Logger.error(error as Error, {
-            message: '⚠️ PerpsController: Failed to refresh after withdrawal',
-            context: 'PerpsController.withdraw',
-          });
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('withdraw', {
+              operation: 'refreshAccountState',
+            }),
+          );
         });
 
         traceData = {
@@ -2012,13 +2035,13 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
-      Logger.error(error as Error, {
-        message: 'PerpsController: WITHDRAWAL EXCEPTION',
-        errorMessage,
-        errorType:
-          error instanceof Error ? error.constructor.name : typeof error,
-        params,
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('withdraw', {
+          assetId: params.assetId,
+          amount: params.amount,
+        }),
+      );
 
       this.update((state) => {
         state.lastError = errorMessage;
@@ -2095,6 +2118,8 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.POSITIONS_FAILED;
 
+      Logger.error(ensureError(error), this.getErrorContext('getPositions'));
+
       // Update error state but don't modify positions (keep existing data)
       this.update((state) => {
         state.lastError = errorMessage;
@@ -2141,6 +2166,8 @@ export class PerpsController extends BaseController<
       traceData = { success: true };
       return result;
     } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getOrderFills'));
+
       traceData = {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -2179,6 +2206,8 @@ export class PerpsController extends BaseController<
       traceData = { success: true };
       return result;
     } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getOrders'));
+
       traceData = {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -2210,7 +2239,7 @@ export class PerpsController extends BaseController<
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
         },
-      }) as Span;
+      });
 
       const provider = this.getActiveProvider();
       const result = await provider.getOpenOrders(params);
@@ -2226,6 +2255,8 @@ export class PerpsController extends BaseController<
       traceData = { success: true };
       return result;
     } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getOpenOrders'));
+
       traceData = {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -2264,6 +2295,8 @@ export class PerpsController extends BaseController<
       traceData = { success: true };
       return result;
     } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getFunding'));
+
       traceData = {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -2303,12 +2336,12 @@ export class PerpsController extends BaseController<
       const [accountState, historicalPortfolio] = await Promise.all([
         provider.getAccountState(params),
         provider.getHistoricalPortfolio(params).catch((error) => {
-          Logger.error(error as Error, {
-            message:
-              'Failed to get historical portfolio, continuing without it',
-            context: 'PerpsController.getAccountState',
-          });
-          return;
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('getAccountState', {
+              operation: 'getHistoricalPortfolio',
+            }),
+          );
         }),
       ]);
 
@@ -2319,12 +2352,12 @@ export class PerpsController extends BaseController<
         );
 
         // Track null account state errors in Sentry for API monitoring
-        Logger.error(error, {
-          message: 'Received null/undefined account state from provider',
-          context: 'PerpsController.getAccountState',
-          provider: this.state.activeProvider,
-          isTestnet: this.state.isTestnet,
-        });
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('getAccountState', {
+            operation: 'nullAccountStateCheck',
+          }),
+        );
 
         throw error;
       }
@@ -2413,6 +2446,11 @@ export class PerpsController extends BaseController<
           ? error.message
           : 'Failed to get historical portfolio';
 
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getHistoricalPortfolio'),
+      );
+
       // Update error state
       this.update((state) => {
         state.lastError = errorMessage;
@@ -2481,6 +2519,8 @@ export class PerpsController extends BaseController<
         error instanceof Error
           ? error.message
           : PERPS_ERROR_CODES.MARKETS_FAILED;
+
+      Logger.error(ensureError(error), this.getErrorContext('getMarkets'));
 
       // Update error state
       this.update((state) => {
@@ -2557,6 +2597,15 @@ export class PerpsController extends BaseController<
         error instanceof Error
           ? error.message
           : 'Failed to fetch historical candles';
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('fetchHistoricalCandles', {
+          coin,
+          interval,
+          limit,
+        }),
+      );
 
       // Update error state
       this.update((state) => {
@@ -2648,11 +2697,10 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.getWithdrawalRoutes();
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error getting withdrawal routes',
-        context: 'PerpsController.getWithdrawalRoutes',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getWithdrawalRoutes'),
+      );
       // Return empty array if provider is not available
       return [];
     }
@@ -2758,11 +2806,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to prices',
-        context: 'PerpsController.subscribeToPrices',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToPrices', {
+          symbols: params.symbols?.join(','),
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -2778,11 +2827,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to positions',
-        context: 'PerpsController.subscribeToPositions',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToPositions', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -2798,11 +2848,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to order fills',
-        context: 'PerpsController.subscribeToOrderFills',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderFills', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -2818,11 +2869,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to orders',
-        context: 'PerpsController.subscribeToOrders',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrders', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -2838,11 +2890,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToAccount(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to account',
-        context: 'PerpsController.subscribeToAccount',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToAccount', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -2858,11 +2911,10 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       provider.setLiveDataConfig(config);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error setting live data config',
-        context: 'PerpsController.setLiveDataConfig',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('setLiveDataConfig'),
+      );
     }
   }
 
@@ -2897,60 +2949,13 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        Logger.error(error as Error, {
-          message: 'PerpsController: Error getting provider during disconnect',
-          context: 'PerpsController.disconnect',
-          timestamp: new Date().toISOString(),
-        });
+        Logger.error(ensureError(error), this.getErrorContext('disconnect'));
       }
     }
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
-  }
-
-  /**
-   * Reconnect with new account/network context
-   * Called when user switches accounts or networks
-   */
-  async reconnectWithNewContext(): Promise<void> {
-    // Prevent concurrent reinitializations
-    if (this.isReinitializing) {
-      DevLogger.log('PerpsController: Already reinitializing, waiting...', {
-        timestamp: new Date().toISOString(),
-      });
-      // Wait for the current reinitialization to complete
-      if (this.initializationPromise) {
-        await this.initializationPromise;
-      }
-      return;
-    }
-
-    this.isReinitializing = true;
-
-    try {
-      DevLogger.log('PerpsController: Reconnecting with new account/network', {
-        timestamp: new Date().toISOString(),
-      });
-
-      // Clear Redux state immediately to reset UI
-      this.update((state) => {
-        state.accountState = null;
-        state.pendingOrders = [];
-        state.lastError = null;
-      });
-
-      // Clear state and force reinitialization
-      // initializeProviders() will handle disconnection if needed
-      this.isInitialized = false;
-      this.initializationPromise = null;
-
-      // Reinitialize with new context
-      await this.initializeProviders();
-    } finally {
-      this.isReinitializing = false;
-    }
   }
 
   /**
@@ -3029,10 +3034,10 @@ export class PerpsController extends BaseController<
 
       return location;
     } catch (e) {
-      Logger.error(e as Error, {
-        message: 'PerpsController: Failed to fetch geo location',
-        context: 'PerpsController.performGeoLocationFetch',
-      });
+      Logger.error(
+        ensureError(e),
+        this.getErrorContext('performGeoLocationFetch'),
+      );
       // Don't cache failures
       return location;
     }
@@ -3058,11 +3063,10 @@ export class PerpsController extends BaseController<
         );
       }
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Eligibility refresh failed',
-        context: 'PerpsController.refreshEligibility',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('refreshEligibility'),
+      );
     } finally {
       this.update((state) => {
         state.isEligible = isEligible;
@@ -3182,18 +3186,17 @@ export class PerpsController extends BaseController<
     const traceId = _traceId || uuidv4();
 
     // Start trace only on first attempt
-    let traceSpan: Span | undefined;
+    let traceSpan: TraceContext;
     if (retryCount === 0) {
       traceSpan = trace({
         name: TraceName.PerpsDataLakeReport,
         op: TraceOperation.PerpsOperation,
         id: traceId,
-        parentContext: null,
         tags: {
           action,
           coin,
         },
-      }) as Span;
+      });
     }
 
     // Log the attempt
@@ -3283,14 +3286,15 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      Logger.error(error as Error, {
-        message: 'DataLake API: Request failed',
-        errorMessage,
-        retryCount,
-        action,
-        coin,
-        willRetry: retryCount < MAX_RETRIES,
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('reportOrderToDataLake', {
+          action,
+          coin,
+          retryCount,
+          willRetry: retryCount < MAX_RETRIES,
+        }),
+      );
 
       // Retry logic
       if (retryCount < MAX_RETRIES) {
@@ -3312,8 +3316,13 @@ export class PerpsController extends BaseController<
             _traceId: traceId,
           }).catch((err) => {
             Logger.error(
-              err as Error,
-              'Error reporting retry order to data lake',
+              ensureError(err),
+              this.getErrorContext('reportOrderToDataLake', {
+                operation: 'retry',
+                retryCount: retryCount + 1,
+                action,
+                coin,
+              }),
             );
           });
         }, retryDelay);
@@ -3331,12 +3340,15 @@ export class PerpsController extends BaseController<
         },
       });
 
-      Logger.error(error as Error, {
-        message: 'Failed to report perps order to data lake after retries',
-        action,
-        coin,
-        retryCount,
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('reportOrderToDataLake', {
+          operation: 'finalFailure',
+          action,
+          coin,
+          retryCount,
+        }),
+      );
 
       return { success: false, error: errorMessage };
     }
