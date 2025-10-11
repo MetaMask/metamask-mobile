@@ -593,11 +593,6 @@ export class PerpsController extends BaseController<
             })
           : undefined);
 
-      if (!traceSpan) {
-        // Should never happen, but guard against it
-        return undefined;
-      }
-
       const { RewardsController, NetworkController } = Engine.context;
       const evmAccount = getEvmAccountFromSelectedAccountGroup();
 
