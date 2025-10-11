@@ -5,7 +5,6 @@ import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
-  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import {
   Caip25CaveatType,
@@ -324,16 +323,10 @@ export async function switchToNetwork({
 
   rejectApprovalRequestsForOrigin?.();
 
-  if (isPerDappSelectedNetworkEnabled()) {
-    SelectedNetworkController.setNetworkClientIdForDomain(
-      origin,
-      networkConfigurationId || networkConfiguration.networkType,
-    );
-  } else {
-    await MultichainNetworkController.setActiveNetwork(
-      networkConfigurationId || networkConfiguration.networkType,
-    );
-  }
+  SelectedNetworkController.setNetworkClientIdForDomain(
+    origin,
+    networkConfigurationId || networkConfiguration.networkType,
+  );
 
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
