@@ -36,9 +36,9 @@ describe('PredictOnboarding', () => {
   describe('rendering', () => {
     beforeEach(() => {
       mockUsePredictEnableWallet.mockReturnValue({
-        isLoading: false,
-        error: null,
-        isSuccess: false,
+        loading: false,
+        error: false,
+        completed: false,
         deposit: mockDeposit,
       });
     });
@@ -69,9 +69,9 @@ describe('PredictOnboarding', () => {
   describe('interactions', () => {
     beforeEach(() => {
       mockUsePredictEnableWallet.mockReturnValue({
-        isLoading: false,
-        error: null,
-        isSuccess: false,
+        loading: false,
+        error: false,
+        completed: false,
         deposit: mockDeposit,
       });
     });
@@ -96,9 +96,9 @@ describe('PredictOnboarding', () => {
     it('shows activity indicator when deposit is loading', () => {
       // Given deposit is in loading state
       mockUsePredictEnableWallet.mockReturnValue({
-        isLoading: true,
-        error: null,
-        isSuccess: false,
+        loading: true,
+        error: false,
+        completed: false,
         deposit: mockDeposit,
       });
 
@@ -114,9 +114,9 @@ describe('PredictOnboarding', () => {
     it('shows arrow icon when not loading', () => {
       // Given deposit is not loading
       mockUsePredictEnableWallet.mockReturnValue({
-        isLoading: false,
-        error: null,
-        isSuccess: false,
+        loading: false,
+        error: false,
+        completed: false,
         deposit: mockDeposit,
       });
 

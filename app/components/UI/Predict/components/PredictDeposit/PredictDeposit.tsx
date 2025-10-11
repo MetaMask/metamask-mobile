@@ -17,7 +17,7 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 
 // This is a temporary component that will be removed when the onboarding is fully implemented
 const PredictDeposit: React.FC = () => {
-  const { deposit, isLoading: isEnableWalletLoading } = usePredictDeposit();
+  const { deposit, loading: isEnableWalletLoading } = usePredictDeposit();
 
   const handleDeposit = useCallback(async () => {
     deposit();
