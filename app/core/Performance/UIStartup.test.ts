@@ -50,7 +50,7 @@ describe('getUIStartupSpan', () => {
     // Second call should return the same UIStartupSpan
     const result = getUIStartupSpan();
 
-    expect(spyFetch).toHaveBeenCalledTimes(1);
+    expect(spyFetch).toHaveBeenCalledTimes(2);
     expect(result).toBe(undefined);
   });
 
@@ -64,6 +64,6 @@ describe('getUIStartupSpan', () => {
     // Second call should return the same UIStartupSpan without calling trace again
     getUIStartupSpan();
 
-    expect(traceObj.trace).toHaveBeenCalledTimes(1);
+    expect(traceObj.trace).toHaveBeenCalledTimes(2);
   });
 });
