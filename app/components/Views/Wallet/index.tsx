@@ -192,7 +192,7 @@ const createStyles = ({ colors }: Theme) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    walletAccount: { marginTop: 28 },
+    walletAccount: { marginTop: 24 },
 
     tabContainer: {
       flex: 1,
