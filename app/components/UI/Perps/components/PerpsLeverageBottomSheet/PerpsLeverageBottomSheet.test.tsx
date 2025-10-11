@@ -48,14 +48,7 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-// Mock format utilities
-jest.mock('../../utils/formatUtils', () => ({
-  ...jest.requireActual('../../utils/formatUtils'),
-  formatPrice: jest.fn((value) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
-  }),
-}));
+// No need to mock format utilities - use real implementations
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -601,7 +594,7 @@ describe('PerpsLeverageBottomSheet', () => {
       );
     });
 
-    it('truncates liquidation price to 2 decimals when price is above 1', () => {
+    it('formats liquidation price with 4 significant figures', () => {
       // Arrange - Mock hook to return liquidation price with many decimal places
       const mockUsePerpsLiquidationPrice = jest.requireMock(
         '../../hooks/usePerpsLiquidationPrice',
@@ -623,8 +616,8 @@ describe('PerpsLeverageBottomSheet', () => {
       // Act
       render(<PerpsLeverageBottomSheet {...props} />);
 
-      // Assert - Should display truncated price with 2 decimal places
-      expect(screen.getByText('$1,234.36')).toBeOnTheScreen();
+      // Assert - Should display formatted price with 4 sig figs (1,2,3,4), min 2 decimals
+      expect(screen.getByText('$1,234.00')).toBeOnTheScreen();
     });
   });
 

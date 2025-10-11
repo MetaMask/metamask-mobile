@@ -46,11 +46,12 @@ export const DEFAULT_FIAT_RANGES: FiatRangeConfig[] = [
 
 /**
  * Formats a number to a specific number of significant digits
+ * Strips trailing zeros unless minDecimals requires them
  * @param value - The numeric value to format
  * @param significantDigits - Number of significant digits to maintain
  * @param minDecimals - Minimum decimal places to show (may add zeros)
  * @param maxDecimals - Maximum decimal places allowed
- * @returns Formatted number with appropriate precision
+ * @returns Formatted number with appropriate precision, trailing zeros removed
  */
 export function formatWithSignificantDigits(
   value: number,
@@ -60,17 +61,69 @@ export function formatWithSignificantDigits(
 ): { value: number; decimals: number } {
   // Handle special cases
   if (value === 0) {
-    return { value: 0, decimals: minDecimals ?? 2 };
+    // Always show 2 decimals for zero currency values ($0.00 not $0)
+    return { value: 0, decimals: Math.max(minDecimals ?? 2, 2) };
   }
 
   const absValue = Math.abs(value);
 
-  // Use toPrecision for significant digits, then parse back
+  // For numbers >= 1, calculate decimals based on magnitude to achieve target significant figures
+  // This ensures consistent precision across different price ranges:
+  // Examples with 4 significant figures:
+  //   $123,456.78 → $123,456.78 (≥$1000: 2 decimals minimum, 8 sig figs)
+  //   $456.12 → $456.12 (≥$10: 2 decimals minimum, 5 sig figs)
+  //   $56.123 → $56.123 (≥$10: 2 decimals minimum, 5 sig figs)
+  //   $5.123 → $5.123 ($1-$10: 3 decimals = 4 sig figs)
+  //   $2.801 → $2.801 ($1-$10: 3 decimals = 4 sig figs)
+  //   $1.234 → $1.234 ($1-$10: 3 decimals = 4 sig figs)
+  if (absValue >= 1) {
+    let targetDecimals: number;
+
+    if (absValue >= 1000) {
+      // ≥$1000: 2 decimals minimum (currency standard)
+      // Already have 4+ sig figs from integer part (e.g., 123456.78 = 8 sig figs)
+      targetDecimals = 2;
+    } else if (absValue >= 10) {
+      // $10-$1000: 2 decimals minimum (currency standard)
+      // Already have 4+ sig figs from integer part (e.g., 456.12 = 5 sig figs)
+      targetDecimals = 2;
+    } else {
+      // $1-$10: Calculate decimals needed to achieve significantDigits
+      // For $2.80055: 1 integer digit + 3 decimals = 4 sig figs → $2.801
+      // For $5.1234: 1 integer digit + 3 decimals = 4 sig figs → $5.123
+      const integerDigits = Math.floor(Math.log10(absValue)) + 1; // Number of digits before decimal
+      const decimalsNeeded = Math.max(significantDigits - integerDigits, 2); // At least 2 decimals for currency
+      targetDecimals = decimalsNeeded;
+    }
+
+    // Apply explicit minimum decimals constraint if provided (for special cases)
+    if (minDecimals !== undefined && targetDecimals < minDecimals) {
+      targetDecimals = minDecimals;
+    }
+
+    // Apply maximum decimals constraint if specified
+    const finalDecimals =
+      maxDecimals !== undefined
+        ? Math.min(targetDecimals, maxDecimals)
+        : targetDecimals;
+
+    // Round to prevent floating-point artifacts (e.g., 2.820000000000003 → 2.82)
+    const roundedValue = Number(value.toFixed(finalDecimals));
+
+    return {
+      value: roundedValue,
+      decimals: finalDecimals,
+    };
+  }
+
+  // For numbers < 1, use toPrecision to limit to significantDigits
+  // Examples: 0.1234, 0.01234 should show exactly 4 sig figs
   const precisionStr = absValue.toPrecision(significantDigits);
   const precisionNum = parseFloat(precisionStr);
 
-  // Determine decimal places from the precision string
-  const [, decPart = ''] = precisionStr.split('.');
+  // Convert to string to count actual decimals after trailing zeros are removed
+  const valueStr = precisionNum.toString();
+  const [, decPart = ''] = valueStr.split('.');
   let actualDecimals = decPart.length;
 
   // Apply min/max decimal constraints
@@ -244,15 +297,16 @@ export const PRICE_RANGES_DETAILED_VIEW: FiatRangeConfig[] = [
   {
     condition: (v) => v >= 1,
     minimumDecimals: 2,
-    maximumDecimals: 2,
+    maximumDecimals: 4,
+    significantDigits: 4,
     threshold: 1,
   },
   {
     condition: (v) => v < 1,
     minimumDecimals: 2,
-    maximumDecimals: 7,
-    significantDigits: 3,
-    threshold: 0.0000001,
+    maximumDecimals: 10,
+    significantDigits: 4,
+    threshold: 0.00000001,
   },
 ];
 
@@ -260,15 +314,16 @@ export const PRICE_RANGES_POSITION_VIEW: FiatRangeConfig[] = [
   {
     condition: (v) => v >= 1,
     minimumDecimals: 2,
-    maximumDecimals: 2,
+    maximumDecimals: 4,
+    significantDigits: 4,
     threshold: 1,
   },
   {
     condition: (v) => v < 1,
     minimumDecimals: 2,
-    maximumDecimals: 7,
+    maximumDecimals: 10,
     significantDigits: 4,
-    threshold: 0.0000001,
+    threshold: 0.00000001,
   },
 ];
 
@@ -278,6 +333,23 @@ export const PRICE_RANGES_MINIMAL_VIEW: FiatRangeConfig[] = [
     minimumDecimals: 2,
     maximumDecimals: 2,
     threshold: 0.01,
+  },
+];
+
+/**
+ * Unified price range configuration for 4 significant figures with currency standard
+ * Follows the rule: Display at least 2 decimals (currency standard), preserve higher precision, strip excess trailing zeros
+ * Examples: $123,456.00 ; $4,123.45 ; $56.123 ; $1.234 ; $0.1234 ; $0.01234
+ * Minimum 2 decimals for currency: $123,456 → $123,456.00 ; $1.23 stays $1.23
+ * Preserve higher precision: $1.234 stays $1.234 (don't round to 2 decimals)
+ */
+export const PRICE_RANGES_4_SIG_FIGS: FiatRangeConfig[] = [
+  {
+    condition: () => true,
+    significantDigits: 4,
+    minimumDecimals: 2, // Currency standard: minimum 2 decimals
+    maximumDecimals: 10, // Allow up to 10 decimals for very small numbers
+    threshold: 0.00000001,
   },
 ];
 
@@ -610,14 +682,16 @@ export const formatVolume = (
 
 /**
  * Formats position size with variable decimal precision based on magnitude
+ * Removes trailing zeros to match task requirements
  * @param size - Raw position size value
- * @returns Format varies by size:
- * - Size < 0.01: "X.XXXXXX" (6 decimals)
- * - Size < 1: "X.XXXX" (4 decimals)
- * - Size >= 1: "X.XX" (2 decimals)
- * @example formatPositionSize(0.001234) => "0.001234"
- * @example formatPositionSize(0.5678) => "0.5678"
- * @example formatPositionSize(123.456) => "123.46"
+ * @returns Format varies by size, with trailing zeros removed:
+ * - Size < 0.01: Up to 6 decimals (e.g., "0.00009" not "0.000090")
+ * - Size < 1: Up to 4 decimals (e.g., "0.0024" not "0.002400")
+ * - Size >= 1: Up to 2 decimals (e.g., "44" not "44.00")
+ * @example formatPositionSize(0.00009) => "0.00009"
+ * @example formatPositionSize(0.0024) => "0.0024"
+ * @example formatPositionSize(44.00) => "44"
+ * @example formatPositionSize(0.23) => "0.23"
  */
 export const formatPositionSize = (size: string | number): string => {
   const num = typeof size === 'string' ? parseFloat(size) : size;
@@ -626,20 +700,26 @@ export const formatPositionSize = (size: string | number): string => {
     return '0';
   }
 
+  if (num === 0) {
+    return '0';
+  }
+
   const abs = Math.abs(num);
+  let formatted: string;
 
   // For very small numbers, use more decimal places
   if (abs < 0.01) {
-    return num.toFixed(6);
+    formatted = num.toFixed(6);
+  } else if (abs < 1) {
+    // For small numbers, use 4 decimal places
+    formatted = num.toFixed(4);
+  } else {
+    // For normal numbers, use 2 decimal places
+    formatted = num.toFixed(2);
   }
 
-  // For small numbers, use 4 decimal places
-  if (abs < 1) {
-    return num.toFixed(4);
-  }
-
-  // For normal numbers, use 2 decimal places
-  return num.toFixed(2);
+  // Remove trailing zeros and unnecessary decimal point
+  return formatted.replace(/\.?0+$/, '');
 };
 
 /**

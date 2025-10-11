@@ -35,7 +35,6 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
-  formatPrice,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_POSITION_VIEW,
 } from '../../utils/formatUtils';
@@ -339,9 +338,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerRight}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(position.positionValue, {
-                  minimumDecimals: 2,
-                  maximumDecimals: 2,
+                {formatPerpsFiat(position.positionValue, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
                 })}
               </Text>
             </View>

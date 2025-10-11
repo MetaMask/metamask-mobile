@@ -88,8 +88,8 @@ describe('PerpsOpenOrderCard', () => {
         render(<PerpsOpenOrderCard order={mockOrder} />);
 
         expect(screen.getByText('Limit Order')).toBeOnTheScreen();
-        // Text shows as "2.50\n\nETH" so we need to match the pattern
-        expect(screen.getByText(/2\.50\s+ETH/)).toBeOnTheScreen();
+        // Text shows as "2.5\n\nETH" (trailing zero removed) so we need to match the pattern
+        expect(screen.getByText(/2\.5\s+ETH/)).toBeOnTheScreen();
       });
 
       it('renders with icon when showIcon is true', () => {
@@ -397,8 +397,8 @@ describe('PerpsOpenOrderCard', () => {
 
       render(<PerpsOpenOrderCard order={btcOrder} />);
 
-      // Text shows as "0.1000\n\nBTC" so we need to match the pattern
-      expect(screen.getByText(/0\.1000\s+BTC/)).toBeOnTheScreen();
+      // Text shows as "0.1\n\nBTC" (trailing zeros removed) so we need to match the pattern
+      expect(screen.getByText(/0\.1\s+BTC/)).toBeOnTheScreen();
     });
 
     it('handles market orders', () => {

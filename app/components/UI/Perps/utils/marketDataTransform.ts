@@ -6,7 +6,11 @@ import type {
 } from '@deeeed/hyperliquid-node20';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsMarketData } from '../controllers/types';
-import { formatVolume } from './formatUtils';
+import {
+  formatVolume,
+  formatPerpsFiat,
+  PRICE_RANGES_4_SIG_FIGS,
+} from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
@@ -115,7 +119,9 @@ export function transformMarketData(
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
       maxLeverage: `${asset.maxLeverage}x`,
-      price: isNaN(currentPrice) ? '$0.00' : formatPrice(currentPrice),
+      price: isNaN(currentPrice)
+        ? '$0.00'
+        : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_4_SIG_FIGS }),
       change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
@@ -131,66 +137,21 @@ export function transformMarketData(
 }
 
 /**
- * Format price with appropriate decimal places
- */
-export function formatPrice(price: number): string {
-  if (isNaN(price) || !isFinite(price)) return '$0.00';
-  if (price === 0) return '$0.00';
-
-  const absPrice = Math.abs(price);
-
-  if (absPrice >= 1000) {
-    return getIntlNumberFormatter('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  }
-  if (absPrice >= 1) {
-    return getIntlNumberFormatter('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  }
-  if (absPrice >= 0.01) {
-    return getIntlNumberFormatter('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    }).format(price);
-  }
-  return getIntlNumberFormatter('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 6,
-    maximumFractionDigits: 6,
-  }).format(price);
-}
-
-/**
- * Format 24h change with sign
+ * Format 24h change with sign using 4 significant figures
  * Uses more decimal places for smaller amounts to show meaningful precision
  */
 export function formatChange(change: number): string {
   if (isNaN(change) || !isFinite(change)) return '$0.00';
   if (change === 0) return '$0.00';
 
-  // Determine decimal places based on magnitude: smaller amounts need more precision
-  const absChange = Math.abs(change);
-  const decimalPlaces = absChange >= 1 ? 2 : absChange >= 0.01 ? 4 : 6;
+  // Use 4 significant figures for consistency
+  const formatted = formatPerpsFiat(Math.abs(change), {
+    ranges: PRICE_RANGES_4_SIG_FIGS,
+  });
 
-  const formatted = getIntlNumberFormatter('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: decimalPlaces,
-    maximumFractionDigits: decimalPlaces,
-  }).format(change);
-
-  return change > 0 ? `+${formatted}` : formatted;
+  // Remove $ sign and add it back with proper sign placement
+  const valueWithoutDollar = formatted.replace('$', '');
+  return change > 0 ? `+$${valueWithoutDollar}` : `-$${valueWithoutDollar}`;
 }
 
 /**

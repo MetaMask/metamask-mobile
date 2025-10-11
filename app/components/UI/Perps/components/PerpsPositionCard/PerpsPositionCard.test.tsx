@@ -250,7 +250,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Header section
       expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
-      expect(screen.getByText('2.50 ETH')).toBeOnTheScreen();
+      expect(screen.getByText('2.5 ETH')).toBeOnTheScreen(); // Trailing zero removed
       expect(screen.getByText('$5,000.00')).toBeOnTheScreen();
 
       // Assert - Body section - using string keys since strings() mock returns keys
@@ -294,7 +294,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(screen.getByText('short')).toBeOnTheScreen();
-      expect(screen.getByText(/2\.50.*ETH/)).toBeOnTheScreen(); // Should show absolute value
+      expect(screen.getByText(/2\.5.*ETH/)).toBeOnTheScreen(); // Should show absolute value (trailing zero removed)
     });
 
     it('renders with PnL data', () => {
@@ -472,7 +472,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={btcPosition} />);
 
       // Assert
-      expect(screen.getByText(/0\.5000.*BTC/)).toBeOnTheScreen();
+      expect(screen.getByText(/0\.5.*BTC/)).toBeOnTheScreen(); // Trailing zeros removed
     });
 
     it('handles very small position sizes', () => {
