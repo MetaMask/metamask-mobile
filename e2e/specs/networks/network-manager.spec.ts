@@ -12,6 +12,8 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import Matchers from '../../framework/Matchers';
+import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -271,6 +273,22 @@ const isMultichainAccountsState2Enabled =
         },
         async () => {
           await loginToApp();
+
+          // Log env to CI output and verify token filter state is set to Current
+          // This helps diagnose differences between CI runs (All vs Current networks)
+          // eslint-disable-next-line no-console
+          console.log(
+            'E2E ENV MM_REMOVE_GLOBAL_NETWORK_SELECTOR:',
+            process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR,
+          );
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByID(
+              WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+            ),
+            {
+              elemDescription: 'Verify token filter is set to Current network',
+            },
+          );
 
           // Open network manager and verify initial state
           await NetworkManager.openNetworkManager();
