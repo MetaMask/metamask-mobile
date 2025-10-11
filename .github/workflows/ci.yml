@@ -268,7 +268,7 @@ jobs:
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
-      metamask_environment: 'qa'
+      metamask_environment: 'e2e'
       keystore_target: 'qa'
     secrets: inherit
 
