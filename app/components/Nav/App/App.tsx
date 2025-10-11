@@ -1108,6 +1108,33 @@ const App: React.FC = () => {
 
           // Only show metrics optin for SRP users
           if (!isSeedlessOnboardingLoginFlow) {
+            // Check current navigation state to avoid redirecting if already on OptinMetrics
+            const currentRoute = routes[routes.length - 1];
+            const prevRoute = routes[routes.length - 2];
+            const currentRouteName = currentRoute?.name;
+            const currentParams = currentRoute?.params as
+              | Record<string, unknown>
+              | undefined;
+            const currentScreen = currentParams?.screen;
+            const nestedParams =
+              currentParams?.params && typeof currentParams.params === 'object'
+                ? (currentParams.params as Record<string, unknown>)
+                : undefined;
+
+            // Check if user came from lock screen (lock/unlock cycle)
+            const cameFromLockScreen = prevRoute?.name === Routes.LOCK_SCREEN;
+
+            // Check if user is currently on OptinMetrics screen
+            const isCurrentlyOnOptinMetrics =
+              currentRouteName === Routes.ONBOARDING.ROOT_NAV &&
+              currentScreen === Routes.ONBOARDING.NAV &&
+              nestedParams?.screen === Routes.ONBOARDING.OPTIN_METRICS;
+
+            // Prevents the lock/unlock loop
+            if (cameFromLockScreen && isCurrentlyOnOptinMetrics) {
+              return;
+            }
+
             const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
               OPTIN_META_METRICS_UI_SEEN,
             );
