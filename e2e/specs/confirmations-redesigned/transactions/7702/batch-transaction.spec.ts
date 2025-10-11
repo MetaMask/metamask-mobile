@@ -1,28 +1,27 @@
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
-import SwitchAccountModal from '../../pages/wallet/SwitchAccountModal';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../framework/Assertions';
-import Browser from '../../pages/Browser/BrowserView';
-import ConfirmationUITypes from '../../pages/Browser/Confirmations/ConfirmationUITypes';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import RowComponents from '../../pages/Browser/Confirmations/RowComponents';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import TestDApp from '../../pages/Browser/TestDApp';
-import WalletView from '../../pages/wallet/WalletView';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../api-mocking/mock-responses/simulations';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
-import { loginToApp } from '../../viewHelper';
-import { SmokeConfirmationsRedesigned } from '../../tags';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { DappVariants } from '../../framework/Constants';
-import { AnvilNodeOptions, LocalNodeType } from '../../framework';
+import AccountDetails from '../../../../pages/MultichainAccounts/AccountDetails';
+import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../../framework/Assertions';
+import Browser from '../../../../pages/Browser/BrowserView';
+import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
+import NetworkListModal from '../../../../pages/Network/NetworkListModal';
+import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
+import SwitchAccountModal from '../../../../pages/wallet/SwitchAccountModal';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import TestDApp from '../../../../pages/Browser/TestDApp';
+import WalletView from '../../../../pages/wallet/WalletView';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
+import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import { loginToApp } from '../../../../viewHelper';
+import { SmokeConfirmationsRedesigned } from '../../../../tags';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../../../framework/Constants';
+import { AnvilNodeOptions, LocalNodeType } from '../../../../framework';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
+import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const LOCAL_CHAIN_NAME = 'Localhost';
 
@@ -41,9 +40,6 @@ async function changeNetworkFromNetworkListModal() {
   await TabBarComponent.tapWallet();
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.changeNetworkTo(LOCAL_CHAIN_NAME);
-  await device.disableSynchronization();
-  await NetworkEducationModal.tapGotItButton();
-  await device.enableSynchronization();
 }
 
 async function checkConfirmationPage() {
@@ -55,8 +51,19 @@ async function checkConfirmationPage() {
 async function tapSwitchAccountModal() {
   await WalletView.tapIdenticon();
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
-  await AccountActionsBottomSheet.tapSwitchToSmartAccount();
+  await SwitchAccountModal.tapSmartAccountLink();
   await SwitchAccountModal.tapSwitchAccountButton();
+}
+
+async function goBackToWalletPage() {
+  await SwitchAccountModal.tapSmartAccountBackButton();
+  await AccountDetails.tapBackButton();
+  try {
+    await AccountListBottomSheet.dismissAccountListModalV2();
+  } catch (error) {
+    // Modal might already be dismissed, continue with test
+    console.log('Modal already dismissed or not found, continuing...');
+  }
 }
 
 async function connectTestDappToLocalhost() {
@@ -110,7 +117,6 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         await loginToApp();
 
         // Submit send calls
-        await TabBarComponent.tapWallet();
         await changeNetworkFromNetworkListModal();
         await connectTestDappToLocalhost();
         await TestDApp.tapSendCallsButton();
@@ -149,6 +155,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
+        await goBackToWalletPage();
         // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Switch to standard account');
@@ -195,6 +202,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
+        await goBackToWalletPage();
         // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Upgrade to smart account');

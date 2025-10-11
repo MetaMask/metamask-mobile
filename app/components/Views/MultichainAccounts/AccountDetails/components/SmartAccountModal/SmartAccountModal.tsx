@@ -73,6 +73,7 @@ const SmartAccountModal = () => {
             labelTextVariant={TextVariant.BodyMDMedium}
             label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
             onPress={() => navigation.goBack()}
+            testID="smart-account-back-button"
           />
         }
       >
