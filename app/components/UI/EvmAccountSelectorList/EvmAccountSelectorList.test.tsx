@@ -335,14 +335,14 @@ describe('EvmAccountSelectorList', () => {
 
   it('renders correctly', async () => {
     const { toJSON } = renderComponent(initialState);
-    await waitFor(() => expect(toJSON()).toMatchSnapshot());
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders all accounts with balances', async () => {
     const { queryByTestId, getAllByTestId, toJSON } =
       renderComponent(initialState);
 
-    await waitFor(async () => {
+  await waitFor(async () => {
       const businessAccountItem = await queryByTestId(
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
@@ -364,9 +364,8 @@ describe('EvmAccountSelectorList', () => {
 
       const accounts = getAllByTestId(regex.accountBalance);
       expect(accounts.length).toBe(2);
-
-      expect(toJSON()).toMatchSnapshot();
     });
+  expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders all accounts with right accessory', async () => {
@@ -375,16 +374,15 @@ describe('EvmAccountSelectorList', () => {
       EvmAccountSelectorListRightAccessoryUseAccounts,
     );
 
-    await waitFor(() => {
+  await waitFor(() => {
       const rightAccessories = getAllByTestId(RIGHT_ACCESSORY_TEST_ID);
       expect(rightAccessories.length).toBe(2);
 
       // Check that each right accessory contains the expected content
       expect(rightAccessories[0].props.children).toContain(BUSINESS_ACCOUNT);
       expect(rightAccessories[1].props.children).toContain(PERSONAL_ACCOUNT);
-
-      expect(toJSON()).toMatchSnapshot();
     });
+  expect(toJSON()).toMatchSnapshot();
   });
   it('renders correct account names', async () => {
     const { getAllByTestId } = renderComponent(initialState);
