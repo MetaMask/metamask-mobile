@@ -4,22 +4,20 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
-import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { strings } from '../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
 export function useInsufficientPayTokenBalanceAlert({
-  amountOverrides,
+  _amountOverrides,
 }: {
-  amountOverrides?: Record<Hex, string>;
+  _amountOverrides?: Record<Hex, string>;
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
   const { balance, symbol } = payToken ?? {};
 
-  const { totalHuman, amounts } = useTransactionPayTokenAmounts({
-    amountOverrides,
-  });
+  // MATT TODO
+  const { totalHuman, amounts } = { totalHuman: 0, amounts: [] } as never;
 
   const tokenAmount =
     amounts?.find((a) => a.address !== NATIVE_TOKEN_ADDRESS)

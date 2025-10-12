@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { orderBy } from 'lodash';
@@ -13,6 +12,8 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { getRequiredBalance } from '../../utils/transaction-pay';
+import { RootState } from '../../../../../reducers';
+import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -30,15 +31,19 @@ export function useAutomaticTransactionPayToken({
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { setPayToken } = useTransactionPayToken();
-  const requiredTokens = useTransactionRequiredTokens({ log: true });
 
   const transactionMeta =
     useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
 
   const {
     chainId,
+    id: transactionId,
     txParams: { from },
   } = transactionMeta;
+
+  const requiredTokens = useSelector((state: RootState) =>
+    selectTransactionPayTokensByTransactionId(state, transactionId ?? ''),
+  );
 
   const chainIds = useMemo(
     () => (!isUpdated.current ? supportedChains.map((c) => c.chainId) : []),

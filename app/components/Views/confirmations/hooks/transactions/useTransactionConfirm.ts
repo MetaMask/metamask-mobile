@@ -16,7 +16,6 @@ import {
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { cloneDeep } from 'lodash';
-import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TransactionBridgeQuote } from '../../utils/bridge';
@@ -34,11 +33,16 @@ export function useTransactionConfirm() {
   const { chainId, id: transactionId, type } = transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
+  // MATT TODO
   const {
     totalBridgeFeeFormatted: bridgeFeeFiat,
     totalFormatted: totalFiat,
     totalNativeEstimatedFormatted: networkFeeFiat,
-  } = useTransactionTotalFiat();
+  } = {
+    totalBridgeFeeFormatted: '0',
+    totalFormatted: '0',
+    totalNativeEstimatedFormatted: '0',
+  };
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 

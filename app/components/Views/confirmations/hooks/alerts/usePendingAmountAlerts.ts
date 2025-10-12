@@ -3,8 +3,8 @@ import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
 import { Alert } from '../../types/alerts';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { usePerpsHardwareAccountAlert } from './usePerpsHardwareAccountAlert';
-import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { TransactionToken } from '@metamask/transaction-pay-controller';
 
 export function usePendingAmountAlerts({
   pendingTokenAmount,
@@ -15,14 +15,15 @@ export function usePendingAmountAlerts({
     pendingTokenAmount: pendingTokenAmount ?? '0',
   });
 
-  const requiredTokens = useTransactionRequiredTokens();
+  // MATT TODO
+  const requiredTokens = [] as TransactionToken[];
 
   const tokenAddress =
     requiredTokens.find((t) => t.address.toLowerCase() !== NATIVE_TOKEN_ADDRESS)
       ?.address ?? '0x0';
 
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
-    amountOverrides: {
+    _amountOverrides: {
       [tokenAddress.toLowerCase()]: pendingTokenAmount ?? '0',
     },
   });
