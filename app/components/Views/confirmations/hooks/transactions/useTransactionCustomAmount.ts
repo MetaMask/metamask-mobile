@@ -4,8 +4,6 @@ import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { setTransactionBridgeQuotesLoading } from '../../../../../core/redux/slices/confirmationMetrics';
-import { useDispatch } from 'react-redux';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenTransferData } from '../../utils/transaction-pay';
@@ -13,12 +11,11 @@ import { getTokenTransferData } from '../../utils/transaction-pay';
 export const MAX_LENGTH = 28;
 
 export function useTransactionCustomAmount() {
-  const dispatch = useDispatch();
   const [amountFiat, setAmountFiat] = useState('0');
   const [isInputChanged, setInputChanged] = useState(false);
 
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { chainId, id: transactionId } = transactionMeta;
+  const { chainId } = transactionMeta;
 
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
@@ -69,12 +66,8 @@ export function useTransactionCustomAmount() {
   );
 
   const updateTokenAmount = useCallback(() => {
-    dispatch(
-      setTransactionBridgeQuotesLoading({ transactionId, isLoading: true }),
-    );
-
     updateTokenAmountCallback(amountHuman);
-  }, [amountHuman, dispatch, transactionId, updateTokenAmountCallback]);
+  }, [amountHuman, updateTokenAmountCallback]);
 
   return {
     amountFiat,

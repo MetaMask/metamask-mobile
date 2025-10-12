@@ -28,7 +28,7 @@ import { RootState } from '../../../../../../reducers';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   selectIsTransactionPayLoadingByTransactionId,
-  selectTransactionPayPayQuotesById,
+  selectTransactionPayQuotesByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
 
 export interface CustomAmountInfoProps {
@@ -148,7 +148,7 @@ function useIsResultReady({
   const transactionId = transactionMeta?.id ?? '';
 
   const quotes = useSelector((state: RootState) =>
-    selectTransactionPayPayQuotesById(state, transactionId),
+    selectTransactionPayQuotesByTransactionId(state, transactionId),
   );
 
   const isQuotesLoading = useSelector((state: RootState) =>
