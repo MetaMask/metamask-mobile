@@ -236,6 +236,14 @@ export class CardController extends BaseController<
       this.isAuthenticated.bind(this),
     );
     this.messagingSystem.registerActionHandler(
+      'CardController:getIsCardholder',
+      this.getIsCardholder.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'CardController:getIsAuthenticated',
+      this.getIsAuthenticated.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
       'CardController:getPriorityToken',
       this.getPriorityToken.bind(this),
     );
@@ -285,9 +293,8 @@ export class CardController extends BaseController<
       'CardController:refreshToken',
       this.refreshToken.bind(this),
     );
-    this.messagingSystem.registerActionHandler(
-      'CardController:logout',
-      this.logout.bind(this),
+    this.messagingSystem.registerActionHandler('CardController:logout', () =>
+      this.logout(),
     );
     this.messagingSystem.registerActionHandler(
       'CardController:setActiveAccount',
@@ -326,7 +333,7 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Check if an address is a cardholder
+   * Check if an address is a cardholder (per-wallet on-chain data)
    */
   isCardholder(address: string): boolean {
     const accountState = this.getAccountState(address);
@@ -334,11 +341,24 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Check if an address is authenticated
+   * Check if the user is authenticated (global authentication state)
    */
-  isAuthenticated(address: string): boolean {
-    const accountState = this.getAccountState(address);
-    return accountState?.isAuthenticated ?? false;
+  isAuthenticated(): boolean {
+    return this.state.global.isAuthenticated;
+  }
+
+  /**
+   * Get cardholder status for an address (same as isCardholder)
+   */
+  getIsCardholder(address: string): boolean {
+    return this.isCardholder(address);
+  }
+
+  /**
+   * Get authentication status (same as isAuthenticated)
+   */
+  getIsAuthenticated(): boolean {
+    return this.isAuthenticated();
   }
 
   /**
@@ -380,11 +400,8 @@ export class CardController extends BaseController<
         state.accounts[address] = {
           address,
           isCardholder: false,
-          isAuthenticated: false,
-          priorityTokenAddress: null,
-          priorityTokenSymbol: null,
-          priorityTokenAllowance: null,
-          priorityTokenAllowanceState: null,
+          cardholderLastChecked: null,
+          priorityToken: null,
           priorityTokenLastFetched: null,
           cardDetailsJson: null,
           cardDetailsLastFetched: null,
@@ -393,7 +410,6 @@ export class CardController extends BaseController<
           supportedTokensAllowancesJson: null,
           supportedTokensAllowancesLastFetched: null,
           needsProvisioning: false,
-          userLocation: null,
         };
       });
     }
@@ -426,16 +442,39 @@ export class CardController extends BaseController<
       this.update((state) => {
         state.global.cardholderAccounts = cardholderAccounts;
         state.global.cardholderAccountsLastFetched = Date.now();
+      });
 
-        // Update individual account states
-        accounts.forEach((account) => {
-          const address = account.split(':')[2]; // Extract address from CAIP format
-          if (address) {
-            this.#ensureAccountState(address);
-            state.accounts[address].isCardholder =
-              cardholderAccounts.includes(account);
+      // Update cardholder status for all affected accounts
+      accounts.forEach((account) => {
+        const address = account.split(':')[2]; // Extract address from CAIP format
+        if (address) {
+          this.#ensureAccountState(address);
+
+          const isCardholder = cardholderAccounts.includes(account);
+          const currentIsCardholder = this.isCardholder(address);
+
+          if (currentIsCardholder !== isCardholder) {
+            this.update((state) => {
+              state.accounts[address].isCardholder = isCardholder;
+              state.accounts[address].cardholderLastChecked = Date.now();
+            });
+
+            Logger.log(
+              'CardController: Updated cardholder status in checkCardholder',
+              {
+                address,
+                isCardholder,
+                previousValue: currentIsCardholder,
+              },
+            );
+
+            // Emit cardholder changed event
+            this.messagingSystem.publish('CardController:cardholderChanged', {
+              address,
+              isCardholder,
+            });
           }
-        });
+        }
       });
 
       // Emit event
@@ -517,39 +556,114 @@ export class CardController extends BaseController<
         const accountState = this.state.accounts[address];
         if (
           !forceRefresh &&
-          accountState?.priorityTokenAddress !== undefined &&
+          accountState?.priorityToken !== undefined &&
           accountState?.priorityTokenLastFetched
         ) {
-          const priorityToken: CardTokenAllowanceState = {
-            allowanceState:
-              accountState.priorityTokenAllowanceState || 'NOT_REQUESTED',
-            allowance: accountState.priorityTokenAllowance || '0',
-            address: accountState.priorityTokenAddress,
-            decimals: null,
-            symbol: accountState.priorityTokenSymbol,
-            name: null,
-          };
           return {
-            payload: priorityToken,
+            payload: accountState.priorityToken,
             lastFetched: accountState.priorityTokenLastFetched,
           };
         }
         return undefined;
       },
       fetchFresh: async () => {
-        Logger.log(
-          'CardController: Fetching fresh priority token data for',
-          address,
-        );
         if (!this.#dataService) {
           throw new Error('Card data service not initialized');
         }
+
+        const isAuthenticated = this.state.global.isAuthenticated;
+
+        if (isAuthenticated) {
+          // Authenticated: Get priority token from API via external wallet details
+          Logger.log(
+            'CardController: Fetching priority token from API (authenticated user)',
+            { address },
+          );
+
+          const externalWalletDetails =
+            await this.#dataService.getExternalWalletDetails({});
+
+          if (!externalWalletDetails || externalWalletDetails.length === 0) {
+            Logger.log('CardController: No external wallet details found', {
+              address,
+            });
+            return null;
+          }
+
+          // Find the wallet detail with the highest priority for this address
+          const addressWallets = externalWalletDetails.filter(
+            (wallet) =>
+              wallet.walletAddress?.toLowerCase() === address.toLowerCase(),
+          );
+
+          if (addressWallets.length === 0) {
+            Logger.log('CardController: No wallet details found for address', {
+              address,
+            });
+            return null;
+          }
+
+          const priorityWallet = addressWallets.reduce((highest, current) =>
+            current.priority > highest.priority ? current : highest,
+          );
+
+          if (!priorityWallet || priorityWallet.priority === 0) {
+            Logger.log(
+              'CardController: No priority wallet found in external wallet details',
+              { address },
+            );
+            return null;
+          }
+
+          Logger.log('CardController: Found priority wallet from API', {
+            address,
+            tokenAddress: priorityWallet.address,
+            priority: priorityWallet.priority,
+          });
+
+          // Get token metadata from supported tokens
+          const supportedTokens = this.#dataService.supportedTokens;
+          const tokenMetadata = supportedTokens.find(
+            (token) =>
+              token.address?.toLowerCase() ===
+              priorityWallet.address.toLowerCase(),
+          );
+
+          return {
+            allowanceState: 'enabled',
+            allowance: priorityWallet.allowance || '0',
+            address: priorityWallet.address,
+            decimals: tokenMetadata?.decimals || null,
+            symbol: tokenMetadata?.symbol || priorityWallet.currency || null,
+            name: tokenMetadata?.name || null,
+          } as CardTokenAllowanceState;
+        }
+
+        // Not authenticated: Get priority token on-chain
+        Logger.log(
+          'CardController: Fetching priority token on-chain (non-authenticated user)',
+          { address },
+        );
+
         const token = await this.#dataService.getPriorityToken(params);
-        // Convert CardToken to CardTokenAllowanceState if needed
-        if (!token) return null;
+
+        if (!token) {
+          Logger.log('CardController: No on-chain priority token found', {
+            address,
+          });
+          return null;
+        }
+
+        Logger.log(
+          'CardController: Successfully fetched on-chain priority token, marking as cardholder',
+          {
+            address,
+            tokenAddress: token.address,
+          },
+        );
 
         return {
-          allowanceState: 'APPROVED',
+          allowanceState: 'enabled',
           allowance: '0',
           address: token.address,
           decimals: token.decimals,
@@ -558,23 +672,42 @@ export class CardController extends BaseController<
         } as CardTokenAllowanceState;
       },
       writeCache: (_key, payload) => {
+        const wasCardholder =
+          this.state.accounts[address]?.isCardholder || false;
+
         this.update((state) => {
-          if (payload) {
-            state.accounts[address].priorityTokenAddress = payload.address;
-            state.accounts[address].priorityTokenSymbol = payload.symbol;
-            state.accounts[address].priorityTokenAllowance = payload.allowance;
-            state.accounts[address].priorityTokenAllowanceState =
-              payload.allowanceState;
-          } else {
-            state.accounts[address].priorityTokenAddress = null;
-            state.accounts[address].priorityTokenSymbol = null;
-            state.accounts[address].priorityTokenAllowance = null;
-            state.accounts[address].priorityTokenAllowanceState = null;
-          }
+          state.accounts[address].priorityToken = payload;
           state.accounts[address].priorityTokenLastFetched = Date.now();
+
+          // Successfully getting priority token means cardholder (both on-chain and API)
+          if (payload) {
+            state.accounts[address].isCardholder = true;
+            state.accounts[address].cardholderLastChecked = Date.now();
+          }
         });
 
-        // Emit event
+        // Emit cardholder changed event if status updated
+        if (payload && !wasCardholder) {
+          Logger.log(
+            'CardController: Updated cardholder status after successful priority token fetch',
+            {
+              address,
+              isCardholder: true,
+              wasAuthenticated: this.state.global.isAuthenticated,
+              fetchSource: this.state.global.isAuthenticated
+                ? 'API'
+                : 'on-chain',
+              previousValue: wasCardholder,
+            },
+          );
+
+          this.messagingSystem.publish('CardController:cardholderChanged', {
+            address,
+            isCardholder: true,
+          });
+        }
+
+        // Emit priority token event
         this.messagingSystem.publish('CardController:priorityTokenUpdated', {
           address,
           tokenAddress: payload?.address || null,
@@ -907,54 +1040,93 @@ export class CardController extends BaseController<
       refreshTokenExpiresIn: tokenResponse.refreshTokenExpiresIn,
     };
 
+    Logger.log('CardController: Storing token and updating auth state', {
+      location,
+      activeAccount: this.state.activeAccount,
+      hasAccessToken: !!tokenResponse.accessToken,
+    });
+
     await storeCardBaanxToken(tokenData);
 
-    // Update authentication state for active account
+    // Update global authentication state
+    this.update((state) => {
+      state.global.isAuthenticated = true;
+      state.global.userLocation = location;
+      state.global.authTokenJson = JSON.stringify(tokenData);
+      state.global.authTokenExpiresAt = tokenData.expiresAt;
+    });
+
     const activeAddress = this.state.activeAccount;
     if (activeAddress) {
+      // Ensure the active account is marked as a cardholder (authentication implies cardholder status)
       this.#ensureAccountState(activeAddress);
       this.update((state) => {
-        state.accounts[activeAddress].isAuthenticated = true;
-        state.accounts[activeAddress].userLocation = location;
+        state.accounts[activeAddress].isCardholder = true;
+        state.accounts[activeAddress].cardholderLastChecked = Date.now();
       });
 
-      // Emit authentication event
-      this.messagingSystem.publish('CardController:authenticationChanged', {
+      Logger.log('CardController: Authentication state updated', {
+        activeAddress,
+        isAuthenticated: this.isAuthenticated(),
+        isCardholder: this.isCardholder(activeAddress),
+      });
+
+      // Emit cardholder changed event
+      this.messagingSystem.publish('CardController:cardholderChanged', {
         address: activeAddress,
-        isAuthenticated: true,
-        userLocation: location,
+        isCardholder: true,
+      });
+
+      // Also emit cardholder status update since we updated it
+      this.messagingSystem.publish('CardController:cardholderStatusUpdated', {
+        accounts: [activeAddress],
+        cardholderAccounts: [activeAddress], // User is now confirmed as cardholder
       });
     }
+
+    // Emit global authentication event
+    this.messagingSystem.publish('CardController:authenticationChanged', {
+      isAuthenticated: true,
+      userLocation: location,
+    });
+
+    Logger.log('CardController: Global authentication state updated');
   }
 
   /**
    * Logout user and clear authentication state
    */
-  async logout(address: string): Promise<void> {
+  async logout(): Promise<void> {
     try {
       // Remove stored token
       await removeCardBaanxToken();
 
-      // Update authentication state
-      this.#ensureAccountState(address);
+      // Clear global authentication state
       this.update((state) => {
-        state.accounts[address].isAuthenticated = false;
-        state.accounts[address].userLocation = null;
-        // Clear cached data that requires authentication
-        state.accounts[address].cardDetailsJson = null;
-        state.accounts[address].cardDetailsLastFetched = null;
-        state.accounts[address].externalWalletDetailsJson = null;
-        state.accounts[address].externalWalletDetailsLastFetched = null;
+        state.global.isAuthenticated = false;
+        state.global.userLocation = null;
+        state.global.authTokenJson = null;
+        state.global.authTokenExpiresAt = null;
       });
 
-      // Emit authentication event
+      // Clear cached authentication-required data for all accounts
+      Object.keys(this.state.accounts).forEach((address) => {
+        this.update((state) => {
+          // Clear cached data that requires authentication
+          state.accounts[address].cardDetailsJson = null;
+          state.accounts[address].cardDetailsLastFetched = null;
+          state.accounts[address].externalWalletDetailsJson = null;
+          state.accounts[address].externalWalletDetailsLastFetched = null;
+        });
+      });
+
+      // Emit global authentication event
       this.messagingSystem.publish('CardController:authenticationChanged', {
-        address,
         isAuthenticated: false,
         userLocation: null,
       });
 
-      Logger.log('CardController: Logout completed for', address);
+      Logger.log('CardController: Logout completed');
     } catch (error) {
       Logger.log('CardController: Failed to logout:', error);
       throw error;

@@ -2,6 +2,15 @@ import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import {
+  selectCardAccountState,
+  selectIsCardholder,
+  selectIsAuthenticated,
+  selectUserCardLocation,
+  selectIsCardFeatureEnabled,
+  selectIsBaanxLoginEnabled,
+} from '../../../../selectors/cardController';
+import { RootState } from '../../../../reducers';
 import Logger from '../../../../util/Logger';
 import {
   CardLoadingPhase,
@@ -23,9 +32,10 @@ import {
 } from '../../../../core/Engine/controllers/card-controller/types';
 
 interface UseCardControllerResult {
-  // Authentication state
+  // Authentication state (global)
   isAuthenticated: boolean;
   userCardLocation: 'us' | 'international' | null;
+  // Per-wallet cardholder status
   isCardholder: boolean;
   isBaanxLoginEnabled: boolean;
   isFeatureEnabled: boolean;
@@ -48,7 +58,9 @@ interface UseCardControllerResult {
   dataSource: CardDataSource;
 
   // Actions
-  fetchPriorityToken: () => Promise<CardTokenAllowanceState | null>;
+  fetchPriorityToken: (
+    forceRefresh?: boolean,
+  ) => Promise<CardTokenAllowanceState | null>;
   fetchCardDetails: () => Promise<CardDetailsResponse | null>;
   authenticateUser: (params: AuthenticateParams) => Promise<CardLoginResponse>;
   initiateLogin: (
@@ -74,7 +86,38 @@ export const useCardController = (): UseCardControllerResult => {
     'eip155:0',
   )?.address;
 
-  // Local state
+  // Get state from Redux selectors
+  const isFeatureEnabled = useSelector(selectIsCardFeatureEnabled);
+  const isBaanxLoginEnabled = useSelector(selectIsBaanxLoginEnabled);
+  const accountState = useSelector((state: RootState) =>
+    selectedAddress ? selectCardAccountState(state, selectedAddress) : null,
+  );
+  const isCardholder = useSelector((state: RootState) =>
+    selectedAddress ? selectIsCardholder(state, selectedAddress) : false,
+  );
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const userCardLocation = useSelector(selectUserCardLocation);
+
+  // Debug: Log when Redux state changes
+  useEffect(() => {
+    Logger.log('useCardController: Redux state updated', {
+      selectedAddress,
+      isCardholder,
+      isAuthenticated,
+      userCardLocation,
+      isFeatureEnabled,
+      isBaanxLoginEnabled,
+    });
+  }, [
+    selectedAddress,
+    isCardholder,
+    isAuthenticated,
+    userCardLocation,
+    isFeatureEnabled,
+    isBaanxLoginEnabled,
+  ]);
+
+  // Local state for data and loading
   const [priorityToken, setPriorityToken] =
     useState<CardTokenAllowanceState | null>(null);
   const [cardDetails, setCardDetails] = useState<CardDetailsResponse | null>(
@@ -87,25 +130,6 @@ export const useCardController = (): UseCardControllerResult => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get feature flags and account state from controller
-  const isFeatureEnabled = useMemo(() => {
-    try {
-      return Engine.controllerMessenger.call('CardController:isFeatureEnabled');
-    } catch {
-      return false;
-    }
-  }, []);
-
-  const isBaanxLoginEnabled = useMemo(() => {
-    try {
-      return Engine.controllerMessenger.call(
-        'CardController:isBaanxLoginEnabled',
-      );
-    } catch {
-      return false;
-    }
-  }, []);
-
   const supportedTokens = useMemo(() => {
     try {
       return Engine.controllerMessenger.call(
@@ -116,45 +140,6 @@ export const useCardController = (): UseCardControllerResult => {
     }
   }, []);
 
-  const isCardholder = useMemo(() => {
-    if (!selectedAddress) return false;
-    try {
-      return Engine.controllerMessenger.call(
-        'CardController:isCardholder',
-        selectedAddress,
-      );
-    } catch {
-      return false;
-    }
-  }, [selectedAddress]);
-
-  const isAuthenticated = useMemo(() => {
-    if (!selectedAddress) return false;
-    try {
-      return Engine.controllerMessenger.call(
-        'CardController:isAuthenticated',
-        selectedAddress,
-      );
-    } catch {
-      return false;
-    }
-  }, [selectedAddress]);
-
-  const accountState = useMemo(() => {
-    if (!selectedAddress) return null;
-    try {
-      return Engine.controllerMessenger.call(
-        'CardController:getAccountState',
-        selectedAddress,
-      );
-    } catch {
-      return null;
-    }
-  }, [selectedAddress]);
-
-  const userCardLocation =
-    (accountState?.userLocation as 'us' | 'international') || null;
-
   // Determine data source strategy based on authentication
   const dataSource = useMemo((): CardDataSource => {
     if (isBaanxLoginEnabled && isAuthenticated) {
@@ -164,8 +149,10 @@ export const useCardController = (): UseCardControllerResult => {
   }, [isBaanxLoginEnabled, isAuthenticated]);
 
   // Actions
-  const fetchPriorityToken =
-    useCallback(async (): Promise<CardTokenAllowanceState | null> => {
+  const fetchPriorityToken = useCallback(
+    async (
+      forceRefresh: boolean = false,
+    ): Promise<CardTokenAllowanceState | null> => {
       if (!selectedAddress) return null;
 
       try {
@@ -173,6 +160,7 @@ export const useCardController = (): UseCardControllerResult => {
         const params: GetPriorityTokenParams = {
           address: selectedAddress,
           dataSource,
+          forceRefresh,
         };
 
         const token = await Engine.controllerMessenger.call(
@@ -189,7 +177,9 @@ export const useCardController = (): UseCardControllerResult => {
         setError(errorMessage);
         return null;
       }
-    }, [selectedAddress, dataSource]);
+    },
+    [selectedAddress, dataSource],
+  );
 
   const fetchCardDetails =
     useCallback(async (): Promise<CardDetailsResponse | null> => {
@@ -308,10 +298,7 @@ export const useCardController = (): UseCardControllerResult => {
 
     try {
       setError(null);
-      await Engine.controllerMessenger.call(
-        'CardController:logout',
-        selectedAddress,
-      );
+      await Engine.controllerMessenger.call('CardController:logout');
 
       // Reset local state
       setPriorityToken(null);
@@ -354,6 +341,8 @@ export const useCardController = (): UseCardControllerResult => {
           selectedAddress,
         );
 
+        // Note: Cardholder status is checked globally via useCardholderCheck hook
+
         setLoadingPhase(CardLoadingPhase.FETCHING_DATA);
 
         // Fetch priority token
@@ -386,17 +375,8 @@ export const useCardController = (): UseCardControllerResult => {
 
   // Update priority token from account state
   useEffect(() => {
-    if (accountState && accountState.priorityTokenAddress !== undefined) {
-      const token: CardTokenAllowanceState = {
-        allowanceState:
-          accountState.priorityTokenAllowanceState || 'NOT_REQUESTED',
-        allowance: accountState.priorityTokenAllowance || '0',
-        address: accountState.priorityTokenAddress,
-        decimals: null,
-        symbol: accountState.priorityTokenSymbol,
-        name: null,
-      };
-      setPriorityToken(token);
+    if (accountState?.priorityToken) {
+      setPriorityToken(accountState.priorityToken);
     }
   }, [accountState]);
 

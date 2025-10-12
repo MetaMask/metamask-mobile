@@ -52,6 +52,7 @@ import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 import { useCardController } from '../../hooks/useCardController';
 import { CardLoadingPhase } from '../../../../../core/Engine/controllers/card-controller/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import Logger from '../../../../../util/Logger';
 import CardWarning from '../../components/CardWarning';
 
 /**
@@ -82,11 +83,21 @@ const CardHome = () => {
     fetchPriorityToken,
     logout: logoutFromProvider,
     resetRetries,
-    isCardholder,
     isBaanxLoginEnabled,
+    isCardholder,
     needsProvisioning,
     cardDetails,
   } = useCardController();
+
+  // Debug: Log when component re-renders with new state
+  useEffect(() => {
+    Logger.log('CardHome: Component re-rendered with state', {
+      isAuthenticated,
+      isCardholder,
+      loadingPhase,
+      isBaanxLoginEnabled,
+    });
+  }, [isAuthenticated, isCardholder, loadingPhase, isBaanxLoginEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
@@ -151,23 +162,51 @@ const CardHome = () => {
     ],
   );
 
-  // Handle redirect to welcome screen for non-cardholders
+  // Handle navigation based on cardholder and authentication status
   useEffect(() => {
-    if (
-      !isLoading &&
-      loadingPhase === CardLoadingPhase.COMPLETE &&
-      !isAuthenticated &&
-      isBaanxLoginEnabled &&
-      !isCardholder
-    ) {
-      navigation.navigate(Routes.CARD.WELCOME);
+    Logger.log('CardHome: Navigation check', {
+      loadingPhase,
+      isCardholder,
+      isAuthenticated,
+      isBaanxLoginEnabled,
+    });
+    if (loadingPhase === CardLoadingPhase.COMPLETE) {
+      if (isAuthenticated) {
+        // User is authenticated globally, stay on CardHome regardless of cardholder status
+        Logger.log('CardHome: Staying on card home - user authenticated', {
+          isCardholder,
+          isAuthenticated,
+          isBaanxLoginEnabled,
+        });
+      } else if (!isCardholder) {
+        // User is not authenticated and current wallet is not a cardholder
+        Logger.log(
+          'CardHome: Redirecting to welcome screen - not authenticated and not cardholder',
+        );
+        navigation.navigate(Routes.CARD.WELCOME);
+      } else if (isCardholder && isBaanxLoginEnabled) {
+        // User is not authenticated, current wallet is a cardholder, and Baanx login is enabled
+        Logger.log(
+          'CardHome: Redirecting to welcome screen - not authenticated but cardholder (login available)',
+        );
+        navigation.navigate(Routes.CARD.WELCOME);
+      } else {
+        // User is not authenticated, current wallet is a cardholder, but Baanx is disabled
+        Logger.log(
+          'CardHome: Staying on card home - cardholder but Baanx disabled',
+          {
+            isCardholder,
+            isAuthenticated,
+            isBaanxLoginEnabled,
+          },
+        );
+      }
     }
   }, [
-    isLoading,
     loadingPhase,
+    isCardholder, // eslint-disable-line react-hooks/exhaustive-deps
     isAuthenticated,
     isBaanxLoginEnabled,
-    isCardholder,
     navigation,
   ]);
 
@@ -230,6 +269,10 @@ const CardHome = () => {
     isLoading,
     loadingPhase,
   ]);
+
+  useEffect(() => {
+    Logger.log('CardHome: priorityToken changed', { priorityToken });
+  }, [priorityToken]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(

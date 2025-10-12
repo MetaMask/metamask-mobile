@@ -1,8 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import useThunkDispatch from '../../../hooks/useThunkDispatch';
+import Engine from '../../../../core/Engine';
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
-import { loadCardholderAccounts } from '../../../../core/redux/slices/card';
 import {
   selectAppServicesReady,
   selectUserLoggedIn,
@@ -16,16 +15,14 @@ import { RootState } from '../../../../reducers';
  * Hook that automatically checks for cardholder accounts when conditions are met
  */
 export const useCardholderCheck = () => {
-  const lineaScope = 'eip155:59144';
-  const dispatch = useThunkDispatch();
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const appServicesReady = useSelector(selectAppServicesReady);
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const internalAccounts = useSelector((state: RootState) =>
-    selectInternalAccountsByScope(state, lineaScope),
+    selectInternalAccountsByScope(state, 'eip155:0'),
   );
 
-  const checkCardholderAccounts = useCallback(() => {
+  const checkCardholderAccounts = useCallback(async () => {
     const caipAccountIds = internalAccounts
       ?.filter((account) => isEthAccount(account))
       .map(
@@ -34,33 +31,63 @@ export const useCardholderCheck = () => {
       );
 
     if (!caipAccountIds?.length) {
+      Logger.log('useCardholderCheck: No accounts to check');
       return;
     }
 
-    dispatch(
-      loadCardholderAccounts({
-        caipAccountIds,
-        cardFeatureFlag,
-      }),
-    );
-  }, [cardFeatureFlag, dispatch, internalAccounts]);
+    try {
+      Logger.log(
+        'useCardholderCheck: Checking cardholder status for accounts',
+        {
+          accountCount: caipAccountIds.length,
+          accounts: caipAccountIds,
+        },
+      );
+
+      await Engine.controllerMessenger.call('CardController:checkCardholder', {
+        accounts: caipAccountIds,
+        forceRefresh: false,
+      });
+
+      Logger.log('useCardholderCheck: Cardholder check completed successfully');
+    } catch (error) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'useCardholderCheck: Error checking cardholder accounts via CardController',
+      );
+    }
+  }, [internalAccounts]);
 
   useEffect(() => {
-    if (
-      userLoggedIn &&
-      appServicesReady &&
-      cardFeatureFlag &&
-      internalAccounts?.length
-    ) {
-      try {
-        checkCardholderAccounts();
-      } catch (error) {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          'useCardholderCheck::Error checking cardholder accounts',
+    const runCardholderCheck = async () => {
+      if (
+        userLoggedIn &&
+        appServicesReady &&
+        cardFeatureFlag &&
+        internalAccounts?.length
+      ) {
+        Logger.log(
+          'useCardholderCheck: Conditions met, starting cardholder check',
+          {
+            userLoggedIn,
+            appServicesReady,
+            hasCardFeatureFlag: !!cardFeatureFlag,
+            accountCount: internalAccounts?.length,
+          },
         );
+
+        await checkCardholderAccounts();
+      } else {
+        Logger.log('useCardholderCheck: Conditions not met, skipping check', {
+          userLoggedIn,
+          appServicesReady,
+          hasCardFeatureFlag: !!cardFeatureFlag,
+          accountCount: internalAccounts?.length,
+        });
       }
-    }
+    };
+
+    runCardholderCheck();
   }, [
     userLoggedIn,
     appServicesReady,

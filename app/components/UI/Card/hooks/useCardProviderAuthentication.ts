@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useCardSDK } from '../sdk';
-import { storeCardBaanxToken } from '../util/cardTokenVault';
+import Engine from '../../../../core/Engine';
 import { generatePKCEPair, generateState } from '../util/pkceHelpers';
 import { CardError, CardErrorType, CardLocation } from '../types';
 import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
 
 /**
  * Maps CardError types to user-friendly localized error messages
@@ -49,7 +49,6 @@ const useCardProviderAuthentication = (
 } => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { sdk } = useCardSDK();
 
   const clearError = useCallback(() => {
     setError(null);
@@ -61,49 +60,66 @@ const useCardProviderAuthentication = (
       email: string;
       password: string;
     }): Promise<void> => {
-      if (!sdk) {
-        throw new Error('Card SDK not initialized');
-      }
-
       const state = generateState();
       const { codeVerifier, codeChallenge } = await generatePKCEPair();
 
       try {
         setLoading(true);
-        const initiateResponse = await sdk.initiateCardProviderAuthentication({
-          location: params.location,
-          state,
-          codeChallenge,
-        });
+        setError(null);
 
-        const loginResponse = await sdk.login({
-          location: params.location,
-          email: params.email,
-          password: params.password,
-        });
+        Logger.log(
+          'useCardProviderAuthentication: Starting authentication flow',
+          {
+            location: params.location,
+          },
+        );
 
-        const authorizeResponse = await sdk.authorize({
-          location: params.location,
-          initiateAccessToken: initiateResponse.token,
-          loginAccessToken: loginResponse.accessToken,
-        });
+        // Use CardController methods instead of SDK
+        const initiateResponse = await Engine.controllerMessenger.call(
+          'CardController:initiateLogin',
+          {
+            location: params.location,
+            state,
+            codeChallenge,
+          },
+        );
+
+        const loginResponse = await Engine.controllerMessenger.call(
+          'CardController:authenticate',
+          {
+            location: params.location,
+            email: params.email,
+            password: params.password,
+          },
+        );
+
+        const authorizeResponse = await Engine.controllerMessenger.call(
+          'CardController:authorize',
+          {
+            location: params.location,
+            initiateAccessToken: initiateResponse.token,
+            loginAccessToken: loginResponse.accessToken,
+          },
+        );
 
         if (authorizeResponse.state !== state) {
           throw new Error('Invalid state');
         }
 
-        const exchangeTokenResponse = await sdk.exchangeToken({
-          location: params.location,
-          code: authorizeResponse.code,
-          codeVerifier,
-          grantType: 'authorization_code',
-        });
+        // This will automatically update the CardController's authentication state
+        const exchangeTokenResponse = await Engine.controllerMessenger.call(
+          'CardController:exchangeToken',
+          {
+            location: params.location,
+            code: authorizeResponse.code,
+            codeVerifier,
+            grantType: 'authorization_code',
+          },
+        );
 
-        await storeCardBaanxToken({
-          accessToken: exchangeTokenResponse.accessToken,
-          refreshToken: exchangeTokenResponse.refreshToken,
-          expiresAt: Date.now() + exchangeTokenResponse.expiresIn * 1000,
+        Logger.log('useCardProviderAuthentication: Authentication successful', {
           location: params.location,
+          hasAccessToken: !!exchangeTokenResponse.accessToken,
         });
 
         setError(null);
@@ -113,6 +129,7 @@ const useCardProviderAuthentication = (
           await onAuthenticationSuccess();
         }
       } catch (err) {
+        Logger.log('useCardProviderAuthentication: Authentication failed', err);
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
 
@@ -121,7 +138,7 @@ const useCardProviderAuthentication = (
         setLoading(false);
       }
     },
-    [sdk, onAuthenticationSuccess],
+    [onAuthenticationSuccess],
   );
 
   return useMemo(

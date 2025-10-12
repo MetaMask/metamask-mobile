@@ -75,6 +75,11 @@ export enum CardDataSource {
 }
 
 /**
+ * Consolidated login state that combines cardholder status and authentication
+ */
+// Removed CardLoginState enum - authentication is now global, not per-wallet
+
+/**
  * Card authentication token data
  */
 export interface CardTokenData {
@@ -88,18 +93,16 @@ export interface CardTokenData {
 }
 
 /**
- * Card account state for a specific address
+ * Card account state for a specific address - contains per-wallet on-chain data only
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardAccountState = {
   address: string;
+  // On-chain cardholder status (per wallet)
   isCardholder: boolean;
-  isAuthenticated: boolean;
-  // Priority token data as flattened primitive fields
-  priorityTokenAddress: string | null;
-  priorityTokenSymbol: string | null;
-  priorityTokenAllowance: string | null;
-  priorityTokenAllowanceState: string | null;
+  cardholderLastChecked: number | null;
+  // Priority token data
+  priorityToken: CardTokenAllowanceState | null;
   priorityTokenLastFetched: number | null;
   // Card details as JSON string for simplicity
   cardDetailsJson: string | null;
@@ -111,18 +114,25 @@ export type CardAccountState = {
   supportedTokensAllowancesJson: string | null;
   supportedTokensAllowancesLastFetched: number | null;
   needsProvisioning: boolean;
-  userLocation: string | null;
 };
 
 /**
- * Global Card state
+ * Global Card state - contains user-level authentication and feature flags
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardGlobalState = {
+  // Feature flags
   isFeatureEnabled: boolean;
   isBaanxLoginEnabled: boolean;
+  // User authentication state (universal across all wallets)
+  isAuthenticated: boolean;
+  userLocation: 'us' | 'international' | null;
+  authTokenJson: string | null; // CardTokenData as JSON
+  authTokenExpiresAt: number | null;
+  // Geo location for the user
   geoLocation: string | null;
   geoLocationLastFetched: number | null;
+  // List of cardholder accounts (addresses that are cardholders on-chain)
   cardholderAccounts: string[];
   cardholderAccountsLastFetched: number | null;
 };
@@ -238,7 +248,6 @@ export type CardControllerAuthenticationChangedEvent = {
   type: 'CardController:authenticationChanged';
   payload: [
     {
-      address: string;
       isAuthenticated: boolean;
       userLocation: 'us' | 'international' | null;
     },
@@ -287,6 +296,16 @@ export type CardControllerErrorOccurredEvent = {
   ];
 };
 
+export type CardControllerCardholderChangedEvent = {
+  type: 'CardController:cardholderChanged';
+  payload: [
+    {
+      address: string;
+      isCardholder: boolean;
+    },
+  ];
+};
+
 /**
  * Card controller events union type
  */
@@ -299,6 +318,7 @@ export type CardControllerEvents =
   | CardControllerPriorityTokenUpdatedEvent
   | CardControllerCardDetailsUpdatedEvent
   | CardControllerCardholderStatusUpdatedEvent
+  | CardControllerCardholderChangedEvent
   | CardControllerErrorOccurredEvent;
 /* eslint-enable @typescript-eslint/consistent-type-definitions */
 
@@ -318,7 +338,17 @@ export type CardControllerIsCardholderAction = {
 
 export type CardControllerIsAuthenticatedAction = {
   type: 'CardController:isAuthenticated';
+  handler: () => boolean;
+};
+
+export type CardControllerGetIsCardholderAction = {
+  type: 'CardController:getIsCardholder';
   handler: (address: string) => boolean;
+};
+
+export type CardControllerGetIsAuthenticatedAction = {
+  type: 'CardController:getIsAuthenticated';
+  handler: () => boolean;
 };
 
 export type CardControllerGetPriorityTokenAction = {
@@ -386,7 +416,7 @@ export type CardControllerRefreshTokenAction = {
 
 export type CardControllerLogoutAction = {
   type: 'CardController:logout';
-  handler: (address: string) => Promise<void>;
+  handler: () => Promise<void>;
 };
 
 export type CardControllerSetActiveAccountAction = {
@@ -423,6 +453,8 @@ export type CardControllerActions =
   | CardControllerGetAccountStateAction
   | CardControllerIsCardholderAction
   | CardControllerIsAuthenticatedAction
+  | CardControllerGetIsCardholderAction
+  | CardControllerGetIsAuthenticatedAction
   | CardControllerGetPriorityTokenAction
   | CardControllerGetSupportedTokensAllowancesAction
   | CardControllerGetCardDetailsAction
@@ -450,6 +482,10 @@ export const getCardControllerDefaultState = (): CardControllerState => ({
   global: {
     isFeatureEnabled: false,
     isBaanxLoginEnabled: false,
+    isAuthenticated: false,
+    userLocation: null,
+    authTokenJson: null,
+    authTokenExpiresAt: null,
     geoLocation: null,
     geoLocationLastFetched: null,
     cardholderAccounts: [],
