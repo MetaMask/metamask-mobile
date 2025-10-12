@@ -1,9 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectTransactionBridgeQuotesById,
-  updateConfirmationMetric,
-} from '../../../../../core/redux/slices/confirmationMetrics';
+import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json } from '@metamask/utils';
@@ -11,11 +8,11 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { BigNumber } from 'bignumber.js';
 import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
+import { selectTransactionPayQuotesByTransactionId } from '../../../../../selectors/transactionPayController';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -32,7 +29,7 @@ export function useTransactionPayMetrics() {
   const { chainId, type } = transactionMeta ?? {};
 
   const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
+    selectTransactionPayQuotesByTransactionId(state, transactionId),
   );
 
   if (!automaticPayToken.current && payToken) {
@@ -80,12 +77,8 @@ export function useTransactionPayMetrics() {
   );
 
   if (nonGasQuote) {
-    properties.mm_pay_dust_usd = new BigNumber(
-      nonGasQuote.quote?.minDestTokenAmount,
-    )
-      .minus(nonGasQuote.request?.targetAmountMinimum)
-      .shiftedBy(-6)
-      .toString(10);
+    // MATT TODO
+    properties.mm_pay_dust_usd = '0';
   }
 
   const params = useDeepMemo(

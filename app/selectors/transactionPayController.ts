@@ -21,7 +21,7 @@ export const selectIsTransactionPayLoadingByTransactionId = createSelector(
   (transactionData) => transactionData.isLoading,
 );
 
-export const selectTransactionPayPayQuotesById = createSelector(
+export const selectTransactionPayQuotesByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.quotes,
 );

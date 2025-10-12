@@ -30,11 +30,14 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+import { selectIsTransactionPayLoadingByTransactionId } from '../../../../../selectors/transactionPayController';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -68,6 +71,13 @@ export const Footer = () => {
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
+
+  const isQuotesLoading = useSelector((state: RootState) =>
+    selectIsTransactionPayLoadingByTransactionId(
+      state,
+      transactionMetadata?.id ?? '',
+    ),
+  );
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);

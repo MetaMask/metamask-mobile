@@ -3,10 +3,7 @@ import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenTransferData } from '../../utils/transaction-pay';
