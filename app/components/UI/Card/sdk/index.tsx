@@ -110,6 +110,8 @@ export const CardSDKProvider = ({
     const { accessToken, refreshToken, expiresAt, location } =
       tokenResult.tokenData || {};
 
+    Logger.log('tokenResult', tokenResult);
+
     // If no token data exists, user needs to authenticate
     if (!accessToken || !refreshToken || !expiresAt || !location) {
       setIsAuthenticated(false);

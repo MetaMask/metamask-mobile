@@ -22,7 +22,9 @@ export type CardTokenAllowance = {
   allowanceState: AllowanceState;
   allowance: ethers.BigNumber;
 } & FlashListAssetKey &
-  CardToken;
+  CardToken & {
+    availableBalance?: ethers.BigNumber;
+  };
 
 export interface CardLoginInitiateResponse {
   token: string;
@@ -63,6 +65,57 @@ export interface CardExchangeTokenResponse {
   refreshTokenExpiresIn: number;
 }
 
+export enum CardStatus {
+  ACTIVE = 'ACTIVE',
+  FROZEN = 'FROZEN',
+  BLOCKED = 'BLOCKED',
+}
+
+export enum CardType {
+  VIRTUAL = 'VIRTUAL',
+  PHYSICAL = 'PHYSICAL',
+  METAL = 'METAL',
+}
+
+export interface CardDetailsResponse {
+  id: string;
+  holderName: string;
+  expiryDate: string;
+  panLast4: string;
+  status: CardStatus;
+  type: CardType;
+  orderedAt: string;
+}
+
+export interface CardWalletExternalResponse {
+  address: string; // This is the wallet address;
+  currency: string;
+  balance: string;
+  allowance: string;
+  network: 'linea' | 'solana';
+}
+
+export interface CardWalletExternalPriorityResponse {
+  id: number;
+  address: string; // This is the wallet address;
+  currency: string;
+  network: 'linea' | 'solana';
+  priority: number;
+}
+
+export interface CardExternalWalletDetail {
+  id: number;
+  walletAddress: string;
+  currency: string;
+  balance: string;
+  allowance: string;
+  network: 'linea' | 'solana';
+  priority: number;
+  tokenDetails: CardToken;
+}
+
+export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
+
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
   NETWORK_ERROR = 'NETWORK_ERROR',
@@ -71,12 +124,7 @@ export enum CardErrorType {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
-}
-
-export enum CardType {
-  VIRTUAL = 'VIRTUAL',
-  PHYSICAL = 'PHYSICAL',
-  METAL = 'METAL',
+  NO_CARD = 'NO_CARD',
 }
 
 export class CardError extends Error {

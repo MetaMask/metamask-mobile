@@ -9,14 +9,18 @@ import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
   CardAuthorizeResponse,
+  CardDetailsResponse,
   CardError,
   CardErrorType,
   CardExchangeTokenRawResponse,
   CardExchangeTokenResponse,
+  CardExternalWalletDetailsResponse,
   CardLocation,
   CardLoginInitiateResponse,
   CardLoginResponse,
   CardToken,
+  CardWalletExternalPriorityResponse,
+  CardWalletExternalResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -758,6 +762,90 @@ export class CardSDK {
 
     return tokenResponse;
   };
+
+  getCardDetails = async (): Promise<CardDetailsResponse> => {
+    const response = await this.makeRequest(
+      '/v1/card/status',
+      { method: 'GET' },
+      true,
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new CardError(
+          CardErrorType.NO_CARD,
+          'User has no card. Request a card first.',
+        );
+      }
+
+      const errorResponse = await response.json();
+      Logger.log(errorResponse, 'Failed to get card details.');
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to get card details. Please try again.',
+      );
+    }
+
+    return (await response.json()) as CardDetailsResponse;
+  };
+
+  getCardExternalWalletDetails =
+    async (): Promise<CardExternalWalletDetailsResponse> => {
+      const promises = [
+        this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
+        this.makeRequest(
+          '/v1/wallet/external/priority',
+          { method: 'GET' },
+          true,
+        ),
+      ];
+
+      const responses = await Promise.all(promises);
+
+      if (!responses[0].ok || !responses[1].ok) {
+        const errorResponse = await responses[0].json();
+        Logger.log(
+          errorResponse,
+          'Failed to get card external wallet details.',
+        );
+        throw new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to get card external wallet details. Please try again.',
+        );
+      }
+
+      const externalWalletDetails =
+        (await responses[0].json()) as CardWalletExternalResponse[];
+      const priorityWalletDetails =
+        (await responses[1].json()) as CardWalletExternalPriorityResponse[];
+
+      const combinedDetails = externalWalletDetails.map(
+        (wallet: CardWalletExternalResponse) => {
+          const priorityWallet = priorityWalletDetails.find(
+            (p: CardWalletExternalPriorityResponse) =>
+              p?.address?.toLowerCase() === wallet?.address?.toLowerCase(),
+          );
+          const tokenDetails = this.mapSupportedTokenToCardToken(
+            this.supportedTokens.find(
+              (token) => token.address === wallet.address,
+            ) ?? this.supportedTokens[0],
+          );
+          return {
+            id: priorityWallet?.id ?? 0,
+            walletAddress: wallet.address,
+            currency: wallet.currency,
+            network: wallet.network,
+            balance: wallet.balance,
+            allowance: wallet.allowance,
+            priority: priorityWallet?.priority ?? 0,
+            tokenDetails,
+          };
+        },
+      );
+
+      // Sort - lower number = higher priority
+      return combinedDetails.sort((a, b) => a.priority - b.priority);
+    };
 
   private getFirstSupportedTokenOrNull(): CardToken | null {
     return this.supportedTokens.length > 0

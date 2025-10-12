@@ -927,7 +927,6 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
-  isCardholder = false,
   isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
@@ -1110,12 +1109,10 @@ export function getWalletNavbarOptions(
                     hitSlop={innerStyles.touchAreaSlop}
                   />
                 </View>
-                {isCardholder ? (
-                  <CardButton
-                    onPress={handleCardPress}
-                    touchAreaSlop={innerStyles.touchAreaSlop}
-                  />
-                ) : null}
+                <CardButton
+                  onPress={handleCardPress}
+                  touchAreaSlop={innerStyles.touchAreaSlop}
+                />
                 <ButtonIcon
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={openQRScanner}

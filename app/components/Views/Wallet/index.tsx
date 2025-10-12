@@ -153,7 +153,6 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -1039,7 +1038,6 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
-  const isCardholder = useSelector(selectIsCardholder);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   useEffect(() => {
@@ -1058,7 +1056,6 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        isCardholder,
         isRewardsEnabled,
       ),
     );
@@ -1074,7 +1071,6 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    isCardholder,
     isRewardsEnabled,
   ]);
 

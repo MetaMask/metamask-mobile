@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import {
+  AllowanceState,
+  CardExternalWalletDetail,
+  CardTokenAllowance,
+} from '../types';
 import { Hex } from '@metamask/utils';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
@@ -25,6 +29,7 @@ import {
 } from '../../../../core/redux/slices/card';
 import Engine from '../../../../core/Engine';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import { ethers } from 'ethers';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -122,7 +127,7 @@ const fetchAllowances = async (
 export const useGetPriorityCardToken = () => {
   const dispatch = useDispatch();
   const { TokensController, NetworkController } = Engine.context;
-  const { sdk } = useCardSDK();
+  const { sdk, isAuthenticated } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingAddToken, setIsLoadingAddToken] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
@@ -176,8 +181,8 @@ export const useGetPriorityCardToken = () => {
         BigNumber(balances[tokenAddress as Hex]).gt(0),
     );
 
-  // Fetch priority token function
-  const fetchPriorityToken: () => Promise<CardTokenAllowance | null> =
+  // Fetch priority token function on chain -- when user is not authenticated
+  const fetchPriorityTokenOnChain: () => Promise<CardTokenAllowance | null> =
     useCallback(async () => {
       setIsLoading(true);
       setError(false);
@@ -341,24 +346,130 @@ export const useGetPriorityCardToken = () => {
       }
     }, [sdk, selectedAddress, getBalancesForChain, dispatch]);
 
+  const mapCardExternalWalletDetailToCardTokenAllowance = (
+    cardExternalWalletDetail: CardExternalWalletDetail | undefined,
+  ): CardTokenAllowance | null => {
+    if (!cardExternalWalletDetail?.tokenDetails) {
+      return null;
+    }
+
+    // Convert decimal strings to integers before creating BigNumber
+    // Handle potential decimal values by parsing as float and converting to integer string
+    const allowanceFloat = parseFloat(
+      cardExternalWalletDetail.allowance || '0',
+    );
+    const balanceFloat = parseFloat(cardExternalWalletDetail.balance || '0');
+
+    // Ensure we have valid numbers and convert to integer strings
+    const allowanceString = isNaN(allowanceFloat)
+      ? '0'
+      : Math.floor(allowanceFloat).toString();
+    const balanceString = isNaN(balanceFloat)
+      ? '0'
+      : Math.floor(balanceFloat).toString();
+
+    const allowance = ethers.BigNumber.from(allowanceString);
+    const allowanceState = allowance.isZero()
+      ? AllowanceState.NotEnabled
+      : allowance.lt(ARBITRARY_ALLOWANCE)
+      ? AllowanceState.Limited
+      : AllowanceState.Enabled;
+    const availableBalance =
+      ethers.BigNumber.from(balanceString).sub(allowance);
+
+    return {
+      address: cardExternalWalletDetail.tokenDetails.address ?? '',
+      decimals: cardExternalWalletDetail.tokenDetails.decimals ?? 0,
+      symbol: cardExternalWalletDetail.tokenDetails.symbol ?? '',
+      name: cardExternalWalletDetail.tokenDetails.name ?? '',
+      allowanceState,
+      allowance,
+      availableBalance: ethers.BigNumber.from(availableBalance),
+      isStaked: false,
+      // TODO: Add solana chain id -- verify how to handle that because Solana doesn't have a chain id
+      chainId: LINEA_CHAIN_ID,
+    };
+  };
+
+  const fetchPriorityTokenAPI: () => Promise<CardTokenAllowance | null> =
+    useCallback(async () => {
+      try {
+        setIsLoading(true);
+        setError(false);
+        const cardExternalWalletDetails =
+          await sdk?.getCardExternalWalletDetails();
+        Logger.log('cardExternalWalletDetails', cardExternalWalletDetails);
+        const mappedCardExternalWalletDetails =
+          mapCardExternalWalletDetailToCardTokenAllowance(
+            cardExternalWalletDetails?.[0],
+          );
+        Logger.log(
+          'mappedCardExternalWalletDetails',
+          mappedCardExternalWalletDetails,
+        );
+        setIsLoading(false);
+        dispatch(
+          setCardPriorityToken({
+            address: selectedAddress ?? '',
+            token: mappedCardExternalWalletDetails,
+          }),
+        );
+        dispatch(
+          setCardPriorityTokenLastFetched({
+            address: selectedAddress ?? '',
+            lastFetched: new Date(),
+          }),
+        );
+        return mappedCardExternalWalletDetails;
+      } catch (err) {
+        const normalizedError =
+          err instanceof Error ? err : new Error(String(err));
+        Logger.error(
+          normalizedError,
+          'useGetPriorityCardToken::error fetching priority token API',
+        );
+        setIsLoading(false);
+        setError(true);
+        return null;
+      }
+    }, [sdk, dispatch, selectedAddress]);
+
+  const fetchPriorityToken: () => Promise<CardTokenAllowance | null> =
+    useCallback(async () => {
+      if (isAuthenticated) {
+        return fetchPriorityTokenAPI();
+      }
+
+      return fetchPriorityTokenOnChain();
+    }, [isAuthenticated, fetchPriorityTokenAPI, fetchPriorityTokenOnChain]);
+
   useEffect(() => {
-    if (!selectedAddress) {
-      return;
-    }
+    const run = async () => {
+      if (!selectedAddress) {
+        return;
+      }
 
-    // If cache is valid and we have a priority token, don't fetch
-    if (cacheIsValid && priorityToken !== null) {
-      return;
-    }
+      // If cache is valid and we have a priority token, don't fetch
+      if (cacheIsValid && priorityToken !== null) {
+        return;
+      }
 
-    // Cache is stale or we don't have a priority token, fetch new data
-    fetchPriorityToken();
+      if (isAuthenticated) {
+        await fetchPriorityTokenAPI();
+      } else {
+        await fetchPriorityTokenOnChain();
+      }
+    };
+
+    run();
   }, [
     selectedAddress,
     cacheIsValid,
     priorityToken,
-    fetchPriorityToken,
+    fetchPriorityTokenOnChain,
     lastFetched,
+    isAuthenticated,
+    fetchPriorityTokenAPI,
   ]);
 
   // Add priorityToken to the TokenListController if it exists
