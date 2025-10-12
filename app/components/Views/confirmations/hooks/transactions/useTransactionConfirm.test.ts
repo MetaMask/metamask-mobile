@@ -8,7 +8,6 @@ import { useTransactionConfirm } from './useTransactionConfirm';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { merge, noop } from 'lodash';
-import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import {
   simpleSendTransactionControllerMock,
   transactionIdMock,
@@ -101,7 +100,6 @@ describe('useTransactionConfirm', () => {
   const useApprovalRequestMock = jest.mocked(useApprovalRequest);
   const onApprovalConfirm = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTransactionTotalFiatMock = jest.mocked(useTransactionTotalFiat);
   const useFullScreenConfirmationMock = jest.mocked(useFullScreenConfirmation);
   const resetTransactionMock = jest.mocked(resetTransaction);
   const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
@@ -140,12 +138,6 @@ describe('useTransactionConfirm', () => {
       },
       setPayToken: noop,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionTotalFiatMock.mockReturnValue({
-      totalBridgeFeeFormatted: BRIDGE_FEE_MOCK,
-      totalFormatted: TOTAL_FIAT_MOCK,
-      totalNativeEstimatedFormatted: NETWORK_FEE_MOCK,
-    } as ReturnType<typeof useTransactionTotalFiat>);
 
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
 

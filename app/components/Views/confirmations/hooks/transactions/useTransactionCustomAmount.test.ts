@@ -80,11 +80,7 @@ describe('useTransactionCustomAmount', () => {
     } as ReturnType<typeof useUpdateTokenAmountMock>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
-        address: TOKEN_ADDRESS_MOCK,
-        chainId: '0x1' as Hex,
-        tokenFiatAmount: 1234.56,
-      },
+      payToken: { balanceUsd: '1234.56' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     useParamsMock.mockReturnValue({});

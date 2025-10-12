@@ -41,7 +41,12 @@ export function useTransactionCustomAmount() {
 
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
+<<<<<<< HEAD
   const tokenBalanceFiat = useTokenBalance();
+=======
+  const { payToken } = useTransactionPayToken();
+  const { balanceUsd } = payToken || {};
+>>>>>>> c727dac668 (Fix types)
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -84,7 +89,11 @@ export function useTransactionCustomAmount() {
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number) => {
+<<<<<<< HEAD
       if (!tokenBalanceFiat) {
+=======
+      if (!balanceUsd) {
+>>>>>>> c727dac668 (Fix types)
         return;
       }
 
@@ -92,13 +101,22 @@ export function useTransactionCustomAmount() {
 
       const newAmount = new BigNumber(finalPercentage)
         .dividedBy(100)
+<<<<<<< HEAD
         .multipliedBy(tokenBalanceFiat)
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
+=======
+        .multipliedBy(balanceUsd)
+        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+>>>>>>> c727dac668 (Fix types)
         .toString(10);
 
       updatePendingAmount(newAmount);
     },
+<<<<<<< HEAD
     [maxPercentage, tokenBalanceFiat, updatePendingAmount],
+=======
+    [balanceUsd, updatePendingAmount],
+>>>>>>> c727dac668 (Fix types)
   );
 
   const updateTokenAmount = useCallback(() => {
