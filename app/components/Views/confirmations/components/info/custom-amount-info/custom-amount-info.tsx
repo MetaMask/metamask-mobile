@@ -29,6 +29,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import {
   selectIsTransactionPayLoadingByTransactionId,
   selectTransactionPayQuotesByTransactionId,
+  selectTransactionPaySourceAmountsByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
 
 export interface CustomAmountInfoProps {
@@ -155,5 +156,12 @@ function useIsResultReady({
     selectIsTransactionPayLoadingByTransactionId(state, transactionId),
   );
 
-  return !isKeyboardVisible && (isQuotesLoading || Boolean(quotes?.length));
+  const sourceAmounts = useSelector((state: RootState) =>
+    selectTransactionPaySourceAmountsByTransactionId(state, transactionId),
+  );
+
+  return (
+    !isKeyboardVisible &&
+    (isQuotesLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0)
+  );
 }

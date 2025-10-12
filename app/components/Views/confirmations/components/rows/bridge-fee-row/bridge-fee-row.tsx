@@ -19,6 +19,7 @@ import { SkeletonRow } from '../skeleton-row';
 import { hasTransactionType } from '../../../utils/transaction';
 import {
   selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayQuotesByTransactionId,
   selectTransactionPayTotalsByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
 import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
@@ -34,6 +35,10 @@ export function BridgeFeeRow() {
 
   const totals = useSelector((state: RootState) =>
     selectTransactionPayTotalsByTransactionId(state, transactionId),
+  );
+
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionPayQuotesByTransactionId(state, transactionId),
   );
 
   const feeTotalUsd = useMemo(() => {
@@ -60,13 +65,15 @@ export function BridgeFeeRow() {
     );
   }
 
+  const hasQuotes = Boolean(quotes?.length);
+
   return (
     <>
       <InfoRow
         testID="bridge-fee-row"
         label={strings('confirm.label.transaction_fee')}
         tooltip={
-          totals ? (
+          hasQuotes && totals ? (
             <Tooltip transactionMeta={transactionMetadata} totals={totals} />
           ) : undefined
         }
@@ -74,7 +81,7 @@ export function BridgeFeeRow() {
       >
         <Text>{feeTotalUsd}</Text>
       </InfoRow>
-      {totals && (
+      {hasQuotes && (
         <InfoRow
           testID="metamask-fee-row"
           label={strings('confirm.label.metamask_fee')}

@@ -8,6 +8,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { SkeletonRow } from '../skeleton-row';
 import {
   selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayQuotesByTransactionId,
   selectTransactionPayTotalsByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
 
@@ -22,7 +23,11 @@ export function BridgeTimeRow() {
     selectTransactionPayTotalsByTransactionId(state, transactionId),
   );
 
-  const showEstimate = isQuotesLoading || Boolean(totals);
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionPayQuotesByTransactionId(state, transactionId),
+  );
+
+  const showEstimate = isQuotesLoading || Boolean(quotes?.length);
 
   if (!showEstimate) {
     return null;
