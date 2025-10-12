@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback } from 'react';
+import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
@@ -26,10 +26,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
+  const formatFiat = useFiatFormatter();
 
   const {
     txParams: { from },
@@ -43,14 +45,20 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation]);
 
+  const balanceHumanFormatted = useMemo(
+    () =>
+      formatAmount(I18n.locale, new BigNumber(payToken?.balanceHuman ?? '0')),
+    [payToken?.balanceHuman],
+  );
+
+  const balanceUsdFormatted = useMemo(
+    () => formatFiat(new BigNumber(payToken?.balanceFiat ?? '0')),
+    [formatFiat, payToken?.balanceFiat],
+  );
+
   if (!payToken) {
     return <PayWithRowSkeleton />;
   }
-
-  const tokenBalance = formatAmount(
-    I18n.locale,
-    new BigNumber(payToken.balance ?? '0'),
-  );
 
   return (
     <TouchableOpacity onPress={handleClick} disabled={!canEdit}>
@@ -78,7 +86,7 @@ export function PayWithRow() {
         }
         rightPrimary={
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {payToken.balanceFiat}
+            {balanceUsdFormatted}
           </Text>
         }
         rightAlternate={
@@ -86,7 +94,7 @@ export function PayWithRow() {
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {tokenBalance} {payToken.symbol}
+            {balanceHumanFormatted} {payToken.symbol}
           </Text>
         }
       />
