@@ -6,6 +6,7 @@ import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
@@ -21,7 +22,6 @@ jest.mock('react-native-safe-area-context', () => {
       .mockImplementation(({ children }) => children(inset)),
     useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-    SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
   };
 });
 
@@ -66,7 +66,12 @@ jest.mock('../../../../hooks/useKeyringId', () => ({
   useKeyringId: (account: InternalAccount) => mockUseKeyringId(account),
 }));
 
-const render = () => renderWithProvider(<RevealSRP />);
+const render = () =>
+  renderWithProvider(
+    <SafeAreaProvider>
+      <RevealSRP />
+    </SafeAreaProvider>,
+  );
 
 describe('RevealSRP', () => {
   beforeEach(() => {

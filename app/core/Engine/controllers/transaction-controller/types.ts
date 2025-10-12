@@ -1,5 +1,5 @@
 import { JsonMap } from '../../../Analytics/MetaMetrics.types';
-import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import { TransactionMeta } from '@metamask/transaction-controller';

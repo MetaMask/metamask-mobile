@@ -405,9 +405,7 @@ describe('PredictMarketDetails', () => {
         { market: { isFetching: true, market: null } },
       );
 
-      // Check that loading text appears (there may be multiple instances)
-      const loadingTexts = screen.getAllByText('Loading...');
-      expect(loadingTexts.length).toBeGreaterThan(0);
+      expect(screen.getByText('Loading...')).toBeOnTheScreen();
     });
 
     it('displays fallback title when market data is unavailable', () => {

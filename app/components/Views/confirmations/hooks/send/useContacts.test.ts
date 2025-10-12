@@ -33,17 +33,7 @@ describe('useContacts', () => {
 
   const mockSolanaContact = {
     name: 'Solana Contact',
-    address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
-  };
-
-  const mockBitcoinContact = {
-    name: 'Bitcoin Contact',
-    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-  };
-
-  const mockTronContact = {
-    name: 'Tron Contact',
-    address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    address: 'Sol1234567890123456789012345678901234567890',
   };
 
   const mockInvalidContact = {
@@ -58,12 +48,6 @@ describe('useContacts', () => {
     },
     '101': {
       contact3: mockSolanaContact,
-    },
-    'bip122:1': {
-      contact6: mockBitcoinContact,
-    },
-    'tron:1': {
-      contact7: mockTronContact,
     },
     '137': {
       contact4: mockInvalidContact,
@@ -87,8 +71,6 @@ describe('useContacts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
-      isBitcoinSendType: false,
-      isTronSendType: false,
     });
   });
 
@@ -100,8 +82,6 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
-        isBitcoinSendType: false,
-        isTronSendType: false,
       });
     });
 
@@ -156,8 +136,6 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
-        isBitcoinSendType: false,
-        isTronSendType: false,
       });
     });
 
@@ -167,7 +145,7 @@ describe('useContacts', () => {
       expect(result.current).toEqual([
         {
           contactName: 'Solana Contact',
-          address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+          address: 'Sol1234567890123456789012345678901234567890',
         },
       ]);
     });
@@ -184,115 +162,12 @@ describe('useContacts', () => {
       );
     });
 
-    it('filters out Bitcoin and Tron addresses', () => {
-      const { result } = renderHook(() => useContacts());
-
-      const addresses = result.current.map((contact) => contact.address);
-      expect(addresses).not.toContain(
-        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-      );
-      expect(addresses).not.toContain('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
-    });
-
-    it('only includes valid Solana addresses', () => {
+    it('only includes addresses not starting with 0x and at least 32 characters', () => {
       const { result } = renderHook(() => useContacts());
 
       result.current.forEach((contact) => {
-        expect(contact.address).toMatch(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/);
-      });
-    });
-  });
-
-  describe('when isBitcoinSendType is true', () => {
-    beforeEach(() => {
-      mockUseSendType.mockReturnValue({
-        isEvmSendType: false,
-        isSolanaSendType: false,
-        isEvmNativeSendType: false,
-        isNonEvmSendType: false,
-        isNonEvmNativeSendType: false,
-        isBitcoinSendType: true,
-        isTronSendType: false,
-      });
-    });
-
-    it('returns Bitcoin compatible contacts', () => {
-      const { result } = renderHook(() => useContacts());
-
-      expect(result.current).toEqual([
-        {
-          contactName: 'Bitcoin Contact',
-          address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-        },
-      ]);
-    });
-
-    it('filters out non-Bitcoin addresses', () => {
-      const { result } = renderHook(() => useContacts());
-
-      const addresses = result.current.map((contact) => contact.address);
-      expect(addresses).not.toContain(
-        '0x1234567890123456789012345678901234567890',
-      );
-      expect(addresses).not.toContain(
-        'Sol1234567890123456789012345678901234567890',
-      );
-      expect(addresses).not.toContain('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
-    });
-
-    it('only includes addresses starting with bc', () => {
-      const { result } = renderHook(() => useContacts());
-
-      result.current.forEach((contact) => {
-        expect(contact.address).toMatch(/^bc/);
-      });
-    });
-  });
-
-  describe('when isTronSendType is true', () => {
-    beforeEach(() => {
-      mockUseSendType.mockReturnValue({
-        isEvmSendType: false,
-        isSolanaSendType: false,
-        isEvmNativeSendType: false,
-        isNonEvmSendType: false,
-        isNonEvmNativeSendType: false,
-        isBitcoinSendType: false,
-        isTronSendType: true,
-      });
-    });
-
-    it('returns Tron compatible contacts', () => {
-      const { result } = renderHook(() => useContacts());
-
-      expect(result.current).toEqual([
-        {
-          contactName: 'Tron Contact',
-          address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-        },
-      ]);
-    });
-
-    it('filters out non-Tron addresses', () => {
-      const { result } = renderHook(() => useContacts());
-
-      const addresses = result.current.map((contact) => contact.address);
-      expect(addresses).not.toContain(
-        '0x1234567890123456789012345678901234567890',
-      );
-      expect(addresses).not.toContain(
-        'Sol1234567890123456789012345678901234567890',
-      );
-      expect(addresses).not.toContain(
-        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-      );
-    });
-
-    it('only includes addresses starting with T', () => {
-      const { result } = renderHook(() => useContacts());
-
-      result.current.forEach((contact) => {
-        expect(contact.address).toMatch(/^T/);
+        expect(contact.address).not.toMatch(/^0x/);
+        expect(contact.address.length).toBeGreaterThanOrEqual(32);
       });
     });
   });
@@ -305,15 +180,13 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
-        isBitcoinSendType: false,
-        isTronSendType: false,
       });
     });
 
     it('returns all contacts without filtering', () => {
       const { result } = renderHook(() => useContacts());
 
-      expect(result.current).toHaveLength(6);
+      expect(result.current).toHaveLength(4);
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
@@ -326,7 +199,7 @@ describe('useContacts', () => {
           },
           {
             contactName: 'Solana Contact',
-            address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+            address: 'Sol1234567890123456789012345678901234567890',
           },
           {
             contactName: 'Invalid Contact',
@@ -405,7 +278,7 @@ describe('useContacts', () => {
         },
         validSolana: {
           contactName: 'Valid Solana',
-          address: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
+          address: 'Sol12345678901234567890123456789012345678901234567890',
         },
         invalidSolanaShort: {
           contactName: 'Invalid Solana Short',
@@ -430,8 +303,6 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
-        isBitcoinSendType: false,
-        isTronSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());
@@ -449,15 +320,13 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
-        isBitcoinSendType: false,
-        isTronSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].address).toBe(
-        'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
+        'Sol12345678901234567890123456789012345678901234567890',
       );
     });
   });

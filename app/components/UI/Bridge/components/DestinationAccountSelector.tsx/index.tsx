@@ -2,18 +2,19 @@ import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAccounts } from '../../../../hooks/useAccounts';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   selectDestAddress,
   setDestAddress,
-  selectIsEvmToNonEvm,
-  selectIsNonEvmToEvm,
+  selectIsEvmToSolana,
+  selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
 import { Box } from '../../../Box/Box';
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
 import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
-import { formatAddress, isEthAddress } from '../../../../../util/address';
+import { formatAddress } from '../../../../../util/address';
 import { View, StyleSheet } from 'react-native';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -29,7 +30,6 @@ import {
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
-import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -96,8 +96,8 @@ const DestinationAccountSelector = () => {
   const destAddress = useSelector(selectDestAddress);
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  const isEvmToNonEvm = useSelector(selectIsEvmToNonEvm);
-  const isNonEvmToEvm = useSelector(selectIsNonEvmToEvm);
+  const isEvmToSolana = useSelector(selectIsEvmToSolana);
+  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
@@ -130,8 +130,8 @@ const DestinationAccountSelector = () => {
     // Allow undefined so user can pick an account
     const doesDestAddrMatchNetworkType =
       !destAddress ||
-      (isNonEvmToEvm && isEthAddress(destAddress)) ||
-      (isEvmToNonEvm && isNonEvmAddress(destAddress));
+      (isSolanaToEvm && !isSolanaAddress(destAddress)) ||
+      (isEvmToSolana && isSolanaAddress(destAddress));
 
     if (
       (!hasInitialized.current && !destAddress) ||
@@ -156,8 +156,8 @@ const DestinationAccountSelector = () => {
     filteredAccounts,
     destAddress,
     handleSelectAccount,
-    isEvmToNonEvm,
-    isNonEvmToEvm,
+    isEvmToSolana,
+    isSolanaToEvm,
     currentlySelectedAccount,
   ]);
 

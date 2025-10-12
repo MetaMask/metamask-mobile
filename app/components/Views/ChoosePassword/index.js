@@ -4,12 +4,12 @@ import {
   ActivityIndicator,
   Alert,
   View,
+  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   Platform,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -725,7 +725,7 @@ class ChoosePassword extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+      <SafeAreaView style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
@@ -797,24 +797,18 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {Platform.OS === 'ios'
-                          ? strings(
-                              'choose_password.description_social_login_update_ios',
-                            )
-                          : strings(
-                              'choose_password.description_social_login_update',
-                            )}
-                        {Platform.OS === 'android' && (
-                          <Text
-                            variant={TextVariant.BodyMD}
-                            color={TextColor.Warning}
-                          >
-                            {' '}
-                            {strings(
-                              'choose_password.description_social_login_update_bold',
-                            )}
-                          </Text>
+                        {strings(
+                          'choose_password.description_social_login_update',
                         )}
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Warning}
+                        >
+                          {' '}
+                          {strings(
+                            'choose_password.description_social_login_update_bold',
+                          )}
+                        </Text>
                       </Text>
                     ) : (
                       strings('choose_password.description')

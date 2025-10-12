@@ -1,7 +1,7 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isNonEvmChainId,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import {
   BridgeHistoryItem,
@@ -44,7 +44,7 @@ export const getSwapBridgeTxActivityTitle = (
   }
 
   // Bridge
-  const destChainId = isNonEvmChainId(quote.destChainId)
+  const destChainId = isSolanaChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
   const destChainName = NETWORK_TO_SHORT_NETWORK_NAME_MAP[destChainId];
