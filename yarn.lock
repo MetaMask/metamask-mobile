@@ -7078,6 +7078,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/base-controller@npm:^8.4.1":
+  version: 8.4.1
+  resolution: "@metamask/base-controller@npm:8.4.1"
+  dependencies:
+    "@metamask/messenger": ^0.3.0
+    "@metamask/utils": ^11.8.1
+    immer: ^9.0.6
+  checksum: ab06f003bada6ab61754f1a5603f35b3b9ac9a1fea4e56e73d4080a2a81beb8ebd4d4406c9a1d8318b69c5f6c5bdbd518f189594a1408b97d2ba880acdfc4f8f
+  languageName: node
+  linkType: hard
+
 "@metamask/bitcoin-wallet-snap@npm:^1.3.0":
   version: 1.3.0
   resolution: "@metamask/bitcoin-wallet-snap@npm:1.3.0"
@@ -7215,6 +7226,42 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
   checksum: 727a627e96645a1b17f629bcb640ab5e26f656121d38e34e1ff9ac357f47f3b9deefb17f7e4a6a639594e5fa7f0d1ef3764fd54908f24c3d6e6b4a89758815e6
+  languageName: node
+  linkType: hard
+
+"@metamask/controller-utils@npm:^11.14.1":
+  version: 11.14.1
+  resolution: "@metamask/controller-utils@npm:11.14.1"
+  dependencies:
+    "@metamask/eth-query": ^4.0.0
+    "@metamask/ethjs-unit": ^0.3.0
+    "@metamask/utils": ^11.8.1
+    "@spruceid/siwe-parser": 2.1.0
+    "@types/bn.js": ^5.1.5
+    bignumber.js: ^9.1.2
+    bn.js: ^5.2.1
+    cockatiel: ^3.1.2
+    eth-ens-namehash: ^2.0.8
+    fast-deep-equal: ^3.1.3
+    lodash: ^4.17.21
+  peerDependencies:
+    "@babel/runtime": ^7.0.0
+  checksum: cf3f362764b3fbda7923f848b8b800c252f05fabd0e1918d406f5cb7512ae895a95583ce6d06e98d43f91264fc00030886c04748c13d47d974be24b260e91640
+  languageName: node
+  linkType: hard
+
+"@metamask/core-backend@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@metamask/core-backend@npm:1.0.1"
+  dependencies:
+    "@metamask/base-controller": ^8.4.1
+    "@metamask/controller-utils": ^11.14.1
+    "@metamask/profile-sync-controller": ^25.1.1
+    "@metamask/utils": ^11.8.1
+    uuid: ^8.3.2
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.1.0
+  checksum: 6ec6c05dc64da661ac3b1e002be74d999d6bce4eb1cd4ad065f6246ad04251666c6463bb21184991493d38eb6d7a71dd7e2e7ba30c3962973b699fdb82d87164
   languageName: node
   linkType: hard
 
@@ -8309,6 +8356,29 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
   checksum: f497cd5911fd063cea322ddb5f798959da4fb135c4cb8c9513317645c29740c5697ca10bbfefcfecf4c7b1b96c4b9096ca14e75d9160779403c404e73013fc1c
+  languageName: node
+  linkType: hard
+
+"@metamask/profile-sync-controller@npm:^25.1.1":
+  version: 25.1.1
+  resolution: "@metamask/profile-sync-controller@npm:25.1.1"
+  dependencies:
+    "@metamask/base-controller": ^8.4.1
+    "@metamask/snaps-sdk": ^9.0.0
+    "@metamask/snaps-utils": ^11.0.0
+    "@metamask/utils": ^11.8.1
+    "@noble/ciphers": ^1.3.0
+    "@noble/hashes": ^1.8.0
+    immer: ^9.0.6
+    loglevel: ^1.8.1
+    siwe: ^2.3.2
+  peerDependencies:
+    "@metamask/address-book-controller": ^6.1.1
+    "@metamask/keyring-controller": ^23.0.0
+    "@metamask/providers": ^22.0.0
+    "@metamask/snaps-controllers": ^14.0.0
+    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
+  checksum: d53667af8ab15e76ae80030804377cc8538177952151be6959645400335ed4f9d7c1001bd71400fb2509654f5b1bba532f12561aaeb125c17e346a3de83e22f8
   languageName: node
   linkType: hard
 
@@ -34095,6 +34165,7 @@ __metadata:
     "@metamask/chain-agnostic-permission": ^1.1.0
     "@metamask/composable-controller": ^11.0.0
     "@metamask/controller-utils": ^11.11.0
+    "@metamask/core-backend": ^1.0.1
     "@metamask/design-system-react-native": ^0.4.0
     "@metamask/design-system-twrnc-preset": ^0.2.1
     "@metamask/design-tokens": ^8.1.1

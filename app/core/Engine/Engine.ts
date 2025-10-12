@@ -912,12 +912,16 @@ export class Engine {
             'AccountTrackerController:getState',
             'AccountTrackerController:updateNativeBalances',
             'AccountTrackerController:updateStakedBalances',
+            'TokenDetectionController:addDetectedTokensViaWs',
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
             'KeyringController:accountRemoved',
+            'AccountActivityService:balanceUpdated',
+            'AccountActivityService:statusChanged',
+            'BackendWebSocketService:connectionStateChanged',
           ],
         }),
         // TODO: This is long, can we decrease it?
