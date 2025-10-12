@@ -6,6 +6,7 @@ import {
 import {
   TransactionControllerStateChangeEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
+  TransactionControllerGetStateAction,
 } from '@metamask/transaction-controller';
 import {
   BridgeStatusControllerActions,
@@ -30,7 +31,8 @@ type MessengerActions =
   | TokenBalancesControllerGetStateAction
   | TokenListControllerActions
   | TokenRatesControllerGetStateAction
-  | TokensControllerGetStateAction;
+  | TokensControllerGetStateAction
+  | TransactionControllerGetStateAction;
 
 type MessengerEvents =
   | BridgeStatusControllerStateChangeEvent
@@ -52,6 +54,7 @@ export function getTransactionPayControllerMessenger(
       'TokenListController:getState',
       'TokenRatesController:getState',
       'TokensController:getState',
+      'TransactionController:getState',
     ],
     allowedEvents: [
       'BridgeStatusController:stateChange',

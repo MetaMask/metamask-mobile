@@ -41,7 +41,8 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
+import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
+import Engine from '../../Engine';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -159,8 +160,9 @@ async function publishHook({
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
-  await new PayHook({
-    messenger: initMessenger,
+  await new TransactionPayPublishHook({
+    isSmartTransaction: () => shouldUseSmartTransaction,
+    messenger: Engine.controllerMessenger as never,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined

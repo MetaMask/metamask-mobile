@@ -9,11 +9,12 @@ export const TransactionPayControllerInit: ControllerInitFunction<
   TransactionPayController,
   TransactionPayControllerMessenger
 > = (request) => {
-  const { controllerMessenger } = request;
+  const { controllerMessenger, persistedState } = request;
 
   try {
     const transactionPayController = new TransactionPayController({
       messenger: controllerMessenger,
+      state: persistedState.TransactionPayController,
     });
 
     return { controller: transactionPayController };

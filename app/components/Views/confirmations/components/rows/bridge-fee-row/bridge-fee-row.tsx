@@ -1,16 +1,11 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  selectIsTransactionBridgeQuotesLoadingById,
-  selectTransactionBridgeQuotesById,
-} from '../../../../../../core/redux/slices/confirmationMetrics';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionMeta,
@@ -22,23 +17,39 @@ import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
 import { SkeletonRow } from '../skeleton-row';
 import { hasTransactionType } from '../../../utils/transaction';
+import {
+  selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayTotalsByTransactionId,
+} from '../../../../../../selectors/transactionPayController';
+import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { id: transactionId } = transactionMetadata;
-
-  const { totalTransactionFeeFormatted } = useTransactionTotalFiat();
-  const fiatFormatter = useFiatFormatter();
+  const formatFiat = useFiatFormatter();
 
   const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
+    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
   );
 
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
+  const totals = useSelector((state: RootState) =>
+    selectTransactionPayTotalsByTransactionId(state, transactionId),
   );
 
-  const hasQuotes = Boolean(quotes?.length);
+  const feeTotalUsd = useMemo(() => {
+    if (!totals?.fees) return '';
+
+    return formatFiat(
+      new BigNumber(totals.fees.provider.usd)
+        .plus(totals.fees.sourceNetwork.usd)
+        .plus(totals.fees.targetNetwork.usd),
+    );
+  }, [totals, formatFiat]);
+
+  const metamaskFeeUsd = useMemo(
+    () => formatFiat(new BigNumber(0)),
+    [formatFiat],
+  );
 
   if (isQuotesLoading) {
     return (
@@ -54,48 +65,74 @@ export function BridgeFeeRow() {
       <InfoRow
         testID="bridge-fee-row"
         label={strings('confirm.label.transaction_fee')}
-        tooltip={hasQuotes ? getTooltip(transactionMetadata) : undefined}
+        tooltip={
+          totals ? (
+            <Tooltip transactionMeta={transactionMetadata} totals={totals} />
+          ) : undefined
+        }
         tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
       >
-        <Text>{totalTransactionFeeFormatted}</Text>
+        <Text>{feeTotalUsd}</Text>
       </InfoRow>
-      {hasQuotes && (
+      {totals && (
         <InfoRow
           testID="metamask-fee-row"
           label={strings('confirm.label.metamask_fee')}
         >
-          <Text>{fiatFormatter(new BigNumber(0))}</Text>
+          <Text>{metamaskFeeUsd}</Text>
         </InfoRow>
       )}
     </>
   );
 }
 
-function getTooltip(transactionMeta: TransactionMeta): ReactNode {
+function Tooltip({
+  transactionMeta,
+  totals,
+}: {
+  transactionMeta: TransactionMeta;
+  totals: TransactionPayTotals;
+}): ReactNode {
+  let message: string | undefined;
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    return (
-      <FeesTooltip
-        message={strings('confirm.tooltip.predict_deposit.transaction_fee')}
-      />
-    );
+    message = strings('confirm.tooltip.predict_deposit.transaction_fee');
   }
 
   switch (transactionMeta.type) {
     case TransactionType.perpsDeposit:
-      return (
-        <FeesTooltip
-          message={strings('confirm.tooltip.perps_deposit.transaction_fee')}
-        />
-      );
-
-    default:
-      return undefined;
+      message = strings('confirm.tooltip.perps_deposit.transaction_fee');
+      break;
   }
+
+  if (!message) return null;
+
+  return <FeesTooltip message={message} totals={totals} />;
 }
 
-function FeesTooltip({ message }: { message: string }) {
-  const { totalBridgeFeeFormatted, totalNativeEstimatedFormatted } =
-    useTransactionTotalFiat();
+function FeesTooltip({
+  message,
+  totals,
+}: {
+  message: string;
+  totals: TransactionPayTotals;
+}) {
+  const formatFiat = useFiatFormatter();
+
+  const networkFeeUsd = useMemo(
+    () =>
+      formatFiat(
+        new BigNumber(totals.fees.sourceNetwork.usd).plus(
+          totals.fees.targetNetwork.usd,
+        ),
+      ),
+    [totals, formatFiat],
+  );
+
+  const providerFeeUsd = useMemo(
+    () => formatFiat(new BigNumber(totals.fees.provider.usd)),
+    [totals, formatFiat],
+  );
 
   return (
     <Box gap={14}>
@@ -107,9 +144,7 @@ function FeesTooltip({ message }: { message: string }) {
         <Text color={TextColor.Alternative}>
           {strings('confirm.label.network_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>
-          {totalNativeEstimatedFormatted}
-        </Text>
+        <Text color={TextColor.Alternative}>{networkFeeUsd}</Text>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}
@@ -118,7 +153,7 @@ function FeesTooltip({ message }: { message: string }) {
         <Text color={TextColor.Alternative}>
           {strings('confirm.label.bridge_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>{totalBridgeFeeFormatted}</Text>
+        <Text color={TextColor.Alternative}>{providerFeeUsd}</Text>
       </Box>
     </Box>
   );

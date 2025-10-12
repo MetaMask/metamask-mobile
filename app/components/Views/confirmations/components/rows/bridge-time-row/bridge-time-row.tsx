@@ -2,32 +2,27 @@ import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  selectIsTransactionBridgeQuotesLoadingById,
-  selectTransactionBridgeQuotesById,
-} from '../../../../../../core/redux/slices/confirmationMetrics';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { SkeletonRow } from '../skeleton-row';
+import {
+  selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayTotalsByTransactionId,
+} from '../../../../../../selectors/transactionPayController';
 
 export function BridgeTimeRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
 
   const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
+    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
   );
 
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
+  const totals = useSelector((state: RootState) =>
+    selectTransactionPayTotalsByTransactionId(state, transactionId),
   );
 
-  const showEstimate = isQuotesLoading || Boolean(quotes?.length);
-
-  const estimatedTimeSeconds = quotes?.reduce(
-    (acc, quote) => acc + quote.estimatedProcessingTimeInSeconds,
-    0,
-  );
+  const showEstimate = isQuotesLoading || Boolean(totals);
 
   if (!showEstimate) {
     return null;
@@ -40,7 +35,7 @@ export function BridgeTimeRow() {
   return (
     <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
       <Text>
-        {estimatedTimeSeconds} {strings('unit.second')}
+        {totals?.estimatedDuration} {strings('unit.second')}
       </Text>
     </InfoRow>
   );

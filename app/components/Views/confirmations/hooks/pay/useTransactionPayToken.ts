@@ -10,6 +10,7 @@ import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionPayFiat } from './useTransactionPayFiat';
+import Engine from '../../../../../core/Engine';
 
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
@@ -27,12 +28,24 @@ export function useTransactionPayToken() {
 
   const setPayToken = useCallback(
     (newPayToken: TransactionPayToken) => {
+      const { TransactionPayController } = Engine.context;
+
       dispatch(
         setTransactionPayToken({
           transactionId: transactionId as string,
           payToken: newPayToken,
         }),
       );
+
+      try {
+        TransactionPayController.updatePaymentToken({
+          transactionId: transactionId as string,
+          tokenAddress: newPayToken.address,
+          chainId: newPayToken.chainId,
+        });
+      } catch (e) {
+        console.error('Error updating payment token', e);
+      }
     },
     [dispatch, transactionId],
   );
