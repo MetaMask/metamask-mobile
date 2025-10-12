@@ -1,11 +1,7 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
 import { Box } from '../../../../UI/Box/Box';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
@@ -35,6 +31,7 @@ import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-loc
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { ExportCredentialsIds } from '../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface RootNavigationParamList extends ParamListBase {
   RevealSRP: {
@@ -73,7 +70,7 @@ export const RevealSRP = () => {
   }, [keyringId, navigate]);
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <HeaderBase
         style={styles.headerContainer}
         startAccessory={

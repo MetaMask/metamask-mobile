@@ -24,7 +24,7 @@ import Text, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPrice, formatVolume, formatAddress } from '../../utils/format';
+import { formatPrice, formatVolume } from '../../utils/format';
 import {
   Box,
   BoxFlexDirection,
@@ -44,7 +44,6 @@ import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { PredictPosition, PredictPriceHistoryInterval } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import TabBar from '../../../../Base/TabBar';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -58,12 +57,8 @@ const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
 const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
   Record<PredictPriceHistoryInterval, number>
 > = {
-  [PredictPriceHistoryInterval.ONE_HOUR]: 5, // 5-minute resolution for 1-hour window
-  [PredictPriceHistoryInterval.SIX_HOUR]: 15, // 15-minute resolution for 6-hour window
-  [PredictPriceHistoryInterval.ONE_DAY]: 60, // 1-hour resolution for 1-day window
-  [PredictPriceHistoryInterval.ONE_WEEK]: 240, // 4-hour resolution for 7-day window
-  [PredictPriceHistoryInterval.ONE_MONTH]: 720, // 12-hour resolution for month-long window
-  [PredictPriceHistoryInterval.MAX]: 1440, // 24-hour resolution for max window
+  [PredictPriceHistoryInterval.ONE_WEEK]: 30, // 30-minute resolution for 7-day window
+  [PredictPriceHistoryInterval.ONE_MONTH]: 120, // 2-hour resolution for month-long window
 };
 
 const MULTI_CHART_COLORS = ['#4459FF', '#CA3542', '#F0B034'] as const;
@@ -200,7 +195,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         accessibilityRole="button"
         accessibilityLabel={strings('back')}
         style={tw.style('items-center justify-center rounded-full w-10 h-10')}
-        testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -429,9 +423,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         >
           <Pressable>
             <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {isMarketFetching || !market?.outcomes[0]?.resolvedBy
-                ? 'Loading...'
-                : formatAddress(market.outcomes[0].resolvedBy)}
+              0x157...672
             </Text>
           </Pressable>
           <Icon
@@ -539,27 +531,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         />
         <ScrollableTabView
           renderTabBar={() => (
-            <TabBar
-              textStyle={tw.style('text-base font-bold text-center')}
-              testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
-            />
+            <TabBar textStyle={tw.style('text-base font-bold text-center')} />
           )}
           style={tw.style('mt-2')}
           initialPage={0}
         >
-          <Box
-            key="about"
-            {...{ tabLabel: 'About' }}
-            twClassName="pt-4"
-            testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
-          >
+          <Box key="about" {...{ tabLabel: 'About' }} twClassName="pt-4">
             {renderAboutSection()}
           </Box>
           <Box
             key="positions"
             {...{ tabLabel: 'Positions' }}
             twClassName="pt-4"
-            testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
           >
             {renderPositionsSection()}
           </Box>
@@ -568,7 +551,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               key="outcomes"
               {...{ tabLabel: 'Outcomes' }}
               twClassName="pt-4"
-              testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
             >
               <Box>
                 {market?.outcomes?.map((outcome, index) => (

@@ -6,8 +6,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+} from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Banner, {
   BannerAlertSeverity,
@@ -150,7 +154,7 @@ export const Recipient = () => {
   useRecipientPageReset(resetStateOnInput);
 
   return (
-    <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}

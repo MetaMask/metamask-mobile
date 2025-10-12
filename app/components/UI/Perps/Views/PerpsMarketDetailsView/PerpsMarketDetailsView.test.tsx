@@ -59,10 +59,7 @@ const mockRouteParams: {
     volume: string;
     maxLeverage: string;
   };
-  monitoringIntent?: {
-    asset: string;
-    monitor: 'orders' | 'positions' | 'both';
-  };
+  isNavigationFromOrderSuccess: boolean;
 } = {
   market: {
     symbol: 'BTC',
@@ -73,7 +70,7 @@ const mockRouteParams: {
     volume: '$1.23B',
     maxLeverage: '40x',
   },
-  monitoringIntent: undefined,
+  isNavigationFromOrderSuccess: false,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -404,6 +401,7 @@ describe('PerpsMarketDetailsView', () => {
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
 
     // Reset route params to default
+    mockRouteParams.isNavigationFromOrderSuccess = false;
     mockRouteParams.market = {
       symbol: 'BTC',
       name: 'Bitcoin',
@@ -1187,10 +1185,7 @@ describe('PerpsMarketDetailsView', () => {
   describe('notification tooltip functionality', () => {
     it('renders tooltip when flags are true and from successful order', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-      mockRouteParams.monitoringIntent = {
-        asset: 'BTC',
-        monitor: 'orders',
-      };
+      mockRouteParams.isNavigationFromOrderSuccess = true;
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1208,7 +1203,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('does not show PerpsNotificationTooltip when not navigating from order success', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-      mockRouteParams.monitoringIntent = undefined;
+      mockRouteParams.isNavigationFromOrderSuccess = false;
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1226,10 +1221,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('does not show PerpsNotificationTooltip when notifications feature is disabled', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(false);
-      mockRouteParams.monitoringIntent = {
-        asset: 'BTC',
-        monitor: 'orders',
-      };
+      mockRouteParams.isNavigationFromOrderSuccess = true;
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>

@@ -28,12 +28,12 @@ describe('useConfirmNavigation', () => {
 
     navigateToConfirmation({
       stack: STACK_MOCK,
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.PerpsDeposit,
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(STACK_MOCK, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      params: { loader: ConfirmationLoader.CustomAmount },
+      params: { loader: ConfirmationLoader.PerpsDeposit },
     });
   });
 
@@ -41,12 +41,12 @@ describe('useConfirmNavigation', () => {
     const { navigateToConfirmation } = runHook().result.current;
 
     navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.PerpsDeposit,
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      { params: { loader: ConfirmationLoader.CustomAmount } },
+      { params: { loader: ConfirmationLoader.PerpsDeposit } },
     );
   });
 });

@@ -1,7 +1,7 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   getNativeAssetForChainId,
-  isNonEvmChainId,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../types';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
@@ -15,7 +15,7 @@ export const getNativeSourceToken = (
   const nativeAsset = getNativeAssetForChainId(chainId);
 
   // Use assetId for Solana to get balances properly for native SOL
-  const address = isNonEvmChainId(chainId)
+  const address = isSolanaChainId(chainId)
     ? nativeAsset.assetId
     : nativeAsset.address;
 

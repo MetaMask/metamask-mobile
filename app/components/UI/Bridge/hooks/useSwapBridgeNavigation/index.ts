@@ -10,7 +10,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
   getNativeAssetForChainId,
-  isNonEvmChainId,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { SolScope, EthScope } from '@metamask/keyring-api';
@@ -103,7 +103,7 @@ export const useSwapBridgeNavigation = ({
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',
               decimals: bridgeSourceNativeAsset.decimals,
-              chainId: isNonEvmChainId(effectiveChainId)
+              chainId: isSolanaChainId(effectiveChainId) // TODO: refactor for other non-evm chains
                 ? effectiveChainId
                 : formatChainIdToHex(effectiveChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
             }

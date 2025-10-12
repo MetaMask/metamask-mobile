@@ -2,7 +2,6 @@ import {
   SignTypedDataVersion,
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { type Hex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   OffchainTradeParams,
@@ -27,11 +26,7 @@ import {
   ClaimOrderParams,
   GetPositionsParams,
 } from '../types';
-import {
-  FEE_COLLECTOR_ADDRESS,
-  POLYGON_MAINNET_CHAIN_ID,
-  ROUNDING_CONFIG,
-} from './constants';
+import { POLYGON_MAINNET_CHAIN_ID, ROUNDING_CONFIG } from './constants';
 import {
   ApiKeyCreds,
   OrderArtifactsParams,
@@ -63,10 +58,9 @@ import {
   parsePolymarketPositions,
   priceValid,
   submitClobOrder,
-  calculateFeeAmount,
 } from './utils';
 import { generateOrderId } from '../../utils/orders';
-import { computeSafeAddress, createSafeFeeAuthorization } from './safe/utils';
+import { Hex } from '@metamask/utils';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -406,19 +400,6 @@ export class PolymarketProvider implements PredictProvider {
       apiKey: signerApiKey,
     });
 
-    // Fee Authorization
-    const feeAmount = calculateFeeAmount(order);
-    let feeAuthorization;
-    if (feeAmount > 0n) {
-      const safeAddress = await computeSafeAddress(signer);
-      feeAuthorization = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount: feeAmount,
-        to: FEE_COLLECTOR_ADDRESS,
-      });
-    }
-
     return {
       id: generateOrderId(),
       chainId,
@@ -434,7 +415,7 @@ export class PolymarketProvider implements PredictProvider {
       timestamp: Date.now(),
       lastUpdated: Date.now(),
       onchainTradeParams: calls,
-      offchainTradeParams: { clobOrder, headers, feeAuthorization },
+      offchainTradeParams: { clobOrder, headers },
     };
   }
 
@@ -537,8 +518,6 @@ export class PolymarketProvider implements PredictProvider {
       apiKey: signerApiKey,
     });
 
-    // Fee logic
-
     return {
       id: generateOrderId(),
       providerId: this.providerId,
@@ -592,13 +571,12 @@ export class PolymarketProvider implements PredictProvider {
   public async submitOffchainTrade(
     params: OffchainTradeParams,
   ): Promise<OffchainTradeResponse> {
-    const { clobOrder, headers, feeAuthorization } =
+    const { clobOrder, headers } =
       params as unknown as PolymarketOffchainTradeParams;
 
     const response = await submitClobOrder({
       headers,
       clobOrder,
-      feeAuthorization,
     });
 
     return {
