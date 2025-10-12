@@ -21,6 +21,7 @@ import {
   TokenRatesControllerGetStateAction,
   TokensControllerGetStateAction,
 } from '@metamask/assets-controllers';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 type MessengerActions =
   | BridgeControllerActions
@@ -28,6 +29,7 @@ type MessengerActions =
   | CurrencyRateControllerActions
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
+  | RemoteFeatureFlagControllerGetStateAction
   | TokenBalancesControllerGetStateAction
   | TokenListControllerActions
   | TokenRatesControllerGetStateAction
@@ -50,6 +52,7 @@ export function getTransactionPayControllerMessenger(
       'CurrencyRateController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
+      'RemoteFeatureFlagController:getState',
       'TokenBalancesController:getState',
       'TokenListController:getState',
       'TokenRatesController:getState',

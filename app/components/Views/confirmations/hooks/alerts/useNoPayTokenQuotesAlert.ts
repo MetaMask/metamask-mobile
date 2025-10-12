@@ -7,7 +7,10 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
-import { selectTransactionPayQuotesByTransactionId } from '../../../../../selectors/transactionPayController';
+import {
+  selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayQuotesByTransactionId,
+} from '../../../../../selectors/transactionPayController';
 
 export function useNoPayTokenQuotesAlert() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -19,7 +22,7 @@ export function useNoPayTokenQuotesAlert() {
   );
 
   const quotesLoading = useSelector((state: RootState) =>
-    selectTransactionPayQuotesByTransactionId(state, transactionId),
+    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
   );
 
   const showAlert = payToken && !quotesLoading && quotes === undefined;
