@@ -33,7 +33,7 @@ import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { AllowanceState } from '../../types';
+import { AllowanceState, CardType } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
@@ -359,7 +359,7 @@ const CardHome = () => {
             isAllowanceLimited && styles.defaultMarginTop,
           ]}
         >
-          <CardImage />
+          <CardImage type={CardType.VIRTUAL} />
         </View>
         <View
           style={[

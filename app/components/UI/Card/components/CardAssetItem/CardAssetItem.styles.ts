@@ -24,6 +24,13 @@ const styleSheet = () =>
     badge: {
       marginTop: 12,
     },
+    percentageChange: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    balanceFiat: {
+      // Additional styling for balance fiat can be added here if needed
+    },
   });
 
 export default styleSheet;

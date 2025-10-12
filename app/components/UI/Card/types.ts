@@ -73,6 +73,12 @@ export enum CardErrorType {
   SERVER_ERROR = 'SERVER_ERROR',
 }
 
+export enum CardType {
+  VIRTUAL = 'VIRTUAL',
+  PHYSICAL = 'PHYSICAL',
+  METAL = 'METAL',
+}
+
 export class CardError extends Error {
   public type: CardErrorType;
   public originalError?: Error;
