@@ -4,8 +4,6 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { TouchableOpacity } from 'react-native';
-import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
-import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   AlignItems,
@@ -32,23 +30,18 @@ import Icon, {
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { totalFiat } = useTransactionRequiredFiat({ log: true });
 
   const {
     txParams: { from },
   } = useTransactionMetadataRequest() ?? { txParams: {} };
-
-  useTransactionBridgeQuotes();
 
   const canEdit = !isHardwareAccount(from ?? '');
 
   const handleClick = useCallback(() => {
     if (!canEdit) return;
 
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      minimumFiatBalance: totalFiat,
-    });
-  }, [canEdit, navigation, totalFiat]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+  }, [canEdit, navigation]);
 
   if (!payToken) {
     return <PayWithRowSkeleton />;

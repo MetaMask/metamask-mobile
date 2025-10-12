@@ -5,7 +5,6 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
@@ -13,7 +12,8 @@ import { RootState } from '../../../../../reducers';
 import { getNativeTokenAddress } from '../../utils/asset';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
-  const { totalNetworkFeeMax, total } = useTransactionTotalFiat();
+  // MATT TODO
+  const { totalNetworkFeeMax, total } = { totalNetworkFeeMax: '0', total: '0' };
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
   const nativeTokenAddress = getNativeTokenAddress(chainId ?? '0x0');

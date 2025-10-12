@@ -4,7 +4,6 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { uniq } from 'lodash';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -12,17 +11,22 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayFiat } from './useTransactionPayFiat';
 import { getRequiredBalance } from '../../utils/transaction-pay';
 import { getNativeTokenAddress } from '../../utils/asset';
+import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
+import { RootState } from '../../../../../reducers';
 
 export function useTransactionPayAvailableTokens() {
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { payToken } = useTransactionPayToken();
-  const requiredTokens = useTransactionRequiredTokens();
   const { convertFiat, formatFiat } = useTransactionPayFiat();
 
   const transactionMeta =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);
 
-  const { chainId: transactionChainId } = transactionMeta;
+  const { chainId: transactionChainId, id: transactionId } = transactionMeta;
+
+  const requiredTokens = useSelector((state: RootState) =>
+    selectTransactionPayTokensByTransactionId(state, transactionId ?? ''),
+  );
 
   const chainIds = useMemo(
     () => supportedChains.map((c) => c.chainId),

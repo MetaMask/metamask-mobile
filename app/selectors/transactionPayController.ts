@@ -20,3 +20,13 @@ export const selectIsTransactionPayLoadingByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData.isLoading,
 );
+
+export const selectTransactionPayPayQuotesById = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.quotes,
+);
+
+export const selectTransactionPayTokensByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.tokens,
+);
