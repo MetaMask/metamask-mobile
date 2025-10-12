@@ -2319,6 +2319,14 @@
       "comment_id": 3394099960,
       "created_at": "2025-10-12T09:25:36Z",
       "repoId": 141427485
+    },
+    {
+      "id": 193699300,
+      "name": "GarmashAlex",
+      "pullRequestNo": 20875,
+      "comment_id": 3394522028,
+      "created_at": "2025-10-12T14:16:37Z",
+      "repoId": 141427485
     }
   ]
 }
