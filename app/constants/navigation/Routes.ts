@@ -265,6 +265,7 @@ const Routes = {
     MODALS: {
       ROOT: 'PredictModals',
       CASH_OUT: 'PredictCashOut',
+      UNAVAILABLE: 'PredictUnavailable',
       PLACE_BET: 'PredictPlaceBet',
     },
   },
