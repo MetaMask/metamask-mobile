@@ -42,7 +42,8 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
+import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
+import Engine from '../../Engine';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
@@ -174,8 +175,9 @@ async function publishHook({
     transactionMeta.chainId,
   );
 
-  await new PayHook({
-    messenger: initMessenger,
+  await new TransactionPayPublishHook({
+    isSmartTransaction: () => shouldUseSmartTransaction,
+    messenger: Engine.controllerMessenger as never,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
   if (

@@ -348,7 +348,10 @@ import {
   TransactionPayController,
   TransactionPayControllerState,
 } from '@metamask/transaction-pay-controller';
-import { TransactionPayControllerEvents } from '@metamask/transaction-pay-controller/dist/types.cjs';
+import {
+  TransactionPayControllerActions,
+  TransactionPayControllerEvents,
+} from '@metamask/transaction-pay-controller/dist/types.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -442,6 +445,7 @@ type GlobalActions =
   | TokenRatesControllerActions
   | TokenListControllerActions
   | TransactionControllerActions
+  | TransactionPayControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
