@@ -66,8 +66,7 @@ export function useTransactionPayMetrics() {
   );
 
   if (nonGasQuote) {
-    // MATT TODO
-    properties.mm_pay_dust_usd = '0';
+    properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
   }
 
   const params = useDeepMemo(

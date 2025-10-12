@@ -60,7 +60,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { alertMessage, keyboardAlertMessage, excludeBannerKeys } =
       useTransactionCustomAmountAlerts({
         isInputChanged,
-        pendingTokenAmount: amountHuman,
+        pendingTokenAmount: amountFiat,
       });
 
     useEffect(() => {
