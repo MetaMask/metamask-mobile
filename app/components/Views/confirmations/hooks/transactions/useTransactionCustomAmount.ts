@@ -20,7 +20,7 @@ export function useTransactionCustomAmount() {
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
   const { payToken } = useTransactionPayToken();
-  const { tokenFiatAmount } = payToken || {};
+  const { balanceUsd } = payToken || {};
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -50,19 +50,19 @@ export function useTransactionCustomAmount() {
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number) => {
-      if (!tokenFiatAmount) {
+      if (!balanceUsd) {
         return;
       }
 
       const newAmount = new BigNumber(percentage)
         .dividedBy(100)
-        .multipliedBy(tokenFiatAmount)
+        .multipliedBy(balanceUsd)
         .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
         .toString(10);
 
       updatePendingAmount(newAmount);
     },
-    [tokenFiatAmount, updatePendingAmount],
+    [balanceUsd, updatePendingAmount],
   );
 
   const updateTokenAmount = useCallback(() => {

@@ -89,6 +89,8 @@ import { SnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import { InitModularizedControllersFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { networkControllerInit } from '../controllers/network-controller-init';
+import { TransactionPayControllerInit } from '../controllers/transaction-pay-controller';
+import { TransactionPayController } from '@metamask/transaction-pay-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -171,6 +173,9 @@ describe('initModularizedControllers', () => {
     multichainBalancesControllerInit,
   );
   const mockTransactionControllerInit = jest.mocked(TransactionControllerInit);
+  const mockTransactionPayControllerInit = jest.mocked(
+    TransactionPayControllerInit,
+  );
   const mockMultichainTransactionsControllerInit = jest.mocked(
     multichainTransactionsControllerInit,
   );
@@ -249,6 +254,7 @@ describe('initModularizedControllers', () => {
           SnapInterfaceController: mockSnapInterfaceControllerInit,
           SnapsRegistry: mockSnapsRegistryInit,
           TransactionController: mockTransactionControllerInit,
+          TransactionPayController: mockTransactionPayControllerInit,
           AppMetadataController: mockAppMetadataControllerInit,
           DeFiPositionsController: mockDeFiPositionsControllerInit,
           SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
@@ -297,6 +303,9 @@ describe('initModularizedControllers', () => {
     });
     mockTransactionControllerInit.mockReturnValue({
       controller: {} as unknown as TransactionController,
+    });
+    mockTransactionPayControllerInit.mockReturnValue({
+      controller: {} as unknown as TransactionPayController,
     });
     mockMultichainNetworkControllerInit.mockReturnValue({
       controller: {} as unknown as MultichainNetworkController,
