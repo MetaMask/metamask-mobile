@@ -33,6 +33,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
+  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -56,7 +57,7 @@ interface AccountStatusProps {
 interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: string;
+  onboardingTraceCtx?: TraceContext;
 }
 
 const AccountStatus = ({

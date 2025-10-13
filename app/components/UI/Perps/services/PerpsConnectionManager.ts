@@ -1,5 +1,4 @@
 import { captureException, setMeasurement } from '@sentry/react-native';
-import type { Span } from '@sentry/core';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
@@ -407,7 +406,7 @@ class PerpsConnectionManagerClass {
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
           op: TraceOperation.PerpsOperation,
-        }) as Span;
+        });
 
         DevLogger.log('PerpsConnectionManager: Initializing connection');
 
@@ -604,7 +603,7 @@ class PerpsConnectionManagerClass {
         name: TraceName.PerpsAccountSwitchReconnection,
         id: traceId,
         op: TraceOperation.PerpsOperation,
-      }) as Span;
+      });
 
       // Stage 1: Clean up existing connections and clear caches
       const cleanupStart = performance.now();
