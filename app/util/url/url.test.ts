@@ -3,7 +3,7 @@ import {
   isBridgeUrl,
   isValidASCIIURL,
   toPunycodeURL,
-  isSameOrigin,
+  isSameValueOrOrigin,
 } from './index';
 import AppConstants from '../../core/AppConstants';
 
@@ -125,33 +125,39 @@ describe('URL Check Functions', () => {
     });
   });
 
-  describe('isSameOrigin', () => {
-    it('return true for urls with the same origin', () => {
+  describe('isSameValueOrOrigin', () => {
+    it('return true for urls with the same value or origin', () => {
       expect(
-        isSameOrigin(
+        isSameValueOrOrigin(
+          'notUrl',
+          'notUrl',
+        ),
+      ).toBeTruthy();
+      expect(
+        isSameValueOrOrigin(
           'https://metamask.io/page.html',
           'https://metamask.io/page2.html',
         ),
       ).toBeTruthy();
       expect(
-        isSameOrigin(
+        isSameValueOrOrigin(
           'https://metamask.io/other.html',
           'https://usr:pw@metamask.io/',
         ),
       ).toBeTruthy();
       expect(
-        isSameOrigin('https://metamask.io:80/page', 'https://metamask.io:80/'),
+        isSameValueOrOrigin('https://metamask.io:80/page', 'https://metamask.io:80/'),
       ).toBeTruthy();
       expect(
-        isSameOrigin('https://metamask.io:81/', 'https://metamask.io:80'),
+        isSameValueOrOrigin('https://metamask.io:81/', 'https://metamask.io:80'),
       ).toBeFalsy();
       expect(
-        isSameOrigin(
+        isSameValueOrOrigin(
           'https://en.metamask.io/page.html',
           'https://metamask.io/',
         ),
       ).toBeFalsy();
-      expect(isSameOrigin('invalid url', 'https://metamask.io/')).toBeFalsy();
+      expect(isSameValueOrOrigin('invalid url', 'https://metamask.io/')).toBeFalsy();
     });
   });
 });
