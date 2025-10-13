@@ -11,6 +11,8 @@ export interface CardSliceState {
   cardholderAccounts: string[];
   priorityTokensByAddress: Record<string, CardTokenAllowance | null>;
   lastFetchedByAddress: Record<string, Date | string | null>;
+  authenticatedPriorityToken: CardTokenAllowance | null;
+  authenticatedPriorityTokenLastFetched: Date | string | null;
   hasViewedCardButton: boolean;
   isLoaded: boolean;
 }
@@ -19,6 +21,8 @@ export const initialState: CardSliceState = {
   cardholderAccounts: [],
   priorityTokensByAddress: {},
   lastFetchedByAddress: {},
+  authenticatedPriorityToken: null,
+  authenticatedPriorityTokenLastFetched: null,
   hasViewedCardButton: false,
   isLoaded: false,
 };
@@ -36,6 +40,12 @@ const slice = createSlice({
   initialState,
   reducers: {
     resetCardState: () => initialState,
+    setAuthenticatedPriorityToken: (
+      state,
+      action: PayloadAction<CardTokenAllowance | null>,
+    ) => {
+      state.authenticatedPriorityToken = action.payload;
+    },
     setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
       state.hasViewedCardButton = action.payload;
     },
@@ -58,6 +68,12 @@ const slice = createSlice({
     ) => {
       state.lastFetchedByAddress[action.payload.address.toLowerCase()] =
         action.payload.lastFetched;
+    },
+    setAuthenticatedPriorityTokenLastFetched: (
+      state,
+      action: PayloadAction<Date | string | null>,
+    ) => {
+      state.authenticatedPriorityTokenLastFetched = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -92,27 +108,50 @@ export const selectCardholderAccounts = createSelector(
 const selectedAccount = (rootState: RootState) =>
   selectSelectedInternalAccountByScope(rootState)('eip155:0');
 
-export const selectCardPriorityToken = (address?: string) =>
+export const selectCardPriorityToken = (
+  authenticated: boolean,
+  address?: string,
+) =>
   createSelector(selectCardState, (card) =>
-    address
+    authenticated
+      ? card.authenticatedPriorityToken
+      : address
       ? card.priorityTokensByAddress[address.toLowerCase()] || null
       : null,
   );
 
-export const selectCardPriorityTokenLastFetched = (address?: string) =>
+export const selectCardPriorityTokenLastFetched = (
+  authenticated: boolean,
+  address?: string,
+) =>
   createSelector(selectCardState, (card) =>
-    address ? card.lastFetchedByAddress[address.toLowerCase()] || null : null,
+    authenticated
+      ? card.authenticatedPriorityTokenLastFetched
+      : address
+      ? card.lastFetchedByAddress[address.toLowerCase()] || null
+      : null,
   );
 
-export const selectIsCardCacheValid = (address?: string) =>
-  createSelector(selectCardPriorityTokenLastFetched(address), (lastFetched) => {
-    if (!lastFetched) return false;
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    // Handle both Date objects and ISO date strings (from redux-persist)
-    const lastFetchedDate =
-      lastFetched instanceof Date ? lastFetched : new Date(lastFetched);
-    return lastFetchedDate > fiveMinutesAgo;
-  });
+export const selectIsCardCacheValid = (
+  authenticated: boolean,
+  address?: string,
+) =>
+  createSelector(
+    selectCardPriorityTokenLastFetched(authenticated, address),
+    (lastFetched) => {
+      if (!lastFetched) return false;
+      const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const lastFetchedDate =
+        lastFetched instanceof Date ? lastFetched : new Date(lastFetched);
+
+      if (authenticated) {
+        return lastFetchedDate > thirtySecondsAgo;
+      }
+
+      return lastFetchedDate > fiveMinutesAgo;
+    },
+  );
 
 export const selectIsCardholder = createSelector(
   selectCardholderAccounts,
@@ -138,5 +177,7 @@ export const {
   resetCardState,
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
+  setAuthenticatedPriorityToken,
   setHasViewedCardButton,
+  setAuthenticatedPriorityTokenLastFetched,
 } = actions;

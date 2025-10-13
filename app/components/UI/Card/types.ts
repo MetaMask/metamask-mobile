@@ -10,6 +10,15 @@ export enum AllowanceState {
   NotEnabled = 'not_enabled',
 }
 
+/**
+ * Enum for allowance health; used for displaying redelegation CTAs
+ */
+export enum AllowanceHealth {
+  Healthy = 'healthy',
+  Warning = 'warning',
+  Critical = 'critical',
+}
+
 // Helper interface for token balances
 export interface CardToken {
   address: string | null;
@@ -18,13 +27,17 @@ export interface CardToken {
   name: string | null;
 }
 
+export interface AuthenticatedCardTokenAllowanceData {
+  availableBalance?: ethers.BigNumber;
+  walletAddress?: string;
+}
+
 export type CardTokenAllowance = {
   allowanceState: AllowanceState;
   allowance: ethers.BigNumber;
 } & FlashListAssetKey &
-  CardToken & {
-    availableBalance?: ethers.BigNumber;
-  };
+  CardToken &
+  AuthenticatedCardTokenAllowanceData;
 
 export interface CardLoginInitiateResponse {
   token: string;

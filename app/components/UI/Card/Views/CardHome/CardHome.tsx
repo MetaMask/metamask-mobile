@@ -53,6 +53,8 @@ import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
+import useCardDetails from '../../hooks/useCardDetails';
+import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 
 /**
  * CardHome Component
@@ -94,9 +96,11 @@ const CardHome = () => {
   } = useGetPriorityCardToken();
   const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
     useAssetBalance(priorityToken);
+  const { cardDetails, isLoading: isLoadingCardDetails } = useCardDetails();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
+    destinationAddress: priorityToken?.walletAddress ?? undefined,
   });
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
@@ -107,8 +111,10 @@ const CardHome = () => {
   );
 
   const isAllowanceLimited = useMemo(
-    () => priorityToken?.allowanceState === AllowanceState.Limited,
-    [priorityToken],
+    () =>
+      !isAuthenticated &&
+      priorityToken?.allowanceState === AllowanceState.Limited,
+    [priorityToken, isAuthenticated],
   );
 
   const balanceAmount = useMemo(() => {
@@ -246,6 +252,11 @@ const CardHome = () => {
     logoutFromProvider();
   };
 
+  const isLoading = useMemo(
+    () => isLoadingPriorityToken || isLoadingCardDetails,
+    [isLoadingPriorityToken, isLoadingCardDetails],
+  );
+
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -301,7 +312,7 @@ const CardHome = () => {
             length={SensitiveTextLength.Long}
             variant={TextVariant.HeadingLG}
           >
-            {isLoadingPriorityToken ||
+            {isLoading ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
             balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
               <Skeleton
@@ -359,7 +370,18 @@ const CardHome = () => {
             isAllowanceLimited && styles.defaultMarginTop,
           ]}
         >
-          <CardImage type={CardType.VIRTUAL} />
+          {isLoading ? (
+            <Skeleton
+              height={240}
+              width={'100%'}
+              style={styles.skeletonRounded}
+            />
+          ) : (
+            <CardImage
+              type={cardDetails?.type ?? CardType.VIRTUAL}
+              address={priorityToken?.walletAddress}
+            />
+          )}
         </View>
         <View
           style={[
@@ -367,7 +389,7 @@ const CardHome = () => {
             styles.defaultHorizontalPadding,
           ]}
         >
-          {isLoadingPriorityToken || !priorityToken ? (
+          {isLoading || !priorityToken ? (
             <Skeleton
               height={50}
               width={'100%'}
@@ -382,7 +404,22 @@ const CardHome = () => {
         <View
           style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
         >
-          {isLoadingPriorityToken ? (
+          {!isLoading &&
+            isAuthenticated &&
+            priorityToken?.allowanceState === AllowanceState.Limited &&
+            priorityToken?.allowance !== undefined &&
+            priorityToken?.availableBalance !== undefined &&
+            priorityToken?.symbol !== undefined && (
+              <>
+                <View style={styles.spendingLimitDivider} />
+                <SpendingLimitProgressBar
+                  spendingLimit={priorityToken?.allowance}
+                  availableBalance={priorityToken?.availableBalance}
+                  symbol={priorityToken?.symbol ?? ''}
+                />
+              </>
+            )}
+          {isLoading ? (
             <Skeleton
               height={28}
               width={'100%'}
@@ -400,7 +437,7 @@ const CardHome = () => {
                     size={ButtonSize.Lg}
                     onPress={addFundsAction}
                     width={ButtonWidthTypes.Full}
-                    loading={isLoadingPriorityToken}
+                    loading={isLoading}
                     testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
                   />
                   <Button
@@ -410,7 +447,7 @@ const CardHome = () => {
                     size={ButtonSize.Lg}
                     onPress={changeAssetAction}
                     width={ButtonWidthTypes.Full}
-                    loading={isLoadingPriorityToken}
+                    loading={isLoading}
                     testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
                   />
                 </View>
@@ -421,7 +458,7 @@ const CardHome = () => {
                   size={ButtonSize.Lg}
                   onPress={addFundsAction}
                   width={ButtonWidthTypes.Full}
-                  loading={isLoadingPriorityToken}
+                  loading={isLoading}
                   testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
                 />
               )}

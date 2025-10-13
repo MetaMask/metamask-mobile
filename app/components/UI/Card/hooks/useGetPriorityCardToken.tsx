@@ -24,6 +24,8 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import {
   selectCardPriorityToken,
   selectCardPriorityTokenLastFetched,
+  setAuthenticatedPriorityToken,
+  setAuthenticatedPriorityTokenLastFetched,
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
 } from '../../../../core/redux/slices/card';
@@ -137,9 +139,11 @@ export const useGetPriorityCardToken = () => {
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:0',
   )?.address;
-  const priorityToken = useSelector(selectCardPriorityToken(selectedAddress));
+  const priorityToken = useSelector(
+    selectCardPriorityToken(isAuthenticated, selectedAddress),
+  );
   const lastFetched = useSelector(
-    selectCardPriorityTokenLastFetched(selectedAddress),
+    selectCardPriorityTokenLastFetched(isAuthenticated, selectedAddress),
   );
 
   // Helper to check if cache is still valid (less than 5 minutes old)
@@ -147,11 +151,17 @@ export const useGetPriorityCardToken = () => {
     if (!lastFetched) return false;
     const now = new Date();
     const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
     // Handle both Date objects and ISO date strings (from redux-persist)
     const lastFetchedDate =
       lastFetched instanceof Date ? lastFetched : new Date(lastFetched);
+
+    if (isAuthenticated) {
+      return lastFetchedDate > thirtySecondsAgo;
+    }
+
     return lastFetchedDate > fiveMinutesAgo;
-  }, [lastFetched]);
+  }, [lastFetched, isAuthenticated]);
 
   // Memoize cache validity to prevent unnecessary re-runs
   const cacheIsValid = useMemo(() => isCacheValid(), [isCacheValid]);
@@ -349,6 +359,10 @@ export const useGetPriorityCardToken = () => {
   const mapCardExternalWalletDetailToCardTokenAllowance = (
     cardExternalWalletDetail: CardExternalWalletDetail | undefined,
   ): CardTokenAllowance | null => {
+    Logger.log(
+      'mapCardExternalWalletDetailToCardTokenAllowance',
+      cardExternalWalletDetail,
+    );
     if (!cardExternalWalletDetail?.tokenDetails) {
       return null;
     }
@@ -369,19 +383,20 @@ export const useGetPriorityCardToken = () => {
       : Math.floor(balanceFloat).toString();
 
     const allowance = ethers.BigNumber.from(allowanceString);
+    const balance = ethers.BigNumber.from(balanceString);
     const allowanceState = allowance.isZero()
       ? AllowanceState.NotEnabled
       : allowance.lt(ARBITRARY_ALLOWANCE)
       ? AllowanceState.Limited
       : AllowanceState.Enabled;
-    const availableBalance =
-      ethers.BigNumber.from(balanceString).sub(allowance);
+    const availableBalance = Math.min(balance.toNumber(), allowance.toNumber());
 
     return {
       address: cardExternalWalletDetail.tokenDetails.address ?? '',
       decimals: cardExternalWalletDetail.tokenDetails.decimals ?? 0,
       symbol: cardExternalWalletDetail.tokenDetails.symbol ?? '',
       name: cardExternalWalletDetail.tokenDetails.name ?? '',
+      walletAddress: cardExternalWalletDetail.walletAddress,
       allowanceState,
       allowance,
       availableBalance: ethers.BigNumber.from(availableBalance),
@@ -409,17 +424,9 @@ export const useGetPriorityCardToken = () => {
         );
         setIsLoading(false);
         dispatch(
-          setCardPriorityToken({
-            address: selectedAddress ?? '',
-            token: mappedCardExternalWalletDetails,
-          }),
+          setAuthenticatedPriorityToken(mappedCardExternalWalletDetails),
         );
-        dispatch(
-          setCardPriorityTokenLastFetched({
-            address: selectedAddress ?? '',
-            lastFetched: new Date(),
-          }),
-        );
+        dispatch(setAuthenticatedPriorityTokenLastFetched(new Date()));
         return mappedCardExternalWalletDetails;
       } catch (err) {
         const normalizedError =
@@ -432,7 +439,7 @@ export const useGetPriorityCardToken = () => {
         setError(true);
         return null;
       }
-    }, [sdk, dispatch, selectedAddress]);
+    }, [sdk, dispatch]);
 
   const fetchPriorityToken: () => Promise<CardTokenAllowance | null> =
     useCallback(async () => {

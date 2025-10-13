@@ -11,10 +11,14 @@ import { BridgeToken } from '../../Bridge/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
-import { setDestToken } from '../../../../core/redux/slices/bridge';
+import {
+  setDestAddress,
+  setDestToken,
+} from '../../../../core/redux/slices/bridge';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import Logger from '../../../../util/Logger';
 
 export interface OpenSwapsParams {
   chainId: string;
@@ -25,12 +29,14 @@ export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
   priorityToken?: CardTokenAllowance;
+  destinationAddress?: string;
 }
 
 export const useOpenSwaps = ({
   location = SwapBridgeNavigationLocation.TokenDetails,
   sourcePage = Routes.CARD.HOME,
   priorityToken,
+  destinationAddress,
 }: UseOpenSwapsOptions = {}) => {
   const dispatch = useDispatch();
   const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
@@ -53,6 +59,8 @@ export const useOpenSwaps = ({
     }
   }, [tokensWithBalance, priorityToken]);
 
+  Logger.log('useOpenSwaps|destinationAddress', destinationAddress);
+
   const { goToSwaps } = useSwapBridgeNavigation({
     location,
     sourcePage,
@@ -62,6 +70,10 @@ export const useOpenSwaps = ({
   const openSwaps = useCallback(
     ({ chainId, beforeNavigate }: OpenSwapsParams) => {
       if (!priorityToken) return;
+
+      if (destinationAddress) {
+        dispatch(setDestAddress(destinationAddress));
+      }
 
       const destToken: BridgeToken = {
         ...priorityToken,
@@ -93,6 +105,7 @@ export const useOpenSwaps = ({
       trackEvent,
       createEventBuilder,
       sourceToken,
+      destinationAddress,
       priorityToken,
     ],
   );

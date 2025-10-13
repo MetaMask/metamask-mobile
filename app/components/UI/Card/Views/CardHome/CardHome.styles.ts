@@ -35,6 +35,7 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       flexGrow: 1,
+      paddingBottom: 32,
     },
     defaultHorizontalPadding: {
       paddingHorizontal: 16,
@@ -74,6 +75,11 @@ const createStyles = (theme: Theme) =>
     divider: {
       height: 1,
       backgroundColor: theme.colors.background.default,
+      width: '100%',
+    },
+    spendingLimitDivider: {
+      height: 1,
+      backgroundColor: theme.colors.border.muted,
       width: '100%',
     },
     defaultMarginTop: {

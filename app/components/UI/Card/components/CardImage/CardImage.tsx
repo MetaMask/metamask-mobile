@@ -10,8 +10,10 @@ import Svg, {
   ClipPath,
   LinearGradient,
   Stop,
+  Text,
 } from 'react-native-svg';
 import { CardType } from '../../types';
+import { truncateAddress } from '../../util/truncateAddress';
 
 const cardImageOriginalWidth = 851;
 const cardImageOriginalHeight = 540;
@@ -19,9 +21,10 @@ const cardImageAspectRatio = cardImageOriginalWidth / cardImageOriginalHeight;
 
 type CardImageProps = {
   type: CardType;
+  address?: string;
 } & SvgProps;
 
-const VirtualCardImage = (props: SvgProps) => (
+const VirtualCardImage = (props: SvgProps & { address?: string }) => (
   <View style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
@@ -98,6 +101,11 @@ const VirtualCardImage = (props: SvgProps) => (
           fill="#661800"
         />
       </G>
+      {props.address && (
+        <Text x={40} y={500} fontSize="40px" fontWeight={800} fill="#661800">
+          {props.address}
+        </Text>
+      )}
       <Defs>
         <ClipPath id="clip0_4219_2177">
           <Rect width={850.7} height={540} rx={31.8} fill="#fff" />
@@ -114,7 +122,7 @@ const VirtualCardImage = (props: SvgProps) => (
   </View>
 );
 
-const MetalCardImage = (props: SvgProps) => (
+const MetalCardImage = (props: SvgProps & { address?: string }) => (
   <View style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
@@ -204,6 +212,11 @@ const MetalCardImage = (props: SvgProps) => (
           fill="#EEE"
         />
       </G>
+      {props.address && (
+        <Text x={40} y={500} fontSize="40px" fontWeight={800} fill="#EEE">
+          {props.address}
+        </Text>
+      )}
       <Defs>
         <LinearGradient
           id="paint0_linear_4219_2151"
@@ -470,12 +483,15 @@ const MetalCardImage = (props: SvgProps) => (
 );
 
 const CardImage = (props: CardImageProps) => {
-  switch (props.type) {
+  const { type, address: rawAddress } = props;
+  const address = rawAddress ? truncateAddress(rawAddress) : undefined;
+
+  switch (type) {
     case CardType.VIRTUAL:
-      return <VirtualCardImage {...props} />;
+      return <VirtualCardImage {...props} address={address} />;
     case CardType.PHYSICAL:
     case CardType.METAL:
-      return <MetalCardImage {...props} />;
+      return <MetalCardImage {...props} address={address} />;
   }
 };
 

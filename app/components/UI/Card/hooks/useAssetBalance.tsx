@@ -107,7 +107,7 @@ export const useAssetBalance = (
   );
 
   // Token balance selectors
-  const tokenBalances = useSelector((state: RootState) =>
+  let tokenBalances = useSelector((state: RootState) =>
     selectedInternalAccountAddress && asset?.chainId && asset?.address
       ? selectSingleTokenBalance(
           state,
@@ -123,6 +123,13 @@ export const useAssetBalance = (
       ? selectCurrencyRateForChainId(state, asset.chainId as Hex)
       : undefined,
   );
+
+  if (token?.availableBalance) {
+    tokenBalances = {
+      ...tokenBalances,
+      [token.address]: token.availableBalance.toString() as `0x${string}`,
+    };
+  }
 
   const oneHundredths = 0.01;
   const oneHundredThousandths = 0.00001;

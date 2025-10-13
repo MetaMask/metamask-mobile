@@ -827,7 +827,8 @@ export class CardSDK {
           );
           const tokenDetails = this.mapSupportedTokenToCardToken(
             this.supportedTokens.find(
-              (token) => token.address === wallet.address,
+              (token) =>
+                token.symbol?.toLowerCase() === wallet.currency?.toLowerCase(),
             ) ?? this.supportedTokens[0],
           );
           return {
