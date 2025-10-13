@@ -4,10 +4,6 @@ import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithB
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import {
-  TransactionToken,
-  useTransactionRequiredTokens,
-} from './useTransactionRequiredTokens';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -18,10 +14,12 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
+import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
+import { TransactionToken } from '@metamask/transaction-pay-controller';
 
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 jest.mock('./useTransactionPayToken');
-jest.mock('./useTransactionRequiredTokens');
+jest.mock('../../../../../selectors/transactionPayController');
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -77,14 +75,14 @@ describe('useTransactionPayAvailableTokens', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const selectEnabledSourceChainsMock = jest.mocked(selectEnabledSourceChains);
 
-  const useTransactionRequiredTokensMock = jest.mocked(
-    useTransactionRequiredTokens,
+  const selectTransactionPayTokensByTransactionIdMock = jest.mocked(
+    selectTransactionPayTokensByTransactionId,
   );
 
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useTransactionRequiredTokensMock.mockReturnValue([]);
+    selectTransactionPayTokensByTransactionIdMock.mockReturnValue([]);
     selectEnabledSourceChainsMock.mockReturnValue([]);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -144,7 +142,7 @@ describe('useTransactionPayAvailableTokens', () => {
   });
 
   it('returns required token even if no usd or native balance', () => {
-    useTransactionRequiredTokensMock.mockReturnValue([
+    selectTransactionPayTokensByTransactionIdMock.mockReturnValue([
       TOKEN_1_MOCK as unknown as TransactionToken,
     ]);
 
