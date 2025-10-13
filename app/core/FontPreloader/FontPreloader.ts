@@ -40,6 +40,7 @@ class FontPreloader {
       try {
         // Get all font variants used in the app
         const fontVariants = [
+          TextVariant.DisplayLG,
           TextVariant.DisplayMD,
           TextVariant.HeadingLG,
           TextVariant.HeadingMD,
@@ -47,9 +48,12 @@ class FontPreloader {
           TextVariant.BodyLGMedium,
           TextVariant.BodyMD,
           TextVariant.BodyMDMedium,
+          TextVariant.BodyMDBold,
           TextVariant.BodySM,
           TextVariant.BodySMMedium,
+          TextVariant.BodySMBold,
           TextVariant.BodyXS,
+          TextVariant.BodyXSMedium,
         ];
 
         if (Platform.OS === 'web') {
