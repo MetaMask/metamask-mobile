@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,7 +23,6 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import {
@@ -83,6 +82,9 @@ import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
+import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
+import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -350,8 +352,68 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : asset.address;
 
   const currentChainId = chainId as Hex;
-  const exchangeRate =
+  const marketDataRate =
     allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
+
+  // Fetch exchange rate - will use allTokenMarketData if available,
+  // otherwise fetch from API for non-imported tokens
+  // For non-EVM, skip if multichainAssetRates already has the rate
+  const shouldFetchRate = isNonEvmAsset ? !multichainAssetRates : true;
+  const [fetchedRate, setFetchedRate] = useState<number | undefined>();
+
+  useEffect(() => {
+    if (marketDataRate !== undefined || !itemAddress) {
+      return;
+    }
+
+    const isNonEvm = isNonEvmChainId(currentChainId);
+    const nativeAssetConversionRate =
+      nativeCurrency &&
+      conversionRateByTicker?.[nativeCurrency]?.conversionRate;
+
+    // Skip EVM chains that don't have a native asset conversion rate
+    if (!isNonEvm && !nativeAssetConversionRate) {
+      return;
+    }
+
+    const fetchRate = async () => {
+      try {
+        const tokenFiatPrice = await getTokenExchangeRate({
+          chainId: currentChainId,
+          tokenAddress: itemAddress,
+          currency: currentCurrency,
+        });
+
+        if (!tokenFiatPrice) {
+          setFetchedRate(undefined);
+          return;
+        }
+
+        // Non-EVM: use the fiat price directly
+        if (isNonEvm) {
+          setFetchedRate(tokenFiatPrice);
+        } else if (nativeAssetConversionRate) {
+          // EVM: convert to native currency rate
+          setFetchedRate(tokenFiatPrice / nativeAssetConversionRate);
+        }
+      } catch (error) {
+        console.error('Failed to fetch token exchange rate:', error);
+        setFetchedRate(undefined);
+      }
+    };
+
+    fetchRate();
+  }, [
+    shouldFetchRate,
+    currentChainId,
+    itemAddress,
+    currentCurrency,
+    marketDataRate,
+    nativeCurrency,
+    conversionRateByTicker,
+  ]);
+
+  const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
   const minimumDisplayThreshold = 0.00001;
@@ -453,10 +515,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             timePeriod={timePeriod}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            multichainAssetsRates={multichainAssetsRates}
-            ///: END:ONLY_INCLUDE_IF
-            isEvmAssetSelected={!isNonEvmAsset}
           />
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
@@ -478,11 +536,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             isTronNative && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
-          <Balance
-            asset={asset}
-            mainBalance={mainBalance}
-            secondaryBalance={secondaryBalance}
-          />
+          {balance != null && (
+            <Balance
+              asset={asset}
+              mainBalance={mainBalance}
+              secondaryBalance={secondaryBalance}
+            />
+          )}
+
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
