@@ -4,9 +4,9 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
-import { Alert, Image, View, TouchableOpacity } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -19,12 +19,12 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PredictMarket as PredictMarketType } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictNavigationParamList } from '../../types/navigation';
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
@@ -39,11 +39,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-      reset();
-    },
+
+  const { isEligible } = usePredictEligibility({
+    providerId: market.providerId,
   });
 
   const getOutcomePrices = (): number[] =>
@@ -65,27 +63,39 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const yesPercentage = getYesPercentage();
 
-  const isOutcomeTokenLoading = useCallback(
-    (outcomeTokenId: string) =>
-      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
-    [currentOrderParams, loading],
-  );
-
   const handleYes = () => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[0].id,
-      market,
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[0],
+      },
     });
   };
 
   const handleNo = () => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[1].id,
-      market,
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[1],
+      },
     });
   };
 
@@ -231,8 +241,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             }
             onPress={handleYes}
             style={styles.buttonYes}
-            disabled={loading}
-            loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -245,8 +253,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             }
             onPress={handleNo}
             style={styles.buttonNo}
-            disabled={loading}
-            loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
           />
         </View>
         <View style={styles.marketFooter}>

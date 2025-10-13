@@ -15,10 +15,12 @@ import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
 import styles from '../MultichainTransactionListItem/MultichainTransactionListItem.styles';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
-import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import {
+  getSwapBridgeTxActivityTitle,
+  handleUnifiedSwapsTxHistoryItemClick,
+} from '../Bridge/utils/transaction-history';
 import { ethers } from 'ethers';
 
 const MultichainBridgeTransactionListItem = ({
@@ -42,8 +44,10 @@ const MultichainBridgeTransactionListItem = ({
     bridgeHistoryItem.quote.destAsset.chainId;
 
   const handlePress = () => {
-    navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
+    handleUnifiedSwapsTxHistoryItemClick({
+      navigation,
       multiChainTx: transaction,
+      bridgeTxHistoryItem: bridgeHistoryItem,
     });
   };
 
