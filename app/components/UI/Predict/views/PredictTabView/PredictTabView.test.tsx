@@ -197,20 +197,6 @@ jest.mock('../../components/PredictPositionResolved', () => {
   };
 });
 
-jest.mock('../../components/PredictOnboarding/PredictOnboarding', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockPredictOnboarding() {
-      return (
-        <View testID="predict-onboarding">
-          <Text>Onboarding Content</Text>
-        </View>
-      );
-    },
-  };
-});
-
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
   () => {
@@ -427,7 +413,6 @@ describe('PredictTabView', () => {
       // Since the mock doesn't work, we'll check that the component renders without errors
       // and that the main content is not shown
       expect(screen.queryByTestId('flash-list')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('predict-onboarding')).not.toBeOnTheScreen();
     });
 
     it('renders loading state when isRefreshing is true and positions is empty', () => {
@@ -445,7 +430,6 @@ describe('PredictTabView', () => {
       // Since the mock doesn't work, we'll check that the component renders without errors
       // and that the main content is not shown
       expect(screen.queryByTestId('flash-list')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('predict-onboarding')).not.toBeOnTheScreen();
     });
   });
 
@@ -475,10 +459,6 @@ describe('PredictTabView', () => {
 
     it('displays correct empty state content', () => {
       renderWithProviders(<PredictTabView />);
-
-      // When no claimable positions, should show onboarding
-      expect(screen.getByTestId('predict-onboarding')).toBeOnTheScreen();
-      expect(screen.getByText('Onboarding Content')).toBeOnTheScreen();
 
       // Empty state should still be present in the FlashList
       expect(screen.getByTestId('mock-icon')).toBeOnTheScreen();
@@ -593,14 +573,6 @@ describe('PredictTabView', () => {
       );
       expect(screen.getByTestId('address')).toHaveTextContent('0x123');
       expect(screen.getByTestId('provider-id')).toHaveTextContent('polymarket');
-    });
-
-    it('renders PredictOnboarding when no claimable positions', () => {
-      // Default mock already returns empty arrays, so no need to override
-      renderWithProviders(<PredictTabView />);
-
-      expect(screen.getByTestId('predict-onboarding')).toBeOnTheScreen();
-      expect(screen.queryByTestId('markets-won-card')).not.toBeOnTheScreen();
     });
   });
 

@@ -8,7 +8,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { default as React, useCallback, useRef } from 'react';
-import { Alert, RefreshControl, ScrollView, View , ActivityIndicator } from 'react-native';
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import MarketsWonCard from '../../components/MarketsWonCard';
@@ -25,7 +31,6 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
 import { strings } from '../../../../../../locales/i18n';
 
 interface PredictTabViewProps {}
@@ -67,8 +72,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   }, [claim, claimablePositions]);
 
   const renderMarketsWonCard = useCallback(() => {
-    if (claimablePositions.length === 0) return <PredictOnboarding />;
-
     const wonPositions = claimablePositions.filter(
       (position) => position.status === PredictPositionStatus.WON,
     );
