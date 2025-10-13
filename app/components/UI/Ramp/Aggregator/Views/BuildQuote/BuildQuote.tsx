@@ -317,7 +317,7 @@ const BuildQuote = () => {
     hexChainIdForBalance,
   );
 
-  const { balanceFiat, balanceBN } = useBalance(
+  const { balanceFiat, balanceBN, balance } = useBalance(
     selectedAsset && selectedAddress && selectedAsset.network
       ? {
           chainId: selectedAsset.network.chainId,
@@ -336,6 +336,19 @@ const BuildQuote = () => {
           decimals: 18,
         },
   );
+
+  const displayBalance = useMemo(() => {
+    if (!selectedAddress) return null;
+
+    const isNonEvm = isNonEvmAddress(selectedAddress);
+    const balanceValue = isNonEvm ? balance : addressBalance;
+
+    if (!balanceValue || balanceValue === '0' || balanceValue === '0 ') {
+      return null;
+    }
+
+    return balanceValue;
+  }, [selectedAddress, balance, addressBalance]);
 
   let maxSellAmount = null;
   if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
@@ -906,14 +919,12 @@ const BuildQuote = () => {
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {addressBalance !== undefined && selectedAddress !== null ? (
+                  {displayBalance && (
                     <>
                       {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                      {addressBalance}
+                      {displayBalance}
                       {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                     </>
-                  ) : (
-                    ''
                   )}
                 </Text>
               )}
