@@ -3,19 +3,20 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
+import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
+import { TransactionToken } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
-jest.mock('./useTransactionRequiredFiat');
-jest.mock('./useTransactionRequiredTokens');
 jest.mock('../../../../../util/address');
+jest.mock('../../../../../selectors/transactionPayController');
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -63,8 +64,8 @@ describe('useAutomaticTransactionPayToken', () => {
   const selectEnabledSourceChainsMock = jest.mocked(selectEnabledSourceChains);
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
-  const useTransactionRequiredTokensMock = jest.mocked(
-    useTransactionRequiredTokens,
+  const selectTransactionPayTokensByTransactionIdMock = jest.mocked(
+    selectTransactionPayTokensByTransactionId,
   );
 
   const setPayTokenMock: jest.MockedFn<
@@ -81,11 +82,11 @@ describe('useAutomaticTransactionPayToken', () => {
       setPayToken: setPayTokenMock,
     });
 
-    useTransactionRequiredTokensMock.mockReturnValue([
+    selectTransactionPayTokensByTransactionIdMock.mockReturnValue([
       {
-        address: TOKEN_ADDRESS_1_MOCK,
-      },
-    ] as unknown as ReturnType<typeof useTransactionRequiredTokens>);
+        address: TOKEN_ADDRESS_1_MOCK as Hex,
+      } as TransactionToken,
+    ]);
 
     isHardwareAccountMock.mockReturnValue(false);
   });
@@ -242,7 +243,7 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     ] as unknown as ReturnType<typeof useTokensWithBalance>);
 
-    useTransactionRequiredTokensMock.mockReturnValue([]);
+    selectTransactionPayTokensByTransactionIdMock.mockReturnValue([]);
 
     runHook();
 
