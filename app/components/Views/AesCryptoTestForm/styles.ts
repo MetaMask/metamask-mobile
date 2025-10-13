@@ -7,7 +7,10 @@ import Device from '../../../util/device';
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      paddingHorizontal: 15,
+      flex: 1,
+    },
+    scrollContainer: {
+      padding: 16,
     },
     formTitle: {
       paddingVertical: 5,

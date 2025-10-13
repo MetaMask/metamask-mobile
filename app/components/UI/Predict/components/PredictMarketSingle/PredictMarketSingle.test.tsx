@@ -9,21 +9,33 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarketSingle from './';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock Alert
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
+// Mock navigation
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
+// Mock usePredictEligibility hook
+const mockUsePredictEligibility = jest.fn();
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => mockUsePredictEligibility(),
+}));
+
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
-const mockUsePredictBuy = jest.fn();
-
-jest.mock('../../hooks/usePredictBuy', () => ({
-  usePredictBuy: () => mockUsePredictBuy(),
-}));
 
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
+  providerId: 'test-provider',
   marketId: 'test-market-1',
   title: 'Will Bitcoin reach $150,000 by end of year?',
   description: 'Bitcoin price prediction market',
@@ -68,14 +80,10 @@ const initialState = {
 
 describe('PredictMarketSingle', () => {
   beforeEach(() => {
-    mockUsePredictBuy.mockReturnValue({
-      placeBuyOrder: mockPlaceBuyOrder,
-      loading: false,
-      currentOrder: null,
-      result: null,
-      completed: false,
-      error: undefined,
-      reset: jest.fn(),
+    jest.clearAllMocks();
+    // Default mock implementation - user is eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
     });
   });
 
@@ -83,6 +91,7 @@ describe('PredictMarketSingle', () => {
     jest.clearAllMocks();
     mockAlert.mockClear();
     mockPlaceBuyOrder.mockClear();
+    mockNavigate.mockClear();
   });
 
   it('render market information correctly', () => {
@@ -99,7 +108,7 @@ describe('PredictMarketSingle', () => {
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('call placeBuyOrder when buttons are pressed', () => {
+  it('navigate to place bet modal when buttons are pressed', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle market={mockMarket} />,
       { state: initialState },
@@ -109,19 +118,23 @@ describe('PredictMarketSingle', () => {
     const noButton = getByText('No');
 
     fireEvent.press(yesButton);
-    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      size: 1,
-      outcomeId: mockOutcome.id,
-      outcomeTokenId: mockOutcome.tokens[0].id,
-      market: mockMarket,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market: mockMarket,
+        outcome: mockOutcome,
+        outcomeToken: mockOutcome.tokens[0],
+      },
     });
 
     fireEvent.press(noButton);
-    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      size: 1,
-      outcomeId: mockOutcome.id,
-      outcomeTokenId: mockOutcome.tokens[1].id,
-      market: mockMarket,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market: mockMarket,
+        outcome: mockOutcome,
+        outcomeToken: mockOutcome.tokens[1],
+      },
     });
   });
 
@@ -149,5 +162,148 @@ describe('PredictMarketSingle', () => {
     expect(getByText('Unknown Market')).toBeOnTheScreen();
     expect(getByText('0%')).toBeOnTheScreen();
     expect(getByText(/\$0.*Vol\./)).toBeOnTheScreen();
+  });
+
+  it('handle market with 0% yes percentage', () => {
+    const zeroPercentOutcome: PredictOutcome = {
+      ...mockOutcome,
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 0 }, // 0% yes
+        { id: 'token-no', title: 'No', price: 1 },
+      ],
+    };
+
+    const zeroPercentMarket: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [zeroPercentOutcome],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={zeroPercentMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('0%')).toBeOnTheScreen();
+  });
+
+  it('handle market with 100% yes percentage', () => {
+    const hundredPercentOutcome: PredictOutcome = {
+      ...mockOutcome,
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 1 }, // 100% yes
+        { id: 'token-no', title: 'No', price: 0 },
+      ],
+    };
+
+    const hundredPercentMarket: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [hundredPercentOutcome],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={hundredPercentMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('100%')).toBeOnTheScreen();
+  });
+
+  it('handle market with no image gracefully', () => {
+    const noImageOutcome: PredictOutcome = {
+      ...mockOutcome,
+      image: '',
+    };
+
+    const noImageMarket: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [noImageOutcome],
+    };
+
+    const { queryByTestId } = renderWithProvider(
+      <PredictMarketSingle market={noImageMarket} />,
+      { state: initialState },
+    );
+
+    // Should render without crashing, fallback background should be shown
+    expect(queryByTestId).toBeDefined();
+  });
+
+  it('handle numeric volume values correctly', () => {
+    const numericVolumeOutcome: PredictOutcome = {
+      ...mockOutcome,
+      volume: 500000, // numeric instead of string
+    };
+
+    const numericVolumeMarket: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [numericVolumeOutcome],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={numericVolumeMarket} />,
+      { state: initialState },
+    );
+
+    // Should display the formatted volume
+    expect(getByText(/\$500k.*Vol\./)).toBeOnTheScreen();
+  });
+
+  it('navigate to unavailable modal when user is not eligible', () => {
+    // Mock user as not eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes');
+    const noButton = getByText('No');
+
+    // Press the "Yes" button
+    fireEvent.press(yesButton);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+
+    // Press the "No" button
+    fireEvent.press(noButton);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+  });
+
+  it('navigate to market details when TouchableOpacity is pressed', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    // Press on the market title area
+    const marketTitle = getByText(
+      'Will Bitcoin reach $150,000 by end of year?',
+    );
+    fireEvent.press(marketTitle);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: mockMarket.id,
+      },
+    });
+  });
+
+  it('display correct button text using i18n strings', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    // The component uses strings('predict.buy_yes') and strings('predict.buy_no')
+    // which should resolve to 'Yes' and 'No' based on the mock data
+    expect(getByText('Yes')).toBeOnTheScreen();
+    expect(getByText('No')).toBeOnTheScreen();
   });
 });

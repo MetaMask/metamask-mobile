@@ -18,6 +18,7 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -41,6 +42,7 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
+        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await TestSnaps.tapButton('trackEventButton');

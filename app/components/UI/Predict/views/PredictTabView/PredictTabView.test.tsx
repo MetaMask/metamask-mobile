@@ -11,6 +11,32 @@ const store = mockStore({
       PreferencesController: {
         selectedAddress: '0x123',
       },
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            'account-id-1': {
+              address: '0x123',
+              id: 'account-id-1',
+              metadata: {
+                name: 'Test Account',
+                importTime: 1684232000456,
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              options: {},
+              methods: ['eth_signTransaction', 'eth_signTypedData_v4'],
+              type: 'eoa',
+            },
+          },
+          selectedAccount: 'account-id-1',
+        },
+      },
+      PredictController: {
+        isOnboarded: {
+          '0x123': true,
+        },
+      },
     },
   },
 });
@@ -40,6 +66,8 @@ jest.mock('@react-navigation/native', () => ({
 // Mock hooks with more flexibility
 const mockUsePredictPositions = jest.fn();
 const mockUsePredictClaim = jest.fn();
+const mockUsePredictAccountState = jest.fn();
+const mockUsePredictDeposit = jest.fn();
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: (options?: { claimable?: boolean }) =>
@@ -50,8 +78,12 @@ jest.mock('../../hooks/usePredictClaim', () => ({
   usePredictClaim: () => mockUsePredictClaim(),
 }));
 
-jest.mock('../../hooks/usePredictNotifications', () => ({
-  usePredictNotifications: jest.fn(() => ({})),
+jest.mock('../../hooks/usePredictAccountState', () => ({
+  usePredictAccountState: () => mockUsePredictAccountState(),
+}));
+
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => mockUsePredictDeposit(),
 }));
 
 // Mock components
@@ -131,6 +163,16 @@ jest.mock('../../components/PredictPositionEmpty', () => {
   };
 });
 
+jest.mock('../../components/PredictBalance/PredictBalance', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockPredictBalance() {
+      return <View testID="predict-balance" />;
+    },
+  };
+});
+
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
   () => {
@@ -149,6 +191,9 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
   PREDICT: {
     ROOT: 'Predict',
     MARKET_DETAILS: 'PredictMarketDetails',
+    MODALS: {
+      ROOT: 'PredictModals',
+    },
   },
 }));
 
@@ -163,6 +208,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     TextColor: {
       ErrorDefault: 'ErrorDefault',
+    },
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+      Start: 'flex-start',
+      End: 'flex-end',
+    },
+    BoxJustifyContent: {
+      Between: 'space-between',
+      Center: 'center',
+      Start: 'flex-start',
+      End: 'flex-end',
     },
   };
 });
@@ -237,6 +297,7 @@ describe('PredictTabView', () => {
     outcomeIndex: 0,
     title: 'Test Position',
     cashPnl: 10,
+    marketId: 'market-1',
   };
 
   const mockClaimablePosition = {
@@ -282,6 +343,22 @@ describe('PredictTabView', () => {
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
       loading: false,
+    });
+
+    mockUsePredictAccountState.mockReturnValue({
+      address: '0x123',
+      isDeployed: true,
+      hasAllowances: true,
+      balance: 0,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    mockUsePredictDeposit.mockReturnValue({
+      isLoading: false,
+      error: null,
+      isSuccess: false,
+      enableWallet: jest.fn(),
     });
   });
 
@@ -394,10 +471,11 @@ describe('PredictTabView', () => {
 
       fireEvent.press(screen.getByTestId('position-pos-1'));
 
-      expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
         screen: 'PredictMarketDetails',
         params: {
-          position: mockPosition,
+          marketId: mockPosition.marketId,
+          headerShown: false,
         },
       });
     });
@@ -431,8 +509,12 @@ describe('PredictTabView', () => {
       renderWithProviders(<PredictTabView />);
 
       expect(screen.getByTestId('markets-won-card')).toBeOnTheScreen();
-      expect(screen.getByTestId('markets-won-count')).toHaveTextContent('1');
-      expect(screen.getByTestId('claimable-amount')).toHaveTextContent('15');
+      expect(screen.getAllByTestId('markets-won-count')[0]).toHaveTextContent(
+        '1',
+      );
+      expect(screen.getAllByTestId('claimable-amount')[0]).toHaveTextContent(
+        '15',
+      );
     });
 
     it('does not render MarketsWonCard when no claimable positions', () => {

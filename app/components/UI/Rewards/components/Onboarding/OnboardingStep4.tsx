@@ -50,9 +50,13 @@ const OnboardingStep4: React.FC = () => {
       : undefined,
   );
 
+  const isPrefilledReferral = Boolean(
+    urlParams?.isFromDeeplink && urlParams?.referral,
+  );
+
   const handleNext = useCallback(() => {
-    optin({ referralCode });
-  }, [optin, referralCode]);
+    optin({ referralCode, isPrefilled: isPrefilledReferral });
+  }, [optin, referralCode, isPrefilledReferral]);
 
   const renderIcon = () => {
     if (isValidatingReferralCode) {
@@ -98,7 +102,7 @@ const OnboardingStep4: React.FC = () => {
         <Image
           source={step4Img}
           testID="step-4-image"
-          style={tw.style('w-30 h-30')}
+          style={tw.style('w-32 h-32')}
         />
       </Box>
 

@@ -53,8 +53,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
+  const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateYProgress.value - TAB_BAR_HEIGHT }],
+    transform: [
+      { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
+    ],
   }));
   const baseStyle: StyleProp<Animated.AnimateStyle<StyleProp<ViewStyle>>> =
     useMemo(
@@ -154,6 +157,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       variant={ButtonVariants.Primary}
       onPress={() => closeButtonOptions?.onPress()}
       label={closeButtonOptions?.label}
+      endIconName={closeButtonOptions?.endIconName}
+      style={closeButtonOptions?.style}
     />
   );
 
@@ -183,6 +188,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             variant={AvatarVariant.Network}
             name={networkName}
             imageSource={networkImageSource}
+            size={AvatarSize.Md}
+            style={styles.avatar}
+          />
+        );
+      }
+      case ToastVariants.App: {
+        const { appIconSource } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariant.Favicon}
+            imageSource={appIconSource}
             size={AvatarSize.Md}
             style={styles.avatar}
           />

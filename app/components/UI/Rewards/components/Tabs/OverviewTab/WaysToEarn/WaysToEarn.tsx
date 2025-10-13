@@ -27,6 +27,11 @@ import {
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../../../utils';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -153,6 +158,7 @@ const getBottomSheetData = (type: WayToEarnType) => {
 export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -161,21 +167,23 @@ export const WaysToEarn = () => {
   });
 
   const goToPerps = useCallback(() => {
-    let params: Record<string, string> | null = null;
     if (isFirstTimePerpsUser) {
-      params = {
-        screen: Routes.PERPS.TUTORIAL,
-      };
+      navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
-      params = {
+      navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
-      };
+      });
     }
-
-    navigation.navigate(Routes.PERPS.ROOT, params);
   }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED)
+        .addProperties({
+          ways_to_earn_type: type,
+        })
+        .build(),
+    );
     navigation.goBack(); // Close the modal first
     switch (type) {
       case WayToEarnType.SWAPS:
@@ -191,6 +199,14 @@ export const WaysToEarn = () => {
   };
 
   const handleEarningWayPress = (wayToEarn: WayToEarn) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+          ways_to_earn_type: wayToEarn.type,
+        })
+        .build(),
+    );
     switch (wayToEarn.type) {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
@@ -221,7 +237,7 @@ export const WaysToEarn = () => {
   };
 
   return (
-    <Box twClassName="py-4">
+    <Box twClassName="p-4">
       <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
         {strings('rewards.ways_to_earn.title')}
       </Text>
@@ -235,7 +251,7 @@ export const WaysToEarn = () => {
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
             <ButtonBase
-              twClassName="h-auto px-4 py-4 bg-inherit"
+              twClassName="h-auto px-4 py-3 bg-inherit"
               onPress={() => handleEarningWayPress(wayToEarn)}
             >
               <Box

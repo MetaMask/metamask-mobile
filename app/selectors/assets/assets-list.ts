@@ -99,8 +99,10 @@ const selectStakedAssets = createDeepEqualSelector(
     currencyRates,
     currentCurrency,
   ) => {
-    const stakedAssets = Object.entries(accountsByChainId).flatMap(
-      ([chainId, chainAccounts]) =>
+    const stakedAssets = Object.entries(accountsByChainId)
+      // Only include mainnet and hoodi
+      .filter(([chainId, _]) => chainId === '0x1' || chainId === '0x88bb0')
+      .flatMap(([chainId, chainAccounts]) =>
         Object.entries(chainAccounts)
           .filter(
             ([_, accountInformation]) =>
@@ -133,8 +135,12 @@ const selectStakedAssets = createDeepEqualSelector(
                 internalAccount.address === address.toLowerCase(),
             );
 
+            if (!account) {
+              return undefined;
+            }
+
             const stakedAsset = {
-              type: account?.type,
+              accountType: account.type,
               assetId: nativeToken.address,
               isNative: true,
               isStaked: true,
@@ -142,7 +148,7 @@ const selectStakedAssets = createDeepEqualSelector(
               image: '',
               name: 'Staked Ethereum',
               symbol: nativeToken.symbol,
-              accountId: account?.id,
+              accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
               balance: fromWei(stakedBalance),
@@ -158,11 +164,12 @@ const selectStakedAssets = createDeepEqualSelector(
 
             return {
               chainId,
-              accountId: account?.id as string,
+              accountId: account.id,
               stakedAsset,
             };
-          }),
-    );
+          })
+          .filter((item): item is NonNullable<typeof item> => Boolean(item)),
+      );
 
     return stakedAssets;
   },
@@ -188,7 +195,17 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+      .flatMap(([_, chainAssets]) => chainAssets)
+      .filter((asset) => {
+        // We need to filter out Tron energy and bandwidth from this list
+        if (
+          asset.chainId?.includes('tron:') &&
+          (asset.name === 'Energy' || asset.name === 'Bandwidth')
+        ) {
+          return false;
+        }
+        return true;
+      });
 
     const stakedAssetsArray = [];
     for (const asset of assets) {
@@ -311,16 +328,17 @@ function assetToToken(
         })
       : undefined,
     logo:
-      asset.type.startsWith('eip155') && asset.isNative
+      asset.accountType.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
         : asset.image,
     isETH:
-      asset.type.startsWith('eip155') &&
+      asset.accountType.startsWith('eip155') &&
       asset.isNative &&
       asset.symbol === 'ETH',
     isStaked: asset.isStaked || false,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
+    accountType: asset.accountType,
   };
 }

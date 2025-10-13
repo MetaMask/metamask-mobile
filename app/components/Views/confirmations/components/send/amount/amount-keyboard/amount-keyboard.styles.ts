@@ -7,11 +7,11 @@ export const getBackgroundColor = (
   amountError: boolean,
   submitDisabled: boolean,
 ) => {
-  let backgroundColor = theme.colors.primary.default;
+  let backgroundColor = theme.colors.text.default;
   if (amountError) {
     backgroundColor = theme.colors.error.default;
   } else if (submitDisabled) {
-    backgroundColor = theme.colors.primary.muted;
+    backgroundColor = theme.colors.text.muted;
   }
   return backgroundColor;
 };

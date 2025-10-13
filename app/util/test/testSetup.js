@@ -59,11 +59,19 @@ jest.mock('react-native-quick-crypto', () => ({
     }),
   },
   randomUUID: jest.fn(
-    () => 'mock-uuid-' + Math.random().toString(36).substr(2, 9),
+    () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
   ),
 }));
 
 jest.mock('react-native-blob-jsi-helper', () => ({}));
+
+// Create a persistent mock function that survives Jest teardown
+const mockBatchedUpdates = jest.fn((fn) => {
+  if (typeof fn === 'function') {
+    return fn();
+  }
+  return fn;
+});
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
@@ -71,6 +79,25 @@ jest.mock('react-native', () => {
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
+  // Mock unstable_batchedUpdates directly in the react-native module
+  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
+
+  return originalModule;
+});
+
+// Mock unstable_batchedUpdates more reliably
+const ReactNative = require('react-native');
+if (ReactNative.unstable_batchedUpdates) {
+  ReactNative.unstable_batchedUpdates = mockBatchedUpdates;
+}
+
+// Also mock it globally as a fallback
+global.unstable_batchedUpdates = mockBatchedUpdates;
+
+// Mock the specific module path that might be causing issues
+jest.mock('react-native/index.js', () => {
+  const originalModule = jest.requireActual('react-native');
+  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
   return originalModule;
 });
 
@@ -176,6 +203,16 @@ jest.mock('../../store', () => ({
   },
   _updateMockState: (state) => {
     mockState = state;
+  },
+}));
+
+// Mock SDKConnectV2 singleton to prevent auto-initialization during test setup.
+jest.mock('../../core/SDKConnectV2', () => ({
+  __esModule: true,
+  default: {
+    isConnectDeeplink: jest.fn(() => false),
+    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
+    disconnect: jest.fn().mockResolvedValue(undefined),
   },
 }));
 

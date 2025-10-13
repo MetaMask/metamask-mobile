@@ -88,12 +88,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
   usePerpsLivePositions: jest.fn(() => ({
     positions: [],
     isInitialLoading: false,
@@ -359,9 +353,9 @@ describe('PerpsTabView', () => {
         fireEvent.press(startTradingButton);
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+      );
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -401,9 +395,9 @@ describe('PerpsTabView', () => {
         fireEvent.press(startNewTradeCTA);
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+      );
     });
 
     it('should navigate to markets when Start a new trade CTA is pressed by returning user', () => {
@@ -428,6 +422,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
+        params: { source: 'position_tab' },
       });
     });
 

@@ -7,9 +7,12 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictMarketList from '../views/PredictMarketList';
 import PredictTabView from '../views/PredictTabView';
+import PredictUnavailableModal from '../views/PredictUnavailableModal';
+import PredictPlaceBet from '../views/PredictPlaceBet/PredictPlaceBet';
+import { PredictNavigationParamList } from '../types/navigation';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createStackNavigator<PredictNavigationParamList>();
+const ModalStack = createStackNavigator<PredictNavigationParamList>();
 
 const PredictModalStack = () => (
   <ModalStack.Navigator
@@ -24,6 +27,22 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.CASH_OUT}
       component={PredictCashOut}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.UNAVAILABLE}
+      component={PredictUnavailableModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MARKET_DETAILS}
+      component={PredictMarketDetails}
+      options={{
+        headerShown: false,
+      }}
+    />
+
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.PLACE_BET}
+      component={PredictPlaceBet}
     />
   </ModalStack.Navigator>
 );
@@ -49,29 +68,21 @@ const PredictScreenStack = () => (
     />
 
     <Stack.Screen
-      name={Routes.PREDICT.MARKET_DETAILS}
-      component={PredictMarketDetails}
-      options={{
-        title: strings('predict.market.details.title'),
-        headerShown: true,
-      }}
-    />
-
-    <Stack.Screen
-      name={Routes.PREDICT.MODALS.ROOT}
-      component={PredictModalStack}
-      options={{
-        headerShown: false,
-        cardStyle: {
-          backgroundColor: 'transparent',
-        },
-        animationEnabled: false,
-      }}
-    />
-
-    <Stack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
+      options={{
+        headerLeft: () => null,
+        headerShown: true,
+        title: '',
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
+      component={Confirm}
+      options={{
+        headerShown: false,
+      }}
     />
   </Stack.Navigator>
 );

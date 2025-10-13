@@ -221,7 +221,6 @@ const PermissionsSummary = ({
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
-              size={ButtonIconSizes.Sm}
               iconColor={IconColor.Default}
               onPress={onBack}
               iconName={IconName.ArrowLeft}

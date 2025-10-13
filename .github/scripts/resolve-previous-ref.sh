@@ -13,7 +13,7 @@ if [ "$patch" -gt 0 ]; then
   exit 0
 fi
 
-# Function to paginate and collect refs for a prefix
+# Function to paginate and collect refs for a prefix (narrow prefixes only)
 fetch_matching_refs() {
   local prefix="$1"
   local temp_file
@@ -43,23 +43,61 @@ fetch_matching_refs() {
   echo "$temp_file"
 }
 
-# Fetch only release/ branches
-release_file=$(fetch_matching_refs "release/")
+# Try immediate previous minor within the same major by direct branch existence checks
+major="${semver%%.*}"
+rest_minor_patch="${semver#*.}"
+minor="${rest_minor_patch%%.*}"
 
-# Process: extract {name, semver} for matches, sort desc by semver
-jq -s 'add | [ .[] | .ref | ltrimstr("refs/heads/") as $name | select($name | test("^release/[0-9]+\\.[0-9]+\\.[0-9]+$")) | {name: $name, semver: $name | ltrimstr("release/") } ] | sort_by( .semver | split(".") | map(tonumber) ) | reverse' "$release_file" > all_versions.json
+if ! [[ "$major" =~ ^[0-9]+$ && "$minor" =~ ^[0-9]+$ ]]; then
+  echo "Error: Unable to parse major/minor from semver: $semver" >&2
+  exit 1
+fi
 
-# Filter to those with semver strictly lower than current and non-hotfix (patch==0)
-jq --arg semver "$semver" '[ .[] | select( .semver as $v | $semver | split(".") as $c | $v | split(".") as $p | ( ($p[0] | tonumber) < ($c[0] | tonumber) or (($p[0] | tonumber) == ($c[0] | tonumber) and (($p[1] | tonumber) < ($c[1] | tonumber) or (($p[1] | tonumber) == ($c[1] | tonumber) and ($p[2] | tonumber) < ($c[2] | tonumber)))) ) and (($p[2] | tonumber) == 0) ) ]' all_versions.json > filtered_versions.json
+if [ "$minor" -gt 0 ]; then
+  cand_minor=$((minor - 1))
+  while [ "$cand_minor" -ge 0 ]; do
+    candidate="release/${major}.${cand_minor}.0"
+    echo "Checking for branch: ${candidate}" >&2
+    http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+      -H "Authorization: token $GITHUB_TOKEN" \
+      -H "Accept: application/vnd.github.v3+json" \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/branches/${candidate}")
+    if [ "$http_code" = "200" ]; then
+      echo "Found previous non-hotfix branch: ${candidate}" >&2
+      echo "previous_ref=${candidate}" >> "$GITHUB_OUTPUT"
+      exit 0
+    fi
+    cand_minor=$((cand_minor - 1))
+  done
+fi
 
-# Select the highest lower: first in filtered list. If none found, fail.
+# Fallback: move to previous major and select highest non-hotfix (patch==0)
+prev_major=$((major - 1))
+if [ "$prev_major" -lt 0 ]; then
+  echo "Error: No previous major available for semver: $semver" >&2
+  exit 1
+fi
+
+release_file=$(fetch_matching_refs "release/${prev_major}.")
+
+# From the fetched list for the previous major, keep only patch==0 branches and pick the highest
+jq -s '[ (add // [])
+        | .[]
+        | .ref
+        | ltrimstr("refs/heads/") as $name
+        | select($name | test("^release/[0-9]+\\.[0-9]+\\.[0-9]+$"))
+        | { name: $name, semver: ($name | ltrimstr("release/")) }
+      ]
+      | map(select(.semver | split(".")[2] == "0"))
+      | sort_by( .semver | split(".") | map(tonumber) )
+      | reverse' "$release_file" > filtered_versions.json
+
 if [ "$(jq length filtered_versions.json)" -eq 0 ]; then
-  echo "Error: No lower non-hotfix versions found; cannot determine previous-version-ref." >&2
-  echo "This likely indicates a missing prior minor release branch (e.g., release/X.(Y-1).0)." >&2
+  echo "Error: No non-hotfix branches found for previous major ${prev_major}." >&2
   exit 1
 else
-  highest_lower="$(jq -r '.[0].semver' filtered_versions.json)"
+  selected_semver="$(jq -r '.[0].semver' filtered_versions.json)"
   previous_ref="$(jq -r '.[0].name' filtered_versions.json)"
-  echo "Selected highest lower non-hotfix version: ${highest_lower} (branch: ${previous_ref})"
+  echo "Selected previous major highest non-hotfix: ${selected_semver} (branch: ${previous_ref})"
   echo "previous_ref=${previous_ref}" >> "$GITHUB_OUTPUT"
 fi

@@ -14,6 +14,7 @@ export enum ToastVariants {
   Plain = 'Plain',
   Account = 'Account',
   Network = 'Network',
+  App = 'App',
   Icon = 'Icon',
 }
 
@@ -42,6 +43,7 @@ interface BaseToastVariants {
   linkButtonOptions?: ToastLinkButtonOptions;
   closeButtonOptions?: ButtonProps;
   startAccessory?: ReactElement;
+  customBottomOffset?: number;
 }
 
 /**
@@ -69,6 +71,14 @@ interface NetworkToastOption extends BaseToastVariants {
   networkImageSource: ImageSourcePropType;
 }
 
+/**
+ * App toast option.
+ */
+interface AppToastOption extends BaseToastVariants {
+  variant: ToastVariants.App;
+  appIconSource: ImageSourcePropType;
+}
+
 interface IconToastOption extends BaseToastVariants {
   variant: ToastVariants.Icon;
   iconName: IconName;
@@ -83,6 +93,7 @@ export type ToastOptions =
   | PlainToastOption
   | AccountToastOption
   | NetworkToastOption
+  | AppToastOption
   | IconToastOption;
 
 /**

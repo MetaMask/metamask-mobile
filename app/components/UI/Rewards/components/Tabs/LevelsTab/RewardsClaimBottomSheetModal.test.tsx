@@ -231,6 +231,7 @@ interface TestRouteParams {
   description: string;
   rewardId: string;
   rewardType: SeasonRewardType;
+  seasonRewardId: string;
   isLocked: boolean;
   hasClaimed: boolean;
   icon: IconName;
@@ -245,6 +246,7 @@ const defaultRoute: { params: TestRouteParams } = {
     description: 'Test Description',
     rewardId: 'reward-123',
     rewardType: SeasonRewardType.GENERIC,
+    seasonRewardId: 'season-reward-1',
     isLocked: false,
     hasClaimed: false,
     icon: IconName.Lock,
