@@ -41,12 +41,12 @@ export const ResetNavigationToHome = CommonActions.reset({
 
 interface OnboardingSuccessProps {
   onDone: () => void;
-  _successFlow: ONBOARDING_SUCCESS_FLOW;
+  successFlow: ONBOARDING_SUCCESS_FLOW;
 }
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
-  _successFlow: _,
+  successFlow,
 }) => {
   const navigation = useNavigation();
 
@@ -85,8 +85,18 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     onDone();
   }, [onDone]);
 
-  const renderContent = useCallback(
-    () => (
+  const renderContent = useCallback(() => {
+    const getTitleString = () => {
+      switch (successFlow) {
+        case ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP:
+        case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
+          return strings('onboarding_success.title');
+        default:
+          return strings('onboarding_success.wallet_ready');
+      }
+    };
+
+    return (
       <View style={styles.contentWrapper}>
         <View style={styles.imageWrapper}>
           <OnboardingSuccessEndAnimation
@@ -96,12 +106,16 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           />
         </View>
         <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
-          {strings('onboarding_success.wallet_ready')}
+          {getTitleString()}
         </Text>
       </View>
-    ),
-    [styles.contentWrapper, styles.imageWrapper, styles.textTitle],
-  );
+    );
+  }, [
+    styles.contentWrapper,
+    styles.imageWrapper,
+    styles.textTitle,
+    successFlow,
+  ]);
 
   const renderButtons = useCallback(
     () => (
@@ -126,7 +140,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
       >
-        <Text color={TextColor.Primary} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.Primary} variant={TextVariant.BodyMDBold}>
           {strings('onboarding_success.manage_default_settings')}
         </Text>
       </TouchableOpacity>
@@ -301,7 +315,7 @@ export const OnboardingSuccess = () => {
 
   return (
     <OnboardingSuccessComponent
-      _successFlow={successFlow}
+      successFlow={successFlow}
       onDone={() => navigation.dispatch(nextScreen)}
     />
   );
