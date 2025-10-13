@@ -32,6 +32,9 @@ import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { strings } from '../../../../../../locales/i18n';
+import { usePredictAccountState } from '../../hooks/usePredictAccountState';
+import { usePredictDepositStatus } from '../../hooks/usePredictDepositStatus';
+import PredictDeposit from '../../components/PredictDeposit/PredictDeposit';
 
 interface PredictTabViewProps {}
 
@@ -58,6 +61,13 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       Alert.alert('Error claiming winnings', claimError.message);
     },
   });
+  const { balance, loadAccountState } = usePredictAccountState();
+  usePredictDepositStatus({
+    onSuccess: () => {
+      loadAccountState();
+      loadPositions({ isRefresh: true });
+    },
+  });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -82,11 +92,10 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     );
 
     const providerIdForCard = wonPositions[0]?.providerId;
-    const availableBalance = 1000.36;
 
     return (
       <MarketsWonCard
-        availableBalance={availableBalance}
+        availableBalance={balance}
         totalClaimableAmount={totalClaimableAmount}
         onClaimPress={handleClaimPress}
         isLoading={isClaiming}
@@ -95,6 +104,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       />
     );
   }, [
+    balance,
     claimablePositions,
     handleClaimPress,
     isClaiming,
@@ -173,7 +183,9 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
           />
         }
       >
+        <PredictDeposit />
         {renderMarketsWonCard()}
+        {/* TODO: Sort positions in the controller (business logic) */}
         <FlashList
           ref={listRef}
           data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
