@@ -73,7 +73,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
     },
     textTitle: {
       marginBottom: 16,
-      marginHorizontal: 24,
+      marginHorizontal: 16,
       textAlign: 'center',
     },
     imageWrapper: {
@@ -104,14 +104,14 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
     },
     footerWrapper: {
       marginTop: 16,
-      marginBottom: 20,
+      marginBottom: 16,
       flexDirection: 'column',
       rowGap: 16,
     },
     footer: {
       backgroundColor: colors.background.muted,
       paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingVertical: 12,
       borderRadius: 8,
     },
     row: {
