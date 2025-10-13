@@ -260,7 +260,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
-
   await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal

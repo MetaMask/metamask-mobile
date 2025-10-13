@@ -935,7 +935,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               }
             }
           >
-            Your wallet is ready!
+            Keep your Secret Recovery Phrase safe!
           </Text>
         </View>
       </View>
@@ -1279,7 +1279,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               }
             }
           >
-            Your wallet is ready!
+            Keep your Secret Recovery Phrase safe!
           </Text>
         </View>
       </View>
