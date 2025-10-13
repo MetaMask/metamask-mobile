@@ -86,6 +86,17 @@ jest.mock('../../hooks/usePredictClaim', () => ({
   usePredictClaim: () => mockUsePredictClaim(),
 }));
 
+jest.mock('../../hooks/usePredictAccountState', () => ({
+  usePredictAccountState: () => ({
+    balance: 1000.36,
+    loadAccountState: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/usePredictDepositStatus', () => ({
+  usePredictDepositStatus: jest.fn(),
+}));
+
 // Mock components
 jest.mock('../../components/MarketsWonCard', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -219,6 +230,10 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
       ROOT: 'PredictModals',
     },
   },
+  FULL_SCREEN_CONFIRMATIONS: {
+    REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+    NO_HEADER: 'NoHeader',
+  },
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -233,6 +248,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextColor: {
       ErrorDefault: 'ErrorDefault',
     },
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+      Start: 'flex-start',
+      End: 'flex-end',
+    },
+    BoxJustifyContent: {
+      Between: 'space-between',
+      Center: 'center',
+      Start: 'flex-start',
+      End: 'flex-end',
+    },
   };
 });
 
@@ -242,11 +272,25 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  IconColor: {
-    Alternative: '#666666',
-  },
-}));
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const { View } = jest.requireActual('react-native');
+  const IconNameProxy = new Proxy({}, { get: (_target, prop) => prop });
+  return {
+    __esModule: true,
+    default: View,
+    IconColor: {
+      Alternative: '#666666',
+    },
+    IconSize: {
+      Xs: 16,
+      Sm: 20,
+      Md: 24,
+      Lg: 32,
+      Xl: 40,
+    },
+    IconName: IconNameProxy,
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -254,6 +298,21 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: () => '0x123',
+  selectInternalAccounts: () => [],
+  selectInternalAccountsById: () => ({}),
+  selectSelectedInternalAccountId: () => 'account-id-1',
+  selectSelectedInternalAccountFormattedAddress: () => '0x123',
+  selectSelectedInternalAccount: () => ({
+    id: 'account-id-1',
+    address: '0x123',
+    metadata: { name: 'Test Account' },
+  }),
+  selectCanSignTransactions: () => true,
+  selectHasCreatedSolanaMainnetAccount: () => false,
+}));
+
+jest.mock('../../../../../selectors/keyringController', () => ({
+  selectFlattenedKeyringAccounts: () => [],
 }));
 
 jest.mock('react-redux', () => ({
