@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,7 +23,6 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import {
@@ -80,12 +79,14 @@ import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
+import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
+import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
-  displayBridgeButton?: boolean;
   networkName?: string;
 }
 
@@ -93,7 +94,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
-  displayBridgeButton,
   networkName,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
@@ -147,7 +147,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+  const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
     sourceToken: {
@@ -349,8 +349,68 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : asset.address;
 
   const currentChainId = chainId as Hex;
-  const exchangeRate =
+  const marketDataRate =
     allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
+
+  // Fetch exchange rate - will use allTokenMarketData if available,
+  // otherwise fetch from API for non-imported tokens
+  // For non-EVM, skip if multichainAssetRates already has the rate
+  const shouldFetchRate = isNonEvmAsset ? !multichainAssetRates : true;
+  const [fetchedRate, setFetchedRate] = useState<number | undefined>();
+
+  useEffect(() => {
+    if (marketDataRate !== undefined || !itemAddress) {
+      return;
+    }
+
+    const isNonEvm = isNonEvmChainId(currentChainId);
+    const nativeAssetConversionRate =
+      nativeCurrency &&
+      conversionRateByTicker?.[nativeCurrency]?.conversionRate;
+
+    // Skip EVM chains that don't have a native asset conversion rate
+    if (!isNonEvm && !nativeAssetConversionRate) {
+      return;
+    }
+
+    const fetchRate = async () => {
+      try {
+        const tokenFiatPrice = await getTokenExchangeRate({
+          chainId: currentChainId,
+          tokenAddress: itemAddress,
+          currency: currentCurrency,
+        });
+
+        if (!tokenFiatPrice) {
+          setFetchedRate(undefined);
+          return;
+        }
+
+        // Non-EVM: use the fiat price directly
+        if (isNonEvm) {
+          setFetchedRate(tokenFiatPrice);
+        } else if (nativeAssetConversionRate) {
+          // EVM: convert to native currency rate
+          setFetchedRate(tokenFiatPrice / nativeAssetConversionRate);
+        }
+      } catch (error) {
+        console.error('Failed to fetch token exchange rate:', error);
+        setFetchedRate(undefined);
+      }
+    };
+
+    fetchRate();
+  }, [
+    shouldFetchRate,
+    currentChainId,
+    itemAddress,
+    currentCurrency,
+    marketDataRate,
+    nativeCurrency,
+    conversionRateByTicker,
+  ]);
+
+  const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
   const minimumDisplayThreshold = 0.00001;
@@ -447,10 +507,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             timePeriod={timePeriod}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            multichainAssetsRates={multichainAssetsRates}
-            ///: END:ONLY_INCLUDE_IF
-            isEvmAssetSelected={!isNonEvmAsset}
           />
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
@@ -458,8 +514,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
-            displayBridgeButton={displayBridgeButton}
-            goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}
@@ -469,11 +523,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               chainId,
             }}
           />
-          <Balance
-            asset={asset}
-            mainBalance={mainBalance}
-            secondaryBalance={secondaryBalance}
-          />
+
+          {balance != null && (
+            <Balance
+              asset={asset}
+              mainBalance={mainBalance}
+              secondaryBalance={secondaryBalance}
+            />
+          )}
+
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
