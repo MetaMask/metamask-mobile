@@ -220,8 +220,9 @@ export interface PendingTrace {
 }
 /**
  * A context object to associate traces with each other and generate nested traces.
+ * When trace() is called without a callback, it returns a Span that can be manually ended.
  */
-export type TraceContext = unknown;
+export type TraceContext = Span | undefined;
 /**
  * A callback function that can be traced.
  */
@@ -571,7 +572,7 @@ function startTrace(request: TraceRequest): TraceContext {
     }
 
     bufferTraceStartCallLocal(request, parentTraceName);
-    return { _buffered: true, _name: name, _id: id, _local: true };
+    return undefined;
   }
 
   const callback = (span: Span | undefined) => {
