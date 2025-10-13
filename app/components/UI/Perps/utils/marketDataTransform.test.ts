@@ -11,7 +11,7 @@ import {
 import {
   formatVolume,
   formatPerpsFiat,
-  PRICE_RANGES_4_SIG_FIGS,
+  PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
 import {
   AllMids,
@@ -695,7 +695,7 @@ describe('marketDataTransform', () => {
       // Arrange & Act & Assert
       // formatPerpsFiat is not designed for negative values - returns "<$0.00"
       // Use formatChange() for signed values instead
-      expect(formatPerpsFiat(-100, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+      expect(formatPerpsFiat(-100, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
         '<$0.00',
       );
       expect(formatVolume(-1000000)).toBe('-$1.00M'); // formatVolume handles negatives
@@ -705,7 +705,7 @@ describe('marketDataTransform', () => {
       // Arrange & Act & Assert
       // formatPerpsFiat with PRICE_RANGES_4_SIG_FIGS has min 2 decimals, so very small numbers show as $0.00
       expect(
-        formatPerpsFiat(0.0000001, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+        formatPerpsFiat(0.0000001, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0.00');
       expect(formatVolume(0.1)).toBe('$0.10'); // Now shows 2 decimals
       expect(formatPercentage(0.001)).toBe('+0.00%');
@@ -714,13 +714,13 @@ describe('marketDataTransform', () => {
     // TODO: We probably want a better fallback here
     it('handles NaN and Infinity values with safe fallbacks', () => {
       // Arrange & Act & Assert
-      expect(formatPerpsFiat(NaN, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+      expect(formatPerpsFiat(NaN, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
         '$0.00',
       );
       // formatPerpsFiat doesn't handle Infinity - shows "$∞"
       // High-level functions like formatChange() handle Infinity correctly
       expect(
-        formatPerpsFiat(Infinity, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+        formatPerpsFiat(Infinity, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$∞');
       expect(formatVolume(NaN)).toBe('$---');
       expect(formatVolume(Infinity)).toBe('$---');

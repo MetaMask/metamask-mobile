@@ -8,7 +8,7 @@ import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   formatPerpsFiat,
   formatPercentage,
-  PRICE_RANGES_4_SIG_FIGS,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 
 interface LivePriceDisplayProps {
@@ -55,7 +55,7 @@ const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
     return (
       <View>
         <Text variant={variant} color={color} testID={testID}>
-          {formatPerpsFiat(price, { ranges: PRICE_RANGES_4_SIG_FIGS })}
+          {formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL })}
         </Text>
         <Text variant={TextVariant.BodySM} color={changeColor}>
           {formatPercentage(change)}
@@ -66,7 +66,7 @@ const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
 
   return (
     <Text variant={variant} color={color} testID={testID}>
-      {formatPerpsFiat(price, { ranges: PRICE_RANGES_4_SIG_FIGS })}
+      {formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL })}
     </Text>
   );
 };

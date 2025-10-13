@@ -233,6 +233,16 @@ export const FUNDING_RATE_CONFIG = {
   PERCENTAGE_MULTIPLIER: 100,
 } as const;
 
+/**
+ * Decimal precision configuration
+ * Controls maximum decimal places for price and input validation
+ */
+export const DECIMAL_PRECISION_CONFIG = {
+  // Maximum decimal places for price input (matches Hyperliquid limit)
+  // Used in TP/SL forms, limit price inputs, and price validation
+  MAX_PRICE_DECIMALS: 6,
+} as const;
+
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';

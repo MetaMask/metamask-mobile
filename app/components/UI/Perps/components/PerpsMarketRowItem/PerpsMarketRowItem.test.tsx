@@ -489,7 +489,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // With PRICE_RANGES_DETAILED_VIEW, small prices preserve 3 significant digits
+      // With PRICE_RANGES_UNIVERSAL, small prices use appropriate precision
       expect(screen.getByText('$0.000123')).toBeOnTheScreen();
     });
 

@@ -9,7 +9,7 @@ import type { PerpsMarketData } from '../controllers/types';
 import {
   formatVolume,
   formatPerpsFiat,
-  PRICE_RANGES_4_SIG_FIGS,
+  PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
@@ -121,7 +121,7 @@ export function transformMarketData(
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
         ? '$0.00'
-        : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+        : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
       change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
@@ -146,7 +146,7 @@ export function formatChange(change: number): string {
 
   // Use 4 significant figures for consistency
   const formatted = formatPerpsFiat(Math.abs(change), {
-    ranges: PRICE_RANGES_4_SIG_FIGS,
+    ranges: PRICE_RANGES_UNIVERSAL,
   });
 
   // Remove $ sign and add it back with proper sign placement

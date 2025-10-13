@@ -21,7 +21,7 @@ import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
   formatPerpsFiat,
-  PRICE_RANGES_4_SIG_FIGS,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 export interface TPSLLines {
   takeProfitPrice?: string;
@@ -85,16 +85,16 @@ const TradingViewChart = React.forwardRef<
       try {
         return {
           open: formatPerpsFiat(parseFloat(ohlcData.open), {
-            ranges: PRICE_RANGES_4_SIG_FIGS,
+            ranges: PRICE_RANGES_UNIVERSAL,
           }),
           high: formatPerpsFiat(parseFloat(ohlcData.high), {
-            ranges: PRICE_RANGES_4_SIG_FIGS,
+            ranges: PRICE_RANGES_UNIVERSAL,
           }),
           low: formatPerpsFiat(parseFloat(ohlcData.low), {
-            ranges: PRICE_RANGES_4_SIG_FIGS,
+            ranges: PRICE_RANGES_UNIVERSAL,
           }),
           close: formatPerpsFiat(parseFloat(ohlcData.close), {
-            ranges: PRICE_RANGES_4_SIG_FIGS,
+            ranges: PRICE_RANGES_UNIVERSAL,
           }),
         };
       } catch {

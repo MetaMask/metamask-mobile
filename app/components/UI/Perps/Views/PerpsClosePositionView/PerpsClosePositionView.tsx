@@ -55,7 +55,7 @@ import {
   formatPositionSize,
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
-  PRICE_RANGES_DETAILED_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
   calculateCloseAmountFromPercentage,
@@ -677,7 +677,7 @@ const PerpsClosePositionView: React.FC = () => {
                     >
                       {limitPrice
                         ? `${formatPerpsFiat(limitPrice, {
-                            ranges: PRICE_RANGES_DETAILED_VIEW,
+                            ranges: PRICE_RANGES_UNIVERSAL,
                           })}`
                         : 'Set price'}
                     </Text>

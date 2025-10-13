@@ -5,7 +5,7 @@ import type { PriceUpdate } from '../controllers/types';
 import {
   formatLargeNumber,
   formatFundingRate,
-  PRICE_RANGES_4_SIG_FIGS,
+  PRICE_RANGES_UNIVERSAL,
   LARGE_NUMBER_RANGES_DETAILED,
   formatPerpsFiat,
 } from '../utils/formatUtils';
@@ -112,15 +112,15 @@ export const usePerpsMarketStats = (
       // 24h high/low from candlestick data, with fallback estimates (4 sig figs)
       high24h:
         high > 0
-          ? formatPerpsFiat(high, { ranges: PRICE_RANGES_4_SIG_FIGS })
+          ? formatPerpsFiat(high, { ranges: PRICE_RANGES_UNIVERSAL })
           : formatPerpsFiat(fallbackPrice, {
-              ranges: PRICE_RANGES_4_SIG_FIGS,
+              ranges: PRICE_RANGES_UNIVERSAL,
             }),
       low24h:
         low > 0
-          ? formatPerpsFiat(low, { ranges: PRICE_RANGES_4_SIG_FIGS })
+          ? formatPerpsFiat(low, { ranges: PRICE_RANGES_UNIVERSAL })
           : formatPerpsFiat(fallbackPrice, {
-              ranges: PRICE_RANGES_4_SIG_FIGS,
+              ranges: PRICE_RANGES_UNIVERSAL,
             }),
       volume24h: marketData.volume24h
         ? `$${formatLargeNumber(marketData.volume24h, {
