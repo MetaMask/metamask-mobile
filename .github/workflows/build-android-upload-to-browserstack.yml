@@ -71,7 +71,7 @@ jobs:
 
   build-android-dual:
     name: Build Android Dual Versions
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
     needs: [check-builds-needed]
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
@@ -86,6 +86,12 @@ jobs:
       - name: Checkout repo
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         uses: actions/checkout@v4
+
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images for AVD..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
 
       - name: Setup Android Build Environment
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
@@ -131,6 +137,8 @@ jobs:
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
+          MM_UNIFIED_SWAPS_ENABLED: 'true'
+          MM_BRIDGE_ENABLED: 'true'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
@@ -139,7 +147,7 @@ jobs:
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           # Conditionally set SRP and password based on build type
-          ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.IN_BUILD_SRP || '' }}
+          ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.TEST_SRP_1 || '' }}
           PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
