@@ -106,6 +106,30 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectIsSwap: () => false,
 }));
 
+// Mock multichain account selectors
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: () => ({}),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+    selectAccountTreeControllerState: () => ({}),
+    selectAccountGroupWithInternalAccounts: () => [],
+    selectSelectedAccountGroupInternalAccounts: () => [],
+  }),
+);
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectInternalAccounts: () => [],
+}));
+
 // want to make the source token solana and dest token evm
 const testState = createBridgeTestState({
   bridgeReducerOverrides: {
