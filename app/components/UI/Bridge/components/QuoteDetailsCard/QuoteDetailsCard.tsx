@@ -239,29 +239,10 @@ const QuoteDetailsCard: React.FC = () => {
 
         <KeyValueRow
           field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={4}
-              >
-                <TouchableOpacity
-                  onPress={handleSlippagePress}
-                  activeOpacity={0.6}
-                  testID="edit-slippage-button"
-                  style={styles.slippageButton}
-                >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge.slippage')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              </Box>
-            ),
+            label: {
+              text: strings('bridge.slippage'),
+              variant: TextVariant.BodyMDMedium,
+            },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
@@ -269,47 +250,52 @@ const QuoteDetailsCard: React.FC = () => {
             },
           }}
           value={{
-            label: {
-              text: slippage,
-              variant: TextVariant.BodyMD,
-            },
+            label: (
+              <TouchableOpacity
+                onPress={handleSlippagePress}
+                activeOpacity={0.6}
+                testID="edit-slippage-button"
+                style={styles.slippageButton}
+              >
+                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
+                <Icon
+                  name={IconName.Edit}
+                  size={IconSize.Sm}
+                  color={IconColor.Muted}
+                />
+              </TouchableOpacity>
+            ),
           }}
         />
 
         {!isSwap && (
           <KeyValueRow
             field={{
-              label: (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={4}
-                >
-                  <TouchableOpacity
-                    onPress={handleRecipientPress}
-                    activeOpacity={0.6}
-                    testID="recipient-selector-button"
-                    style={styles.slippageButton}
-                  >
-                    <Text variant={TextVariant.BodyMDMedium}>
-                      {strings('bridge.recipient')}
-                    </Text>
-                    <Icon
-                      name={IconName.Edit}
-                      size={IconSize.Sm}
-                      color={IconColor.Muted}
-                    />
-                  </TouchableOpacity>
-                </Box>
-              ),
+              label: {
+                text: strings('bridge.recipient'),
+                variant: TextVariant.BodyMDMedium,
+              },
             }}
             value={{
-              label: {
-                text: destAddress
-                  ? formatAddress(destAddress, 'short')
-                  : strings('bridge.select_recipient'),
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <TouchableOpacity
+                  onPress={handleRecipientPress}
+                  activeOpacity={0.6}
+                  testID="recipient-selector-button"
+                  style={styles.slippageButton}
+                >
+                  <Text variant={TextVariant.BodyMD}>
+                    {destAddress
+                      ? formatAddress(destAddress, 'short')
+                      : strings('bridge.select_recipient')}
+                  </Text>
+                  <Icon
+                    name={IconName.Edit}
+                    size={IconSize.Sm}
+                    color={IconColor.Muted}
+                  />
+                </TouchableOpacity>
+              ),
             }}
           />
         )}
