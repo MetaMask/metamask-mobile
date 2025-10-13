@@ -2,12 +2,12 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { transferTransactionStateMock } from '../../__mocks__/transfer-transaction-mock';
-import { isSendBundleSupported } from '../../../../../core/RPCMethods/sentinel-api';
+import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 import { merge } from 'lodash';
 import { transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { waitFor } from '@testing-library/react-native';
 
-jest.mock('../../../../../core/RPCMethods/sentinel-api');
+jest.mock('../../../../../util/transactions/sentinel-api');
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 

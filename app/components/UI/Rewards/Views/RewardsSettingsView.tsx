@@ -41,9 +41,9 @@ const RewardsSettingsView: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
-      <Box twClassName="px-4 py-4 flex-1 gap-4">
+      <Box twClassName="py-4 flex-1 gap-4">
         {/* Section 1: Connect Multiple Accounts */}
-        <Box twClassName="gap-4">
+        <Box twClassName="gap-4 px-4">
           <Box twClassName="gap-2">
             <Text variant={TextVariant.HeadingMd}>
               {strings('rewards.settings.subtitle')}

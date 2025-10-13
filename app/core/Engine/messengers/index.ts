@@ -1,6 +1,9 @@
 import { noop } from 'lodash';
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
-import { getAccountTreeControllerMessenger } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
+import {
+  getAccountTreeControllerInitMessenger,
+  getAccountTreeControllerMessenger,
+} from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
 import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
@@ -41,7 +44,10 @@ import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getBridgeControllerMessenger } from './bridge-controller-messenger';
 import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
-import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
+import {
+  getMultichainAccountServiceInitMessenger,
+  getMultichainAccountServiceMessenger,
+} from './multichain-account-service-messenger/multichain-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
@@ -75,7 +81,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getAccountTreeControllerInitMessenger,
   },
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,
@@ -215,7 +221,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   MultichainAccountService: {
     getMessenger: getMultichainAccountServiceMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getMultichainAccountServiceInitMessenger,
   },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,

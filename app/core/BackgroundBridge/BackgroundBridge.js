@@ -87,7 +87,7 @@ import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { isRelaySupported } from '../RPCMethods/transaction-relay';
+import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 
