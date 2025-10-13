@@ -56,13 +56,10 @@ import {
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
-import { MetaMetrics } from '../Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
-import { getAuthenticationControllerMessenger } from './messengers/identity/authentication-controller-messenger';
-import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
 ///: END:ONLY_INCLUDE_IF
 import { backupVault } from '../BackupVault';
 import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
@@ -131,7 +128,6 @@ import { defiPositionsControllerInit } from './controllers/defi-positions-contro
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
-import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -179,6 +175,7 @@ import { nftControllerInit } from './controllers/nft-controller-init';
 import { nftDetectionControllerInit } from './controllers/nft-detection-controller-init';
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
+import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -345,6 +342,7 @@ export class Engine {
         NotificationServicesPushController:
           notificationServicesPushControllerInit,
         WebSocketService: WebSocketServiceInit,
+        AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -437,6 +435,7 @@ export class Engine {
       controllersByName.NotificationServicesPushController;
     this.subjectMetadataController =
       controllersByName.SubjectMetadataController;
+    const authenticationController = controllersByName.AuthenticationController;
     const userStorageController = controllersByName.UserStorageController;
     ///: END:ONLY_INCLUDE_IF
 
@@ -512,20 +511,6 @@ export class Engine {
     if (!isProductSafetyDappScanningEnabled()) {
       phishingController.maybeUpdateState();
     }
-
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const authenticationControllerMessenger =
-      getAuthenticationControllerMessenger(this.controllerMessenger);
-    const authenticationController = createAuthenticationController({
-      messenger: authenticationControllerMessenger,
-      initialState: initialState.AuthenticationController,
-      metametrics: {
-        agent: Platform.MOBILE,
-        getMetaMetricsId: async () =>
-          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
-      },
-    });
-    ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
