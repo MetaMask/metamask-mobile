@@ -221,6 +221,10 @@
     "remind_later_description2": "Sie können Ihre Wallet sichern oder Ihre geheime Wiederherstellungsphrase sehen in:",
     "setting_security_privacy": "Einstellungen > Sicherheit und Datenschutz"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "Willkommen bei MetaMask",
     "title2": "Verwalten Sie Ihr digitales Vermögen",
@@ -389,6 +393,7 @@
     "description": "Schaltet MetaMask nur auf diesem Gerät frei.",
     "description_social_login": "Verwenden Sie dies, um die Wallet auf allen Geräten wiederherzustellen.",
     "description_social_login_update": "Wenn Sie dieses Passwort verlieren, verlieren Sie auch auf sämtlichen Geräten den Zugang zu Ihrer Wallet. Bewahren Sie es an einem sicheren Ort auf,",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask kann es nicht zurücksetzen.",
     "subtitle": "Dieses Passwort wird Ihre MetaMask-Wallet nur auf diesem Gerät entsperren.",
     "password": "Passwort erstellen",
@@ -662,7 +667,14 @@
       "bullet_2_description": "USDC ist auf Stabilität ausgelegt, damit Sie leichter planen, sparen und ausgeben können.",
       "bullet_3_title": "Schneller als Banken",
       "bullet_3_description": "Senden und empfangen Sie in wenigen Minuten, ohne auf Banköffnungszeiten oder internationale Verzögerungen zu warten.",
-      "button": "Erste Schritte"
+      "button": "Erste Schritte",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Verifizieren Sie Ihre Identität",
@@ -879,7 +891,6 @@
     "refresh_balance": "Guthaben aktualisieren",
     "add_funds": "Gelder hinzufügen",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Ihre Positionen",
     "loading_positions": "Positionen werden geladen ...",
     "refreshing_positions": "Positionen werden aktualisiert ...",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Ein Token wählen",
-    "title_pay_eth": "Mit ETH bezahlen",
     "native_toggle_wallet": "Bezahlen Sie die Netzwerkgebühr mit dem Guthaben in Ihrer Wallet.",
     "list_balance": "Guth.:",
     "insufficient_balance": "Unzureichende Gelder",
-    "native_toggle_metamask": "MetaMask ergänzt das Guthaben, um diese Transaktion abzuschließen.",
-    "title_pay_with_other_tokens": "Mit anderen Tokens bezahlen"
+    "native_toggle_metamask": "MetaMask ergänzt das Guthaben, um diese Transaktion abzuschließen."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "Transaktions-ID",
@@ -5926,9 +5938,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6094,6 +6104,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

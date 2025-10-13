@@ -221,6 +221,10 @@
     "remind_later_description2": "आप अपने वॉलेट का बैकअप ले सकते हैं या इसमें अपना सीक्रेट रिकवरी फ्रेज़ देख सकते हैं",
     "setting_security_privacy": "सेटिंग > सुरक्षा और गोपनीयता"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "MetaMask में आपका स्वागत है",
     "title2": "अपनी डिजिटल संपत्तियों को प्रबंधित करें",
@@ -389,6 +393,7 @@
     "description": "केवल इस डिवाइस पर MetaMask को अनलॉक करता है।",
     "description_social_login": "सभी डिवाइसों पर वॉलेट रिकवरी के लिए इसका उपयोग करें।",
     "description_social_login_update": "यदि आप यह पासवर्ड खो देते हैं, तो आप अपने वॉलेट तक सभी डिवाइसों पर पहुँच खो देंगे। इसे कहीं सुरक्षित स्थान पर रखें,",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask इसे रीसेट नहीं कर सकता।",
     "subtitle": "यह पासवर्ड आपके MetaMask वॉलेट को केवल इसी डिवाइस पर अनलॉक करेगा।",
     "password": "पासवर्ड बनाएं",
@@ -662,7 +667,14 @@
       "bullet_2_description": "USDC को स्थिर रहने के लिए डिज़ाइन किया गया है, जिससे योजना बनाना, सेव करना और खर्च करना आसान हो जाता है।",
       "bullet_3_title": "बैंकों से भी तेज़",
       "bullet_3_description": "मिनटों में भेजें और प्राप्त करें — न बैंक के समय का, न ही अंतरराष्ट्रीय देरी का इंतज़ार।",
-      "button": "शुरू करें"
+      "button": "शुरू करें",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
@@ -879,7 +891,6 @@
     "refresh_balance": "बैलेंस रीफ्रेश करें",
     "add_funds": "फंड जोड़ें",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "आपकी पोज़िशन्स",
     "loading_positions": "पोजीशन्स लोड हो रही है...",
     "refreshing_positions": "पोज़िशन्स को रीफ़्रेश किया जा रहा है…",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "कोई टोकन चुनें",
-    "title_pay_eth": "ETH के साथ भुगतान करें",
     "native_toggle_wallet": "अपने वॉलेट में बैलेंस का उपयोग करके नेटवर्क फीस के लिए भुगतान करें।",
     "list_balance": "बैलेंस:",
     "insufficient_balance": "अपर्याप्त फंड",
-    "native_toggle_metamask": "इस ट्रांसेक्शन को पूरा करने के लिए MetaMask बैलेंस को पूरा कर रहा है।",
-    "title_pay_with_other_tokens": "अन्य टोकन के साथ भुगतान करें"
+    "native_toggle_metamask": "इस ट्रांसेक्शन को पूरा करने के लिए MetaMask बैलेंस को पूरा कर रहा है।"
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ट्रांसेक्शन आईडी",
@@ -5926,9 +5938,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6094,6 +6104,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

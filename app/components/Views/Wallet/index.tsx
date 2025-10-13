@@ -181,6 +181,7 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -1277,6 +1278,7 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
+        <AssetPollingProvider />
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
