@@ -1117,6 +1117,28 @@ describe('NetworkSettings', () => {
       expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
     });
 
+    it('should fallback to chainToMatch symbol if network configuration is not found and show warning symbol', async () => {
+      const instance = wrapper.instance();
+
+      wrapper.setProps({
+        useSafeChainsListValidation: true,
+        networkConfigurations: {},
+      });
+
+      instance.setState({
+        chainId: '0xaa36a7', // Sepolia chain ID
+        ticker: 'SepoliaETH',
+      });
+
+      const chainToMatch = {
+        name: 'Test Network',
+        nativeCurrency: { symbol: 'TEST' },
+      };
+      await instance.validateSymbol(chainToMatch);
+
+      expect(instance.state.warningSymbol).toBe('TEST');
+    });
+
     it('should validateChainIdOnSubmit', async () => {
       const instance = wrapper.instance();
 
