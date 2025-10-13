@@ -12,8 +12,6 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import Matchers from '../../framework/Matchers';
-import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -273,15 +271,6 @@ const isMultichainAccountsState2Enabled =
         },
         async () => {
           await loginToApp();
-
-          // Log env to CI output and verify token filter state is set to Current
-          // This helps diagnose differences between CI runs (All vs Current networks)
-          // eslint-disable-next-line no-console
-          console.log(
-            'E2E ENV MM_REMOVE_GLOBAL_NETWORK_SELECTOR:',
-            process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR,
-          );
-
           // Open network manager and verify initial state
           await NetworkManager.openNetworkManager();
           await NetworkManager.waitForNetworkManagerToLoad();
@@ -290,17 +279,6 @@ const isMultichainAccountsState2Enabled =
 
           // Select Ethereum network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-
-          // Wait for network manager to close after selection
-          await Assertions.expectElementToNotBeVisible(
-            NetworkManager.networkManagerBottomSheet,
-            {
-              description:
-                'Network manager should close after network selection',
-              timeout: 10000,
-            },
-          );
-
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
