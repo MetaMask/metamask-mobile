@@ -119,6 +119,13 @@ class PerpsMarketDetailsView {
     );
   }
 
+  // Scroll view matcher identifier (for whileElement(...).scroll API)
+  get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+  }
+
   // Trading action buttons
   get longButton() {
     return Matchers.getElementByID(
@@ -158,15 +165,28 @@ class PerpsMarketDetailsView {
     );
   }
 
+  get closeOrderButton() {
+    return Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    );
+  }
+
   // Actions
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
   }
 
   async tapLongButton() {
-    // Ensure button is enabled before tapping to avoid flaky interactions
-    await Utilities.waitForElementToBeEnabled(this.longButton as DetoxElement);
-    await Gestures.waitAndTap(this.longButton);
+    // Ensure the Long button is rendered and visible, then enabled, then tap
+    await Utilities.waitForElementToBeVisible(this.longButton, 5000);
+    await Utilities.waitForElementToBeEnabled(
+      this.longButton as DetoxElement,
+      5000,
+    );
+    await Gestures.waitAndTap(this.longButton, {
+      elemDescription: 'Perps Market Details - Long Button',
+      checkStability: true,
+    });
   }
 
   async tapShortButton() {
@@ -270,6 +290,31 @@ class PerpsMarketDetailsView {
     await Assertions.expectElementToBeVisible(closeBtn, {
       description: 'Close position button visible on market details',
       timeout: 5000,
+    });
+  }
+
+  async expectCloseOrderButtonVisible() {
+    const cancelBtn = Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    ) as DetoxElement;
+
+    await Gestures.scrollToElement(cancelBtn, this.scrollViewIdentifier, {
+      direction: 'up',
+      scrollAmount: 350,
+      elemDescription: 'Scroll to reveal Close order button',
+    });
+
+    await Assertions.expectElementToBeVisible(cancelBtn, {
+      description: 'Close order button visible on market details',
+      timeout: 5000,
+    });
+  }
+
+  async tapCloseOrderButton() {
+    await Gestures.waitAndTap(this.closeOrderButton, {
+      elemDescription: 'Close order button',
+      checkStability: true,
+      timeout: 10000,
     });
   }
 }

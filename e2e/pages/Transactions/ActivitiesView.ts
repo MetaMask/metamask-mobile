@@ -4,6 +4,8 @@ import {
 } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -39,6 +41,11 @@ class ActivitiesView {
 
   get approveActivity(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
+  }
+
+  // Top tab: Perps (Activity tabs: Transactions | Orders | Perps)
+  get perpsTopTab(): DetoxElement {
+    return Matchers.getElementByTextContains('Perps');
   }
 
   transactionStatus(row: number): DetoxElement {
@@ -111,6 +118,62 @@ class ActivitiesView {
   }
   async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
+  }
+
+  // Navigate to Perps tab inside Activity by swiping to the last tab
+  async goToPerpsTab(): Promise<void> {
+    const tradesTab = Matchers.getElementByTextContains(
+      'Trades',
+    ) as DetoxElement;
+    const ordersTab = Matchers.getElementByTextContains(
+      'Orders',
+    ) as DetoxElement;
+    const fundingTab = Matchers.getElementByTextContains(
+      'Funding',
+    ) as DetoxElement;
+
+    // 1) Try tapping the top "Perps" tab directly
+    const perpsTabVisible = await Utilities.isElementVisible(
+      this.perpsTopTab,
+      800,
+    );
+    if (perpsTabVisible) {
+      await Gestures.waitAndTap(this.perpsTopTab, {
+        elemDescription: 'Tap Perps top tab in Activity',
+      });
+    }
+
+    // 2) Verify sub-tabs; if not visible, fall back to swipes with retries
+    for (let i = 0; i < 3; i++) {
+      const isTradesVisible = await Utilities.isElementVisible(tradesTab, 600);
+      const isOrdersVisible = await Utilities.isElementVisible(ordersTab, 600);
+      const isFundingVisible = await Utilities.isElementVisible(
+        fundingTab,
+        600,
+      );
+      if (isTradesVisible && isOrdersVisible && isFundingVisible) {
+        return;
+      }
+      await Gestures.swipe(this.container, 'left', {
+        speed: 'fast',
+        percentage: 0.8,
+        elemDescription: 'Swipe to Perps tab in Activity',
+      });
+    }
+
+    // 3) Final assertions to diagnose if we are not in Perps
+    await Assertions.expectElementToBeVisible(tradesTab, {
+      description: 'Perps Trades tab should be visible',
+      timeout: 2000,
+    });
+    await Assertions.expectElementToBeVisible(ordersTab, {
+      description: 'Perps Orders tab should be visible',
+      timeout: 2000,
+    });
+    await Assertions.expectElementToBeVisible(fundingTab, {
+      description: 'Perps Funding tab should be visible',
+      timeout: 2000,
+    });
   }
 }
 

@@ -51,6 +51,32 @@ class PerpsMarketListView {
     return Matchers.getElementByID(/^perps-market-row-item-.*/, 0);
   }
 
+  // Generic getter for market row item by index (0-based)
+  getMarketRowItemAt(index: number) {
+    return Matchers.getElementByID(/^perps-market-row-item-.*/, index);
+  }
+
+  async getMarketRowItem(symbol: string) {
+    // Match any element with testID that starts with 'perps-market-row-item-' and get the first one
+    return await Matchers.getElementByID(`perps-market-row-item-${symbol}`);
+  }
+
+  // Tap specific market by symbol
+  async tapMarketRowItem(symbol: string) {
+    const target = Matchers.getElementByID(
+      getPerpsMarketRowItemSelector.rowItem(symbol),
+    );
+    await Gestures.scrollToElement(target, this.scrollableContainer, {
+      direction: 'down',
+      scrollAmount: 200,
+      elemDescription: `Perps Market Row ${symbol}`,
+    });
+    await Gestures.waitAndTap(target, {
+      elemDescription: `Perps Market Row ${symbol}`,
+      checkStability: true,
+    });
+  }
+
   get tokenSelectorContainer() {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CONTAINER);
   }

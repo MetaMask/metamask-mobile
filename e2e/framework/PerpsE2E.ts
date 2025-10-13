@@ -14,6 +14,12 @@ class PerpsE2E {
       `e2e://perps/force-liquidation?symbol=${encodeURIComponent(symbol)}`,
     );
   }
+
+  static async applyDepositUSD(amount: string): Promise<void> {
+    await openE2EUrl(
+      `e2e://perps/mock-deposit?amount=${encodeURIComponent(amount)}`,
+    );
+  }
 }
 
 export default PerpsE2E;
