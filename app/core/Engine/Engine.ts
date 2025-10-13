@@ -79,20 +79,10 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
-import {
-  SmartTransactionsController,
-  ClientId,
-  MetaMetricsEventName,
-  MetaMetricsEventCategory,
-  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
-  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
-} from '@metamask/smart-transactions-controller';
-import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
-import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { zeroAddress } from 'ethereumjs-util';
 import {
-  type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
   ///: END:ONLY_INCLUDE_IF
@@ -193,6 +183,7 @@ import { tokenRatesControllerInit } from './controllers/token-rates-controller-i
 import { accountTrackerControllerInit } from './controllers/account-tracker-controller-init';
 import { nftControllerInit } from './controllers/nft-controller-init';
 import { nftDetectionControllerInit } from './controllers/nft-detection-controller-init';
+import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -297,59 +288,7 @@ export class Engine {
       captureException,
     });
 
-    const smartTransactionsControllerTrackMetaMetricsEvent = (
-      params: {
-        event: MetaMetricsEventName;
-        category: MetaMetricsEventCategory;
-        properties?: ReturnType<
-          typeof getSmartTransactionMetricsPropertiesType
-        >;
-        sensitiveProperties?: ReturnType<
-          typeof getSmartTransactionMetricsSensitivePropertiesType
-        >;
-      },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      options?: {
-        metaMetricsId?: string;
-      },
-    ) => {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: params.event,
-        })
-          .addProperties(params.properties || {})
-          .addSensitiveProperties(params.sensitiveProperties || {})
-          .build(),
-      );
-    };
-
-    this.smartTransactionsController = new SmartTransactionsController({
-      // @ts-expect-error TODO: resolve types
-      supportedChainIds: getAllowedSmartTransactionsChainIds(),
-      clientId: ClientId.Mobile,
-      trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-      state: initialState.SmartTransactionsController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SmartTransactionsController',
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
-          'TransactionController:getNonceLock',
-          `TransactionController:confirmExternalTransaction`,
-          `TransactionController:getTransactions`,
-          `TransactionController:updateTransaction`,
-        ],
-        allowedEvents: ['NetworkController:stateChange'],
-      }),
-      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
-      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
-      trace: trace as TraceCallback,
-    });
-
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
-    const existingControllersByName = {
-      SmartTransactionsController: this.smartTransactionsController,
-    };
 
     const initRequest = {
       getState: () => store.getState(),
@@ -384,6 +323,7 @@ export class Engine {
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         TransactionController: TransactionControllerInit,
+        SmartTransactionsController: smartTransactionsControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         TokensController: tokensControllerInit,
@@ -425,7 +365,6 @@ export class Engine {
         RewardsController: rewardsControllerInit,
       },
       persistedState: initialState as EngineState,
-      existingControllersByName,
       baseControllerMessenger: this.controllerMessenger,
       ...initRequest,
     });
@@ -438,6 +377,8 @@ export class Engine {
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
+    const smartTransactionsController =
+      controllersByName.SmartTransactionsController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
@@ -465,6 +406,7 @@ export class Engine {
     this.gasFeeController = gasFeeController;
     this.gatorPermissionsController = gatorPermissionsController;
     this.transactionController = transactionController;
+    this.smartTransactionsController = smartTransactionsController;
     this.permissionController = controllersByName.PermissionController;
     this.preferencesController = preferencesController;
     this.keyringController = controllersByName.KeyringController;

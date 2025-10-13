@@ -89,6 +89,7 @@ import { getTokenRatesControllerMessenger } from './token-rates-controller-messe
 import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
+import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -240,6 +241,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SelectedNetworkController: {
     getMessenger: getSelectedNetworkControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SmartTransactionsController: {
+    getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: noop,
   },
   NetworkEnablementController: {
