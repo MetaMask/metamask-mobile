@@ -17,7 +17,6 @@ import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
-import { swapsUtils } from '@metamask/swaps-controller';
 import {
   BALANCE_TEST_ID,
   TOKEN_AMOUNT_BALANCE_TEST_ID,
@@ -137,6 +136,7 @@ jest.mock('../../hooks/useStyles', () => ({
 jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
+  selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true), // Always return true for bridge-enabled sources
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -171,6 +171,13 @@ jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
 
 jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
+  useCurrentNetworkInfo: jest.fn(() => ({
+    getNetworkInfo: jest.fn(),
+    enabledNetworks: [],
+  })),
 }));
 
 jest.mock(
@@ -240,7 +247,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -254,7 +260,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -282,7 +287,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -318,12 +322,7 @@ describe('AssetOverview', () => {
     };
 
     const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={nativeAsset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-      />,
+      <AssetOverview asset={nativeAsset} displayBuyButton displaySwapsButton />,
       {
         state: {
           ...mockInitialState,
@@ -373,28 +372,28 @@ describe('AssetOverview', () => {
 
   it('should handle swap button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-      />,
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
     const swapButton = getByTestId('token-swap-button');
     fireEvent.press(swapButton);
 
-    expect(navigate).toHaveBeenCalledTimes(2);
-    expect(navigate).toHaveBeenNthCalledWith(1, 'WalletTabHome', {
-      screen: 'WalletTabStackFlow',
+    // Now navigates to unified Bridge view with Unified mode
+    expect(navigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
       params: {
-        screen: 'WalletView',
+        sourceToken: expect.objectContaining({
+          address: '0x123',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'ETH',
+          name: 'Ethereum',
+          image: '',
+        }),
+        sourcePage: 'MainView',
+        bridgeViewMode: 'Unified',
       },
-    });
-    expect(navigate).toHaveBeenNthCalledWith(2, 'Swaps', {
-      screen: 'SwapsAmountView',
-      params: { sourceToken: '0x123', chainId: '0x1', sourcePage: 'MainView' },
     });
   });
 
@@ -414,7 +413,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -445,38 +443,12 @@ describe('AssetOverview', () => {
     selectSelectedAccountGroup.mockReset();
   });
 
-  it('should handle bridge button press', async () => {
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-      />,
-      { state: mockInitialState },
-    );
-
-    const receiveButton = getByTestId('token-bridge-button');
-    fireEvent.press(receiveButton);
-
-    expect(navigate).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenNthCalledWith(1, 'BrowserTabHome', {
-      params: {
-        newTabUrl:
-          'https://portfolio.metamask.io/bridge/?metamaskEntry=mobile&srcChain=1',
-        timestamp: 123,
-      },
-      screen: 'BrowserView',
-    });
-  });
-
   it('should not render swap button if displaySwapsButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
         displayBuyButton
         displaySwapsButton={false}
-        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -485,28 +457,12 @@ describe('AssetOverview', () => {
     expect(swapButton).toBeNull();
   });
 
-  it('should not render bridge button if displayBridgeButton is false', async () => {
-    const { queryByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton={false}
-      />,
-      { state: mockInitialState },
-    );
-
-    const bridgeButton = queryByTestId('token-bridge-button');
-    expect(bridgeButton).toBeNull();
-  });
-
   it('should not render buy button if displayBuyButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
         displayBuyButton={false}
         displaySwapsButton
-        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -525,7 +481,6 @@ describe('AssetOverview', () => {
         }}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -544,7 +499,6 @@ describe('AssetOverview', () => {
         }}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
       />,
       {
         state: {
@@ -588,22 +542,26 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    expect(navigate).toHaveBeenCalledWith('Swaps', {
-      screen: 'SwapsAmountView',
+    // Now navigates to unified Bridge view
+    expect(navigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
       params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-        destinationToken: assetFromSearch.address,
+        sourceToken: expect.objectContaining({
+          address: assetFromSearch.address,
+          chainId: assetFromSearch.chainId,
+          decimals: assetFromSearch.decimals,
+          symbol: assetFromSearch.symbol,
+          name: assetFromSearch.name,
+          image: assetFromSearch.image,
+          isFromSearch: true,
+        }),
         sourcePage: 'MainView',
-        chainId: assetFromSearch.chainId,
+        bridgeViewMode: 'Unified',
       },
     });
   });
 
-  it('should prompt to add the network if coming from search and on a different chain', async () => {
-    (
-      Engine.context.NetworkController
-        .getNetworkConfigurationByChainId as jest.Mock
-    ).mockReturnValueOnce(null);
+  it('should navigate to bridge when coming from search and on a different chain', async () => {
     const differentChainAssetFromSearch = {
       ...assetFromSearch,
       chainId: '0xa',
@@ -623,7 +581,23 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    expect(mockAddPopularNetwork).toHaveBeenCalled();
+    // Unified bridge UI now handles network switching internally
+    expect(navigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: expect.objectContaining({
+          address: differentChainAssetFromSearch.address,
+          chainId: differentChainAssetFromSearch.chainId,
+          decimals: differentChainAssetFromSearch.decimals,
+          symbol: differentChainAssetFromSearch.symbol,
+          name: differentChainAssetFromSearch.name,
+          image: differentChainAssetFromSearch.image,
+          isFromSearch: true,
+        }),
+        sourcePage: 'MainView',
+        bridgeViewMode: 'Unified',
+      },
+    });
   });
 
   describe('Portfolio view network switching', () => {
@@ -648,7 +622,6 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -667,7 +640,7 @@ describe('AssetOverview', () => {
       });
     });
 
-    it('should switch networks before swapping when on different chain', async () => {
+    it('should navigate to bridge when swapping on different chain', async () => {
       const differentChainAsset = {
         ...asset,
         chainId: '0x89', // Different chain (Polygon)
@@ -678,7 +651,6 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -689,26 +661,20 @@ describe('AssetOverview', () => {
       // Wait for all promises to resolve
       await Promise.resolve();
 
-      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
+      // Now navigates directly to unified Bridge view
+      expect(navigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
         params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(
-        Engine.context.NetworkController.getNetworkConfigurationByChainId,
-      ).toHaveBeenCalledWith('0x89');
-
-      // Fast-forward timers to trigger the swap navigation
-      jest.advanceTimersByTime(500);
-
-      expect(navigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: differentChainAsset.address,
+          sourceToken: expect.objectContaining({
+            address: differentChainAsset.address,
+            chainId: differentChainAsset.chainId,
+            decimals: differentChainAsset.decimals,
+            symbol: differentChainAsset.symbol,
+            name: differentChainAsset.name,
+            image: differentChainAsset.image,
+          }),
           sourcePage: 'MainView',
-          chainId: '0x89',
+          bridgeViewMode: 'Unified',
         },
       });
     });
@@ -724,7 +690,6 @@ describe('AssetOverview', () => {
           asset={sameChainAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -771,7 +736,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -829,7 +793,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -862,7 +825,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -893,7 +855,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -919,12 +880,7 @@ describe('AssetOverview', () => {
       mockSendNonEvmAsset.mockResolvedValue(false);
 
       const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={evmAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-        />,
+        <AssetOverview asset={evmAsset} displayBuyButton displaySwapsButton />,
         { state: mockInitialState },
       );
 

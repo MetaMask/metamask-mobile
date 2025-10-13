@@ -86,7 +86,6 @@ interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
-  displayBridgeButton?: boolean;
   networkName?: string;
 }
 
@@ -94,7 +93,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
-  displayBridgeButton,
   networkName,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
@@ -148,7 +146,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+  const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
     sourceToken: {
@@ -464,8 +462,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
-            displayBridgeButton={displayBridgeButton}
-            goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}
