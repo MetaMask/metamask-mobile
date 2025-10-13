@@ -22,7 +22,10 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
-import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
+import PredictDeposit from '../../components/PredictDeposit/PredictDeposit';
+import PredictBalance from '../../components/PredictBalance/PredictBalance';
+import { usePredictAccountState } from '../../hooks/usePredictAccountState';
+import { usePredictDepositStatus } from '../../hooks/usePredictDepositStatus';
 
 interface PredictTabViewProps {}
 
@@ -49,6 +52,18 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       Alert.alert('Error claiming winnings', claimError.message);
     },
   });
+  const {
+    balance,
+    isLoading: isLoadingAccountState,
+    loadAccountState,
+    address,
+  } = usePredictAccountState();
+  usePredictDepositStatus({
+    onSuccess: () => {
+      loadAccountState();
+      loadPositions({ isRefresh: true });
+    },
+  });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -59,8 +74,24 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     });
   }, [claim, claimablePositions]);
 
+  const handleRefresh = useCallback(() => {
+    loadPositions({ isRefresh: true });
+    loadClaimablePositions({ isRefresh: true });
+    loadAccountState();
+  }, [loadPositions, loadClaimablePositions, loadAccountState]);
+
   const renderMarketsWonCard = useCallback(() => {
-    if (claimablePositions.length === 0) return <PredictOnboarding />;
+    if (claimablePositions.length === 0)
+      return (
+        <Box twClassName="gap-2">
+          <PredictDeposit />
+          <PredictBalance
+            balance={balance}
+            isLoading={isLoadingAccountState}
+            address={address}
+          />
+        </Box>
+      );
 
     const wonPositions = claimablePositions.filter(
       (position) => position.status === PredictPositionStatus.WON,
@@ -76,8 +107,13 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     const unrealizedPercent = 3.9;
 
     return (
-      <>
-        <PredictOnboarding />
+      <Box twClassName="gap-2">
+        <PredictDeposit />
+        <PredictBalance
+          balance={balance}
+          isLoading={isLoadingAccountState}
+          address={address}
+        />
         <MarketsWonCard
           numberOfMarketsWon={wonPositions.length}
           totalClaimableAmount={totalClaimableAmount}
@@ -86,9 +122,16 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
           onClaimPress={handleClaimPress}
           isLoading={isClaiming}
         />
-      </>
+      </Box>
     );
-  }, [claimablePositions, handleClaimPress, isClaiming]);
+  }, [
+    balance,
+    claimablePositions,
+    handleClaimPress,
+    isClaiming,
+    isLoadingAccountState,
+    address,
+  ]);
 
   const renderItem = useCallback(
     ({ item }: { item: PredictPositionType }) => (
@@ -171,10 +214,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
         renderItem={renderItem}
         keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => loadPositions({ isRefresh: true })}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
         removeClippedSubviews
         decelerationRate={0}

@@ -428,6 +428,7 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
+        is_smart_transaction: true,
       });
     });
 
@@ -462,6 +463,7 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({
         smart_transaction_timed_out: true,
         smart_transaction_proxied: false,
+        is_smart_transaction: true,
       });
     });
 
@@ -480,7 +482,7 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({});
     });
 
-    it('returns empty object if smartTransaction is found but statusMetadata is undefined', async () => {
+    it('returns correct object if smartTransaction is found but statusMetadata is undefined', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {};
       (
@@ -493,7 +495,7 @@ describe('Smart Transactions utils', () => {
         false,
         controllerMessenger,
       );
-      expect(result).toEqual({});
+      expect(result).toEqual({ is_smart_transaction: true });
     });
 
     it('returns metrics if smartTransaction is found with statusMetadata', async () => {
@@ -517,6 +519,7 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
+        is_smart_transaction: true,
       });
     });
   });

@@ -1613,7 +1613,13 @@
     "won_markets_text_plural": "Won {{count}} markets",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Receive"
@@ -3086,6 +3092,8 @@
     "tx_review_lending_deposit": "Lending Deposit",
     "tx_review_lending_withdraw": "Lending Withdrawal",
     "tx_review_perps_deposit": "Funded Perps account",
+    "tx_review_predict_deposit": "Funded Predict account",
+    "tx_review_predict_claim": "Claimed Predict winnings",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -5290,7 +5298,8 @@
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
       "approve": "Approve request",
-      "perps_deposit": "Add funds"
+      "perps_deposit": "Add funds",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -5308,6 +5317,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -5395,6 +5407,12 @@
       "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
       "save": "Save",
       "title": "Edit approval limit"
+    },
+    "predict_claim": {
+      "button_label": "Claim winnings",
+      "summary": "You won",
+      "footer_bottom": "Funds will be added to your available balance",
+      "footer_top": "Winnings from {{count}} markets"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -5931,7 +5949,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
 
     "onboarding": {
@@ -6117,7 +6143,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded perps account",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Transaction details"
     },
     "label": {
@@ -6133,6 +6160,7 @@
       "bridge_loading": "Bridge",
       "default": "Transaction",
       "perps_deposit": "Add funds",
+      "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
     }

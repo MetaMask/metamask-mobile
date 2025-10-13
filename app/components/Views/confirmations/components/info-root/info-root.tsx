@@ -20,6 +20,9 @@ import Approve from '../info/approve';
 import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
+import { PredictDepositInfo } from '../info/predict-deposit-info';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfo } from '../info/predict-claim-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -85,6 +88,20 @@ const Info = ({ route }: InfoProps) => {
 
   if (isSigningQRObject) {
     return <QRInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
+  ) {
+    return <PredictDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
+  ) {
+    return <PredictClaimInfo />;
   }
 
   const { requestData } = approvalRequest ?? {
