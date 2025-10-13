@@ -9,13 +9,14 @@ import {
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { TransactionBridgeQuote } from '../../../utils/bridge';
 import { ConfirmationMetricsState } from '../../../../../../core/redux/slices/confirmationMetrics';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
+
+jest.mock('../../../hooks/pay/useIsTransactionPayLoading');
 
 function render({
   quotes = [],
-  isLoading = false,
 }: {
   quotes?: Partial<TransactionBridgeQuote>[];
-  isLoading?: boolean;
 } = {}) {
   const state = merge(
     {},
@@ -23,9 +24,6 @@ function render({
     transactionApprovalControllerMock,
     {
       confirmationMetrics: {
-        isTransactionBridgeQuotesLoadingById: {
-          [transactionIdMock]: isLoading,
-        },
         transactionBridgeQuotesById: {
           [transactionIdMock]: quotes,
         },
@@ -37,8 +35,14 @@ function render({
 }
 
 describe('BridgeTimeRow', () => {
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
+
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
   });
 
   it('renders total estimated time', async () => {
@@ -57,7 +61,10 @@ describe('BridgeTimeRow', () => {
   });
 
   it('renders skeleton if quotes loading', async () => {
-    const { getByTestId } = render({ isLoading: true });
+    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+
+    const { getByTestId } = render();
+
     expect(getByTestId(`bridge-time-row-skeleton`)).toBeDefined();
   });
 });

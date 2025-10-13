@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { RootState } from '../../../../../reducers';
 import { Hex } from '@metamask/utils';
@@ -15,11 +15,14 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { getTokenTransferData } from '../../utils/transaction-pay';
+import { setTransactionUpdating } from '../../../../../core/redux/slices/confirmationMetrics';
 
 export function useUpdateTokenAmount() {
+  const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { chainId } = transactionMeta ?? {};
   const transactionId = transactionMeta?.id ?? '';
+  const [previousAmountRaw, setPreviousAmountRaw] = useState<string>();
 
   const {
     data,
@@ -32,9 +35,30 @@ export function useUpdateTokenAmount() {
       selectSingleTokenByAddressAndChainId(state, to as Hex, chainId as Hex),
     ) ?? {};
 
+  const amountRaw = useMemo(() => {
+    const transactionData = parseStandardTokenTransactionData(data);
+    return new BigNumber(transactionData?.args?._value.toString()).toString(10);
+  }, [data]);
+
+  const isUpdating =
+    Boolean(previousAmountRaw) && amountRaw === previousAmountRaw;
+
+  useEffect(() => {
+    dispatch(
+      setTransactionUpdating({
+        transactionId,
+        isUpdating,
+      }),
+    );
+
+    if (!isUpdating) {
+      setPreviousAmountRaw(undefined);
+    }
+  }, [dispatch, isUpdating, transactionId]);
+
   const updateTokenAmount = useCallback(
     (amountHuman: string) => {
-      const amountRaw = calcTokenValue(
+      const newAmountRaw = calcTokenValue(
         amountHuman,
         decimals ?? 18,
       ).decimalPlaces(0, BigNumber.ROUND_UP);
@@ -44,8 +68,10 @@ export function useUpdateTokenAmount() {
 
       const newData = generateTransferData('transfer', {
         toAddress: recipient,
-        amount: amountRaw.toString(16),
+        amount: newAmountRaw.toString(16),
       }) as Hex;
+
+      setPreviousAmountRaw(amountRaw);
 
       if (nestedCallIndex !== undefined) {
         updateAtomicBatchData({
@@ -67,7 +93,7 @@ export function useUpdateTokenAmount() {
         updateType: false,
       });
     },
-    [data, decimals, nestedCallIndex, transactionId],
+    [amountRaw, data, decimals, nestedCallIndex, transactionId],
   );
 
   return {

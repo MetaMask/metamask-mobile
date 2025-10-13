@@ -168,6 +168,11 @@ export default {
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
   },
+  BAANX_API_URL: {
+    DEV: 'https://foxdev2-ag.foxcard.io',
+    UAT: 'https://foxuat2-ag.foxcard.io',
+    PRD: 'https://api.baanx.com',
+  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
