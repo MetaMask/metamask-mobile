@@ -137,7 +137,7 @@ describe('OnboardingSuccessComponent', () => {
     const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        _successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+        successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -147,7 +147,7 @@ describe('OnboardingSuccessComponent', () => {
     const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        _successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -157,7 +157,7 @@ describe('OnboardingSuccessComponent', () => {
     const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -167,7 +167,7 @@ describe('OnboardingSuccessComponent', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
 
@@ -185,7 +185,7 @@ describe('OnboardingSuccessComponent', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
 
@@ -200,7 +200,7 @@ describe('OnboardingSuccessComponent', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
 
@@ -297,7 +297,7 @@ describe('OnboardingSuccess', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
         />,
       );
 
@@ -315,7 +315,7 @@ describe('OnboardingSuccess', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          _successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
         />,
       );
 
@@ -333,7 +333,7 @@ describe('OnboardingSuccess', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          _successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
         />,
       );
 
@@ -345,13 +345,11 @@ describe('OnboardingSuccess', () => {
       const { getByText } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          _successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
         />,
       );
 
-      expect(
-        getByText(strings('onboarding_success.wallet_ready')),
-      ).toBeOnTheScreen();
+      expect(getByText(strings('onboarding_success.title'))).toBeOnTheScreen();
     });
   });
 
