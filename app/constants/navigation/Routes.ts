@@ -265,6 +265,7 @@ const Routes = {
     MODALS: {
       ROOT: 'PredictModals',
       CASH_OUT: 'PredictCashOut',
+      UNAVAILABLE: 'PredictUnavailable',
       PLACE_BET: 'PredictPlaceBet',
     },
   },
@@ -306,6 +307,7 @@ const Routes = {
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+    NO_HEADER: 'NoHeaderConfirmations',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',

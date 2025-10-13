@@ -16,86 +16,35 @@ export const usePredictClaim = (options: UsePredictClaimOptions = {}) => {
   const [claiming, setClaiming] = useState<boolean>(false);
   const { claim: claimWinnings } = usePredictTrading();
 
-  const selectClaimTransactions = createSelector(
+  const selectClaimTransaction = createSelector(
     (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.claimTransactions,
+    (predictState) => predictState.claimTransaction,
   );
-  const claimTransactions = useSelector(selectClaimTransactions);
+  const claimTransaction = useSelector(selectClaimTransaction);
 
   const completed = useMemo(() => {
-    if (!claimTransactions) {
+    if (!claimTransaction) {
       return false;
     }
 
-    const transactions = Object.values(claimTransactions);
-
-    if (transactions.length === 0) {
-      return false;
-    }
-    return transactions.every((txArray) => {
-      if (!txArray || txArray.length === 0) {
-        return false;
-      }
-      return txArray.every((tx) => tx.status === 'confirmed');
-    });
-  }, [claimTransactions]);
+    return claimTransaction.status === 'confirmed';
+  }, [claimTransaction]);
 
   const pending = useMemo(() => {
-    if (!claimTransactions) {
+    if (!claimTransaction) {
       return false;
     }
-    const transactions = Object.values(claimTransactions);
-    return transactions.some((txArray) =>
-      txArray?.some((tx) => tx.status === 'pending'),
-    );
-  }, [claimTransactions]);
+    return claimTransaction.status === 'pending';
+  }, [claimTransaction]);
 
   const loading = useMemo(() => claiming || pending, [claiming, pending]);
 
   const error = useMemo(() => {
-    if (!claimTransactions) {
+    if (!claimTransaction) {
       return false;
     }
-    const transactions = Object.values(claimTransactions);
-    return transactions.some((txArray) => {
-      if (!txArray) {
-        return false;
-      }
-      return txArray.some((tx) => tx.status === 'error');
-    });
-  }, [claimTransactions]);
-
-  const cancelled = useMemo(() => {
-    if (!claimTransactions) {
-      return false;
-    }
-    const transactions = Object.values(claimTransactions);
-    return transactions.some((txArray) => {
-      if (!txArray) {
-        return false;
-      }
-      return txArray.some((tx) => tx.status === 'cancelled');
-    });
-  }, [claimTransactions]);
-
-  // Get all positionIds from completed claim transactions
-  const completedClaimPositionIds = useMemo(() => {
-    if (!claimTransactions) {
-      return new Set<string>();
-    }
-
-    const positionIds = new Set<string>();
-    Object.values(claimTransactions).forEach((txArray) => {
-      if (txArray) {
-        txArray.forEach((tx) => {
-          if (tx.status === 'confirmed') {
-            positionIds.add(tx.positionId);
-          }
-        });
-      }
-    });
-    return positionIds;
-  }, [claimTransactions]);
+    return claimTransaction.status === 'error';
+  }, [claimTransaction]);
 
   useEffect(() => {
     if (completed && claiming) {
@@ -115,22 +64,16 @@ export const usePredictClaim = (options: UsePredictClaimOptions = {}) => {
       onError?.(new Error('Error claiming winnings'));
       return;
     }
-
-    if (cancelled) {
-      setClaiming(false);
-      Engine.context.PredictController.clearClaimTransactions();
-      onError?.(new Error('Claim cancelled'));
-    }
-  }, [error, claiming, onError, cancelled]);
+  }, [error, claiming, onError]);
 
   const claim = useCallback(
-    async (claimParams: ClaimParams) => {
+    async ({
+      positions,
+      providerId = 'polymarket',
+    }: Omit<ClaimParams, 'providerId'> & { providerId?: string }) => {
       setClaiming(true);
       try {
-        const result = await claimWinnings(claimParams);
-        if (!result.success) {
-          throw new Error(result.error as string);
-        }
+        const result = await claimWinnings({ positions, providerId });
         return result;
       } catch (claimError) {
         onError?.(claimError as Error);
@@ -149,7 +92,5 @@ export const usePredictClaim = (options: UsePredictClaimOptions = {}) => {
     loading,
     completed,
     error,
-    cancelled,
-    completedClaimPositionIds,
   };
 };
