@@ -1126,7 +1126,6 @@ describe('polymarket utils', () => {
       await submitClobOrder({
         headers: mockHeaders,
         clobOrder: mockClobOrder,
-        feeAuthorization: undefined,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1136,7 +1135,6 @@ describe('polymarket utils', () => {
           headers: mockHeaders,
           body: JSON.stringify({
             ...mockClobOrder,
-            feeAuthorization: undefined,
           }),
         },
       );
@@ -1174,7 +1172,6 @@ describe('polymarket utils', () => {
       await submitClobOrder({
         headers: mockHeaders,
         clobOrder: mockClobOrder,
-        feeAuthorization: undefined,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1184,7 +1181,6 @@ describe('polymarket utils', () => {
           headers: mockHeaders,
           body: JSON.stringify({
             ...mockClobOrder,
-            feeAuthorization: undefined,
           }),
         },
       );
@@ -1225,7 +1221,6 @@ describe('polymarket utils', () => {
           headers: mockHeaders,
           body: JSON.stringify({
             ...sellClobOrder,
-            feeAuthorization: undefined,
           }),
         },
       );
