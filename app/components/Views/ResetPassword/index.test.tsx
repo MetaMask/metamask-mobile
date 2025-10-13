@@ -608,7 +608,7 @@ describe('ResetPassword', () => {
       username: 'testUser',
       password: 'testPassword123',
       service: 'testService',
-      storage: 'testStorage' as STORAGE_TYPE,
+      storage: STORAGE_TYPE.AES_GCM,
     });
 
     // Mock StorageWrapper.getItem to return biometry choice

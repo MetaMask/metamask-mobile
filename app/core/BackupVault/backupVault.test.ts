@@ -20,9 +20,19 @@ import {
 let mockKeychainState: Record<string, { username: string; password: string }> =
   {};
 
+const mockStorageType = STORAGE_TYPE.AES_GCM;
+
 // Mock the react-native-keychain module
 jest.mock('react-native-keychain', () => ({
   ...jest.requireActual('react-native-keychain'),
+  STORAGE_TYPE: {
+    FB: 'FacebookConceal',
+    AES: 'KeystoreAES',
+    AES_CBC: 'KeystoreAESCBC',
+    AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
+    AES_GCM: 'KeystoreAESGCM',
+    RSA: 'KeystoreRSAECB',
+  },
   setInternetCredentials: jest.fn(
     async (
       server: string,
@@ -33,7 +43,7 @@ jest.mock('react-native-keychain', () => ({
       mockKeychainState[server] = { username, password };
       return {
         service: 'service',
-        storage: 'storage' as STORAGE_TYPE,
+        storage: mockStorageType,
       };
     },
   ),

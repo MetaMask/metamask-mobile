@@ -19,6 +19,14 @@ jest.mock('react-native-keychain', () => ({
   ACCESSIBLE: {
     WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'MOCK_AccessibleWhenUnlockedThisDeviceOnly',
   },
+  STORAGE_TYPE: {
+    FB: 'FacebookConceal',
+    AES: 'KeystoreAES',
+    AES_CBC: 'KeystoreAESCBC',
+    AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
+    AES_GCM: 'KeystoreAESGCM',
+    RSA: 'KeystoreRSAECB',
+  },
   setGenericPassword: jest.fn().mockResolvedValue({
     service: 'mockService',
     storage: 'mockStorage',
@@ -98,7 +106,7 @@ describe('calculateScryptKey', () => {
       mocks.mockGetGenericPassword.mockResolvedValue({
         password: cachedResultStr,
         service: 'mockService',
-        storage: 'MOCK_keychain' as STORAGE_TYPE,
+        storage: STORAGE_TYPE.AES_GCM,
         username: 'mockUser',
       });
     });
