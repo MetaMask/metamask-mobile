@@ -8,7 +8,7 @@ inputs:
     description: 'Claude API key for AI analysis'
     required: true
   github-token:
-    description: 'GitHub token for PR comments
+    description: 'GitHub token for PR comments'
     required: true
   pr-number:
     description: 'Pull request number for commenting'
