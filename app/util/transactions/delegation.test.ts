@@ -10,7 +10,7 @@ import {
   encodeRedeemDelegations,
   signDelegation,
 } from './delegation';
-import { TransactionControllerInitMessenger } from '../../../Engine/messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../core/Engine/messengers/transaction-controller-messenger';
 
 const FROM_MOCK = '0x123456789012345678901234567890123456789a';
 const CHAIN_ID_MOCK = '0x123';

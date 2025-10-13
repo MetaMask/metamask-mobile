@@ -2,7 +2,7 @@ import { MessageParamsTypedData } from '@metamask/signature-controller';
 import { Hex, hexToNumber } from '@metamask/utils';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface, ParamType, defaultAbiCoder } from '@ethersproject/abi';
-import { TransactionControllerInitMessenger } from '../../../Engine/messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../core/Engine/messengers/transaction-controller-messenger';
 
 export interface Caveat {
   enforcer: Hex;
