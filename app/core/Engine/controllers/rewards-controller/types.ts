@@ -287,6 +287,7 @@ interface BasePointsEventDto {
    */
   bonus: {
     bips?: number | null;
+    bonusPoints?: number | null;
     bonuses?: string[] | null;
   } | null;
 
