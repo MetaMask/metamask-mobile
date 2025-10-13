@@ -42,8 +42,8 @@ import {
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
 import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
-import { isSendBundleSupported } from '../../../RPCMethods/sentinel-api';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
+import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
