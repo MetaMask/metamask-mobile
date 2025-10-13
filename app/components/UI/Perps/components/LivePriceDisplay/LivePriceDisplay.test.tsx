@@ -32,8 +32,8 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="BTC" />);
 
-    // Now uses formatPerpsFiat with 4 sig figs: 50000 → $50,000.00
-    expect(getByText('$50,000.00')).toBeTruthy();
+    // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k
+    expect(getByText('$50,000')).toBeTruthy();
     expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
       symbols: ['BTC'],
       throttleMs: 1000,
@@ -60,8 +60,8 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="ETH" showChange />);
 
-    // Now uses formatPerpsFiat with 4 sig figs: 3000 → $3,000.00
-    expect(getByText('$3,000.00')).toBeTruthy();
+    // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 1 decimal for $1k-$10k, trailing zeros removed
+    expect(getByText('$3,000')).toBeTruthy();
     // Now uses formatPercentage with 2 decimal places
     expect(getByText('-2.50%')).toBeTruthy();
   });
@@ -80,8 +80,8 @@ describe('LivePriceDisplay', () => {
       <LivePriceDisplay symbol="SOL" showChange={false} />,
     );
 
-    // Now uses formatPerpsFiat with 4 sig figs: 100 → $100.00
-    expect(getByText('$100.00')).toBeTruthy();
+    // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $100-$1k, trailing zeros removed
+    expect(getByText('$100')).toBeTruthy();
     expect(queryByText('10%')).toBeNull();
   });
 
@@ -190,8 +190,8 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="DOT" showChange />);
 
-    // Now uses formatPerpsFiat with 4 sig figs: 5 → $5.00
-    expect(getByText('$5.00')).toBeTruthy();
+    // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 3 decimals for $1-$10, trailing zeros removed: 5 → $5
+    expect(getByText('$5')).toBeTruthy();
     // Defaults to 0, formatPercentage adds "+" and 2 decimals
     expect(getByText('+0.00%')).toBeTruthy();
   });

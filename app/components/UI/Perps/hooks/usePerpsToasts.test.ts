@@ -128,7 +128,7 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toEqual([
           { label: 'Your Perps account was funded', isBold: true },
           { label: '\n', isBold: false },
-          { label: '$100.00 available to trade', isBold: false },
+          { label: '$100 available to trade', isBold: false },
         ]);
       });
 

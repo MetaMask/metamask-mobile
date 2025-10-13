@@ -224,9 +224,10 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total Unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
-        expect(screen.getByText('$10,000.00')).toBeOnTheScreen(); // totalBalance
-        expect(screen.getByText('$4,700.00')).toBeOnTheScreen(); // availableBalance
-        expect(screen.getByText('$5,300.00')).toBeOnTheScreen(); // marginUsed
+        // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
+        expect(screen.getByText('$10,000')).toBeOnTheScreen(); // totalBalance
+        expect(screen.getByText('$4,700')).toBeOnTheScreen(); // availableBalance
+        expect(screen.getByText('$5,300')).toBeOnTheScreen(); // marginUsed
         expect(screen.getByText('+$75.50')).toBeOnTheScreen(); // total PnL
       });
     });

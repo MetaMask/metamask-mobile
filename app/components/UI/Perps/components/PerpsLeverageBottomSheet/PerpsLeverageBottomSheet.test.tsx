@@ -594,7 +594,7 @@ describe('PerpsLeverageBottomSheet', () => {
       );
     });
 
-    it('formats liquidation price with 4 significant figures', () => {
+    it('formats liquidation price with PRICE_RANGES_UNIVERSAL', () => {
       // Arrange - Mock hook to return liquidation price with many decimal places
       const mockUsePerpsLiquidationPrice = jest.requireMock(
         '../../hooks/usePerpsLiquidationPrice',
@@ -616,8 +616,8 @@ describe('PerpsLeverageBottomSheet', () => {
       // Act
       render(<PerpsLeverageBottomSheet {...props} />);
 
-      // Assert - Should display formatted price with 4 sig figs (1,2,3,4), min 2 decimals
-      expect(screen.getByText('$1,234.00')).toBeOnTheScreen();
+      // Assert - Should display formatted price with 5 sig figs, max 1 decimal for $1k-$10k range
+      expect(screen.getByText('$1,234.4')).toBeOnTheScreen();
     });
   });
 

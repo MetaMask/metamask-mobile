@@ -44,8 +44,8 @@ describe('PerpsAmountDisplay', () => {
       // Act
       const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
-      // Assert - Now uses formatPerpsFiat with PRICE_RANGES_MINIMAL_VIEW (fixed 2 decimals)
-      expect(getByText('$1,000.00')).toBeTruthy();
+      // Assert - Uses formatPerpsFiat with PRICE_RANGES_MINIMAL_VIEW (fixed 2 decimals), trailing zeros removed
+      expect(getByText('$1,000')).toBeTruthy();
     });
 
     it('displays $0 when amount is empty', () => {
@@ -144,7 +144,7 @@ describe('PerpsAmountDisplay', () => {
       const { getByText } = render(
         <PerpsAmountDisplay amount={amount} onPress={onPressMock} />,
       );
-      fireEvent.press(getByText('$1,000.00'));
+      fireEvent.press(getByText('$1,000'));
 
       // Assert
       expect(onPressMock).toHaveBeenCalledTimes(1);
@@ -158,7 +158,7 @@ describe('PerpsAmountDisplay', () => {
       const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - This should not throw an error
-      expect(() => fireEvent.press(getByText('$1,000.00'))).not.toThrow();
+      expect(() => fireEvent.press(getByText('$1,000'))).not.toThrow();
     });
   });
 

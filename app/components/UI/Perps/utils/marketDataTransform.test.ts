@@ -68,8 +68,8 @@ describe('marketDataTransform', () => {
         symbol: 'BTC',
         name: 'BTC',
         maxLeverage: '50x',
-        price: '$52,000.00',
-        change24h: '+$2,000.00',
+        price: '$52,000', // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k
+        change24h: '+$2,000', // No trailing zeros
         change24hPercent: '+4.00%',
         volume: '$1.00B',
         nextFundingTime: undefined,
@@ -135,7 +135,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].change24h).toBe('+$52,000.00');
+      expect(result[0].change24h).toBe('+$52,000'); // No trailing zeros
       expect(result[0].change24hPercent).toBe('0.00%');
       expect(result[0].volume).toBe('$---');
     });
@@ -174,7 +174,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].change24h).toBe('-$3,000.00');
+      expect(result[0].change24h).toBe('-$3,000'); // No trailing zeros
       expect(result[0].change24hPercent).toBe('-5.45%');
     });
 
@@ -190,7 +190,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].change24h).toBe('+$52,000.00');
+      expect(result[0].change24h).toBe('+$52,000'); // No trailing zeros
       expect(result[0].change24hPercent).toBe('0.00%');
     });
 
@@ -326,7 +326,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('+$1,000.00');
+      expect(result).toBe('+$1,000'); // No trailing zeros
     });
 
     it('formats negative change with minus sign', () => {
@@ -337,7 +337,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('-$1,000.00');
+      expect(result).toBe('-$1,000'); // No trailing zeros
     });
 
     it('formats large positive changes with thousands separator', () => {
@@ -348,7 +348,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('+$50,000.00');
+      expect(result).toBe('+$50,000'); // No trailing zeros
     });
 
     it('formats large negative changes with thousands separator', () => {
@@ -359,7 +359,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('-$50,000.00');
+      expect(result).toBe('-$50,000'); // No trailing zeros
     });
 
     it('formats small positive changes with appropriate decimals', () => {
@@ -391,8 +391,8 @@ describe('marketDataTransform', () => {
       // Act
       const result = formatChange(change);
 
-      // Assert - Now uses 4 sig figs with min 2 decimals: 123.456 → $123.50
-      expect(result).toBe('+$123.50');
+      // Assert - Now uses 5 sig figs with min 2 decimals: 123.456 → $123.46 (properly rounded)
+      expect(result).toBe('+$123.46');
     });
 
     it('formats changes between 0.01 and 1 with four decimal places', () => {
@@ -693,20 +693,21 @@ describe('marketDataTransform', () => {
 
     it('handles negative numbers in formatting functions', () => {
       // Arrange & Act & Assert
-      // formatPerpsFiat is not designed for negative values - returns "<$0.00"
+      // formatPerpsFiat is not designed for negative values - returns "<$value" with absolute value
       // Use formatChange() for signed values instead
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $10-$100, trailing zeros removed: 100 → $10 (5 sig figs)
       expect(formatPerpsFiat(-100, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
-        '<$0.00',
+        '<$10',
       );
       expect(formatVolume(-1000000)).toBe('-$1.00M'); // formatVolume handles negatives
     });
 
     it('handles very small numbers close to zero', () => {
       // Arrange & Act & Assert
-      // formatPerpsFiat with PRICE_RANGES_4_SIG_FIGS has min 2 decimals, so very small numbers show as $0.00
+      // formatPerpsFiat with PRICE_RANGES_UNIVERSAL, very small numbers show as $0 (trailing zeros removed)
       expect(
         formatPerpsFiat(0.0000001, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('$0.00');
+      ).toBe('$0');
       expect(formatVolume(0.1)).toBe('$0.10'); // Now shows 2 decimals
       expect(formatPercentage(0.001)).toBe('+0.00%');
     });
@@ -715,7 +716,7 @@ describe('marketDataTransform', () => {
     it('handles NaN and Infinity values with safe fallbacks', () => {
       // Arrange & Act & Assert
       expect(formatPerpsFiat(NaN, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
-        '$0.00',
+        '$---',
       );
       // formatPerpsFiat doesn't handle Infinity - shows "$∞"
       // High-level functions like formatChange() handle Infinity correctly

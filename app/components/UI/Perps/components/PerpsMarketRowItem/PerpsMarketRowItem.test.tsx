@@ -56,8 +56,8 @@ describe('PerpsMarketRowItem', () => {
     symbol: 'BTC',
     name: 'Bitcoin',
     maxLeverage: '50x',
-    price: '$52,000.00',
-    change24h: '+$2,000.00',
+    price: '$52,000',
+    change24h: '+$2,000',
     change24hPercent: '+4.00%',
     volume: '$2.5B',
   };
@@ -72,7 +72,7 @@ describe('PerpsMarketRowItem', () => {
 
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('50x')).toBeOnTheScreen();
-      expect(screen.getByText('$52,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       expect(screen.getByText('$2.5B')).toBeOnTheScreen();
     });
@@ -180,7 +180,7 @@ describe('PerpsMarketRowItem', () => {
     it('handles large price changes', () => {
       const largePriceChangeMarket = {
         ...mockMarketData,
-        change24h: '+$25,000.00',
+        change24h: '+$25,000',
         change24hPercent: '+85.50%',
       };
 
@@ -211,7 +211,7 @@ describe('PerpsMarketRowItem', () => {
       const specialCharMarket = {
         ...mockMarketData,
         symbol: 'BTC/USD',
-        change24h: '+$1,000.00',
+        change24h: '+$1,000',
         change24hPercent: '+2.50%',
       };
 
@@ -225,15 +225,15 @@ describe('PerpsMarketRowItem', () => {
       const unicodeMarket = {
         ...mockMarketData,
         symbol: 'BTC€',
-        price: '€45,000.00',
-        change24h: '+€2,000.00',
+        price: '€45,000',
+        change24h: '+€2,000',
         change24hPercent: '+4.65%',
       };
 
       render(<PerpsMarketRowItem market={unicodeMarket} />);
 
       expect(screen.getByText('BTC€')).toBeOnTheScreen();
-      expect(screen.getByText('€45,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('€45,000')).toBeOnTheScreen();
     });
   });
 
@@ -312,7 +312,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
       // Should show the new live price
-      expect(screen.getByText('$55,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('$55,000')).toBeOnTheScreen();
       // Should show updated volume (2 decimals with formatVolume)
       expect(screen.getByText('$3.00B')).toBeOnTheScreen();
     });
@@ -329,7 +329,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
       // Should keep original data when price is the same
-      expect(screen.getByText('$52,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
     });
 
@@ -344,7 +344,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$48,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('$48,000')).toBeOnTheScreen();
     });
 
     it('handles zero percent change correctly', () => {
@@ -358,7 +358,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$50,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('$50,000')).toBeOnTheScreen();
     });
 
     it('handles -100% change correctly', () => {
@@ -417,7 +417,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$53,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('$53,000')).toBeOnTheScreen();
       // Should keep original change data when percentChange24h is missing
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       // Should keep original volume when volume24h is missing
@@ -429,8 +429,8 @@ describe('PerpsMarketRowItem', () => {
         symbol: 'ETH',
         name: 'Ethereum',
         maxLeverage: '25x',
-        price: '$3,000.00',
-        change24h: '-$50.00',
+        price: '$3,000',
+        change24h: '-$50',
         change24hPercent: '-1.64%',
         volume: '$1.2B',
       };
@@ -451,7 +451,7 @@ describe('PerpsMarketRowItem', () => {
       });
 
       // Should show ETH's live price, not BTC's
-      expect(screen.getByText('$3,200.00')).toBeOnTheScreen();
+      expect(screen.getByText('$3,200')).toBeOnTheScreen();
     });
 
     it('passes updated market data to onPress callback', () => {
@@ -504,8 +504,8 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // With 4 significant digits, this rounds to $100,000,000.00
-      expect(screen.getByText('$100,000,000.00')).toBeOnTheScreen();
+      // With 5 significant digits, this rounds to $100,000,000 (trailing zeros removed)
+      expect(screen.getByText('$100,000,000')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
       expect(screen.getByText('$10.00B')).toBeOnTheScreen();
     });
@@ -515,7 +515,7 @@ describe('PerpsMarketRowItem', () => {
     it('shows positive change', () => {
       const positiveMarket = {
         ...mockMarketData,
-        change24h: '+$500.00',
+        change24h: '+$500',
         change24hPercent: '+1.00%',
       };
 
@@ -528,7 +528,7 @@ describe('PerpsMarketRowItem', () => {
     it('shows negative change', () => {
       const negativeMarket = {
         ...mockMarketData,
-        change24h: '-$500.00',
+        change24h: '-$500',
         change24hPercent: '-1.00%',
       };
 
@@ -541,7 +541,7 @@ describe('PerpsMarketRowItem', () => {
     it('handles zero change correctly', () => {
       const zeroChangeMarket = {
         ...mockMarketData,
-        change24h: '+$0.00',
+        change24h: '+$0',
         change24hPercent: '+0.00%',
       };
 

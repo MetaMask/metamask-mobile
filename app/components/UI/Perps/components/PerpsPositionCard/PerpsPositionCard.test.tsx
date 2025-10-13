@@ -88,18 +88,6 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(() => ({})),
 }));
 
-// Mock TP_SL_CONFIG
-const mockTPSLConfig = {
-  USE_POSITION_BOUND_TPSL: true,
-};
-
-// Create a getter that references the mutable mock object
-jest.mock('../../constants/perpsConfig', () => ({
-  get TP_SL_CONFIG() {
-    return mockTPSLConfig;
-  },
-}));
-
 // Mock the new hooks from ../../hooks
 jest.mock('../../hooks', () => ({
   usePerpsPositions: jest.fn().mockReturnValue({
@@ -251,13 +239,15 @@ describe('PerpsPositionCard', () => {
       // Assert - Header section
       expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
       expect(screen.getByText('2.5 ETH')).toBeOnTheScreen(); // Trailing zero removed
-      expect(screen.getByText('$5,000.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$5,000')).toBeOnTheScreen();
 
       // Assert - Body section - using string keys since strings() mock returns keys
       expect(
         screen.getByText('perps.position.card.entry_price'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$2,000.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$2,000')).toBeOnTheScreen();
       expect(
         screen.getByText('perps.position.card.funding_cost'),
       ).toBeOnTheScreen();
@@ -271,7 +261,8 @@ describe('PerpsPositionCard', () => {
         screen.getByText('perps.position.card.stop_loss'),
       ).toBeOnTheScreen();
       expect(screen.getByText('perps.position.card.margin')).toBeOnTheScreen();
-      expect(screen.getByText('$500.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $100-$1k, trailing zeros removed
+      expect(screen.getByText('$500')).toBeOnTheScreen();
 
       // Assert - Footer section
       expect(
@@ -928,11 +919,6 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('TP/SL Count Functionality', () => {
-    beforeEach(() => {
-      // Reset mock config to default
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
-    });
-
     it('displays take profit count when multiple TP orders exist', () => {
       const positionWithMultipleTP = {
         ...mockPosition,
@@ -969,7 +955,8 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithSingleTP} />);
 
-      expect(screen.getByText('$2,500.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$2,500')).toBeOnTheScreen();
       expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
     });
 
@@ -983,7 +970,8 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithSingleSL} />);
 
-      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$1,500')).toBeOnTheScreen();
       expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
     });
 
@@ -1042,140 +1030,9 @@ describe('PerpsPositionCard', () => {
     });
   });
 
-  describe('TP/SL Count Warning Modal', () => {
-    beforeEach(() => {
-      // Disable position bound TP/SL for these tests
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = false;
-    });
-
-    afterEach(() => {
-      // Reset to default
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
-    });
-
-    it('shows warning modal when editing TP/SL with multiple orders but no single price', () => {
-      const positionWithMultipleTPNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 2,
-        takeProfitPrice: undefined, // Multiple orders but no single price
-        stopLossCount: 0,
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleTPNoPrice} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show warning modal instead of TP/SL bottom sheet since position bound TP/SL is disabled
-      expect(screen.getByText('TPSL Count Warning Tooltip')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('perps-tpsl-bottomsheet'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('shows warning modal when editing TP/SL with multiple SL orders but no single price', () => {
-      const positionWithMultipleSLNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 3,
-        stopLossPrice: undefined, // Multiple orders but no single price
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleSLNoPrice} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show warning modal instead of TP/SL bottom sheet since position bound TP/SL is disabled
-      expect(screen.getByText('TPSL Count Warning Tooltip')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('perps-tpsl-bottomsheet'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not show warning modal when position bound TP/SL is enabled', () => {
-      // Temporarily enable position bound TP/SL
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
-
-      const positionWithMultipleTPNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 2,
-        takeProfitPrice: undefined,
-        stopLossCount: 0,
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleTPNoPrice} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show TP/SL bottom sheet, not warning modal
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
-      expect(
-        screen.queryByText('TPSL Count Warning Tooltip'),
-      ).not.toBeOnTheScreen();
-
-      // Reset back to disabled for other tests in this describe block
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = false;
-    });
-
-    it('does not show warning modal when single TP/SL prices are available', () => {
-      const positionWithSinglePrices = {
-        ...mockPosition,
-        takeProfitCount: 1,
-        takeProfitPrice: '2500.00',
-        stopLossCount: 1,
-        stopLossPrice: '1500.00',
-      };
-
-      render(<PerpsPositionCard position={positionWithSinglePrices} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show TP/SL bottom sheet, not warning modal
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
-      expect(
-        screen.queryByText('TPSL Count Warning Tooltip'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('shows warning modal when single TP/SL orders exist but no prices available (position bound disabled)', () => {
-      const positionWithSingleOrdersNoPrices = {
-        ...mockPosition,
-        takeProfitCount: 1,
-        takeProfitPrice: undefined, // No price available
-        stopLossCount: 1,
-        stopLossPrice: undefined, // No price available
-      };
-
-      render(<PerpsPositionCard position={positionWithSingleOrdersNoPrices} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show warning modal since position bound TP/SL is disabled and there are orders with no prices
-      expect(screen.getByText('TPSL Count Warning Tooltip')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('perps-tpsl-bottomsheet'),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   describe('TP/SL Configuration Behavior', () => {
     it('renders count as clickable when position bound TP/SL is enabled and count > 1', () => {
-      // Ensure position bound TP/SL is enabled (default)
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
+      // Position bound TP/SL is always enabled in production (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL = true)
 
       const positionWithMultipleTP = {
         ...mockPosition,
@@ -1189,27 +1046,6 @@ describe('PerpsPositionCard', () => {
       const tpCountText = screen.getByText('3 orders');
       // TouchableOpacity should be pressable
       expect(tpCountText).toBeTruthy();
-    });
-
-    it('renders count as clickable when position bound TP/SL is disabled and count > 0 with no price', () => {
-      // Disable position bound TP/SL for this test
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = false;
-
-      const positionWithMultipleSLNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 2,
-        stopLossPrice: undefined, // No single price
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleSLNoPrice} />);
-
-      const slCountText = screen.getByText('2 orders');
-      // TouchableOpacity should be pressable
-      expect(slCountText).toBeTruthy();
-
-      // Reset to default
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
     });
 
     it('handles navigation error gracefully when pressing TP/SL count', () => {

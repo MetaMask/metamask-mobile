@@ -359,7 +359,7 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('Total fees')).toBeOnTheScreen();
-    expect(getByText('$5.00')).toBeOnTheScreen();
+    expect(getByText('$5')).toBeOnTheScreen();
   });
 
   it('should display fees with $ prefix directly for amounts < 0.01', () => {
@@ -542,7 +542,7 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('+$12,500.75')).toBeOnTheScreen();
-    expect(getByText('$125.50')).toBeOnTheScreen();
+    expect(getByText('$125.5')).toBeOnTheScreen();
   });
 
   it('should handle different asset types', () => {

@@ -125,8 +125,9 @@ describe('PerpsOpenOrderCard', () => {
         render(<PerpsOpenOrderCard order={mockOrder} expanded />);
 
         // Should show Take Profit and Stop Loss sections for non-trigger orders
-        expect(screen.getByText('$2,200.00')).toBeOnTheScreen();
-        expect(screen.getByText('$1,800.00')).toBeOnTheScreen();
+        // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 1 decimal for $1k-$10k range, trailing zeros removed
+        expect(screen.getByText('$2,200')).toBeOnTheScreen();
+        expect(screen.getByText('$1,800')).toBeOnTheScreen();
       });
 
       it('renders trigger price for trigger orders', () => {
@@ -139,8 +140,8 @@ describe('PerpsOpenOrderCard', () => {
         render(<PerpsOpenOrderCard order={triggerOrder} expanded />);
 
         // Trigger orders should not show TP/SL sections
-        expect(screen.queryByText(/$2,200.00/)).not.toBeOnTheScreen();
-        expect(screen.queryByText(/$1,800.00/)).not.toBeOnTheScreen();
+        expect(screen.queryByText('$2,200')).not.toBeOnTheScreen();
+        expect(screen.queryByText('$1,800')).not.toBeOnTheScreen();
       });
 
       it('renders reduce only status for trigger orders', () => {
