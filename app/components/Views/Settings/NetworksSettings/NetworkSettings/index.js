@@ -1482,9 +1482,11 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
-  onTickerChange = async (ticker) => {
-    await this.setState({ ticker, validatedSymbol: false });
-    this.getCurrentState();
+  onTickerChange = (ticker) => {
+    this.setState({ ticker, validatedSymbol: false }, () => {
+      this.getCurrentState();
+      this.validateSymbol();
+    });
   };
 
   // this function will autofill the symbol field with the value in parameter
