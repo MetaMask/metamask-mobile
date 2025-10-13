@@ -17,16 +17,13 @@ import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const CardWelcome = () => {
-  const { goBack } = useNavigation();
+  const { navigate } = useNavigation();
   const theme = useTheme();
 
   const styles = createStyles(theme);
-
-  const handleClose = async () => {
-    goBack();
-  };
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -59,8 +56,7 @@ const CardWelcome = () => {
             label={strings('card.card_onboarding.verify_account_button')}
             size={ButtonSize.Lg}
             testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            // Temporary navigation to card home
-            onPress={handleClose}
+            onPress={() => navigate(Routes.CARD.AUTHENTICATION)}
             style={styles.button}
             width={ButtonWidthTypes.Full}
           />
