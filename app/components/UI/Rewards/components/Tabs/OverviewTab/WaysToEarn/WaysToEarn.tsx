@@ -38,6 +38,7 @@ export enum WayToEarnType {
   PERPS = 'perps',
   REFERRALS = 'referrals',
   LOYALTY = 'loyalty',
+  CARD = 'card',
 }
 
 interface WayToEarn {
@@ -71,6 +72,12 @@ const waysToEarn: WayToEarn[] = [
     title: strings('rewards.ways_to_earn.loyalty.title'),
     description: strings('rewards.ways_to_earn.loyalty.description'),
     icon: IconName.Gift,
+  },
+  {
+    type: WayToEarnType.CARD,
+    title: strings('rewards.ways_to_earn.card.title'),
+    description: strings('rewards.ways_to_earn.card.description'),
+    icon: IconName.Card,
   },
 ];
 
@@ -150,6 +157,21 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.loyalty.sheet.cta_label'),
       };
+    case WayToEarnType.CARD:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.card.sheet.title')}
+            points={strings('rewards.ways_to_earn.card.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.card.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.card.sheet.cta_label'),
+      };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
   }
@@ -195,6 +217,9 @@ export const WaysToEarn = () => {
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
+      case WayToEarnType.CARD:
+        navigation.navigate(Routes.CARD.ROOT);
+        break;
     }
   };
 
@@ -210,7 +235,8 @@ export const WaysToEarn = () => {
     switch (wayToEarn.type) {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
-      case WayToEarnType.PERPS: {
+      case WayToEarnType.PERPS:
+      case WayToEarnType.CARD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
         );
