@@ -127,12 +127,7 @@ describe('URL Check Functions', () => {
 
   describe('isSameValueOrOrigin', () => {
     it('return true for urls with the same value or origin', () => {
-      expect(
-        isSameValueOrOrigin(
-          'notUrl',
-          'notUrl',
-        ),
-      ).toBeTruthy();
+      expect(isSameValueOrOrigin('notUrl', 'notUrl')).toBeTruthy();
       expect(
         isSameValueOrOrigin(
           'https://metamask.io/page.html',
@@ -146,10 +141,16 @@ describe('URL Check Functions', () => {
         ),
       ).toBeTruthy();
       expect(
-        isSameValueOrOrigin('https://metamask.io:80/page', 'https://metamask.io:80/'),
+        isSameValueOrOrigin(
+          'https://metamask.io:80/page',
+          'https://metamask.io:80/',
+        ),
       ).toBeTruthy();
       expect(
-        isSameValueOrOrigin('https://metamask.io:81/', 'https://metamask.io:80'),
+        isSameValueOrOrigin(
+          'https://metamask.io:81/',
+          'https://metamask.io:80',
+        ),
       ).toBeFalsy();
       expect(
         isSameValueOrOrigin(
@@ -157,7 +158,9 @@ describe('URL Check Functions', () => {
           'https://metamask.io/',
         ),
       ).toBeFalsy();
-      expect(isSameValueOrOrigin('invalid url', 'https://metamask.io/')).toBeFalsy();
+      expect(
+        isSameValueOrOrigin('invalid url', 'https://metamask.io/'),
+      ).toBeFalsy();
     });
   });
 });

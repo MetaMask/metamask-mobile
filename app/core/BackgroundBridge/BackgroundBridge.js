@@ -450,7 +450,12 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
-    Logger.log('[BackgroundBridge]: onMessage', msg, this.channelIdOrOrigin, msg.origin);
+    Logger.log(
+      '[BackgroundBridge]: onMessage',
+      msg,
+      this.channelIdOrOrigin,
+      msg.origin,
+    );
     if (!isSameValueOrOrigin(msg.origin, this.channelIdOrOrigin)) {
       console.warn(
         '[BackgroundBridge]: message blocked from unknown origin. Expects',
