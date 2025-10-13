@@ -228,7 +228,8 @@
     "basefee": 763490490,
     "difficulty": "0x0",
     "prevrandao": "0x76d5ccfe10566cec19b4cb071969bfb3b3f7ae18b8f5e23d9c3056505c8128a2",
-    "blob_excess_gas_and_price": { "excess_blob_gas": 0, "blob_gasprice": 1 }
+    "blob_excess_gas_and_price": { "excess_blob_gas": 0, "blob_gasprice": 1 },
+    "beneficiary": ""
   },
   "blocks": [
     {
