@@ -85,8 +85,11 @@ export const toPunycodeURL = (urlString: string) => {
   }
 };
 
-export function isSameOrigin(a: string, b: string) {
+export function isSameValueOrOrigin(a: string, b: string) {
   try {
+    if (a === b) {
+      return true;
+    }
     const urlA = new URL(a);
     const urlB = new URL(b);
 

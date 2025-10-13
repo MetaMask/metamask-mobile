@@ -86,7 +86,7 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
-import { isSameOrigin } from '../../util/url';
+import { isSameValueOrOrigin } from '../../util/url';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
@@ -450,10 +450,11 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
-    if (!isSameOrigin(msg.origin, this.origin)) {
+    Logger.log('[BackgroundBridge]: onMessage', msg, this.channelIdOrOrigin, msg.origin);
+    if (!isSameValueOrOrigin(msg.origin, this.channelIdOrOrigin)) {
       console.warn(
         '[BackgroundBridge]: message blocked from unknown origin. Expects',
-        this.origin,
+        this.channelIdOrOrigin,
         'but received',
         msg.origin,
       );
