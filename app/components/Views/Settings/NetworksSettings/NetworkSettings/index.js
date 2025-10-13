@@ -1182,6 +1182,9 @@ export class NetworkSettings extends PureComponent {
    */
   validateSymbol = (chainToMatch = null) => {
     const { ticker, networkList, chainId } = this.state;
+    const { networkConfigurations } = this.props;
+    const networkConfiguration = networkConfigurations[chainId];
+    const networkConfigurationSymbol = networkConfiguration?.nativeCurrency;
 
     if (isWhitelistedSymbol(chainId, ticker)) {
       return this.setState({
@@ -1196,7 +1199,9 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    const symbol = chainToMatch
+    const symbol = networkConfigurationSymbol
+      ? networkConfigurationSymbol
+      : chainToMatch
       ? chainToMatch?.nativeCurrency?.symbol ?? null
       : networkList?.nativeCurrency?.symbol ?? null;
 
