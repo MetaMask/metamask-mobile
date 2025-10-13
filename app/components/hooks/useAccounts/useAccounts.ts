@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -24,7 +24,6 @@ import {
   getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
-import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -32,7 +31,7 @@ import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
-  checkBalanceError: checkBalanceErrorFn,
+  checkBalanceError: _checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
@@ -44,17 +43,10 @@ const useAccounts = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const { multichainBalancesForAllAccounts } =
-    useMultichainBalancesForAllAccounts();
-
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
   );
-  const checkBalanceError = useCallback(
-    (balance: string) => checkBalanceErrorFn?.(balance),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+
   const fetchENSNames = useCallback(
     async ({
       flattenedAccounts,
@@ -114,38 +106,6 @@ const useAccounts = ({
     [currentChainId],
   );
 
-  // Memoize the balance calculation to prevent it from causing re-renders
-  const accountBalances = useMemo(() => {
-    const balances: Record<
-      string,
-      {
-        displayBalance: string;
-        balanceError: string | undefined;
-        isLoadingAccount: boolean;
-      }
-    > = {};
-
-    internalAccounts.forEach((account) => {
-      const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
-      const displayBalance = balanceForAccount
-        ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
-        : '';
-
-      const error =
-        balanceForAccount?.totalFiatBalance !== undefined
-          ? checkBalanceError?.(balanceForAccount.totalFiatBalance.toString())
-          : undefined;
-
-      balances[account.id] = {
-        displayBalance,
-        balanceError: typeof error === 'string' ? error : undefined,
-        isLoadingAccount: balanceForAccount?.isLoadingAccount,
-      };
-    });
-
-    return balances;
-  }, [internalAccounts, multichainBalancesForAllAccounts, checkBalanceError]);
-
   const getAccounts = useCallback(() => {
     if (!isMountedRef.current) return;
     // Keep track of the Y position of account item. Used for scrolling purposes.
@@ -161,7 +121,7 @@ const useAccounts = ({
           selectedIndex = index;
         }
 
-        const accountBalance = accountBalances[internalAccount.id] || {
+        const accountBalance = {
           displayBalance: '',
           balanceError: undefined,
         };
@@ -187,7 +147,7 @@ const useAccounts = ({
           caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
           scopes: internalAccount.scopes,
           snapId: internalAccount.metadata.snap?.id,
-          isLoadingAccount: accountBalance.isLoadingAccount,
+          isLoadingAccount: false,
         };
         // Calculate height of the account item.
         yOffset += 78;
@@ -210,7 +170,6 @@ const useAccounts = ({
     internalAccounts,
     fetchENSNames,
     selectedInternalAccount?.address,
-    accountBalances, // Use the memoized balances instead of multichainBalancesForAllAccounts
     isMultiAccountBalancesEnabled,
   ]);
 
