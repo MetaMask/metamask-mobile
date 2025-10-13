@@ -120,6 +120,7 @@ describe('polymarket utils', () => {
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+        CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       });
     });
   });
@@ -1080,8 +1081,7 @@ describe('polymarket utils', () => {
       ).rejects.toThrow('Network error');
     });
 
-    // TODO: Add this test once we have a production relayer
-    it.skip('includes feeAuthorization in request body when provided', async () => {
+    it('includes feeAuthorization in request body when provided', async () => {
       const feeAuthorization = {
         type: 'safe-transaction' as const,
         authorization: {
@@ -1102,10 +1102,21 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({ ...mockClobOrder, feeAuthorization }),
         },
       );
@@ -1131,8 +1142,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    // TODO: Add this test once we have a production relayer
-    it.skip('serializes feeAuthorization correctly to JSON', async () => {
+    it('serializes feeAuthorization correctly to JSON', async () => {
       const feeAuthorization = {
         type: 'safe-transaction' as const,
         authorization: {
@@ -1158,6 +1168,67 @@ describe('polymarket utils', () => {
 
       expect(parsedBody).toHaveProperty('feeAuthorization');
       expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
+    });
+
+    it('uses CLOB endpoint when feeAuthorization is not provided for BUY orders', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization: undefined,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({
+            ...mockClobOrder,
+            feeAuthorization: undefined,
+          }),
+        },
+      );
+    });
+
+    it('uses CLOB endpoint for SELL orders even with feeAuthorization', async () => {
+      const sellClobOrder: ClobOrderObject = {
+        ...mockClobOrder,
+        order: {
+          ...mockClobOrder.order,
+          side: Side.SELL,
+        },
+      };
+
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: sellClobOrder,
+        feeAuthorization,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({
+            ...sellClobOrder,
+            feeAuthorization: undefined,
+          }),
+        },
+      );
     });
   });
 
