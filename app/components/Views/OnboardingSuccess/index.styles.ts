@@ -34,7 +34,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       left: 0,
       right: 0,
       paddingHorizontal: 16,
-      paddingVertical: 24,
+      paddingTop: 8,
       paddingBottom: 40,
       backgroundColor: isDarkMode
         ? colors.background.default
