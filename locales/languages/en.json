@@ -1576,10 +1576,10 @@
     "market_list": "Market List",
     "market_details": "Market Details",
     "tab": {
-      "no_predictions": "No predictions yet",
-      "no_predictions_description": "Open a prediction to get started.",
-      "explore": "Explore markets",
-      "new_prediction": "New prediction"
+      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
+      "explore": "Browse markets",
+      "new_prediction": "New prediction",
+      "resolved_markets": "Resolved markets"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
@@ -1609,11 +1609,11 @@
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
-    "won_markets_text_singular": "Won {{count}} market",
-    "won_markets_text_plural": "Won {{count}} markets",
+    "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unrealized_pnl_error": "Unable to load",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
