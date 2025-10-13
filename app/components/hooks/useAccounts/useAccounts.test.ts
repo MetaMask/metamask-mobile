@@ -112,22 +112,6 @@ describe('useAccounts', () => {
     expect(result.current.ensByAccountAddress).toStrictEqual({});
   });
 
-  it('populates balanceError property for accounts', async () => {
-    const expectedBalanceError = 'Insufficient funds';
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAccounts({
-        checkBalanceError: (balance) =>
-          balance === '0' ? 'Insufficient funds' : '',
-      }),
-    );
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-    expect(result.current.accounts[0].balanceError).toStrictEqual(
-      expectedBalanceError,
-    );
-  });
-
   it('returns internal accounts', async () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
     const expectedInternalAccounts: Account[] = [

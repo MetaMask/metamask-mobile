@@ -31,7 +31,6 @@ import {
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
-  checkBalanceError: _checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
