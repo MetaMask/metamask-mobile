@@ -31,6 +31,12 @@ interface NetworkInfo {
   networkName: string;
 }
 
+interface NetworkData {
+  name: string;
+  chainId: CaipChainId;
+  hexChainId?: string; // Original hex format for EVM chains, used for isTestNet check
+}
+
 const NetworkAvatars: React.FC<NetworkAvatarsProps> = ({
   scopes,
   maxVisible = 3,
@@ -49,10 +55,7 @@ const NetworkAvatars: React.FC<NetworkAvatarsProps> = ({
       return [];
     }
 
-    const allNetworks: Record<
-      CaipChainId,
-      { name: string; chainId: CaipChainId }
-    > = {};
+    const allNetworks: Record<CaipChainId, NetworkData> = {};
 
     // Add EVM networks with hex chain IDs
     Object.entries(evmNetworks || {}).forEach(([hexChainId, networkConfig]) => {
@@ -62,6 +65,7 @@ const NetworkAvatars: React.FC<NetworkAvatarsProps> = ({
           allNetworks[caipChainId] = {
             name: networkConfig.name,
             chainId: caipChainId,
+            hexChainId, // Store original hex format for isTestNet check
           };
         } catch (error) {
           // Skip invalid chain IDs
@@ -77,6 +81,7 @@ const NetworkAvatars: React.FC<NetworkAvatarsProps> = ({
         allNetworks[caipChainId] = {
           name: networkConfig.name,
           chainId: caipChainId,
+          // Non-EVM networks don't have hexChainId
         };
       }
     });
@@ -117,14 +122,18 @@ const NetworkAvatars: React.FC<NetworkAvatarsProps> = ({
           }
 
           const chainIdNamespace = chainIdParts[0];
-          const chainIdValue = chainIdParts[1];
 
+          // Check if network matches namespace and is not a testnet
           if (
             chainIdNamespace === namespace &&
-            !addedChainIds.has(chainId as CaipChainId) &&
-            typeof chainIdValue === 'string' &&
-            !isTestNet(chainIdValue)
+            !addedChainIds.has(chainId as CaipChainId)
           ) {
+            // For EVM networks, use the stored hex chainId for testnet check
+            // For non-EVM networks, skip testnet check (not applicable)
+            if (network.hexChainId && isTestNet(network.hexChainId)) {
+              return;
+            }
+
             compatibleNetworks.push({
               chainId: chainId as CaipChainId,
               networkName: network.name,
@@ -140,18 +149,17 @@ const NetworkAvatars: React.FC<NetworkAvatarsProps> = ({
           !addedChainIds.has(caipScope) &&
           typeof network.chainId === 'string'
         ) {
-          // Extract chain ID value for isTestNet check
-          const chainIdParts = network.chainId.split(':');
-          const chainIdValue =
-            chainIdParts.length > 1 ? chainIdParts[1] : network.chainId;
-
-          if (!isTestNet(chainIdValue)) {
-            compatibleNetworks.push({
-              chainId: caipScope,
-              networkName: network.name,
-            });
-            addedChainIds.add(caipScope);
+          // For EVM networks, use the stored hex chainId for testnet check
+          // For non-EVM networks, skip testnet check (not applicable)
+          if (network.hexChainId && isTestNet(network.hexChainId)) {
+            return;
           }
+
+          compatibleNetworks.push({
+            chainId: caipScope,
+            networkName: network.name,
+          });
+          addedChainIds.add(caipScope);
         }
       }
     });

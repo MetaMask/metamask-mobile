@@ -415,6 +415,197 @@ describe('NetworkAvatars', () => {
     });
   });
 
+  describe('Testnet Filtering', () => {
+    it('should exclude EVM testnets from specific scope', () => {
+      // Given a testnet chain (Sepolia)
+      const networksWithTestnet = {
+        '0x1': {
+          name: 'Ethereum Mainnet',
+          chainId: '0x1',
+        },
+        '0xaa36a7': {
+          name: 'Sepolia Testnet',
+          chainId: '0xaa36a7',
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectEvmNetworkConfigurationsByChainId) {
+          return networksWithTestnet;
+        }
+        if (selector === selectNonEvmNetworkConfigurationsByChainId) {
+          return {};
+        }
+        return {};
+      });
+
+      // When isTestNet identifies Sepolia as testnet
+      mockIsTestNet.mockImplementation((chainId) => chainId === '0xaa36a7');
+
+      const { getByTestId } = render(
+        <NetworkAvatars
+          scopes={['eip155:1', 'eip155:11155111']}
+          testID="network-avatars"
+        />,
+      );
+
+      // Then only mainnet should be rendered
+      expect(getByTestId('network-avatars')).toBeTruthy();
+      expect(mockGetNetworkImageSource).toHaveBeenCalledTimes(1);
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'eip155:1',
+      });
+      expect(mockGetNetworkImageSource).not.toHaveBeenCalledWith({
+        chainId: 'eip155:11155111',
+      });
+    });
+
+    it('should exclude EVM testnets from wildcard scope', () => {
+      // Given multiple networks including testnets
+      const networksWithTestnets = {
+        '0x1': {
+          name: 'Ethereum Mainnet',
+          chainId: '0x1',
+        },
+        '0xaa36a7': {
+          name: 'Sepolia Testnet',
+          chainId: '0xaa36a7',
+        },
+        '0x89': {
+          name: 'Polygon Mainnet',
+          chainId: '0x89',
+        },
+        '0xe704': {
+          name: 'Linea Sepolia',
+          chainId: '0xe704',
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectEvmNetworkConfigurationsByChainId) {
+          return networksWithTestnets;
+        }
+        if (selector === selectNonEvmNetworkConfigurationsByChainId) {
+          return {};
+        }
+        return {};
+      });
+
+      // When isTestNet identifies testnets
+      mockIsTestNet.mockImplementation(
+        (chainId) => chainId === '0xaa36a7' || chainId === '0xe704',
+      );
+
+      const { getByTestId } = render(
+        <NetworkAvatars scopes={['eip155:*']} testID="network-avatars" />,
+      );
+
+      // Then only mainnets should be rendered
+      expect(getByTestId('network-avatars')).toBeTruthy();
+      expect(mockGetNetworkImageSource).toHaveBeenCalledTimes(2);
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'eip155:1',
+      });
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'eip155:137',
+      });
+      expect(mockGetNetworkImageSource).not.toHaveBeenCalledWith({
+        chainId: 'eip155:11155111',
+      });
+    });
+
+    it('should not filter non-EVM networks (no hexChainId)', () => {
+      // Given non-EVM networks
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectEvmNetworkConfigurationsByChainId) {
+          return {};
+        }
+        if (selector === selectNonEvmNetworkConfigurationsByChainId) {
+          return mockNonEvmNetworks;
+        }
+        return {};
+      });
+
+      // When isTestNet is called (it shouldn't be for non-EVM)
+      mockIsTestNet.mockReturnValue(true);
+
+      const { getByTestId } = render(
+        <NetworkAvatars
+          scopes={['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']}
+          testID="network-avatars"
+        />,
+      );
+
+      // Then non-EVM network should still be rendered
+      expect(getByTestId('network-avatars')).toBeTruthy();
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      });
+    });
+
+    it('should handle all networks as mainnet when isTestNet returns false', () => {
+      // Given multiple EVM networks
+      const { getByTestId } = render(
+        <NetworkAvatars scopes={['eip155:*']} testID="network-avatars" />,
+      );
+
+      // When isTestNet returns false for all (default mock)
+      // Then all networks should be rendered
+      expect(getByTestId('network-avatars')).toBeTruthy();
+      expect(mockGetNetworkImageSource).toHaveBeenCalledTimes(3);
+      expect(mockIsTestNet).toHaveBeenCalledWith('0x1');
+      expect(mockIsTestNet).toHaveBeenCalledWith('0x89');
+      expect(mockIsTestNet).toHaveBeenCalledWith('0x38');
+    });
+
+    it('should render null when all networks are testnets', () => {
+      // Given only testnet networks
+      const onlyTestnets = {
+        '0xaa36a7': {
+          name: 'Sepolia Testnet',
+          chainId: '0xaa36a7',
+        },
+        '0xe704': {
+          name: 'Linea Sepolia',
+          chainId: '0xe704',
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectEvmNetworkConfigurationsByChainId) {
+          return onlyTestnets;
+        }
+        if (selector === selectNonEvmNetworkConfigurationsByChainId) {
+          return {};
+        }
+        return {};
+      });
+
+      // When all networks are testnets
+      mockIsTestNet.mockReturnValue(true);
+
+      const { queryByTestId } = render(
+        <NetworkAvatars scopes={['eip155:*']} testID="network-avatars" />,
+      );
+
+      // Then nothing should be rendered
+      expect(queryByTestId('network-avatars')).toBeNull();
+    });
+
+    it('should correctly use hex chain ID format for isTestNet check', () => {
+      // Given a network configuration
+      const { getByTestId } = render(
+        <NetworkAvatars scopes={['eip155:1']} testID="network-avatars" />,
+      );
+
+      expect(getByTestId('network-avatars')).toBeTruthy();
+
+      // Then isTestNet should be called with hex format (0x1), not decimal (1)
+      expect(mockIsTestNet).toHaveBeenCalledWith('0x1');
+      expect(mockIsTestNet).not.toHaveBeenCalledWith('1');
+    });
+  });
+
   describe('Z-Index Ordering', () => {
     it('should apply correct z-index ordering to avatars', () => {
       const { getByTestId } = render(
