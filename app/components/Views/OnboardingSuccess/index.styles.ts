@@ -35,7 +35,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       right: 0,
       paddingHorizontal: 16,
       paddingVertical: 24,
-      paddingBottom: 52,
+      paddingBottom: 40,
       backgroundColor: isDarkMode
         ? colors.background.default
         : importedColors.white,
@@ -72,8 +72,8 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       padding: 16,
     },
     textTitle: {
-      marginBottom: 32,
-      marginHorizontal: 60,
+      marginBottom: 16,
+      marginHorizontal: 24,
       textAlign: 'center',
     },
     imageWrapper: {
@@ -83,11 +83,6 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       width: '100%',
       marginTop: 40,
       marginBottom: 32,
-    },
-    walletReadyImage: {
-      width: 320,
-      height: 320,
-      alignSelf: 'center',
     },
     description: {
       fontSize: 14,
@@ -108,8 +103,8 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       marginTop: 24,
     },
     footerWrapper: {
-      marginTop: 12,
-      marginBottom: 24,
+      marginTop: 16,
+      marginBottom: 20,
       flexDirection: 'column',
       rowGap: 16,
     },

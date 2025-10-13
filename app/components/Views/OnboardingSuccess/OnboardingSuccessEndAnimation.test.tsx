@@ -197,49 +197,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Start');
   });
 
-  it('applies correct styles to animation components', () => {
-    // Arrange
-    const mockOnAnimationComplete = jest.fn();
-
-    // Act
-    const { getByTestId } = render(
-      <OnboardingSuccessEndAnimation
-        onAnimationComplete={mockOnAnimationComplete}
-      />,
-    );
-
-    // Assert
-    const animationContainer = getByTestId('onboarding-success-end-animation');
-    expect(animationContainer.props.style).toEqual(
-      expect.objectContaining({
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }),
-    );
-
-    // Verify animation wrapper styles
-    const animationWrapper = animationContainer
-      .children[0] as ReactTestInstance;
-    expect(animationWrapper.props.style).toEqual(
-      expect.objectContaining({
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }),
-    );
-
-    // Verify Rive animation styles
-    const riveComponent = getByTestId('mock-rive');
-    expect(riveComponent.props.style).toEqual(
-      expect.objectContaining({
-        width: 750,
-        height: 800.4,
-        alignSelf: 'center',
-      }),
-    );
-  });
-
   it('calculates correct dimensions for animation styles', () => {
     // Arrange
     const mockOnAnimationComplete = jest.fn();
@@ -278,7 +235,7 @@ describe('OnboardingSuccessEndAnimation', () => {
     expect(riveComponent.props.style).toEqual(
       expect.objectContaining({
         width: 750,
-        height: 800.4,
+        height: 667,
         alignSelf: 'center',
       }),
     );

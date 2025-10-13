@@ -7,11 +7,12 @@ export interface ScreenDimensions {
   animationHeight: number;
 }
 
-export const useScreenDimensions = (): ScreenDimensions => useMemo(() => {
+export const useScreenDimensions = (): ScreenDimensions =>
+  useMemo(() => {
     const { width, height } = Dimensions.get('window');
     return {
       screenWidth: width,
       screenHeight: height,
-      animationHeight: height * 0.6,
+      animationHeight: height * 0.5,
     };
   }, []);
