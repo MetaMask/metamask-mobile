@@ -1091,6 +1091,32 @@ describe('NetworkSettings', () => {
       expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
     });
 
+    it('should not show warning symbol for Sepolia when getting symbol from network configuration', async () => {
+      const instance = wrapper.instance();
+
+      wrapper.setProps({
+        useSafeChainsListValidation: true,
+        networkConfigurations: {
+          '0xaa36a7': {
+            chainId: '0xaa36a7',
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'SepoliaETH',
+          },
+        },
+      });
+
+      instance.setState({
+        chainId: '0xaa36a7', // Sepolia chain ID
+        ticker: 'SepoliaETH',
+      });
+
+      await instance.validateSymbol();
+
+      expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
+    });
+
     it('should validateChainIdOnSubmit', async () => {
       const instance = wrapper.instance();
 
