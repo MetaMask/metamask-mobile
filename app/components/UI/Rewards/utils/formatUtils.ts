@@ -15,12 +15,17 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
  * @param value - The number to format.
  * @returns The formatted number as a string.
  */
-export const formatNumber = (value: number | null): string => {
+export const formatNumber = (
+  value: number | null,
+  decimals?: number,
+): string => {
   if (value === null || value === undefined) {
     return '0';
   }
   try {
-    return getIntlNumberFormatter(I18n.locale).format(value);
+    return getIntlNumberFormatter(I18n.locale, {
+      maximumFractionDigits: decimals,
+    }).format(value);
   } catch {
     return String(value);
   }
@@ -108,7 +113,8 @@ const getPerpsEventDetails = (
   const rawAmount = formatUnits(BigInt(amount), decimals);
   // Limit to at most 2 decimal places without padding zeros
   const formattedAmount = formatNumber(
-    parseFloat(Number(rawAmount).toFixed(3)),
+    parseFloat(Number(rawAmount).toFixed(5)),
+    decimals,
   );
 
   switch (payload.type) {
@@ -120,14 +126,7 @@ const getPerpsEventDetails = (
     case PerpsEventType.CLOSE_POSITION:
     case PerpsEventType.TAKE_PROFIT:
     case PerpsEventType.STOP_LOSS:
-      if (payload.pnl) {
-        const pnl = Number(payload.pnl);
-        if (isNaN(pnl)) return `${symbol}`;
-        const sign = pnl > 0 ? '+' : pnl < 0 ? '-' : '';
-        const formattedAbsPnl = Math.round(Math.abs(pnl) * 100) / 100;
-        return `${symbol} ${sign}$${formattedAbsPnl}`;
-      }
-      return `${symbol}`;
+      return `${formattedAmount} ${symbol}`;
     default:
       return undefined;
   }
