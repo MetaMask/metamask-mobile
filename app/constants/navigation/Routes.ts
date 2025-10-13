@@ -104,6 +104,7 @@ const Routes = {
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
+    REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -265,6 +266,7 @@ const Routes = {
     MODALS: {
       ROOT: 'PredictModals',
       CASH_OUT: 'PredictCashOut',
+      UNAVAILABLE: 'PredictUnavailable',
       PLACE_BET: 'PredictPlaceBet',
     },
   },
@@ -306,6 +308,7 @@ const Routes = {
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+    NO_HEADER: 'NoHeaderConfirmations',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
@@ -341,6 +344,7 @@ const Routes = {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
+    AUTHENTICATION: 'CardAuthentication',
   },
   SEND: {
     RECIPIENT: 'Recipient',
