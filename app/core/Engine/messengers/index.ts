@@ -90,6 +90,7 @@ import { getAccountTrackerControllerMessenger } from './account-tracker-controll
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
 import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
+import { getUserStorageControllerMessenger } from './identity/user-storage-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -202,6 +203,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SubjectMetadataController: {
     getMessenger: getSubjectMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
+  UserStorageController: {
+    getMessenger: getUserStorageControllerMessenger,
     getInitMessenger: noop,
   },
   WebSocketService: {
