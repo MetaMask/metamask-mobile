@@ -115,6 +115,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
         address: account.address,
         hasOptedIn: true,
         scopes: account.scopes || [],
+        isSupported: true,
       })) ?? [];
 
     const unlinkedAddresses =
@@ -122,9 +123,22 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
         address: account.address,
         hasOptedIn: false,
         scopes: account.scopes || [],
+        isSupported: true,
       })) ?? [];
 
-    const addressData = [...linkedAddresses, ...unlinkedAddresses];
+    const unsupportedAddresses =
+      accountGroup?.unsupportedAccounts?.map((account) => ({
+        address: account.address,
+        hasOptedIn: false,
+        scopes: account.scopes || [],
+        isSupported: false,
+      })) ?? [];
+
+    const addressData = [
+      ...linkedAddresses,
+      ...unlinkedAddresses,
+      ...unsupportedAddresses,
+    ];
 
     navigation.navigate(Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL, {
       accountGroupId: accountGroup?.id,

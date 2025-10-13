@@ -4,7 +4,6 @@ import { AccountGroupId } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useLinkAccountGroup } from './useLinkAccountGroup';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { deriveAccountMetricProps } from '../utils';
@@ -28,10 +27,6 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
   },
-}));
-
-jest.mock('../../../../util/Logger', () => ({
-  log: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useMetrics', () => ({
@@ -82,7 +77,6 @@ describe('useLinkAccountGroup', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockLogger = Logger.log as jest.MockedFunction<typeof Logger.log>;
   const mockUseMetrics = jest.mocked(useMetrics);
   const mockDeriveAccountMetricProps = jest.mocked(deriveAccountMetricProps);
   const mockUseRewardsToast = jest.mocked(useRewardsToast);
@@ -218,6 +212,14 @@ describe('useLinkAccountGroup', () => {
   describe('Successful account group linking', () => {
     beforeEach(() => {
       mockGetAccountsByGroupId.mockReturnValue([mockAccount1, mockAccount2]);
+      // Mock isOptInSupported to return true for all accounts by default
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('should successfully link all accounts when none are already opted in', async () => {
@@ -232,6 +234,8 @@ describe('useLinkAccountGroup', () => {
       ];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
         .mockResolvedValueOnce(mockOptInResponse) // getOptInStatus
         .mockResolvedValueOnce(mockLinkResults); // linkAccountsToSubscriptionCandidate
 
@@ -249,6 +253,16 @@ describe('useLinkAccountGroup', () => {
           [mockAccount2.address]: true,
         },
       });
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount1,
+      );
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount2,
+      );
 
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getOptInStatus',
@@ -285,6 +299,8 @@ describe('useLinkAccountGroup', () => {
       ];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
         .mockResolvedValueOnce(mockOptInResponse) // getOptInStatus
         .mockResolvedValueOnce(mockLinkResults); // linkAccountsToSubscriptionCandidate
 
@@ -325,6 +341,8 @@ describe('useLinkAccountGroup', () => {
       const mockLinkResults = [{ account: mockAccount2, success: true }];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
         .mockResolvedValueOnce(mockOptInResponse) // getOptInStatus
         .mockResolvedValueOnce(mockLinkResults); // linkAccountsToSubscriptionCandidate
 
@@ -353,6 +371,14 @@ describe('useLinkAccountGroup', () => {
   describe('Error handling', () => {
     beforeEach(() => {
       mockGetAccountsByGroupId.mockReturnValue([mockAccount1, mockAccount2]);
+      // Mock isOptInSupported to return true for all accounts by default
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('should handle empty account group', async () => {
@@ -371,12 +397,24 @@ describe('useLinkAccountGroup', () => {
       });
 
       expect(result.current.isError).toBe(true);
-      expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'icon',
+          iconName: 'error',
+        }),
+      );
     });
 
-    it('should handle getOptInStatus failure', async () => {
-      const error = new Error('Network error');
-      mockEngineCall.mockRejectedValueOnce(error);
+    it('should handle account group with no supported accounts', async () => {
+      mockGetAccountsByGroupId.mockReturnValue([mockAccount1, mockAccount2]);
+      // Mock isOptInSupported to return false for all accounts
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return false;
+        }
+        return undefined;
+      });
 
       const { result } = renderHook(() => useLinkAccountGroup());
 
@@ -387,18 +425,23 @@ describe('useLinkAccountGroup', () => {
 
       expect(linkResult).toEqual({
         success: false,
-        byAddress: {
-          [mockAccount1.address]: false,
-          [mockAccount2.address]: false,
-        },
+        byAddress: {},
       });
 
       expect(result.current.isError).toBe(true);
-      expect(mockLogger).toHaveBeenCalledWith(
-        'useLinkAccountGroup: Failed to link account group',
-        error,
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount1,
       );
-
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount2,
+      );
+      // Should not call getOptInStatus or link if no accounts are supported
+      expect(mockEngineCall).not.toHaveBeenCalledWith(
+        'RewardsController:getOptInStatus',
+        expect.anything(),
+      );
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'icon',
@@ -415,6 +458,8 @@ describe('useLinkAccountGroup', () => {
 
       const error = new Error('Linking failed');
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
         .mockResolvedValueOnce(mockOptInResponse) // getOptInStatus
         .mockRejectedValueOnce(error); // linkAccountsToSubscriptionCandidate
 
@@ -434,10 +479,6 @@ describe('useLinkAccountGroup', () => {
       });
 
       expect(result.current.isError).toBe(true);
-      expect(mockLogger).toHaveBeenCalledWith(
-        'useLinkAccountGroup: Failed to link accounts',
-        error,
-      );
 
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -458,6 +499,22 @@ describe('useLinkAccountGroup', () => {
         return undefined;
       });
 
+      const mockOptInResponse: OptInStatusDto = {
+        ois: [false, false],
+        sids: [null, null],
+      };
+
+      const mockLinkResults = [
+        { account: mockAccount1, success: true },
+        { account: mockAccount2, success: true },
+      ];
+
+      mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
+        .mockResolvedValueOnce(mockOptInResponse) // getOptInStatus
+        .mockResolvedValueOnce(mockLinkResults); // linkAccountsToSubscriptionCandidate
+
       const { result } = renderHook(() => useLinkAccountGroup());
 
       let linkResult: LinkStatusReport = { success: false, byAddress: {} };
@@ -466,15 +523,15 @@ describe('useLinkAccountGroup', () => {
       });
 
       expect(linkResult).toEqual({
-        success: false,
+        success: true,
         byAddress: {
-          [mockAccount1.address]: false,
-          [mockAccount2.address]: false,
+          [mockAccount1.address]: true,
+          [mockAccount2.address]: true,
         },
       });
 
       expect(mockStrings).toHaveBeenCalledWith(
-        'rewards.link_account_group.link_account_error',
+        'rewards.link_account_group.link_account_success',
         { accountName: 'Account' }, // Fallback name
       );
     });
@@ -483,6 +540,14 @@ describe('useLinkAccountGroup', () => {
   describe('Loading state management', () => {
     beforeEach(() => {
       mockGetAccountsByGroupId.mockReturnValue([mockAccount1]);
+      // Mock isOptInSupported to return true for all accounts by default
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('should manage loading state correctly', async () => {
@@ -491,7 +556,9 @@ describe('useLinkAccountGroup', () => {
         resolvePromise = () => resolve({ ois: [false], sids: [null] });
       });
 
-      mockEngineCall.mockReturnValueOnce(promise);
+      mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(promise);
 
       const { result } = renderHook(() => useLinkAccountGroup());
 
@@ -517,7 +584,9 @@ describe('useLinkAccountGroup', () => {
 
     it('should reset loading state on error', async () => {
       const error = new Error('Test error');
-      mockEngineCall.mockRejectedValueOnce(error);
+      mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useLinkAccountGroup());
 
@@ -533,6 +602,14 @@ describe('useLinkAccountGroup', () => {
   describe('Metrics event tracking', () => {
     beforeEach(() => {
       mockGetAccountsByGroupId.mockReturnValue([mockAccount1, mockAccount2]);
+      // Mock isOptInSupported to return true for all accounts by default
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('should track started events for all accounts to be linked', async () => {
@@ -547,6 +624,8 @@ describe('useLinkAccountGroup', () => {
       ];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -581,6 +660,8 @@ describe('useLinkAccountGroup', () => {
       ];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -605,6 +686,8 @@ describe('useLinkAccountGroup', () => {
 
       const error = new Error('Linking failed');
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(true) // isOptInSupported for account2
         .mockResolvedValueOnce(mockOptInResponse)
         .mockRejectedValueOnce(error);
 
@@ -625,6 +708,14 @@ describe('useLinkAccountGroup', () => {
   describe('Toast behavior', () => {
     beforeEach(() => {
       mockGetAccountsByGroupId.mockReturnValue([mockAccount1]);
+      // Mock isOptInSupported to return true for all accounts by default
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('should show toasts when showToasts is true (default)', async () => {
@@ -632,6 +723,7 @@ describe('useLinkAccountGroup', () => {
       const mockLinkResults = [{ account: mockAccount1, success: true }];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -649,6 +741,7 @@ describe('useLinkAccountGroup', () => {
       const mockLinkResults = [{ account: mockAccount1, success: true }];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -663,7 +756,9 @@ describe('useLinkAccountGroup', () => {
 
     it('should not show toasts on error when showToasts is false', async () => {
       const error = new Error('Test error');
-      mockEngineCall.mockRejectedValueOnce(error);
+      mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useLinkAccountGroup(false));
 
@@ -676,6 +771,17 @@ describe('useLinkAccountGroup', () => {
   });
 
   describe('Edge cases', () => {
+    beforeEach(() => {
+      // Mock isOptInSupported to return true for all accounts by default
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        return undefined;
+      });
+    });
+
     it('should handle single account group', async () => {
       mockGetAccountsByGroupId.mockReturnValue([mockAccount1]);
 
@@ -683,6 +789,7 @@ describe('useLinkAccountGroup', () => {
       const mockLinkResults = [{ account: mockAccount1, success: true }];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -729,6 +836,7 @@ describe('useLinkAccountGroup', () => {
       const mockLinkResults = [{ account: mockAccount1, success: true }];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -758,7 +866,9 @@ describe('useLinkAccountGroup', () => {
       });
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1 (first call)
         .mockReturnValueOnce(firstPromise)
+        .mockReturnValueOnce(true) // isOptInSupported for account1 (second call)
         .mockReturnValueOnce(secondPromise)
         .mockResolvedValueOnce([{ account: mockAccount1, success: true }])
         .mockResolvedValueOnce([{ account: mockAccount1, success: true }]);
@@ -787,11 +897,22 @@ describe('useLinkAccountGroup', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(mockEngineCall).toHaveBeenCalledTimes(4); // 2 getOptInStatus + 2 linkAccounts
+      expect(mockEngineCall).toHaveBeenCalledTimes(6); // 2 isOptInSupported + 2 getOptInStatus + 2 linkAccounts
     });
   });
 
   describe('Account group finding logic', () => {
+    beforeEach(() => {
+      // Mock isOptInSupported to return true for all accounts by default
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const [method] = args;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        return undefined;
+      });
+    });
+
     it('should find account group in nested wallet structure', async () => {
       const nestedWalletSection = {
         title: 'Nested Wallet',
@@ -821,6 +942,7 @@ describe('useLinkAccountGroup', () => {
       const mockLinkResults = [{ account: mockAccount1, success: true }];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -864,6 +986,7 @@ describe('useLinkAccountGroup', () => {
       const mockLinkResults = [{ account: mockAccount1, success: true }];
 
       mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
         .mockResolvedValueOnce(mockOptInResponse)
         .mockResolvedValueOnce(mockLinkResults);
 
@@ -876,6 +999,60 @@ describe('useLinkAccountGroup', () => {
       expect(mockStrings).toHaveBeenCalledWith(
         'rewards.link_account_group.link_account_success',
         { accountName: 'Account' }, // Fallback name when group not found
+      );
+    });
+
+    it('should filter out unsupported accounts before linking', async () => {
+      mockGetAccountsByGroupId.mockReturnValue([mockAccount1, mockAccount2]);
+      // Mock isOptInSupported to return false for account2
+      mockEngineCall.mockImplementation(
+        (method: string, ...args: unknown[]) => {
+          if (method === 'RewardsController:isOptInSupported') {
+            const account = args[0] as typeof mockAccount1;
+            return account.id === mockAccount1.id;
+          }
+          return undefined;
+        },
+      );
+
+      const mockOptInResponse: OptInStatusDto = {
+        ois: [false],
+        sids: [null],
+      };
+
+      const mockLinkResults = [{ account: mockAccount1, success: true }];
+
+      mockEngineCall
+        .mockReturnValueOnce(true) // isOptInSupported for account1
+        .mockReturnValueOnce(false) // isOptInSupported for account2
+        .mockResolvedValueOnce(mockOptInResponse)
+        .mockResolvedValueOnce(mockLinkResults);
+
+      const { result } = renderHook(() => useLinkAccountGroup());
+
+      let linkResult: LinkStatusReport = { success: false, byAddress: {} };
+      await act(async () => {
+        linkResult = await result.current.linkAccountGroup(mockAccountGroupId);
+      });
+
+      expect(linkResult).toEqual({
+        success: true,
+        byAddress: {
+          [mockAccount1.address]: true,
+          // mockAccount2 should not be in byAddress as it's not supported
+        },
+      });
+
+      // Should only call getOptInStatus with supported account address
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getOptInStatus',
+        { addresses: [mockAccount1.address] },
+      );
+
+      // Should only link supported account
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:linkAccountsToSubscriptionCandidate',
+        [mockAccount1],
       );
     });
   });

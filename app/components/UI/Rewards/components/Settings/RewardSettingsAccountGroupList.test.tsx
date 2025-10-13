@@ -320,6 +320,7 @@ describe('RewardSettingsAccountGroupList', () => {
             },
           ],
           optedOutAccounts: [],
+          unsupportedAccounts: [],
         },
         {
           id: 'group-2',
@@ -332,6 +333,7 @@ describe('RewardSettingsAccountGroupList', () => {
               hasOptedIn: false,
             },
           ],
+          unsupportedAccounts: [],
         },
       ],
     },
@@ -360,6 +362,7 @@ describe('RewardSettingsAccountGroupList', () => {
             },
           ],
           optedOutAccounts: [],
+          unsupportedAccounts: [],
         },
       ],
     },
@@ -420,8 +423,8 @@ describe('RewardSettingsAccountGroupList', () => {
       hasError: false,
       refresh: mockFetchOptInStatus,
       bySelectedAccountGroup: null,
-      currentAccountGroupFullyOptedIn: null,
-      currentAccountGroupFullySupported: null,
+      currentAccountGroupOptedInStatus: null,
+      currentAccountGroupPartiallySupported: null,
     });
 
     // Mock useOptout hook
@@ -454,8 +457,8 @@ describe('RewardSettingsAccountGroupList', () => {
         hasError: false,
         refresh: mockFetchOptInStatus,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullyOptedIn: null,
-        currentAccountGroupFullySupported: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
       });
 
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
@@ -473,8 +476,8 @@ describe('RewardSettingsAccountGroupList', () => {
         hasError: false,
         refresh: mockFetchOptInStatus,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullyOptedIn: null,
-        currentAccountGroupFullySupported: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
       });
 
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
@@ -492,8 +495,8 @@ describe('RewardSettingsAccountGroupList', () => {
         hasError: true,
         refresh: mockFetchOptInStatus,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullyOptedIn: null,
-        currentAccountGroupFullySupported: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
       });
 
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
@@ -509,8 +512,8 @@ describe('RewardSettingsAccountGroupList', () => {
         hasError: true,
         refresh: mockFetchOptInStatus,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullyOptedIn: null,
-        currentAccountGroupFullySupported: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
       });
 
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
@@ -528,8 +531,8 @@ describe('RewardSettingsAccountGroupList', () => {
         hasError: true,
         refresh: mockFetchOptInStatus,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullyOptedIn: null,
-        currentAccountGroupFullySupported: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
       });
 
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
@@ -610,8 +613,8 @@ describe('RewardSettingsAccountGroupList', () => {
         hasError: false,
         refresh: mockFetchOptInStatus,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullyOptedIn: null,
-        currentAccountGroupFullySupported: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
       });
 
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
@@ -640,6 +643,7 @@ describe('RewardSettingsAccountGroupList', () => {
               name: 'Group without ID',
               optedInAccounts: [],
               optedOutAccounts: [],
+              unsupportedAccounts: [],
             },
           ],
         },
@@ -652,13 +656,78 @@ describe('RewardSettingsAccountGroupList', () => {
         hasError: false,
         refresh: mockFetchOptInStatus,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullyOptedIn: null,
-        currentAccountGroupFullySupported: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
       });
 
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('account-group-unknown')).toBeOnTheScreen();
+    });
+
+    it('should handle account groups with unsupported accounts', () => {
+      // Arrange
+      const walletDataWithUnsupportedAccounts = [
+        {
+          wallet: {
+            id: 'keyring:wallet-1',
+            type: AccountWalletType.Keyring as unknown as AccountWalletType,
+            status: 'unlocked',
+            metadata: {
+              name: 'Test Wallet 1',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            groups: {},
+          },
+          groups: [
+            {
+              id: 'group-1',
+              name: 'Account Group 1',
+              optedInAccounts: [
+                {
+                  id: 'account-1',
+                  address: '0x1234567890123456789012345678901234567890',
+                  hasOptedIn: true,
+                },
+              ],
+              optedOutAccounts: [],
+              unsupportedAccounts: [
+                {
+                  id: 'account-unsupported',
+                  address: '0x2222222222222222222222222222222222222222',
+                  type: 'eip155:eoa' as const,
+                  options: {},
+                  metadata: {
+                    name: 'Unsupported Account',
+                    importTime: Date.now(),
+                    keyring: { type: 'Ledger Hardware' },
+                  },
+                  scopes: ['eip155:1'],
+                  methods: ['eth_sendTransaction'],
+                },
+              ],
+            },
+          ],
+        },
+      ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        byWallet: walletDataWithUnsupportedAccounts,
+        isLoading: false,
+        hasError: false,
+        refresh: mockFetchOptInStatus,
+        bySelectedAccountGroup: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
+      });
+
+      // Act
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Assert - Account group should render even with unsupported accounts
+      expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
     });
   });
 

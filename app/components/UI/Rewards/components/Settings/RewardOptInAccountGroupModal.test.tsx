@@ -11,26 +11,41 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Create a mutable route params object that can be changed per test
+let mockRouteParams: {
+  accountGroupId: string;
+  addressData: {
+    address: string;
+    hasOptedIn: boolean;
+    scopes: string[];
+    isSupported?: boolean;
+  }[];
+} = {
+  accountGroupId: 'test-account-group-id',
+  addressData: [
+    {
+      address: '0x1234567890123456789012345678901234567890',
+      hasOptedIn: false,
+      scopes: ['scope1', 'scope2'],
+      isSupported: true,
+    },
+    {
+      address: '0x0987654321098765432109876543210987654321',
+      hasOptedIn: true,
+      scopes: ['scope3'],
+      isSupported: true,
+    },
+  ],
+};
+
+const mockGoBack = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    goBack: jest.fn(),
+    goBack: mockGoBack,
   }),
   useRoute: () => ({
-    params: {
-      accountGroupId: 'test-account-group-id',
-      addressData: [
-        {
-          address: '0x1234567890123456789012345678901234567890',
-          hasOptedIn: false,
-          scopes: ['scope1', 'scope2'],
-        },
-        {
-          address: '0x0987654321098765432109876543210987654321',
-          hasOptedIn: true,
-          scopes: ['scope3'],
-        },
-      ],
-    },
+    params: mockRouteParams,
   }),
 }));
 
@@ -74,13 +89,17 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
       ...props,
     });
   },
-  IconColor: {
-    IconDefault: 'icon-default',
-    IconMuted: 'icon-muted',
-  },
   IconName: {
     Check: 'check',
     Close: 'close',
+    Warning: 'warning',
+  },
+  IconColor: {
+    IconDefault: 'icon-default',
+    IconMuted: 'icon-muted',
+    Success: 'success',
+    Error: 'error',
+    Warning: 'warning',
   },
 }));
 
@@ -184,6 +203,30 @@ jest.mock('./NetworkAvatars', () => {
   );
 });
 
+jest.mock('../RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      testID,
+    }: {
+      title: string;
+      description: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: testID || 'rewards-info-banner' },
+        ReactActual.createElement(Text, {}, title),
+        ReactActual.createElement(Text, {}, description),
+      ),
+  };
+});
+
 // Mock component library constants
 jest.mock(
   '../../../../../component-library/components/Avatars/Avatar/Avatar.constants',
@@ -237,19 +280,21 @@ jest.mock('@metamask/design-system-react-native', () => {
       onPress,
       isLoading,
       disabled,
+      testID,
       ...props
     }: {
       children?: React.ReactNode;
       onPress?: () => void;
       isLoading?: boolean;
       disabled?: boolean;
+      testID?: string;
       [key: string]: unknown;
     }) =>
       ReactActual.createElement(
         TouchableOpacity,
         {
           onPress,
-          testID: 'button',
+          testID: testID || 'button',
           disabled,
           ...props,
         },
@@ -353,16 +398,23 @@ const mockUseLinkAccountGroup = useLinkAccountGroup as jest.MockedFunction<
 
 describe('RewardOptInAccountGroupModal', () => {
   const mockAccountGroupId = 'test-account-group-id' as AccountGroupId;
-  const mockAddressData = [
+  const mockAddressData: {
+    address: string;
+    hasOptedIn: boolean;
+    scopes: string[];
+    isSupported?: boolean;
+  }[] = [
     {
       address: '0x1234567890123456789012345678901234567890',
       hasOptedIn: false,
       scopes: ['scope1', 'scope2'],
+      isSupported: true,
     },
     {
       address: '0x0987654321098765432109876543210987654321',
       hasOptedIn: true,
       scopes: ['scope3'],
+      isSupported: true,
     },
   ];
 
@@ -376,12 +428,15 @@ describe('RewardOptInAccountGroupModal', () => {
   };
 
   const mockLinkAccountGroup = jest.fn();
-  const mockNavigation = {
-    goBack: jest.fn(),
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset route params to default values
+    mockRouteParams = {
+      accountGroupId: mockAccountGroupId,
+      addressData: mockAddressData,
+    };
 
     // Mock useSelector calls
     mockUseSelector.mockImplementation((selector) => {
@@ -405,17 +460,6 @@ describe('RewardOptInAccountGroupModal', () => {
       isLoading: false,
       isError: false,
     });
-
-    // Mock navigation
-    jest.doMock('@react-navigation/native', () => ({
-      useNavigation: () => mockNavigation,
-      useRoute: () => ({
-        params: {
-          accountGroupId: mockAccountGroupId,
-          addressData: mockAddressData,
-        },
-      }),
-    }));
   });
 
   it('should render correctly with account group data', () => {
@@ -444,7 +488,7 @@ describe('RewardOptInAccountGroupModal', () => {
   it('should render link account button when there are opted out addresses', () => {
     const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-    expect(getByTestId('button')).toBeOnTheScreen();
+    expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
   });
 
   it('should call linkAccountGroup when link button is pressed', async () => {
@@ -459,7 +503,7 @@ describe('RewardOptInAccountGroupModal', () => {
 
     const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-    const linkButton = getByTestId('button');
+    const linkButton = getByTestId('link-account-group-button');
     fireEvent.press(linkButton);
 
     await waitFor(() => {
@@ -479,7 +523,7 @@ describe('RewardOptInAccountGroupModal', () => {
 
     const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-    const linkButton = getByTestId('button');
+    const linkButton = getByTestId('link-account-group-button');
     fireEvent.press(linkButton);
 
     await waitFor(() => {
@@ -496,7 +540,7 @@ describe('RewardOptInAccountGroupModal', () => {
 
     const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-    const linkButton = getByTestId('button');
+    const linkButton = getByTestId('link-account-group-button');
     fireEvent.press(linkButton);
 
     await waitFor(() => {
@@ -615,7 +659,7 @@ describe('RewardOptInAccountGroupModal', () => {
 
     const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-    const linkButton = getByTestId('button');
+    const linkButton = getByTestId('link-account-group-button');
     fireEvent.press(linkButton);
 
     await waitFor(() => {
@@ -639,7 +683,7 @@ describe('RewardOptInAccountGroupModal', () => {
 
     const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-    const linkButton = getByTestId('button');
+    const linkButton = getByTestId('link-account-group-button');
     fireEvent.press(linkButton);
 
     await waitFor(() => {
@@ -648,5 +692,338 @@ describe('RewardOptInAccountGroupModal', () => {
 
     // Verify that the hook was called with the correct account group ID
     expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
+  });
+
+  describe('Unsupported Addresses', () => {
+    it('should render warning icon for unsupported addresses', () => {
+      // Given an address with isSupported: false
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: false,
+            scopes: ['scope1'],
+            isSupported: false,
+          },
+        ],
+      };
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the warning icon should be rendered
+      expect(getByTestId('icon-warning')).toBeOnTheScreen();
+    });
+
+    it('should display unsupported accounts banner when unsupported addresses exist', () => {
+      // Given an address with isSupported: false
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: false,
+            scopes: ['scope1'],
+            isSupported: false,
+          },
+        ],
+      };
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the unsupported accounts banner should be displayed
+      expect(getByTestId('unsupported-accounts-banner')).toBeOnTheScreen();
+    });
+
+    it('should not display unsupported accounts banner when all addresses are supported', () => {
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // When all addresses are supported (default mockAddressData)
+      // Then the unsupported accounts banner should not be displayed
+      expect(queryByTestId('unsupported-accounts-banner')).toBeNull();
+    });
+
+    it('should not show link button when all addresses are unsupported', () => {
+      // Given all addresses are unsupported
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: false,
+            scopes: ['scope1'],
+            isSupported: false,
+          },
+          {
+            address: '0x0987654321098765432109876543210987654321',
+            hasOptedIn: false,
+            scopes: ['scope2'],
+            isSupported: false,
+          },
+        ],
+      };
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the link button should not be shown
+      expect(queryByTestId('link-account-group-button')).toBeNull();
+    });
+
+    it('should show link button when there are supported addresses that have not opted in', () => {
+      // Given mixed supported/unsupported addresses
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: false,
+            scopes: ['scope1'],
+            isSupported: true,
+          },
+          {
+            address: '0x0987654321098765432109876543210987654321',
+            hasOptedIn: false,
+            scopes: ['scope2'],
+            isSupported: false,
+          },
+        ],
+      };
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the link button should be shown
+      expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
+    });
+
+    it('should not show link button when all supported addresses have already opted in', () => {
+      // Given all supported addresses have opted in
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: true,
+            scopes: ['scope1'],
+            isSupported: true,
+          },
+          {
+            address: '0x0987654321098765432109876543210987654321',
+            hasOptedIn: false,
+            scopes: ['scope2'],
+            isSupported: false,
+          },
+        ],
+      };
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the link button should not be shown
+      expect(queryByTestId('link-account-group-button')).toBeNull();
+    });
+  });
+
+  describe('Icon States', () => {
+    it('should render check icon for opted-in addresses', () => {
+      // Given an address with hasOptedIn: true
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: true,
+            scopes: ['scope1'],
+            isSupported: true,
+          },
+        ],
+      };
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the check icon should be rendered
+      expect(getByTestId('icon-check')).toBeOnTheScreen();
+    });
+
+    it('should render close icon for opted-out supported addresses', () => {
+      // Given an address with hasOptedIn: false and isSupported: true (or undefined)
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: false,
+            scopes: ['scope1'],
+            isSupported: true,
+          },
+        ],
+      };
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the close icon should be rendered
+      expect(getByTestId('icon-close')).toBeOnTheScreen();
+    });
+
+    it('should render warning icon for unsupported addresses regardless of opt-in status', () => {
+      // Given an address with isSupported: false
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: true,
+            scopes: ['scope1'],
+            isSupported: false,
+          },
+        ],
+      };
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then the warning icon should be rendered (takes precedence over check)
+      expect(getByTestId('icon-warning')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Local State Management', () => {
+    it('should update local state and merge with address data after successful link', async () => {
+      // Given an address that has not opted in
+      const mockResult = {
+        success: true,
+        byAddress: {
+          '0x1234567890123456789012345678901234567890': true,
+        },
+      };
+
+      mockLinkAccountGroup.mockResolvedValue(mockResult);
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const linkButton = getByTestId('link-account-group-button');
+
+      // When the link button is pressed
+      fireEvent.press(linkButton);
+
+      await waitFor(() => {
+        expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
+      });
+
+      // Then the local state should be updated with the result
+      // (This is tested indirectly through the successful call and component re-render)
+      expect(mockLinkAccountGroup).toHaveBeenCalledTimes(1);
+    });
+
+    it('should filter out addresses without an address field', () => {
+      // Given addressData with an empty address field
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            hasOptedIn: false,
+            scopes: ['scope1'],
+            isSupported: true,
+          },
+          {
+            address: '',
+            hasOptedIn: false,
+            scopes: ['scope2'],
+            isSupported: true,
+          },
+        ],
+      };
+
+      const { getByTestId, queryByTestId } = render(
+        <RewardOptInAccountGroupModal />,
+      );
+
+      // Then the address with empty string should be filtered out
+      expect(
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890',
+        ),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('flat-list-item-')).toBeNull();
+    });
+  });
+
+  describe('Complex Scenarios', () => {
+    it('should handle mixed addresses with different states correctly', () => {
+      // Given addresses with various states
+      mockRouteParams = {
+        accountGroupId: mockAccountGroupId,
+        addressData: [
+          {
+            address: '0x1111111111111111111111111111111111111111',
+            hasOptedIn: true,
+            scopes: ['scope1'],
+            isSupported: true,
+          },
+          {
+            address: '0x2222222222222222222222222222222222222222',
+            hasOptedIn: false,
+            scopes: ['scope2'],
+            isSupported: true,
+          },
+          {
+            address: '0x3333333333333333333333333333333333333333',
+            hasOptedIn: false,
+            scopes: ['scope3'],
+            isSupported: false,
+          },
+        ],
+      };
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Then all addresses should be rendered
+      expect(
+        getByTestId(
+          'flat-list-item-0x1111111111111111111111111111111111111111',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          'flat-list-item-0x2222222222222222222222222222222222222222',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          'flat-list-item-0x3333333333333333333333333333333333333333',
+        ),
+      ).toBeOnTheScreen();
+
+      // And the link button should be shown (because address 2 can opt in)
+      expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
+
+      // And the unsupported banner should be shown
+      expect(getByTestId('unsupported-accounts-banner')).toBeOnTheScreen();
+    });
+
+    it('should handle partial success in link operations', async () => {
+      // Given a link operation with partial success
+      const mockResult = {
+        success: false,
+        byAddress: {
+          '0x1234567890123456789012345678901234567890': true,
+          '0x0987654321098765432109876543210987654321': false,
+        },
+      };
+
+      mockLinkAccountGroup.mockResolvedValue(mockResult);
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const linkButton = getByTestId('link-account-group-button');
+
+      // When the link button is pressed
+      fireEvent.press(linkButton);
+
+      await waitFor(() => {
+        expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
+      });
+
+      // Then the local state should be updated with both results
+      expect(mockLinkAccountGroup).toHaveBeenCalledTimes(1);
+    });
   });
 });

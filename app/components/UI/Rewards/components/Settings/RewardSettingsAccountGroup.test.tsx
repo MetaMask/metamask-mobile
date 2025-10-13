@@ -355,6 +355,7 @@ describe('RewardSettingsAccountGroup', () => {
         methods: [],
       },
     ],
+    unsupportedAccounts: [],
   };
 
   const mockItem: RewardSettingsAccountGroupListFlatListItem = {
@@ -557,11 +558,13 @@ describe('RewardSettingsAccountGroup', () => {
             {
               address: '0x1234567890123456789012345678901234567890',
               hasOptedIn: true,
+              isSupported: true,
               scopes: [EthScope.Mainnet],
             },
             {
               address: '0x0987654321098765432109876543210987654321',
               hasOptedIn: false,
+              isSupported: true,
               scopes: [EthScope.Mainnet],
             },
           ],

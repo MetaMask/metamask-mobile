@@ -4,7 +4,6 @@ import { AccountGroupId } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { deriveAccountMetricProps } from '../utils';
@@ -51,26 +50,43 @@ export const useLinkAccountGroup = (
       setIsLoading(true);
       setIsError(false);
       const byAddress: Record<string, boolean> = {};
-
       const accountGroup = accountGroupsByWallet
         .flatMap((wallet) => wallet.data)
         .find((group) => group.id === accountGroupId);
 
       try {
-        const groupAccounts = getAccountsByGroupId(accountGroupId);
+        const supportedGroupAccounts = getAccountsByGroupId(
+          accountGroupId,
+        )?.filter((account) =>
+          Engine.controllerMessenger.call(
+            'RewardsController:isOptInSupported',
+            account,
+          ),
+        );
 
-        if (groupAccounts.length === 0) {
+        if (supportedGroupAccounts.length === 0) {
           setIsError(true);
+          if (showToasts) {
+            showToast(
+              RewardsToastOptions.error(
+                strings('rewards.link_account_group.link_account_error', {
+                  accountName: accountGroup?.metadata.name || 'Account',
+                }),
+              ),
+            );
+          }
           return { success: false, byAddress };
         }
 
         // Initialize all accounts as not linked
-        groupAccounts.forEach((account) => {
+        supportedGroupAccounts.forEach((account) => {
           byAddress[account.address] = false;
         });
 
         // Only process eligible accounts for opt-in status check
-        const addresses = groupAccounts.map((account) => account.address);
+        const addresses = supportedGroupAccounts.map(
+          (account) => account.address,
+        );
         const optInResponse: OptInStatusDto =
           await Engine.controllerMessenger.call(
             'RewardsController:getOptInStatus',
@@ -78,14 +94,14 @@ export const useLinkAccountGroup = (
           );
 
         // Map opt-in status for eligible accounts only
-        groupAccounts.forEach((account, index) => {
+        supportedGroupAccounts.forEach((account, index) => {
           if (optInResponse.ois[index]) {
             byAddress[account.address] = true;
           }
         });
 
-        const accountsToLink = groupAccounts.filter(
-          (_, index) => !optInResponse.ois[index],
+        const accountsToLink = supportedGroupAccounts.filter(
+          (_, index) => optInResponse.ois[index] === false,
         );
 
         if (accountsToLink.length === 0) {
@@ -122,7 +138,6 @@ export const useLinkAccountGroup = (
             }
           }
         } catch (err) {
-          Logger.log('useLinkAccountGroup: Failed to link accounts', err);
           // Mark all accounts as failed and emit failure events
           for (const account of accountsToLink) {
             byAddress[account.address] = false;
@@ -137,7 +152,6 @@ export const useLinkAccountGroup = (
           (status) => status,
         );
 
-        Logger.log('useLinkAccountGroup: Fully succeeded', fullySucceeded);
         if (fullySucceeded) {
           if (showToasts) {
             showToast(
@@ -163,7 +177,6 @@ export const useLinkAccountGroup = (
         setIsError(true);
         return { success: false, byAddress };
       } catch (err) {
-        Logger.log('useLinkAccountGroup: Failed to link account group', err);
         if (showToasts) {
           showToast(
             RewardsToastOptions.error(

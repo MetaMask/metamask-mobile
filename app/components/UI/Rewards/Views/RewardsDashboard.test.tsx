@@ -522,8 +522,8 @@ describe('RewardsDashboard', () => {
     useRewardOptinSummary: {
       byWallet: [],
       bySelectedAccountGroup: null,
-      currentAccountGroupFullySupported: true,
-      currentAccountGroupFullyOptedIn: null,
+      currentAccountGroupPartiallySupported: true,
+      currentAccountGroupOptedInStatus: null,
       isLoading: false,
       hasError: false,
       refresh: jest.fn(),
@@ -835,13 +835,14 @@ describe('RewardsDashboard', () => {
             hasOptedIn: false,
           },
         ],
+        unsupportedAccounts: [],
       };
 
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         bySelectedAccountGroup: mockAccountGroupWithOptedOut,
-        currentAccountGroupFullySupported: true,
-        currentAccountGroupFullyOptedIn: false,
+        currentAccountGroupPartiallySupported: true,
+        currentAccountGroupOptedInStatus: 'notOptedIn',
       });
 
       // Act
@@ -855,8 +856,8 @@ describe('RewardsDashboard', () => {
       // Arrange
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
-        currentAccountGroupFullySupported: false,
-        currentAccountGroupFullyOptedIn: null,
+        currentAccountGroupPartiallySupported: false,
+        currentAccountGroupOptedInStatus: null,
       });
 
       // Act
@@ -906,13 +907,14 @@ describe('RewardsDashboard', () => {
             hasOptedIn: false,
           },
         ],
+        unsupportedAccounts: [],
       };
 
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         bySelectedAccountGroup: mockAccountGroupWithOptedOut,
-        currentAccountGroupFullySupported: true,
-        currentAccountGroupFullyOptedIn: false,
+        currentAccountGroupPartiallySupported: true,
+        currentAccountGroupOptedInStatus: 'notOptedIn',
       });
 
       // Act
@@ -958,6 +960,7 @@ describe('RewardsDashboard', () => {
                   hasOptedIn: false,
                 },
               ],
+              unsupportedAccounts: [],
             },
           ],
         },
@@ -1004,6 +1007,7 @@ describe('RewardsDashboard', () => {
                   hasOptedIn: false,
                 },
               ],
+              unsupportedAccounts: [],
             },
           ],
         },
@@ -1013,8 +1017,8 @@ describe('RewardsDashboard', () => {
         ...defaultHookValues.useRewardOptinSummary,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupFullyOptedIn: true,
-        currentAccountGroupFullySupported: true,
+        currentAccountGroupOptedInStatus: 'fullyOptedIn',
+        currentAccountGroupPartiallySupported: true,
       });
 
       // Act
@@ -1103,6 +1107,7 @@ describe('RewardsDashboard', () => {
                   hasOptedIn: false,
                 },
               ],
+              unsupportedAccounts: [],
             },
           ],
         },
@@ -1112,8 +1117,8 @@ describe('RewardsDashboard', () => {
         ...defaultHookValues.useRewardOptinSummary,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupFullyOptedIn: true,
-        currentAccountGroupFullySupported: true,
+        currentAccountGroupOptedInStatus: 'fullyOptedIn',
+        currentAccountGroupPartiallySupported: true,
       });
 
       mockUseSelector.mockImplementation((selector) => {
@@ -1175,6 +1180,7 @@ describe('RewardsDashboard', () => {
                   hasOptedIn: false,
                 },
               ],
+              unsupportedAccounts: [],
             },
           ],
         },
@@ -1184,8 +1190,8 @@ describe('RewardsDashboard', () => {
         ...defaultHookValues.useRewardOptinSummary,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         byWallet: mockWalletWithOptedOutAccounts as any,
-        currentAccountGroupFullySupported: false,
-        currentAccountGroupFullyOptedIn: null,
+        currentAccountGroupPartiallySupported: false,
+        currentAccountGroupOptedInStatus: null,
       });
 
       // Act
@@ -1235,13 +1241,14 @@ describe('RewardsDashboard', () => {
           },
         ],
         optedOutAccounts: [],
+        unsupportedAccounts: [],
       };
 
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         bySelectedAccountGroup: mockAccountGroupFullyOptedIn,
-        currentAccountGroupFullySupported: true,
-        currentAccountGroupFullyOptedIn: true,
+        currentAccountGroupPartiallySupported: true,
+        currentAccountGroupOptedInStatus: 'fullyOptedIn',
       });
 
       // Act
@@ -1256,8 +1263,8 @@ describe('RewardsDashboard', () => {
       // Arrange - Mock account group with unsupported accounts
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
-        currentAccountGroupFullySupported: false,
-        currentAccountGroupFullyOptedIn: null,
+        currentAccountGroupPartiallySupported: false,
+        currentAccountGroupOptedInStatus: null,
       });
 
       // Act
@@ -1290,8 +1297,8 @@ describe('RewardsDashboard', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         bySelectedAccountGroup: null,
-        currentAccountGroupFullySupported: null,
-        currentAccountGroupFullyOptedIn: null,
+        currentAccountGroupPartiallySupported: null,
+        currentAccountGroupOptedInStatus: null,
       });
 
       // Act & Assert - Should not throw error
@@ -1343,13 +1350,14 @@ describe('RewardsDashboard', () => {
             hasOptedIn: false,
           },
         ],
+        unsupportedAccounts: [],
       };
 
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         bySelectedAccountGroup: mockAccountGroupWithOptedOut,
-        currentAccountGroupFullySupported: true,
-        currentAccountGroupFullyOptedIn: false,
+        currentAccountGroupPartiallySupported: true,
+        currentAccountGroupOptedInStatus: 'notOptedIn',
       });
 
       // Act
@@ -1385,8 +1393,8 @@ describe('RewardsDashboard', () => {
 
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
-        currentAccountGroupFullySupported: false,
-        currentAccountGroupFullyOptedIn: null,
+        currentAccountGroupPartiallySupported: false,
+        currentAccountGroupOptedInStatus: null,
       });
 
       // Act

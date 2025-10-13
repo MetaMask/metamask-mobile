@@ -274,6 +274,7 @@ describe('useRewardOptinSummary', () => {
         ...mockAccount2,
         hasOptedIn: false,
       });
+      expect(wallet1.groups[0].unsupportedAccounts).toHaveLength(0);
 
       // Wallet 2 should have Group 2 with Account3 (opted in)
       const wallet2 = result.current.byWallet[1];
@@ -286,6 +287,7 @@ describe('useRewardOptinSummary', () => {
         hasOptedIn: true,
       });
       expect(wallet2.groups[0].optedOutAccounts).toHaveLength(0);
+      expect(wallet2.groups[0].unsupportedAccounts).toHaveLength(0);
 
       // Verify that isOptInSupported was called for each account
       expect(mockEngineCall).toHaveBeenCalledWith(
@@ -394,8 +396,8 @@ describe('useRewardOptinSummary', () => {
 
       // Assert
       expect(result.current.bySelectedAccountGroup).toBeNull();
-      expect(result.current.currentAccountGroupFullyOptedIn).toBeNull();
-      expect(result.current.currentAccountGroupFullySupported).toBeNull();
+      expect(result.current.currentAccountGroupOptedInStatus).toBeNull();
+      expect(result.current.currentAccountGroupPartiallySupported).toBeNull();
     });
   });
 
@@ -425,8 +427,8 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.hasError).toBe(true);
       expect(result.current.byWallet).toEqual([]);
       expect(result.current.bySelectedAccountGroup).toBeNull();
-      expect(result.current.currentAccountGroupFullyOptedIn).toBeNull();
-      expect(result.current.currentAccountGroupFullySupported).toBeNull();
+      expect(result.current.currentAccountGroupOptedInStatus).toBeNull();
+      expect(result.current.currentAccountGroupPartiallySupported).toBeNull();
 
       expect(mockLoggerLog).toHaveBeenCalledWith(
         'useRewardOptinSummary: Failed to fetch opt-in status',
@@ -614,6 +616,89 @@ describe('useRewardOptinSummary', () => {
 
       // Assert - should filter out groups with conflicting subscriptions
       expect(result.current.byWallet).toHaveLength(0); // All groups filtered out due to conflicts
+    });
+  });
+
+  describe('unsupported accounts handling', () => {
+    it('should categorize unsupported accounts separately', async () => {
+      // Arrange - Account1 is unsupported, Account2 is opted in, Account3 is opted out
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false], // Only Account2 and Account3 (Account1 not included)
+        sids: ['sub_123', null], // Account2: sub_123, Account3: null
+      };
+
+      mockEngineCall.mockImplementation((method: string, ...args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          // Account1 is not supported, Account2 and Account3 are supported
+          const account = args[0];
+          return account !== mockAccount1;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      await waitForNextUpdate();
+
+      // Assert
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
+
+      // Check byWallet structure
+      expect(result.current.byWallet).toHaveLength(2);
+
+      // Wallet 1 should have Group 1 with Account2 (opted in), Account3 (opted out), and Account1 (unsupported)
+      const wallet1 = result.current.byWallet[0];
+      expect(wallet1.groups[0].optedInAccounts).toHaveLength(1);
+      expect(wallet1.groups[0].optedInAccounts[0].id).toBe('account-2');
+      expect(wallet1.groups[0].optedOutAccounts).toHaveLength(0);
+      expect(wallet1.groups[0].unsupportedAccounts).toHaveLength(1);
+      expect(wallet1.groups[0].unsupportedAccounts[0].id).toBe('account-1');
+    });
+
+    it('should handle mixed supported and unsupported accounts in same group', async () => {
+      // Arrange - Account1 supported and opted in, Account2 unsupported, Account3 supported and opted out
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false], // Account1: true, Account3: false (Account2 not included)
+        sids: ['sub_123', null], // Account1: sub_123, Account3: null
+      };
+
+      mockEngineCall.mockImplementation((method: string, ...args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          // Account2 is not supported
+          const account = args[0];
+          return account !== mockAccount2;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      await waitForNextUpdate();
+
+      // Assert
+      const wallet1 = result.current.byWallet[0];
+      expect(wallet1.groups[0].optedInAccounts).toHaveLength(1);
+      expect(wallet1.groups[0].optedInAccounts[0].id).toBe('account-1');
+      expect(wallet1.groups[0].optedOutAccounts).toHaveLength(0);
+      expect(wallet1.groups[0].unsupportedAccounts).toHaveLength(1);
+      expect(wallet1.groups[0].unsupportedAccounts[0].id).toBe('account-2');
+
+      const wallet2 = result.current.byWallet[1];
+      expect(wallet2.groups[0].optedInAccounts).toHaveLength(0);
+      expect(wallet2.groups[0].optedOutAccounts).toHaveLength(1);
+      expect(wallet2.groups[0].optedOutAccounts[0].id).toBe('account-3');
+      expect(wallet2.groups[0].unsupportedAccounts).toHaveLength(0);
     });
   });
 });

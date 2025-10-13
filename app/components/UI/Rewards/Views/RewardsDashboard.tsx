@@ -85,8 +85,8 @@ const RewardsDashboard: React.FC = () => {
   const {
     byWallet: optInByWallet,
     bySelectedAccountGroup: optInBySelectedAccountGroup,
-    currentAccountGroupFullySupported,
-    currentAccountGroupFullyOptedIn,
+    currentAccountGroupPartiallySupported,
+    currentAccountGroupOptedInStatus,
   } = useRewardOptinSummary();
 
   const totalOptedInAccountsSelectedGroup = useMemo(
@@ -185,12 +185,12 @@ const RewardsDashboard: React.FC = () => {
   useEffect(() => {
     if (
       (totalOptedInAccountsSelectedGroup === 0 ||
-        currentAccountGroupFullySupported === false) &&
+        currentAccountGroupPartiallySupported === false) &&
       !hideCurrentAccountNotOptedInBanner &&
       selectedAccountGroup?.id
     ) {
-      if (currentAccountGroupFullySupported === false) {
-        // Account type not supported (e.g., hardware wallets)
+      if (currentAccountGroupPartiallySupported === false) {
+        // Account group entirely not not supported (e.g. hardware wallet account group)
         if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
           showNotSupportedModal();
         }
@@ -204,7 +204,8 @@ const RewardsDashboard: React.FC = () => {
     // Priority 2: Check for unlinked accounts (only if current account is good)
     if (
       subscriptionId &&
-      (currentAccountGroupFullyOptedIn === true ||
+      (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
+        currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
         hideCurrentAccountNotOptedInBanner) &&
       totalAccountGroupsWithOptedOutAccounts > 0 &&
       !hideUnlinkedAccountsBanner
@@ -215,8 +216,8 @@ const RewardsDashboard: React.FC = () => {
       }
     }
   }, [
-    currentAccountGroupFullyOptedIn,
-    currentAccountGroupFullySupported,
+    currentAccountGroupOptedInStatus,
+    currentAccountGroupPartiallySupported,
     hideCurrentAccountNotOptedInBanner,
     selectedAccountGroup?.id,
     subscriptionId,

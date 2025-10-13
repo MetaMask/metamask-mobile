@@ -10,7 +10,7 @@ import { AccountWalletObject } from '@metamask/account-tree-controller';
 import Engine from '../../../../core/Engine';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Logger from '../../../../util/Logger';
-import { every } from 'lodash';
+import { some } from 'lodash';
 import { AccountGroupId } from '@metamask/account-api';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -27,11 +27,13 @@ const enrichAccountsWithOptInStatus = (
     { account: InternalAccount; ois: boolean; subscriptionId: string | null }
   >,
 ): AccountWithOptInStatus[] =>
-  accountIds.map((accountId) => ({
-    ...(accountOis[accountId]?.account || {}),
-    hasOptedIn: accountOis[accountId]?.ois || false,
-    subscriptionId: accountOis[accountId]?.subscriptionId || null,
-  }));
+  accountIds
+    .filter((accountId) => accountOis[accountId]) // Only include supported accounts
+    .map((accountId) => ({
+      ...(accountOis[accountId]?.account || {}),
+      hasOptedIn: accountOis[accountId]?.ois || false,
+      subscriptionId: accountOis[accountId]?.subscriptionId || null,
+    }));
 
 // Helper function to check for subscription conflicts
 const hasSubscriptionConflict = (
@@ -60,6 +62,7 @@ const buildAccountGroupWithOptInStatus = (
     string,
     { account: InternalAccount; ois: boolean; subscriptionId: string | null }
   >,
+  allAccountsById: Record<string, InternalAccount>,
   activeAccountSubscriptionId?: string,
 ): AccountGroupWithOptInStatus | null => {
   const groupAccountEnriched = enrichAccountsWithOptInStatus(
@@ -84,6 +87,12 @@ const buildAccountGroupWithOptInStatus = (
     return null;
   }
 
+  // Find unsupported accounts (accounts that exist in the group but not in accountOis)
+  const unsupportedAccounts = accountGroup.accounts
+    .filter((accountId) => !accountOis[accountId])
+    .map((accountId) => allAccountsById[accountId])
+    .filter((account): account is InternalAccount => account !== undefined);
+
   return {
     id: accountGroup.id,
     name: accountGroup.metadata.name,
@@ -93,6 +102,7 @@ const buildAccountGroupWithOptInStatus = (
     optedOutAccounts: groupAccountEnriched.filter(
       (account) => !account.hasOptedIn,
     ),
+    unsupportedAccounts,
   };
 };
 
@@ -110,6 +120,7 @@ const buildWalletStructureWithOptInStatus = (
     string,
     { account: InternalAccount; ois: boolean; subscriptionId: string | null }
   >,
+  allAccountsById: Record<string, InternalAccount>,
   activeAccountSubscriptionId?: string,
 ): WalletWithAccountGroupsWithOptInStatus[] =>
   accountGroupsByWallet
@@ -119,6 +130,7 @@ const buildWalletStructureWithOptInStatus = (
           buildAccountGroupWithOptInStatus(
             accountGroup,
             accountOis,
+            allAccountsById,
             activeAccountSubscriptionId,
           ),
         )
@@ -147,6 +159,7 @@ export interface AccountGroupWithOptInStatus {
   name: string;
   optedInAccounts: AccountWithOptInStatus[];
   optedOutAccounts: AccountWithOptInStatus[];
+  unsupportedAccounts: InternalAccount[];
 }
 
 export interface WalletWithAccountGroupsWithOptInStatus {
@@ -154,14 +167,19 @@ export interface WalletWithAccountGroupsWithOptInStatus {
   groups: AccountGroupWithOptInStatus[];
 }
 
+export type CurrentAccountGroupOptedInStatus =
+  | 'fullyOptedIn'
+  | 'partiallyOptedIn'
+  | 'notOptedIn';
+
 interface useRewardOptinSummaryResult {
   bySelectedAccountGroup: AccountGroupWithOptInStatus | null;
   byWallet: WalletWithAccountGroupsWithOptInStatus[];
   isLoading: boolean;
   hasError: boolean;
   refresh: () => Promise<void>;
-  currentAccountGroupFullyOptedIn: boolean | null;
-  currentAccountGroupFullySupported: boolean | null;
+  currentAccountGroupOptedInStatus: CurrentAccountGroupOptedInStatus | null;
+  currentAccountGroupPartiallySupported: boolean | null;
 }
 
 export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
@@ -176,11 +194,13 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
   >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [currentAccountGroupFullyOptedIn, setCurrentAccountGroupFullyOptedIn] =
-    useState<boolean | null>(null);
   const [
-    currentAccountGroupFullySupported,
-    setCurrentAccountGroupFullySupported,
+    currentAccountGroupOptedInStatus,
+    setCurrentAccountGroupOptedInStatus,
+  ] = useState<CurrentAccountGroupOptedInStatus | null>(null);
+  const [
+    currentAccountGroupPartiallySupported,
+    setCurrentAccountGroupPartiallySupported,
   ] = useState<boolean | null>(null);
   const isLoadingRef = useRef(false);
   const hasTrackedLinkedAccountsRef = useRef(false);
@@ -272,6 +292,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
       const walletStructure = buildWalletStructureWithOptInStatus(
         debouncedAccountGroupsByWallet || [],
         accountOis,
+        debouncedInternalAccountsById,
         activeAccountSubscriptionId || undefined,
       );
 
@@ -316,6 +337,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     flattenedAccounts,
     selectedAccountGroup?.id,
     debouncedAccountGroupsByWallet,
+    debouncedInternalAccountsById,
     activeAccountSubscriptionId,
     addTraitsToUser,
   ]);
@@ -337,15 +359,22 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
 
       if (selectedGroupAccounts.length > 0) {
         // Check if all accounts in the selected group are opted in
-        const fullyOptedIn = every(
-          selectedGroupAccounts,
+        const optedInCount = selectedGroupAccounts.filter(
           (account) => account.hasOptedIn,
+        ).length;
+        const totalCount = selectedGroupAccounts.length;
+
+        setCurrentAccountGroupOptedInStatus(
+          optedInCount === totalCount
+            ? 'fullyOptedIn'
+            : optedInCount > 0
+            ? 'partiallyOptedIn'
+            : 'notOptedIn',
         );
-        setCurrentAccountGroupFullyOptedIn(fullyOptedIn);
 
         // Check if all accounts in the selected group are supported
         // Support is determined by checking if the account can opt in to rewards
-        const fullySupported = every(selectedGroupAccounts, (account) => {
+        const partiallySupported = some(selectedGroupAccounts, (account) => {
           try {
             return Engine.controllerMessenger.call(
               'RewardsController:isOptInSupported',
@@ -355,14 +384,14 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
             return false;
           }
         });
-        setCurrentAccountGroupFullySupported(fullySupported);
+        setCurrentAccountGroupPartiallySupported(partiallySupported);
       } else {
-        setCurrentAccountGroupFullyOptedIn(null);
-        setCurrentAccountGroupFullySupported(null);
+        setCurrentAccountGroupOptedInStatus(null);
+        setCurrentAccountGroupPartiallySupported(null);
       }
     } else {
-      setCurrentAccountGroupFullyOptedIn(null);
-      setCurrentAccountGroupFullySupported(null);
+      setCurrentAccountGroupOptedInStatus(null);
+      setCurrentAccountGroupPartiallySupported(null);
     }
   }, [byWallet, selectedAccountGroup?.id]);
 
@@ -370,8 +399,8 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     setIsLoading(true);
     setHasError(false);
     setByWallet(null);
-    setCurrentAccountGroupFullyOptedIn(null);
-    setCurrentAccountGroupFullySupported(null);
+    setCurrentAccountGroupOptedInStatus(null);
+    setCurrentAccountGroupPartiallySupported(null);
     fetchOptInStatus();
   }, [fetchOptInStatus]);
 
@@ -404,7 +433,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     isLoading: isLoading && !byWallet?.length,
     hasError,
     refresh: fetchOptInStatus,
-    currentAccountGroupFullyOptedIn,
-    currentAccountGroupFullySupported,
+    currentAccountGroupOptedInStatus,
+    currentAccountGroupPartiallySupported,
   };
 };

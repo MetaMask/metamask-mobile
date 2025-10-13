@@ -34,6 +34,7 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { strings } from '../../../../../../locales/i18n';
 import { useLinkAccountGroup } from '../../hooks/useLinkAccountGroup';
+import RewardsInfoBanner from '../RewardsInfoBanner';
 
 interface RouteParams {
   accountGroupId: AccountGroupId;
@@ -44,6 +45,7 @@ interface AddressItem {
   address: string;
   hasOptedIn: boolean;
   scopes: string[];
+  isSupported?: boolean;
 }
 
 const RewardOptInAccountGroupModal: React.FC = () => {
@@ -73,10 +75,12 @@ const RewardOptInAccountGroupModal: React.FC = () => {
   // Computed address data that merges local statuses with original addressData
   const computedAddressData = useMemo(
     () =>
-      addressData.map((item) => ({
-        ...item,
-        hasOptedIn: localAccountStatuses[item.address] ?? item.hasOptedIn,
-      })),
+      addressData
+        .map((item) => ({
+          ...item,
+          hasOptedIn: localAccountStatuses[item.address] ?? item.hasOptedIn,
+        }))
+        ?.filter((item) => item.address),
     [addressData, localAccountStatuses],
   );
 
@@ -94,8 +98,24 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     }
   }, [linkAccountGroup, accountGroupId]);
 
-  const renderAddressItem = useCallback(
-    ({ item }: { item: AddressItem }) => (
+  const renderAddressItem = useCallback(({ item }: { item: AddressItem }) => {
+    if (!item?.address) {
+      return <></>;
+    }
+
+    const isUnsupported = item.isSupported === false;
+    const iconName = isUnsupported
+      ? IconName.Warning
+      : item.hasOptedIn
+      ? IconName.Check
+      : IconName.Close;
+    const iconColor = isUnsupported
+      ? IconColor.Warning
+      : item.hasOptedIn
+      ? IconColor.Success
+      : IconColor.Error;
+
+    return (
       <Box
         testID={`flat-list-item-${item.address}`}
         twClassName="flex-row items-center justify-between px-4 py-4 rounded-lg border bg-background-muted border-muted mb-2"
@@ -108,10 +128,7 @@ const RewardOptInAccountGroupModal: React.FC = () => {
           alignItems={BoxAlignItems.Center}
           twClassName="flex-1"
         >
-          <Icon
-            name={item.hasOptedIn ? IconName.Check : IconName.Close}
-            color={item.hasOptedIn ? IconColor.Success : IconColor.Error}
-          />
+          <Icon name={iconName} color={iconColor} />
 
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -131,12 +148,20 @@ const RewardOptInAccountGroupModal: React.FC = () => {
           </Box>
         </Box>
       </Box>
-    ),
-    [],
+    );
+  }, []);
+
+  const unsupportedAddresses = useMemo(
+    () =>
+      computedAddressData?.filter((item) => item.isSupported === false) ?? [],
+    [computedAddressData],
   );
 
-  const optedOutAddresses = useMemo(
-    () => computedAddressData?.filter((item) => !item.hasOptedIn) ?? [],
+  const canOptInAddresses = useMemo(
+    () =>
+      computedAddressData?.filter(
+        (item) => item.isSupported === true && !item.hasOptedIn,
+      ) ?? [],
     [computedAddressData],
   );
 
@@ -178,6 +203,20 @@ const RewardOptInAccountGroupModal: React.FC = () => {
         </BottomSheetHeader>
       )}
 
+      {unsupportedAddresses.length > 0 && (
+        <Box twClassName="px-4 pb-4">
+          <RewardsInfoBanner
+            title={strings(
+              'rewards.onboarding.not_supported_account_type_title',
+            )}
+            description={strings(
+              'rewards.onboarding.not_supported_account_type_description',
+            )}
+            testID="unsupported-accounts-banner"
+          />
+        </Box>
+      )}
+
       <Box twClassName="px-4 gap-2">
         {computedAddressData.length > 0 && (
           <FlatList
@@ -191,9 +230,10 @@ const RewardOptInAccountGroupModal: React.FC = () => {
         )}
       </Box>
 
-      {optedOutAddresses.length > 0 && (
+      {canOptInAddresses.length > 0 && (
         <Box twClassName="px-4 gap-2 pt-2">
           <Button
+            testID="link-account-group-button"
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isLoading={isLoading}
