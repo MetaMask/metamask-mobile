@@ -271,6 +271,7 @@ const isMultichainAccountsState2Enabled =
         },
         async () => {
           await loginToApp();
+
           // Open network manager and verify initial state
           await NetworkManager.openNetworkManager();
           await NetworkManager.waitForNetworkManagerToLoad();
