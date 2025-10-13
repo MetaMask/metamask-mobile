@@ -38,7 +38,7 @@ const RewardsSettingsView: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
-      <Box twClassName="px-6 py-4 flex-1 gap-4">
+      <Box twClassName="py-4 flex-1 gap-4">
         <RewardSettingsAccountGroupList />
       </Box>
     </ErrorBoundary>

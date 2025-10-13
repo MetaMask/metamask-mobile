@@ -98,7 +98,7 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     ({ item }: { item: AddressItem }) => (
       <Box
         testID={`flat-list-item-${item.address}`}
-        twClassName="flex-row items-center justify-between px-2 py-2 rounded-lg border bg-background-muted border-muted mb-2"
+        twClassName="flex-row items-center justify-between px-4 py-4 rounded-lg border bg-background-muted border-muted mb-2"
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}

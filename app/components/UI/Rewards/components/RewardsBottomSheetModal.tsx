@@ -99,17 +99,12 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     }
 
     try {
-      const result = confirmAction.onPress();
-
-      // If the result is a promise, wait for it
-      if (result instanceof Promise) {
-        await result;
-
+      if (confirmAction.loadOnPress) {
+        await confirmAction.onPress();
         setIsLoading(false);
         sheetRef.current?.onCloseBottomSheet();
       } else {
-        setIsLoading(false);
-        sheetRef.current?.onCloseBottomSheet();
+        closeBottomSheetAndNavigate(confirmAction.onPress);
       }
     } catch {
       // Reset loading state if it was set
@@ -117,7 +112,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         setIsLoading(false);
       }
     }
-  }, [confirmAction]);
+  }, [confirmAction, closeBottomSheetAndNavigate]);
 
   const renderIcon = () => {
     // If custom icon is provided, use it

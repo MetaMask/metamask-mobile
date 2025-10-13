@@ -220,7 +220,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
   // Fetch opt-in status for all accounts
   const fetchOptInStatus = useCallback(async () => {
     if (
-      !selectedAccountGroup ||
+      !selectedAccountGroup?.id ||
       !flattenedAccounts.length ||
       !debouncedAccountGroupsByWallet.length
     ) {
@@ -314,7 +314,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     }
   }, [
     flattenedAccounts,
-    selectedAccountGroup,
+    selectedAccountGroup?.id,
     debouncedAccountGroupsByWallet,
     activeAccountSubscriptionId,
     addTraitsToUser,
@@ -322,12 +322,12 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
 
   useEffect(() => {
     // Update computed values based on current account group
-    if (selectedAccountGroup && byWallet) {
+    if (selectedAccountGroup?.id && byWallet) {
       // Find the selected account group in the byWallet structure
       let selectedGroupAccounts: AccountWithOptInStatus[] = [];
       const selectedGroup = byWallet
         .flatMap((wallet) => wallet.groups ?? [])
-        .find((group) => group.id === selectedAccountGroup.id);
+        .find((group) => group.id === selectedAccountGroup?.id);
       if (selectedGroup) {
         selectedGroupAccounts = [
           ...selectedGroup.optedInAccounts,
@@ -364,7 +364,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
       setCurrentAccountGroupFullyOptedIn(null);
       setCurrentAccountGroupFullySupported(null);
     }
-  }, [byWallet, selectedAccountGroup]);
+  }, [byWallet, selectedAccountGroup?.id]);
 
   const refresh = useCallback(() => {
     setIsLoading(true);
@@ -379,14 +379,14 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
 
   // Fetch opt-in status when accounts change or enabled changes
   useEffect(() => {
-    if (selectedAccountGroup) {
+    if (selectedAccountGroup?.id) {
       fetchOptInStatus();
     }
-  }, [fetchOptInStatus, selectedAccountGroup]);
+  }, [fetchOptInStatus, selectedAccountGroup?.id]);
 
   // Create selected account group with opt-in status derived from byWallet
   const bySelectedAccountGroup = useMemo(() => {
-    if (!selectedAccountGroup || !byWallet) return null;
+    if (!selectedAccountGroup?.id || !byWallet) return null;
 
     // Find the selected account group in the byWallet structure
     const selectedGroup = byWallet
@@ -396,7 +396,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
       return selectedGroup;
     }
     return null;
-  }, [byWallet, selectedAccountGroup]);
+  }, [byWallet, selectedAccountGroup?.id]);
 
   return {
     bySelectedAccountGroup,

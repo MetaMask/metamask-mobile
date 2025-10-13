@@ -321,6 +321,35 @@ describe('useOptIn', () => {
 
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
+
+    it('should skip optin when account group has no id', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const accountGroupWithoutId = {
+        accounts: ['account-1'],
+        metadata: { name: 'Test Group' },
+      } as never;
+
+      mockSelectSelectedAccountGroup.mockReturnValue(accountGroupWithoutId);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccount) return mockAccount;
+        if (selector === selectSelectedAccountGroup)
+          return accountGroupWithoutId;
+        if (selector === selectMultichainAccountsState2Enabled) return false;
+        if (selector === selectAccountGroupsByWallet)
+          return [mockWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return null;
+      });
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
   });
 
   describe('Multichain accounts behavior', () => {
@@ -382,8 +411,13 @@ describe('useOptIn', () => {
         undefined,
       );
 
-      // Then should link the side effect account group
+      // Then should link the side effect account group after optin completes
       expect(mockLinkAccountGroup).toHaveBeenCalledWith('side-effect-group-1');
+
+      // Should dispatch subscription ID after linkAccountGroup
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId('subscription-123'),
+      );
     });
 
     it('should not link side effect account group when it is the same as current account group', async () => {
@@ -510,6 +544,134 @@ describe('useOptIn', () => {
         undefined,
       );
       expect(mockLinkAccountGroup).not.toHaveBeenCalled();
+    });
+
+    it('should complete optin successfully even if linkAccountGroup fails', async () => {
+      // Setup wallet section with a different group ID for side effect
+      const sideEffectWalletSection = {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [
+          {
+            type: 'single' as const,
+            id: 'side-effect-group-1', // Different from current account group
+            accounts: ['account-1'],
+            metadata: { name: 'Side Effect Group' },
+          },
+        ],
+      } as never;
+
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        sideEffectWalletSection,
+      ]);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccount) return mockAccount;
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
+        if (selector === selectAccountGroupsByWallet)
+          return [sideEffectWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return null;
+      });
+
+      // Mock linkAccountGroup to throw an error
+      mockLinkAccountGroup.mockRejectedValue(
+        new Error('Failed to link account group'),
+      );
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should call optin
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        undefined,
+      );
+
+      // Should attempt to link the side effect account group
+      expect(mockLinkAccountGroup).toHaveBeenCalledWith('side-effect-group-1');
+
+      // Should still dispatch subscription ID even though linkAccountGroup failed
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId('subscription-123'),
+      );
+
+      // Should not set an error (linkAccountGroup failure is silently handled)
+      expect(result.current.optinError).toBeNull();
+
+      // Should complete loading (set to false)
+      expect(result.current.optinLoading).toBe(false);
+
+      // Should still track success events
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Completed',
+        }),
+      );
+    });
+
+    it('should not call linkAccountGroup when optin fails', async () => {
+      // Setup wallet section with a different group ID for side effect
+      const sideEffectWalletSection = {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [
+          {
+            type: 'single' as const,
+            id: 'side-effect-group-1', // Different from current account group
+            accounts: ['account-1'],
+            metadata: { name: 'Side Effect Group' },
+          },
+        ],
+      } as never;
+
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        sideEffectWalletSection,
+      ]);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccount) return mockAccount;
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
+        if (selector === selectAccountGroupsByWallet)
+          return [sideEffectWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return null;
+      });
+
+      // Mock optin to fail
+      const error = new Error('Optin failed');
+      mockEngineCall.mockRejectedValue(error);
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should have attempted optin
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        undefined,
+      );
+
+      // Should not call linkAccountGroup since optin failed
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
+
+      // Should not dispatch subscription ID since optin failed
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      // Should set error
+      expect(result.current.optinError).toBe('Error: Optin failed');
+
+      // Should complete loading (set to false)
+      expect(result.current.optinLoading).toBe(false);
     });
   });
 

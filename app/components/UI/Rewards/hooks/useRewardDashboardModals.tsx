@@ -153,7 +153,7 @@ export const useRewardDashboardModals = () => {
    */
   const showNotOptedInModal = useCallback(() => {
     if (
-      !selectedAccountGroup ||
+      !selectedAccountGroup?.id ||
       sessionTracker.current.hasShownModal(trackingKey, 'not-opted-in')
     ) {
       return;
@@ -197,7 +197,7 @@ export const useRewardDashboardModals = () => {
 
     sessionTracker.current.markModalAsShown(trackingKey, 'not-opted-in');
   }, [
-    selectedAccountGroup,
+    selectedAccountGroup?.id,
     trackingKey,
     navigation,
     dontMissOutIcon,
@@ -211,7 +211,7 @@ export const useRewardDashboardModals = () => {
    * Provides different messaging for hardware wallets vs other account types.
    */
   const showNotSupportedModal = useCallback(() => {
-    if (!selectedAccountGroup) {
+    if (!selectedAccountGroup?.id) {
       return;
     }
     const accountsForGroup = getAccountsByGroupId(selectedAccountGroup.id);
@@ -250,7 +250,7 @@ export const useRewardDashboardModals = () => {
       showCancelButton: true,
       cancelMode: 'top-right-cross-icon',
     });
-  }, [getAccountsByGroupId, navigation, selectedAccountGroup]);
+  }, [getAccountsByGroupId, navigation, selectedAccountGroup?.id]);
 
   /**
    * Resets session tracking for all modal types.
@@ -268,12 +268,12 @@ export const useRewardDashboardModals = () => {
    */
   const hasShownModal = useCallback(
     (modalType: RewardsDashboardModalType) => {
-      if (!selectedAccountGroup) {
+      if (!selectedAccountGroup?.id) {
         return false;
       }
       return sessionTracker.current.hasShownModal(trackingKey, modalType);
     },
-    [selectedAccountGroup, trackingKey],
+    [selectedAccountGroup?.id, trackingKey],
   );
 
   /**
@@ -281,10 +281,10 @@ export const useRewardDashboardModals = () => {
    * Useful when you want to allow modals to be shown again for the current account group.
    */
   const resetSessionTrackingForCurrentAccountGroup = useCallback(() => {
-    if (selectedAccountGroup) {
+    if (selectedAccountGroup?.id) {
       sessionTracker.current.resetForAccountGroup(trackingKey);
     }
-  }, [selectedAccountGroup, trackingKey]);
+  }, [selectedAccountGroup?.id, trackingKey]);
 
   const resetAllSessionTracking = useCallback(() => {
     sessionTracker.current.reset();

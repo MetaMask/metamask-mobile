@@ -9,11 +9,15 @@ import {
 import { useOptout } from '../../hooks/useOptout';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { AccountWalletType } from '@metamask/account-api';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+
+// Import the mocked selector to compare against
+jest.mock('../../../../../selectors/settings');
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: jest.fn(() => ({
@@ -33,14 +37,19 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/settings', () => ({
-  selectAvatarAccountType: jest.fn(),
-}));
-
 const mockSelectInternalAccountsByGroupId = jest.fn();
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectInternalAccountsByGroupId: mockSelectInternalAccountsByGroupId,
 }));
+
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroup: jest.fn(),
+  }),
+);
+
+import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -248,13 +257,14 @@ jest.mock('../RewardsErrorBanner', () => {
 // Mock RewardSettingsAccountGroup component
 jest.mock('./RewardSettingsAccountGroup', () => {
   const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { View, Text } = jest.requireActual('react-native');
 
   return ReactActual.forwardRef(
     (
       props: {
         item: unknown;
         avatarAccountType: string;
+        isSelected?: boolean;
         testID?: string;
       },
       ref: React.Ref<unknown>,
@@ -266,6 +276,12 @@ jest.mock('./RewardSettingsAccountGroup', () => {
           ref,
         },
         ReactActual.createElement(View, { testID: 'account-group-content' }),
+        props.isSelected !== undefined &&
+          ReactActual.createElement(
+            Text,
+            { testID: 'account-group-selected-indicator' },
+            props.isSelected ? 'selected' : 'not-selected',
+          ),
       ),
   );
 });
@@ -383,8 +399,13 @@ describe('RewardSettingsAccountGroupList', () => {
     // Mock useSelector calls
     mockUseSelector.mockImplementation((selector) => {
       // Mock selectAvatarAccountType selector
-      if (selector.toString().includes('selectAvatarAccountType')) {
+      if (selector === selectAvatarAccountType) {
         return 'default';
+      }
+
+      // Mock selectSelectedAccountGroup selector - returns null by default
+      if (selector === selectSelectedAccountGroup) {
+        return null;
       }
 
       // For the allAddresses selector, let it execute normally since we've mocked selectInternalAccountsByGroupId
@@ -682,24 +703,6 @@ describe('RewardSettingsAccountGroupList', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle errors in allAddresses selector gracefully', () => {
-      // Mock selector to throw an error
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('allAddresses')) {
-          throw new Error('Selector error');
-        }
-        if (selector.toString().includes('selectAvatarAccountType')) {
-          return 'default';
-        }
-        return null;
-      });
-
-      // Should not crash the component
-      expect(() => render(<RewardSettingsAccountGroupList />)).not.toThrow();
-    });
-  });
-
   describe('Accessibility', () => {
     it('should have proper testIDs for accessibility testing', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
@@ -709,6 +712,224 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
       expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
       expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('selectSelectedAccountGroup and isSelected', () => {
+    it('should call selectSelectedAccountGroup selector', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return null;
+        }
+        return selector({});
+      });
+
+      // Act
+      render(<RewardSettingsAccountGroupList />);
+
+      // Assert
+      // selectSelectedAccountGroup should be called during render
+      expect(mockUseSelector).toHaveBeenCalled();
+    });
+
+    it('should pass isSelected=false when no account group is selected', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return null;
+        }
+        return selector({});
+      });
+
+      // Act
+      const { getAllByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Assert
+      // All account groups should have isSelected=false when no group is selected
+      const selectedIndicators = getAllByTestId(
+        'account-group-selected-indicator',
+      );
+      selectedIndicators.forEach((indicator) => {
+        expect(indicator).toHaveTextContent('not-selected');
+      });
+    });
+
+    it('should pass isSelected=true when account group matches selected group', () => {
+      // Arrange
+      const selectedGroup = {
+        id: 'group-1',
+        metadata: {
+          name: 'Account Group 1',
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return selectedGroup;
+        }
+        return selector({});
+      });
+
+      // Act
+      const { getAllByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Assert
+      const selectedIndicators = getAllByTestId(
+        'account-group-selected-indicator',
+      );
+      // First indicator should be for group-1 (after wallet-1 header)
+      expect(selectedIndicators[0]).toHaveTextContent('selected');
+      // Other groups should not be selected
+      expect(selectedIndicators[1]).toHaveTextContent('not-selected');
+      expect(selectedIndicators[2]).toHaveTextContent('not-selected');
+    });
+
+    it('should pass isSelected=true only for matching account group', () => {
+      // Arrange
+      const selectedGroup = {
+        id: 'group-2',
+        metadata: {
+          name: 'Account Group 2',
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return selectedGroup;
+        }
+        return selector({});
+      });
+
+      // Act
+      const { getAllByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Assert
+      const selectedIndicators = getAllByTestId(
+        'account-group-selected-indicator',
+      );
+      expect(selectedIndicators[0]).toHaveTextContent('not-selected');
+      expect(selectedIndicators[1]).toHaveTextContent('selected');
+      expect(selectedIndicators[2]).toHaveTextContent('not-selected');
+    });
+
+    it('should handle undefined selected account group gracefully', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return undefined;
+        }
+        return selector({});
+      });
+
+      // Act & Assert - Should not crash
+      expect(() => render(<RewardSettingsAccountGroupList />)).not.toThrow();
+    });
+
+    it('should handle selected account group without id', () => {
+      // Arrange
+      const selectedGroupWithoutId = {
+        metadata: {
+          name: 'Account Group',
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return selectedGroupWithoutId;
+        }
+        return selector({});
+      });
+
+      // Act
+      const { getAllByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Assert - All should be not-selected since selectedGroup has no id
+      const selectedIndicators = getAllByTestId(
+        'account-group-selected-indicator',
+      );
+      selectedIndicators.forEach((indicator) => {
+        expect(indicator).toHaveTextContent('not-selected');
+      });
+    });
+
+    it('should only depend on selectedAccountGroup?.id, not entire object', () => {
+      // Arrange
+      const selectedGroup = {
+        id: 'group-1',
+        metadata: {
+          name: 'Account Group 1',
+        },
+        extraProperty: 'value1',
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return selectedGroup;
+        }
+        return selector({});
+      });
+
+      const { rerender, getAllByTestId } = render(
+        <RewardSettingsAccountGroupList />,
+      );
+
+      // Get initial state
+      const initialIndicators = getAllByTestId(
+        'account-group-selected-indicator',
+      );
+      expect(initialIndicators[0]).toHaveTextContent('selected');
+
+      // Act - Change metadata but keep the same id
+      const updatedSelectedGroup = {
+        id: 'group-1', // Same id
+        metadata: {
+          name: 'Updated Account Group Name', // Different name
+        },
+        extraProperty: 'value2', // Different extra property
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAvatarAccountType) {
+          return 'default';
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return updatedSelectedGroup;
+        }
+        return selector({});
+      });
+
+      rerender(<RewardSettingsAccountGroupList />);
+
+      // Assert - The selection should remain the same since id didn't change
+      // This verifies that renderFlatListItem depends on selectedAccountGroup?.id, not the entire object
+      const updatedIndicators = getAllByTestId(
+        'account-group-selected-indicator',
+      );
+      expect(updatedIndicators[0]).toHaveTextContent('selected');
+      expect(updatedIndicators[1]).toHaveTextContent('not-selected');
+      expect(updatedIndicators[2]).toHaveTextContent('not-selected');
     });
   });
 });

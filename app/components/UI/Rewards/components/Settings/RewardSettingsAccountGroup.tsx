@@ -10,6 +10,8 @@ import {
   TextVariant as DsTextVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../../util/theme';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { isEmpty } from 'lodash';
 import AvatarAccount, {
@@ -37,11 +39,13 @@ import {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { formatWithThreshold } from '../../../../../util/assets';
+import { View } from 'react-native';
 
 // Enhanced props interface with pre-computed data for performance
 interface RewardSettingsAccountGroupProps {
   item: RewardSettingsAccountGroupListFlatListItem;
   avatarAccountType: AvatarAccountType;
+  isSelected?: boolean;
   testID?: string;
 }
 
@@ -51,9 +55,12 @@ interface RewardSettingsAccountGroupProps {
 const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
   item,
   avatarAccountType,
+  isSelected = false,
   testID,
 }) => {
   const { accountGroup } = item;
+  const tw = useTailwind();
+  const { colors } = useTheme();
 
   // Determine EVM address internally using the account group ID
   const evmAddress = useSelector((state: RootState) => {
@@ -135,85 +142,101 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
   }
 
   return (
-    <Box
-      twClassName="flex-row items-center py-3 rounded-lg gap-3"
-      flexDirection={BoxFlexDirection.Row}
-      testID={
-        testID || `rewards-account-group-${accountGroup?.id || 'unknown'}`
-      }
+    <View
+      style={tw.style(
+        'w-full flex-row items-center px-4',
+        isSelected ? 'bg-info-muted' : 'bg-default',
+      )}
     >
-      {/* Avatar - use EVM address or fallback to zero address */}
-      <AvatarAccount
-        accountAddress={
-          evmAddress || '0x0000000000000000000000000000000000000000'
-        }
-        type={avatarAccountType}
-        size={AvatarSize.Lg}
-        testID={`rewards-account-group-avatar-${accountGroup.id}`}
-      />
-
-      {/* Account Name */}
-      <Box
-        twClassName={`flex-1 flex-col`}
-        testID={`rewards-account-group-info-${accountGroup.id}`}
-      >
-        <Text
-          variant={DsTextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          numberOfLines={1}
-          testID={`rewards-account-group-name-${accountGroup.id}`}
-        >
-          {accountGroup.name}
-        </Text>
-
-        {/* Account Balance */}
-        {displayBalance && (
-          <SensitiveText
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
-            testID={`rewards-account-group-balance-${accountGroup.id}`}
-          >
-            {displayBalance}
-          </SensitiveText>
-        )}
-      </Box>
+      {/* Selected indicator - 4px bar on the left */}
+      {isSelected && (
+        <View
+          style={tw.style('w-1 h-14 rounded-lg', 'mr-2 -ml-3', {
+            backgroundColor: colors.primary.default,
+          })}
+        />
+      )}
 
       <Box
+        twClassName="flex-1 flex-row items-center py-3 rounded-lg gap-3"
         flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
-        testID={`rewards-account-group-actions-${accountGroup.id}`}
+        testID={
+          testID || `rewards-account-group-${accountGroup?.id || 'unknown'}`
+        }
       >
-        {/* QR Code button to show account addresses */}
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          onPress={handleShowAddresses}
-          isDisabled={isLoading}
-          twClassName="px-1"
-          testID={`rewards-account-addresses-${accountGroup.id}`}
-        >
-          <Icon name={IconName.QrCode} color={IconColor.Default} />
-        </Button>
+        {/* Avatar - use EVM address or fallback to zero address */}
+        <AvatarAccount
+          accountAddress={
+            evmAddress || '0x0000000000000000000000000000000000000000'
+          }
+          type={avatarAccountType}
+          size={AvatarSize.Lg}
+          testID={`rewards-account-group-avatar-${accountGroup.id}`}
+        />
 
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isDisabled={accountGroup.optedOutAccounts.length === 0}
-          isLoading={isLoading}
-          onPress={handleLinkAccountGroup}
-          testID={`rewards-account-group-link-button-${accountGroup.id}`}
+        {/* Account Name */}
+        <Box
+          twClassName={`flex-1 flex-col`}
+          testID={`rewards-account-group-info-${accountGroup.id}`}
         >
-          {accountGroup.optedOutAccounts.length === 0 ? (
-            <Icon name={IconName.Check} color={IconColor.Success} />
-          ) : (
-            strings('rewards.link_account_group.link_account')
+          <Text
+            variant={DsTextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            numberOfLines={1}
+            testID={`rewards-account-group-name-${accountGroup.id}`}
+          >
+            {accountGroup.name}
+          </Text>
+
+          {/* Account Balance */}
+          {displayBalance && (
+            <SensitiveText
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Long}
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+              testID={`rewards-account-group-balance-${accountGroup.id}`}
+            >
+              {displayBalance}
+            </SensitiveText>
           )}
-        </Button>
+        </Box>
+
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+          testID={`rewards-account-group-actions-${accountGroup.id}`}
+        >
+          {/* QR Code button to show account addresses */}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            onPress={handleShowAddresses}
+            isDisabled={isLoading}
+            twClassName="px-1"
+            testID={`rewards-account-addresses-${accountGroup.id}`}
+          >
+            <Icon name={IconName.QrCode} color={IconColor.Default} />
+          </Button>
+
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isDisabled={accountGroup.optedOutAccounts.length === 0}
+            isLoading={isLoading}
+            onPress={handleLinkAccountGroup}
+            testID={`rewards-account-group-link-button-${accountGroup.id}`}
+          >
+            {accountGroup.optedOutAccounts.length === 0 ? (
+              <Icon name={IconName.Check} color={IconColor.Success} />
+            ) : (
+              strings('rewards.link_account_group.link_account')
+            )}
+          </Button>
+        </Box>
       </Box>
-    </Box>
+    </View>
   );
 };
 

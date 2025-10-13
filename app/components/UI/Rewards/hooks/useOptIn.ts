@@ -73,7 +73,7 @@ export const useOptin = (): UseOptinResult => {
       referralCode?: string;
       isPrefilled?: boolean;
     }) => {
-      if (!accountGroup) {
+      if (!accountGroup?.id) {
         return;
       }
       const referred = Boolean(referralCode);
@@ -99,7 +99,6 @@ export const useOptin = (): UseOptinResult => {
           referralCode || undefined,
         );
         if (subscriptionId) {
-          dispatch(setCandidateSubscriptionId(subscriptionId));
           addTraitsToUser({
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
           });
@@ -117,8 +116,6 @@ export const useOptin = (): UseOptinResult => {
         );
         const errorMessage = handleRewardsErrorMessage(error);
         setOptinError(errorMessage);
-      } finally {
-        setOptinLoading(false);
       }
 
       if (
@@ -128,18 +125,28 @@ export const useOptin = (): UseOptinResult => {
       ) {
         if (
           sideEffectAccountGroupIdToLink &&
-          sideEffectAccountGroupIdToLink !== accountGroup.id
+          sideEffectAccountGroupIdToLink !== accountGroup?.id
         ) {
-          await linkAccountGroup(sideEffectAccountGroupIdToLink);
+          try {
+            await linkAccountGroup(sideEffectAccountGroupIdToLink);
+          } catch {
+            // Failed to link first account group in same wallet.
+          }
         }
       }
+
+      if (subscriptionId) {
+        dispatch(setCandidateSubscriptionId(subscriptionId));
+      }
+
+      setOptinLoading(false);
     },
     [
-      accountGroup,
+      accountGroup?.id,
       trackEvent,
       createEventBuilder,
-      multichainAccountsState2Enabled,
       sideEffectAccountGroupIdToLink,
+      multichainAccountsState2Enabled,
       dispatch,
       addTraitsToUser,
       linkAccountGroup,

@@ -17,6 +17,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -35,6 +36,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   // Move all expensive operations to parent component
   const avatarAccountType = useSelector(selectAvatarAccountType);
+  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
 
   const {
     byWallet,
@@ -74,7 +76,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
                   item.walletItem?.wallet?.id?.replace('keyring:', '') ||
                   'unknown'
                 }`}
-                twClassName="flex-row items-center justify-between py-2"
+                twClassName="flex-row items-center justify-between py-2 px-4"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -88,19 +90,23 @@ const RewardSettingsAccountGroupList: React.FC = () => {
                 </Text>
               </Box>
             );
-          case 'accountGroup':
+          case 'accountGroup': {
+            const isSelected =
+              selectedAccountGroup?.id === item.accountGroup?.id;
             return (
               <RewardSettingsAccountGroup
                 testID={`account-group-${item.accountGroup?.id || 'unknown'}`}
                 item={item}
                 avatarAccountType={avatarAccountType}
+                isSelected={isSelected}
               />
             );
+          }
           default:
             return null;
         }
       },
-      [avatarAccountType],
+      [avatarAccountType, selectedAccountGroup?.id],
     );
 
   const getItemType = useCallback(
@@ -127,7 +133,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListHeaderComponent = useCallback(
     () => (
-      <Box testID="rewards-settings-header" twClassName="gap-4 pb-2">
+      <Box testID="rewards-settings-header" twClassName="gap-4 px-4 pb-2">
         <Box twClassName="gap-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
@@ -144,7 +150,10 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListFooterComponent = useCallback(
     () => (
-      <Box testID="rewards-settings-footer" twClassName="gap-4 flex-col pb-4">
+      <Box
+        testID="rewards-settings-footer"
+        twClassName="gap-4 flex-col py-4 px-4"
+      >
         <Box twClassName="gap-2">
           <Text variant={TextVariant.HeadingSm}>
             {strings('rewards.optout.title')}
@@ -207,7 +216,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
       <Box testID="rewards-settings-loading" twClassName="gap-4">
         <ListHeaderComponent />
 
-        <Box twClassName="gap-3">
+        <Box twClassName="gap-3 px-4">
           {[...Array(3)].map((_, index) => (
             <Box
               key={index}
@@ -234,21 +243,23 @@ const RewardSettingsAccountGroupList: React.FC = () => {
       <Box testID="rewards-settings-error" twClassName="gap-4">
         <ListHeaderComponent />
 
-        <RewardsErrorBanner
-          testID="rewards-settings-error-banner"
-          title={strings(
-            'rewards.accounts_opt_in_state_error.error_fetching_title',
-          )}
-          description={strings(
-            'rewards.accounts_opt_in_state_error.error_fetching_description',
-          )}
-          onConfirm={() => {
-            fetchOptInStatus();
-          }}
-          confirmButtonLabel={strings(
-            'rewards.accounts_opt_in_state_error.retry_button',
-          )}
-        />
+        <Box twClassName="px-4">
+          <RewardsErrorBanner
+            testID="rewards-settings-error-banner"
+            title={strings(
+              'rewards.accounts_opt_in_state_error.error_fetching_title',
+            )}
+            description={strings(
+              'rewards.accounts_opt_in_state_error.error_fetching_description',
+            )}
+            onConfirm={() => {
+              fetchOptInStatus();
+            }}
+            confirmButtonLabel={strings(
+              'rewards.accounts_opt_in_state_error.retry_button',
+            )}
+          />
+        </Box>
 
         <ListFooterComponent />
       </Box>

@@ -59,19 +59,15 @@ const RewardsDashboard: React.FC = () => {
   );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const hideCurrentAccountNotOptedInBanner = useMemo((): boolean => {
-    if (
-      selectedAccountGroup &&
-      hideCurrentAccountNotOptedInBannerMap &&
-      selectedAccountGroup.id
-    ) {
+    if (hideCurrentAccountNotOptedInBannerMap && selectedAccountGroup?.id) {
       return (
         hideCurrentAccountNotOptedInBannerMap.find(
-          (item) => item.accountGroupId === selectedAccountGroup.id,
+          (item) => item.accountGroupId === selectedAccountGroup?.id,
         )?.hide || false
       );
     }
     return false;
-  }, [selectedAccountGroup, hideCurrentAccountNotOptedInBannerMap]);
+  }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
   const insets = useSafeAreaInsets();
 
   // Ref for TabsList to control active tab programmatically
@@ -93,8 +89,8 @@ const RewardsDashboard: React.FC = () => {
     currentAccountGroupFullyOptedIn,
   } = useRewardOptinSummary();
 
-  const totalOptedOutAccountsSelectedGroup = useMemo(
-    () => optInBySelectedAccountGroup?.optedOutAccounts?.length ?? 0,
+  const totalOptedInAccountsSelectedGroup = useMemo(
+    () => optInBySelectedAccountGroup?.optedInAccounts?.length,
     [optInBySelectedAccountGroup],
   );
 
@@ -188,10 +184,10 @@ const RewardsDashboard: React.FC = () => {
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
   useEffect(() => {
     if (
-      (totalOptedOutAccountsSelectedGroup > 0 ||
+      (totalOptedInAccountsSelectedGroup === 0 ||
         currentAccountGroupFullySupported === false) &&
       !hideCurrentAccountNotOptedInBanner &&
-      selectedAccountGroup
+      selectedAccountGroup?.id
     ) {
       if (currentAccountGroupFullySupported === false) {
         // Account type not supported (e.g., hardware wallets)
@@ -222,10 +218,10 @@ const RewardsDashboard: React.FC = () => {
     currentAccountGroupFullyOptedIn,
     currentAccountGroupFullySupported,
     hideCurrentAccountNotOptedInBanner,
-    selectedAccountGroup,
+    selectedAccountGroup?.id,
     subscriptionId,
     totalAccountGroupsWithOptedOutAccounts,
-    totalOptedOutAccountsSelectedGroup,
+    totalOptedInAccountsSelectedGroup,
     hideUnlinkedAccountsBanner,
     showNotOptedInModal,
     showUnlinkedAccountsModal,

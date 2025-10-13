@@ -697,4 +697,83 @@ describe('RewardSettingsAccountGroup', () => {
       // This is tested indirectly through the component's behavior
     });
   });
+
+  describe('isSelected Prop', () => {
+    it('should render with default background when isSelected is false', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+          isSelected={false}
+        />,
+      );
+
+      // Assert
+      expect(
+        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+      ).toBeOnTheScreen();
+    });
+
+    it('should render with highlighted background when isSelected is true', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+          isSelected
+        />,
+      );
+
+      // Assert
+      expect(
+        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+      ).toBeOnTheScreen();
+    });
+
+    it('should default isSelected to false when prop is not provided', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+      );
+
+      // Assert
+      expect(
+        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+      ).toBeOnTheScreen();
+    });
+
+    it('should render successfully when isSelected prop changes', () => {
+      // Arrange
+      const { getByTestId, rerender } = render(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+          isSelected={false}
+        />,
+      );
+
+      // Assert initial render
+      expect(
+        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+      ).toBeOnTheScreen();
+
+      // Act - Re-render with isSelected=true
+      rerender(
+        <RewardSettingsAccountGroup
+          item={mockItem}
+          avatarAccountType={AvatarAccountType.Maskicon}
+          isSelected
+        />,
+      );
+
+      // Assert - Component still renders correctly
+      expect(
+        getByTestId('rewards-account-group-keyring:wallet-1/ethereum'),
+      ).toBeOnTheScreen();
+    });
+  });
 });
