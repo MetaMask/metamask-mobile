@@ -132,14 +132,14 @@ const useAccounts = ({
         : '';
 
       const error =
-        balanceForAccount.totalFiatBalance !== undefined
+        balanceForAccount?.totalFiatBalance !== undefined
           ? checkBalanceError?.(balanceForAccount.totalFiatBalance.toString())
           : undefined;
 
       balances[account.id] = {
         displayBalance,
         balanceError: typeof error === 'string' ? error : undefined,
-        isLoadingAccount: balanceForAccount.isLoadingAccount,
+        isLoadingAccount: balanceForAccount?.isLoadingAccount,
       };
     });
 

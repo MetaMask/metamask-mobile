@@ -76,6 +76,10 @@ const useMultichainBalancesForAllAccounts =
     const allAccountBalances = useMemo(() => {
       const result: Record<string, MultichainBalancesData> = {};
 
+      if (isOriginalNativeEvmTokenSymbol === null) {
+        return result;
+      }
+
       for (const account of accountsList) {
         const accountBalanceData = getAccountBalanceData(
           account,
