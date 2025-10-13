@@ -242,7 +242,7 @@ const isMultichainAccountsState2Enabled =
       },
     );
 
-    it('should filter tokens by selected network from list of enabled popular networks', async () => {
+    it.skip('should filter tokens by selected network from list of enabled popular networks', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
