@@ -199,6 +199,9 @@ const actionKeys = {
   [TransactionType.predictDeposit]: strings(
     'transactions.tx_review_predict_deposit',
   ),
+  [TransactionType.predictClaim]: strings(
+    'transactions.tx_review_predict_claim',
+  ),
 };
 
 /**
@@ -535,6 +538,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (hasTransactionType(transaction, [TransactionType.predictDeposit])) {
     return TransactionType.predictDeposit;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.predictClaim])) {
+    return TransactionType.predictClaim;
   }
 
   if (!to) {
