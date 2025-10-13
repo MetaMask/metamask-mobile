@@ -1613,7 +1613,13 @@
     "won_markets_text_plural": "Won {{count}} markets",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Receive"
@@ -3087,6 +3093,7 @@
     "tx_review_lending_withdraw": "Lending Withdrawal",
     "tx_review_perps_deposit": "Funded Perps account",
     "tx_review_predict_deposit": "Funded Predict account",
+    "tx_review_predict_claim": "Claimed Predict winnings",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -5400,6 +5407,12 @@
       "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
       "save": "Save",
       "title": "Edit approval limit"
+    },
+    "predict_claim": {
+      "button_label": "Claim winnings",
+      "summary": "You won",
+      "footer_bottom": "Funds will be added to your available balance",
+      "footer_top": "Winnings from {{count}} markets"
     },
     "unlimited": "Unlimited",
     "all": "All",
