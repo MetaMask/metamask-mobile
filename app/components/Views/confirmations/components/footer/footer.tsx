@@ -30,12 +30,12 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
+import { selectIsTransactionPayLoadingByTransactionId } from '../../../../../selectors/transactionPayController';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -70,7 +70,7 @@ export const Footer = () => {
     useState(false);
 
   const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(
+    selectIsTransactionPayLoadingByTransactionId(
       state,
       transactionMetadata?.id ?? '',
     ),

@@ -3,38 +3,40 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { BigNumber } from 'bignumber.js';
-import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { strings } from '../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
+import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
+import { BigNumber } from 'bignumber.js';
 
 export function useInsufficientPayTokenBalanceAlert({
-  amountOverrides,
+  amountFiatOverride,
 }: {
-  amountOverrides?: Record<Hex, string>;
+  amountFiatOverride?: string;
 } = {}): Alert[] {
+  const { id: transactionId } = useTransactionMetadataRequest() ?? { id: '' };
   const { payToken } = useTransactionPayToken();
-  const { balance, symbol } = payToken ?? {};
+  const { balanceUsd, symbol } = payToken ?? {};
 
-  const { totalHuman, amounts } = useTransactionPayTokenAmounts({
-    amountOverrides,
-  });
+  const requiredTokens = useSelector((state: RootState) =>
+    selectTransactionPayTokensByTransactionId(state, transactionId as Hex),
+  );
 
-  const tokenAmount =
-    amounts?.find((a) => a.address !== NATIVE_TOKEN_ADDRESS)
-      ?.amountHumanOriginal ?? '0';
-
-  const balanceValue = new BigNumber(balance ?? '0');
-
-  const isInsufficientForFees =
-    Boolean(payToken) && balanceValue.isLessThan(totalHuman ?? '0');
+  const totalAmountUsd = (requiredTokens ?? []).reduce<BigNumber>(
+    (total, token) => total.plus(token.amountUsd),
+    new BigNumber(0),
+  );
 
   const isInsufficientForAmount =
-    isInsufficientForFees && balanceValue.isLessThan(tokenAmount);
+    payToken &&
+    new BigNumber(balanceUsd ?? '0').isLessThan(
+      amountFiatOverride ?? totalAmountUsd,
+    );
 
   return useMemo(() => {
-    if (!isInsufficientForFees && !isInsufficientForAmount) {
+    if (!isInsufficientForAmount) {
       return [];
     }
 
@@ -55,5 +57,5 @@ export function useInsufficientPayTokenBalanceAlert({
         isBlocking: true,
       },
     ];
-  }, [isInsufficientForFees, isInsufficientForAmount, symbol]);
+  }, [isInsufficientForAmount, symbol]);
 }

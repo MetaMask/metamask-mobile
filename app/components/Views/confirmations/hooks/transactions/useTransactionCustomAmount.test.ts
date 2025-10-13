@@ -60,7 +60,7 @@ describe('useTransactionCustomAmount', () => {
     } as ReturnType<typeof useUpdateTokenAmountMock>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { tokenFiatAmount: 1234.56 },
+      payToken: { balanceUsd: '1234.56' },
     } as ReturnType<typeof useTransactionPayToken>);
   });
 

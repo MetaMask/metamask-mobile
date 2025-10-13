@@ -327,6 +327,14 @@ import {
 } from '@metamask/gator-permissions-controller';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
+import {
+  TransactionPayController,
+  TransactionPayControllerState,
+} from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayControllerActions,
+  TransactionPayControllerEvents,
+} from '@metamask/transaction-pay-controller/dist/types.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -410,6 +418,7 @@ type GlobalActions =
   | TokenRatesControllerActions
   | TokenListControllerActions
   | TransactionControllerActions
+  | TransactionPayControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
@@ -470,6 +479,7 @@ type GlobalEvents =
   | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
+  | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
@@ -537,6 +547,7 @@ export type Controllers = {
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
+  TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -603,6 +614,7 @@ export type EngineState = {
   TokenRatesController: TokenRatesControllerState;
   TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
+  TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
@@ -706,6 +718,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
+  | 'TransactionPayController'
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'

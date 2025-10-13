@@ -25,14 +25,6 @@ jest.mock('./usePerpsHardwareAccountAlert', () => ({
   ],
 }));
 
-jest.mock('../pay/useTransactionRequiredTokens', () => ({
-  useTransactionRequiredTokens: () => [
-    {
-      address: '0x1',
-    },
-  ],
-}));
-
 describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>

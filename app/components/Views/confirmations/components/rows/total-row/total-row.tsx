@@ -1,22 +1,36 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
-import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSelector } from 'react-redux';
-import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { RootState } from '../../../../../../reducers';
 import { View } from 'react-native';
 import { SkeletonRow } from '../skeleton-row';
+import {
+  selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayTotalsByTransactionId,
+} from '../../../../../../selectors/transactionPayController';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { BigNumber } from 'bignumber.js';
 
 export function TotalRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
-  const { totalFormatted } = useTransactionTotalFiat({ log: true });
+  const formatFiat = useFiatFormatter();
 
   const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
+    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
   );
+
+  const totals = useSelector((state: RootState) =>
+    selectTransactionPayTotalsByTransactionId(state, transactionId),
+  );
+
+  const totalUsd = useMemo(() => {
+    if (!totals?.total) return '';
+
+    return formatFiat(new BigNumber(totals.total.usd));
+  }, [totals, formatFiat]);
 
   if (isQuotesLoading) {
     return <SkeletonRow testId="total-row-skeleton" />;
@@ -25,7 +39,7 @@ export function TotalRow() {
   return (
     <View testID="total-row">
       <InfoRow label={strings('confirm.label.total')}>
-        <Text>{totalFormatted}</Text>
+        <Text>{totalUsd}</Text>
       </InfoRow>
     </View>
   );

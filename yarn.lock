@@ -8878,6 +8878,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller#.yalc/@metamask/transaction-pay-controller::hash=e8caa1&locator=metamask%40workspace%3A."
+  dependencies:
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/contracts": ^5.7.0
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/metamask-eth-abis": ^3.1.1
+    "@metamask/utils": ^11.8.0
+    bignumber.js: ^9.1.2
+    bn.js: ^5.2.1
+    immer: ^9.0.6
+    lodash: ^4.17.21
+  peerDependencies:
+    "@metamask/assets-controllers": ^76.0.0
+    "@metamask/bridge-controller": ^44.0.0
+    "@metamask/bridge-status-controller": ^47.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/remote-feature-flag-controller": ^1.5.0
+    "@metamask/transaction-controller": ^60.0.0
+  checksum: 31fab10e63604effb26558c65b74427478d78d6905fdbe49ea59b8495d08c13cdee28fa0db690060c5a83e0c40b06167a658b168fe7add0e50bed9fc2fa7bf06
+  languageName: node
+  linkType: hard
+
 "@metamask/tron-wallet-snap@npm:^1.1.0":
   version: 1.1.0
   resolution: "@metamask/tron-wallet-snap@npm:1.1.0"
@@ -34182,6 +34207,7 @@ __metadata:
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
     "@metamask/transaction-controller": ^60.6.0
+    "@metamask/transaction-pay-controller": "file:.yalc/@metamask/transaction-pay-controller"
     "@metamask/tron-wallet-snap": ^1.1.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
