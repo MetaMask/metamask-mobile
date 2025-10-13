@@ -129,6 +129,12 @@ class NetworkManager {
    */
   async checkTokenIsVisible(symbol: string) {
     const tokenElement = this.getTokenBySymbol(symbol);
+    // Ensure the token is scrolled into view (Android requires >=75% visibility)
+    await Gestures.scrollToElement(
+      tokenElement,
+      Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      { direction: 'down', scrollAmount: 400, timeout: 8000 },
+    );
     await Assertions.expectElementToBeVisible(tokenElement, {
       elemDescription: `Token ${symbol} should be visible`,
     });
