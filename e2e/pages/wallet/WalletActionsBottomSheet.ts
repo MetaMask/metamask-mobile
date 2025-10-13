@@ -50,7 +50,7 @@ class WalletActionsBottomSheet {
     );
   }
 
-
+  
   async tapSendButton(): Promise<void> {
     await Gestures.waitAndTap(this.sendButton);
   }

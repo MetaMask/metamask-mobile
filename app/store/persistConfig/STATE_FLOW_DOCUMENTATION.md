@@ -252,6 +252,7 @@ BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
 - **Debounced file writes** (200ms) to prevent excessive disk I/O
 
 ### 7. **Runtime State Management Loop**
+
 **When any controller state changes:**
 
 1. **Controller updates its internal state**
