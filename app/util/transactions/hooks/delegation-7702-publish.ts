@@ -10,11 +10,6 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
-import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
-import {
-  encodeRedeemDelegations,
-  Delegation,
-} from '../../../core/Delegation/delegation';
 import {
   ANY_BENEFICIARY,
   BATCH_DEFAULT_MODE,
@@ -32,11 +27,16 @@ import { exactExecution } from '../../../core/Delegation/caveatBuilder/exactExec
 import { limitedCalls } from '../../../core/Delegation/caveatBuilder/limitedCallsBuilder';
 import { specificActionERC20TransferBatch } from '../../../core/Delegation/caveatBuilder/specificActionERC20TransferBatchBuilder';
 import {
+  Delegation,
+  encodeRedeemDelegations,
+} from '../../../core/Delegation/delegation';
+import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
+import {
   RelayStatus,
   RelaySubmitRequest,
   submitRelayTransaction,
   waitForRelayResult,
-} from '../../../core/RPCMethods/transaction-relay';
+} from '../transaction-relay';
 
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second

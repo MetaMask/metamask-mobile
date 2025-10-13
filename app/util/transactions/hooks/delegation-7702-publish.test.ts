@@ -1,5 +1,6 @@
 import { Messenger } from '@metamask/base-controller';
 import { BridgeStatusControllerGetStateAction } from '@metamask/bridge-status-controller';
+import { toHex } from '@metamask/controller-utils';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import {
   KeyringControllerSignEip7702AuthorizationAction,
@@ -11,17 +12,16 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Delegation7702PublishHook } from './delegation-7702-publish';
+import { getDeleGatorEnvironment } from '../../../core/Delegation';
+import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import {
   RelayStatus,
   submitRelayTransaction,
   waitForRelayResult,
-} from '../../../core/RPCMethods/transaction-relay';
-import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
-import { toHex } from '@metamask/controller-utils';
-import { getDeleGatorEnvironment } from '../../../core/Delegation';
+} from '../transaction-relay';
+import { Delegation7702PublishHook } from './delegation-7702-publish';
 
-jest.mock('../../../core/RPCMethods/transaction-relay');
+jest.mock('../transaction-relay');
 jest.mock('../../../core/RPCMethods/lib/transaction/delegation', () => ({
   ...jest.requireActual('../../../core/RPCMethods/lib/transaction/delegation'),
   encodeRedeemDelegations: jest.fn(() => '0xdeadbeef'),
