@@ -70,7 +70,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -87,7 +87,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -135,7 +135,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
@@ -242,7 +242,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -259,7 +259,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -307,7 +307,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
@@ -414,7 +414,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -431,7 +431,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -479,7 +479,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
@@ -586,7 +586,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -603,7 +603,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -651,7 +651,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
@@ -758,7 +758,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -775,7 +775,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -823,7 +823,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
@@ -930,7 +930,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -947,7 +947,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -995,7 +995,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
@@ -1102,7 +1102,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -1119,7 +1119,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -1167,7 +1167,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
@@ -1274,7 +1274,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 "letterSpacing": 0,
                 "lineHeight": 40,
                 "marginBottom": 16,
-                "marginHorizontal": 24,
+                "marginHorizontal": 16,
                 "textAlign": "center",
               }
             }
@@ -1291,7 +1291,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingVertical": 24,
+            "paddingTop": 8,
             "position": "absolute",
             "right": 0,
           }
@@ -1339,7 +1339,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         style={
           {
             "flexDirection": "column",
-            "marginBottom": 20,
+            "marginBottom": 16,
             "marginTop": 16,
             "rowGap": 16,
           }
