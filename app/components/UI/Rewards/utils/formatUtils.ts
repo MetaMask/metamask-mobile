@@ -8,12 +8,17 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
  * @param value - The number to format.
  * @returns The formatted number as a string.
  */
-export const formatNumber = (value: number | null): string => {
+export const formatNumber = (
+  value: number | null,
+  decimals?: number,
+): string => {
   if (value === null || value === undefined) {
     return '0';
   }
   try {
-    return getIntlNumberFormatter(I18n.locale).format(value);
+    return getIntlNumberFormatter(I18n.locale, {
+      maximumFractionDigits: decimals,
+    }).format(value);
   } catch {
     return String(value);
   }
