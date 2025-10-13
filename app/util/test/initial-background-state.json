@@ -650,11 +650,11 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "activeOrders": {},
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "notifications": [],
-    "positions": []
+    "claimTransaction": null,
+    "depositTransaction": null,
+    "isOnboarded": {}
   }
 }

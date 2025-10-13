@@ -3,8 +3,8 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { selectSmartTransactionsEnabled } from '../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../reducers';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { isSendBundleSupported } from '../../../../../core/RPCMethods/sentinel-api';
-import { isRelaySupported } from '../../../../../core/RPCMethods/transaction-relay';
+import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
+import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
 import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
 import { Hex } from '@metamask/utils';
 

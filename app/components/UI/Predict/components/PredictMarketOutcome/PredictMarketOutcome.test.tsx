@@ -3,22 +3,25 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictOutcome } from '../../types';
+import { PredictMarket, PredictOutcome, Recurrence } from '../../types';
 import PredictMarketOutcome from '.';
 
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
-const mockReset = jest.fn();
-const mockUsePredictBuy = jest.fn();
-
-jest.mock('../../hooks/usePredictBuy', () => ({
-  usePredictBuy: () => mockUsePredictBuy(),
-}));
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
+  };
+});
 
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
   marketId: 'test-market-1',
+  providerId: 'test-provider',
   title: 'Will Bitcoin reach $150,000 by end of year?',
   description: 'Bitcoin price prediction market',
   image: 'https://example.com/bitcoin.png',
@@ -41,6 +44,19 @@ const mockOutcome: PredictOutcome = {
   tickSize: '0.01',
 };
 
+const mockMarket: PredictMarket = {
+  id: 'test-market-1',
+  providerId: 'test-provider',
+  slug: 'bitcoin-prediction',
+  title: 'Will Bitcoin reach $150,000 by end of year?',
+  description: 'Bitcoin price prediction market',
+  image: 'https://example.com/bitcoin.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  categories: ['crypto', 'trending'],
+  outcomes: [mockOutcome],
+};
+
 const initialState = {
   engine: {
     backgroundState,
@@ -48,23 +64,15 @@ const initialState = {
 };
 
 describe('PredictMarketOutcome', () => {
-  beforeEach(() => {
-    mockUsePredictBuy.mockReturnValue({
-      reset: mockReset,
-      loading: false,
-      currentOrderParams: null,
-    });
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
     mockAlert.mockClear();
-    mockReset.mockClear();
   });
 
   it('renders market information correctly', () => {
     const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={mockOutcome} />,
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
       { state: initialState },
     );
 
@@ -75,7 +83,7 @@ describe('PredictMarketOutcome', () => {
 
   it('displays correct button labels with prices', () => {
     const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={mockOutcome} />,
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
       { state: initialState },
     );
 
@@ -85,7 +93,7 @@ describe('PredictMarketOutcome', () => {
 
   it('handles button press events', () => {
     const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={mockOutcome} />,
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
       { state: initialState },
     );
 
@@ -93,25 +101,24 @@ describe('PredictMarketOutcome', () => {
     const noButton = getByText('No • 35.00¢');
 
     fireEvent.press(yesButton);
-    fireEvent.press(noButton);
-
-    expect(yesButton).toBeOnTheScreen();
-    expect(noButton).toBeOnTheScreen();
-  });
-
-  it('shows loading state for specific outcome tokens', () => {
-    mockUsePredictBuy.mockReturnValue({
-      reset: mockReset,
-      loading: true,
-      currentOrderParams: { outcomeTokenId: 'token-yes' },
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictPlaceBet',
+      params: {
+        market: mockMarket,
+        outcome: mockOutcome,
+        outcomeToken: mockOutcome.tokens[0],
+      },
     });
 
-    const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={mockOutcome} />,
-      { state: initialState },
-    );
-
-    expect(getByText('No • 35.00¢')).toBeOnTheScreen();
+    fireEvent.press(noButton);
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictPlaceBet',
+      params: {
+        market: mockMarket,
+        outcome: mockOutcome,
+        outcomeToken: mockOutcome.tokens[1],
+      },
+    });
   });
 
   it('handles missing or invalid outcome data gracefully', () => {
@@ -126,7 +133,7 @@ describe('PredictMarketOutcome', () => {
     } as unknown as PredictOutcome;
 
     const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={invalidOutcome} />,
+      <PredictMarketOutcome outcome={invalidOutcome} market={mockMarket} />,
       { state: initialState },
     );
 
@@ -137,7 +144,7 @@ describe('PredictMarketOutcome', () => {
 
   it('displays image when available', () => {
     const { getByTestId } = renderWithProvider(
-      <PredictMarketOutcome outcome={mockOutcome} />,
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
       { state: initialState },
     );
 
@@ -151,18 +158,13 @@ describe('PredictMarketOutcome', () => {
     };
 
     const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={outcomeWithoutImage} />,
+      <PredictMarketOutcome
+        outcome={outcomeWithoutImage}
+        market={mockMarket}
+      />,
       { state: initialState },
     );
 
     expect(getByText('Crypto Markets')).toBeOnTheScreen();
-  });
-
-  it('calls reset when usePredictBuy hook provides onError callback', () => {
-    renderWithProvider(<PredictMarketOutcome outcome={mockOutcome} />, {
-      state: initialState,
-    });
-
-    expect(mockUsePredictBuy).toHaveBeenCalled();
   });
 });
