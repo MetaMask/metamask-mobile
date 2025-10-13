@@ -23,6 +23,7 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
+import { limitToMaximumDecimalPlaces } from '../../../../../util/number';
 import {
   selectSourceAmount,
   selectSelectedDestChainId,
@@ -470,7 +471,11 @@ const BridgeView = () => {
             onInputPress={() => setIsInputFocused(true)}
             onMaxPress={() => {
               if (latestSourceBalance?.displayBalance) {
-                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+                const truncatedAmount = limitToMaximumDecimalPlaces(
+                  parseFloat(latestSourceBalance.displayBalance),
+                  5,
+                );
+                dispatch(setSourceAmount(truncatedAmount));
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}

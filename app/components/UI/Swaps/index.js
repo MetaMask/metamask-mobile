@@ -20,6 +20,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
+  fromTokenMinimalUnitString,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
   weiToFiat,
@@ -47,7 +48,6 @@ import {
   isSwapsNativeAsset,
   isDynamicToken,
   shouldShowMaxBalanceLink,
-  formatMaxBalanceAmount,
 } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
@@ -661,11 +661,12 @@ function SwapsAmountView({
     if (!sourceToken || !balanceAsUnits) {
       return;
     }
-    const maxAmount = formatMaxBalanceAmount(
-      balanceAsUnits,
-      sourceToken.decimals,
+    setAmount(
+      fromTokenMinimalUnitString(
+        balanceAsUnits.toString(10),
+        sourceToken.decimals,
+      ),
     );
-    setAmount(maxAmount);
   }, [balanceAsUnits, sourceToken]);
 
   const handleSlippageChange = useCallback((value) => {

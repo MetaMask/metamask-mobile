@@ -273,14 +273,3 @@ export function shouldShowMaxBalanceLink({
 
   return isTokenEligibleForMaxBalance;
 }
-
-/**
- * Formats max balance amount to a user-friendly display string with max 5 decimals
- * @param {string|object} balanceAsUnits - Balance in token units (BN or string)
- * @param {number} decimals - Token decimals
- * @return {string} Formatted balance string with up to 5 decimals
- */
-export function formatMaxBalanceAmount(balanceAsUnits, decimals) {
-  const { renderFromTokenMinimalUnit } = require('../../../../util/number');
-  return renderFromTokenMinimalUnit(balanceAsUnits, decimals);
-}
