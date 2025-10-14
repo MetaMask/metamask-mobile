@@ -12,7 +12,6 @@ describe(
       jest.setTimeout(150000);
     });
 
-    // eslint-disable-next-line jest/no-disabled-tests
     it('Should sign a message', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();

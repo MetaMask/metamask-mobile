@@ -15,7 +15,6 @@ const IMPORTED_SRP =
 describe(
   SmokeWalletPlatform('Multi-SRP: Exports the correct srp in account actions'),
   () => {
-    // eslint-disable-next-line jest/no-disabled-tests
     it('exports the correct srp for the default hd keyring', async () => {
       await withFixtures(
         {
@@ -32,7 +31,6 @@ describe(
       );
     });
 
-    // eslint-disable-next-line jest/no-disabled-tests
     it('exports the correct srp for the imported hd keyring', async () => {
       await withFixtures(
         {
