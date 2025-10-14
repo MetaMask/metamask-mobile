@@ -37,12 +37,10 @@ import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import { useRewardsIconAnimation } from '../../hooks/useRewardsIconAnimation';
-import Rive, { Alignment, Fit } from 'rive-react-native';
 import { areAddressesEqual } from '../../../../../util/address';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
 
 if (
   Platform.OS === 'android' &&
@@ -111,14 +109,6 @@ const QuoteDetailsCard: React.FC = () => {
     isMultichainAccountsState2Enabled,
   ]);
 
-  // Use custom hook for Rive animation logic
-  const { riveRef } = useRewardsIconAnimation({
-    isRewardsLoading,
-    estimatedPoints,
-    hasRewardsError,
-    shouldShowRewardsRow,
-  });
-
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
@@ -159,13 +149,6 @@ const QuoteDetailsCard: React.FC = () => {
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
   );
-
-  let formattedEstimatedPoints = '';
-  if (hasRewardsError) {
-    formattedEstimatedPoints = strings('bridge.unable_to_load');
-  } else if (estimatedPoints !== null) {
-    formattedEstimatedPoints = intlNumberFormatter.format(estimatedPoints);
-  }
 
   return (
     <Box>
@@ -384,18 +367,16 @@ const QuoteDetailsCard: React.FC = () => {
                   justifyContent={BoxJustifyContent.Center}
                   gap={1}
                 >
-                  <Rive
-                    ref={riveRef}
-                    source={RewardsIconAnimation}
-                    fit={Fit.FitHeight}
-                    alignment={Alignment.CenterRight}
-                    style={styles.riveIcon}
+                  <RewardsAnimations
+                    value={estimatedPoints ?? 0}
+                    state={
+                      isRewardsLoading
+                        ? RewardAnimationState.Loading
+                        : hasRewardsError
+                        ? RewardAnimationState.ErrorState
+                        : RewardAnimationState.Idle
+                    }
                   />
-                  {!isRewardsLoading && (
-                    <Text variant={TextVariant.BodyMD}>
-                      {formattedEstimatedPoints}
-                    </Text>
-                  )}
                 </Box>
               ),
               ...(hasRewardsError && {

@@ -254,9 +254,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                               }
                             }
                             testID="multichain-account-cell-balance"
-                          >
-                            $0.00
-                          </Text>
+                          />
                         </View>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -465,9 +463,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                               }
                             }
                             testID="multichain-account-cell-balance"
-                          >
-                            $0.00
-                          </Text>
+                          />
                         </View>
                       </TouchableOpacity>
                       <TouchableOpacity
