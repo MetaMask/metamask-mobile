@@ -337,19 +337,6 @@ const BuildQuote = () => {
         },
   );
 
-  const displayBalance = useMemo(() => {
-    if (!selectedAddress) return null;
-
-    const isNonEvm = isNonEvmAddress(selectedAddress);
-    const balanceValue = isNonEvm ? balance : addressBalance;
-
-    if (!balanceValue || balanceValue === '0' || balanceValue === '0 ') {
-      return null;
-    }
-
-    return balanceValue;
-  }, [selectedAddress, balance, addressBalance]);
-
   let maxSellAmount = null;
   if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
     maxSellAmount =
@@ -919,10 +906,12 @@ const BuildQuote = () => {
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {displayBalance && (
+                  {selectedAddress && (
                     <>
                       {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                      {displayBalance}
+                      {isNonEvmAddress(selectedAddress)
+                        ? balance
+                        : addressBalance}
                       {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                     </>
                   )}
