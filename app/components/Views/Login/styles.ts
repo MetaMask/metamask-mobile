@@ -1,13 +1,13 @@
 import { Theme } from '@metamask/design-tokens';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles , colors as importedColors } from '../../../styles/common';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
 const styleSheet = (params: { theme: Theme }) => {
   const {
-    theme: { colors },
+    theme: { colors, themeAppearance },
   } = params;
 
   return StyleSheet.create({
@@ -165,6 +165,12 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'flex-start',
       rowGap: 2,
       alignSelf: 'flex-start',
+    },
+    textField: {
+      backgroundColor:
+        themeAppearance === 'dark'
+          ? importedColors.gettingStartedTextColor
+          : importedColors.gettingStartedPageBackgroundColorLightMode,
     },
   });
 };

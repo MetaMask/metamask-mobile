@@ -25,6 +25,9 @@ import {
   TRUE,
 } from '../../../constants/storage';
 import { useMetrics } from '../../hooks/useMetrics';
+import styleSheet from './styles';
+import { colors as importedColors } from '../../../styles/common';
+import { Theme } from '@metamask/design-tokens';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -1328,6 +1331,52 @@ describe('Login', () => {
       expect(mockGoBack).toHaveBeenCalled();
       expect(Authentication.lockApp).not.toHaveBeenCalled();
       expect(result).toBe(false);
+    });
+  });
+
+  describe('Login Styles', () => {
+    it('should return correct textField background color for light theme', () => {
+      // Arrange
+      const mockTheme = {
+        colors: {
+          background: { default: '#FFFFFF' },
+          text: { default: '#000000', alternative: '#666666' },
+          border: { default: '#E5E5E5' },
+          error: { default: '#FF0000' },
+          icon: { default: '#000000' },
+        },
+        themeAppearance: 'light',
+      } as unknown as Theme;
+
+      // Act
+      const styles = styleSheet({ theme: mockTheme });
+
+      // Assert
+      expect(styles.textField.backgroundColor).toBe(
+        importedColors.gettingStartedPageBackgroundColorLightMode,
+      );
+    });
+
+    it('should return correct textField background color for dark theme', () => {
+      // Arrange
+      const mockDarkTheme = {
+        colors: {
+          background: { default: '#000000' },
+          text: { default: '#FFFFFF', alternative: '#CCCCCC' },
+          border: { default: '#333333' },
+          error: { default: '#FF6B6B' },
+          icon: { default: '#FFFFFF' },
+        },
+        themeAppearance: 'dark',
+      } as unknown as Theme;
+
+      // Act
+      const styles = styleSheet({ theme: mockDarkTheme });
+
+      // Assert
+      expect(styles.textField.backgroundColor).toBe(
+        importedColors.gettingStartedTextColor,
+      );
     });
   });
 });

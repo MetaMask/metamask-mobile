@@ -810,6 +810,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   keyboardAppearance={themeAppearance}
                   isDisabled={disabledInput}
                   isError={!!error}
+                  style={styles.textField}
                 />
               </View>
 
