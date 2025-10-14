@@ -5,7 +5,6 @@ import {
   Image,
   Dimensions,
   ImageSourcePropType,
-  Text,
 } from 'react-native';
 import {
   Box,
@@ -59,27 +58,9 @@ const RewardsImageModal: React.FC<RewardsImageModalProps> = ({
             iconName={IconNameDS.Close}
             size={ButtonIconSize.Lg}
             onPress={onClose}
-            twClassName="bg-white/20 rounded-full"
+            twClassName="rounded-full"
           />
         </Box>
-
-        {/* Hidden elements for testing - expose URLs */}
-        {themeImage && (
-          <>
-            <Text
-              testID="modal-light-url"
-              style={tw.style('absolute opacity-0 h-0')}
-            >
-              {themeImage.lightModeUrl}
-            </Text>
-            <Text
-              testID="modal-dark-url"
-              style={tw.style('absolute opacity-0 h-0')}
-            >
-              {themeImage.darkModeUrl}
-            </Text>
-          </>
-        )}
 
         {/* Expanded image */}
         <TouchableOpacity
