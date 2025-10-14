@@ -347,6 +347,30 @@ describe('Delegation 7702 Publish Hook', () => {
     expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
   });
 
+  it('submits request to relay for sponsored flow without gas fee tokens', async () => {
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        isSupported: true,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    const SPONSORED_TX_ID = 'tx-456';
+    const sponsoredTxMeta = {
+      ...TRANSACTION_META_MOCK,
+      id: SPONSORED_TX_ID,
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.swap }],
+      isGasFeeSponsored: true,
+    } as unknown as TransactionMeta;
+
+    await hookClass.getHook()(sponsoredTxMeta, SIGNED_TX_MOCK);
+
+    expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
+  });
+
   it('signs delegation for gasless 7702 swap without gas fee tokens', async () => {
     isAtomicBatchSupportedMock.mockResolvedValueOnce([
       {

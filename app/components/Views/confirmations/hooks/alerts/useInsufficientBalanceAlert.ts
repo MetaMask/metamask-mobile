@@ -43,7 +43,8 @@ export const useInsufficientBalanceAlert = ({
       return [];
     }
 
-    const { txParams, selectedGasFeeToken } = transactionMetadata;
+    const { txParams, selectedGasFeeToken, isGasFeeSponsored } =
+      transactionMetadata;
     const { maxFeePerGas, gas, gasPrice } = txParams;
     const { nativeCurrency } =
       networkConfigurations[transactionMetadata.chainId as Hex];
@@ -64,10 +65,10 @@ export const useInsufficientBalanceAlert = ({
       totalTransactionValueBN,
     );
 
-    const showAlert =
-      hasInsufficientBalance &&
-      (ignoreGasFeeToken || !selectedGasFeeToken) &&
-      !payToken;
+    const skipAlert =
+      ignoreGasFeeToken || !selectedGasFeeToken || isGasFeeSponsored;
+
+    const showAlert = hasInsufficientBalance && skipAlert && !payToken;
 
     if (!showAlert) {
       return [];
