@@ -147,6 +147,25 @@ export class EngineService {
       },
       () => !this.engineInitialized,
     );
+
+    const update_bg_state_cb = (controllerName: string) => {
+      if (!engine.context.KeyringController.metadata.vault) {
+        Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
+      }
+      this.updateBatcher.add(controllerName);
+    };
+
+    BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+      // Skip CronjobController state change events
+      // as they are handled separately in the CronjobControllerStorageManager.
+      // This prevents duplicate updates to the Redux store.
+      if (eventName === 'CronjobController:stateChange') {
+        return;
+      }
+      engine.controllerMessenger.subscribe(eventName, () =>
+        update_bg_state_cb(eventName.split(':')[0]),
+      );
+    });
   };
 
   /**
@@ -183,8 +202,6 @@ export class EngineService {
                   // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
                   UntypedEngine.context[controllerName]?.metadata,
                 );
-
-                this.updateBatcher.add(controllerName);
 
                 await persistController(filteredState, controllerName);
               } catch (error) {
