@@ -9,10 +9,8 @@ import { ControllerInitFunction } from '../../types';
 import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
-
-///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-import { isBitcoinAccountsEnabled } from '../../../../selectors/featureFlagController/addBitcoinAccount';
-///: END:ONLY_INCLUDE_IF
+import { selectIsBitcoinAccountsEnabled } from '../../../../selectors/featureFlagController/bitcoinAccountsEnabled';
+import ReduxService from '../../../redux';
 
 /**
  * Initialize the multichain account service.
@@ -53,10 +51,13 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   });
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  // Set initial Bitcoin provider state using version-aware flag checking
-  // Check bitcoinAccounts flag from remote feature flags with legacy fallback
-  const isEnabled = isBitcoinAccountsEnabled(true); // Will be controlled by Basic Functionality toggle
-  btcProvider.setEnabled(isEnabled);
+  // Bitcoin provider enabled by default when
+  // - bitcoin feature is built
+  // - bitcoinAccounts feature flag is enabled
+  // - Basic Functionality toggle at runtime (same pattern as Solana)
+  if (selectIsBitcoinAccountsEnabled(ReduxService.store.getState())) {
+    btcProvider.setEnabled(true);
+  }
   /// END:ONLY_INCLUDE_IF
 
   // TODO: Move this logic to the SnapKeyring directly.
