@@ -56,8 +56,8 @@ function canonicalize(url: URL): string {
     }
     // CRITICAL: Include normalized sig_params in the signature to prevent tampering
     // Only include params that actually exist in the URL
-    const normalizedSigParams = existingParams.join(',');
-    signedParams.set('sig_params', normalizedSigParams);
+    const rejoinedSigParams = existingParams.join(',');
+    signedParams.set('sig_params', rejoinedSigParams);
 
     signedParams.sort();
     queryString = signedParams.toString();
