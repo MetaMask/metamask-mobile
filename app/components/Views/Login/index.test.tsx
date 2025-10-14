@@ -27,7 +27,7 @@ import {
 import { useMetrics } from '../../hooks/useMetrics';
 import styleSheet from './styles';
 import { colors as importedColors } from '../../../styles/common';
-import { Theme } from '@metamask/design-tokens';
+import { Theme } from '../../../util/theme/models';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -1358,6 +1358,9 @@ describe('Login', () => {
           icon: { default: '#000000' },
         },
         themeAppearance: 'light',
+        typography: {},
+        shadows: {},
+        brandColors: {},
       } as unknown as Theme;
 
       // Act
@@ -1380,6 +1383,9 @@ describe('Login', () => {
           icon: { default: '#FFFFFF' },
         },
         themeAppearance: 'dark',
+        typography: {},
+        shadows: {},
+        brandColors: {},
       } as unknown as Theme;
 
       // Act
