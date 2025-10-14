@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -37,7 +37,7 @@ export const usePerpsDepositStatus = () => {
 
   // Track balance changes to detect when funds are available
   const prevAvailableBalanceRef = useRef<string>('0');
-  const isWaitingForFundsRef = useRef<boolean>(false);
+  const [isWaitingForFunds, setIsWaitingForFunds] = useState<boolean>(false);
   const liveAccountRef = useRef(liveAccount);
 
   // Update the ref whenever liveAccount changes
@@ -72,7 +72,7 @@ export const usePerpsDepositStatus = () => {
     showToast(PerpsToastOptions.accountManagement.deposit.error);
 
     // Stop waiting for funds since there was an error
-    isWaitingForFundsRef.current = false;
+    setIsWaitingForFunds(false);
 
     // Clear the result after showing toast
     const timeoutId = setTimeout(() => {
@@ -132,14 +132,14 @@ export const usePerpsDepositStatus = () => {
         }
 
         // Start monitoring balance changes to detect when funds are available
-        isWaitingForFundsRef.current = true;
+        setIsWaitingForFunds(true);
         prevAvailableBalanceRef.current =
           liveAccountRef.current?.availableBalance || '0';
       }
 
       // Handle transaction failure - stop waiting for funds
       if (transactionMeta.status === TransactionStatus.failed) {
-        isWaitingForFundsRef.current = false;
+        setIsWaitingForFunds(false);
       }
     };
 
@@ -158,7 +158,7 @@ export const usePerpsDepositStatus = () => {
 
   // Monitor balance changes to detect when funds are available
   useEffect(() => {
-    if (!isWaitingForFundsRef.current || !liveAccount) {
+    if (!isWaitingForFunds || !liveAccount) {
       return;
     }
 
@@ -180,7 +180,7 @@ export const usePerpsDepositStatus = () => {
       showToast(PerpsToastOptions.accountManagement.deposit.success(''));
 
       // Stop waiting for funds and clear state
-      isWaitingForFundsRef.current = false;
+      setIsWaitingForFunds(false);
       prevAvailableBalanceRef.current = liveAccount.availableBalance;
 
       // Clear any pending deposit result after a delay
@@ -191,6 +191,7 @@ export const usePerpsDepositStatus = () => {
       }, 500);
     }
   }, [
+    isWaitingForFunds,
     liveAccount,
     showToast,
     PerpsToastOptions.accountManagement.deposit,
@@ -198,6 +199,6 @@ export const usePerpsDepositStatus = () => {
   ]);
 
   return {
-    depositInProgress: !!lastDepositResult || isWaitingForFundsRef.current,
+    depositInProgress: !!lastDepositResult || isWaitingForFunds,
   };
 };
