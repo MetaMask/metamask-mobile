@@ -1,5 +1,6 @@
 // Main exports for Perps module
 export { default as PerpsScreenStack, PerpsModalStack } from './routes';
+export { default as PerpsTutorialCarousel } from './components/PerpsTutorialCarousel';
 export {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,

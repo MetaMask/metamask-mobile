@@ -12,7 +12,6 @@ import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
-import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
@@ -107,15 +106,6 @@ const PerpsScreenStack = () => (
           component={PerpsClosePositionView}
           options={{
             title: strings('perps.close_position.title'),
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name={Routes.PERPS.TUTORIAL}
-          component={PerpsTutorialCarousel}
-          options={{
-            title: 'Tutorial',
             headerShown: false,
           }}
         />
