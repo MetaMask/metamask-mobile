@@ -1,10 +1,7 @@
 import React, { ReactNode } from 'react';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  selectIsTransactionBridgeQuotesLoadingById,
-  selectTransactionBridgeQuotesById,
-} from '../../../../../../core/redux/slices/confirmationMetrics';
+import { selectTransactionBridgeQuotesById } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import Text, {
@@ -22,17 +19,15 @@ import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
 import { SkeletonRow } from '../skeleton-row';
 import { hasTransactionType } from '../../../utils/transaction';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
 
 export function BridgeFeeRow() {
+  const fiatFormatter = useFiatFormatter();
+  const { totalTransactionFeeFormatted } = useTransactionTotalFiat();
+  const { isLoading } = useIsTransactionPayLoading();
+
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { id: transactionId } = transactionMetadata;
-
-  const { totalTransactionFeeFormatted } = useTransactionTotalFiat();
-  const fiatFormatter = useFiatFormatter();
-
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
-  );
 
   const quotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
@@ -40,7 +35,7 @@ export function BridgeFeeRow() {
 
   const hasQuotes = Boolean(quotes?.length);
 
-  if (isQuotesLoading) {
+  if (isLoading) {
     return (
       <>
         <SkeletonRow testId="bridge-fee-row-skeleton" />
