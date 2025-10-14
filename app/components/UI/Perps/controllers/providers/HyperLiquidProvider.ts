@@ -711,17 +711,35 @@ export class HyperLiquidProvider implements IPerpsProvider {
         isBuy: params.isBuy,
         size: formattedSize,
         price: formattedPrice,
-        note: dexName ? 'HIP-3 order - DEX routing TBD' : 'Regular order',
+        note: dexName
+          ? 'HIP-3 order - testing dex field in action'
+          : 'Regular order',
       });
 
-      const result = await exchangeClient.order({
+      // For HIP-3 orders, try adding dex field to action (similar to perpDexClassTransfer)
+      // SDK types don't show this, but it might be supported by the API
+      const orderRequest: Parameters<typeof exchangeClient.order>[0] & {
+        dex?: string;
+      } = {
         orders,
         grouping,
         builder: {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
           f: builderFee,
         },
-      });
+      };
+
+      if (dexName) {
+        orderRequest.dex = dexName;
+        DevLogger.log('Adding dex field to order request (experimental):', {
+          dex: dexName,
+          note: 'Testing if API accepts dex parameter like perpDexClassTransfer does',
+        });
+      }
+
+      const result = await exchangeClient.order(
+        orderRequest as Parameters<typeof exchangeClient.order>[0],
+      );
 
       if (result.status !== 'ok') {
         throw new Error(`Order failed: ${JSON.stringify(result)}`);
