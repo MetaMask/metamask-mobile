@@ -37,6 +37,7 @@ import {
   trace,
   endTrace,
 } from '../../../util/trace';
+import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
@@ -1151,8 +1152,12 @@ describe('ChoosePassword', () => {
     });
 
     it('should start and end tracing on component unmount', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = {
+        traceId: 'setup-attempt-trace-id',
+      } as unknown as Span;
 
       mockTrace.mockReturnValue(mockTraceCtx);
 
@@ -1210,8 +1215,10 @@ describe('ChoosePassword', () => {
     });
 
     it('should trace error when password creation fails', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = undefined;
       const testError = new Error('Password creation failed');
 
       mockTrace.mockReturnValue(mockTraceCtx);
@@ -1346,8 +1353,10 @@ describe('ChoosePassword', () => {
     });
 
     it('should handle successful password creation without error tracing', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = undefined;
 
       mockTrace.mockReturnValue(mockTraceCtx);
 
