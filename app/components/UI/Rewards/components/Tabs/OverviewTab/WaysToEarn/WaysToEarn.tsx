@@ -167,18 +167,13 @@ export const WaysToEarn = () => {
   });
 
   const goToPerps = useCallback(() => {
-    let params: Record<string, string> | null = null;
     if (isFirstTimePerpsUser) {
-      params = {
-        screen: Routes.PERPS.TUTORIAL,
-      };
+      navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
-      params = {
+      navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
-      };
+      });
     }
-
-    navigation.navigate(Routes.PERPS.ROOT, params);
   }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {
@@ -256,7 +251,7 @@ export const WaysToEarn = () => {
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
             <ButtonBase
-              twClassName="h-auto px-4 py-4 bg-inherit"
+              twClassName="h-auto px-4 py-3 bg-inherit"
               onPress={() => handleEarningWayPress(wayToEarn)}
             >
               <Box
