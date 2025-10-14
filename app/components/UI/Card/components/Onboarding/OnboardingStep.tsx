@@ -60,7 +60,7 @@ const OnboardingStep = ({
             </Text>
 
             {/* Form */}
-            <Box twClassName="gap-4">{formFields}</Box>
+            <Box twClassName="gap-4 flex-1">{formFields}</Box>
 
             {/* Actions */}
             <Box twClassName="mt-2">{actions}</Box>

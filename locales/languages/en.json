@@ -5858,13 +5858,29 @@
       },
       "set_phone_number": {
         "title": "Phone number",
-        "description": "Enter your phone number to receive verification codes",
+        "description": "Enter your phone number",
         "phone_number_label": "Phone number",
         "phone_number_placeholder": "Enter your phone number",
         "country_area_code_label": "Country area code",
-        "invalid_phone_number": "Invalid phone number"
+        "invalid_phone_number": "Invalid phone number",
+        "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
       },
-       "continue_button": "Next"
+      "confirm_phone_number":{
+        "title": "Confirm your phone number",
+        "description": "We've sent a confirmation code to: {{phoneNumber}}",
+        "confirm_code_label": "Confirmation code"
+      },
+      "verify_identity": {
+        "title": "Verifying your identity to get your card",
+        "description": "To keep your account secure and comply with regulations, we need to verify your identity.\n\nYou'll need a government-issued ID and a proof of address (like a utility bill or bank statement).\n\nVerification usually takes 5-30 minutes, and we'll notify you as soon as it's complete.",
+        "verify_button": "Verify now with Veriff"
+      },
+      "validating_kyc": {
+        "title": "Validating your KYC..."
+
+      },
+       "continue_button": "Next",
+       "confirm_button": "Confirm"
     },
     "card_home": {
       "error_title": "Can’t fetch data",

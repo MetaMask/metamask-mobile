@@ -13,7 +13,6 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import { Country } from '../../types';
 import { MOCK_COUNTRIES } from './SignUp';
 import SelectComponent from '../../../SelectComponent';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
@@ -29,15 +28,20 @@ const SetPhoneNumber = () => {
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
+    useState<string>('+1');
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const handleContinue = () => {
-    navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER);
+    navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
+      phoneNumber: `${
+        selectedCountryAreaCode ? `${selectedCountryAreaCode} ` : ''
+      }${debouncedPhoneNumber}`,
+    });
   };
 
-  const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country);
+  const handleCountrySelect = (areaCode: string) => {
+    setSelectedCountryAreaCode(areaCode);
   };
 
   const handlePhoneNumberChange = (text: string) => {
@@ -57,8 +61,8 @@ const SetPhoneNumber = () => {
   }, [debouncedPhoneNumber]);
 
   const isDisabled = useMemo(
-    () => !phoneNumber || !selectedCountry || isPhoneNumberError,
-    [phoneNumber, selectedCountry, isPhoneNumberError],
+    () => !phoneNumber || !selectedCountryAreaCode || isPhoneNumberError,
+    [phoneNumber, selectedCountryAreaCode, isPhoneNumberError],
   );
 
   const renderFormFields = () => (
@@ -71,7 +75,7 @@ const SetPhoneNumber = () => {
         <Box twClassName="w-24 border border-solid border-border-default rounded-lg py-1">
           <SelectComponent
             options={selectOptions}
-            selectedValue={selectedCountry}
+            selectedValue={selectedCountryAreaCode}
             onValueChange={handleCountrySelect}
             label={strings(
               'card.card_onboarding.set_phone_number.country_area_code_label',
@@ -110,14 +114,22 @@ const SetPhoneNumber = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-    />
+    <Box twClassName="flex flex-col items-center justify-center gap-2">
+      <Text
+        variant={TextVariant.BodySm}
+        twClassName="text-text-default text-center"
+      >
+        {strings('card.card_onboarding.set_phone_number.legal_terms')}
+      </Text>
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+      />
+    </Box>
   );
 
   return (

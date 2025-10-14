@@ -5,11 +5,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import SignUp from '../components/Onboarding/SignUp';
 import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
 import SetPhoneNumber from '../components/Onboarding/SetPhoneNumber';
+import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
+import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
+import ValidatingKYC from '../components/Onboarding/ValidatingKYC';
 
 // TODO: Import other onboarding components when they are created
-const OnboardingConfirmPhoneNumber = () => null;
-const OnboardingVerifyIdentity = () => null;
-const OnboardingValidatingKyc = () => null;
 const OnboardingPersonalDetails = () => null;
 const OnboardingPhysicalAddress = () => null;
 const OnboardingMailingAddress = () => null;
@@ -44,17 +44,17 @@ const OnboardingNavigator: React.FC = () => (
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
-        component={OnboardingConfirmPhoneNumber}
+        component={ConfirmPhoneNumber}
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
-        component={OnboardingVerifyIdentity}
+        component={VerifyIdentity}
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
-        component={OnboardingValidatingKyc}
+        component={ValidatingKYC}
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
