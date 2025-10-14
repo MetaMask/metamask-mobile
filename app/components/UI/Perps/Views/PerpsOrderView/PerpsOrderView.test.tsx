@@ -69,7 +69,6 @@ import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import PerpsOrderView from './PerpsOrderView';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
