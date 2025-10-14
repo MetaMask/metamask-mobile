@@ -41,8 +41,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
    * Phase 3: Login to a fresh app instance and verify only synced accounts persist
    */
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('syncs new accounts when account sync is enabled and excludes accounts created when sync is disabled', async () => {
+  it('syncs new accounts when account sync is enabled and excludes accounts created when sync is disabled', async () => {
     await withIdentityFixtures(
       {
         userStorageFeatures: [
