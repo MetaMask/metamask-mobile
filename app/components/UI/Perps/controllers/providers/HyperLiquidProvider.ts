@@ -171,17 +171,64 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Build asset ID mapping from market metadata
+   * Build asset ID mapping from market metadata including HIP-3 DEXs
    */
   private async buildAssetMapping(): Promise<void> {
     const infoClient = this.clientService.getInfoClient();
-    const meta = await infoClient.meta();
-    const { coinToAssetId } = buildAssetMapping(meta.universe);
+
+    // Get validator-operated markets
+    const mainMeta = await infoClient.meta();
+    const { coinToAssetId, assetIdToCoin } = buildAssetMapping(
+      mainMeta.universe,
+    );
+
+    let totalAssets = mainMeta.universe.length;
+
+    // Fetch HIP-3 DEXs and their assets
+    try {
+      const perpDexs = await infoClient.perpDexs();
+      DevLogger.log('Building asset mapping for HIP-3 DEXs:', {
+        dexCount: perpDexs.length,
+      });
+
+      for (const dex of perpDexs) {
+        if (!dex) continue;
+
+        try {
+          const dexMeta = await infoClient.meta({ dex: dex.name });
+          const dexMapping = buildAssetMapping(dexMeta.universe);
+
+          // Merge HIP-3 assets into the main mapping
+          dexMapping.coinToAssetId.forEach((assetId, coin) => {
+            coinToAssetId.set(coin, assetId);
+          });
+          dexMapping.assetIdToCoin.forEach((coin, assetId) => {
+            assetIdToCoin.set(assetId, coin);
+          });
+
+          totalAssets += dexMeta.universe.length;
+
+          DevLogger.log(`Added HIP-3 DEX ${dex.name} to asset mapping:`, {
+            dex: dex.name,
+            assetCount: dexMeta.universe.length,
+          });
+        } catch (dexError) {
+          DevLogger.log(
+            `Failed to build asset mapping for HIP-3 DEX ${dex.name}:`,
+            dexError,
+          );
+        }
+      }
+    } catch (error) {
+      DevLogger.log('Failed to fetch HIP-3 DEXs for asset mapping:', error);
+      // Continue with main DEX assets even if HIP-3 fetch fails
+    }
 
     this.coinToAssetId = coinToAssetId;
 
     DevLogger.log('Asset mapping built', {
-      assetCount: meta.universe.length,
+      totalAssets,
+      mainDexAssets: mainMeta.universe.length,
       coins: Array.from(this.coinToAssetId.keys()),
     });
   }
