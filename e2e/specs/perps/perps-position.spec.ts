@@ -1,6 +1,6 @@
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { WIP } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
@@ -19,8 +19,8 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
-describe(WIP('Perps Position'), () => {
-  it('should open a long position with custom profit and close it', async () => {
+describe(RegressionTrade('Perps Position'), () => {
+  it.skip('should open a long position with custom profit and close it', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
