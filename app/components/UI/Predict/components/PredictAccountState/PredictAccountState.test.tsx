@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
-import MarketsWonCard from './MarketsWonCard';
+import MarketsWonCard from './PredictAccountState';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 

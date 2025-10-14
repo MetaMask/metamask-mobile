@@ -1,23 +1,27 @@
-import React from 'react';
 import {
   Box,
-  Text,
-  TextVariant,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
   Button,
   ButtonVariant,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconSize,
-  IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import React, { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { ActivityIndicator } from 'react-native';
-import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { usePredictAccountState } from '../../hooks/usePredictAccountState';
+import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
+import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
+import { PROVIDER_ID } from '../../providers/polymarket/constants';
+import { PredictPosition, PredictPositionStatus } from '../../types';
+import { formatPrice } from '../../utils/format';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
@@ -32,19 +36,33 @@ interface MarketsWonCardProps {
 }
 
 // TODO: rename to something like `PredictPositionsHeader` (given its purpose has evolved)
-const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
-  availableBalance,
-  totalClaimableAmount,
-  onClaimPress,
-  isLoading,
-  address,
-  providerId,
-}) => {
+const PredictAccountState: React.FC<MarketsWonCardProps> = () => {
+  const { address, balance } = usePredictAccountState();
+  const { positions } = usePredictClaimablePositions({
+    loadOnMount: true,
+  });
   const { unrealizedPnL, isFetching: isUnrealizedPnLFetching } =
     useUnrealizedPnL({
       address,
-      providerId,
+      providerId: PROVIDER_ID,
     });
+
+  const wonPositions = useMemo(
+    () =>
+      positions.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ),
+    [positions],
+  );
+
+  const totalClaimableAmount = useMemo(
+    () =>
+      wonPositions.reduce(
+        (sum: number, position: PredictPosition) => sum + position.cashPnl,
+        0,
+      ),
+    [wonPositions],
+  );
 
   const unrealizedAmount = unrealizedPnL?.cashUpnl ?? 0;
   const unrealizedPercent = unrealizedPnL?.percentUpnl ?? 0;
@@ -60,8 +78,7 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
   };
 
   const hasClaimableAmount = totalClaimableAmount !== undefined;
-  const hasAvailableBalance =
-    availableBalance !== undefined && availableBalance > 0;
+  const hasAvailableBalance = balance !== undefined && balance > 0;
   const hasUnrealizedPnL = unrealizedPnL?.cashUpnl !== undefined;
   const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
@@ -71,7 +88,9 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
         <Box twClassName="py-2">
           <Button
             variant={ButtonVariant.Secondary}
-            onPress={onClaimPress}
+            onPress={() => {
+              // TODO: implement claim
+            }}
             twClassName="min-w-full bg-primary-default"
             style={{
               backgroundColor: BUTTON_COLOR, // TODO: update once call pull from a tw class
@@ -88,9 +107,6 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
                   amount: totalClaimableAmount.toFixed(2),
                 })}
               </Text>
-              {isLoading && (
-                <ActivityIndicator size="small" color={IconColor.Alternative} />
-              )}
             </Box>
           </Button>
         </Box>
@@ -130,7 +146,7 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
                   twClassName="text-primary mr-1"
                   testID="claimable-amount"
                 >
-                  ${availableBalance.toFixed(2)}
+                  {formatPrice(balance)}
                 </Text>
                 <Icon
                   name={IconName.ArrowRight}
@@ -186,4 +202,4 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
   );
 };
 
-export default MarketsWonCard;
+export default PredictAccountState;

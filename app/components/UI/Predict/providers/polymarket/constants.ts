@@ -1,5 +1,7 @@
 import { ContractConfig, RoundConfig, TickSize } from './types';
 
+export const PROVIDER_ID = 'polymarket';
+
 export const FEE_PERCENTAGE = 4; // 4%
 export const FEE_COLLECTOR_ADDRESS =
   '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';

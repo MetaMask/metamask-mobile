@@ -1619,6 +1619,9 @@
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
       "button": "Got it"
+    },
+    "deposit": {
+      "in_progress": "Deposit in progress"
     }
   },
   "receive": {

@@ -6,7 +6,7 @@ import { usePredictTrading } from './usePredictTrading';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
-interface UsePredictPositionsOptions {
+interface UsePredictClaimablePositionsOptions {
   /**
    * The provider ID to load positions for
    */
@@ -21,15 +21,6 @@ interface UsePredictPositionsOptions {
    * @default true
    */
   refreshOnFocus?: boolean;
-  /**
-   * The market ID to load positions for
-   */
-  marketId?: string;
-
-  /**
-   * The parameters to load positions for
-   */
-  claimable?: boolean;
 }
 
 interface UsePredictPositionsReturn {
@@ -45,18 +36,12 @@ interface UsePredictPositionsReturn {
  * @param options Configuration options for the hook
  * @returns Positions data and loading utilities
  */
-export function usePredictPositions(
-  options: UsePredictPositionsOptions = {},
+export function usePredictClaimablePositions(
+  options: UsePredictClaimablePositionsOptions = {},
 ): UsePredictPositionsReturn {
-  const {
-    providerId,
-    loadOnMount = true,
-    refreshOnFocus = true,
-    claimable = false,
-    marketId,
-  } = options;
+  const { providerId, loadOnMount = true, refreshOnFocus = true } = options;
 
-  const { getPositions } = usePredictTrading();
+  const { getClaimablePositions } = usePredictTrading();
 
   const [positions, setPositions] = useState<PredictPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,20 +66,17 @@ export function usePredictPositions(
         setError(null);
 
         // Get positions from Predict controller
-        const positionsData = await getPositions({
+        const positionsData = await getClaimablePositions({
           address: selectedInternalAccountAddress,
           providerId,
-          claimable,
-          marketId,
         });
-        const validPositions = positionsData ?? [];
 
-        setPositions(validPositions);
+        setPositions(positionsData);
 
         DevLogger.log('usePredictPositions: Loaded positions', {
-          originalCount: validPositions.length,
-          filteredCount: validPositions.length,
-          positions: validPositions.map((p) => ({
+          originalCount: positionsData.length,
+          filteredCount: positionsData.length,
+          positions: positionsData.map((p) => ({
             size: p.size,
             outcomeId: p.outcomeId,
             outcomeIndex: p.outcomeIndex,
@@ -102,7 +84,6 @@ export function usePredictPositions(
           })),
         });
       } catch (err) {
-        console.log('usePredictPositions: Error loading positions', err);
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to load positions';
         setError(errorMessage);
@@ -112,13 +93,7 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
-    [
-      getPositions,
-      selectedInternalAccountAddress,
-      providerId,
-      claimable,
-      marketId,
-    ],
+    [getClaimablePositions, selectedInternalAccountAddress, providerId],
   );
 
   // Load positions on mount if enabled

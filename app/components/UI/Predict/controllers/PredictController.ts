@@ -32,6 +32,7 @@ import {
   CalculateCashOutAmountsParams,
   CalculateCashOutAmountsResponse,
   GetAccountStateParams,
+  GetClaimablePositionsParams,
   GetMarketsParams,
   GetPositionsParams,
   PlaceOrderParams,
@@ -100,6 +101,9 @@ export type PredictControllerState = {
   // --------------
   // Setup
   isOnboarded: { [address: string]: boolean };
+
+  // Positions management
+  claimablePositions: PredictPosition[];
 };
 
 /**
@@ -112,6 +116,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   claimTransaction: null,
   depositTransaction: null,
   isOnboarded: {},
+  claimablePositions: [],
 });
 
 /**
@@ -124,6 +129,7 @@ const metadata = {
   claimTransaction: { persist: false, anonymous: false },
   depositTransaction: { persist: false, anonymous: false },
   isOnboarded: { persist: true, anonymous: false },
+  claimablePositions: { persist: false, anonymous: false },
 };
 
 /**
@@ -604,6 +610,69 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
+      });
+
+      return positions;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.POSITIONS_FAILED;
+
+      // Update error state but don't modify positions (keep existing data)
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
+  }
+
+  /**
+   * Get user claimable positions
+   */
+  async getClaimablePositions(
+    params: GetClaimablePositionsParams,
+  ): Promise<PredictPosition[]> {
+    try {
+      const { address, providerId } = params;
+      const { AccountsController } = Engine.context;
+
+      const selectedAddress =
+        address ?? AccountsController.getSelectedAccount().address;
+
+      const providerIds = providerId
+        ? [providerId]
+        : Array.from(this.providers.keys());
+
+      if (providerIds.some((id) => !this.providers.has(id))) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const allPositions = await Promise.all(
+        providerIds.map((id: string) =>
+          this.providers.get(id)?.getPositions({
+            ...params,
+            address: selectedAddress,
+            claimable: true,
+          }),
+        ),
+      );
+
+      //TODO: We need to sort the positions after merging them
+      const positions = allPositions
+        .flat()
+        .filter(
+          (position): position is PredictPosition => position !== undefined,
+        );
+
+      // Only update state if the provider call succeeded
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null; // Clear any previous errors
+        state.claimablePositions = positions;
       });
 
       return positions;

@@ -39,6 +39,7 @@ import {
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
+  PROVIDER_ID,
   ROUNDING_CONFIG,
 } from './constants';
 import {
@@ -86,7 +87,7 @@ export type SignTypedMessageFn = (
 ) => Promise<string>;
 
 export class PolymarketProvider implements PredictProvider {
-  readonly providerId = 'polymarket';
+  readonly providerId = PROVIDER_ID;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
