@@ -96,6 +96,10 @@ import { getNftDetectionControllerMessenger } from './nft-detection-controller-m
 import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
 import { getUserStorageControllerMessenger } from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
+import {
+  getEarnControllerInitMessenger,
+  getEarnControllerMessenger,
+} from './earn-controller-messenger';
 
 import {
   getDelegationControllerInitMessenger,
@@ -124,6 +128,10 @@ export const CONTROLLER_MESSENGERS = {
   AssetsContractController: {
     getMessenger: getAssetsContractControllerMessenger,
     getInitMessenger: noop,
+  },
+  EarnController: {
+    getMessenger: getEarnControllerMessenger,
+    getInitMessenger: getEarnControllerInitMessenger,
   },
   TokenListController: {
     getMessenger: getTokenListControllerMessenger,

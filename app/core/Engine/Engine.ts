@@ -122,7 +122,6 @@ import { bridgeControllerInit } from './controllers/bridge-controller/bridge-con
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
@@ -175,6 +174,7 @@ import { smartTransactionsControllerInit } from './controllers/smart-transaction
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { ratesControllerInit } from './controllers/rates-controller-init';
+import { earnControllerInit } from './controllers/earn-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -316,6 +316,7 @@ export class Engine {
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        EarnController: earnControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
         TokenRatesController: tokenRatesControllerInit,
@@ -409,6 +410,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const earnController = controllersByName.EarnController;
     const tokensController = controllersByName.TokensController;
     const tokenBalancesController = controllersByName.TokenBalancesController;
     const tokenRatesController = controllersByName.TokenRatesController;
@@ -522,25 +524,6 @@ export class Engine {
     // Notify Snaps that the app is active when the Engine is initialized.
     this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
-
-    const earnController = new EarnController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'EarnController',
-        allowedEvents: [
-          'AccountTreeController:selectedAccountGroupChange',
-          'TransactionController:transactionConfirmed',
-          'NetworkController:networkDidChange',
-        ],
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ],
-      }),
-      addTransactionFn: transactionController.addTransaction.bind(
-        transactionController,
-      ),
-      selectedNetworkClientId: networkController.state.selectedNetworkClientId,
-    });
 
     this.context = {
       KeyringController: this.keyringController,

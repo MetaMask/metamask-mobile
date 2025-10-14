@@ -710,6 +710,7 @@ export type ControllersToInitialize =
   | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'EarnController'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
