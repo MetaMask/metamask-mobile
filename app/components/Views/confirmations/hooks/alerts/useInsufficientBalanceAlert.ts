@@ -65,10 +65,11 @@ export const useInsufficientBalanceAlert = ({
       totalTransactionValueBN,
     );
 
-    const skipAlert =
-      ignoreGasFeeToken || !selectedGasFeeToken || isGasFeeSponsored;
-
-    const showAlert = hasInsufficientBalance && skipAlert && !payToken;
+    const showAlert =
+      hasInsufficientBalance &&
+      (ignoreGasFeeToken || !selectedGasFeeToken) &&
+      !payToken &&
+      !isGasFeeSponsored;
 
     if (!showAlert) {
       return [];
