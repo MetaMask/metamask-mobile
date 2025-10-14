@@ -1529,7 +1529,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -1580,10 +1580,10 @@
     "market_list": "Market List",
     "market_details": "Market Details",
     "tab": {
-      "no_predictions": "No predictions yet",
-      "no_predictions_description": "Open a prediction to get started.",
-      "explore": "Explore markets",
-      "new_prediction": "New prediction"
+      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
+      "explore": "Browse markets",
+      "new_prediction": "New prediction",
+      "resolved_markets": "Resolved markets"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
@@ -1613,11 +1613,17 @@
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
-    "won_markets_text_singular": "Won {{count}} market",
-    "won_markets_text_plural": "Won {{count}} markets",
+    "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unrealized_pnl_error": "Unable to load",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Receive"
@@ -3091,6 +3097,7 @@
     "tx_review_lending_withdraw": "Lending Withdrawal",
     "tx_review_perps_deposit": "Funded Perps account",
     "tx_review_predict_deposit": "Funded Predict account",
+    "tx_review_predict_claim": "Claimed Predict winnings",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -5405,6 +5412,12 @@
       "save": "Save",
       "title": "Edit approval limit"
     },
+    "predict_claim": {
+      "button_label": "Claim winnings",
+      "summary": "You won",
+      "footer_bottom": "Funds will be added to your available balance",
+      "footer_top": "Winnings from {{count}} markets"
+    },
     "unlimited": "Unlimited",
     "all": "All",
     "none": "None",
@@ -5798,9 +5811,36 @@
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
+      "change_asset": "Change asset",
       "manage_card_options": {
+        "manage_spending_limit": "Manage spending limit",
+        "manage_spending_limit_description_restricted": "Restricted spending limit is on",
+        "manage_spending_limit_description_full": "Full spending access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
+        "advanced_card_management_description": "Detailed transactions, freeze card, and more"
+      }
+    },
+    "card_authentication": {
+      "title": "Log in to your Card account",
+      "location_button_text": "International",
+      "location_button_text_us": "US account",
+      "email_label": "Email",
+      "password_label": "Password",
+      "email_placeholder": "Enter your email address",
+      "password_placeholder": "Enter your password",
+      "login_button": "Log in",
+      "errors": {
+        "invalid_credentials": "Invalid login details",
+        "unknown_error": "Unknown error, please try again later",
+        "email_required": "Email is required",
+        "password_required": "Password is required",
+        "email_invalid": "Invalid email address",
+        "password_invalid": "Invalid password",
+        "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
+        "network_error": "Network error. Please check your connection and try again.",
+        "timeout_error": "Request timed out. Please check your connection and try again.",
+        "server_error": "Server error. Please try again later.",
+        "configuration_error": "Service is temporarily unavailable. Please try again later."
       }
     }
   },
@@ -5985,9 +6025,9 @@
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
 
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6089,6 +6129,16 @@
           "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
           "cta_label": "Add accounts"
         }
+      },
+      "card": {
+        "title": "MetaMask Card",
+        "description": "1 point per $1 spent",
+        "sheet": {
+          "title": "MetaMask Card",
+          "points": "1 point per $1 spent",
+          "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
+          "cta_label": "Manage Card"
+        }
       }
     },
     "referral": {
@@ -6103,6 +6153,14 @@
         "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
+
+    "link_account_group": {
+      "link_account": "Add",
+      "linked_accounts": "Tracked addresses",
+      "link_account_success": "{{accountName}} added successfully",
+      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
+    },
+
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {

@@ -10,7 +10,6 @@ import React, {
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -427,7 +426,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const renderRightContent = (item: PerpsTransaction) => {
     if (item.fill) {
       return (
-        <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodySM}
+          style={item.fill.isPositive ? styles.profitAmount : styles.lossAmount}
+        >
           {item.fill.amount}
         </Text>
       );

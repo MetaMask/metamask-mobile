@@ -1,5 +1,4 @@
 import { captureException, setMeasurement } from '@sentry/react-native';
-import type { Span } from '@sentry/core';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
@@ -403,15 +402,11 @@ class PerpsConnectionManagerClass {
       let traceData: Record<string, string | number | boolean> | undefined;
 
       try {
-        const result = await trace(
-          {
-            name: TraceName.PerpsConnectionEstablishment,
-            id: traceId,
-            op: TraceOperation.PerpsOperation,
-          },
-          async (context) => {
-            const span = context as Span | undefined;
-            DevLogger.log('PerpsConnectionManager: Initializing connection');
+        const traceSpan = trace({
+          name: TraceName.PerpsConnectionEstablishment,
+          id: traceId,
+          op: TraceOperation.PerpsOperation,
+        });
 
             // Stage 1: Initialize providers
             const initStart = performance.now();
@@ -607,17 +602,11 @@ class PerpsConnectionManagerClass {
     this.isConnecting = true;
 
     try {
-      const result = await trace(
-        {
-          name: TraceName.PerpsAccountSwitchReconnection,
-          id: traceId,
-          op: TraceOperation.PerpsOperation,
-        },
-        async (context) => {
-          const span = context as Span | undefined;
-          // Stage 1: Clean up existing connections and clear caches
-          const cleanupStart = performance.now();
-          this.cleanupPreloadedSubscriptions();
+      const traceSpan = trace({
+        name: TraceName.PerpsAccountSwitchReconnection,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+      });
 
           // Clear all cached data from StreamManager to reset UI immediately
           const streamManager = getStreamManagerInstance();
