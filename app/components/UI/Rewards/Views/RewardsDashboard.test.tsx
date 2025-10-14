@@ -51,10 +51,6 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: jest.fn(),
-}));
-
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
@@ -69,7 +65,6 @@ import {
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -90,10 +85,6 @@ const mockSelectHideUnlinkedAccountsBanner =
 const mockSelectHideCurrentAccountNotOptedInBannerArray =
   selectHideCurrentAccountNotOptedInBannerArray as jest.MockedFunction<
     typeof selectHideCurrentAccountNotOptedInBannerArray
-  >;
-const mockSelectSelectedInternalAccount =
-  selectSelectedInternalAccount as jest.MockedFunction<
-    typeof selectSelectedInternalAccount
   >;
 const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
@@ -569,9 +560,7 @@ describe('RewardsDashboard', () => {
     mockSelectHideCurrentAccountNotOptedInBannerArray.mockReturnValue(
       defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray,
     );
-    mockSelectSelectedInternalAccount.mockReturnValue(
-      defaultSelectorValues.selectedAccount,
-    );
+
     mockSelectSelectedAccountGroup.mockReturnValue(
       defaultSelectorValues.selectedAccountGroup,
     );
@@ -600,8 +589,6 @@ describe('RewardsDashboard', () => {
         return defaultSelectorValues.hideUnlinkedAccountsBanner;
       if (selector === selectHideCurrentAccountNotOptedInBannerArray)
         return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-      if (selector === selectSelectedInternalAccount)
-        return defaultSelectorValues.selectedAccount;
       if (selector === selectSelectedAccountGroup)
         return defaultSelectorValues.selectedAccountGroup;
       return undefined;
@@ -880,8 +867,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
         return undefined;
@@ -1040,8 +1025,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectHideUnlinkedAccountsBanner) return true;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
         return undefined;
@@ -1131,8 +1114,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return [{ accountGroupId: 'group-1', hide: true }];
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
         return undefined;
@@ -1288,8 +1269,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
         if (selector === selectSelectedAccountGroup) return null;
         return undefined;
       });
@@ -1323,8 +1302,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
         if (selector === selectSelectedAccountGroup)
           return { ...mockSelectedAccountGroup, id: undefined };
         return undefined;
@@ -1384,8 +1361,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
         if (selector === selectSelectedAccountGroup)
           return { ...mockSelectedAccountGroup, id: undefined };
         return undefined;
