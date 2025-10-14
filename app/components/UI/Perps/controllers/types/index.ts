@@ -144,6 +144,11 @@ export interface MarketInfo {
   onlyIsolated?: true; // HyperLiquid: isolated margin only (optional, only when true)
   isDelisted?: true; // HyperLiquid: delisted status (optional, only when true)
   minimumOrderSize?: number; // Minimum order size in USD (protocol-specific)
+  // HIP-3 (Builder-deployed perpetual) metadata
+  dexName?: string; // Name of the HIP-3 dex this market belongs to (undefined for validator-operated markets)
+  deployer?: string; // Hex address of the HIP-3 deployer (undefined for validator-operated markets)
+  oracleUpdater?: string | null; // Hex address of the oracle updater for HIP-3 markets
+  isHip3?: boolean; // True if this is a HIP-3 (builder-deployed) market
 }
 
 /**
@@ -191,6 +196,18 @@ export interface PerpsMarketData {
    * Current funding rate as decimal (optional, from predictedFundings API)
    */
   fundingRate?: number;
+  /**
+   * HIP-3 DEX name if this is a builder-deployed perpetual (optional)
+   */
+  dexName?: string;
+  /**
+   * HIP-3 deployer address if this is a builder-deployed perpetual (optional)
+   */
+  deployer?: string;
+  /**
+   * True if this is a HIP-3 (builder-deployed) market (optional)
+   */
+  isHip3?: boolean;
 }
 
 export interface ToggleTestnetResult {

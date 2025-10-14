@@ -187,9 +187,18 @@ export function adaptOrderFromSDK(
 /**
  * Transform SDK market info to MetaMask Perps API format
  * @param sdkMarket - Market metadata from HyperLiquid SDK
+ * @param hip3Metadata - Optional HIP-3 metadata for builder-deployed perpetuals
  * @returns MetaMask Perps API market info object
  */
-export function adaptMarketFromSDK(sdkMarket: PerpsUniverse): MarketInfo {
+export function adaptMarketFromSDK(
+  sdkMarket: PerpsUniverse,
+  hip3Metadata?: {
+    dexName: string;
+    deployer: string;
+    oracleUpdater: string | null;
+    isHip3: boolean;
+  },
+): MarketInfo {
   return {
     name: sdkMarket.name,
     szDecimals: sdkMarket.szDecimals,
@@ -197,6 +206,13 @@ export function adaptMarketFromSDK(sdkMarket: PerpsUniverse): MarketInfo {
     marginTableId: sdkMarket.marginTableId,
     onlyIsolated: sdkMarket.onlyIsolated,
     isDelisted: sdkMarket.isDelisted,
+    // Add HIP-3 metadata if provided
+    ...(hip3Metadata && {
+      dexName: hip3Metadata.dexName,
+      deployer: hip3Metadata.deployer,
+      oracleUpdater: hip3Metadata.oracleUpdater,
+      isHip3: hip3Metadata.isHip3,
+    }),
   };
 }
 

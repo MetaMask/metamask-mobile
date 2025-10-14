@@ -7,8 +7,8 @@ index 18b469e..63c6db8 100644
      ],
      '@typescript-eslint/no-non-null-assertion': 'error',
 -    '@typescript-eslint/no-parameter-properties': 'error',
-+    // no-parameter-properties is deprecating for this rule: https://typescript-eslint.io/rules/no-parameter-properties/
-+    '@typescript-eslint/parameter-properties': 'error',
++    // no-parameter-properties is deprecated and not available in this version
++    // '@typescript-eslint/parameter-properties': 'error',
      '@typescript-eslint/no-require-imports': 'error',
      '@typescript-eslint/prefer-for-of': 'error',
      '@typescript-eslint/prefer-function-type': 'error',

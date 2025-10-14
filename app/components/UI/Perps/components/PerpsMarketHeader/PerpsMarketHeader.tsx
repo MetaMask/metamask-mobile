@@ -19,6 +19,7 @@ import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
+import Hip3Badge from '../Hip3Badge';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
@@ -71,6 +72,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           >
             {market.symbol}-USD
           </Text>
+          {market.isHip3 && <Hip3Badge dexName={market.dexName} compact />}
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
         <View style={styles.positionValueRow}>

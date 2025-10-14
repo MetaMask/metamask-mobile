@@ -18,6 +18,7 @@ import {
 } from '../../utils/formatUtils';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import Hip3Badge from '../Hip3Badge';
 import styleSheet from './PerpsMarketRowItem.styles';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 
@@ -122,6 +123,9 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {displayMarket.symbol}
             </Text>
+            {displayMarket.isHip3 && (
+              <Hip3Badge dexName={displayMarket.dexName} compact />
+            )}
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
           <Text

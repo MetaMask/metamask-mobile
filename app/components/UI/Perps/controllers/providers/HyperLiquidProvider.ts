@@ -1510,7 +1510,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get available markets
+   * Get available markets including HIP-3 (builder-deployed) perpetuals
    */
   async getMarkets(): Promise<MarketInfo[]> {
     try {
@@ -1519,10 +1519,59 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
-      const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
 
-      return markets;
+      // Fetch validator-operated markets (default/main DEX)
+      const mainMeta = await infoClient.meta();
+      const mainMarkets = mainMeta.universe.map((asset) =>
+        adaptMarketFromSDK(asset),
+      );
+
+      // Fetch all HIP-3 DEXs
+      let hip3Markets: MarketInfo[] = [];
+      try {
+        const perpDexs = await infoClient.perpDexs();
+        DevLogger.log('Fetched HIP-3 DEXs:', { count: perpDexs.length });
+
+        // For each HIP-3 DEX, fetch its markets
+        for (const dex of perpDexs) {
+          if (!dex) continue; // Skip null entries
+
+          try {
+            const dexMeta = await infoClient.meta({ dex: dex.name });
+            const dexMarkets = dexMeta.universe.map((asset) =>
+              adaptMarketFromSDK(asset, {
+                dexName: dex.name,
+                deployer: dex.deployer,
+                oracleUpdater: dex.oracle_updater,
+                isHip3: true,
+              }),
+            );
+            hip3Markets = hip3Markets.concat(dexMarkets);
+            DevLogger.log(`Fetched markets for HIP-3 DEX ${dex.name}:`, {
+              dex: dex.name,
+              deployer: dex.deployer,
+              marketCount: dexMarkets.length,
+            });
+          } catch (dexError) {
+            DevLogger.log(
+              `Error fetching markets for HIP-3 DEX ${dex.name}:`,
+              dexError,
+            );
+          }
+        }
+      } catch (error) {
+        DevLogger.log('Error fetching HIP-3 DEXs:', error);
+        // Continue with main markets even if HIP-3 fetch fails
+      }
+
+      const allMarkets = [...mainMarkets, ...hip3Markets];
+      DevLogger.log('Total markets fetched:', {
+        main: mainMarkets.length,
+        hip3: hip3Markets.length,
+        total: allMarkets.length,
+      });
+
+      return allMarkets;
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
       return [];
@@ -1530,7 +1579,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get market data with prices, volumes, and 24h changes
+   * Get market data with prices, volumes, and 24h changes including HIP-3 markets
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     try {
@@ -1540,28 +1589,86 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const infoClient = this.clientService.getInfoClient();
 
-      // Fetch all required data in parallel for better performance
-      const [perpsMeta, allMids, predictedFundings] = await Promise.all([
-        infoClient.meta(),
-        infoClient.allMids(),
-        infoClient.predictedFundings(),
-      ]);
+      // Fetch all required data in parallel for better performance - main DEX
+      const [perpsMeta, allMids, predictedFundings, metaAndCtxs] =
+        await Promise.all([
+          infoClient.meta(),
+          infoClient.allMids(),
+          infoClient.predictedFundings(),
+          infoClient.metaAndAssetCtxs(),
+        ]);
 
       if (!perpsMeta?.universe || !allMids) {
         throw new Error('Failed to fetch market data - no data received');
       }
 
-      // Also fetch asset contexts for additional data like volume and previous day prices
-      const metaAndCtxs = await infoClient.metaAndAssetCtxs();
       const assetCtxs = metaAndCtxs?.[1] || [];
 
-      // Transform to UI-friendly format using standalone utility
-      return transformMarketData({
+      // Transform main DEX market data
+      const mainMarketData = transformMarketData({
         universe: perpsMeta.universe,
         assetCtxs,
         allMids,
         predictedFundings,
       });
+
+      // Fetch and transform HIP-3 DEX market data
+      let hip3MarketData: PerpsMarketData[] = [];
+      try {
+        const perpDexs = await infoClient.perpDexs();
+
+        for (const dex of perpDexs) {
+          if (!dex) continue;
+
+          try {
+            // Fetch data for this HIP-3 DEX
+            const [dexMeta, dexAllMids, dexMetaAndCtxs] = await Promise.all([
+              infoClient.meta({ dex: dex.name }),
+              infoClient.allMids({ dex: dex.name }),
+              infoClient.metaAndAssetCtxs(),
+            ]);
+
+            const dexAssetCtxs = dexMetaAndCtxs?.[1] || [];
+
+            // Transform HIP-3 market data and add HIP-3 metadata
+            const dexMarkets = transformMarketData({
+              universe: dexMeta.universe,
+              assetCtxs: dexAssetCtxs,
+              allMids: dexAllMids,
+              predictedFundings, // Use main DEX predicted fundings as fallback
+            });
+
+            // Add HIP-3 metadata to each market
+            const dexMarketsWithHip3 = dexMarkets.map((market) => ({
+              ...market,
+              dexName: dex.name,
+              deployer: dex.deployer,
+              isHip3: true,
+            }));
+
+            hip3MarketData = hip3MarketData.concat(dexMarketsWithHip3);
+            DevLogger.log(`Fetched market data for HIP-3 DEX ${dex.name}:`, {
+              marketCount: dexMarketsWithHip3.length,
+            });
+          } catch (dexError) {
+            DevLogger.log(
+              `Error fetching market data for HIP-3 DEX ${dex.name}:`,
+              dexError,
+            );
+          }
+        }
+      } catch (error) {
+        DevLogger.log('Error fetching HIP-3 market data:', error);
+      }
+
+      const allMarketData = [...mainMarketData, ...hip3MarketData];
+      DevLogger.log('Total market data fetched:', {
+        main: mainMarketData.length,
+        hip3: hip3MarketData.length,
+        total: allMarketData.length,
+      });
+
+      return allMarketData;
     } catch (error) {
       DevLogger.log('Error getting market data with prices:', error);
       return [];

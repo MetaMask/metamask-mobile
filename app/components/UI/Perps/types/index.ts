@@ -31,6 +31,27 @@ export interface HyperliquidAsset {
 }
 
 /**
+ * HIP-3 (Builder-deployed perpetual) DEX metadata
+ * Represents a permissionless perpetual market deployed by a builder
+ */
+export interface PerpDex {
+  /** Short name of the perpetual dex */
+  name: string;
+  /** Complete name of the perpetual dex */
+  full_name: string;
+  /** Hex address of the dex deployer */
+  deployer: string;
+  /** Hex address of the oracle updater, or null if not available */
+  oracle_updater: string | null;
+}
+
+/**
+ * Response type for perpDexs API call
+ * Returns a mapping of dex names to their metadata
+ */
+export type PerpDexs = Record<string, PerpDex>;
+
+/**
  * Represents a single candlestick data point
  */
 export interface CandleStick {
