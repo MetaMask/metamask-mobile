@@ -1,6 +1,6 @@
 import { ContractConfig, RoundConfig, TickSize } from './types';
 
-export const PROVIDER_ID = 'polymarket';
+export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
 export const FEE_PERCENTAGE = 4; // 4%
 export const FEE_COLLECTOR_ADDRESS =

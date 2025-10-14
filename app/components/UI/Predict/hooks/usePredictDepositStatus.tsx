@@ -8,8 +8,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { NotificationFeedbackType } from 'expo-haptics';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -17,6 +16,9 @@ import { ToastVariants } from '../../../../component-library/components/Toast/To
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../reducers';
+import { PredictDepositStatus } from '../types';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -28,9 +30,13 @@ const toastStyles = StyleSheet.create({
 });
 
 export const usePredictDepositStatus = () => {
-  const [isDepositInProgress, setIsDepositInProgress] = useState(false);
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
+
+  const predictDepositTransaction = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PredictController.depositTransaction,
+  );
 
   useEffect(() => {
     const handlePredictDepositTransactionStatusUpdate = ({
@@ -47,7 +53,9 @@ export const usePredictDepositStatus = () => {
 
       // Handle PredictDeposit approved - set deposit in progress
       if (transactionMeta.status === TransactionStatus.approved) {
-        setIsDepositInProgress(true);
+        Engine.context.PredictController.setDepositStatus(
+          PredictDepositStatus.PENDING,
+        );
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
@@ -56,7 +64,7 @@ export const usePredictDepositStatus = () => {
           iconName: IconName.Loading,
           iconColor: theme.colors.accent04.dark,
           backgroundColor: theme.colors.accent04.normal,
-          hapticsType: NotificationFeedbackType.Warning,
+          hasNoTimeout: false,
           startAccessory: (
             <View style={toastStyles?.spinnerContainer}>
               <Spinner
@@ -69,12 +77,16 @@ export const usePredictDepositStatus = () => {
       }
 
       if (transactionMeta.status === TransactionStatus.confirmed) {
-        setIsDepositInProgress(false);
+        Engine.context.PredictController.setDepositStatus(
+          PredictDepositStatus.CONFIRMED,
+        );
       }
 
       // Handle PredictDeposit failed - clear deposit in progress
       if (transactionMeta.status === TransactionStatus.failed) {
-        setIsDepositInProgress(false);
+        Engine.context.PredictController.setDepositStatus(
+          PredictDepositStatus.ERROR,
+        );
       }
     };
 
@@ -89,9 +101,9 @@ export const usePredictDepositStatus = () => {
         handlePredictDepositTransactionStatusUpdate,
       );
     };
-  }, []);
+  }, [theme.colors.accent04.dark, theme.colors.accent04.normal, toastRef]);
 
   return {
-    isDepositInProgress,
+    status: predictDepositTransaction?.status,
   };
 };

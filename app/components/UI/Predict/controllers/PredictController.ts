@@ -32,6 +32,7 @@ import {
   CalculateCashOutAmountsParams,
   CalculateCashOutAmountsResponse,
   GetAccountStateParams,
+  GetBalanceParams,
   GetClaimablePositionsParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -981,6 +982,29 @@ export class PredictController extends BaseController<
     return provider.getAccountState({
       ...params,
       ownerAddress: selectedAddress,
+    });
+  }
+
+  public async getBalance(params: GetBalanceParams): Promise<number> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+    const { AccountsController } = Engine.context;
+    const selectedAddress = AccountsController.getSelectedAccount().address;
+    return provider.getBalance({
+      ...params,
+      address: params.address ?? selectedAddress,
+    });
+  }
+
+  public setDepositStatus(status: PredictDepositStatus): void {
+    this.update((state) => {
+      if (!state.depositTransaction) return;
+      state.depositTransaction = {
+        ...state.depositTransaction,
+        status,
+      };
     });
   }
 }

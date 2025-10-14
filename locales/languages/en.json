@@ -1621,7 +1621,10 @@
       "button": "Got it"
     },
     "deposit": {
-      "in_progress": "Deposit in progress"
+      "in_progress": "Deposit in progress",
+      "adding_funds": "Adding your funds",
+      "add_funds": "Add funds",
+      "withdraw": "Withdraw"
     }
   },
   "receive": {

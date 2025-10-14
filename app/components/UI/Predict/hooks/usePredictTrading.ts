@@ -3,6 +3,7 @@ import Engine from '../../../../core/Engine';
 import {
   CalculateBetAmountsParams,
   CalculateCashOutAmountsParams,
+  GetBalanceParams,
   GetClaimablePositionsParams,
   GetPositionsParams,
   PlaceOrderParams,
@@ -49,6 +50,11 @@ export function usePredictTrading() {
     [],
   );
 
+  const getBalance = useCallback(async (params: GetBalanceParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.getBalance(params);
+  }, []);
+
   return {
     getPositions,
     getClaimablePositions,
@@ -56,5 +62,6 @@ export function usePredictTrading() {
     claim,
     calculateBetAmounts,
     calculateCashOutAmounts,
+    getBalance,
   };
 }

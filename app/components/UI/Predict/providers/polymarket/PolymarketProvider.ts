@@ -27,6 +27,7 @@ import {
   CalculateCashOutAmountsResponse,
   ClaimOrderParams,
   ClaimOrderResponse,
+  GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
   PlaceOrderParams,
@@ -39,7 +40,7 @@ import {
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
-  PROVIDER_ID,
+  POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
 } from './constants';
 import {
@@ -87,7 +88,7 @@ export type SignTypedMessageFn = (
 ) => Promise<string>;
 
 export class PolymarketProvider implements PredictProvider {
-  readonly providerId = PROVIDER_ID;
+  readonly providerId = POLYMARKET_PROVIDER_ID;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
@@ -627,17 +628,15 @@ export class PolymarketProvider implements PredictProvider {
     const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
     const address =
       cachedAddress?.address ?? (await computeSafeAddress(ownerAddress));
-    const [isDeployed, hasAllowancesResult, balance] = await Promise.all([
+    const [isDeployed, hasAllowancesResult] = await Promise.all([
       isSmartContractAddress(address, numberToHex(POLYGON_MAINNET_CHAIN_ID)),
       hasAllowances({ address }),
-      getBalance({ address }),
     ]);
 
     const accountState = {
       address,
       isDeployed,
       hasAllowances: hasAllowancesResult,
-      balance,
     };
 
     this.#accountStateByAddress.set(ownerAddress, accountState);
@@ -645,8 +644,14 @@ export class PolymarketProvider implements PredictProvider {
     return accountState;
   }
 
-  public async getBalance(): Promise<number> {
-    // TODO: Implement this
-    return 0;
+  public async getBalance({ address }: GetBalanceParams): Promise<number> {
+    if (!address) {
+      throw new Error('address is required');
+    }
+    const cachedAddress = this.#accountStateByAddress.get(address);
+    const predictAddress =
+      cachedAddress?.address ?? (await computeSafeAddress(address));
+    const balance = await getBalance({ address: predictAddress });
+    return balance;
   }
 }

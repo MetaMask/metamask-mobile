@@ -24,11 +24,12 @@ import Skeleton from '../../../../../component-library/components/Skeleton/Skele
 import { usePredictAccountState } from '../../hooks/usePredictAccountState';
 import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
-import { PROVIDER_ID } from '../../providers/polymarket/constants';
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { TouchableOpacity } from 'react-native';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
@@ -39,7 +40,11 @@ export interface PredictAccountStateHandle {
 
 // TODO: rename to something like `PredictPositionsHeader` (given its purpose has evolved)
 const PredictAccountState = forwardRef<PredictAccountStateHandle>((_, ref) => {
-  const { address, balance, loadAccountState } = usePredictAccountState();
+  const { address, loadAccountState } = usePredictAccountState();
+  const { balance } = usePredictBalance({
+    loadOnMount: true,
+    refreshOnFocus: true,
+  });
   const { positions } = usePredictClaimablePositions({
     loadOnMount: true,
   });
@@ -49,7 +54,7 @@ const PredictAccountState = forwardRef<PredictAccountStateHandle>((_, ref) => {
     refetch,
   } = useUnrealizedPnL({
     address,
-    providerId: PROVIDER_ID,
+    providerId: POLYMARKET_PROVIDER_ID,
   });
   const { deposit } = usePredictDeposit();
 

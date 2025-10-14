@@ -1,20 +1,29 @@
 import { useCallback, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
 import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
+import { usePredictEligibility } from './usePredictEligibility';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { PredictNavigationParamList } from '../types/navigation';
 
 interface UsePredictDepositParams {
   providerId?: string;
+  fromPredictView?: boolean;
 }
 
 export const usePredictDeposit = ({
   providerId = 'polymarket',
+  fromPredictView = false,
 }: UsePredictDepositParams = {}) => {
   const { navigateToConfirmation } = useConfirmNavigation();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { isEligible } = usePredictEligibility({
+    providerId,
+  });
 
   const selectDepositTransaction = createSelector(
     (state: RootState) => state.engine.backgroundState.PredictController,
@@ -40,10 +49,16 @@ export const usePredictDeposit = ({
   }, [depositTransaction]);
 
   const deposit = useCallback(async () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
     try {
       navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.PREDICT.ROOT,
+        stack: fromPredictView ? undefined : Routes.PREDICT.ROOT,
       });
 
       Engine.context.PredictController.depositWithConfirmation({
@@ -54,7 +69,13 @@ export const usePredictDeposit = ({
     } catch (err) {
       console.error('Failed to proceed with deposit:', err);
     }
-  }, [navigateToConfirmation, providerId]);
+  }, [
+    fromPredictView,
+    isEligible,
+    navigateToConfirmation,
+    navigation,
+    providerId,
+  ]);
 
   return {
     deposit,
