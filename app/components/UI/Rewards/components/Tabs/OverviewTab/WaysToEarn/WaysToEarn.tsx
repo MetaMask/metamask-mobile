@@ -27,6 +27,7 @@ import {
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
+import { selectRewardsCardSpendFeatureFlags } from '../../../../../../../selectors/featureFlagController/rewards';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -180,6 +181,7 @@ const getBottomSheetData = (type: WayToEarnType) => {
 export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
@@ -271,7 +273,11 @@ export const WaysToEarn = () => {
       <Box twClassName="rounded-xl bg-muted">
         <FlatList
           horizontal={false}
-          data={waysToEarn}
+          data={
+            isCardSpendEnabled
+              ? waysToEarn
+              : waysToEarn.filter((way) => way.type !== WayToEarnType.CARD)
+          }
           keyExtractor={(wayToEarn) => wayToEarn.title}
           ItemSeparatorComponent={Separator}
           scrollEnabled={false}
