@@ -1,28 +1,25 @@
 import { IConnectionStore } from '../types/connection-store';
 import { ConnectionInfo } from '../types/connection-info';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 import logger from '../services/logger';
 
 /**
  * An implementation of IConnectionStore to persist
  * the metadata of established dApp connections.
- * Uses StorageWrapper for better performance, with fallback to AsyncStorage
- * for batch operations (getAllKeys, multiGet) that aren't available in StorageWrapper.
+ * This implementation maintains an index of all connection IDs
+ * in a separate key, allowing listing without scanning all storage keys.
  */
 export class ConnectionStore implements IConnectionStore {
   private readonly prefix: string;
+  private readonly indexKey: string;
 
   constructor(prefix: string) {
     this.prefix = prefix;
+    this.indexKey = `${prefix}_index`;
   }
 
   private getKey(id: string): string {
     return `${this.prefix}/${id}`;
-  }
-
-  private extractId(key: string): string {
-    return key.replace(this.prefix + '/', '');
   }
 
   /**
@@ -64,6 +61,14 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async save(connection: ConnectionInfo): Promise<void> {
+    const indexJson = await StorageWrapper.getItem(this.indexKey);
+    const index = indexJson ? (JSON.parse(indexJson) as string[]) : [];
+
+    if (!index.includes(connection.id)) {
+      index.push(connection.id);
+      await StorageWrapper.setItem(this.indexKey, JSON.stringify(index));
+    }
+
     await StorageWrapper.setItem(
       this.getKey(connection.id),
       JSON.stringify(connection),
@@ -76,25 +81,25 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async list(): Promise<ConnectionInfo[]> {
-    const keys = await AsyncStorage.getAllKeys();
-    const connectionKeys = keys.filter((key) => key.startsWith(this.prefix));
+    const indexJson = await StorageWrapper.getItem(this.indexKey);
+    if (!indexJson) return [];
 
-    if (connectionKeys.length === 0) {
-      return [];
-    }
+    const connectionIds = JSON.parse(indexJson) as string[];
+    if (connectionIds.length === 0) return [];
 
-    const items = await AsyncStorage.multiGet(connectionKeys);
+    const promises = connectionIds.map((id) => this.get(id));
+    const results = await Promise.all(promises);
 
-    const connInfos = await Promise.all(
-      items.map(([key, json]) =>
-        this.toConnectionInfo(this.extractId(key), json),
-      ),
-    );
-
-    return connInfos.filter((conn): conn is ConnectionInfo => conn !== null);
+    return results.filter((conn): conn is ConnectionInfo => conn !== null);
   }
 
   async delete(id: string): Promise<void> {
+    const indexJson = await StorageWrapper.getItem(this.indexKey);
+    const index = indexJson ? (JSON.parse(indexJson) as string[]) : [];
+
+    const newIndex = index.filter((existingId) => existingId !== id);
+    await StorageWrapper.setItem(this.indexKey, JSON.stringify(newIndex));
+
     await StorageWrapper.removeItem(this.getKey(id));
   }
 }

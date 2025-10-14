@@ -1,9 +1,7 @@
 import { ConnectionStore } from './connection-store';
 import { ConnectionInfo } from '../types/connection-info';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 
-jest.mock('@react-native-async-storage/async-storage');
 jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
@@ -44,8 +42,17 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
     };
 
+    // Mock index as empty initially
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(null);
+
     await store.save(connection);
 
+    // Should update the index
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+      'test-prefix_index',
+      JSON.stringify(['test-id']),
+    );
+    // Should save the connection data
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       'test-prefix/test-id',
       JSON.stringify(connection),
@@ -106,14 +113,20 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() - 1000, // Already expired
     };
 
-    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
-      JSON.stringify(expiredConnection),
-    );
+    // First call for getting the connection, second call for reading index during delete
+    (StorageWrapper.getItem as jest.Mock)
+      .mockResolvedValueOnce(JSON.stringify(expiredConnection))
+      .mockResolvedValueOnce(JSON.stringify(['expired-id']));
 
     const result = await store.get('expired-id');
 
     expect(StorageWrapper.getItem).toHaveBeenCalledWith(
       'test-prefix/expired-id',
+    );
+    // Should update index to remove the expired connection
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+      'test-prefix_index',
+      JSON.stringify([]),
     );
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       'test-prefix/expired-id',
@@ -122,14 +135,20 @@ describe('ConnectionStore', () => {
   });
 
   it('should return null and delete corrupted connection data', async () => {
-    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
-      'invalid json data',
-    );
+    // First call for getting the connection, second call for reading index during delete
+    (StorageWrapper.getItem as jest.Mock)
+      .mockResolvedValueOnce('invalid json data')
+      .mockResolvedValueOnce(JSON.stringify(['corrupted-id']));
 
     const result = await store.get('corrupted-id');
 
     expect(StorageWrapper.getItem).toHaveBeenCalledWith(
       'test-prefix/corrupted-id',
+    );
+    // Should update index to remove the corrupted connection
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+      'test-prefix_index',
+      JSON.stringify([]),
     );
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       'test-prefix/corrupted-id',
@@ -157,34 +176,28 @@ describe('ConnectionStore', () => {
       },
     ];
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
-      'test-prefix/id1',
-      'test-prefix/id2',
-      'other-prefix/id3',
-    ]);
-
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
-      ['test-prefix/id1', JSON.stringify(connections[0])],
-      ['test-prefix/id2', JSON.stringify(connections[1])],
-    ]);
+    // Mock the index retrieval
+    (StorageWrapper.getItem as jest.Mock)
+      .mockResolvedValueOnce(JSON.stringify(['id1', 'id2']))
+      .mockResolvedValueOnce(JSON.stringify(connections[0]))
+      .mockResolvedValueOnce(JSON.stringify(connections[1]));
 
     const result = await store.list();
 
-    expect(AsyncStorage.getAllKeys).toHaveBeenCalled();
-    expect(AsyncStorage.multiGet).toHaveBeenCalledWith([
-      'test-prefix/id1',
-      'test-prefix/id2',
-    ]);
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-prefix_index');
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-prefix/id1');
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-prefix/id2');
     expect(result).toEqual(connections);
   });
 
   it('should return empty array when no connections exist', async () => {
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([]);
+    // Mock empty index
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(null);
 
     const result = await store.list();
 
     expect(result).toEqual([]);
-    expect(AsyncStorage.multiGet).not.toHaveBeenCalled();
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-prefix_index');
   });
 
   it('should filter out expired connections from list', async () => {
@@ -206,23 +219,24 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() - 1000, // Already expired
     };
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
-      'test-prefix/valid-id',
-      'test-prefix/expired-id',
-    ]);
-
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
-      ['test-prefix/valid-id', JSON.stringify(validConnection)],
-      ['test-prefix/expired-id', JSON.stringify(expiredConnection)],
-    ]);
+    // Mock: index, valid connection, expired connection, index during delete
+    (StorageWrapper.getItem as jest.Mock)
+      .mockResolvedValueOnce(JSON.stringify(['valid-id', 'expired-id']))
+      .mockResolvedValueOnce(JSON.stringify(validConnection))
+      .mockResolvedValueOnce(JSON.stringify(expiredConnection))
+      .mockResolvedValueOnce(JSON.stringify(['valid-id', 'expired-id']));
 
     const result = await store.list();
 
     expect(result).toEqual([validConnection]);
+    // Should update index to remove expired connection
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+      'test-prefix_index',
+      JSON.stringify(['valid-id']),
+    );
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       'test-prefix/expired-id',
     );
-    expect(StorageWrapper.removeItem).toHaveBeenCalledTimes(1);
   });
 
   it('should filter out corrupted connections from list', async () => {
@@ -235,28 +249,39 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() + 1000 * 60 * 60, // Valid for 1 hour
     };
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
-      'test-prefix/valid-id',
-      'test-prefix/corrupted-id',
-    ]);
-
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
-      ['test-prefix/valid-id', JSON.stringify(validConnection)],
-      ['test-prefix/corrupted-id', 'invalid json'],
-    ]);
+    // Mock: index, valid connection, corrupted connection, index during delete
+    (StorageWrapper.getItem as jest.Mock)
+      .mockResolvedValueOnce(JSON.stringify(['valid-id', 'corrupted-id']))
+      .mockResolvedValueOnce(JSON.stringify(validConnection))
+      .mockResolvedValueOnce('invalid json')
+      .mockResolvedValueOnce(JSON.stringify(['valid-id', 'corrupted-id']));
 
     const result = await store.list();
 
     expect(result).toEqual([validConnection]);
+    // Should update index to remove corrupted connection
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+      'test-prefix_index',
+      JSON.stringify(['valid-id']),
+    );
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       'test-prefix/corrupted-id',
     );
-    expect(StorageWrapper.removeItem).toHaveBeenCalledTimes(1);
   });
 
   it('should delete a connection', async () => {
+    // Mock the index containing the connection to delete
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
+      JSON.stringify(['test-id']),
+    );
+
     await store.delete('test-id');
 
+    // Should update index to remove the connection
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+      'test-prefix_index',
+      JSON.stringify([]),
+    );
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       'test-prefix/test-id',
     );
@@ -281,18 +306,15 @@ describe('ConnectionStore', () => {
       expiresAt: Date.now() - 1000,
     };
 
-    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
-      'test-prefix/valid-id',
-      'test-prefix/expired-id',
-    ]);
+    // Mock: index, valid connection, expired connection, index during delete
+    (StorageWrapper.getItem as jest.Mock)
+      .mockResolvedValueOnce(JSON.stringify(['valid-id', 'expired-id']))
+      .mockResolvedValueOnce(JSON.stringify(validConnection))
+      .mockResolvedValueOnce(JSON.stringify(expiredConnection))
+      .mockResolvedValueOnce(JSON.stringify(['valid-id', 'expired-id']));
 
-    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
-      ['test-prefix/valid-id', JSON.stringify(validConnection)],
-      ['test-prefix/expired-id', JSON.stringify(expiredConnection)],
-    ]);
-
-    // Simulate delete error
-    (StorageWrapper.removeItem as jest.Mock).mockRejectedValueOnce(
+    // Simulate delete error (setItem fails when updating index)
+    (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
       new Error('Delete failed'),
     );
 
@@ -300,8 +322,5 @@ describe('ConnectionStore', () => {
     const result = await store.list();
 
     expect(result).toEqual([validConnection]);
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-      'test-prefix/expired-id',
-    );
   });
 });

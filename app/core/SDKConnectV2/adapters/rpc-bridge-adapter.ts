@@ -8,7 +8,6 @@ import { ImageSourcePropType } from 'react-native';
 import { ConnectionInfo } from '../types/connection-info';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
-import Logger from '../../../util/Logger';
 import { JsonRpcRequest } from '@metamask/utils';
 
 export class RPCBridgeAdapter
