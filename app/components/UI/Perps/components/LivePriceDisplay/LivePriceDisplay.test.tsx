@@ -8,7 +8,6 @@ import {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 
-// Mock dependencies
 jest.mock('../../hooks/stream');
 jest.mock('../../utils/formatUtils');
 
