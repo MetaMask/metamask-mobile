@@ -353,7 +353,7 @@ const BridgeView = () => {
       );
     }
 
-    if (isLoading) {
+    if (isLoading && !activeQuote) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Alternative}>
@@ -508,7 +508,7 @@ const BridgeView = () => {
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
-            isLoading={isLoading}
+            isLoading={!destTokenAmount && isLoading}
             style={styles.destTokenArea}
           />
         </Box>
