@@ -1,0 +1,23 @@
+diff --git a/node_modules/@deeeed/hyperliquid-node20/esm/src/signing/_sorter.js b/node_modules/@deeeed/hyperliquid-node20/esm/src/signing/_sorter.js
+index 1234567..abcdefg 100644
+--- a/node_modules/@deeeed/hyperliquid-node20/esm/src/signing/_sorter.js
++++ b/node_modules/@deeeed/hyperliquid-node20/esm/src/signing/_sorter.js
+@@ -256,12 +256,16 @@ export const actionSorter = {
+             }),
+             grouping: action.grouping,
+             builder: action.builder
+                 ? {
+                     b: action.builder.b.toLowerCase(),
+                     f: action.builder.f,
+                 }
+                 : action.builder,
++            dex: action.dex, // Support HIP-3 DEX routing
+         };
+         if (sortedAction.builder === undefined)
+             delete sortedAction.builder;
++        if (sortedAction.dex === undefined)
++            delete sortedAction.dex;
+         return sortedAction;
+     },
+     perpDeploy: (action) => {
+
