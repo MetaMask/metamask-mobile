@@ -30,6 +30,7 @@ const tags = {
   FlaskBuildTests: 'FlaskBuildTests:',
   performance: 'Performance:',
   smokeCard: 'SmokeCard:',
+  wip: 'WIP:',
 };
 
 const RegressionAccounts = (testName) =>
@@ -80,6 +81,7 @@ const RegressionWalletUX = (testName) =>
   `${tags.regressionWalletUX} ${testName}`;
 const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
 const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
+const WIP = (testName) => `${tags.wip} ${testName}`;
 
 export {
   FlaskBuildTests,
@@ -113,5 +115,6 @@ export {
   SmokeCard,
   SmokeWalletUX,
   RegressionWalletUX,
+  WIP,
   tags,
 };
