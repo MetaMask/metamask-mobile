@@ -11,6 +11,9 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { NotificationFeedbackType } from 'expo-haptics';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -83,11 +86,79 @@ describe('usePerpsDepositStatus', () => {
     mockPerpsToastOptions = {
       accountManagement: {
         deposit: {
-          success: jest.fn(() => ({ success: true })),
-          error: { error: true },
-          inProgress: jest.fn(() => ({ inProgress: true })),
+          success: jest.fn(() => ({
+            variant: ToastVariants.Icon,
+            iconName: IconName.CheckBold,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Deposit successful', isBold: true },
+              { label: 'Your deposit has been processed' },
+            ],
+            hapticsType: NotificationFeedbackType.Success,
+          })),
+          error: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Deposit failed', isBold: true },
+              { label: 'Your deposit could not be processed' },
+            ],
+            hapticsType: NotificationFeedbackType.Error,
+          },
+          inProgress: jest.fn(() => ({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Loading,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Deposit in progress', isBold: true },
+              { label: 'Processing your deposit...' },
+            ],
+            hapticsType: NotificationFeedbackType.Success,
+          })),
+        },
+        withdrawal: {
+          withdrawalInProgress: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Loading,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Withdrawal in progress', isBold: true },
+              { label: 'Processing your withdrawal...' },
+            ],
+            hapticsType: NotificationFeedbackType.Success,
+          },
+          withdrawalSuccess: jest.fn(() => ({
+            variant: ToastVariants.Icon,
+            iconName: IconName.CheckBold,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Withdrawal successful', isBold: true },
+              { label: 'Your withdrawal has been processed' },
+            ],
+            hapticsType: NotificationFeedbackType.Success,
+          })),
+          withdrawalFailed: jest.fn(() => ({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Withdrawal failed', isBold: true },
+              { label: 'Your withdrawal could not be processed' },
+            ],
+            hapticsType: NotificationFeedbackType.Error,
+          })),
         },
       },
+      // Add minimal stubs for other required properties
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      orderManagement: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      positionManagement: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      formValidation: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dataFetching: {} as any,
     };
 
     mockUsePerpsToasts.mockReturnValue({
@@ -168,7 +239,16 @@ describe('usePerpsDepositStatus', () => {
         transactionHandler({ transactionMeta });
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({ inProgress: true });
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Loading,
+        hasNoTimeout: false,
+        labelOptions: [
+          { label: 'Deposit in progress', isBold: true },
+          { label: 'Processing your deposit...' },
+        ],
+        hapticsType: NotificationFeedbackType.Success,
+      });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id');
@@ -187,7 +267,16 @@ describe('usePerpsDepositStatus', () => {
         transactionHandler({ transactionMeta });
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({ inProgress: true });
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Loading,
+        hasNoTimeout: false,
+        labelOptions: [
+          { label: 'Deposit in progress', isBold: true },
+          { label: 'Processing your deposit...' },
+        ],
+        hapticsType: NotificationFeedbackType.Success,
+      });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id');
@@ -297,7 +386,16 @@ describe('usePerpsDepositStatus', () => {
 
       rerender({});
 
-      expect(mockShowToast).toHaveBeenCalledWith({ success: true });
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.CheckBold,
+        hasNoTimeout: false,
+        labelOptions: [
+          { label: 'Deposit successful', isBold: true },
+          { label: 'Your deposit has been processed' },
+        ],
+        hapticsType: NotificationFeedbackType.Success,
+      });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
       ).toHaveBeenCalledWith('');
@@ -387,7 +485,16 @@ describe('usePerpsDepositStatus', () => {
 
       renderHook(() => usePerpsDepositStatus());
 
-      expect(mockShowToast).toHaveBeenCalledWith({ error: true });
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        hasNoTimeout: false,
+        labelOptions: [
+          { label: 'Deposit failed', isBold: true },
+          { label: 'Your deposit could not be processed' },
+        ],
+        hapticsType: NotificationFeedbackType.Error,
+      });
     });
 
     it('should not show error toast when lastDepositResult indicates success', () => {
