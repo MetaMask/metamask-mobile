@@ -17,8 +17,10 @@ import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
 
 export function TransactionDetailsStatusIcon({
+  isBridgeReceive,
   transactionMeta,
 }: {
+  isBridgeReceive?: boolean;
   transactionMeta: TransactionMeta;
 }) {
   const { status: statusRaw } = transactionMeta;
@@ -27,9 +29,10 @@ export function TransactionDetailsStatusIcon({
     evmTxMeta: transactionMeta,
   });
 
-  const status = bridgeTxHistoryItem
-    ? getBridgeStatus(bridgeTxHistoryItem)
-    : statusRaw;
+  const status =
+    bridgeTxHistoryItem && isBridgeReceive
+      ? getBridgeStatus(bridgeTxHistoryItem)
+      : statusRaw;
 
   const iconName = getStatusIcon(status);
   const iconColour = getStatusColour(status);
@@ -75,7 +78,7 @@ function getStatusIcon(status: TransactionStatus): IconName | undefined {
   }
 }
 
-function getStatusColour(status: TransactionStatus): IconColor {
+export function getStatusColour(status: TransactionStatus): IconColor {
   switch (status) {
     case TransactionStatus.confirmed:
       return IconColor.Success;

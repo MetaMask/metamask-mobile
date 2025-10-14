@@ -15,6 +15,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { StatusTypes } from '@metamask/bridge-controller';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { useNetworkName } from '../../../hooks/useNetworkName';
+import { Hex } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
 
@@ -22,6 +24,7 @@ jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../../../../selectors/bridgeStatusController');
+jest.mock('../../../hooks/useNetworkName');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -35,9 +38,16 @@ const REQUIRED_TRANSACTION_ID_2_MOCK = '789-012';
 const SYMBOL_MOCK = 'TST1';
 const SYMBOL_2_MOCK = 'TST2';
 const BATCH_ID_MOCK = '0x123';
+const SOURCE_NETWORK_NAME_MOCK = 'Source Network';
+const TARGET_NETWORK_NAME_MOCK = 'Target Network';
+const SOURCE_CHAIN_ID_MOCK = '0x1' as Hex;
+const TARGET_CHAIN_ID_MOCK = '0x2' as Hex;
+const COMPLETION_TIME_MOCK = 1755819285723;
+const RECEIVE_HASH_MOCK = '0x456' as Hex;
 
 const TRANSACTION_META_MOCK = {
   id: transactionIdMock,
+  chainId: SOURCE_CHAIN_ID_MOCK,
   submittedTime: 1755719285723,
 };
 
@@ -65,6 +75,7 @@ const BLOCK_EXPLORER_TITLE_MOCK = 'Test Title';
 describe('TransactionDetailsSummary', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
   const useBridgeTxHistoryDataMock = jest.mocked(useBridgeTxHistoryData);
+  const useNetworkNameMock = jest.mocked(useNetworkName);
 
   const useMultichainBlockExplorerTxUrlMock = jest.mocked(
     useMultichainBlockExplorerTxUrl,
@@ -74,17 +85,13 @@ describe('TransactionDetailsSummary', () => {
     selectBridgeHistoryForAccount,
   );
 
-  beforeEach(() => {
-    jest.resetAllMocks();
-
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        id: transactionIdMock,
-      } as unknown as TransactionMeta,
-    });
-
+  /**
+   * Mock the bridge history item in the state.
+   */
+  function mockBridgeHistoryItem() {
     useBridgeTxHistoryDataMock.mockReturnValue({
       bridgeTxHistoryItem: {
+        completionTime: COMPLETION_TIME_MOCK,
         quote: {
           srcAsset: {
             symbol: SYMBOL_MOCK,
@@ -95,9 +102,23 @@ describe('TransactionDetailsSummary', () => {
         },
         status: {
           status: StatusTypes.COMPLETE,
+          destChain: {
+            chainId: Number(TARGET_CHAIN_ID_MOCK),
+            txHash: RECEIVE_HASH_MOCK,
+          },
         },
       },
     } as unknown as ReturnType<typeof useBridgeTxHistoryData>);
+  }
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+      } as unknown as TransactionMeta,
+    });
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: BLOCK_EXPLORER_URL_MOCK,
@@ -105,6 +126,22 @@ describe('TransactionDetailsSummary', () => {
     } as ReturnType<typeof useMultichainBlockExplorerTxUrl>);
 
     selectBridgeHistoryForAccountMock.mockReturnValue({});
+
+    useNetworkNameMock.mockImplementation((chainId) => {
+      switch (chainId) {
+        case SOURCE_CHAIN_ID_MOCK:
+          return SOURCE_NETWORK_NAME_MOCK;
+        case TARGET_CHAIN_ID_MOCK:
+          return TARGET_NETWORK_NAME_MOCK;
+        default:
+          return undefined;
+      }
+    });
+
+    useBridgeTxHistoryDataMock.mockReturnValue({
+      bridgeTxHistoryItem: undefined,
+      isBridgeComplete: null,
+    });
   });
 
   it('renders perps deposit line title', () => {
@@ -134,7 +171,9 @@ describe('TransactionDetailsSummary', () => {
     ).toBeDefined();
   });
 
-  it('renders bridge line title', () => {
+  it('renders bridge send line title', () => {
+    mockBridgeHistoryItem();
+
     const { getByText } = render({
       transactions: [
         { ...TRANSACTION_META_MOCK, type: TransactionType.bridge },
@@ -143,9 +182,28 @@ describe('TransactionDetailsSummary', () => {
 
     expect(
       getByText(
-        strings('transaction_details.summary_title.bridge', {
+        strings('transaction_details.summary_title.bridge_send', {
           sourceSymbol: SYMBOL_MOCK,
+          sourceChain: SOURCE_NETWORK_NAME_MOCK,
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders bridge receive line title', () => {
+    mockBridgeHistoryItem();
+
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.bridge },
+      ],
+    });
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
           targetSymbol: SYMBOL_2_MOCK,
+          targetChain: TARGET_NETWORK_NAME_MOCK,
         }),
       ),
     ).toBeDefined();
@@ -286,6 +344,21 @@ describe('TransactionDetailsSummary', () => {
     expect(getByText('3:48 PM • Aug 20, 2025')).toBeDefined();
   });
 
+  it('renders completion time if bridge receive', () => {
+    mockBridgeHistoryItem();
+
+    const { getByText } = render({
+      transactions: [
+        {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.bridge,
+        },
+      ],
+    });
+
+    expect(getByText('7:34 PM • Aug 21, 2025')).toBeDefined();
+  });
+
   it('renders lines for required transactions', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
@@ -307,7 +380,7 @@ describe('TransactionDetailsSummary', () => {
         {
           ...TRANSACTION_META_MOCK,
           id: REQUIRED_TRANSACTION_ID_2_MOCK,
-          type: TransactionType.bridge,
+          type: TransactionType.swap,
         },
       ],
     });
@@ -317,12 +390,7 @@ describe('TransactionDetailsSummary', () => {
     ).toBeDefined();
 
     expect(
-      getByText(
-        strings('transaction_details.summary_title.bridge', {
-          sourceSymbol: SYMBOL_MOCK,
-          targetSymbol: SYMBOL_2_MOCK,
-        }),
-      ),
+      getByText(strings('transaction_details.summary_title.swap')),
     ).toBeDefined();
   });
 
@@ -375,6 +443,21 @@ describe('TransactionDetailsSummary', () => {
         url: BLOCK_EXPLORER_URL_MOCK,
         title: BLOCK_EXPLORER_TITLE_MOCK,
       },
+    });
+  });
+
+  it('navigates to receive hash block explorer', () => {
+    mockBridgeHistoryItem();
+
+    render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.bridge },
+      ],
+    });
+
+    expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenCalledWith({
+      chainId: Number(TARGET_CHAIN_ID_MOCK),
+      txHash: RECEIVE_HASH_MOCK,
     });
   });
 });
