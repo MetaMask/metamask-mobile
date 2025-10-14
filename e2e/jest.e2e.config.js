@@ -20,6 +20,7 @@ module.exports = {
   testMatch: ['<rootDir>/e2e/specs/**/*.spec.{js,ts}'],
   testTimeout: 300000,
   maxWorkers: workers,
+  clearMocks: true,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
