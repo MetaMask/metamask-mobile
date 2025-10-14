@@ -1138,11 +1138,42 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      // Get positions and frontend orders (includes trigger info) in parallel
-      const [clearingState, frontendOrders] = await Promise.all([
-        infoClient.clearinghouseState({ user: userAddress }),
-        infoClient.frontendOpenOrders({ user: userAddress }),
-      ]);
+      // Get positions from clearinghouse (includes all DEXs)
+      const clearingState = await infoClient.clearinghouseState({
+        user: userAddress,
+      });
+
+      // Fetch orders from main DEX
+      let frontendOrders = await infoClient.frontendOpenOrders({
+        user: userAddress,
+      });
+
+      // Also fetch orders from HIP-3 DEXs
+      try {
+        const perpDexs = await infoClient.perpDexs();
+        for (const dex of perpDexs) {
+          if (!dex) continue;
+
+          try {
+            const dexOrders = await infoClient.frontendOpenOrders({
+              user: userAddress,
+              dex: dex.name,
+            });
+            frontendOrders = frontendOrders.concat(dexOrders);
+            DevLogger.log(
+              `Fetched ${dexOrders.length} orders from HIP-3 DEX: ${dex.name}`,
+            );
+          } catch (dexError) {
+            DevLogger.log(
+              `Error fetching orders from HIP-3 DEX ${dex.name}:`,
+              dexError,
+            );
+          }
+        }
+      } catch (error) {
+        DevLogger.log('Error fetching HIP-3 orders:', error);
+        // Continue with main DEX orders
+      }
 
       DevLogger.log('Frontend open orders:', {
         count: frontendOrders.length,
