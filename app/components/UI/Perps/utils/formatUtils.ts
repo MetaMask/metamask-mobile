@@ -576,7 +576,7 @@ export const formatVolume = (
   const absNum = Math.abs(num);
 
   // Auto-determine decimals based on magnitude if not specified
-  let autoDecimals = decimals;
+  let autoDecimals;
   if (decimals === undefined) {
     if (absNum >= 1000000000) {
       // Billions: 2 decimals

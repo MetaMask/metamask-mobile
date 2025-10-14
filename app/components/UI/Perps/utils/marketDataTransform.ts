@@ -5,6 +5,7 @@ import type {
   PredictedFunding,
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
 import type { PerpsMarketData } from '../controllers/types';
 import { formatVolume } from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -17,6 +18,108 @@ export interface HyperLiquidMarketData {
   assetCtxs: PerpsAssetCtx[];
   allMids: AllMidsResponse;
   predictedFundings?: PredictedFunding[];
+}
+
+/**
+ * Parameters for calculating 24h percentage change
+ */
+interface CalculateChange24hPercentParams {
+  hasCurrentPrice: boolean;
+  currentPrice: number;
+  prevDayPrice: number;
+}
+
+/**
+ * Calculate 24h percentage change
+ * Shows -100% when current price is missing but previous price exists
+ */
+function calculateChange24hPercent(
+  params: CalculateChange24hPercentParams,
+): number {
+  const { hasCurrentPrice, currentPrice, prevDayPrice } = params;
+
+  if (!hasCurrentPrice) {
+    return prevDayPrice > 0 ? -100 : 0;
+  }
+
+  if (prevDayPrice <= 0) {
+    return 0;
+  }
+
+  return ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
+}
+
+/**
+ * Funding data extracted from predicted fundings
+ */
+interface FundingData {
+  nextFundingTime?: number;
+  fundingIntervalHours?: number;
+  predictedFundingRate?: number;
+}
+
+/**
+ * Parameters for extracting funding data
+ */
+interface ExtractFundingDataParams {
+  predictedFundings?: PredictedFunding[];
+  symbol: string;
+  exchangeName?: string;
+}
+
+/**
+ * Extract funding data for a symbol from predicted fundings
+ * Looks for specified exchange first, falls back to first available
+ *
+ * @param params.predictedFundings - Array of predicted funding data
+ * @param params.symbol - Asset symbol to extract funding for
+ * @param params.exchangeName - Exchange to prioritize (defaults to HyperLiquid's 'HlPerp')
+ */
+function extractFundingData(params: ExtractFundingDataParams): FundingData {
+  const {
+    predictedFundings,
+    symbol,
+    exchangeName = HYPERLIQUID_CONFIG.EXCHANGE_NAME,
+  } = params;
+
+  const result: FundingData = {};
+
+  if (!predictedFundings) {
+    return result;
+  }
+
+  const fundingData = predictedFundings.find(
+    ([assetSymbol]) => assetSymbol === symbol,
+  );
+
+  if (
+    !fundingData?.[1] ||
+    !Array.isArray(fundingData[1]) ||
+    fundingData[1].length === 0
+  ) {
+    return result;
+  }
+
+  // Look for specified exchange (e.g., 'HlPerp' for HyperLiquid)
+  const targetExchange = fundingData[1].find(
+    (exchange) => Array.isArray(exchange) && exchange[0] === exchangeName,
+  );
+
+  if (targetExchange?.[1]) {
+    result.nextFundingTime = targetExchange[1].nextFundingTime;
+    result.fundingIntervalHours = targetExchange[1].fundingIntervalHours;
+    result.predictedFundingRate = parseFloat(targetExchange[1].fundingRate);
+    return result;
+  }
+
+  // Fallback to first exchange if target not found
+  const firstExchange = fundingData[1][0];
+  if (Array.isArray(firstExchange) && firstExchange[1]) {
+    result.nextFundingTime = firstExchange[1].nextFundingTime;
+    result.fundingIntervalHours = firstExchange[1].fundingIntervalHours;
+  }
+
+  return result;
 }
 
 /**
@@ -51,13 +154,11 @@ export function transformMarketData(
       : 0;
 
     // For percentage: show -100% when current price is missing but previous price exists
-    const change24hPercent = hasCurrentPrice
-      ? prevDayPrice > 0
-        ? ((effectiveCurrentPrice - prevDayPrice) / prevDayPrice) * 100
-        : 0
-      : prevDayPrice > 0
-      ? -100
-      : 0;
+    const change24hPercent = calculateChange24hPercent({
+      hasCurrentPrice,
+      currentPrice: effectiveCurrentPrice,
+      prevDayPrice,
+    });
 
     // Format volume (dayNtlVlm is daily notional volume)
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
@@ -70,45 +171,16 @@ export function transformMarketData(
       fundingRate = parseFloat(assetCtx.funding);
     }
 
-    // Get timing info and predicted funding from predictedFundings
-    let nextFundingTime: number | undefined;
-    let fundingIntervalHours: number | undefined;
-    let predictedFundingRate: number | undefined;
-
-    if (predictedFundings) {
-      const fundingData = predictedFundings.find(
-        ([assetSymbol]) => assetSymbol === symbol,
-      );
-      if (
-        fundingData?.[1] &&
-        Array.isArray(fundingData[1]) &&
-        fundingData[1].length > 0
-      ) {
-        // Look specifically for HlPerp exchange (HyperLiquid's own perp)
-        const hlPerpExchange = fundingData[1].find(
-          (exchange) => Array.isArray(exchange) && exchange[0] === 'HlPerp',
-        );
-
-        if (hlPerpExchange?.[1]) {
-          nextFundingTime = hlPerpExchange[1].nextFundingTime;
-          fundingIntervalHours = hlPerpExchange[1].fundingIntervalHours;
-          predictedFundingRate = parseFloat(hlPerpExchange[1].fundingRate);
-        } else if (fundingData[1].length > 0) {
-          // Fallback to first exchange if HlPerp not found
-          const firstExchange = fundingData[1][0];
-          if (Array.isArray(firstExchange) && firstExchange[1]) {
-            nextFundingTime = firstExchange[1].nextFundingTime;
-            fundingIntervalHours = firstExchange[1].fundingIntervalHours;
-          }
-        }
-      }
-    }
+    // Extract funding timing and predicted rate
+    const fundingData = extractFundingData({
+      predictedFundings,
+      symbol,
+    });
 
     // Use current funding rate from assetCtx, not predicted
     // The predicted rate is for the next funding period
-    if (!fundingRate && predictedFundingRate !== undefined) {
-      // Only use predicted as fallback if current is not available
-      fundingRate = predictedFundingRate;
+    if (!fundingRate && fundingData.predictedFundingRate !== undefined) {
+      fundingRate = fundingData.predictedFundingRate;
     }
 
     return {
@@ -123,8 +195,8 @@ export function transformMarketData(
       volume: isNaN(volume)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(volume),
-      nextFundingTime,
-      fundingIntervalHours,
+      nextFundingTime: fundingData.nextFundingTime,
+      fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,
     };
   });
@@ -172,6 +244,16 @@ export function formatPrice(price: number): string {
 }
 
 /**
+ * Determine decimal places based on change magnitude
+ * Smaller amounts need more precision to show meaningful values
+ */
+function getDecimalPlacesForChange(absChange: number): number {
+  if (absChange >= 1) return 2;
+  if (absChange >= 0.01) return 4;
+  return 6;
+}
+
+/**
  * Format 24h change with sign
  * Uses more decimal places for smaller amounts to show meaningful precision
  */
@@ -179,9 +261,8 @@ export function formatChange(change: number): string {
   if (isNaN(change) || !isFinite(change)) return '$0.00';
   if (change === 0) return '$0.00';
 
-  // Determine decimal places based on magnitude: smaller amounts need more precision
   const absChange = Math.abs(change);
-  const decimalPlaces = absChange >= 1 ? 2 : absChange >= 0.01 ? 4 : 6;
+  const decimalPlaces = getDecimalPlacesForChange(absChange);
 
   const formatted = getIntlNumberFormatter('en-US', {
     style: 'currency',

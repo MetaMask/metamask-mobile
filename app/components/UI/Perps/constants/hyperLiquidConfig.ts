@@ -202,3 +202,13 @@ export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
 export const CAIP_ASSET_NAMESPACES = {
   ERC20: 'erc20',
 } as const;
+
+/**
+ * HyperLiquid protocol-specific configuration
+ * Contains constants specific to HyperLiquid's perps exchange
+ */
+export const HYPERLIQUID_CONFIG = {
+  // Exchange name used in predicted funding data
+  // HyperLiquid uses 'HlPerp' as their perps exchange identifier
+  EXCHANGE_NAME: 'HlPerp',
+} as const;
