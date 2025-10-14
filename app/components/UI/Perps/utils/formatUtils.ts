@@ -14,6 +14,31 @@ import {
 import { strings } from '../../../../../locales/i18n';
 
 /**
+ * Price threshold constants for PRICE_RANGES_UNIVERSAL
+ * These define the boundaries between different formatting ranges
+ */
+export const PRICE_THRESHOLD = {
+  /** Very high values boundary (> $100k) */
+  VERY_HIGH: 100_000,
+  /** High values boundary (> $10k) */
+  HIGH: 10_000,
+  /** Large values boundary (> $1k) */
+  LARGE: 1_000,
+  /** Medium values boundary (> $100) */
+  MEDIUM: 100,
+  /** Medium-low values boundary (> $10) */
+  MEDIUM_LOW: 10,
+  /** Low values boundary (>= $0.01) */
+  LOW: 0.01,
+  /**
+   * Very small values threshold (< $0.01)
+   * This is the minimum value for formatWithThreshold and should align with
+   * the 6 decimal maximum (0.000001 is the smallest representable value)
+   */
+  VERY_SMALL: 0.000001,
+} as const;
+
+/**
  * Configuration for a specific number range formatting
  */
 export interface FiatRangeConfig {
@@ -67,8 +92,9 @@ export function formatWithSignificantDigits(
 ): { value: number; decimals: number } {
   // Handle special cases
   if (value === 0) {
-    // Always show 2 decimals for zero currency values ($0.00 not $0)
-    return { value: 0, decimals: Math.max(minDecimals ?? 2, 2) };
+    // Return zero with no trailing decimals by default (matches stripTrailingZeros behavior)
+    // Can be overridden by explicit minDecimals if needed
+    return { value: 0, decimals: minDecimals ?? 0 };
   }
 
   const absValue = Math.abs(value);
@@ -309,7 +335,7 @@ export const PRICE_RANGES_MINIMAL_VIEW: FiatRangeConfig[] = [
     condition: () => true,
     minimumDecimals: 2,
     maximumDecimals: 2,
-    threshold: 0.01,
+    threshold: PRICE_THRESHOLD.LOW,
   },
 ];
 
@@ -349,56 +375,56 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Very high values (> $100,000): No decimals, 6 significant figures
     // Ex: $123,456.78 → $123,457
-    condition: (v) => Math.abs(v) > 100000,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.VERY_HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 6,
-    threshold: 100000,
+    threshold: PRICE_THRESHOLD.VERY_HIGH,
   },
   {
     // High values ($10,000-$100,000]: No decimals, 5 significant figures
     // Ex: $12,345.67 → $12,346
-    condition: (v) => Math.abs(v) > 10000,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 5,
-    threshold: 10000,
+    threshold: PRICE_THRESHOLD.HIGH,
   },
   {
     // Large values ($1,000-$10,000]: Max 1 decimal, 5 significant figures
     // Ex: $1,234.56 → $1,234.6
-    condition: (v) => Math.abs(v) > 1000,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.LARGE,
     minimumDecimals: 0,
     maximumDecimals: 1,
     significantDigits: 5,
-    threshold: 1000,
+    threshold: PRICE_THRESHOLD.LARGE,
   },
   {
     // Medium values ($100-$1,000]: Max 2 decimals, 5 significant figures
     // Ex: $123.456 → $123.46
-    condition: (v) => Math.abs(v) > 100,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM,
     minimumDecimals: 0,
     maximumDecimals: 2,
     significantDigits: 5,
-    threshold: 100,
+    threshold: PRICE_THRESHOLD.MEDIUM,
   },
   {
     // Medium-low values ($10-$100]: Max 4 decimals, 5 significant figures
     // Ex: $12.34567 → $12.346
-    condition: (v) => Math.abs(v) > 10,
+    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM_LOW,
     minimumDecimals: 0,
     maximumDecimals: 4,
     significantDigits: 5,
-    threshold: 10,
+    threshold: PRICE_THRESHOLD.MEDIUM_LOW,
   },
   {
     // Low values ($0.01-$10]: 5 significant figures, min 2 max MAX_PRICE_DECIMALS decimals
     // Ex: $1.3445555 → $1.3446 | $0.333333 → $0.33333
-    condition: (v) => Math.abs(v) >= 0.01,
+    condition: (v) => Math.abs(v) >= PRICE_THRESHOLD.LOW,
     significantDigits: 5,
     minimumDecimals: 2,
     maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
-    threshold: 0.01,
+    threshold: PRICE_THRESHOLD.LOW,
   },
   {
     // Very small values (< $0.01): 4 significant figures, min 2 max MAX_PRICE_DECIMALS decimals
@@ -407,7 +433,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
     significantDigits: 4,
     minimumDecimals: 2,
     maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
-    threshold: 0.00000001,
+    threshold: PRICE_THRESHOLD.VERY_SMALL,
   },
 ];
 

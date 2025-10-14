@@ -327,7 +327,7 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('formatPerpsFiat with PRICE_RANGES_4_SIG_FIGS', () => {
+  describe('formatPerpsFiat with PRICE_RANGES_UNIVERSAL', () => {
     it('should format large whole numbers (trailing zeros stripped by default)', () => {
       expect(formatPerpsFiat(123456, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
         '$123,456',
@@ -435,6 +435,46 @@ describe('formatUtils', () => {
       expect(
         formatPerpsFiat(0.0000004, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0');
+    });
+
+    describe('PRICE_RANGES_UNIVERSAL boundary testing', () => {
+      it('handles $10,000 exactly (boundary between 1 decimal and 0 decimal ranges)', () => {
+        expect(formatPerpsFiat(10000, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
+          '$10,000',
+        );
+      });
+
+      it('handles $10,000.01 (just above $10k boundary)', () => {
+        expect(
+          formatPerpsFiat(10000.01, { ranges: PRICE_RANGES_UNIVERSAL }),
+        ).toBe('$10,000'); // Rounds to 0 decimals in >$10k range
+      });
+
+      it('handles $9,999.99 (just below $10k boundary)', () => {
+        expect(
+          formatPerpsFiat(9999.99, { ranges: PRICE_RANGES_UNIVERSAL }),
+        ).toBe('$10,000'); // Rounds up with 1 decimal → $10,000
+      });
+
+      it('handles $100,000 exactly (high value boundary)', () => {
+        expect(
+          formatPerpsFiat(100000, { ranges: PRICE_RANGES_UNIVERSAL }),
+        ).toBe('$100,000');
+      });
+
+      it('handles very small positive and negative values symmetrically', () => {
+        const pos = formatPerpsFiat(0.001234, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        });
+        const neg = formatPerpsFiat(-0.001234, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        });
+        // Strip any potential comma from pos (though shouldn't be any) and add minus sign
+        expect(neg).toBe(`-${pos.replace(/,/g, '')}`);
+        // Verify the actual values
+        expect(pos).toBe('$0.001234');
+        expect(neg).toBe('-$0.001234');
+      });
     });
   });
 
