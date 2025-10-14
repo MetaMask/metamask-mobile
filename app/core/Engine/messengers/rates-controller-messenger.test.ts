@@ -2,7 +2,7 @@ import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import {
   getRatesControllerMessenger,
   getRatesControllerInitMessenger,
-} from './multichain-rates-controller-messenger';
+} from './rates-controller-messenger';
 
 describe('getRatesControllerMessenger', () => {
   it('returns a restricted messenger', () => {
