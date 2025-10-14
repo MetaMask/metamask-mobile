@@ -216,6 +216,9 @@ export const WaysToEarn = () => {
       case WayToEarnType.PERPS:
         goToPerps();
         break;
+      case WayToEarnType.REFERRALS:
+        navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
+        break;
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
@@ -258,9 +261,10 @@ export const WaysToEarn = () => {
         });
         break;
       }
-      case WayToEarnType.REFERRALS:
-        navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
+      case WayToEarnType.REFERRALS: {
+        navigation.navigate(Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL);
         break;
+      }
     }
   };
 
