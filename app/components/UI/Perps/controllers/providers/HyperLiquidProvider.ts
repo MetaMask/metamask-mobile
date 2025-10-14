@@ -665,6 +665,41 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // 6. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
+
+      // For HIP-3 DEXs, we need to get the deployer address to use as vaultAddress
+      let vaultAddress: Hex | undefined;
+      if (dexName) {
+        try {
+          const infoClient = this.clientService.getInfoClient();
+          const perpDexs = await infoClient.perpDexs();
+          const targetDex = perpDexs.find((dex) => dex?.name === dexName);
+          if (targetDex) {
+            vaultAddress = targetDex.deployer as Hex;
+            DevLogger.log(
+              'Using HIP-3 deployer as vaultAddress for DEX routing:',
+              {
+                dexName,
+                deployer: vaultAddress,
+              },
+            );
+          }
+        } catch (error) {
+          DevLogger.log('Failed to get deployer address for HIP-3 DEX:', error);
+        }
+      }
+
+      DevLogger.log('Submitting order to exchange:', {
+        coin: params.coin,
+        assetId,
+        dexName: dexName || 'main',
+        vaultAddress: vaultAddress || 'none',
+        orderCount: orders.length,
+        grouping,
+        isBuy: params.isBuy,
+        size: formattedSize,
+        price: formattedPrice,
+      });
+
       const result = await exchangeClient.order({
         orders,
         grouping,
@@ -672,6 +707,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
           f: builderFee,
         },
+        ...(vaultAddress && { vaultAddress }),
       });
 
       if (result.status !== 'ok') {
@@ -3003,7 +3039,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const isReady = stage === 'ready';
 
       if (isReady) {
-        const onFile = referral.referrerState?.data?.code || '';
+        const onFile =
+          referral.referrerState && 'data' in referral.referrerState
+            ? referral.referrerState.data?.code || ''
+            : '';
         if (onFile.toUpperCase() !== code.toUpperCase()) {
           throw new Error(
             `Ready for referrals but there is a config code mismatch ${onFile} vs ${code}`,
@@ -3029,16 +3068,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Handle 429 rate limit errors gracefully
       const errorMsg = error instanceof Error ? error.message : String(error);
       if (errorMsg.includes('429') || errorMsg.includes('Too Many Requests')) {
+        const isTestnet = this.clientService.isTestnetMode();
+        const referralCode = this.getReferralCode(isTestnet);
         DevLogger.log(
           'Rate limited on referral check (429) - will skip referral setup',
           {
-            code,
+            code: referralCode,
             note: 'This is expected with HIP-3 due to extra API calls',
           },
         );
         return false; // Return false to skip referral setup, but don't block order
       }
-      console.error(errorMessage, error);
+      console.error('Error checking referral code readiness:', error);
       return false;
     }
   }
