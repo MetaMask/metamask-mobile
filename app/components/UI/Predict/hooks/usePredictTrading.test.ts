@@ -222,10 +222,12 @@ describe('usePredictTrading', () => {
 
       const response = await result.current.claim({
         positions: mockClaimablePositions,
+        providerId: 'polymarket',
       });
 
       expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
         positions: mockClaimablePositions,
+        providerId: 'polymarket',
       });
       expect(response).toEqual(mockClaimResult);
     });
@@ -241,6 +243,7 @@ describe('usePredictTrading', () => {
       await expect(
         result.current.claim({
           positions: mockClaimablePositions,
+          providerId: 'polymarket',
         }),
       ).rejects.toThrow('Failed to claim winnings');
     });
@@ -260,10 +263,12 @@ describe('usePredictTrading', () => {
 
       const response = await result.current.claim({
         positions: [],
+        providerId: 'polymarket',
       });
 
       expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
         positions: [],
+        providerId: 'polymarket',
       });
       expect(response).toEqual(mockClaimResult);
     });
@@ -284,10 +289,12 @@ describe('usePredictTrading', () => {
 
       const response = await result.current.claim({
         positions: singlePosition,
+        providerId: 'polymarket',
       });
 
       expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
         positions: singlePosition,
+        providerId: 'polymarket',
       });
       expect(response).toEqual(mockClaimResult);
     });
