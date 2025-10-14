@@ -30,11 +30,30 @@ const TouchableOpacity = ({
 }) => {
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Simple pass-through to main component coordination
-  // Main component handles ALL coordination logic
+  // Coordination logic moved into conditional TouchableOpacity
+  const lastPressTime = useRef(0);
+  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+
+  // Coordinated onPress handler
+  const coordinatedOnPress = (pressEvent?: GestureResponderEvent) => {
+    if (!onPress || isDisabled) return;
+
+    // Skip coordination logic in test environments
+    if (process.env.NODE_ENV === 'test') {
+      onPress(pressEvent as GestureResponderEvent);
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastPress = now - lastPressTime.current;
+
+    if (timeSinceLastPress > COORDINATION_WINDOW) {
+      lastPressTime.current = now;
+      onPress(pressEvent as GestureResponderEvent);
+    }
+  };
 
   // Gesture detection for ScrollView compatibility on Android
-  // Sets timestamp FIRST, then calls parent function
   const tap = Gesture.Tap()
     .runOnJS(true)
     .shouldCancelWhenOutside(false)
@@ -62,23 +81,16 @@ const TouchableOpacity = ({
           },
         } as GestureResponderEvent;
 
-        // Call main component function (handles coordination)
-        onPress(syntheticEvent);
+        // Use coordinated press handler
+        coordinatedOnPress(syntheticEvent);
       }
     });
-
-  // Simple accessibility handler - main component handles coordination
-  const accessibilityOnPress = (pressEvent: GestureResponderEvent) => {
-    if (onPress && !isDisabled) {
-      onPress(pressEvent);
-    }
-  };
 
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={accessibilityOnPress} // Restored for accessibility without ScrollView conflicts
+        onPress={coordinatedOnPress} // Use coordinated handler for accessibility
         {...props}
         // Ensure disabled prop is available to tests
         {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
@@ -102,11 +114,6 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
-  // Shared coordination system for maximum reliability
-  // Both custom TouchableOpacity and main component use the same timestamp reference
-  const lastPressTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
-
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =
     process.env.IS_TEST === 'true' ||
@@ -117,30 +124,11 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
       ? TouchableOpacity
       : RNTouchableOpacity;
 
-  // All platforms use coordination logic to prevent double firing from any source
-  const conditionalOnPress = isDisabled
-    ? undefined
-    : (pressEvent?: GestureResponderEvent) => {
-        // Skip coordination logic in test environments
-        if (process.env.NODE_ENV === 'test') {
-          onPress?.(pressEvent as GestureResponderEvent);
-          return;
-        }
-
-        const now = Date.now();
-        const timeSinceLastPress = now - lastPressTime.current;
-
-        if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
-          lastPressTime.current = now;
-          onPress(pressEvent as GestureResponderEvent);
-        }
-      };
-
   return (
     <TouchableComponent
       style={styles.base}
       disabled={isDisabled}
-      onPress={conditionalOnPress}
+      onPress={onPress}
       onLongPress={onLongPress}
       {...props}
     >
