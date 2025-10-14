@@ -218,6 +218,12 @@ export type Result<T = void> = {
   response?: T;
 };
 
+export interface UnrealizedPnL {
+  user: string;
+  cashUpnl: number;
+  percentUpnl: number;
+}
+
 export type PredictClaim = {
   transactionId: string;
   chainId: number;
