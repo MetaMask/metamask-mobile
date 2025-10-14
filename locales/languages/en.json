@@ -221,6 +221,12 @@
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
     "setting_security_privacy": "Settings > Security & Privacy"
   },
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
+  },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
     "title2": "Manage your digital assets",
@@ -1518,7 +1524,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -5518,7 +5524,9 @@
     "account_not_found": "Wallet not found",
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
-    "use_different_login_method": "Use a different login method"
+    "use_different_login_method": "Use a different login method",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Still there?",
