@@ -19,7 +19,7 @@ import { getPublicKey } from '@metamask/native-utils';
 const secp256k1_1 = require('@noble/curves/secp256k1');
 secp256k1_1.secp256k1.getPublicKey = getPublicKey;
 
-// Needed to polyfill document and RedableStream for fetch-event-source
+// Needed to polyfill document and RedableStream for @microsoft/fetch-event-source
 import '@expo/browser-polyfill';
 
 // Needed to polyfill random number generation
