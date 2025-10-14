@@ -47,8 +47,8 @@ export function isBitcoinAccountsEnabled(flagValue: unknown): boolean {
       return true;
     }
     
-    // Get current version from package.json via environment
-    const currentVersion = process.env.npm_package_version || '7.58.0';
+    // Get current version from package.json 
+    const currentVersion = require('../../../../package.json').version;
     
     try {
       // Use compare-versions for proper semver comparison
