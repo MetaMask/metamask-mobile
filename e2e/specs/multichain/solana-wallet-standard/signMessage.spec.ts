@@ -13,7 +13,7 @@ describe(
     });
 
     // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('Should sign a message', async () => {
+    it('Should sign a message', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
 

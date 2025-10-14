@@ -128,6 +128,10 @@ class WalletView {
     );
   }
 
+  get solanaTokenName(): DetoxElement {
+    return Matchers.getElementByID('asset-SOL');
+  }
+
   get tokenNetworkFilterCurrent(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
@@ -186,6 +190,11 @@ class WalletView {
     );
     await Gestures.waitAndTap(elem, {
       elemDescription: 'Token',
+    });
+  }
+  async tapOnSolana() {
+    await Gestures.waitAndTap(this.solanaTokenName, {
+      elemDescription: 'Tapping Solana Token',
     });
   }
 

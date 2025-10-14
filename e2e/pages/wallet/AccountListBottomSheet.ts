@@ -246,9 +246,7 @@ class AccountListBottomSheet {
   async dismissAccountListModalV2(): Promise<void> {
     // First swipe to dismiss the MultichainAccountActions modal
     await this.swipeToDismissAccountsModal();
-
     // Second swipe to dismiss the AccountListBottomSheet
-    await this.swipeToDismissAccountsModal();
   }
 }
 

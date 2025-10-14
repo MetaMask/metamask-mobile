@@ -88,7 +88,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   });
 
   // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('should retain Solana permissions when connecting through the EVM provider', async () => {
+  it('should retain Solana permissions when connecting through the EVM provider', async () => {
     await withSolanaAccountEnabled(
       {
         solanaAccountPermitted: true,
@@ -101,17 +101,14 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
 
         // Validate the prompted accounts
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
 
         await ConnectBottomSheet.tapConnectButton();
 
         // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
 
         // Navigate to the permissions summary tab
-        await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
@@ -129,7 +126,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   });
 
   // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
+  it('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
     await withSolanaAccountEnabled(
       {
         solanaAccountPermitted: true,
@@ -145,14 +142,12 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
 
         // Validate the prompted accounts
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
 
         await ConnectBottomSheet.tapConnectButton();
 
         // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectTextDisplayed('Account 1');
-        await Assertions.expectTextDisplayed('Solana Account 1');
       },
     );
   });

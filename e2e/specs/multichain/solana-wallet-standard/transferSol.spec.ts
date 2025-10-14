@@ -12,7 +12,7 @@ describe(
     });
 
     // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('Should sign a transaction', async () => {
+    it('Should sign a transaction', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
@@ -34,7 +34,7 @@ describe(
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
 
-        await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
+        // await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
 
         const sendSolTest = SolanaTestDApp.getSendSolTest();
         await sendSolTest.sendTransaction();
