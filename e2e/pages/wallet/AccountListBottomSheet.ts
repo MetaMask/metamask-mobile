@@ -206,9 +206,21 @@ class AccountListBottomSheet {
   }
 
   async scrollToBottomOfAccountList(): Promise<void> {
-    await Gestures.swipe(this.accountList, 'up', {
-      speed: 'fast',
-    });
+    const isIOS = device.getPlatform() === 'ios';
+
+    if (isIOS) {
+      // the test is unable to locate the account-list id on iOS.
+      // swiping up by account name instead
+      const elem = this.getAccountElementByAccountNameV2('Account 1');
+      await Gestures.swipe(elem, 'up', {
+        speed: 'fast',
+      });
+    } else {
+      // Android works as expected
+      await Gestures.swipe(this.accountList, 'up', {
+        speed: 'fast',
+      });
+    }
   }
 
   // V2 Multichain Accounts Methods
