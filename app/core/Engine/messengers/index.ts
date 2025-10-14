@@ -1,6 +1,9 @@
 import { noop } from 'lodash';
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
-import { getAccountTreeControllerMessenger } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
+import {
+  getAccountTreeControllerInitMessenger,
+  getAccountTreeControllerMessenger,
+} from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
 import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
@@ -41,7 +44,10 @@ import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getBridgeControllerMessenger } from './bridge-controller-messenger';
 import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
-import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
+import {
+  getMultichainAccountServiceInitMessenger,
+  getMultichainAccountServiceMessenger,
+} from './multichain-account-service-messenger/multichain-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
@@ -60,6 +66,30 @@ import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
 } from './network-controller-messenger';
+import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
+import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
+import {
+  getTokensControllerInitMessenger,
+  getTokensControllerMessenger,
+} from './tokens-controller-messenger';
+import {
+  getTokenListControllerInitMessenger,
+  getTokenListControllerMessenger,
+} from './token-list-controller-messenger';
+import { getTokenSearchDiscoveryControllerMessenger } from './token-search-discovery-controller-messenger';
+import {
+  getTokenDetectionControllerInitMessenger,
+  getTokenDetectionControllerMessenger,
+} from './token-detection-controller-messenger';
+import {
+  getTokenBalancesControllerInitMessenger,
+  getTokenBalancesControllerMessenger,
+} from './token-balances-controller-messenger';
+import { getTokenRatesControllerMessenger } from './token-rates-controller-messenger';
+import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
+import { getNftControllerMessenger } from './nft-controller-messenger';
+import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
+import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -69,13 +99,29 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
   },
+  AccountTrackerController: {
+    getMessenger: getAccountTrackerControllerMessenger,
+    getInitMessenger: noop,
+  },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getAccountTreeControllerInitMessenger,
   },
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
+  },
+  AssetsContractController: {
+    getMessenger: getAssetsContractControllerMessenger,
+    getInitMessenger: noop,
+  },
+  TokenListController: {
+    getMessenger: getTokenListControllerMessenger,
+    getInitMessenger: getTokenListControllerInitMessenger,
+  },
+  TokensController: {
+    getMessenger: getTokensControllerMessenger,
+    getInitMessenger: getTokensControllerInitMessenger,
   },
   TransactionController: {
     getMessenger: getTransactionControllerMessenger,
@@ -100,6 +146,14 @@ export const CONTROLLER_MESSENGERS = {
   NetworkController: {
     getMessenger: getNetworkControllerMessenger,
     getInitMessenger: getNetworkControllerInitMessenger,
+  },
+  NftController: {
+    getMessenger: getNftControllerMessenger,
+    getInitMessenger: noop,
+  },
+  NftDetectionController: {
+    getMessenger: getNftDetectionControllerMessenger,
+    getInitMessenger: noop,
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
@@ -189,6 +243,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSelectedNetworkControllerMessenger,
     getInitMessenger: noop,
   },
+  SmartTransactionsController: {
+    getMessenger: getSmartTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
   NetworkEnablementController: {
     getMessenger: getNetworkEnablementControllerMessenger,
     getInitMessenger: noop,
@@ -211,10 +269,30 @@ export const CONTROLLER_MESSENGERS = {
   },
   MultichainAccountService: {
     getMessenger: getMultichainAccountServiceMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getMultichainAccountServiceInitMessenger,
   },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  TokenBalancesController: {
+    getMessenger: getTokenBalancesControllerMessenger,
+    getInitMessenger: getTokenBalancesControllerInitMessenger,
+  },
+  TokenDetectionController: {
+    getMessenger: getTokenDetectionControllerMessenger,
+    getInitMessenger: getTokenDetectionControllerInitMessenger,
+  },
+  TokenRatesController: {
+    getMessenger: getTokenRatesControllerMessenger,
+    getInitMessenger: noop,
+  },
+  TokenSearchDiscoveryController: {
+    getMessenger: getTokenSearchDiscoveryControllerMessenger,
+    getInitMessenger: noop,
+  },
+  TokenSearchDiscoveryDataController: {
+    getMessenger: getTokenSearchDiscoveryDataControllerMessenger,
     getInitMessenger: noop,
   },
   GatorPermissionsController: {

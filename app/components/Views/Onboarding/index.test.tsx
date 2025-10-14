@@ -760,7 +760,7 @@ describe('Onboarding', () => {
         'mockGoogleHandler',
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
         expect.objectContaining({
           accountName: 'test@example.com',
           oauthLoginSuccess: true,
@@ -864,7 +864,7 @@ describe('Onboarding', () => {
       );
       // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
         expect.objectContaining({
           accountName: 'test@icloud.com',
           oauthLoginSuccess: true,
@@ -913,7 +913,7 @@ describe('Onboarding', () => {
         'mockAppleHandler',
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        'Rehydrate',
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
