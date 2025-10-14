@@ -489,7 +489,6 @@
     "valid-url": "1.0.9",
     "viem": "^2.28.0",
     "vm-browserify": "1.1.2",
-    "ws": "^8.18.3",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -711,8 +710,6 @@
       "@storybook/addon-ondevice-controls>core-js": false,
       "viem>ws>bufferutil": false,
       "viem>ws>utf-8-validate": false,
-      "ws>bufferutil": false,
-      "ws>utf-8-validate": false,
       "detox>@wix-pilot/core>canvas": true,
       "ts-node>@swc/core": false,
       "@metamask/test-dapp-solana>@solana/spl-token>@solana/buffer-layout-utils>bigint-buffer": false,
