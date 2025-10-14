@@ -349,7 +349,9 @@ describe('OnboardingSuccess', () => {
         />,
       );
 
-      expect(getByText(strings('onboarding_success.title'))).toBeOnTheScreen();
+      expect(
+        getByText(strings('onboarding_success.wallet_ready')),
+      ).toBeOnTheScreen();
     });
   });
 
