@@ -78,13 +78,13 @@ const OnboardingAnimation = ({
     Animated.parallel([
       Animated.timing(logoPosition, {
         toValue: -180,
-        duration: 1200,
+        duration: 1000,
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,
       }),
       Animated.timing(buttonsOpacity, {
         toValue: 1,
-        duration: 1200,
+        duration: 1000,
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,
       }),
@@ -106,7 +106,7 @@ const OnboardingAnimation = ({
         logoRef.current.fireState('WordmarkBuildUp', 'Start');
         setTimeout(() => {
           moveLogoUp();
-        }, 1000);
+        }, 700);
       }
     } catch (error) {
       Logger.error(error as Error, 'Error triggering Rive animation');

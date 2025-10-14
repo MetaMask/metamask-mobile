@@ -1086,6 +1086,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
+      // Wait for FoxLoader animation to complete before navigating
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       try {
         if (existingUser) {
           // Check if we came from Settings screen to skip auto-authentication
