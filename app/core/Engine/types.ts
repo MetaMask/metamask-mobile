@@ -707,6 +707,7 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'NetworkController'

@@ -84,12 +84,12 @@ import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
-import { createMultichainRatesController } from './controllers/RatesController/utils';
-import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
+import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
@@ -158,9 +158,6 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
@@ -177,7 +174,7 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
-///: END:ONLY_INCLUDE_IF
+import { ratesControllerInit } from './controllers/rates-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -352,6 +349,7 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
+        RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
@@ -452,6 +450,7 @@ export class Engine {
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
     const multichainAccountService = controllersByName.MultichainAccountService;
+    const ratesController = controllersByName.RatesController;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -514,26 +513,6 @@ export class Engine {
     if (!isProductSafetyDappScanningEnabled()) {
       phishingController.maybeUpdateState();
     }
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainRatesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'RatesController',
-        allowedActions: [],
-        allowedEvents: ['CurrencyRateController:stateChange'],
-      });
-
-    const multichainRatesController = createMultichainRatesController({
-      messenger: multichainRatesControllerMessenger,
-      initialState: initialState.RatesController,
-    });
-
-    // Set up currency rate sync
-    setupCurrencyRateSync(
-      multichainRatesControllerMessenger,
-      multichainRatesController,
-    );
-    ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();
@@ -670,7 +649,7 @@ export class Engine {
       }),
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
-      RatesController: multichainRatesController,
+      RatesController: ratesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,

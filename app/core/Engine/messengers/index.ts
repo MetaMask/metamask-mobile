@@ -28,6 +28,14 @@ import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger/multichain-assets-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
+import {
+  getRatesControllerInitMessenger,
+  getRatesControllerMessenger,
+} from './rates-controller-messenger';
+import {
+  getSnapKeyringBuilderInitMessenger,
+  getSnapKeyringBuilderMessenger,
+} from './snap-keyring-builder-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -57,10 +65,6 @@ import {
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
-import {
-  getSnapKeyringBuilderInitMessenger,
-  getSnapKeyringBuilderMessenger,
-} from './snap-keyring-builder-messenger';
 import { getKeyringControllerMessenger } from './keyring-controller-messenger';
 import {
   getNetworkControllerInitMessenger,
@@ -239,6 +243,10 @@ export const CONTROLLER_MESSENGERS = {
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
+  },
+  RatesController: {
+    getMessenger: getRatesControllerMessenger,
+    getInitMessenger: getRatesControllerInitMessenger,
   },
   SnapKeyringBuilder: {
     getMessenger: getSnapKeyringBuilderMessenger,
