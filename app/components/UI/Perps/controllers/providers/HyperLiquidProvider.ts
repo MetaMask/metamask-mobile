@@ -108,6 +108,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Asset mapping
   private coinToAssetId = new Map<string, number>();
 
+  // Referral status cache to avoid 429 rate limits
+  private referralStatusCache: {
+    isReady: boolean;
+    timestamp: number;
+  } | null = null;
+  private readonly REFERRAL_CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
   // Cache for user fee rates to avoid excessive API calls
   private userFeeCache = new Map<
     string,
@@ -2899,7 +2906,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Note: This is network-specific - testnet and mainnet have separate referral states
    */
   private async ensureReferralSet(): Promise<void> {
-    const errorMessage = 'Error ensuring referral code is set';
     try {
       const isTestnet = this.clientService.isTestnetMode();
       const network = isTestnet ? 'testnet' : 'mainnet';
@@ -2915,10 +2921,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const isReady = await this.isReferralCodeReady();
       if (!isReady) {
         // if the referrer code is not ready, we can't set the referral code on the user
-        // so we just return and the error will be logged
-        // we may want to block this completely, but for now we just log the error
-        // as the referrer may need to address an issue first and we may not want to completely
-        // block orders for this
+        // For HIP-3 assets, this might fail due to rate limiting (429)
+        // Don't block the order - just log and continue
+        DevLogger.log(
+          'Referral code not ready - continuing without setting referral',
+          {
+            network,
+            note: 'Order will proceed without referral link',
+          },
+        );
         return;
       }
       // Check if user already has a referral set on this network
@@ -2929,19 +2940,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
           network,
           referralCode: expectedReferralCode,
         });
-        const result = await this.setReferralCode();
-        if (result === true) {
-          DevLogger.log('Referral code set', {
-            network,
-            referralCode: expectedReferralCode,
-          });
-        } else {
-          throw new Error('Failed to set referral code');
+        try {
+          const result = await this.setReferralCode();
+          if (result === true) {
+            DevLogger.log('Referral code set', {
+              network,
+              referralCode: expectedReferralCode,
+            });
+          } else {
+            DevLogger.log('Failed to set referral code - continuing anyway', {
+              network,
+              note: 'Order will proceed without referral link',
+            });
+          }
+        } catch (setError) {
+          // Don't throw - allow order to proceed without referral
+          DevLogger.log(
+            'Error setting referral code - continuing anyway:',
+            setError,
+          );
         }
       }
     } catch (error) {
-      console.error(errorMessage, error);
-      throw new Error(errorMessage);
+      // Don't throw on referral errors - allow orders to proceed
+      // Referral is nice-to-have, not required for trading
+      DevLogger.log(
+        'Referral setup had errors but continuing with order:',
+        error,
+      );
     }
   }
 
@@ -2950,8 +2976,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @returns Promise resolving to true if referral code is ready
    */
   private async isReferralCodeReady(): Promise<boolean> {
-    const errorMessage = 'Error checking if referral code is ready';
     try {
+      // Check cache first to avoid 429 rate limits
+      const now = Date.now();
+      if (
+        this.referralStatusCache &&
+        now - this.referralStatusCache.timestamp <
+          this.REFERRAL_CACHE_DURATION_MS
+      ) {
+        DevLogger.log('Using cached referral status', {
+          isReady: this.referralStatusCache.isReady,
+          cacheAge: now - this.referralStatusCache.timestamp,
+        });
+        return this.referralStatusCache.isReady;
+      }
+
       const infoClient = this.clientService.getInfoClient();
       const isTestnet = this.clientService.isTestnetMode();
       const code = this.getReferralCode(isTestnet);
@@ -2961,23 +3000,44 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const stage = referral.referrerState?.stage;
 
-      if (stage === 'ready') {
+      const isReady = stage === 'ready';
+
+      if (isReady) {
         const onFile = referral.referrerState?.data?.code || '';
         if (onFile.toUpperCase() !== code.toUpperCase()) {
           throw new Error(
             `Ready for referrals but there is a config code mismatch ${onFile} vs ${code}`,
           );
         }
-        return true;
+      } else {
+        console.error('Referral code not ready', {
+          stage,
+          code,
+          referrerAddr,
+          referral,
+        });
       }
-      console.error('Referral code not ready', {
-        stage,
-        code,
-        referrerAddr,
-        referral,
-      });
-      return false;
+
+      // Cache the result to avoid 429 on subsequent calls
+      this.referralStatusCache = {
+        isReady,
+        timestamp: now,
+      };
+
+      return isReady;
     } catch (error) {
+      // Handle 429 rate limit errors gracefully
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (errorMsg.includes('429') || errorMsg.includes('Too Many Requests')) {
+        DevLogger.log(
+          'Rate limited on referral check (429) - will skip referral setup',
+          {
+            code,
+            note: 'This is expected with HIP-3 due to extra API calls',
+          },
+        );
+        return false; // Return false to skip referral setup, but don't block order
+      }
       console.error(errorMessage, error);
       return false;
     }
