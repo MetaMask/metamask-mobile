@@ -17,6 +17,7 @@ import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -297,7 +298,7 @@ describe('Engine', () => {
 
   it('getSnapKeyring gets or creates a snap keyring', async () => {
     const engine = new EngineClass(backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' };
+    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
     jest
       .spyOn(engine.keyringController, 'getKeyringsByType')
       .mockImplementation(() => [mockSnapKeyring]);
@@ -313,7 +314,7 @@ describe('Engine', () => {
 
   it('getSnapKeyring creates a new snap keyring if none exists', async () => {
     const engine = new EngineClass(backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' };
+    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
 
     jest
       .spyOn(engine.keyringController, 'getKeyringsByType')
