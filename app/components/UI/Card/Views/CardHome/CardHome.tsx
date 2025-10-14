@@ -255,8 +255,8 @@ const CardHome = () => {
           data: siweHex,
         });
         // Create approval transaction, adding contract as spender.
-        const spender = '0x9dd23A4a0845f10d65D293776B792af1131c7B30';
-        const tokenAddress = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff';
+        const spender = '0xCcf87E70eDb65bD013A52d1D6CC83E50e5EA8a45';
+        const tokenAddress = '0xa12B644B4c0AceA52F7156926094C5ABbdF22065';
         const approveTx = {
           from: '0x9E16319A3895f88e74f3b4deA012516df8a75CdC',
           to: tokenAddress,
@@ -266,7 +266,7 @@ const CardHome = () => {
         const { result } = await TransactionController.addTransaction(
           approveTx,
           {
-            networkClientId: 'linea-mainnet',
+            networkClientId: 'linea-sepolia',
             origin: TransactionTypes.MMM,
             type: TransactionType.tokenMethodApprove,
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
