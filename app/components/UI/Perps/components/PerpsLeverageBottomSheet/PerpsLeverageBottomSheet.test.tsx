@@ -48,8 +48,6 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-// No need to mock format utilities - use real implementations
-
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {

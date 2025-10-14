@@ -22,7 +22,6 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
-// No need to mock formatUtils - use real implementations
 jest.mock('../../utils/formatUtils', () => {
   const actual = jest.requireActual('../../utils/formatUtils');
   return {

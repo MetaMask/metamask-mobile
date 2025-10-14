@@ -9,7 +9,6 @@ import {
 
 // Mock dependencies
 jest.mock('../../hooks/stream');
-// No need to mock formatUtils - use real implementations
 
 describe('LivePriceDisplay', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<

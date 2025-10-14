@@ -113,7 +113,7 @@ export function formatWithSignificantDigits(
 
     // Calculate decimals needed based on integer digits to achieve target significant figures
     // For $38.388 with 5 sig figs: 2 integer digits, need 3 decimals (3,8,3,8,8)
-    // For $123.456 with 5 sig figs: 3 integer digits, need 2 decimals (1,2,3,4,5)
+    // For $123.45 with 5 sig figs: 3 integer digits, need 2 decimals (1,2,3,4,5)
     const integerDigits = Math.floor(Math.log10(absValue)) + 1;
     const decimalsNeeded = significantDigits - integerDigits;
     targetDecimals = Math.max(decimalsNeeded, 0); // Can't have negative decimals

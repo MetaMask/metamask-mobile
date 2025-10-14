@@ -303,9 +303,6 @@ describe('marketDataTransform', () => {
     });
   });
 
-  // formatPrice function removed - now using formatPerpsFiat with PRICE_RANGES_UNIVERSAL
-  // Tests are in formatUtils.test.ts
-
   describe('formatChange', () => {
     it('formats zero change correctly', () => {
       // Arrange

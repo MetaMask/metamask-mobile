@@ -144,7 +144,6 @@ export function formatChange(change: number): string {
   if (isNaN(change) || !isFinite(change)) return '$0.00';
   if (change === 0) return '$0.00';
 
-  // Use 4 significant figures for consistency
   const formatted = formatPerpsFiat(Math.abs(change), {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
