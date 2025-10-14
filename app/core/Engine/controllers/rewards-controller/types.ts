@@ -172,7 +172,6 @@ export interface GetPointsEventsLastUpdatedDto {
 export interface PaginatedPointsEventsDto {
   has_more: boolean;
   cursor: string | null;
-  total_results: number;
   results: PointsEventDto[];
 }
 
@@ -288,6 +287,7 @@ interface BasePointsEventDto {
    */
   bonus: {
     bips?: number | null;
+    bonusPoints?: number | null;
     bonuses?: string[] | null;
   } | null;
 
@@ -584,7 +584,6 @@ export type PointsEventsDtoState = {
   }[];
   has_more: boolean;
   cursor: string | null;
-  total_results: number;
   lastFetched: number;
 };
 
@@ -593,8 +592,6 @@ export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
   subscriptionId: string | null;
-  lastCheckedAuth: number;
-  lastCheckedAuthError: boolean;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
 };
@@ -693,10 +690,7 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (
-    account: InternalAccount,
-    referralCode?: string,
-  ) => Promise<string | null>;
+  handler: (referralCode?: string) => Promise<string | null>;
 }
 
 /**
@@ -865,6 +859,16 @@ export interface RewardsControllerLinkAccountToSubscriptionAction {
 }
 
 /**
+ * Action for linking multiple accounts to a subscription candidate
+ */
+export interface RewardsControllerLinkAccountsToSubscriptionCandidateAction {
+  type: 'RewardsController:linkAccountsToSubscriptionCandidate';
+  handler: (
+    accounts: InternalAccount[],
+  ) => Promise<{ account: InternalAccount; success: boolean }[]>;
+}
+
+/**
  * Action for getting candidate subscription ID
  */
 export interface RewardsControllerGetCandidateSubscriptionIdAction {
@@ -940,6 +944,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetActualSubscriptionIdAction
   | RewardsControllerGetFirstSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionAction
+  | RewardsControllerLinkAccountsToSubscriptionCandidateAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction

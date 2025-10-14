@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   BoxFlexDirection,
@@ -29,9 +29,10 @@ import {
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
-import { Image } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
+import RewardsImageModal from '../RewardsImageModal';
 
 const SeasonStatus: React.FC = () => {
   const tw = useTailwind();
@@ -46,7 +47,17 @@ const SeasonStatus: React.FC = () => {
   const seasonEndDate = useSelector(selectSeasonEndDate);
   const theme = useTheme();
 
-  const { fetchSeasonStatus } = useSeasonStatus();
+  const { fetchSeasonStatus } = useSeasonStatus({ onlyForExplicitFetch: true });
+
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
+
+  const handleImagePress = () => {
+    setIsImageExpanded(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsImageExpanded(false);
+  };
 
   const progress = React.useMemo(() => {
     if (!currentTier || !balanceTotal) {
@@ -86,41 +97,54 @@ const SeasonStatus: React.FC = () => {
   }, [tiers, currentTier]);
 
   if ((seasonStatusLoading || !currentTier) && !seasonStatusError) {
-    return <Skeleton height={115} width="100%" />;
+    return (
+      <Box twClassName="px-4">
+        <Skeleton height={115} width="100%" />
+      </Box>
+    );
   }
 
   if (seasonStatusError && !seasonStartDate) {
     return (
-      <RewardsErrorBanner
-        title={strings('rewards.season_status_error.error_fetching_title')}
-        description={strings(
-          'rewards.season_status_error.error_fetching_description',
-        )}
-        onConfirm={() => {
-          fetchSeasonStatus();
-        }}
-        confirmButtonLabel={strings('rewards.season_status_error.retry_button')}
-      />
+      <Box twClassName="px-4">
+        <RewardsErrorBanner
+          title={strings('rewards.season_status_error.error_fetching_title')}
+          description={strings(
+            'rewards.season_status_error.error_fetching_description',
+          )}
+          onConfirm={() => {
+            fetchSeasonStatus();
+          }}
+          confirmButtonLabel={strings(
+            'rewards.season_status_error.retry_button',
+          )}
+        />
+      </Box>
     );
   }
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4 w-full">
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      twClassName="gap-4 w-full px-4"
+    >
       {/* Top Row - season name, tier name, and tier image */}
       <Box twClassName="flex-row justify-between items-center -mb-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
           twClassName="gap-4 items-center"
         >
-          {/* Tier image */}
-          {currentTier?.image ? (
-            <RewardsThemeImageComponent
-              themeImage={currentTier.image}
-              style={tw.style('h-15 w-15')}
-            />
-          ) : (
-            <Image source={fallbackTierImage} style={tw.style('h-15 w-15')} />
-          )}
+          {/* Tier image - tappable to expand */}
+          <TouchableOpacity onPress={handleImagePress} activeOpacity={0.7}>
+            {currentTier?.image ? (
+              <RewardsThemeImageComponent
+                themeImage={currentTier.image}
+                style={tw.style('h-15 w-15')}
+              />
+            ) : (
+              <Image source={fallbackTierImage} style={tw.style('h-15 w-15')} />
+            )}
+          </TouchableOpacity>
 
           {/* Tier name */}
           <Box flexDirection={BoxFlexDirection.Column}>
@@ -231,6 +255,14 @@ const SeasonStatus: React.FC = () => {
           </Text>
         )}
       </Box>
+
+      {/* Full-screen image modal */}
+      <RewardsImageModal
+        visible={isImageExpanded}
+        onClose={handleCloseModal}
+        themeImage={currentTier?.image}
+        fallbackImage={fallbackTierImage}
+      />
     </Box>
   );
 };

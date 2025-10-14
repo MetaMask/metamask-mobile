@@ -30,6 +30,7 @@ import {
   MOCK_USE_PAYMENT_METHODS_RETURN,
   MOCK_CRYPTOCURRENCIES,
   MOCK_PAYMENT_METHODS,
+  MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
 } from '../../testUtils';
 
 const createMockInteractionManager = () => ({
@@ -229,6 +230,9 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
           screen: 'DepositUnsupportedRegionModal',
+          params: {
+            regions: MOCK_REGIONS,
+          },
         });
       });
     });
@@ -261,6 +265,28 @@ describe('BuildQuote Component', () => {
   });
 
   describe('Payment Method Selection', () => {
+    it('shows the right duration for the selected payment method', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: {
+            ...MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
+          },
+        }),
+      );
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('does not show the duration when selected payment method is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: null,
+        }),
+      );
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
     it('navigates to payment method selection when payment button is pressed', () => {
       render(BuildQuote);
       const payWithButton = screen.getByText('Pay with');

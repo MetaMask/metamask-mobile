@@ -7,7 +7,7 @@ import {
   TransactionType,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { NetworkController } from '@metamask/network-controller';
 
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';

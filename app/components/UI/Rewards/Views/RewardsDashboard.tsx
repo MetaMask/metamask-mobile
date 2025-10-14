@@ -26,7 +26,6 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
@@ -39,8 +38,8 @@ import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import { convertInternalAccountToCaipAccountId } from '../utils';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
@@ -58,23 +57,17 @@ const RewardsDashboard: React.FC = () => {
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const hideCurrentAccountNotOptedInBanner = useMemo((): boolean => {
-    if (
-      selectedAccount &&
-      hideCurrentAccountNotOptedInBannerMap &&
-      selectedAccount.id
-    ) {
-      const caipAccountId =
-        convertInternalAccountToCaipAccountId(selectedAccount);
+    if (hideCurrentAccountNotOptedInBannerMap && selectedAccountGroup?.id) {
       return (
         hideCurrentAccountNotOptedInBannerMap.find(
-          (item) => item.caipAccountId === caipAccountId,
+          (item) => item.accountGroupId === selectedAccountGroup?.id,
         )?.hide || false
       );
     }
     return false;
-  }, [selectedAccount, hideCurrentAccountNotOptedInBannerMap]);
+  }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
   const insets = useSafeAreaInsets();
 
   // Ref for TabsList to control active tab programmatically
@@ -89,8 +82,31 @@ const RewardsDashboard: React.FC = () => {
   } = useRewardDashboardModals();
 
   // Use the opt-in summary hook to check for unlinked accounts
-  const { unlinkedAccounts, currentAccountSupported, currentAccountOptedIn } =
-    useRewardOptinSummary();
+  const {
+    byWallet: optInByWallet,
+    bySelectedAccountGroup: optInBySelectedAccountGroup,
+    currentAccountGroupPartiallySupported,
+    currentAccountGroupOptedInStatus,
+  } = useRewardOptinSummary();
+
+  const totalOptedInAccountsSelectedGroup = useMemo(
+    () => optInBySelectedAccountGroup?.optedInAccounts?.length,
+    [optInBySelectedAccountGroup],
+  );
+
+  const totalAccountGroupsWithOptedOutAccounts = useMemo(
+    () =>
+      optInByWallet.reduce(
+        (accWallet, wallet) =>
+          accWallet +
+          wallet.groups.reduce(
+            (accGroup, group) => accGroup + group.optedOutAccounts.length,
+            0,
+          ),
+        0,
+      ),
+    [optInByWallet],
+  );
 
   // Set navigation title
   useEffect(() => {
@@ -149,17 +165,32 @@ const RewardsDashboard: React.FC = () => {
     [dispatch, tabOptions, activeTab],
   );
 
+  const tabsListProps = useMemo(
+    () => ({
+      ref: tabsListRef,
+      initialActiveIndex: getActiveIndex(),
+      onChangeTab: handleTabChange,
+      testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
+      tabsBarProps: {
+        twClassName: 'px-4',
+      },
+      tabsListContentTwClassName: 'px-0',
+    }),
+    [getActiveIndex, handleTabChange],
+  );
+
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
   useEffect(() => {
     if (
-      (currentAccountOptedIn === false || currentAccountSupported === false) &&
+      (totalOptedInAccountsSelectedGroup === 0 ||
+        currentAccountGroupPartiallySupported === false) &&
       !hideCurrentAccountNotOptedInBanner &&
-      selectedAccount
+      selectedAccountGroup?.id
     ) {
-      if (currentAccountSupported === false) {
-        // Account type not supported (e.g., hardware wallets)
+      if (currentAccountGroupPartiallySupported === false) {
+        // Account group entirely not not supported (e.g. hardware wallet account group)
         if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
           showNotSupportedModal();
         }
@@ -173,8 +204,10 @@ const RewardsDashboard: React.FC = () => {
     // Priority 2: Check for unlinked accounts (only if current account is good)
     if (
       subscriptionId &&
-      (currentAccountOptedIn === true || hideCurrentAccountNotOptedInBanner) &&
-      unlinkedAccounts.length > 0 &&
+      (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
+        currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
+        hideCurrentAccountNotOptedInBanner) &&
+      totalAccountGroupsWithOptedOutAccounts > 0 &&
       !hideUnlinkedAccountsBanner
     ) {
       // User has other accounts that could be earning rewards
@@ -183,12 +216,13 @@ const RewardsDashboard: React.FC = () => {
       }
     }
   }, [
-    currentAccountOptedIn,
-    currentAccountSupported,
+    currentAccountGroupOptedInStatus,
+    currentAccountGroupPartiallySupported,
     hideCurrentAccountNotOptedInBanner,
-    selectedAccount,
+    selectedAccountGroup?.id,
     subscriptionId,
-    unlinkedAccounts.length,
+    totalAccountGroupsWithOptedOutAccounts,
+    totalOptedInAccountsSelectedGroup,
     hideUnlinkedAccountsBanner,
     showNotOptedInModal,
     showUnlinkedAccountsModal,
@@ -216,11 +250,11 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <Box
-        twClassName="flex-1 px-4 bg-default gap-4 relative"
+        twClassName="flex-1 bg-default gap-4 relative"
         style={{ marginTop: insets.top }}
       >
         {/* Header row */}
-        <Box twClassName="flex-row  justify-between">
+        <Box twClassName="flex-row justify-between px-4">
           <Text variant={TextVariant.HeadingLg} twClassName="text-default">
             {strings('rewards.main_title')}
           </Text>
@@ -251,12 +285,7 @@ const RewardsDashboard: React.FC = () => {
         <SeasonStatus />
 
         {/* Tab View */}
-        <TabsList
-          ref={tabsListRef}
-          initialActiveIndex={getActiveIndex()}
-          onChangeTab={handleTabChange}
-          testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
-        >
+        <TabsList {...tabsListProps}>
           <RewardsOverview
             key="overview"
             tabLabel={strings('rewards.tab_overview_title')}
