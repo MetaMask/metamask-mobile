@@ -6,7 +6,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
@@ -41,10 +40,6 @@ const useAccounts = ({
   const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-
-  const isMultiAccountBalancesEnabled = useSelector(
-    selectIsMultiAccountBalancesEnabled,
-  );
 
   const fetchENSNames = useCallback(
     async ({
@@ -120,12 +115,6 @@ const useAccounts = ({
           selectedIndex = index;
         }
 
-        const accountBalance = {
-          displayBalance: '',
-          balanceError: undefined,
-        };
-
-        const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           id: internalAccount.id,
           name: internalAccount.metadata.name,
@@ -133,15 +122,6 @@ const useAccounts = ({
           type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
           isSelected,
-          // TODO - Also fetch assets. Reference AccountList component.
-          // assets
-          assets:
-            isBalanceAvailable && accountBalance.displayBalance
-              ? {
-                  fiatBalance: accountBalance.displayBalance,
-                }
-              : undefined,
-          balanceError: accountBalance.balanceError,
           // This only works for EOAs
           caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
           scopes: internalAccount.scopes,
@@ -150,9 +130,6 @@ const useAccounts = ({
         };
         // Calculate height of the account item.
         yOffset += 78;
-        if (accountBalance.balanceError) {
-          yOffset += 22;
-        }
         if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
           yOffset += 24;
         }
@@ -165,12 +142,7 @@ const useAccounts = ({
       flattenedAccounts.filter((account) => !isNonEvmAddress(account.address)),
     );
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
-  }, [
-    internalAccounts,
-    fetchENSNames,
-    selectedInternalAccount?.address,
-    isMultiAccountBalancesEnabled,
-  ]);
+  }, [internalAccounts, fetchENSNames, selectedInternalAccount?.address]);
 
   useEffect(() => {
     if (!isMountedRef.current) {
