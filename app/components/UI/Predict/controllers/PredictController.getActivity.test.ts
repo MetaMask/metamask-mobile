@@ -16,20 +16,26 @@ interface ActivityEntry {
 }
 
 interface Provider {
-  getActivity: jest.Mock<
-    Promise<ActivityEntry[]>,
-    [params?: { address: string }]
-  >;
+  getActivity: jest.Mock<Promise<ActivityEntry[]>, [{ address: string }]>;
 }
 
 describe('PredictController.getActivity', () => {
-  const makeController = (providers: Record<string, Provider>) => {
+  // Create a type-safe mock controller interface
+  interface MockPredictController {
+    providers: Map<string, Provider>;
+    update: jest.Mock;
+    getActivity: (params: {
+      address?: string;
+      providerId?: string;
+    }) => Promise<ActivityEntry[]>;
+  }
+
+  const makeController = (
+    providers: Record<string, Provider>,
+  ): MockPredictController => {
     const controller = Object.create(
       PredictController.prototype,
-    ) as PredictController & {
-      providers: Map<string, Provider>;
-      update: jest.Mock;
-    };
+    ) as MockPredictController;
     controller.providers = new Map(Object.entries(providers));
     controller.update = jest.fn();
     return controller;
@@ -54,12 +60,7 @@ describe('PredictController.getActivity', () => {
 
     const controller = makeController({ stub: stubProvider });
 
-    const getActivity = PredictController.prototype.getActivity as unknown as (
-      this: PredictController,
-      params: { providerId?: string },
-    ) => Promise<ActivityEntry[]>;
-
-    const result = await getActivity.call(controller, { providerId: 'stub' });
+    const result = await controller.getActivity({ providerId: 'stub' });
 
     expect(stubProvider.getActivity).toHaveBeenCalledWith({
       address: '0xselected',
@@ -70,31 +71,31 @@ describe('PredictController.getActivity', () => {
 
   it('merges activity from all providers when providerId is not specified', async () => {
     const providerA: Provider = {
-      getActivity: jest.fn(async () => [
-        {
-          id: 'a',
-          providerId: 'A',
-          entry: { type: 'claimWinnings', timestamp: 1, amount: 1 },
-        },
-      ]),
+      getActivity: jest.fn(
+        async ({ address: _address }: { address: string }) => [
+          {
+            id: 'a',
+            providerId: 'A',
+            entry: { type: 'claimWinnings', timestamp: 1, amount: 1 },
+          },
+        ],
+      ),
     };
     const providerB: Provider = {
-      getActivity: jest.fn(async () => [
-        {
-          id: 'b',
-          providerId: 'B',
-          entry: { type: 'claimWinnings', timestamp: 2, amount: 2 },
-        },
-      ]),
+      getActivity: jest.fn(
+        async ({ address: _address }: { address: string }) => [
+          {
+            id: 'b',
+            providerId: 'B',
+            entry: { type: 'claimWinnings', timestamp: 2, amount: 2 },
+          },
+        ],
+      ),
     };
 
     const controller = makeController({ A: providerA, B: providerB });
 
-    const getActivity = PredictController.prototype.getActivity as unknown as (
-      this: PredictController,
-      params: { providerId?: string },
-    ) => Promise<ActivityEntry[]>;
-    const result = await getActivity.call(controller, {});
+    const result = await controller.getActivity({});
 
     expect(providerA.getActivity).toHaveBeenCalled();
     expect(providerB.getActivity).toHaveBeenCalled();
@@ -104,12 +105,8 @@ describe('PredictController.getActivity', () => {
   it('throws when providerId is not available', async () => {
     const controller = makeController({});
 
-    const getActivity = PredictController.prototype.getActivity as unknown as (
-      this: PredictController,
-      params: { providerId?: string },
-    ) => Promise<ActivityEntry[]>;
     await expect(
-      getActivity.call(controller, { providerId: 'missing' }),
+      controller.getActivity({ providerId: 'missing' }),
     ).rejects.toThrow();
   });
 });
