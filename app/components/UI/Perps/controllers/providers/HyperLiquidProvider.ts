@@ -230,6 +230,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       totalAssets,
       mainDexAssets: mainMeta.universe.length,
       coins: Array.from(this.coinToAssetId.keys()),
+      hip3Assets: Array.from(this.coinToAssetId.entries())
+        .filter(([_coin, id]) => id === 0) // Show all assets with ID 0
+        .map(([coin, id]) => ({ coin, id })),
     });
   }
 
@@ -513,8 +516,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
       const assetId = this.coinToAssetId.get(params.coin);
       if (assetId === undefined) {
+        DevLogger.log('Asset ID lookup failed:', {
+          coin: params.coin,
+          availableCoins: Array.from(this.coinToAssetId.keys()),
+          mapSize: this.coinToAssetId.size,
+        });
         throw new Error(`Asset ID not found for ${params.coin}`);
       }
+
+      DevLogger.log('Found asset ID for order:', {
+        coin: params.coin,
+        assetId,
+        dexName: dexName || 'main',
+      });
 
       // Update leverage if specified
       if (params.leverage) {
@@ -1692,6 +1706,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         main: mainMarkets.length,
         hip3: hip3Markets.length,
         total: allMarkets.length,
+        sampleHip3Markets: hip3Markets.slice(0, 5).map((m) => ({
+          name: m.name,
+          dexName: m.dexName,
+          isHip3: m.isHip3,
+        })),
       });
 
       return allMarkets;
