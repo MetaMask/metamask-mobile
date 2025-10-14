@@ -104,7 +104,6 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import CollectibleContracts from '../../UI/CollectibleContracts';
 import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -424,12 +423,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
+    if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
       tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
-    } else if (collectiblesEnabled) {
-      tabs.push(
-        <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
-      );
     }
 
     return tabs;
