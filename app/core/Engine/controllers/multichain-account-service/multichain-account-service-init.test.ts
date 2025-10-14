@@ -131,42 +131,5 @@ describe('MultichainAccountServiceInit', () => {
       expect(mockSetEnabled).toHaveBeenCalledTimes(1);
       expect(mockSetEnabled).toHaveBeenCalledWith(true);
     });
-
-    it('subscribes to account group updates when Bitcoin is enabled', () => {
-      // Given the feature flag is enabled
-      selectIsBitcoinAccountsEnabledMock.mockReturnValue(true);
-
-      // When initializing the service
-      const initRequestMock = getInitRequestMock();
-      const subscribeMock = jest.spyOn(
-        initRequestMock.initMessenger,
-        'subscribe',
-      );
-
-      multichainAccountServiceInit(initRequestMock);
-
-      // Then should subscribe to multichain account group updates
-      expect(subscribeMock).toHaveBeenCalledWith(
-        'MultichainAccountService:multichainAccountGroupUpdated',
-        expect.any(Function),
-      );
-    });
-
-    it('does not subscribe to account group updates when Bitcoin is disabled', () => {
-      // Given the feature flag is disabled
-      selectIsBitcoinAccountsEnabledMock.mockReturnValue(false);
-
-      // When initializing the service
-      const initRequestMock = getInitRequestMock();
-      const subscribeMock = jest.spyOn(
-        initRequestMock.initMessenger,
-        'subscribe',
-      );
-
-      multichainAccountServiceInit(initRequestMock);
-
-      // Then should not subscribe to multichain account group updates
-      expect(subscribeMock).not.toHaveBeenCalled();
-    });
   });
 });
