@@ -76,28 +76,13 @@ jest.mock('../../../util/password', () => ({
   passwordRequirementsMet: jest.fn(),
 }));
 
-// Mock react-native with Keyboard and Animated
+// Mock react-native Keyboard
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
     ...RN,
     Keyboard: {
       dismiss: jest.fn(),
-    },
-    Animated: {
-      ...RN.Animated,
-      parallel: jest.fn(() => ({
-        start: jest.fn(),
-      })),
-      timing: jest.fn(() => ({
-        start: jest.fn(),
-      })),
-      Value: jest.fn(() => ({
-        setValue: jest.fn(),
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        removeAllListeners: jest.fn(),
-      })),
     },
   };
 });
@@ -148,21 +133,48 @@ jest.mock('../../../core/BackupVault', () => ({
   getVaultFromBackup: jest.fn(),
 }));
 
-// Mock OnboardingAnimation component
-jest.mock(
-  '../Onboarding/OnboardingAnimation',
-  () =>
-    ({ children }: { children: React.ReactNode }) =>
-      children,
-);
-
-// Mock FoxAnimation component
-jest.mock('../Onboarding/FoxAnimation', () => () => {
+// Mock animation components
+jest.mock('../Onboarding/OnboardingAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const { View } = require('react-native');
+
+  return ({
+    children,
+    startOnboardingAnimation,
+    setStartFoxAnimation,
+  }: {
+    children: React.ReactNode;
+    startOnboardingAnimation: boolean;
+    setStartFoxAnimation: (value: boolean) => void;
+  }) => {
+    // Use synchronous execution
+    if (startOnboardingAnimation && setStartFoxAnimation) {
+      // Call immediately and synchronously
+      setStartFoxAnimation(true);
+    }
+
+    return React.createElement(
+      View,
+      { testID: 'onboarding-animation-mock' },
+      children,
+    );
+  };
+});
+
+jest.mock('../Onboarding/FoxAnimation', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const ReactMock = require('react');
-  return ReactMock.createElement(View, { testID: 'fox-animation-mock' });
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View, Text } = require('react-native');
+
+  return () =>
+    React.createElement(
+      View,
+      { testID: 'fox-animation-mock' },
+      React.createElement(Text, null, 'Fox Animation Mock'),
+    );
 });
 
 // Mock Rive animations
@@ -1380,6 +1392,7 @@ describe('Login', () => {
     });
   });
 });
+
 // it('should navigate back and reset OAuth state when using other methods', async () => {
 //   mockRoute.mockReturnValue({
 //     params: {
