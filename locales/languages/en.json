@@ -1525,7 +1525,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -1576,10 +1576,10 @@
     "market_list": "Market List",
     "market_details": "Market Details",
     "tab": {
-      "no_predictions": "No predictions yet",
-      "no_predictions_description": "Open a prediction to get started.",
-      "explore": "Explore markets",
-      "new_prediction": "New prediction"
+      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
+      "explore": "Browse markets",
+      "new_prediction": "New prediction",
+      "resolved_markets": "Resolved markets"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
@@ -1609,11 +1609,11 @@
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
-    "won_markets_text_singular": "Won {{count}} market",
-    "won_markets_text_plural": "Won {{count}} markets",
+    "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unrealized_pnl_error": "Unable to load",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
@@ -6021,9 +6021,9 @@
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
 
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
