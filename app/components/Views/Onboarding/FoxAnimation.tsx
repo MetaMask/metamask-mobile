@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, StyleSheet } from 'react-native';
+import { Animated, Easing, StyleSheet, Platform } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
+import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
 import Logger from '../../../util/Logger';
 import { isE2E } from '../../../util/test/utils';
 import Device from '../../../util/device';
@@ -13,11 +14,46 @@ const getFoxAnimationHeight = (hasFooter: boolean) => {
   return Device.isMediumDevice() ? 300 : 350;
 };
 
-const createStyles = (hasFooter: boolean) =>
+const getSafeBottomPosition = (hasFooter: boolean, insets?: EdgeInsets) => {
+  const basePadding = insets?.bottom || 0;
+
+  // iOS specific
+  if (Platform.OS === 'ios') {
+    if (hasFooter) {
+      // Footer case: position above footer + safe area
+      return Math.max(100, basePadding + 60);
+    }
+    if (basePadding > 0) {
+      // iPhone X+ with home indicator
+      return Math.max(-40, -(basePadding - 10));
+    }
+    return -20;
+  }
+
+  // Android specific
+  if (Platform.OS === 'android') {
+    // Samsung and other Android devices with gesture navigation
+    if (basePadding > 20) {
+      return hasFooter
+        ? Math.max(100, basePadding + 60)
+        : Math.max(-20, basePadding);
+    }
+
+    // Standard Android devices
+    return hasFooter
+      ? Math.max(100, basePadding + 40)
+      : Math.max(-20, basePadding - 20);
+  }
+
+  // Fallback for other platforms
+  return hasFooter ? 100 : -20;
+};
+
+const createStyles = (hasFooter: boolean, insets?: EdgeInsets) =>
   StyleSheet.create({
     foxAnimationWrapper: {
       position: 'absolute',
-      bottom: hasFooter ? 100 : -20,
+      bottom: getSafeBottomPosition(hasFooter, insets),
       left: 0,
       right: 0,
       height: getFoxAnimationHeight(hasFooter),
@@ -41,7 +77,8 @@ const FoxAnimation = ({
   isLoading?: boolean;
 }) => {
   const foxRef = useRef<RiveRef>(null);
-  const styles = createStyles(hasFooter);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(hasFooter, insets);
   const foxOpacity = useMemo(() => new Animated.Value(0), []);
 
   const showFoxAnimation = useCallback(async () => {
