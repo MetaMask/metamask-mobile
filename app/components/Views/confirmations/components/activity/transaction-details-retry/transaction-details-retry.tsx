@@ -17,8 +17,11 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../../locales/i18n';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './transaction-details-retry.styles';
 
 export function TransactionDetailsRetry() {
+  const { styles } = useStyles(styleSheet, {});
   const { transactionMeta } = useTransactionDetails();
   const { status } = transactionMeta;
   const { depositWithConfirmation } = usePerpsTrading();
@@ -53,7 +56,7 @@ export function TransactionDetailsRetry() {
         onPress={handlePress}
         label={strings('transaction_details.label.retry_button')}
         variant={ButtonVariants.Primary}
-        style={{marginBottom: 20}}
+        style={styles.button}
       />
     </Box>
   );
