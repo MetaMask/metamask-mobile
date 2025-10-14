@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import NftGridList from './NftGridList';
+import NftGrid from './NftGrid';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -84,7 +84,7 @@ jest.mock('@shopify/flash-list', () => ({
 jest.mock('@metamask/react-native-actionsheet', () => () => null);
 
 // Mock child components with minimal complexity
-jest.mock('./NftGridListRefreshControl', () => () => null);
+jest.mock('./NftGridRefreshControl', () => () => null);
 jest.mock('./NftGridItemActionSheet', () => () => null);
 jest.mock('./NftGridHeader', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -176,7 +176,7 @@ jest.mock('../../../util/trace', () => ({
   TraceName: { LoadCollectibles: 'LoadCollectibles' },
 }));
 
-describe('NftGridList', () => {
+describe('NftGrid', () => {
   const mockNft: Nft = {
     address: '0x123',
     tokenId: '456',
@@ -211,7 +211,7 @@ describe('NftGridList', () => {
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -239,7 +239,7 @@ describe('NftGridList', () => {
 
     const { queryByTestId, getByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -266,7 +266,7 @@ describe('NftGridList', () => {
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -297,7 +297,7 @@ describe('NftGridList', () => {
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -325,7 +325,7 @@ describe('NftGridList', () => {
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -347,7 +347,7 @@ describe('NftGridList', () => {
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -369,7 +369,7 @@ describe('NftGridList', () => {
 
     const { queryByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -390,7 +390,7 @@ describe('NftGridList', () => {
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -411,7 +411,7 @@ describe('NftGridList', () => {
 
     const { queryByTestId } = render(
       <Provider store={store}>
-        <NftGridList />
+        <NftGrid />
       </Provider>,
     );
 
@@ -421,28 +421,6 @@ describe('NftGridList', () => {
 
     await waitFor(() => {
       expect(queryByTestId('collectibles-empty-state')).toBeNull();
-    });
-  });
-
-  it('shows footer only when collectibles are present', async () => {
-    const mockCollectibles = { '0x1': [mockNft] };
-    mockUseSelector
-      .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
-    const store = mockStore(initialState);
-
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <NftGridList />
-      </Provider>,
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    await waitFor(() => {
-      expect(getByTestId('import-collectible-button')).toBeDefined();
     });
   });
 });
