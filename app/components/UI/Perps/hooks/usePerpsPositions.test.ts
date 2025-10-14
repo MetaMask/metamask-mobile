@@ -6,23 +6,19 @@ import { usePerpsConnection } from './usePerpsConnection';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Position } from '../controllers/types';
 
-// Mock dependencies
 jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsConnection');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 
-// Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
-// Get mocked useFocusEffect
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs
 const { useFocusEffect } = require('@react-navigation/native') as {
   useFocusEffect: jest.Mock;
 };
 
-// Mock data
 const mockPositions: Position[] = [
   {
     coin: 'BTC',
@@ -85,10 +81,8 @@ describe('usePerpsPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Set up mock for getPositions
     mockGetPositions = jest.fn().mockResolvedValue(mockPositions);
 
-    // Mock usePerpsTrading
     mockUsePerpsTrading.mockReturnValue({
       getPositions: mockGetPositions,
       placeOrder: jest.fn(),
@@ -115,7 +109,6 @@ describe('usePerpsPositions', () => {
       getFunding: jest.fn(),
     });
 
-    // Mock usePerpsConnection to be ready by default
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
       isConnecting: false,
@@ -130,10 +123,8 @@ describe('usePerpsPositions', () => {
 
   describe('Initial state', () => {
     it('returns initial state with empty positions and loading true', () => {
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
-      // Assert
       expect(result.current.positions).toEqual([]);
       expect(result.current.isLoading).toBe(true);
       expect(result.current.isRefreshing).toBe(false);
@@ -142,12 +133,10 @@ describe('usePerpsPositions', () => {
     });
 
     it('returns initial state with loading true when loadOnMount is false', () => {
-      // Act
       const { result } = renderHook(() =>
         usePerpsPositions({ loadOnMount: false }),
       );
 
-      // Assert
       expect(result.current.positions).toEqual([]);
       expect(result.current.isLoading).toBe(true);
       expect(result.current.isRefreshing).toBe(false);
@@ -169,22 +158,18 @@ describe('usePerpsPositions', () => {
         reconnectWithNewContext: jest.fn(),
       });
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
-      // Wait a bit to ensure no async operations are triggered
       await act(async () => {
         await Promise.resolve();
       });
 
-      // Assert - should not load while disconnected
       expect(result.current.isLoading).toBe(true);
       expect(result.current.positions).toEqual([]);
       expect(mockGetPositions).not.toHaveBeenCalled();
     });
 
     it('loads data when connection becomes ready', async () => {
-      // Arrange - start disconnected
       let isConnected = false;
       let isInitialized = false;
 
@@ -201,10 +186,8 @@ describe('usePerpsPositions', () => {
 
       const { result, rerender } = renderHook(() => usePerpsPositions());
 
-      // Assert - not loaded yet
       expect(mockGetPositions).not.toHaveBeenCalled();
 
-      // Act - simulate connection ready
       isConnected = true;
       isInitialized = true;
       rerender();
@@ -213,7 +196,6 @@ describe('usePerpsPositions', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert - should load after connection ready
       expect(mockGetPositions).toHaveBeenCalledTimes(1);
       expect(result.current.positions).toEqual(mockPositions);
     });
@@ -221,15 +203,12 @@ describe('usePerpsPositions', () => {
 
   describe('Successful position loading', () => {
     it('loads positions successfully on mount', async () => {
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
-      // Wait for async operations
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(result.current.positions).toEqual(mockPositions);
       expect(result.current.error).toBeNull();
       expect(mockGetPositions).toHaveBeenCalledTimes(1);
@@ -243,55 +222,45 @@ describe('usePerpsPositions', () => {
     });
 
     it('skips initial load when loadOnMount is false', async () => {
-      // Act
       const { result } = renderHook(() =>
         usePerpsPositions({ loadOnMount: false }),
       );
 
-      // Wait a bit to ensure no async operations are triggered
       await act(async () => {
         await Promise.resolve();
       });
 
-      // Assert
       expect(mockGetPositions).not.toHaveBeenCalled();
       expect(result.current.positions).toEqual([]);
     });
 
     it('handles empty positions array', async () => {
-      // Arrange
       mockGetPositions.mockResolvedValue([]);
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(result.current.positions).toEqual([]);
       expect(result.current.error).toBeNull();
     });
 
     it('handles null/undefined response gracefully', async () => {
-      // Arrange
       mockGetPositions.mockResolvedValue(null);
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert - should handle gracefully
       expect(result.current.positions).toEqual([]);
       expect(result.current.error).toBeNull();
     });
 
     it('updates positions when data changes', async () => {
-      // Arrange
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
@@ -324,15 +293,12 @@ describe('usePerpsPositions', () => {
         },
       ];
 
-      // Mock new response
       mockGetPositions.mockResolvedValue(newPositions);
 
-      // Act - trigger refresh
       await act(async () => {
         await result.current.loadPositions({ isRefresh: true });
       });
 
-      // Assert
       expect(result.current.positions).toEqual(newPositions);
       expect(result.current.error).toBeNull();
     });
@@ -340,18 +306,15 @@ describe('usePerpsPositions', () => {
 
   describe('Error handling', () => {
     it('handles load errors', async () => {
-      // Arrange
       const errorMessage = 'Failed to load positions';
       mockGetPositions.mockRejectedValue(new Error(errorMessage));
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(result.current.positions).toEqual([]);
       expect(result.current.error).toBe(errorMessage);
       expect(DevLogger.log).toHaveBeenCalledWith(
@@ -361,22 +324,18 @@ describe('usePerpsPositions', () => {
     });
 
     it('handles unknown error types', async () => {
-      // Arrange
       mockGetPositions.mockRejectedValue('String error');
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(result.current.error).toBe('Failed to load positions');
     });
 
     it('clears error on successful reload', async () => {
-      // Arrange
       mockGetPositions.mockRejectedValueOnce(new Error('Initial error'));
 
       const { result } = renderHook(() => usePerpsPositions());
@@ -385,63 +344,52 @@ describe('usePerpsPositions', () => {
         expect(result.current.error).toBe('Initial error');
       });
 
-      // Set up successful response
       mockGetPositions.mockResolvedValue(mockPositions);
 
-      // Act - trigger reload
       await act(async () => {
         await result.current.loadPositions();
       });
 
-      // Assert
       expect(result.current.error).toBeNull();
       expect(result.current.positions).toEqual(mockPositions);
     });
 
     it('calls onError callback when provided', async () => {
-      // Arrange
       const errorMessage = 'Test error';
       const onError = jest.fn();
       mockGetPositions.mockRejectedValue(new Error(errorMessage));
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions({ onError }));
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(onError).toHaveBeenCalledWith(errorMessage);
     });
   });
 
   describe('Refresh functionality', () => {
     it('sets refreshing state correctly during refresh', async () => {
-      // Arrange
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Mock slow response
       let resolvePromise: (value: Position[]) => void;
       const slowPromise = new Promise<Position[]>((resolve) => {
         resolvePromise = resolve;
       });
       mockGetPositions.mockReturnValue(slowPromise);
 
-      // Act - trigger refresh
       act(() => {
         result.current.loadPositions({ isRefresh: true });
       });
 
-      // Assert - should be refreshing
       expect(result.current.isRefreshing).toBe(true);
       expect(result.current.isLoading).toBe(false);
 
-      // Complete the promise
       act(() => {
         resolvePromise(mockPositions);
       });
@@ -452,14 +400,12 @@ describe('usePerpsPositions', () => {
     });
 
     it('can be called multiple times without issues', async () => {
-      // Arrange
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Act - call load multiple times
       await act(async () => {
         await Promise.all([
           result.current.loadPositions({ isRefresh: true }),
@@ -468,21 +414,18 @@ describe('usePerpsPositions', () => {
         ]);
       });
 
-      // Assert - should still work correctly
       expect(result.current.positions).toEqual(mockPositions);
       expect(result.current.error).toBeNull();
       expect(result.current.isRefreshing).toBe(false);
     });
 
     it('refreshes on focus when refreshOnFocus is true', async () => {
-      // Arrange
       renderHook(() => usePerpsPositions({ refreshOnFocus: true }));
 
       await waitFor(() => {
         expect(mockGetPositions).toHaveBeenCalled();
       });
 
-      // Clear initial calls
       mockGetPositions.mockClear();
 
       // Act - simulate focus by calling the stored callback
@@ -491,19 +434,16 @@ describe('usePerpsPositions', () => {
         focusCallback();
       });
 
-      // Assert - should have refreshed
       expect(mockGetPositions).toHaveBeenCalled();
     });
 
     it('does not refresh on focus when refreshOnFocus is false', async () => {
-      // Arrange
       renderHook(() => usePerpsPositions({ refreshOnFocus: false }));
 
       await waitFor(() => {
         expect(mockGetPositions).toHaveBeenCalled();
       });
 
-      // Clear initial calls
       mockGetPositions.mockClear();
 
       // Act - simulate focus
@@ -512,12 +452,10 @@ describe('usePerpsPositions', () => {
         focusCallback();
       });
 
-      // Assert - should not have refreshed
       expect(mockGetPositions).not.toHaveBeenCalled();
     });
 
     it('does not refresh on focus when not connected', async () => {
-      // Arrange
       mockUsePerpsConnection.mockReturnValue({
         isConnected: false,
         isConnecting: false,
@@ -544,29 +482,24 @@ describe('usePerpsPositions', () => {
         focusCallback();
       });
 
-      // Assert - should not have refreshed
       expect(mockGetPositions).not.toHaveBeenCalled();
     });
   });
 
   describe('Callback functionality', () => {
     it('calls onSuccess callback when provided', async () => {
-      // Arrange
       const onSuccess = jest.fn();
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions({ onSuccess }));
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(onSuccess).toHaveBeenCalledWith(mockPositions);
     });
 
     it('calls onSuccess on successful refresh', async () => {
-      // Arrange
       const onSuccess = jest.fn();
       const { result } = renderHook(() => usePerpsPositions({ onSuccess }));
 
@@ -574,25 +507,20 @@ describe('usePerpsPositions', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Clear initial call
       onSuccess.mockClear();
 
-      // Act - refresh
       await act(async () => {
         await result.current.loadPositions({ isRefresh: true });
       });
 
-      // Assert
       expect(onSuccess).toHaveBeenCalledWith(mockPositions);
     });
   });
 
   describe('Loading states', () => {
     it('uses isLoading for initial load', async () => {
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
-      // Assert - should be loading initially
       expect(result.current.isLoading).toBe(true);
       expect(result.current.isRefreshing).toBe(false);
 
@@ -602,30 +530,25 @@ describe('usePerpsPositions', () => {
     });
 
     it('uses isRefreshing for refresh operations', async () => {
-      // Arrange
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Create a slow promise
       let resolvePromise: (value: Position[]) => void;
       const slowPromise = new Promise<Position[]>((resolve) => {
         resolvePromise = resolve;
       });
       mockGetPositions.mockReturnValue(slowPromise);
 
-      // Act - trigger refresh
       act(() => {
         result.current.loadPositions({ isRefresh: true });
       });
 
-      // Assert - should use isRefreshing, not isLoading
       expect(result.current.isRefreshing).toBe(true);
       expect(result.current.isLoading).toBe(false);
 
-      // Complete
       act(() => {
         resolvePromise(mockPositions);
       });
@@ -636,7 +559,6 @@ describe('usePerpsPositions', () => {
     });
 
     it('maintains consistent state transitions', async () => {
-      // Track state changes
       const states: {
         isLoading: boolean;
         isRefreshing: boolean;
@@ -644,7 +566,6 @@ describe('usePerpsPositions', () => {
 
       const { result } = renderHook(() => usePerpsPositions());
 
-      // Record initial state
       states.push({
         isLoading: result.current.isLoading,
         isRefreshing: result.current.isRefreshing,
@@ -654,13 +575,11 @@ describe('usePerpsPositions', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Record after load
       states.push({
         isLoading: result.current.isLoading,
         isRefreshing: result.current.isRefreshing,
       });
 
-      // Assert - should have consistent state transitions
       expect(states[0]).toEqual({ isLoading: true, isRefreshing: false });
       expect(states[1]).toEqual({ isLoading: false, isRefreshing: false });
     });
@@ -668,7 +587,6 @@ describe('usePerpsPositions', () => {
 
   describe('Edge cases', () => {
     it('handles positions with negative PnL', async () => {
-      // Arrange
       const positionsWithNegativePnl: Position[] = [
         {
           coin: 'BTC',
@@ -697,20 +615,17 @@ describe('usePerpsPositions', () => {
 
       mockGetPositions.mockResolvedValue(positionsWithNegativePnl);
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(result.current.positions).toEqual(positionsWithNegativePnl);
       expect(result.current.error).toBeNull();
     });
 
     it('handles positions with TP/SL orders', async () => {
-      // Arrange
       const positionsWithTPSL: Position[] = [
         {
           coin: 'ETH',
@@ -739,19 +654,16 @@ describe('usePerpsPositions', () => {
 
       mockGetPositions.mockResolvedValue(positionsWithTPSL);
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
       expect(result.current.positions).toEqual(positionsWithTPSL);
     });
 
     it('handles concurrent load requests gracefully', async () => {
-      // Arrange
       let resolveFirst: (value: Position[]) => void;
       let resolveSecond: (value: Position[]) => void;
 
@@ -766,15 +678,12 @@ describe('usePerpsPositions', () => {
         .mockReturnValueOnce(firstPromise)
         .mockReturnValueOnce(secondPromise);
 
-      // Act
       const { result } = renderHook(() => usePerpsPositions());
 
-      // Start another load while first is pending
       act(() => {
         result.current.loadPositions();
       });
 
-      // Resolve both requests
       await act(async () => {
         resolveFirst([]);
         resolveSecond(mockPositions);
@@ -787,7 +696,6 @@ describe('usePerpsPositions', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert - should handle gracefully (last one wins)
       expect(result.current.positions).toEqual(mockPositions);
       expect(result.current.error).toBeNull();
     });

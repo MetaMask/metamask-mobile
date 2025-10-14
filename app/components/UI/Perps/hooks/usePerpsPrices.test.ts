@@ -2,7 +2,6 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { usePerpsPrices } from './usePerpsPrices';
 import { usePerpsTrading } from './usePerpsTrading';
 
-// Mock dependencies
 jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsConnection', () => ({
   usePerpsConnection: jest.fn(),

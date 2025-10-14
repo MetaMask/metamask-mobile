@@ -6,13 +6,11 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { usePerpsConnection } from './usePerpsConnection';
 
-// Mock React to control useContext
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
 }));
 
-// Mock strings for error messages
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     if (key === 'perps.errors.connectionRequired') {
@@ -28,15 +26,12 @@ describe('usePerpsConnection', () => {
   });
 
   it('throws error when used outside provider', () => {
-    // Arrange - useContext returns null when outside provider
     (useContext as jest.Mock).mockReturnValue(null);
 
-    // Act & Assert
     const { result } = renderHook(() => {
       try {
         return usePerpsConnection();
       } catch (error) {
-        // Store the error for assertion
         return { error };
       }
     });
@@ -48,7 +43,6 @@ describe('usePerpsConnection', () => {
   });
 
   it('returns connection context when used inside provider', () => {
-    // Arrange - mock context value
     const mockContext = {
       connect: jest.fn(),
       disconnect: jest.fn(),
@@ -64,10 +58,8 @@ describe('usePerpsConnection', () => {
     };
     (useContext as jest.Mock).mockReturnValue(mockContext);
 
-    // Act
     const { result } = renderHook(() => usePerpsConnection());
 
-    // Assert
     expect(result.current).toBe(mockContext);
     expect(typeof result.current.connect).toBe('function');
     expect(typeof result.current.disconnect).toBe('function');

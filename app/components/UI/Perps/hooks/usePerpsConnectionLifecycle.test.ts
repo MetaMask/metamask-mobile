@@ -4,7 +4,6 @@ import Device from '../../../../util/device';
 import { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
-// Mock dependencies
 jest.mock('react-native', () => ({
   AppState: {
     currentState: 'active',

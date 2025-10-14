@@ -20,7 +20,6 @@ import {
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
 
-// Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');

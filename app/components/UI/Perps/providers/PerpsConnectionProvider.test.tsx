@@ -5,7 +5,6 @@ import { PerpsConnectionProvider } from './PerpsConnectionProvider';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
-// Mock dependencies
 jest.mock('../services/PerpsConnectionManager');
 
 // Mock navigation

@@ -1,4 +1,3 @@
-// Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
