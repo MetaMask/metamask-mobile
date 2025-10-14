@@ -1119,14 +1119,30 @@ describe('PolymarketProvider', () => {
   });
 
   describe('getActivity', () => {
-    it('throws error when method is not implemented', () => {
+    it('fetches activity and resolves without throwing', async () => {
       const provider = createProvider();
+      // Mock network and account state used internally
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (global as any).fetch = jest
+        .fn()
+        .mockResolvedValue({ ok: true, json: () => [] });
+      const getAccountStateSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(provider as any, 'getAccountState')
+        .mockResolvedValue({
+          address: '0xSAFE',
+          isDeployed: true,
+          hasAllowances: true,
+          balance: 0,
+        });
 
-      expect(() =>
+      await expect(
         provider.getActivity({
           address: '0x1234567890123456789012345678901234567890',
         }),
-      ).toThrow('Method not implemented.');
+      ).resolves.toEqual([]);
+
+      expect(getAccountStateSpy).toHaveBeenCalled();
     });
   });
 

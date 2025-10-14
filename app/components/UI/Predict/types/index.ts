@@ -126,6 +126,9 @@ export interface PredictActivity {
   id: string;
   providerId: string;
   entry: PredictActivityEntry;
+  title?: string;
+  outcome?: string;
+  icon?: string;
 }
 
 export type PredictActivityEntry =
@@ -156,7 +159,7 @@ export interface PredictActivitySell {
 export interface PredictActivityClaimWinnings {
   type: 'claimWinnings';
   timestamp: number;
-  // tbd
+  amount: number;
 }
 
 export interface PredictPriceHistoryPoint {
