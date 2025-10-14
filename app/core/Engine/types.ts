@@ -678,6 +678,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  | 'AuthenticationController'
   | 'CronjobController'
   | 'ExecutionService'
   | 'SnapController'
@@ -688,6 +689,7 @@ export type ControllersToInitialize =
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
   | 'SubjectMetadataController'
+  | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'

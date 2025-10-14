@@ -13,9 +13,7 @@ import { resetRewardsState } from '../../../../reducers/rewards';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
-import { deriveAccountMetricProps } from '../utils';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // Mock dependencies
@@ -46,10 +44,6 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: jest.fn(),
-}));
-
 // Mock useMetrics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -71,7 +65,6 @@ jest.mock('../../../hooks/useMetrics', () => ({
 
 // Mock utils
 jest.mock('../utils', () => ({
-  deriveAccountMetricProps: jest.fn(),
   RewardsMetricsButtons: {
     OPT_OUT_CANCEL: 'opt_out_cancel',
   },
@@ -136,39 +129,6 @@ describe('useOptout', () => {
     typeof useSelector
   >;
   const mockSubscriptionId = 'mock-subscription-id';
-  const mockAccount = { address: '0xabc', type: 'eip155:eoa' };
-  const mockAccountMetricsProps = { scope: 'evm', account_type: 'eoa' };
-
-  // Helper to provide minimal redux state shape required by selectors used in the hook
-  const getBaseState = (
-    subscriptionId: string | null = mockSubscriptionId,
-  ) => ({
-    engine: {
-      backgroundState: {
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: '0xabc',
-            accounts: {
-              '0xabc': {
-                address: '0xabc',
-                type: 'eip155:eoa',
-              },
-            },
-          },
-        },
-        RewardsController: {
-          activeAccount: subscriptionId
-            ? {
-                subscriptionId,
-                account: '0xabc',
-                hasOptedIn: true,
-              }
-            : null,
-        },
-      },
-    },
-    rewards: {},
-  });
 
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
@@ -185,7 +145,6 @@ describe('useOptout', () => {
     );
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
-      if (selector === selectSelectedInternalAccount) return mockAccount;
       // Fallback for other selectors not under test
       return undefined;
     });
@@ -207,13 +166,6 @@ describe('useOptout', () => {
     });
     mockTrackEvent.mockClear();
     mockAddTraitsToUser.mockClear();
-
-    // Setup utils mocks
-    (
-      deriveAccountMetricProps as jest.MockedFunction<
-        typeof deriveAccountMetricProps
-      >
-    ).mockReturnValue(mockAccountMetricsProps);
   });
 
   describe('initial state', () => {
@@ -269,9 +221,6 @@ describe('useOptout', () => {
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
       });
-
-      // Verify account metrics props are used
-      expect(deriveAccountMetricProps).toHaveBeenCalledWith(mockAccount);
 
       // Navigation should not happen in the optout function itself
       expect(result.current.isLoading).toBe(false);
@@ -401,7 +350,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return null; // No subscription ID
         }
-        return selector(getBaseState(null));
+        return undefined;
       });
 
       const { result } = renderHook(() => useOptout());
@@ -713,7 +662,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return undefined;
         }
-        return selector(getBaseState(undefined as unknown as string));
+        return undefined;
       });
 
       const { result } = renderHook(() => useOptout());
@@ -738,7 +687,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return '';
         }
-        return selector(getBaseState(''));
+        return undefined;
       });
 
       const { result } = renderHook(() => useOptout());
@@ -825,7 +774,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return 'new-subscription-id';
         }
-        return selector(getBaseState('new-subscription-id'));
+        return undefined;
       });
 
       // Act
