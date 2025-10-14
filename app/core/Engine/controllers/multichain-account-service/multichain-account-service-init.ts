@@ -10,6 +10,10 @@ import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+import { isBitcoinAccountsEnabled } from '../../../../selectors/featureFlagController/addBitcoinAccount';
+///: END:ONLY_INCLUDE_IF
+
 /**
  * Initialize the multichain account service.
  *
@@ -49,9 +53,10 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   });
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  // Bitcoin provider enabled by default when bitcoin feature is built
-  // Controlled by Basic Functionality toggle at runtime (same pattern as Solana)
-  btcProvider.setEnabled(true);
+  // Set initial Bitcoin provider state using version-aware flag checking
+  // Check bitcoinAccounts flag from remote feature flags with legacy fallback
+  const isEnabled = isBitcoinAccountsEnabled(true); // Will be controlled by Basic Functionality toggle
+  btcProvider.setEnabled(isEnabled);
   /// END:ONLY_INCLUDE_IF
 
   // TODO: Move this logic to the SnapKeyring directly.

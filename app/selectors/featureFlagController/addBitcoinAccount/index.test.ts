@@ -23,7 +23,7 @@ const mockedStateWithAddBitcoinAccountEnabled = {
       RemoteFeatureFlagController: {
         cacheTimestamp: 0,
         remoteFeatureFlags: {
-          addBitcoinAccount: true,
+          addBitcoinAccount: { enabled: true, minVersion: '7.58.0' },
         },
       },
     },
@@ -36,7 +36,20 @@ const mockedStateWithAddBitcoinAccountDisabled = {
       RemoteFeatureFlagController: {
         cacheTimestamp: 0,
         remoteFeatureFlags: {
-          addBitcoinAccount: false,
+          addBitcoinAccount: { enabled: false, minVersion: '7.58.0' },
+        },
+      },
+    },
+  },
+};
+
+const mockedStateWithInsufficientVersion = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        cacheTimestamp: 0,
+        remoteFeatureFlags: {
+          addBitcoinAccount: { enabled: true, minVersion: '8.0.0' }, // Higher than current 7.58.0
         },
       },
     },
@@ -63,6 +76,26 @@ describe('selectIsAddBitcoinAccountEnabled', () => {
   });
 
   it('returns false when remoteFeatureFlags is empty', () => {
-    expect(selectIsAddBitcoinAccountEnabled(mockedEmptyFlagsState)).toBe(false);
+    expect(selectIsAddBitcoinAccountEnabled(mockedEmptyFlagsState)).toBe(true); // Default to true
+  });
+
+  it('returns false when version requirement is not met', () => {
+    expect(selectIsAddBitcoinAccountEnabled(mockedStateWithInsufficientVersion)).toBe(false);
+  });
+
+  it('returns true when flag is simple boolean true', () => {
+    const simpleEnabledState = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            cacheTimestamp: 0,
+            remoteFeatureFlags: {
+              addBitcoinAccount: true, // Simple boolean
+            },
+          },
+        },
+      },
+    };
+    expect(selectIsAddBitcoinAccountEnabled(simpleEnabledState)).toBe(true);
   });
 });
