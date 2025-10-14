@@ -262,6 +262,8 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
+    console.log('new Engine');
+
     this.controllerMessenger = new ExtendedControllerMessenger();
 
     const isBasicFunctionalityToggleEnabled = () =>
@@ -474,8 +476,10 @@ export class Engine {
     // TODO: Move this to `network-controller`
     const enableOrDisableRpcFailover = (isRpcFailoverEnabled: Json) => {
       if (isRpcFailoverEnabled) {
+        Logger.log('Enabling RPC failover');
         networkController.enableRpcFailover();
       } else {
+        Logger.log('Disabling RPC failover');
         networkController.disableRpcFailover();
       }
     };

@@ -82,6 +82,7 @@ export const networkControllerInit: ControllerInitFunction<
 > = ({ controllerMessenger, initMessenger, persistedState }) => {
   const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
 
+  console.log('Initializing NetworkController');
   const controller = new NetworkController({
     infuraProjectId,
     state: getInitialNetworkControllerState(persistedState),
