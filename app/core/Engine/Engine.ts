@@ -470,6 +470,15 @@ export class Engine {
       }),
       state: initialState.LoggingController,
     });
+
+    // TODO: Move this to `network-controller`
+    const enableOrDisableRpcFailover = (isRpcFailoverEnabled: Json) => {
+      if (isRpcFailoverEnabled) {
+        networkController.enableRpcFailover();
+      } else {
+        networkController.disableRpcFailover();
+      }
+    };
     const remoteFeatureFlagControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
@@ -478,30 +487,19 @@ export class Engine {
       });
     remoteFeatureFlagControllerMessenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      (isRpcFailoverEnabled) => {
-        if (isRpcFailoverEnabled) {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', enabling RPC failover',
-          );
-          networkController.enableRpcFailover();
-        } else {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', disabling RPC failover',
-          );
-          networkController.disableRpcFailover();
-        }
-      },
+      enableOrDisableRpcFailover,
       (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
     );
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      state: initialState.RemoteFeatureFlagController,
       messenger: remoteFeatureFlagControllerMessenger,
       disabled: !isBasicFunctionalityToggleEnabled(),
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
+    enableOrDisableRpcFailover(
+      remoteFeatureFlagController.state.remoteFeatureFlags
+        .walletFrameworkRpcFailoverEnabled,
+    );
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
