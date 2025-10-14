@@ -305,7 +305,6 @@ jest.mock('../../../../../util/trace', () => ({
   },
   TraceOperation: {
     UIStartup: 'ui.startup',
-    PerpsOperation: 'perps.operation',
   },
 }));
 
@@ -849,12 +848,12 @@ describe('PerpsOrderView', () => {
   it('should track performance metrics on mount', () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    // Verify trace was called for screen load with default Perps operation
+    // Verify trace was called for screen load
     const traceModule = jest.requireMock('../../../../../util/trace');
     expect(traceModule.trace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Perps Order View',
-        op: 'perps.operation', // Default operation for Perps UI measurements
+        op: 'ui.startup',
       }),
     );
 

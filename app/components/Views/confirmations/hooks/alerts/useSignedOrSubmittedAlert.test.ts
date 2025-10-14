@@ -4,10 +4,7 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import {
-  PAY_TYPES,
-  useSignedOrSubmittedAlert,
-} from './useSignedOrSubmittedAlert';
+import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
 import { AlertKeys } from '../../constants/alerts';
@@ -163,49 +160,44 @@ describe('useSignedOrSubmittedAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it.each(PAY_TYPES)(
-    'returns alert if current and existing transaction are %s',
-    (type) => {
-      mockUseTransactionMetadataRequest.mockReturnValue({
-        ...TRANSACTION_META_MOCK,
-        id: '2',
-        status: TransactionStatus.confirmed,
-        type,
-      } as TransactionMeta);
+  it('returns alert if current and existing transaction are perps deposit', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...TRANSACTION_META_MOCK,
+      id: '2',
+      status: TransactionStatus.confirmed,
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta);
 
-      const { result } = renderHookWithProvider(
-        () => useSignedOrSubmittedAlert(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                TransactionController: {
-                  transactions: [
-                    {
-                      ...TRANSACTION_META_MOCK,
-                      type,
-                    },
-                  ],
-                },
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    ...TRANSACTION_META_MOCK,
+                    type: TransactionType.perpsDeposit,
+                  },
+                ],
               },
             },
           },
         },
-      );
+      },
+    );
 
-      expect(result.current).toStrictEqual([
-        {
-          isBlocking: true,
-          key: AlertKeys.SignedOrSubmitted,
-          message: strings(
-            'alert_system.signed_or_submitted_perps_deposit.message',
-          ),
-          title: strings(
-            'alert_system.signed_or_submitted_perps_deposit.title',
-          ),
-          severity: Severity.Danger,
-        },
-      ]);
-    },
-  );
+    expect(result.current).toStrictEqual([
+      {
+        isBlocking: true,
+        key: AlertKeys.SignedOrSubmitted,
+        message: strings(
+          'alert_system.signed_or_submitted_perps_deposit.message',
+        ),
+        title: strings('alert_system.signed_or_submitted_perps_deposit.title'),
+        severity: Severity.Danger,
+      },
+    ]);
+  });
 });

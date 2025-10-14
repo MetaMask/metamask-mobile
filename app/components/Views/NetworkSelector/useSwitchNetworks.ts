@@ -25,7 +25,6 @@ import {
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  TraceContext,
   TraceName,
   TraceOperation,
   endTrace,
@@ -47,7 +46,7 @@ interface UseSwitchNetworksProps {
   selectedNetworkName?: string;
   dismissModal?: () => void;
   closeRpcModal?: () => void;
-  parentSpan?: TraceContext;
+  parentSpan?: unknown;
 }
 
 interface UseSwitchNetworksReturn {

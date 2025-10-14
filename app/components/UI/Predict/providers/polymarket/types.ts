@@ -1,9 +1,7 @@
 import { Side } from '../../types';
-import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
-  eventId: string;
   icon: string;
   title: string;
   slug: string;
@@ -99,14 +97,10 @@ export type SignedOrder = (OrderData & { salt: string }) & {
   signature: string;
 };
 
-export interface ClobOrderObject {
-  order: Omit<SignedOrder, 'side' | 'salt'> & {
-    side: Side;
-    salt: number;
-  };
-  owner: string;
-  orderType: OrderType;
-}
+export type ClobOrderObject = Omit<SignedOrder, 'side' | 'salt'> & {
+  side: Side;
+  salt: number;
+};
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ClobHeaders = {
   POLY_ADDRESS: string;
@@ -119,7 +113,6 @@ export type ClobHeaders = {
 export interface PolymarketOffchainTradeParams {
   clobOrder: ClobOrderObject;
   headers: ClobHeaders;
-  feeAuthorization?: SafeFeeAuthorization;
 }
 
 export interface OrderArtifactsParams {
@@ -144,8 +137,6 @@ export interface PolymarketApiMarket {
   outcomes: string;
   outcomePrices: string;
   closed: boolean;
-  active: boolean;
-  resolvedBy: string;
   orderPriceMinTickSize: number;
   events?: PolymarketApiEvent[];
 }

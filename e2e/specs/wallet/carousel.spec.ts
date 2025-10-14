@@ -21,7 +21,7 @@ describe(RegressionWalletUX('Carousel Tests'), () => {
     await setupContentfulPromotionalBannersMock(mockServer);
   };
 
-  it.skip('displays carousel with slides from Contentful', async () => {
+  it('displays carousel with slides from Contentful', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withCleanBannerState().build(),

@@ -1,10 +1,6 @@
-import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import {
-  ACCOUNT_TYPE_LABEL_TEST_ID,
-  TokenListItemBip44,
-} from './TokenListItemBip44';
+import { TokenListItemBip44 } from './TokenListItemBip44';
 import { FlashListAssetKey } from '..';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
@@ -310,34 +306,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('Account Type Label', () => {
-    it('renders the correct account type label', () => {
-      prepareMocks({
-        asset: { ...defaultAsset, accountType: BtcAccountType.P2wpkh },
-      });
-
-      const assetKey: FlashListAssetKey = {
-        address: '0x456',
-        chainId: '0x1',
-        isStaked: false,
-      };
-
-      const { queryByTestId } = renderWithProvider(
-        <TokenListItemBip44
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toBeOnTheScreen();
-      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toHaveTextContent(
-        'Native SegWit',
-      );
     });
   });
 });

@@ -112,7 +112,7 @@ jobs:
           ENV_VARS='[
             {
               "mapped_to": "ADDITIONAL_SRP_1",
-              "value": "'"${{ secrets.IN_BUILD_SRP }}"'",
+              "value": "'"${{ secrets.TEST_SRP_1 }}"'",
               "is_expand": true
             },
             {

@@ -130,14 +130,18 @@ function TradeWalletActions() {
   }, [goToSwapsBase, handleNavigateBack]);
 
   const onPerps = useCallback(() => {
+    let params: Record<string, string> | null = null;
+    if (isFirstTimePerpsUser) {
+      params = {
+        screen: Routes.PERPS.TUTORIAL,
+      };
+    } else {
+      params = {
+        screen: Routes.PERPS.MARKETS,
+      };
+    }
     postCallback.current = () => {
-      if (isFirstTimePerpsUser) {
-        navigate(Routes.PERPS.TUTORIAL);
-      } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKETS,
-        });
-      }
+      navigate(Routes.PERPS.ROOT, params);
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);

@@ -84,7 +84,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
-  usePerpsAccount: jest.fn(),
+  usePerpsLiveAccount: jest.fn(),
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
@@ -210,7 +210,8 @@ describe('PerpsTabView', () => {
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
-  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
+  const mockUsePerpsAccount =
+    jest.requireMock('../../hooks').usePerpsLiveAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -353,9 +354,9 @@ describe('PerpsTabView', () => {
         fireEvent.press(startTradingButton);
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.TUTORIAL,
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+      });
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -395,9 +396,9 @@ describe('PerpsTabView', () => {
         fireEvent.press(startNewTradeCTA);
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.TUTORIAL,
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+      });
     });
 
     it('should navigate to markets when Start a new trade CTA is pressed by returning user', () => {

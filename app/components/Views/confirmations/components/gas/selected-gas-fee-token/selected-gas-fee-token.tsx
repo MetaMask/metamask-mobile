@@ -67,14 +67,13 @@ export function SelectedGasFeeToken() {
         onPress={handlePress}
         style={styles.gasFeeTokenButton}
         testID="selected-gas-fee-token"
-        disabled={!supportsGasFeeTokens}
       >
         <GasFeeTokenIcon
           tokenAddress={gasFeeToken?.tokenAddress ?? NATIVE_TOKEN_ADDRESS}
           size={GasFeeTokenIconSize.Sm}
         />
         <Text>{symbol}</Text>
-        {supportsGasFeeTokens && (
+        {hasGasFeeTokens && !hasOnlyFutureNativeToken && (
           <Icon
             testID="selected-gas-fee-token-arrow"
             name={IconName.ArrowDown}

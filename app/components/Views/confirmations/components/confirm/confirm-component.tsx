@@ -28,13 +28,13 @@ import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PerpsDepositSkeleton } from '../../external/perps-temp/components/deposit-skeleton';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
-import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 
 export enum ConfirmationLoader {
   Default = 'default',
-  CustomAmount = 'customAmount',
+  PerpsDeposit = 'perpsDeposit',
 }
 
 export interface ConfirmationParams {
@@ -158,14 +158,14 @@ function Loader() {
   const params = useParams<ConfirmationParams>();
   const loader = params?.loader ?? ConfirmationLoader.Default;
 
-  if (loader === ConfirmationLoader.CustomAmount) {
+  if (loader === ConfirmationLoader.PerpsDeposit) {
     return (
-      <View style={styles.flatContainer} testID="confirm-loader-custom-amount">
+      <View style={styles.flatContainer} testID="confirm-loader-perps-deposit">
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
         >
-          <CustomAmountInfoSkeleton />
+          <PerpsDepositSkeleton />
         </ScrollView>
       </View>
     );

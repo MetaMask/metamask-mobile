@@ -49,8 +49,11 @@ describe('handlePerpsUrl', () => {
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
       expect(mockSetParams).not.toHaveBeenCalled();
     });
@@ -78,8 +81,11 @@ describe('handlePerpsUrl', () => {
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
     });
 
@@ -89,8 +95,11 @@ describe('handlePerpsUrl', () => {
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
     });
 
@@ -230,8 +239,11 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
 
       // First-time users always go to tutorial, even with screen=markets parameter
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
       // Should not call setParams or navigate to markets

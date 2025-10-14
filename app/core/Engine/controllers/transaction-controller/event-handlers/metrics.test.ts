@@ -71,7 +71,6 @@ describe('Transaction Metric Event Handlers', () => {
   const mockSmartTransactionMetricsProperties = {
     smart_transaction_timed_out: false,
     smart_transaction_proxied: false,
-    is_smart_transaction: true,
   };
 
   const mockTransactionMetricRequest = {
@@ -202,7 +201,6 @@ describe('Transaction Metric Event Handlers', () => {
       mockGetSmartTransactionMetricsProperties.mockResolvedValue({
         smart_transaction_timed_out: false,
         smart_transaction_proxied: false,
-        is_smart_transaction: true,
       });
 
       await handleTransactionFinalizedEventForMetrics(
@@ -218,7 +216,6 @@ describe('Transaction Metric Event Handlers', () => {
         expect.objectContaining({
           smart_transaction_timed_out: false,
           smart_transaction_proxied: false,
-          is_smart_transaction: true,
         }),
       );
     });

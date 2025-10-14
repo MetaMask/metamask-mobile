@@ -14,7 +14,6 @@ describe(FlaskBuildTests('Installed Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -34,7 +33,6 @@ describe(FlaskBuildTests('Installed Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
-        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('sendErrorButton');

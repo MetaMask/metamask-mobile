@@ -167,13 +167,18 @@ export const WaysToEarn = () => {
   });
 
   const goToPerps = useCallback(() => {
+    let params: Record<string, string> | null = null;
     if (isFirstTimePerpsUser) {
-      navigation.navigate(Routes.PERPS.TUTORIAL);
+      params = {
+        screen: Routes.PERPS.TUTORIAL,
+      };
     } else {
-      navigation.navigate(Routes.PERPS.ROOT, {
+      params = {
         screen: Routes.PERPS.MARKETS,
-      });
+      };
     }
+
+    navigation.navigate(Routes.PERPS.ROOT, params);
   }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {

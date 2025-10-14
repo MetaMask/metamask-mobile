@@ -33,16 +33,14 @@ import {
   decodeSwapsTx,
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
-import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 
 const { getSwapsContractAddress } = swapsUtils;
 
 function getTokenTransfer(args) {
   const {
     tx: {
-      txParams: { from, nonce },
+      txParams: { from, to, data, nonce },
     },
-    tx,
     txChainId,
     conversionRate,
     currentCurrency,
@@ -55,7 +53,6 @@ function getTokenTransfer(args) {
     ticker,
   } = args;
 
-  const { data, to } = getTokenTransferData(tx) ?? {};
   const [, , encodedAmount] = decodeTransferData('transfer', data);
   const amount = hexToBN(encodedAmount);
   const userHasToken = toFormattedAddress(to) in tokens;
@@ -330,15 +327,13 @@ async function decodeTransferTx(args) {
     actionKey: originalActionKey,
     tx: {
       txParams,
-      txParams: { from, gas },
+      txParams: { from, gas, data, to },
       hash,
     },
-    tx,
     txChainId,
     useOriginalActionKey,
   } = args;
 
-  const { data, to } = getTokenTransferData(tx) ?? {};
   const decodedData = decodeTransferData('transfer', data);
   const addressTo = decodedData[0];
   let isCollectible = false;
@@ -905,7 +900,6 @@ export default async function decodeTransaction(args) {
     switch (actionKey) {
       case strings('transactions.sent_tokens'):
       case strings('transactions.tx_review_perps_deposit'):
-      case strings('transactions.tx_review_predict_deposit'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,

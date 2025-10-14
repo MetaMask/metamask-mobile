@@ -33,7 +33,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
-import { hasTransactionType } from '../../../utils/transaction';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -192,10 +191,6 @@ function getLineTitle(
   const sourceSymbol = bridgeHistory?.quote?.srcAsset?.symbol;
   const targetSymbol = bridgeHistory?.quote?.destAsset?.symbol;
   const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    return strings('transaction_details.summary_title.predict_deposit');
-  }
 
   switch (type) {
     case TransactionType.bridge:

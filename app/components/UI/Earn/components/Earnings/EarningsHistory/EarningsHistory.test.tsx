@@ -1,5 +1,4 @@
 import React from 'react';
-import { Hex } from '@metamask/utils';
 import { fireEvent } from '@testing-library/react-native';
 import StakingEarningsHistory from './EarningsHistory';
 import useEarningsHistory from '../../../hooks/useEarningsHistory';
@@ -7,6 +6,7 @@ import useEarningsHistory from '../../../hooks/useEarningsHistory';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { Hex } from '@metamask/smart-transactions-controller/dist/types';
 import { TokenI } from '../../../../Tokens/types';
 import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../../Stake/__mocks__/stakeMockData';
 

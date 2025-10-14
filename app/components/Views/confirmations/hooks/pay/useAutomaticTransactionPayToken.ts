@@ -3,6 +3,7 @@ import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithB
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { orderBy } from 'lodash';
 import { useEffect, useMemo, useRef } from 'react';
@@ -11,8 +12,6 @@ import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { isHardwareAccount } from '../../../../../util/address';
-import { TransactionMeta } from '@metamask/transaction-controller';
-import { getRequiredBalance } from '../../utils/transaction-pay';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -23,22 +22,22 @@ export interface BalanceOverride {
 }
 
 export function useAutomaticTransactionPayToken({
+  balanceOverrides,
   countOnly = false,
 }: {
+  balanceOverrides?: BalanceOverride[];
   countOnly?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { setPayToken } = useTransactionPayToken();
+  const { totalFiat } = useTransactionRequiredFiat();
   const requiredTokens = useTransactionRequiredTokens({ log: true });
-
-  const transactionMeta =
-    useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
 
   const {
     chainId,
     txParams: { from },
-  } = transactionMeta;
+  } = useTransactionMetadataRequest() ?? { txParams: {} };
 
   const chainIds = useMemo(
     () => (!isUpdated.current ? supportedChains.map((c) => c.chainId) : []),
@@ -47,7 +46,6 @@ export function useAutomaticTransactionPayToken({
 
   const tokens = useTokensWithBalance({ chainIds });
   const isHardwareWallet = isHardwareAccount(from ?? '');
-  const requiredBalance = getRequiredBalance(transactionMeta);
 
   let automaticToken: { address: string; chainId?: string } | undefined;
   let count = 0;
@@ -56,6 +54,14 @@ export function useAutomaticTransactionPayToken({
     const targetToken =
       requiredTokens.find((token) => token.address !== NATIVE_TOKEN_ADDRESS) ??
       requiredTokens[0];
+
+    const balanceOverride = balanceOverrides?.find(
+      (token) =>
+        token.address.toLowerCase() === targetToken?.address?.toLowerCase() &&
+        token.chainId === chainId,
+    );
+
+    const requiredBalance = balanceOverride?.balance ?? totalFiat;
 
     const sufficientBalanceTokens = orderBy(
       tokens.filter((token) =>
@@ -124,18 +130,14 @@ export function useAutomaticTransactionPayToken({
 function isTokenSupported(
   token: BridgeToken,
   tokens: BridgeToken[],
-  requiredBalance: number | undefined,
+  requiredBalance: number,
 ): boolean {
   const nativeToken = tokens.find(
     (t) => t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
   );
 
-  const tokenAmount = token?.tokenFiatAmount ?? 0;
-
   const isTokenBalanceSufficient =
-    requiredBalance === undefined
-      ? tokenAmount > 0
-      : tokenAmount >= requiredBalance;
+    (token?.tokenFiatAmount ?? 0) >= requiredBalance;
 
   const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
 

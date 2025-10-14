@@ -38,7 +38,7 @@ import Row from '../../components/Row';
 import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import AmountInput from '../../components/AmountInput';
-import Keypad, { Keys } from '../../../../../Base/Keypad';
+import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 
@@ -99,7 +99,6 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
-import { regex } from '../../../../../../util/regex';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -125,7 +124,6 @@ const BuildQuote = () => {
   const [amountNumber, setAmountNumber] = useState(0);
   const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
-  const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const nativeSymbol = useSelector(selectTicker);
@@ -471,7 +469,6 @@ const BuildQuote = () => {
       () => {
         if (amountFocused) {
           setAmountFocused(false);
-          setIsKeyboardFreshlyOpened(false);
           return true;
         }
       },
@@ -480,45 +477,20 @@ const BuildQuote = () => {
     return () => backHandler.remove();
   }, [amountFocused]);
 
-  const handleKeypadDone = useCallback(() => {
-    setAmountFocused(false);
-    setIsKeyboardFreshlyOpened(false);
-  }, []);
-  const onAmountInputPress = useCallback(() => {
-    setAmountFocused(true);
-    setIsKeyboardFreshlyOpened(true);
-  }, []);
+  const handleKeypadDone = useCallback(() => setAmountFocused(false), []);
+  const onAmountInputPress = useCallback(() => setAmountFocused(true), []);
 
   const handleKeypadChange = useCallback(
-    ({
-      value,
-      valueAsNumber,
-      pressedKey,
-    }: {
-      value: string;
-      valueAsNumber: number;
-      pressedKey: Keys;
-    }) => {
-      let newValue = `${value}`;
-      let newValueAsNumber = valueAsNumber;
-
-      if (isKeyboardFreshlyOpened && regex.hasOneDigit.test(pressedKey)) {
-        newValue = pressedKey;
-        newValueAsNumber = Number(pressedKey);
-      }
-
-      setAmount(newValue);
-      setAmountNumber(newValueAsNumber);
-
+    ({ value, valueAsNumber }: { value: string; valueAsNumber: number }) => {
+      setAmount(`${value}`);
+      setAmountNumber(valueAsNumber);
       if (isSell) {
         setAmountBNMinimalUnit(
-          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0) as BN4,
+          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
         );
       }
-
-      setIsKeyboardFreshlyOpened(false);
     },
-    [isSell, selectedAsset?.decimals, isKeyboardFreshlyOpened],
+    [isSell, selectedAsset?.decimals],
   );
 
   const handleQuickAmountPress = useCallback(

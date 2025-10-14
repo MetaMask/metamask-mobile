@@ -5,8 +5,9 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Alert, Image, View } from 'react-native';
+import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
@@ -18,68 +19,43 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { usePredictCashOutAmounts } from '../../hooks/usePredictCashOutAmounts';
-import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
-import { Side } from '../../types';
+import { usePredictSell } from '../../hooks/usePredictSell';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictCashOut.styles';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PredictCashOut = () => {
-  const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictCashOut'>>();
-  const { position } = route.params;
-
-  const { icon, title, outcome: outcomeSideText, initialValue } = position;
-
-  const outcomeTitle = title;
-
-  const { placeOrder, isLoading } = usePredictPlaceOrder({
-    onComplete: () => {
-      try {
-        // TODO: fix this logic. This only seems to pop the stack once, but does not
-        // navigate to the market details screen
-        dispatch(StackActions.pop());
-        dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
-      } catch (error) {
-        // Navigation errors shouldn't prevent the order from being considered successful
-        console.warn('Navigation error after successful cash out:', error);
-      }
-    },
+  const { placeSellOrder, loading, reset } = usePredictSell({
     onError: (error) => {
       Alert.alert('Order failed', error);
+      reset();
     },
   });
 
-  const {
-    cashOutAmounts: { currentValue, percentPnl, cashPnl },
-  } = usePredictCashOutAmounts({
-    position,
-    autoRefreshTimeout: 5000,
-  });
+  const { position } = route.params;
 
-  const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
+  const { icon, title, percentPnl, outcome, currentValue, initialValue } =
+    position;
 
   const onCashOut = () => {
     // Implement cash out action here
-    placeOrder({
-      outcomeId: position.outcomeId,
-      outcomeTokenId: position.outcomeTokenId,
-      side: Side.SELL,
-      size: position.amount,
-      providerId: position.providerId,
+    placeSellOrder({
+      position,
     });
+    setTimeout(() => {
+      dispatch(StackActions.pop());
+      dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
+    }, 1000);
   };
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
+    <BottomSheet isFullscreen>
       <BottomSheetHeader onClose={() => goBack()}>
         <Text variant={TextVariant.HeadingMD}>Cash Out</Text>
       </BottomSheetHeader>
@@ -92,9 +68,7 @@ const PredictCashOut = () => {
             style={styles.percentPnl}
             color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
           >
-            {`${signal}${formatPrice(Math.abs(cashPnl), {
-              minimumDecimals: 2,
-            })} (${formatPercentage(percentPnl)})`}
+            {formatPercentage(percentPnl)} return
           </Text>
         </View>
         <View style={styles.bottomContainer}>
@@ -103,21 +77,31 @@ const PredictCashOut = () => {
               <Image source={{ uri: icon }} style={styles.positionIcon} />
             </View>
             <View style={styles.positionDetails}>
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                style={styles.detailsLeft}
-              >
-                {outcomeTitle}
-              </Text>
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                style={styles.detailsResolves}
-              >
-                {formatPrice(initialValue, { minimumDecimals: 2 })} on{' '}
-                {outcomeSideText}
-              </Text>
+              <View style={styles.detailsLine}>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={styles.detailsLeft}
+                >
+                  {title}
+                </Text>
+                <Text style={styles.detailsRight}>
+                  {formatPrice(initialValue, { minimumDecimals: 2 })} on{' '}
+                  {outcome}
+                </Text>
+              </View>
+              <View style={styles.detailsLine}>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={styles.detailsResolves}
+                >
+                  Resolves automatically in 9 days
+                </Text>
+                <Text style={styles.detailsRight}>
+                  Won {formatPrice(currentValue, { minimumDecimals: 2 })}
+                </Text>
+              </View>
             </View>
           </View>
           <View style={styles.cashOutButtonContainer}>
@@ -129,16 +113,16 @@ const PredictCashOut = () => {
                 ...styles.cashOutButton,
                 backgroundColor: colors.primary.default,
               }}
-              disabled={isLoading}
-              loading={isLoading}
+              disabled={loading}
+              loading={loading}
             />
-            <Text variant={TextVariant.BodySM} style={styles.cashOutButtonText}>
-              Funds will be added to your available balance
+            <Text style={styles.cashOutButtonText}>
+              All payments are made in USDC
             </Text>
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </BottomSheet>
   );
 };
 

@@ -57,38 +57,6 @@ import {
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
-import {
-  getSnapKeyringBuilderInitMessenger,
-  getSnapKeyringBuilderMessenger,
-} from './snap-keyring-builder-messenger';
-import { getKeyringControllerMessenger } from './keyring-controller-messenger';
-import {
-  getNetworkControllerInitMessenger,
-  getNetworkControllerMessenger,
-} from './network-controller-messenger';
-import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
-import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
-import {
-  getTokensControllerInitMessenger,
-  getTokensControllerMessenger,
-} from './tokens-controller-messenger';
-import {
-  getTokenListControllerInitMessenger,
-  getTokenListControllerMessenger,
-} from './token-list-controller-messenger';
-import { getTokenSearchDiscoveryControllerMessenger } from './token-search-discovery-controller-messenger';
-import {
-  getTokenDetectionControllerInitMessenger,
-  getTokenDetectionControllerMessenger,
-} from './token-detection-controller-messenger';
-import {
-  getTokenBalancesControllerInitMessenger,
-  getTokenBalancesControllerMessenger,
-} from './token-balances-controller-messenger';
-import { getTokenRatesControllerMessenger } from './token-rates-controller-messenger';
-import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
-import { getNftControllerMessenger } from './nft-controller-messenger';
-import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -98,10 +66,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getAccountsControllerMessenger,
     getInitMessenger: noop,
   },
-  AccountTrackerController: {
-    getMessenger: getAccountTrackerControllerMessenger,
-    getInitMessenger: noop,
-  },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
     getInitMessenger: getAccountTreeControllerInitMessenger,
@@ -109,18 +73,6 @@ export const CONTROLLER_MESSENGERS = {
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
-  },
-  AssetsContractController: {
-    getMessenger: getAssetsContractControllerMessenger,
-    getInitMessenger: noop,
-  },
-  TokenListController: {
-    getMessenger: getTokenListControllerMessenger,
-    getInitMessenger: getTokenListControllerInitMessenger,
-  },
-  TokensController: {
-    getMessenger: getTokensControllerMessenger,
-    getInitMessenger: getTokensControllerInitMessenger,
   },
   TransactionController: {
     getMessenger: getTransactionControllerMessenger,
@@ -136,22 +88,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   GasFeeController: {
     getMessenger: getGasFeeControllerMessenger,
-    getInitMessenger: noop,
-  },
-  KeyringController: {
-    getMessenger: getKeyringControllerMessenger,
-    getInitMessenger: noop,
-  },
-  NetworkController: {
-    getMessenger: getNetworkControllerMessenger,
-    getInitMessenger: getNetworkControllerInitMessenger,
-  },
-  NftController: {
-    getMessenger: getNftControllerMessenger,
-    getInitMessenger: noop,
-  },
-  NftDetectionController: {
-    getMessenger: getNftDetectionControllerMessenger,
     getInitMessenger: noop,
   },
   AppMetadataController: {
@@ -225,10 +161,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
   },
-  SnapKeyringBuilder: {
-    getMessenger: getSnapKeyringBuilderMessenger,
-    getInitMessenger: getSnapKeyringBuilderInitMessenger,
-  },
   ///: END:ONLY_INCLUDE_IF
   PermissionController: {
     getMessenger: getPermissionControllerMessenger,
@@ -268,26 +200,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
-    getInitMessenger: noop,
-  },
-  TokenBalancesController: {
-    getMessenger: getTokenBalancesControllerMessenger,
-    getInitMessenger: getTokenBalancesControllerInitMessenger,
-  },
-  TokenDetectionController: {
-    getMessenger: getTokenDetectionControllerMessenger,
-    getInitMessenger: getTokenDetectionControllerInitMessenger,
-  },
-  TokenRatesController: {
-    getMessenger: getTokenRatesControllerMessenger,
-    getInitMessenger: noop,
-  },
-  TokenSearchDiscoveryController: {
-    getMessenger: getTokenSearchDiscoveryControllerMessenger,
-    getInitMessenger: noop,
-  },
-  TokenSearchDiscoveryDataController: {
-    getMessenger: getTokenSearchDiscoveryDataControllerMessenger,
     getInitMessenger: noop,
   },
   GatorPermissionsController: {

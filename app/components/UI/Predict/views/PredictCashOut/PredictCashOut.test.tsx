@@ -8,11 +8,7 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import {
-  PredictOutcome,
-  PredictPosition,
-  PredictPositionStatus,
-} from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictCashOut from './PredictCashOut';
 
@@ -32,60 +28,30 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
-// Mock usePredictPlaceOrder hook
-const mockPlaceOrder = jest.fn();
+// Mock usePredictSell hook
+const mockPlaceSellOrder = jest.fn();
 const mockReset = jest.fn();
 let mockLoadingState = false;
 
-interface PlaceOrderResult {
-  success: boolean;
-  txMeta: { id: string };
-}
-
-jest.mock('../../hooks/usePredictPlaceOrder', () => ({
-  usePredictPlaceOrder: (options?: {
-    onError?: (error: string) => void;
-    onComplete?: (result: PlaceOrderResult) => void;
-  }) => {
-    const { onError, onComplete } = options || {};
+jest.mock('../../hooks/usePredictSell', () => ({
+  usePredictSell: (options?: { onError?: (error: string) => void }) => {
+    const { onError } = options || {};
     return {
-      placeOrder: async (...args: unknown[]) => {
-        mockLoadingState = true;
+      placeSellOrder: async (...args: unknown[]) => {
         try {
-          // Call the mock - jest mocks automatically return resolved promises
-          const result = mockPlaceOrder(...args);
-          mockLoadingState = false;
-          // Call onComplete after successful operation with the result
-          if (onComplete && result) onComplete(result);
+          const result = await mockPlaceSellOrder(...args);
           return result;
         } catch (error) {
-          mockLoadingState = false;
-          // Call onError with the error message
           if (onError && error instanceof Error) {
             onError(error.message);
           }
           throw error;
         }
       },
-      isLoading: mockLoadingState,
       loading: mockLoadingState,
       reset: mockReset,
     };
   },
-}));
-
-// Mock usePredictCashOutAmounts hook
-let mockCashOutAmounts = {
-  currentValue: 60,
-  percentPnl: 20,
-  cashPnl: 10,
-};
-jest.mock('../../hooks/usePredictCashOutAmounts', () => ({
-  usePredictCashOutAmounts: () => ({
-    cashOutAmounts: mockCashOutAmounts,
-    isCalculating: false,
-    error: null,
-  }),
 }));
 
 // Let renderWithProvider handle theme mocking
@@ -99,7 +65,6 @@ jest.mock('../../../../../component-library/hooks/useStyles', () => ({
 // Mock SafeArea hooks
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-  SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
   useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }));
@@ -199,31 +164,11 @@ const mockPosition: PredictPosition = {
   endDate: '2024-12-31',
 };
 
-const mockOutcome: PredictOutcome = {
-  id: 'outcome-123',
-  providerId: 'polymarket',
-  marketId: 'market-123',
-  title: 'Bitcoin Price Outcome',
-  description: 'Outcome description',
-  image: 'https://example.com/outcome.png',
-  status: 'open',
-  tokens: [
-    {
-      id: 'outcome-token-123',
-      title: 'Yes',
-      price: 0.5,
-    },
-  ],
-  volume: 1000000,
-  groupItemTitle: 'Bitcoin Price',
-};
-
 const mockRoute: RouteProp<PredictNavigationParamList, 'PredictCashOut'> = {
   key: 'PredictCashOut-key',
   name: 'PredictCashOut',
   params: {
     position: mockPosition,
-    outcome: mockOutcome,
   },
 };
 
@@ -260,20 +205,12 @@ describe('PredictCashOut', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Reset mock values to defaults
-    mockCashOutAmounts = {
-      currentValue: 60,
-      percentPnl: 20,
-      cashPnl: 10,
-    };
-    mockLoadingState = false;
-
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUseRoute.mockReturnValue(mockRoute);
 
     // Reset mock functions
-    mockPlaceOrder.mockReset();
+    mockPlaceSellOrder.mockReset();
     mockReset.mockReset();
     mockUseStyles.mockReturnValue({
       styles: {
@@ -306,20 +243,15 @@ describe('PredictCashOut', () => {
 
   describe('rendering', () => {
     it('renders cash out screen with position details', () => {
-      const { getByText, queryByText } = renderWithProvider(
-        <PredictCashOut />,
-        {
-          state: initialState,
-        },
-      );
+      const { getByText } = renderWithProvider(<PredictCashOut />, {
+        state: initialState,
+      });
 
       expect(getByText('Cash Out')).toBeOnTheScreen();
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
       expect(getByText('$50.00 on Yes')).toBeOnTheScreen();
-
-      expect(
-        queryByText('Funds will be added to your available balance'),
-      ).toBeOnTheScreen();
+      expect(getByText('Resolves automatically in 9 days')).toBeOnTheScreen();
+      expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
     });
 
     it('displays current value and P&L correctly', () => {
@@ -341,16 +273,9 @@ describe('PredictCashOut', () => {
     });
 
     it('displays negative P&L in error color', () => {
-      // Set mock to return negative P&L
-      mockCashOutAmounts = {
-        currentValue: 40,
-        percentPnl: -20,
-        cashPnl: -10,
-      };
-
       const negativePnLPosition = {
         ...mockPosition,
-        percentPnl: -20, // Will be overridden by calculation
+        percentPnl: -15,
       };
 
       mockUseRoute.mockReturnValue({
@@ -364,7 +289,7 @@ describe('PredictCashOut', () => {
         state: initialState,
       });
 
-      expect(mockFormatPercentage).toHaveBeenCalledWith(-20);
+      expect(mockFormatPercentage).toHaveBeenCalledWith(-15);
     });
 
     it('renders position icon with correct source', () => {
@@ -378,9 +303,8 @@ describe('PredictCashOut', () => {
   });
 
   describe('user interactions', () => {
-    it('calls placeOrder when cash out button is pressed', () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
+    it('calls placeSellOrder when cash out button is pressed', async () => {
+      mockPlaceSellOrder.mockResolvedValue({ success: true });
 
       const { getByTestId } = renderWithProvider(<PredictCashOut />, {
         state: initialState,
@@ -389,13 +313,12 @@ describe('PredictCashOut', () => {
       const cashOutButton = getByTestId('button-secondary');
       fireEvent.press(cashOutButton);
 
-      expect(mockPlaceOrder).toHaveBeenCalledWith({
-        outcomeId: mockPosition.outcomeId,
-        outcomeTokenId: mockPosition.outcomeTokenId,
-        side: 'SELL',
-        size: mockPosition.amount,
-        providerId: mockPosition.providerId,
+      expect(mockPlaceSellOrder).toHaveBeenCalledWith({
+        position: mockPosition,
       });
+
+      // Advance timers to trigger navigation
+      jest.advanceTimersByTime(1000);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -443,9 +366,8 @@ describe('PredictCashOut', () => {
   });
 
   describe('error handling', () => {
-    it('handles navigation dispatch errors gracefully', () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
+    it('handles navigation dispatch errors gracefully', async () => {
+      mockPlaceSellOrder.mockResolvedValue({ success: true });
       mockDispatch.mockImplementation(() => {
         throw new Error('Navigation error');
       });
@@ -455,20 +377,19 @@ describe('PredictCashOut', () => {
       });
 
       const cashOutButton = getByTestId('button-secondary');
+      fireEvent.press(cashOutButton);
 
-      // Even though navigation fails, placeOrder should still be called and no error should be thrown
-      expect(() => {
-        fireEvent.press(cashOutButton);
-      }).not.toThrow();
+      // Clear timers to prevent navigation from executing (which would throw)
+      jest.clearAllTimers();
 
-      expect(mockPlaceOrder).toHaveBeenCalled();
+      // Should still call placeSellOrder even if navigation fails
+      expect(mockPlaceSellOrder).toHaveBeenCalled();
     });
   });
 
   describe('navigation integration', () => {
-    it('navigates to market list after successful cash out', () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
+    it('navigates to market list after successful cash out', async () => {
+      mockPlaceSellOrder.mockResolvedValue({ success: true });
       mockDispatch.mockImplementation(jest.fn()); // Reset to default mock
 
       const { getByTestId } = renderWithProvider(<PredictCashOut />, {
@@ -477,6 +398,9 @@ describe('PredictCashOut', () => {
 
       const cashOutButton = getByTestId('button-secondary');
       fireEvent.press(cashOutButton);
+
+      // Advance timers to trigger navigation
+      jest.advanceTimersByTime(1000);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
       expect(mockDispatch).toHaveBeenCalledWith(

@@ -10,11 +10,9 @@ import {
   BoxJustifyContent,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
 import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { formatRewardsDate, formatNumber } from '../../../utils/formatUtils';
-import { getEventDetails } from '../../../utils/eventDetailsUtils';
+import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import BadgeWrapper, {
   BadgePosition,
@@ -24,21 +22,15 @@ import Badge, {
 } from '../../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../../../../util/Logger';
-import { openActivityDetailsSheet } from './EventDetails/ActivityDetailsSheet';
-import { TouchableOpacity } from 'react-native';
-import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
   accountName: string | undefined;
 }> = ({ event, accountName }) => {
-  const navigation = useNavigation();
   const eventDetails = React.useMemo(
     () => (event ? getEventDetails(event, accountName) : undefined),
     [event, accountName],
   );
-
-  const confirmAction = useActivityDetailsConfirmAction(event);
 
   // Extract network icon from event asset
   const networkImageSource = React.useMemo(() => {
@@ -68,96 +60,84 @@ export const ActivityEventRow: React.FC<{
 
   if (!event || !eventDetails) return <></>;
 
-  const handlePress = () => {
-    openActivityDetailsSheet(navigation, {
-      event,
-      accountName,
-      confirmAction,
-    });
-  };
-
   return (
-    <TouchableOpacity activeOpacity={0.5} onPress={handlePress}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="w-full py-3"
-        gap={3}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="w-full"
+      gap={3}
+    >
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          networkImageSource ? (
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImageSource}
+              size={AvatarSize.Sm}
+            />
+          ) : null
+        }
       >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            networkImageSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkImageSource}
-                size={AvatarSize.Sm}
-              />
-            ) : null
-          }
+        <Box
+          twClassName="bg-muted rounded-full items-center justify-center size-12"
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+        >
+          <Icon
+            name={eventDetails.icon}
+            size={IconSize.Lg}
+            twClassName="text-icon-alternative"
+          />
+        </Box>
+      </BadgeWrapper>
+      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
         >
           <Box
-            twClassName="bg-muted rounded-full items-center justify-center size-12"
-            flexDirection={BoxFlexDirection.Column}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.End}
+            gap={1}
           >
-            <Icon
-              name={eventDetails.icon}
-              size={IconSize.Lg}
-              twClassName="text-icon-alternative"
-            />
+            <Text>{eventDetails.title}</Text>
           </Box>
-        </BadgeWrapper>
-        <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
+
           <Box
             flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
+            alignItems={BoxAlignItems.End}
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.End}
-              gap={1}
-            >
-              <Text>{eventDetails.title}</Text>
-            </Box>
-
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.End}
-            >
-              <Text>{`${event.value > 0 ? '+' : ''}${formatNumber(
-                event.value,
-              )}`}</Text>
-              {event.bonus?.bips && (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  twClassName="ml-1"
-                >
-                  +{event.bonus.bips / 100}%
-                </Text>
-              )}
-            </Box>
-          </Box>
-
-          <Box flexDirection={BoxFlexDirection.Row}>
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative flex-1 max-w-[60%]"
-            >
-              {eventDetails.details}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative flex-1 text-right"
-            >
-              {formatRewardsDate(new Date(event.timestamp))}
-            </Text>
+            <Text>{`${event.value > 0 ? '+' : ''}${event.value}`}</Text>
+            {event.bonus?.bips && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="ml-1"
+              >
+                +{event.bonus?.bips / 100}%
+              </Text>
+            )}
           </Box>
         </Box>
+
+        <Box flexDirection={BoxFlexDirection.Row}>
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative flex-1 max-w-[60%]"
+          >
+            {eventDetails.details}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative flex-1 text-right"
+          >
+            {formatRewardsDate(new Date(event.timestamp))}
+          </Text>
+        </Box>
       </Box>
-    </TouchableOpacity>
+    </Box>
   );
 };

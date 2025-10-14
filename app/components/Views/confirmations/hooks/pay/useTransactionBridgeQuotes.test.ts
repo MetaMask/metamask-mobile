@@ -1,7 +1,4 @@
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useTransactionBridgeQuotes } from './useTransactionBridgeQuotes';
@@ -22,7 +19,6 @@ import {
   SLIPPAGE_DEFAULT,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { initialState } from '../../../../UI/Bridge/_mocks_/initialState';
-import { FeatureId } from '@metamask/bridge-controller';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./useTransactionPayTokenAmounts');
@@ -156,28 +152,6 @@ describe('useTransactionBridgeQuotes', () => {
         targetChainId: CHAIN_ID_TARGET_MOCK,
         targetTokenAddress: TOKEN_ADDRESS_TARGET_2_MOCK,
       },
-    ]);
-  });
-
-  it('includes feature ID in request if transction type matches', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: TRANSACTION_ID_MOCK,
-      chainId: CHAIN_ID_TARGET_MOCK,
-      txParams: {
-        from: ACCOUNT_ADDRESS_MOCK,
-      },
-      type: TransactionType.perpsDeposit,
-    } as unknown as TransactionMeta);
-
-    runHook();
-
-    expect(getBridgeQuotesMock).toHaveBeenCalledWith([
-      expect.objectContaining({
-        featureId: FeatureId.PERPS,
-      }),
-      expect.objectContaining({
-        featureId: FeatureId.PERPS,
-      }),
     ]);
   });
 

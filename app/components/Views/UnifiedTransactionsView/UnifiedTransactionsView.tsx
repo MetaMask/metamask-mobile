@@ -1,6 +1,6 @@
 import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { SmartTransaction } from '@metamask/smart-transactions-controller';
+import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
 import { CHAIN_IDS, TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NavigationProp, useNavigation } from '@react-navigation/native';

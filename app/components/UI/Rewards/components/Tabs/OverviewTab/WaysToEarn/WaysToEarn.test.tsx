@@ -267,7 +267,9 @@ describe('WaysToEarn', () => {
 
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.TUTORIAL,
+    });
   });
 
   it('navigates to perps markets for returning users', () => {
