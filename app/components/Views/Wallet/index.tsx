@@ -207,7 +207,7 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
     },
     assetsActionsContainer: {
-      marginBottom: 16,
+      marginBottom: 24,
     },
     carousel: {
       marginBottom: 16,
