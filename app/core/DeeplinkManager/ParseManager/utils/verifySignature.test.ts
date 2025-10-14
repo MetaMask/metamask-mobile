@@ -263,5 +263,247 @@ describe('verifySignature', () => {
         'https://example.com:8080/deep/path?a=1&b=2&c=3',
       );
     });
+
+    describe('sig_params support', () => {
+      it('includes sig_params in the signature verification', async () => {
+        // Given a URL with sig_params
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?token=ETH&amount=100&sig=${validSignature}&sig_params=token,amount`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying the signature
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then sig_params should be included in canonicalization
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // sig_params must be part of the signed data
+        expect(canonicalUrl).toContain('sig_params=token%2Camount');
+      });
+
+      it('only includes params listed in sig_params', async () => {
+        // Given a URL with sig_params and additional marketing params
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?token=ETH&amount=100&utm_source=email&gclid=123&sig=${validSignature}&sig_params=token,amount`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying the signature
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then only listed params (and sig_params itself) are included
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should include listed params and sig_params
+        expect(canonicalUrl).toContain('token=ETH');
+        expect(canonicalUrl).toContain('amount=100');
+        expect(canonicalUrl).toContain('sig_params=token%2Camount');
+
+        // Should NOT include marketing params
+        expect(canonicalUrl).not.toContain('utm_source');
+        expect(canonicalUrl).not.toContain('gclid');
+      });
+
+      it('sorts params alphabetically when using sig_params', async () => {
+        // Given params that need alphabetic sorting
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?zebra=last&alpha=first&sig=${validSignature}&sig_params=zebra,alpha`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then params should be alphabetically sorted
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // alpha comes before sig_params, sig_params before zebra
+        const alphaIndex = canonicalUrl.indexOf('alpha=');
+        const sigParamsIndex = canonicalUrl.indexOf('sig_params=');
+        const zebraIndex = canonicalUrl.indexOf('zebra=');
+
+        expect(alphaIndex).toBeLessThan(sigParamsIndex);
+        expect(sigParamsIndex).toBeLessThan(zebraIndex);
+      });
+
+      it('handles empty sig_params gracefully', async () => {
+        // Given sig_params with no value
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?token=ETH&sig=${validSignature}&sig_params=`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then should still include sig_params in signature
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        expect(canonicalUrl).toContain('sig_params=');
+      });
+
+      it('ignores params in sig_params that do not exist in URL', async () => {
+        // Given sig_params listing non-existent params
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?token=ETH&sig=${validSignature}&sig_params=token,nonexistent,alsonothere`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then only existing params are included
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        expect(canonicalUrl).toContain('token=ETH');
+        expect(canonicalUrl).not.toContain('nonexistent');
+        expect(canonicalUrl).not.toContain('alsonothere');
+      });
+
+      it('maintains backward compatibility when sig_params is not present', async () => {
+        // Given a URL without sig_params (legacy format)
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?token=ETH&amount=100&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then all params (except sig) should be included
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        expect(canonicalUrl).toContain('token=ETH');
+        expect(canonicalUrl).toContain('amount=100');
+        expect(canonicalUrl).not.toContain('sig_params');
+      });
+
+      it('prevents parameter injection attack via sig_params manipulation', async () => {
+        // Given a URL where attacker tries to add malicious param not in sig_params
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?token=ETH&amount=100&malicious=true&sig=${validSignature}&sig_params=token,amount`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then malicious param should not be included in signature
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        expect(canonicalUrl).not.toContain('malicious');
+      });
+
+      it('handles real-world marketing scenario with multiple tracking params', async () => {
+        // Given a URL from a marketing campaign with many tracking params
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://link.metamask.io/buy?token=ETH&amount=100&` +
+            `utm_source=email&utm_medium=newsletter&utm_campaign=q4_2025&` +
+            `gclid=Cj0KCQ&fbclid=IwAR&msclkid=abc123&` +
+            `sig=${validSignature}&sig_params=token,amount`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then should verify successfully with only essential params
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Essential params included
+        expect(canonicalUrl).toContain('token=ETH');
+        expect(canonicalUrl).toContain('amount=100');
+
+        // Marketing params excluded
+        expect(canonicalUrl).not.toContain('utm_source');
+        expect(canonicalUrl).not.toContain('utm_medium');
+        expect(canonicalUrl).not.toContain('utm_campaign');
+        expect(canonicalUrl).not.toContain('gclid');
+        expect(canonicalUrl).not.toContain('fbclid');
+        expect(canonicalUrl).not.toContain('msclkid');
+      });
+
+      it('preserves URL encoding in param values', async () => {
+        // Given params with special characters that need encoding
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?address=0x123&callback=https%3A%2F%2Fexample.com%2Fcb&sig=${validSignature}&sig_params=address,callback`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then encoding should be preserved
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        expect(canonicalUrl).toContain(
+          'callback=https%3A%2F%2Fexample.com%2Fcb',
+        );
+      });
+    });
   });
 });

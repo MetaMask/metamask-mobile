@@ -36,14 +36,38 @@ function canonicalize(url: URL): string {
 
   params.delete('sig');
 
-  params.sort();
+  const sigParamsStr = params.get('sig_params');
+  let queryString = '';
 
-  const queryString = params.toString();
+  if (sigParamsStr) {
+    // Only keep params listed in sig_params that actually exist
+    const allowedParams = sigParamsStr.split(',');
+    const signedParams = new URLSearchParams();
+    const existingParams: string[] = [];
 
-  const fullUrl =
-    url.origin + url.pathname + (queryString ? `?${queryString}` : '');
+    for (const param of allowedParams) {
+      if (params.has(param)) {
+        const value = params.get(param);
+        if (value !== null) {
+          signedParams.set(param, value);
+          existingParams.push(param);
+        }
+      }
+    }
+    // CRITICAL: Include normalized sig_params in the signature to prevent tampering
+    // Only include params that actually exist in the URL
+    const normalizedSigParams = existingParams.join(',');
+    signedParams.set('sig_params', normalizedSigParams);
 
-  return fullUrl;
+    signedParams.sort();
+    queryString = signedParams.toString();
+  } else {
+    // Backward compatibility: sign all params if no sig_params
+    params.sort();
+    queryString = params.toString();
+  }
+
+  return url.origin + url.pathname + (queryString ? `?${queryString}` : '');
 }
 
 export const MISSING = 'MISSING' as const;
