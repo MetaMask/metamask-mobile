@@ -18,7 +18,6 @@ import {
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
-import Logger from '../../../../util/Logger';
 
 export interface OpenSwapsParams {
   chainId: string;
@@ -58,8 +57,6 @@ export const useOpenSwaps = ({
       return highestFiatToken;
     }
   }, [tokensWithBalance, priorityToken]);
-
-  Logger.log('useOpenSwaps|destinationAddress', destinationAddress);
 
   const { goToSwaps } = useSwapBridgeNavigation({
     location,

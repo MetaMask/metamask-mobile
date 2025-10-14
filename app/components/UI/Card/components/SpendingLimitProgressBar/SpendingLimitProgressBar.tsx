@@ -7,7 +7,6 @@ import Text, {
 import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
-import Logger from '../../../../../util/Logger';
 import { ethers } from 'ethers';
 interface SpendingLimitProgressBarProps {
   spendingLimit?: ethers.BigNumber;
@@ -22,12 +21,6 @@ const SpendingLimitProgressBar = ({
 }: SpendingLimitProgressBarProps) => {
   const theme = useTheme();
   const styles = createStyles();
-
-  Logger.log('SpendingLimitProgressBar', {
-    spendingLimit,
-    availableBalance,
-    symbol,
-  });
 
   // Convert serialized BigNumber objects to actual BigNumber instances
   const availableBalanceOrZero = availableBalance

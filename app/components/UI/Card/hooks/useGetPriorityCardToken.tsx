@@ -32,6 +32,7 @@ import {
 import Engine from '../../../../core/Engine';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { ethers } from 'ethers';
+import { createSelector } from 'reselect';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -129,22 +130,49 @@ const fetchAllowances = async (
 export const useGetPriorityCardToken = () => {
   const dispatch = useDispatch();
   const { TokensController, NetworkController } = Engine.context;
-  const { sdk, isAuthenticated } = useCardSDK();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isLoadingAddToken, setIsLoadingAddToken] = useState<boolean>(false);
-  const [error, setError] = useState<boolean>(false);
-
-  // Extract controller state
-  const allTokenBalances = useSelector(selectAllTokenBalances);
+  const { sdk, isAuthenticated, isLoading: isLoadingSDK } = useCardSDK();
+  const [state, setState] = useState({
+    isLoading: false,
+    isLoadingAddToken: false,
+    error: false,
+  });
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:0',
   )?.address;
-  const priorityToken = useSelector(
-    selectCardPriorityToken(isAuthenticated, selectedAddress),
+  const selectCardHookState = useMemo(
+    () =>
+      createSelector(
+        [
+          selectAllTokenBalances,
+          selectSelectedInternalAccountByScope,
+          (rootState) =>
+            selectCardPriorityToken(
+              isAuthenticated,
+              selectedAddress,
+            )(rootState),
+          (rootState) =>
+            selectCardPriorityTokenLastFetched(
+              isAuthenticated,
+              selectedAddress,
+            )(rootState),
+        ],
+        (
+          allTokenBalances,
+          selectedAccountByScope,
+          priorityToken,
+          lastFetched,
+        ) => ({
+          allTokenBalances,
+          selectedAddress: selectedAccountByScope('eip155:0')?.address,
+          priorityToken,
+          lastFetched,
+        }),
+      ),
+    [isAuthenticated, selectedAddress],
   );
-  const lastFetched = useSelector(
-    selectCardPriorityTokenLastFetched(isAuthenticated, selectedAddress),
-  );
+
+  const cardState = useSelector(selectCardHookState);
+  const { allTokenBalances, priorityToken, lastFetched } = cardState;
 
   // Helper to check if cache is still valid (less than 5 minutes old)
   const isCacheValid = useCallback(() => {
@@ -194,11 +222,14 @@ export const useGetPriorityCardToken = () => {
   // Fetch priority token function on chain -- when user is not authenticated
   const fetchPriorityTokenOnChain: () => Promise<CardTokenAllowance | null> =
     useCallback(async () => {
-      setIsLoading(true);
-      setError(false);
+      setState((prevState) => ({
+        ...prevState,
+        isLoading: true,
+        error: false,
+      }));
 
       if (!sdk || !selectedAddress) {
-        setIsLoading(false);
+        setState((prevState) => ({ ...prevState, isLoading: false }));
         return null;
       }
 
@@ -349,20 +380,16 @@ export const useGetPriorityCardToken = () => {
           normalizedError,
           'useGetPriorityCardToken::error fetching priority token',
         );
-        setError(true);
+        setState((prevState) => ({ ...prevState, error: true }));
         return null;
       } finally {
-        setIsLoading(false);
+        setState((prevState) => ({ ...prevState, isLoading: false }));
       }
     }, [sdk, selectedAddress, getBalancesForChain, dispatch]);
 
   const mapCardExternalWalletDetailToCardTokenAllowance = (
     cardExternalWalletDetail: CardExternalWalletDetail | undefined,
   ): CardTokenAllowance | null => {
-    Logger.log(
-      'mapCardExternalWalletDetailToCardTokenAllowance',
-      cardExternalWalletDetail,
-    );
     if (!cardExternalWalletDetail?.tokenDetails) {
       return null;
     }
@@ -409,20 +436,20 @@ export const useGetPriorityCardToken = () => {
   const fetchPriorityTokenAPI: () => Promise<CardTokenAllowance | null> =
     useCallback(async () => {
       try {
-        setIsLoading(true);
-        setError(false);
+        setState((prevState) => ({
+          ...prevState,
+          isLoading: true,
+          error: false,
+        }));
         const cardExternalWalletDetails =
           await sdk?.getCardExternalWalletDetails();
-        Logger.log('cardExternalWalletDetails', cardExternalWalletDetails);
+
         const mappedCardExternalWalletDetails =
           mapCardExternalWalletDetailToCardTokenAllowance(
             cardExternalWalletDetails?.[0],
           );
-        Logger.log(
-          'mappedCardExternalWalletDetails',
-          mappedCardExternalWalletDetails,
-        );
-        setIsLoading(false);
+
+        setState((prevState) => ({ ...prevState, isLoading: false }));
         dispatch(
           setAuthenticatedPriorityToken(mappedCardExternalWalletDetails),
         );
@@ -435,8 +462,11 @@ export const useGetPriorityCardToken = () => {
           normalizedError,
           'useGetPriorityCardToken::error fetching priority token API',
         );
-        setIsLoading(false);
-        setError(true);
+        setState((prevState) => ({
+          ...prevState,
+          isLoading: false,
+          error: true,
+        }));
         return null;
       }
     }, [sdk, dispatch]);
@@ -452,7 +482,7 @@ export const useGetPriorityCardToken = () => {
 
   useEffect(() => {
     const run = async () => {
-      if (!selectedAddress) {
+      if (!selectedAddress || isLoadingSDK) {
         return;
       }
 
@@ -477,6 +507,7 @@ export const useGetPriorityCardToken = () => {
     lastFetched,
     isAuthenticated,
     fetchPriorityTokenAPI,
+    isLoadingSDK,
   ]);
 
   // Add priorityToken to the TokenListController if it exists
@@ -506,7 +537,10 @@ export const useGetPriorityCardToken = () => {
               NetworkController.findNetworkClientIdByChainId(
                 priorityToken.chainId as Hex,
               );
-            setIsLoadingAddToken(true);
+            setState((prevState) => ({
+              ...prevState,
+              isLoadingAddToken: true,
+            }));
             await TokensController.addToken({
               address: priorityToken.address,
               symbol: priorityToken.symbol as string,
@@ -516,7 +550,10 @@ export const useGetPriorityCardToken = () => {
               networkClientId,
             });
             if (!isCancelled) {
-              setIsLoadingAddToken(false);
+              setState((prevState) => ({
+                ...prevState,
+                isLoadingAddToken: false,
+              }));
             }
           }
         }
@@ -528,8 +565,11 @@ export const useGetPriorityCardToken = () => {
             normalizedError,
             'useGetPriorityCardToken::error adding priority token',
           );
-          setIsLoadingAddToken(false);
-          setError(true);
+          setState((prevState) => ({
+            ...prevState,
+            isLoadingAddToken: false,
+            error: true,
+          }));
         }
       }
     };
@@ -543,17 +583,18 @@ export const useGetPriorityCardToken = () => {
 
   // Determine if we should show loading state
   // Only show loading if we're actively fetching AND don't have cached data
-  const shouldShowLoading = isLoading && (!priorityToken || !cacheIsValid);
+  const shouldShowLoading =
+    state.isLoading && (!priorityToken || !cacheIsValid);
 
   const isLoadingFinal = useMemo(
-    () => isLoadingAddToken || shouldShowLoading,
-    [isLoadingAddToken, shouldShowLoading],
+    () => state.isLoadingAddToken || shouldShowLoading,
+    [state.isLoadingAddToken, shouldShowLoading],
   );
 
   return {
     fetchPriorityToken,
     isLoading: isLoadingFinal,
-    error,
+    error: state.error,
     priorityToken,
   };
 };
