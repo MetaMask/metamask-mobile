@@ -200,7 +200,7 @@ export const Recipient = () => {
                 />
               )}
               <Button
-                testID="review-button-send"
+                testID="review-button"
                 variant={ButtonVariant.Primary}
                 size={ButtonBaseSize.Lg}
                 onPress={handleSubmitPressLocal}

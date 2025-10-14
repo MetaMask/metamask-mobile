@@ -133,6 +133,7 @@ describe('Connection', () => {
       expect(WebSocketTransport.create).toHaveBeenCalledWith({
         url: RELAY_URL,
         kvstore: expect.any(KVStore),
+        useSharedConnection: true,
       });
       expect(SessionStore).toHaveBeenCalledWith(expect.any(KVStore));
       expect(WalletClient).toHaveBeenCalledWith({

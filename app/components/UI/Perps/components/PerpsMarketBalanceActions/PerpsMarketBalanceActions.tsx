@@ -1,5 +1,12 @@
-import React, { useCallback, useEffect, useRef, useMemo } from 'react';
-import { Modal, Animated, View, ActivityIndicator } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
+import { Modal, Animated, View } from 'react-native';
+import BN from 'bnjs4';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -48,6 +55,8 @@ import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { PerpsProgressBar } from '../PerpsProgressBar';
+import { RootState } from '../../../../../reducers';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -109,9 +118,84 @@ const PerpsMarketBalanceActions: React.FC<
   const { isDepositInProgress } = usePerpsDepositProgress();
   const { isWithdrawInProgress } = usePerpsWithdrawProgress();
 
+  // Get withdrawal requests from controller state
+  const withdrawalRequests = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.withdrawalRequests || [],
+  );
+
+  // Get last withdraw result from controller state
+  const lastWithdrawResult = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.lastWithdrawResult,
+  );
+
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     React.useState(false);
+
+  // State for transaction amount
+  const [transactionAmountWei, setTransactionAmountWei] = useState<
+    string | null
+  >(null);
+
+  // State for withdrawal amount
+  const [withdrawalAmount, setWithdrawalAmount] = useState<string | null>(null);
+
+  // Extract withdrawal amount when withdrawal is in progress
+  useEffect(() => {
+    // Check if there are any active withdrawals (pending or bridging)
+    const activeWithdrawal = withdrawalRequests.find(
+      (request: { status: string; amount?: string }) =>
+        request.status === 'pending' || request.status === 'bridging',
+    );
+
+    if (activeWithdrawal?.amount) {
+      console.log(
+        'Withdrawal amount from withdrawalRequests:',
+        activeWithdrawal.amount,
+      );
+      setWithdrawalAmount(activeWithdrawal.amount);
+    } else {
+      // Clear withdrawal amount when no active withdrawals
+      setWithdrawalAmount(null);
+    }
+  }, [withdrawalRequests]);
+
+  // Convert amount to USD display (handles both USD strings and wei)
+  const convertToUSD = (amount: string): string => {
+    try {
+      console.log('Converting amount to USD:', amount);
+
+      // If it's already a USD string (e.g., "$10.32"), return it without decimals
+      if (amount.startsWith('$')) {
+        const numericValue = parseFloat(amount.replace('$', ''));
+        return `$${Math.floor(numericValue)}`;
+      }
+
+      // Check if it's a hex value (starts with 0x)
+      if (amount.startsWith('0x')) {
+        // Treat as wei and convert
+        const weiBN = new BN(amount, 16);
+        const ethBN = weiBN.div(new BN(10).pow(new BN(18)));
+        const ethValue = ethBN.toNumber();
+        const ethPriceUSD = 2000; // Replace with actual ETH price
+        const usdValue = ethValue * ethPriceUSD;
+        return `$${Math.floor(usdValue)}`;
+      }
+
+      // Otherwise, treat as a direct USD amount (e.g., "1" = $1)
+      const numericValue = parseFloat(amount);
+      if (!isNaN(numericValue)) {
+        return `$${Math.floor(numericValue)}`;
+      }
+
+      return '$0.00';
+    } catch (error) {
+      console.log('Error converting amount:', error);
+      return '$0.00';
+    }
+  };
 
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
@@ -217,24 +301,34 @@ const PerpsMarketBalanceActions: React.FC<
   const availableBalance = perpsAccount?.availableBalance || '0';
   const isBalanceEmpty = BigNumber(availableBalance).isZero();
 
+  // Check if there are any active withdrawals (pending or bridging)
+  const hasActiveWithdrawals = useMemo(
+    () =>
+      withdrawalRequests.some(
+        (request) =>
+          request.status === 'pending' || request.status === 'bridging',
+      ),
+    [withdrawalRequests],
+  );
+
   // Determine the status text based on transaction states
   const statusText = useMemo(() => {
-    if (isDepositInProgress && isWithdrawInProgress) {
+    if (isDepositInProgress && hasActiveWithdrawals) {
       return strings('perps.multiple_transactions_in_progress');
     }
     if (isDepositInProgress) {
       return strings('perps.deposit_in_progress');
     }
-    if (isWithdrawInProgress) {
+    if (hasActiveWithdrawals) {
       return strings('perps.withdraw_in_progress');
     }
     return strings('perps.available_balance');
-  }, [isDepositInProgress, isWithdrawInProgress]);
+  }, [isDepositInProgress, hasActiveWithdrawals]);
 
   // Determine if any transaction is in progress
   const isAnyTransactionInProgress = useMemo(
-    () => isDepositInProgress || isWithdrawInProgress,
-    [isDepositInProgress, isWithdrawInProgress],
+    () => isDepositInProgress || hasActiveWithdrawals,
+    [isDepositInProgress, hasActiveWithdrawals],
   );
 
   // Show skeleton while loading initial account data
@@ -254,8 +348,14 @@ const PerpsMarketBalanceActions: React.FC<
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
-        {/* Transaction Progress Section */}
-        {isAnyTransactionInProgress && (
+        <PerpsProgressBar
+          progressAmount={0}
+          height={4}
+          onTransactionAmountChange={setTransactionAmountWei}
+          onWithdrawalAmountChange={setWithdrawalAmount}
+        />
+        {/* Deposit Progress Section */}
+        {isDepositInProgress && (
           <Box twClassName="p-4">
             <Box twClassName="w-full flex-row justify-between">
               <Text
@@ -264,10 +364,36 @@ const PerpsMarketBalanceActions: React.FC<
               >
                 {statusText}
               </Text>
-              <ActivityIndicator
-                size="small"
-                color={styles.activityIndicator.color}
-              />
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Inverse}
+              >
+                {transactionAmountWei
+                  ? convertToUSD(transactionAmountWei)
+                  : 'Processing...'}
+              </Text>
+            </Box>
+          </Box>
+        )}
+
+        {/* Withdrawal Progress Section */}
+        {hasActiveWithdrawals && (
+          <Box twClassName="p-4">
+            <Box twClassName="w-full flex-row justify-between">
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {statusText}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {withdrawalAmount
+                  ? convertToUSD(withdrawalAmount)
+                  : 'Processing...'}
+              </Text>
             </Box>
           </Box>
         )}

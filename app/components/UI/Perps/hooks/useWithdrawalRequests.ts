@@ -209,15 +209,27 @@ export const useWithdrawalRequests = (
 
         if (pendingMatch >= 0) {
           // Update the pending/bridging withdrawal with completed data
+          const matchedWithdrawal = acc[pendingMatch];
           acc[pendingMatch] = {
-            ...acc[pendingMatch],
+            ...matchedWithdrawal,
             status: 'completed',
             txHash: withdrawal.txHash,
             withdrawalId: withdrawal.withdrawalId,
           };
+
+          // Update the controller state to reflect the completion
+          const controller = Engine.context.PerpsController;
+          if (controller) {
+            controller.updateWithdrawalStatus(
+              matchedWithdrawal.id,
+              'completed',
+              withdrawal.txHash,
+            );
+          }
+
           console.log('Matched and updated withdrawal:', {
-            originalId: acc[pendingMatch].id,
-            originalStatus: acc[pendingMatch].status,
+            originalId: matchedWithdrawal.id,
+            originalStatus: matchedWithdrawal.status,
             newStatus: 'completed',
             txHash: withdrawal.txHash,
           });
@@ -264,6 +276,30 @@ export const useWithdrawalRequests = (
       fetchCompletedWithdrawals();
     }
   }, [fetchCompletedWithdrawals, skipInitialFetch]);
+
+  // Poll for completed withdrawals when there are active withdrawals
+  useEffect(() => {
+    const hasActiveWithdrawals = pendingWithdrawals.some(
+      (w) => w.status === 'pending' || w.status === 'bridging',
+    );
+
+    if (!hasActiveWithdrawals) {
+      return; // No need to poll if no active withdrawals
+    }
+
+    console.log('Setting up polling for completed withdrawals...');
+
+    // Poll every 10 seconds when there are active withdrawals
+    const pollInterval = setInterval(() => {
+      console.log('Polling for completed withdrawals...');
+      fetchCompletedWithdrawals();
+    }, 10000); // 10 seconds
+
+    return () => {
+      console.log('Clearing withdrawal polling interval');
+      clearInterval(pollInterval);
+    };
+  }, [pendingWithdrawals, fetchCompletedWithdrawals]);
 
   return {
     withdrawalRequests: allWithdrawals,

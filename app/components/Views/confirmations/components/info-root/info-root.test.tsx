@@ -28,6 +28,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../hooks/gas/useGasFeeToken');
+jest.mock('../../hooks/tokens/useTokenWithBalance');
 
 jest.mock('../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),

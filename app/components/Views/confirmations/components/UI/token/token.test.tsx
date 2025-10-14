@@ -1,4 +1,5 @@
 import React from 'react';
+import { BtcAccountType } from '@metamask/keyring-api';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { AssetType } from '../../../types/token';
@@ -115,5 +116,17 @@ describe('Token', () => {
 
     expect(queryByText('$')).not.toBeOnTheScreen();
     expect(getByText('1,000 USDC')).toBeOnTheScreen();
+  });
+
+  it('renders BTC account type label when account type is BTC', () => {
+    const mockToken = createMockToken({
+      accountType: BtcAccountType.P2wpkh,
+    });
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('Native SegWit')).toBeOnTheScreen();
   });
 });
