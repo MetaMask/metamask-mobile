@@ -222,81 +222,60 @@ describe('Browser utils :: getAlertMessage', () => {
 });
 
 describe('Browser utils :: protocolWhitelist', () => {
-  it('about:', () => {
+  it('should match about: protocol', () => {
     const { protocol } = new URL('about:config');
 
     expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
-  it('http:', () => {
+  it('should match http: protocol', () => {
     const { protocol } = new URL('http://meta.io');
 
     expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
-  it('https:', () => {
+  it('should match https: protocol', () => {
     const { protocol } = new URL('https://meta.io');
 
     expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
-  it('file:', () => {
-    const { protocol } = new URL('file://meta.io');
-
-    expect(protocolAllowList.includes(protocol)).toBeTruthy();
-  });
-  it('wc:', () => {
-    const { protocol } = new URL('wc:f82jdjfjakjskdfj');
-
-    expect(protocolAllowList.includes(protocol)).toBeTruthy();
-  });
-  it('metamask:', () => {
-    const { protocol } = new URL('metamask://dapp/portfolio.metamask.io');
-
-    expect(protocolAllowList.includes(protocol)).toBeTruthy();
-  });
-  it('ethereum:', () => {
-    const { protocol } = new URL('ethereum://tx');
-
-    expect(protocolAllowList.includes(protocol)).toBeTruthy();
-  });
-  it('dapp:', () => {
-    const { protocol } = new URL('dapp://portfolio.metamask.io');
-
-    expect(protocolAllowList.includes(protocol)).toBeTruthy();
-  });
-  it('No javascript:', () => {
-    // eslint-disable-next-line no-script-url
-    const { protocol } = new URL('javascript://metamask.io');
-
-    expect(protocolAllowList.includes(protocol)).toBeFalsy();
-  });
 });
 
 describe('Browser utils :: trustedProtocolToDeeplink', () => {
-  it('market:', () => {
-    const { protocol } = new URL('market://portfolio.metamask.io');
+  it('should match wc: protocol', () => {
+    const { protocol } = new URL('wc:f82jdjfjakjskdfj');
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
   });
-  it('itms-apps:', () => {
-    const { protocol } = new URL('itms-apps://portfolio.metamask.io');
+  it('should match metamask: protocol', () => {
+    const { protocol } = new URL('metamask://dapp/portfolio.metamask.io');
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
   });
-  it('No eth:', () => {
+  it('should match ethereum: protocol', () => {
+    const { protocol } = new URL('ethereum://tx');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+  it('should match dapp: protocol', () => {
+    const { protocol } = new URL('dapp://portfolio.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+  it('should not match eth: protocol', () => {
     const { protocol } = new URL('eth://portfolio.metamask.io');
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
   });
-  it('No tel:', () => {
+  it('should not match tel: protocol', () => {
     const { protocol } = new URL('tel://portfolio.metamask.io');
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
   });
-  it('No mailto:', () => {
+  it('should not match mailto: protocol', () => {
     const { protocol } = new URL('mailto://portfolio.metamask.io');
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
   });
-  it('No ldap:', () => {
+  it('should not match ldap: protocol', () => {
     const { protocol } = new URL('ldap://portfolio.metamask.io');
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();

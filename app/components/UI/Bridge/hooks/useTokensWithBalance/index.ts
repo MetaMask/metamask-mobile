@@ -14,6 +14,9 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
@@ -23,8 +26,7 @@ import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { toChecksumAddress } from '../../../../../util/address';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { EthScope } from '@metamask/keyring-api';
-import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
+import { EthScope, SolScope } from '@metamask/keyring-api';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -153,6 +155,9 @@ export const useTokensWithBalance: ({
   const evmAddress = selectedAccountGroupInternalAccounts.find((account) =>
     account.scopes.includes(EthScope.Eoa),
   )?.address;
+  const solanaInternalAccountId = selectedAccountGroupInternalAccounts.find(
+    (account) => account.scopes.includes(SolScope.Mainnet),
+  )?.id;
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -171,7 +176,9 @@ export const useTokensWithBalance: ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useNonEvmTokensWithBalance();
+  const nonEvmTokens = useSelector((state: RootState) =>
+    selectMultichainTokenListForAccountId(state, solanaInternalAccountId),
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {

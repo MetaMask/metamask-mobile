@@ -31,7 +31,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
-  selectIsEvmNonEvmBridge,
+  selectIsEvmSolanaBridge,
   selectIsSubmittingTx,
   setIsSubmittingTx,
   selectDestAddress,
@@ -39,7 +39,6 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectNoFeeAssets,
-  selectIsNonEvmNonEvmBridge,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -124,8 +123,7 @@ const BridgeView = () => {
     selectNoFeeAssets(state, destToken?.chainId),
   );
 
-  const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
-  const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
+  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -153,7 +151,7 @@ const BridgeView = () => {
 
   useInitialSlippage();
 
-  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
+  const hasDestinationPicker = isEvmSolanaBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -179,15 +177,13 @@ const BridgeView = () => {
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
-  const isSwap = sourceToken?.chainId === destToken?.chainId;
-
   const hasValidBridgeInputs =
     isValidSourceAmount &&
     !!sourceToken &&
     !!destToken &&
     // Prevent quote fetching when destination address is not set
-    // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
-    (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
+    // Destinations address is only needed for EVM <> Solana bridges
+    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
@@ -321,6 +317,7 @@ const BridgeView = () => {
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
+    const isSwap = sourceToken?.chainId === destToken?.chainId;
     return isSwap
       ? strings('bridge.confirm_swap')
       : strings('bridge.confirm_bridge');

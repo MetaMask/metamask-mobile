@@ -1,9 +1,5 @@
 import { ContractConfig, RoundConfig, TickSize } from './types';
 
-export const FEE_PERCENTAGE = 4; // 4%
-export const FEE_COLLECTOR_ADDRESS =
-  '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 
 export const COLLATERAL_TOKEN_DECIMALS = 6;

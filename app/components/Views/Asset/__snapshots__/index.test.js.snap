@@ -748,11 +748,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -818,6 +813,21 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         }
                                       >
                                         SOL
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"
@@ -2613,11 +2623,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -2683,6 +2688,21 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         }
                                       >
                                         SOL
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"
@@ -4478,11 +4498,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -4548,6 +4563,21 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         }
                                       >
                                         USDC
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"
@@ -6384,11 +6414,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -6454,6 +6479,21 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         }
                                       >
                                         SOL
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"
@@ -8249,11 +8289,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -8319,6 +8354,21 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         }
                                       >
                                         SOL
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"
@@ -10114,11 +10164,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -10184,6 +10229,21 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         }
                                       >
                                         UNKNOWN
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"
@@ -12550,11 +12610,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -12620,6 +12675,21 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         }
                                       >
                                         SOL
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"
@@ -14415,11 +14485,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                         >
                           <RCTScrollView
                             collapsable={false}
-                            contentContainerStyle={
-                              {
-                                "paddingBottom": 80,
-                              }
-                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -14485,6 +14550,21 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         }
                                       >
                                         SOL
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
                                       </Text>
                                       <Text
                                         accessibilityRole="text"

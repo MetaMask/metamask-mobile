@@ -7,11 +7,11 @@ import {
   getIsSwapTransaction,
   getIsNativeTokenTransferred,
 } from '../transactions';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
-  SmartTransactionsController,
-  type SmartTransaction,
-  type Fees,
-} from '@metamask/smart-transactions-controller';
+  SmartTransaction,
+  Fees,
+} from '@metamask/smart-transactions-controller/dist/types';
 import Engine, { type BaseControllerMessenger } from '../../core/Engine';
 import { isProduction } from '../environment';
 
