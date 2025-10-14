@@ -46,10 +46,6 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.debug',
     },
-    'ios.sim.flask': {
-      device: 'ios.simulator',
-      app: 'ios.flask.release',
-    },
     'android.emu.main.ci': {
       device: 'android.github_ci.emulator',
       app: 'android.release',
@@ -59,10 +55,6 @@ module.exports = {
       app: 'android.flask.release',
     },
     'ios.sim.main.ci': {
-      device: 'ios.simulator',
-      app: 'ios.main.release',
-    },
-    'ios.sim.flask.ci': {
       device: 'ios.simulator',
       app: 'ios.debug',
     }
