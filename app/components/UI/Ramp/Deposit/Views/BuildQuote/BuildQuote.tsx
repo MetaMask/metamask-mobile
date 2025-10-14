@@ -604,12 +604,16 @@ const BuildQuote = () => {
               </ListItemColumn>
 
               <ListItemColumn>
-                <TagBase
-                  includesBorder
-                  textProps={{ variant: TextVariant.BodySM }}
-                >
-                  {strings('deposit.payment_duration.instant')}
-                </TagBase>
+                {selectedPaymentMethod ? (
+                  <TagBase
+                    includesBorder
+                    textProps={{ variant: TextVariant.BodySM }}
+                  >
+                    {strings(
+                      `deposit.payment_duration.${selectedPaymentMethod.duration}`,
+                    )}
+                  </TagBase>
+                ) : null}
               </ListItemColumn>
               <ListItemColumn>
                 <Icon
