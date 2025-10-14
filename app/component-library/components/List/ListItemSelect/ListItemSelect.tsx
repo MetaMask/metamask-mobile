@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TouchableOpacity as RNTouchableOpacity,
   TouchableOpacityProps,
   View,
   Platform,
   GestureResponderEvent,
+  AccessibilityInfo,
 } from 'react-native';
 
 // External dependencies.
@@ -30,28 +31,21 @@ const TouchableOpacity = ({
 }) => {
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Coordination logic moved into conditional TouchableOpacity
-  const lastPressTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+  // Track accessibility state
+  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState(false);
 
-  // Coordinated onPress handler
-  const coordinatedOnPress = (pressEvent?: GestureResponderEvent) => {
-    if (!onPress || isDisabled) return;
+  useEffect(() => {
+    // Check initial accessibility state
+    AccessibilityInfo.isScreenReaderEnabled().then(setIsAccessibilityEnabled);
 
-    // Skip coordination logic in test environments
-    if (process.env.NODE_ENV === 'test') {
-      onPress(pressEvent as GestureResponderEvent);
-      return;
-    }
+    // Listen for accessibility changes
+    const subscription = AccessibilityInfo.addEventListener(
+      'screenReaderChanged',
+      setIsAccessibilityEnabled,
+    );
 
-    const now = Date.now();
-    const timeSinceLastPress = now - lastPressTime.current;
-
-    if (timeSinceLastPress > COORDINATION_WINDOW) {
-      lastPressTime.current = now;
-      onPress(pressEvent as GestureResponderEvent);
-    }
-  };
+    return () => subscription?.remove();
+  }, []);
 
   // Gesture detection for ScrollView compatibility on Android
   const tap = Gesture.Tap()
@@ -60,7 +54,9 @@ const TouchableOpacity = ({
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
     .onEnd((gestureEvent) => {
-      if (onPress && !isDisabled) {
+      // Only handle gesture when accessibility is OFF
+      // When accessibility is ON, let TouchableOpacity handle the press
+      if (onPress && !isDisabled && !isAccessibilityEnabled) {
         // Create a proper GestureResponderEvent-like object from gesture event
         const syntheticEvent = {
           nativeEvent: {
@@ -81,19 +77,29 @@ const TouchableOpacity = ({
           },
         } as GestureResponderEvent;
 
-        // Use coordinated press handler
-        coordinatedOnPress(syntheticEvent);
+        onPress(syntheticEvent);
       }
     });
+
+  // In test environments, behave like standard TouchableOpacity
+  if (process.env.NODE_ENV === 'test') {
+    return (
+      <RNTouchableOpacity
+        disabled={isDisabled}
+        onPress={isDisabled ? undefined : onPress}
+        {...props}
+      >
+        {children}
+      </RNTouchableOpacity>
+    );
+  }
 
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={coordinatedOnPress} // Use coordinated handler for accessibility
+        onPress={isAccessibilityEnabled && !isDisabled ? onPress : undefined} // Only use TouchableOpacity onPress when accessibility is active and not disabled
         {...props}
-        // Ensure disabled prop is available to tests
-        {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
       >
         {children}
       </RNTouchableOpacity>
@@ -128,7 +134,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
     <TouchableComponent
       style={styles.base}
       disabled={isDisabled}
-      onPress={onPress}
+      onPress={isDisabled ? undefined : onPress}
       onLongPress={onLongPress}
       {...props}
     >
