@@ -231,7 +231,6 @@ jobs:
     name: 'AI E2E Analysis'
     runs-on: ubuntu-latest
     continue-on-error: true
-    needs: [needs_e2e_build]
     permissions:
       contents: read
       pull-requests: write
@@ -250,7 +249,6 @@ jobs:
         id: ai-analysis
         uses: ./.github/actions/ai-e2e-analysis
         with:
-          changed-files: ${{ needs.needs_e2e_build.outputs.changed_files }}
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
