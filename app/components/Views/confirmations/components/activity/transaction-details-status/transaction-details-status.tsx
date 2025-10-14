@@ -1,6 +1,7 @@
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import React from 'react';
 import Icon, {
@@ -9,18 +10,10 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Tooltip from '../../UI/Tooltip';
-import AnimatedSpinner, {
-  SpinnerSize,
-} from '../../../../../UI/AnimatedSpinner';
-import { View } from 'react-native';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
-import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../../../UI/Box/box.types';
+import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import Text, {
   TextColor,
   TextVariant,
@@ -30,6 +23,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './transaction-details-status.styles';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useSelector } from 'react-redux';
+import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
+import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
+import { useTokenAmount } from '../../../hooks/useTokenAmount';
 
 export function TransactionDetailsStatus({
   gap,
@@ -43,6 +41,8 @@ export function TransactionDetailsStatus({
   transactionMeta: TransactionMeta;
 }) {
   const { status: statusRaw } = transactionMeta;
+  const hasSuccessfulPerpsBridge = useHasSuccessfulPerpsBridge();
+  const { fiat } = useTokenAmount({ transactionMeta });
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta: transactionMeta,
@@ -55,22 +55,31 @@ export function TransactionDetailsStatus({
 
   const statusText = text ?? getStatusText(status);
 
+  const solutionText =
+    !text && status === TransactionStatus.failed && hasSuccessfulPerpsBridge
+      ? strings('transaction_details.perps_deposit_solution', {
+          fiat: fiat ?? '0.00',
+        })
+      : undefined;
+
   const textColour =
     text && status !== TransactionStatus.failed
       ? undefined
       : getTextColour(status);
 
   return (
-    <Box
-      flexDirection={FlexDirection.Row}
-      gap={gap ?? 6}
-      alignItems={AlignItems.center}
-      justifyContent={JustifyContent.spaceBetween}
-    >
-      <StatusIcon status={status} transactionMeta={transactionMeta} />
-      <Text color={textColour} variant={TextVariant.BodyMDMedium}>
-        {statusText}
-      </Text>
+    <Box flexDirection={FlexDirection.Column} gap={6}>
+      <Box
+        flexDirection={FlexDirection.Row}
+        gap={gap ?? 6}
+        alignItems={AlignItems.center}
+      >
+        <StatusIcon status={status} transactionMeta={transactionMeta} />
+        <Text color={textColour} variant={TextVariant.BodyMDMedium}>
+          {statusText}
+        </Text>
+      </Box>
+      {solutionText && <Text variant={TextVariant.BodyMD}>{solutionText}</Text>}
     </Box>
   );
 }
@@ -100,25 +109,17 @@ function StatusIcon({
     );
   }
 
-  if (iconName) {
-    return (
-      <Icon
-        testID={`status-icon-${status}`}
-        name={iconName}
-        color={iconColour}
-        size={IconSize.Md}
-      />
-    );
-  }
-
   return (
-    <View testID="status-spinner">
-      <AnimatedSpinner size={SpinnerSize.XS} />
-    </View>
+    <Icon
+      testID={`status-icon-${status}`}
+      name={iconName}
+      color={iconColour}
+      size={IconSize.Md}
+    />
   );
 }
 
-function getStatusIcon(status: TransactionStatus): IconName | undefined {
+function getStatusIcon(status: TransactionStatus): IconName {
   switch (status) {
     case TransactionStatus.confirmed:
       return IconName.Confirmation;
@@ -126,7 +127,7 @@ function getStatusIcon(status: TransactionStatus): IconName | undefined {
     case TransactionStatus.dropped:
       return IconName.CircleX;
     default:
-      return undefined;
+      return IconName.FullCircle;
   }
 }
 
@@ -205,4 +206,24 @@ function getBridgeStatus(
   }
 
   return TransactionStatus.failed;
+}
+
+function useHasSuccessfulPerpsBridge() {
+  const { transactionMeta } = useTransactionDetails();
+  const { requiredTransactionIds } = transactionMeta ?? {};
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
+  return (
+    (transactionMeta?.type === TransactionType.perpsDeposit &&
+      requiredTransactionIds?.some((id) => {
+        const bridgeItem = bridgeHistory[id];
+
+        return (
+          bridgeItem?.status.status === StatusTypes.COMPLETE &&
+          bridgeItem?.quote?.destAsset?.address?.toLowerCase() ===
+            ARBITRUM_USDC_ADDRESS.toLowerCase()
+        );
+      })) ??
+    false
+  );
 }

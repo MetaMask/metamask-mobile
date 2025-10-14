@@ -53,6 +53,7 @@ export function TransactionDetailsRetry() {
         onPress={handlePress}
         label={strings('transaction_details.label.retry_button')}
         variant={ButtonVariants.Primary}
+        style={{marginBottom: 20}}
       />
     </Box>
   );

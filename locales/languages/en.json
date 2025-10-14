@@ -6208,7 +6208,8 @@
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
-    }
+    },
+    "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
   "sdk_connect_v2": {
     "show_loading": {

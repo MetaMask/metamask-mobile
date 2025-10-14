@@ -3,6 +3,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
@@ -11,9 +12,15 @@ import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useB
 import { StatusTypes } from '@metamask/bridge-controller';
 import { TransactionDetailsStatus } from './transaction-details-status';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
+import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useTokenAmount } from '../../../hooks/useTokenAmount';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
+jest.mock('../../../../../../selectors/bridgeStatusController');
+jest.mock('../../../hooks/useTokenAmount');
 
 const ERROR_MESSAGE_MOCK = 'Test Error';
 
@@ -34,6 +41,11 @@ function render(
 
 describe('TransactionDetailsStatus', () => {
   const useBridgeTxHistoryDataMock = jest.mocked(useBridgeTxHistoryData);
+  const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
+  const useTokenAmountMock = jest.mocked(useTokenAmount);
+  const selectBridgeHistoryForAccountMock = jest.mocked(
+    selectBridgeHistoryForAccount,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -42,6 +54,12 @@ describe('TransactionDetailsStatus', () => {
       bridgeTxHistoryItem: undefined,
       isBridgeComplete: null,
     });
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {} as TransactionMeta,
+    });
+
+    useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
   });
 
   it('renders success if confirmed', () => {
@@ -57,12 +75,12 @@ describe('TransactionDetailsStatus', () => {
     TransactionStatus.approved,
     TransactionStatus.signed,
     TransactionStatus.unapproved,
-  ])('renders spinner if status is %s', (status) => {
+  ])('renders pending icon if status is %s', (status) => {
     const { getByTestId, getByText } = render({
       status,
     });
 
-    expect(getByTestId('status-spinner')).toBeDefined();
+    expect(getByTestId(`status-icon-${status}`)).toBeDefined();
     expect(getByText(strings('transaction.pending'))).toBeDefined();
   });
 
@@ -128,7 +146,7 @@ describe('TransactionDetailsStatus', () => {
 
       const { getByTestId, getByText } = render({}, { isBridgeReceive: true });
 
-      expect(getByTestId('status-spinner')).toBeDefined();
+      expect(getByTestId(`status-icon-submitted`)).toBeDefined();
       expect(getByText(strings('transaction.pending'))).toBeDefined();
     },
   );
@@ -144,5 +162,42 @@ describe('TransactionDetailsStatus', () => {
 
     expect(getByTestId('status-icon-failed')).toBeDefined();
     expect(getByText(strings('transaction.failed'))).toBeDefined();
+  });
+
+  it('renders solution text if bridge failed but user has successful perps bridge', () => {
+    selectBridgeHistoryForAccountMock.mockReturnValue({
+      '1': {
+        quote: {
+          destAsset: { address: ARBITRUM_USDC_ADDRESS },
+        },
+        status: {
+          status: StatusTypes.COMPLETE,
+        },
+      },
+    } as never);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        requiredTransactionIds: ['1'],
+        type: TransactionType.perpsDeposit,
+      } as TransactionMeta,
+    });
+
+    useTokenAmountMock.mockReturnValue({
+      fiat: '$123.45',
+    } as ReturnType<typeof useTokenAmount>);
+
+    const { getByText } = render({
+      status: TransactionStatus.failed,
+      type: TransactionType.perpsDeposit,
+    });
+
+    expect(
+      getByText(
+        strings('transaction_details.perps_deposit_solution', {
+          fiat: '$123.45',
+        }),
+      ),
+    ).toBeDefined();
   });
 });
