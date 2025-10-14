@@ -16,6 +16,13 @@ global.base64ToArrayBuffer = base64js.toByteArray;
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
 
+// Mock Expo's fetch implementation
+jest.mock('expo/fetch', () => {
+  return {
+    fetch: fetch,
+  };
+});
+
 jest.mock('react-native-quick-crypto', () => ({
   getRandomValues: jest.fn((array) => {
     for (let i = 0; i < array.length; i++) {
