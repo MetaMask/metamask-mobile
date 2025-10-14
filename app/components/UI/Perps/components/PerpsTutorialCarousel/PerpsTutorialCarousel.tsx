@@ -77,6 +77,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
             width: '100%',
+            minHeight: 400,
             flex: 1,
           }}
           resizeMode="contain"
