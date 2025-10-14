@@ -47,15 +47,17 @@ describe('ConnectionStore', () => {
 
     await store.save(connection);
 
-    // Should update the index
-    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-      'test-prefix_index',
-      JSON.stringify(['test-id']),
-    );
-    // Should save the connection data
-    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+    // Should save the connection data (first call)
+    expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+      1,
       'test-prefix/test-id',
       JSON.stringify(connection),
+    );
+    // Should update the index (second call)
+    expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+      2,
+      'test-prefix_index',
+      JSON.stringify(['test-id']),
     );
   });
 
@@ -123,13 +125,14 @@ describe('ConnectionStore', () => {
     expect(StorageWrapper.getItem).toHaveBeenCalledWith(
       'test-prefix/expired-id',
     );
-    // Should update index to remove the expired connection
+    // Should remove the connection data first
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/expired-id',
+    );
+    // Then update index to remove the expired connection
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       'test-prefix_index',
       JSON.stringify([]),
-    );
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-      'test-prefix/expired-id',
     );
     expect(result).toBeNull();
   });
@@ -145,13 +148,14 @@ describe('ConnectionStore', () => {
     expect(StorageWrapper.getItem).toHaveBeenCalledWith(
       'test-prefix/corrupted-id',
     );
-    // Should update index to remove the corrupted connection
+    // Should remove the connection data first
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/corrupted-id',
+    );
+    // Then update index to remove the corrupted connection
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       'test-prefix_index',
       JSON.stringify([]),
-    );
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-      'test-prefix/corrupted-id',
     );
     expect(result).toBeNull();
   });
@@ -277,13 +281,14 @@ describe('ConnectionStore', () => {
 
     await store.delete('test-id');
 
-    // Should update index to remove the connection
+    // Should remove the connection data first
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/test-id',
+    );
+    // Then update index to remove the connection
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       'test-prefix_index',
       JSON.stringify([]),
-    );
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-      'test-prefix/test-id',
     );
   });
 
@@ -322,5 +327,109 @@ describe('ConnectionStore', () => {
     const result = await store.list();
 
     expect(result).toEqual([validConnection]);
+  });
+
+  it('should handle corrupted index during save and rebuild', async () => {
+    const connection: ConnectionInfo = {
+      id: 'new-id',
+      metadata: {
+        dapp: { name: 'New DApp', url: 'https://new.com' },
+        sdk: { version: '1.0.0', platform: 'ios' },
+      },
+      expiresAt: Date.now() + 1000 * 60 * 60,
+    };
+
+    // Mock corrupted index
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
+      'invalid json data',
+    );
+
+    // Should not throw, should save connection and rebuild index
+    await store.save(connection);
+
+    // Connection data should be saved first
+    expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+      1,
+      'test-prefix/new-id',
+      JSON.stringify(connection),
+    );
+    // Index should be rebuilt with just this connection
+    expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+      2,
+      'test-prefix_index',
+      JSON.stringify(['new-id']),
+    );
+  });
+
+  it('should handle corrupted index during list and return empty array', async () => {
+    // Mock corrupted index
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
+      'invalid json data',
+    );
+
+    const result = await store.list();
+
+    expect(result).toEqual([]);
+  });
+
+  it('should handle corrupted index during delete gracefully', async () => {
+    // Mock corrupted index
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
+      'invalid json data',
+    );
+
+    // Should not throw
+    await expect(store.delete('some-id')).resolves.not.toThrow();
+
+    // Connection data should still be removed
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/some-id',
+    );
+  });
+
+  it('should save connection even if index update fails', async () => {
+    const connection: ConnectionInfo = {
+      id: 'resilient-id',
+      metadata: {
+        dapp: { name: 'Resilient DApp', url: 'https://resilient.com' },
+        sdk: { version: '1.0.0', platform: 'ios' },
+      },
+      expiresAt: Date.now() + 1000 * 60 * 60,
+    };
+
+    // Mock empty index
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(null);
+    // Mock index update failure
+    (StorageWrapper.setItem as jest.Mock)
+      .mockResolvedValueOnce(undefined) // Connection data saves successfully
+      .mockRejectedValueOnce(new Error('Index update failed')); // Index update fails
+
+    // Should not throw
+    await expect(store.save(connection)).resolves.not.toThrow();
+
+    // Connection data should be saved
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+      'test-prefix/resilient-id',
+      JSON.stringify(connection),
+    );
+  });
+
+  it('should delete connection even if index update fails', async () => {
+    // Mock index read
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
+      JSON.stringify(['persistent-id']),
+    );
+    // Mock index update failure
+    (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('Index update failed'),
+    );
+
+    // Should not throw
+    await expect(store.delete('persistent-id')).resolves.not.toThrow();
+
+    // Connection data should be removed
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/persistent-id',
+    );
   });
 });

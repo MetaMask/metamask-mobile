@@ -23,6 +23,50 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   /**
+   * Safely reads the connection index, returning empty array on any error.
+   */
+  private async getIndex(): Promise<string[]> {
+    try {
+      const indexJson = await StorageWrapper.getItem(this.indexKey);
+      if (!indexJson) return [];
+      return JSON.parse(indexJson) as string[];
+    } catch (error) {
+      logger.error('Failed to read index', error);
+      return [];
+    }
+  }
+
+  /**
+   * Adds a connection ID to the index if not already present.
+   * Logs errors but does not throw - index can be recovered.
+   */
+  private async addToIndex(id: string): Promise<void> {
+    try {
+      const index = await this.getIndex();
+      if (!index.includes(id)) {
+        index.push(id);
+        await StorageWrapper.setItem(this.indexKey, JSON.stringify(index));
+      }
+    } catch (error) {
+      logger.error('Failed to add to index', error);
+    }
+  }
+
+  /**
+   * Removes a connection ID from the index.
+   * Logs errors but does not throw - phantom entries will be filtered by list().
+   */
+  private async removeFromIndex(id: string): Promise<void> {
+    try {
+      const index = await this.getIndex();
+      const newIndex = index.filter((existingId) => existingId !== id);
+      await StorageWrapper.setItem(this.indexKey, JSON.stringify(newIndex));
+    } catch (error) {
+      logger.error('Failed to remove from index', error);
+    }
+  }
+
+  /**
    * Processes a raw JSON string from storage. It parses, validates expiration,
    * and cleans up the record if it's invalid or expired.
    * @param id - The connection ID.
@@ -61,18 +105,12 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async save(connection: ConnectionInfo): Promise<void> {
-    const indexJson = await StorageWrapper.getItem(this.indexKey);
-    const index = indexJson ? (JSON.parse(indexJson) as string[]) : [];
-
-    if (!index.includes(connection.id)) {
-      index.push(connection.id);
-      await StorageWrapper.setItem(this.indexKey, JSON.stringify(index));
-    }
-
     await StorageWrapper.setItem(
       this.getKey(connection.id),
       JSON.stringify(connection),
     );
+
+    await this.addToIndex(connection.id);
   }
 
   async get(id: string): Promise<ConnectionInfo | null> {
@@ -81,10 +119,7 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async list(): Promise<ConnectionInfo[]> {
-    const indexJson = await StorageWrapper.getItem(this.indexKey);
-    if (!indexJson) return [];
-
-    const connectionIds = JSON.parse(indexJson) as string[];
+    const connectionIds = await this.getIndex();
     if (connectionIds.length === 0) return [];
 
     const promises = connectionIds.map((id) => this.get(id));
@@ -94,12 +129,7 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async delete(id: string): Promise<void> {
-    const indexJson = await StorageWrapper.getItem(this.indexKey);
-    const index = indexJson ? (JSON.parse(indexJson) as string[]) : [];
-
-    const newIndex = index.filter((existingId) => existingId !== id);
-    await StorageWrapper.setItem(this.indexKey, JSON.stringify(newIndex));
-
     await StorageWrapper.removeItem(this.getKey(id));
+    await this.removeFromIndex(id);
   }
 }
