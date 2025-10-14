@@ -93,6 +93,10 @@ import { getSmartTransactionsControllerMessenger } from './smart-transactions-co
 import { getUserStorageControllerMessenger } from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
 
+import {
+  getDelegationControllerInitMessenger,
+  getDelegationControllerMessenger,
+} from './delegation/delegation-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -308,5 +312,9 @@ export const CONTROLLER_MESSENGERS = {
   GatorPermissionsController: {
     getMessenger: getGatorPermissionsControllerMessenger,
     getInitMessenger: noop,
+  },
+  DelegationController: {
+    getMessenger: getDelegationControllerMessenger,
+    getInitMessenger: getDelegationControllerInitMessenger,
   },
 } as const;
