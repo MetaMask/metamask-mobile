@@ -1,7 +1,7 @@
-import { Theme } from '@metamask/design-tokens';
+import { Theme } from '../../../util/theme/models';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import Device from '../../../util/device';
-import { fontStyles , colors as importedColors } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
