@@ -19,12 +19,34 @@ jest.mock('../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
 
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
 describe('useCryptoCurrencies', () => {
   const mockSetSelectedCryptoCurrency = jest.fn();
   const mockRetryFetchCryptoCurrencies = jest.fn();
 
+  const mockNetworkConfigurations = {
+    'eip155:1': {
+      name: 'Ethereum Mainnet',
+      chainId: '0x1',
+    },
+    'bip122:000000000019d6689c085ae165831e93': {
+      name: 'Bitcoin',
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
+    },
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+      name: 'Solana',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseSelector.mockReturnValue(mockNetworkConfigurations);
 
     mockUseDepositSDK.mockReturnValue(
       createMockSDKReturn({

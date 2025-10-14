@@ -34,7 +34,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   getNativeAssetForChainId,
-  isSolanaChainId,
+  isNonEvmChainId,
   StatusTypes,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
@@ -186,7 +186,7 @@ export const BridgeTransactionDetails = (
   const isBridge = !isSwap;
 
   // Create token objects directly from the quote data
-  const sourceChainId = isSolanaChainId(quote.srcChainId)
+  const sourceChainId = isNonEvmChainId(quote.srcChainId)
     ? formatChainIdToCaip(quote.srcChainId)
     : formatChainIdToHex(quote.srcChainId);
 
@@ -204,7 +204,7 @@ export const BridgeTransactionDetails = (
     quote.srcAsset.decimals,
   ).toFixed(5);
 
-  const destinationChainId = isSolanaChainId(quote.destChainId)
+  const destinationChainId = isNonEvmChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
 

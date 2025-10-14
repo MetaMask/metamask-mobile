@@ -23,9 +23,16 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import { handleFetch } from '@metamask/controller-utils';
+
 jest.mock('../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
+}));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  handleFetch: jest.fn(),
 }));
 
 jest.mock(
@@ -942,6 +949,249 @@ describe('AssetOverview', () => {
 
       // Should display formatted Solana balance
       expect(secondaryBalance.props.children).toBe('123.45679 SOL');
+    });
+  });
+
+  it('should not render Balance component when balance is undefined', () => {
+    // Given an asset with undefined balance
+    const assetWithNoBalance = {
+      ...asset,
+      balance: undefined as unknown as string,
+    };
+
+    // Override the mock to enable state2 so balance stays undefined
+    const mockModule = jest.requireMock(
+      '../../../selectors/featureFlagController/multichainAccounts',
+    );
+    const originalMock = mockModule.selectMultichainAccountsState2Enabled;
+    mockModule.selectMultichainAccountsState2Enabled = jest
+      .fn()
+      .mockReturnValue(true);
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview asset={assetWithNoBalance} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
+
+    // Restore original mock
+    mockModule.selectMultichainAccountsState2Enabled = originalMock;
+  });
+
+  describe('Exchange Rate Fetching', () => {
+    const SOLANA_ASSET_ID =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
+    const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+    const mockSolanaAccount = createMockSnapInternalAccount(
+      'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+      'Solana Account 1',
+      SolAccountType.DataAccount,
+    );
+
+    const createSolanaToken = (balanceFiat: string) => ({
+      address: SOLANA_ASSET_ID,
+      aggregators: [],
+      balanceFiat,
+      balance: '10',
+      logo: 'https://example.com/jup.png',
+      decimals: 9,
+      image: 'https://example.com/jup.png',
+      name: 'Jupiter',
+      symbol: 'JUP',
+      isETH: false,
+      hasBalanceError: false,
+      chainId: SOLANA_CHAIN_ID,
+      isNative: false,
+    });
+
+    const createSolanaState = (customState = {}) => ({
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              selectedAccount: mockSolanaAccount.id,
+              accounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                [mockSolanaAccount.id]: mockSolanaAccount,
+              },
+            },
+          },
+          ...customState,
+        },
+      },
+    });
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should fetch exchange rate from API for non-imported EVM token', async () => {
+      const testTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const testToken = {
+        address: testTokenAddress,
+        aggregators: [],
+        balanceFiat: '$0.00',
+        balance: '100',
+        logo: 'https://example.com/test.png',
+        decimals: 18,
+        image: 'https://example.com/test.png',
+        name: 'Test Token',
+        symbol: 'TEST',
+        isETH: false,
+        hasBalanceError: false,
+        chainId: MOCK_CHAIN_ID,
+      };
+
+      jest.mocked(handleFetch).mockResolvedValue({
+        [testTokenAddress.toLowerCase()]: { price: 0.0005 },
+      });
+
+      const { findByText } = renderWithProvider(
+        <AssetOverview asset={testToken} />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                TokenRatesController: {
+                  marketData: { '0x1': {} },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      await findByText(testToken.name);
+      expect(handleFetch).toHaveBeenCalledWith(
+        expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
+      );
+      expect(handleFetch).toHaveBeenCalledWith(
+        expect.stringContaining('assetIds=eip155%3A1%2Ferc20%3A'),
+      );
+    });
+
+    it('should not fetch exchange rate when already cached for EVM token', () => {
+      jest.clearAllMocks();
+
+      const cachedTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const cachedToken = {
+        address: cachedTokenAddress,
+        aggregators: [],
+        balanceFiat: '$5.00',
+        balance: '1000',
+        logo: 'https://example.com/token.png',
+        decimals: 18,
+        image: 'https://example.com/token.png',
+        name: 'Cached Token',
+        symbol: 'CACHED',
+        isETH: false,
+        hasBalanceError: false,
+        chainId: MOCK_CHAIN_ID,
+      };
+
+      renderWithProvider(<AssetOverview asset={cachedToken} />, {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              TokenRatesController: {
+                marketData: {
+                  '0x1': {
+                    [cachedTokenAddress.toLowerCase()]: {
+                      price: 0.005,
+                      marketCap: 5000000,
+                      totalVolume: 1000000,
+                      circulatingSupply: 10000000,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const exchangeRateCalls = jest
+        .mocked(handleFetch)
+        .mock.calls.filter((call) => {
+          const url = String(call[0]);
+          return (
+            url.includes('spot-prices') &&
+            url.includes(cachedTokenAddress) &&
+            !url.includes('includeMarketData')
+          );
+        });
+      expect(exchangeRateCalls.length).toBe(0);
+    });
+
+    it('should not fetch exchange rate when already cached for Solana token', () => {
+      jest.clearAllMocks();
+
+      const cachedSolanaToken = createSolanaToken('$10.00');
+
+      renderWithProvider(<AssetOverview asset={cachedSolanaToken} />, {
+        state: createSolanaState({
+          MultichainAssetsRatesController: {
+            conversionRates: {
+              [SOLANA_ASSET_ID]: {
+                rate: '0.431111',
+                conversionTime: Date.now(),
+                marketData: {
+                  fungible: true as const,
+                  allTimeHigh: '2',
+                  allTimeLow: '0.306358',
+                  circulatingSupply: '3165216666.64',
+                  marketCap: '1364703778',
+                  totalVolume: '32954819',
+                  dilutedMarketCap: '3017669206',
+                },
+              },
+            },
+          },
+        }),
+      });
+
+      const exchangeRateCalls = jest
+        .mocked(handleFetch)
+        .mock.calls.filter((call) => {
+          const url = String(call[0]);
+          return (
+            url.includes('spot-prices') &&
+            url.includes('JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN') &&
+            !url.includes('includeMarketData')
+          );
+        });
+      expect(exchangeRateCalls.length).toBe(0);
+    });
+
+    it('should fetch exchange rate from API for non-imported Solana token', async () => {
+      const solanaToken = createSolanaToken('$0.00');
+
+      jest.mocked(handleFetch).mockResolvedValue({
+        [SOLANA_ASSET_ID]: { price: 0.431111 },
+      });
+
+      const { findByText } = renderWithProvider(
+        <AssetOverview asset={solanaToken} />,
+        { state: createSolanaState() },
+      );
+
+      await findByText(solanaToken.name);
+      expect(handleFetch).toHaveBeenCalledWith(
+        expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
+      );
     });
   });
 });

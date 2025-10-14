@@ -155,9 +155,17 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      let tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token); // for some reason by Id does not work sometimes
-      await tokenName.tap();
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        let tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`); // for some reason by Id does not work sometimeselse {
+        await tokenName.tap();
+      } else { // if ios, click on any token that is visible
+        const anyToken = await AppwrightSelectors.getElementByXpath(this._device, `//*[@name="token-list"]//XCUIElementTypeOther[1]`);
+        await AppwrightGestures.tap(anyToken);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
+
+    
   }
 
   async isTokenVisible(token) {

@@ -46,7 +46,20 @@ describe('useConfirmNavigation', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      { params: { loader: ConfirmationLoader.CustomAmount } },
+      { loader: ConfirmationLoader.CustomAmount },
+    );
+  });
+
+  it('navigates to alternate route if headerShown is false', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      headerShown: false,
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
+      {},
     );
   });
 });

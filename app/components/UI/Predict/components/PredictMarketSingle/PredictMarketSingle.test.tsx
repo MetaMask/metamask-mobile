@@ -9,6 +9,7 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarketSingle from './';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock Alert
 const mockAlert = jest.fn();
@@ -21,6 +22,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+// Mock usePredictEligibility hook
+const mockUsePredictEligibility = jest.fn();
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
 // Mock hooks
@@ -74,6 +81,10 @@ const initialState = {
 describe('PredictMarketSingle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock implementation - user is eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
+    });
   });
 
   afterEach(() => {
@@ -107,8 +118,8 @@ describe('PredictMarketSingle', () => {
     const noButton = getByText('No');
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictPlaceBet',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {
         market: mockMarket,
         outcome: mockOutcome,
@@ -117,8 +128,8 @@ describe('PredictMarketSingle', () => {
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictPlaceBet',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {
         market: mockMarket,
         outcome: mockOutcome,
@@ -235,5 +246,64 @@ describe('PredictMarketSingle', () => {
 
     // Should display the formatted volume
     expect(getByText(/\$500k.*Vol\./)).toBeOnTheScreen();
+  });
+
+  it('navigate to unavailable modal when user is not eligible', () => {
+    // Mock user as not eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes');
+    const noButton = getByText('No');
+
+    // Press the "Yes" button
+    fireEvent.press(yesButton);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+
+    // Press the "No" button
+    fireEvent.press(noButton);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+  });
+
+  it('navigate to market details when TouchableOpacity is pressed', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    // Press on the market title area
+    const marketTitle = getByText(
+      'Will Bitcoin reach $150,000 by end of year?',
+    );
+    fireEvent.press(marketTitle);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: mockMarket.id,
+      },
+    });
+  });
+
+  it('display correct button text using i18n strings', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    // The component uses strings('predict.buy_yes') and strings('predict.buy_no')
+    // which should resolve to 'Yes' and 'No' based on the mock data
+    expect(getByText('Yes')).toBeOnTheScreen();
+    expect(getByText('No')).toBeOnTheScreen();
   });
 });

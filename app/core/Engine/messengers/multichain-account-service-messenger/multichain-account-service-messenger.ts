@@ -18,6 +18,7 @@ import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
+import { MultichainAccountServiceMultichainAccountGroupUpdatedEvent } from '@metamask/multichain-account-service';
 
 type Actions =
   | AccountsControllerListMultichainAccountsAction
@@ -74,17 +75,26 @@ export function getMultichainAccountServiceMessenger(
   });
 }
 
+export type AllowedInitializationEvents =
+  MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
+
+export type MultichainAccountServiceInitMessenger = ReturnType<
+  typeof getMultichainAccountServiceInitMessenger
+>;
+
 /**
- * Get a restricted messenger for the multichain account service. This is scoped to the
- * actions and events that this service is allowed to handle.
+ * Get a messenger restricted to the actions and events that the
+ * MultichainAccountService requires during initialization.
  *
- * @param messenger - The service messenger to restrict.
- * @returns The restricted service messenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  messenger: Messenger<Actions, Events>,
+  messenger: Messenger<never, AllowedInitializationEvents>,
 ) {
-  // Our `init` method needs the same actions, so just re-use the same messenger
-  // function here.
-  return getMultichainAccountServiceMessenger(messenger);
+  return messenger.getRestricted({
+    name: 'MultichainAccountServiceInit',
+    allowedActions: [],
+    allowedEvents: ['MultichainAccountService:multichainAccountGroupUpdated'],
+  });
 }

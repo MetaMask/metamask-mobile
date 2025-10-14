@@ -19,6 +19,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -38,6 +39,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
+
+  const { isEligible } = usePredictEligibility({
+    providerId: market.providerId,
+  });
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -59,6 +64,13 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleYes = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {
@@ -70,6 +82,13 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   };
 
   const handleNo = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {

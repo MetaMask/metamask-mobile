@@ -1,6 +1,6 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 
-import { Hex, hexToNumber } from '@metamask/utils';
+import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import { Interface, parseUnits } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import {
@@ -47,12 +47,18 @@ import { GetMarketsParams } from '../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { SafeFeeAuthorization } from './safe/types';
 import { ethers } from 'ethers';
+import EthQuery from '@metamask/eth-query';
+import { query } from '@metamask/controller-utils';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+  CLOB_RELAYER:
+    process.env.METAMASK_ENVIRONMENT === 'dev'
+      ? 'https://predict.dev-api.cx.metamask.io'
+      : 'https://predict.api.cx.metamask.io',
 });
 
 export const getL1Headers = async ({ address }: { address: string }) => {
@@ -454,6 +460,10 @@ export const buildMarketOrderCreationArgs = async ({
     nonce = '0';
   }
 
+  /**
+   * Do NOT change the order below.
+   * This order needs to match the order on the relayer.
+   */
   return {
     salt: hexToNumber(generateSalt()).toString(),
     maker,
@@ -549,27 +559,27 @@ function replaceAll(s: string, search: string, replace: string) {
 export const submitClobOrder = async ({
   headers,
   clobOrder,
+  feeAuthorization,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization;
 }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+  const { CLOB_ENDPOINT, CLOB_RELAYER } = getPolymarketEndpoints();
   let url = `${CLOB_ENDPOINT}/order`;
+  let body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+    ...clobOrder,
+  };
 
-  // TODO: Add feeAuthorization to the body when relayer is ready
-  const body = JSON.stringify({ ...clobOrder });
-  let finalHeaders = { ...headers };
-
-  // TODO: Remove this and simply update endpoint once we have a
-  // production relayer.
-  const TEST_RELAYER = false;
-  if (TEST_RELAYER) {
-    url = `http://localhost:3000/order`;
+  // If a feeAuthorization is provided, we need to use our clob
+  // relayer to submit the order and collect the fee.
+  if (clobOrder.order.side === Side.BUY && feeAuthorization) {
+    url = `${CLOB_RELAYER}/order`;
+    body = { ...body, feeAuthorization };
     // For our relayer, we need to replace the underscores with dashes
     // since underscores are not standardly allowed in headers
-    finalHeaders = {
-      ...finalHeaders,
+    headers = {
+      ...headers,
       ...Object.entries(headers)
         .map(([key, value]) => ({
           [key.replace(/_/g, '-')]: value,
@@ -580,8 +590,8 @@ export const submitClobOrder = async ({
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: finalHeaders,
-    body,
+    headers,
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -962,6 +972,77 @@ export const getAllowanceCalls = (params: { address: string }) => {
   return calls;
 };
 
+export const getAllowance = async ({
+  tokenAddress,
+  owner,
+  spender,
+}: {
+  tokenAddress: string;
+  owner: string;
+  spender: string;
+}): Promise<bigint> => {
+  const { NetworkController } = Engine.context;
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    numberToHex(POLYGON_MAINNET_CHAIN_ID),
+  );
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(networkClientId).provider,
+  );
+
+  // Encode the allowance function call
+  const data = new Interface([
+    'function allowance(address owner, address spender) external view returns (uint256)',
+  ]).encodeFunctionData('allowance', [owner, spender]);
+
+  // Make the contract call
+  const res = await query(ethQuery, 'call', [
+    {
+      to: tokenAddress,
+      data,
+    },
+  ]);
+
+  // Decode the result
+  const allowance = BigInt(res);
+  return allowance;
+};
+
+export const getIsApprovedForAll = async ({
+  owner,
+  operator,
+}: {
+  owner: string;
+  operator: string;
+}): Promise<boolean> => {
+  const { NetworkController } = Engine.context;
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    numberToHex(POLYGON_MAINNET_CHAIN_ID),
+  );
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(networkClientId).provider,
+  );
+
+  // Get the conditional tokens contract address
+  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+
+  // Encode the isApprovedForAll function call
+  const data = new Interface([
+    'function isApprovedForAll(address owner, address operator) external view returns (bool)',
+  ]).encodeFunctionData('isApprovedForAll', [owner, operator]);
+
+  // Make the contract call
+  const res = await query(ethQuery, 'call', [
+    {
+      to: contractConfig.conditionalTokens,
+      data,
+    },
+  ]);
+
+  // Decode the result - convert hex to boolean
+  const isApproved = BigInt(res) !== 0n;
+  return isApproved;
+};
+
 export const getMarketPositions = async ({
   marketId,
   address,
@@ -981,4 +1062,38 @@ export const getMarketPositions = async ({
     positions: responseData,
   });
   return parsedPositions;
+};
+
+export const getBalance = async ({
+  address,
+}: {
+  address: string;
+}): Promise<number> => {
+  const { NetworkController } = Engine.context;
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    numberToHex(POLYGON_MAINNET_CHAIN_ID),
+  );
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(networkClientId).provider,
+  );
+
+  // Get the collateral token contract address
+  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+
+  // Encode the balanceOf function call
+  const data = new Interface([
+    'function balanceOf(address account) external view returns (uint256)',
+  ]).encodeFunctionData('balanceOf', [address]);
+
+  // Make the contract call
+  const res = await query(ethQuery, 'call', [
+    {
+      to: contractConfig.collateral,
+      data,
+    },
+  ]);
+
+  // Decode the result and convert to USDC (6 decimals)
+  const balance = Number(BigInt(res)) / 10 ** COLLATERAL_TOKEN_DECIMALS;
+  return balance;
 };

@@ -87,6 +87,7 @@ export const useAccounts = (): RecipientType[] => {
       return {
         accountGroupName: accountGroup.metadata.name,
         accountName: account.metadata.name,
+        accountType: account.type,
         address: account.address,
         walletName: wallet.metadata.name,
       };

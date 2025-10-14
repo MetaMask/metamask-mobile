@@ -13,7 +13,8 @@ import { resetRewardsState } from '../../../../reducers/rewards';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -42,6 +43,43 @@ jest.mock('../../../../reducers/rewards', () => ({
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
+
+// Mock useMetrics
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddTraitsToUser = jest.fn();
+
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+    addTraitsToUser: mockAddTraitsToUser,
+  }),
+  MetaMetricsEvents: {
+    REWARDS_OPT_OUT_STARTED: 'rewards_opt_out_started',
+    REWARDS_OPT_OUT_COMPLETED: 'rewards_opt_out_completed',
+    REWARDS_OPT_OUT_FAILED: 'rewards_opt_out_failed',
+    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
+  },
+}));
+
+// Mock utils
+jest.mock('../utils', () => ({
+  RewardsMetricsButtons: {
+    OPT_OUT_CANCEL: 'opt_out_cancel',
+  },
+}));
+
+// Mock UserProfileProperty
+jest.mock(
+  '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types',
+  () => ({
+    UserProfileProperty: {
+      HAS_REWARDS_OPTED_IN: 'has_rewards_opted_in',
+      OFF: 'off',
+    },
+  }),
+);
 
 // Mock useRewardsToast
 const mockShowToast = jest.fn();
@@ -92,37 +130,6 @@ describe('useOptout', () => {
   >;
   const mockSubscriptionId = 'mock-subscription-id';
 
-  // Helper to provide minimal redux state shape required by selectors used in the hook
-  const getBaseState = (
-    subscriptionId: string | null = mockSubscriptionId,
-  ) => ({
-    engine: {
-      backgroundState: {
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: '0xabc',
-            accounts: {
-              '0xabc': {
-                address: '0xabc',
-                type: 'eip155:eoa',
-              },
-            },
-          },
-        },
-        RewardsController: {
-          activeAccount: subscriptionId
-            ? {
-                subscriptionId,
-                account: '0xabc',
-                hasOptedIn: true,
-              }
-            : null,
-        },
-      },
-    },
-    rewards: {},
-  });
-
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
@@ -138,8 +145,6 @@ describe('useOptout', () => {
     );
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
-      if (selector === selectSelectedInternalAccount)
-        return { address: '0xabc', type: 'eip155:eoa' };
       // Fallback for other selectors not under test
       return undefined;
     });
@@ -153,6 +158,14 @@ describe('useOptout', () => {
       payload: undefined,
     });
     mockResetAllSessionTrackingForRewardsDashboardModals.mockClear();
+
+    // Setup metrics mocks
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    });
+    mockTrackEvent.mockClear();
+    mockAddTraitsToUser.mockClear();
   });
 
   describe('initial state', () => {
@@ -194,6 +207,21 @@ describe('useOptout', () => {
       expect(
         mockResetAllSessionTrackingForRewardsDashboardModals,
       ).toHaveBeenCalledTimes(1);
+
+      // Verify metrics tracking
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and completed
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_OPT_OUT_STARTED,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_OPT_OUT_COMPLETED,
+      );
+
+      // Verify user traits are updated
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+        [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
+      });
+
       // Navigation should not happen in the optout function itself
       expect(result.current.isLoading).toBe(false);
     });
@@ -224,6 +252,19 @@ describe('useOptout', () => {
       );
       expect(mockErrorToast).toHaveBeenCalledWith('Failed to opt out');
       expect(mockShowToast).toHaveBeenCalled();
+
+      // Verify metrics tracking for failure
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and failed
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_OPT_OUT_STARTED,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_OPT_OUT_FAILED,
+      );
+
+      // Verify user traits are NOT updated on failure
+      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+
       expect(
         mockResetAllSessionTrackingForRewardsDashboardModals,
       ).not.toHaveBeenCalled();
@@ -258,6 +299,19 @@ describe('useOptout', () => {
       );
       expect(mockErrorToast).toHaveBeenCalledWith('Failed to opt out');
       expect(mockShowToast).toHaveBeenCalled();
+
+      // Verify metrics tracking for exception
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and failed
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_OPT_OUT_STARTED,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_OPT_OUT_FAILED,
+      );
+
+      // Verify user traits are NOT updated on exception
+      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+
       expect(
         mockResetAllSessionTrackingForRewardsDashboardModals,
       ).not.toHaveBeenCalled();
@@ -296,7 +350,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return null; // No subscription ID
         }
-        return selector(getBaseState(null));
+        return undefined;
       });
 
       const { result } = renderHook(() => useOptout());
@@ -337,6 +391,7 @@ describe('useOptout', () => {
           onCancel: expect.any(Function),
           confirmAction: {
             label: 'Confirm',
+            loadOnPress: true,
             onPress: expect.any(Function),
             variant: ButtonVariant.Primary,
             disabled: false,
@@ -365,6 +420,12 @@ describe('useOptout', () => {
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(dismissRoute);
+
+      // Verify metrics tracking for cancel
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
     });
 
     it('should navigate to REWARDS_SETTINGS_VIEW when cancel is pressed with no dismissRoute', () => {
@@ -386,6 +447,12 @@ describe('useOptout', () => {
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+
+      // Verify metrics tracking for cancel
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
     });
 
     it('should call optout when confirm is pressed', () => {
@@ -457,6 +524,7 @@ describe('useOptout', () => {
               onCancel: dismissModal,
               confirmAction: {
                 label: 'Processing...',
+                loadOnPress: true,
                 onPress: this.optout,
                 variant: ButtonVariant.Primary,
                 disabled: true,
@@ -479,6 +547,7 @@ describe('useOptout', () => {
         expect.objectContaining({
           confirmAction: expect.objectContaining({
             label: 'Processing...',
+            loadOnPress: true,
             disabled: true,
           }),
         }),
@@ -593,7 +662,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return undefined;
         }
-        return selector(getBaseState(undefined as unknown as string));
+        return undefined;
       });
 
       const { result } = renderHook(() => useOptout());
@@ -618,7 +687,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return '';
         }
-        return selector(getBaseState(''));
+        return undefined;
       });
 
       const { result } = renderHook(() => useOptout());
@@ -657,6 +726,7 @@ describe('useOptout', () => {
           onCancel: expect.any(Function),
           confirmAction: expect.objectContaining({
             label: 'Confirm',
+            loadOnPress: true,
             onPress: expect.any(Function),
             variant: ButtonVariant.Primary,
             disabled: false,
@@ -704,7 +774,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return 'new-subscription-id';
         }
-        return selector(getBaseState('new-subscription-id'));
+        return undefined;
       });
 
       // Act

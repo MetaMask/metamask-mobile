@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -85,16 +85,17 @@ const CardAuthentication = () => {
     }
   }, [loginSuccess, loading, error, dispatch]);
 
-  const performLogin = async () => {
+  const performLogin = useCallback(async () => {
     await login({
       location,
       email,
       password,
     });
 
-    // Set success flag - navigation will be handled by useEffect
-    setLoginSuccess(true);
-  };
+    if (!error) {
+      setLoginSuccess(true);
+    }
+  }, [error, email, location, login, password]);
 
   const isDisabled = useMemo(
     () => loading || !!error || email.length === 0 || password.length === 0,

@@ -161,9 +161,6 @@ You can use prebuilt app files instead of building the app locally.
 # and the emulators are up and running
 source .e2e.env && yarn watch:clean
 
-# Setup E2E dependencies (run this first)
-source .e2e.env && yarn setup:e2e
-
 # Run all Tests
 source .e2e.env && yarn test:e2e:ios:debug:run
 source .e2e.env && yarn test:e2e:android:debug:run

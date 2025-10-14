@@ -22,13 +22,6 @@ import {
 } from '../test-utils';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
-// Mock the new hook to avoid dependencies
-jest.mock('../../../../components/UI/Assets/hooks', () => ({
-  useAssetsUpdateAllAccountBalances: jest.fn(() => ({
-    updateBalances: jest.fn(),
-  })),
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountsController: {

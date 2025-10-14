@@ -554,8 +554,9 @@ export class PerpsController extends BaseController<
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
     const perpsGeoBlockedRegionsFeatureFlag =
+      // NOTE: Do not use perpsPerpTradingGeoBlockedCountries as it is deprecated.
       remoteFeatureFlagControllerState.remoteFeatureFlags
-        ?.perpsPerpTradingGeoBlockedCountries;
+        ?.perpsPerpTradingGeoBlockedCountriesV2;
 
     const remoteBlockedRegions = (
       perpsGeoBlockedRegionsFeatureFlag as { blockedRegions?: string[] }
@@ -585,17 +586,12 @@ export class PerpsController extends BaseController<
       const traceSpan =
         parentSpan ||
         (traceId
-          ? (trace({
+          ? trace({
               name: TraceName.PerpsRewardsAPICall,
               id: traceId,
               op: TraceOperation.PerpsOperation,
-            }) as Span)
+            })
           : undefined);
-
-      if (!traceSpan) {
-        // Should never happen, but guard against it
-        return undefined;
-      }
 
       const { RewardsController, NetworkController } = Engine.context;
       const evmAccount = getEvmAccountFromSelectedAccountGroup();
@@ -826,7 +822,7 @@ export class PerpsController extends BaseController<
           isBuy: params.isBuy,
           orderPrice: params.price || '',
         },
-      }) as Span;
+      });
       const provider = this.getActiveProvider();
 
       // Calculate fee discount at execution time (fresh, secure)
@@ -1262,14 +1258,13 @@ export class PerpsController extends BaseController<
         name: TraceName.PerpsClosePosition,
         id: traceId,
         op: TraceOperation.PerpsPositionManagement,
-        parentContext: null,
         tags: {
           provider: this.state.activeProvider,
           coin: params.coin,
           closeSize: params.size || 'full',
           isTestnet: this.state.isTestnet,
         },
-      }) as Span;
+      });
 
       // Measure position loading time
       const positionLoadStart = performance.now();
@@ -1558,7 +1553,7 @@ export class PerpsController extends BaseController<
           takeProfitPrice: params.takeProfitPrice || '',
           stopLossPrice: params.stopLossPrice || '',
         },
-      }) as Span;
+      });
 
       const provider = this.getActiveProvider();
 
@@ -2209,7 +2204,7 @@ export class PerpsController extends BaseController<
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
         },
-      }) as Span;
+      });
 
       const provider = this.getActiveProvider();
       const result = await provider.getOpenOrders(params);
@@ -3187,12 +3182,11 @@ export class PerpsController extends BaseController<
         name: TraceName.PerpsDataLakeReport,
         op: TraceOperation.PerpsOperation,
         id: traceId,
-        parentContext: null,
         tags: {
           action,
           coin,
         },
-      }) as Span;
+      });
     }
 
     // Log the attempt

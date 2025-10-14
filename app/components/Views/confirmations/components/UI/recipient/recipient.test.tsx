@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { BtcAccountType } from '@metamask/keyring-api';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -126,5 +127,21 @@ describe('Recipient', () => {
     );
 
     expect(getByText('Contact Name')).toBeOnTheScreen();
+  });
+
+  it('renders BTC account type label when account type is BTC', () => {
+    const mockRecipient = createMockRecipient({
+      accountType: BtcAccountType.P2wpkh,
+    });
+
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('Native SegWit')).toBeOnTheScreen();
   });
 });

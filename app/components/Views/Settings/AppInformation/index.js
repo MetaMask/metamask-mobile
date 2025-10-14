@@ -23,6 +23,10 @@ import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
 import { isQa } from '../../../../util/test/utils';
+import {
+  getFeatureFlagAppDistribution,
+  getFeatureFlagAppEnvironment,
+} from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -99,6 +103,7 @@ export default class AppInformation extends PureComponent {
   state = {
     appInfo: '',
     appVersion: '',
+    showEnvironmentInfo: false,
   };
 
   updateNavBar = () => {
@@ -171,6 +176,10 @@ export default class AppInformation extends PureComponent {
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
+  handleLongPressFox = () => {
+    this.setState({ showEnvironmentInfo: true });
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -182,16 +191,37 @@ export default class AppInformation extends PureComponent {
       >
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
-            <Image
-              source={foxImage}
-              style={styles.image}
-              resizeMethod={'auto'}
-            />
+            <TouchableOpacity
+              delayLongPress={10 * 1000} // 10 seconds
+              onLongPress={this.handleLongPressFox}
+              activeOpacity={1}
+            >
+              <Image
+                source={foxImage}
+                style={styles.image}
+                resizeMethod={'auto'}
+              />
+            </TouchableOpacity>
             <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
+            ) : null}
+
+            {this.state.showEnvironmentInfo ? (
+              <>
+                <Text style={styles.branchInfo}>
+                  {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
+                </Text>
+
+                <Text style={styles.branchInfo}>
+                  {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                </Text>
+              </>
             ) : null}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>

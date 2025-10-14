@@ -192,7 +192,6 @@ jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
 const mockRoute: AccountSelectorProps['route'] = {
   params: {
     onSelectAccount: jest.fn((address: string) => address),
-    checkBalanceError: (balance: string) => balance,
     disablePrivacyMode: false,
     isEvmOnly: true,
   } as AccountSelectorParams,

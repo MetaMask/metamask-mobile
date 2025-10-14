@@ -11,11 +11,8 @@ import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { isHardwareAccount } from '../../../../../util/address';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { PERPS_MINIMUM_DEPOSIT } from '../../constants/perps';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { getRequiredBalance } from '../../utils/transaction-pay';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -143,15 +140,4 @@ function isTokenSupported(
   const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
 
   return isTokenBalanceSufficient && hasNativeBalance;
-}
-
-function getRequiredBalance(
-  transactionMeta: TransactionMeta,
-): number | undefined {
-  switch (transactionMeta?.type) {
-    case TransactionType.perpsDeposit:
-      return PERPS_MINIMUM_DEPOSIT;
-    default:
-      return undefined;
-  }
 }

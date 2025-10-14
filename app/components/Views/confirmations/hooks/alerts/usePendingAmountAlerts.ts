@@ -3,7 +3,8 @@ import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
 import { Alert } from '../../types/alerts';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { usePerpsHardwareAccountAlert } from './usePerpsHardwareAccountAlert';
-import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
+import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
 export function usePendingAmountAlerts({
   pendingTokenAmount,
@@ -14,9 +15,15 @@ export function usePendingAmountAlerts({
     pendingTokenAmount: pendingTokenAmount ?? '0',
   });
 
+  const requiredTokens = useTransactionRequiredTokens();
+
+  const tokenAddress =
+    requiredTokens.find((t) => t.address.toLowerCase() !== NATIVE_TOKEN_ADDRESS)
+      ?.address ?? '0x0';
+
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
     amountOverrides: {
-      [ARBITRUM_USDC_ADDRESS.toLowerCase()]: pendingTokenAmount ?? '0',
+      [tokenAddress.toLowerCase()]: pendingTokenAmount ?? '0',
     },
   });
 

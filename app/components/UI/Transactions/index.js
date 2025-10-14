@@ -528,7 +528,8 @@ class Transactions extends PureComponent {
   speedUpTransaction = async (transactionObject) => {
     try {
       if (transactionObject?.error) {
-        throw new SpeedupTransactionError(transactionObject.error);
+        // We don't need to throw an error here because the error is already in the UI
+        return;
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
@@ -596,7 +597,8 @@ class Transactions extends PureComponent {
   cancelTransaction = async (transactionObject) => {
     try {
       if (transactionObject?.error) {
-        throw new CancelTransactionError(transactionObject.error);
+        // We don't need to throw an error here because the error is already in the UI
+        return;
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [

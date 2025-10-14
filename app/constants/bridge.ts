@@ -1,4 +1,4 @@
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
@@ -43,6 +43,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   // TODO: Update to use CHAIN_IDS.SEI when it is added to the transaction controller
   [NETWORK_CHAIN_ID.SEI_MAINNET]: 'Sei',
   [SolScope.Mainnet]: 'Solana',
+  [BtcScope.Mainnet]: 'Bitcoin',
 };
 
 export const BRIDGE_API_BASE_URL =

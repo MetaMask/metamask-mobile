@@ -21,7 +21,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     // since they're turned on by default
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
+        fixture: new FixtureBuilder().withDefaultFixture().build(),
         restartDevice: true,
         permissions: {
           notifications: 'YES',

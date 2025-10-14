@@ -10,14 +10,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BigNumber } from 'bignumber.js';
-import I18n from '../../../../../../../locales/i18n';
+import { KeyringAccountType } from '@metamask/keyring-api';
 
+import I18n from '../../../../../../../locales/i18n';
+import { accountTypeLabel } from '../../../constants/network';
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import Badge from '../../../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
 import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
 import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
 
@@ -32,6 +35,8 @@ export function Token({ asset, onPress }: TokenProps) {
   const handlePress = useCallback(() => {
     onPress(asset);
   }, [asset, onPress]);
+
+  const typeLabel = accountTypeLabel[asset.accountType as KeyringAccountType];
 
   return (
     <Pressable
@@ -77,13 +82,16 @@ export function Token({ asset, onPress }: TokenProps) {
         </Box>
 
         <Box twClassName="ml-4 h-12 justify-center">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-          >
-            {asset.name || asset.symbol || 'Unknown Token'}
-          </Text>
+          <Box twClassName="flex-row items-center">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+            >
+              {asset.name || asset.symbol || 'Unknown Token'}
+            </Text>
+            <AccountTypeLabel label={typeLabel} />
+          </Box>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}

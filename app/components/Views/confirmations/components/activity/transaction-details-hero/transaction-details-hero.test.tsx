@@ -60,6 +60,29 @@ describe('TransactionDetailsHero', () => {
     expect(getByText('$123.456')).toBeDefined();
   });
 
+  it('renders human amount if token transfer is nested call', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        txParams: {
+          ...TRANSACTION_META_MOCK.txParams,
+          data: '0x123',
+          to: '0x456',
+        },
+        nestedTransactions: [
+          {
+            data: DATA_MOCK,
+            to: TOKEN_ADDRESS_MOCK,
+          },
+        ],
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText('$123.456')).toBeDefined();
+  });
+
   it('renders nothing if no to', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {

@@ -20,11 +20,18 @@ import {
 } from '../../../../UI/Bridge/utils/quoteUtils';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { useTransactionPayMetrics } from './useTransactionPayMetrics';
+import { TransactionType } from '@metamask/transaction-controller';
+import { FeatureId } from '@metamask/bridge-controller';
+import { hasTransactionType } from '../../utils/transaction';
 
 const EXCLUDED_ALERTS = [
   AlertKeys.NoPayTokenQuotes,
   AlertKeys.InsufficientPayTokenNative,
 ];
+
+const FEATURE_IDS: Map<TransactionType, FeatureId> = new Map([
+  [TransactionType.perpsDeposit, FeatureId.PERPS],
+]);
 
 const log = createProjectLogger('transaction-pay');
 
@@ -82,6 +89,10 @@ export function useTransactionBridgeQuotes() {
     txParams: { from },
   } = transactionMeta;
 
+  const featureId = [...FEATURE_IDS.entries()].find(([type]) =>
+    hasTransactionType(transactionMeta, [type]),
+  )?.[1];
+
   const {
     address: sourceTokenAddress,
     balanceRaw,
@@ -115,6 +126,7 @@ export function useTransactionBridgeQuotes() {
         bufferInitial,
         bufferStep,
         bufferSubsequent,
+        featureId,
         from: from as Hex,
         slippage,
         sourceBalanceRaw,
@@ -130,6 +142,7 @@ export function useTransactionBridgeQuotes() {
     attemptsMax,
     bufferInitial,
     bufferStep,
+    featureId,
     from,
     hasBlockingAlert,
     slippage,

@@ -197,12 +197,20 @@ describe('ConnectionRegistry', () => {
       // UI loading state is properly managed
       expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.showConnectionLoading).toHaveBeenCalledWith(
-        mockConnectionInfo,
+        expect.objectContaining({
+          id: mockConnectionInfo.id,
+          metadata: mockConnectionInfo.metadata,
+          expiresAt: expect.any(Number),
+        }),
       );
 
       // Connection is created and established with correct parameters
       expect(Connection.create).toHaveBeenCalledWith(
-        mockConnectionInfo,
+        expect.objectContaining({
+          id: mockConnectionInfo.id,
+          metadata: mockConnectionInfo.metadata,
+          expiresAt: expect.any(Number),
+        }),
         mockKeyManager,
         RELAY_URL,
         mockHostApp,
@@ -224,7 +232,11 @@ describe('ConnectionRegistry', () => {
       ]);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
-        mockConnectionInfo,
+        expect.objectContaining({
+          id: mockConnectionInfo.id,
+          metadata: mockConnectionInfo.metadata,
+          expiresAt: expect.any(Number),
+        }),
       );
     });
 
@@ -300,7 +312,11 @@ describe('ConnectionRegistry', () => {
       // Nothing else happens
       expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.showConnectionLoading).toHaveBeenCalledWith(
-        mockConnectionInfo,
+        expect.objectContaining({
+          id: mockConnectionInfo.id,
+          metadata: mockConnectionInfo.metadata,
+          expiresAt: expect.any(Number),
+        }),
       );
       expect(Connection.create).toHaveBeenCalledTimes(1);
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
@@ -312,7 +328,11 @@ describe('ConnectionRegistry', () => {
 
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
-        mockConnectionInfo,
+        expect.objectContaining({
+          id: mockConnectionInfo.id,
+          metadata: mockConnectionInfo.metadata,
+          expiresAt: expect.any(Number),
+        }),
       );
 
       disconnectSpy.mockRestore();

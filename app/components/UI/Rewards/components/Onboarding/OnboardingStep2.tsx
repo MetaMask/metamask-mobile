@@ -35,7 +35,7 @@ const OnboardingStep2: React.FC = () => {
       <Step2BgImg
         name="rewards-onboarding-step2-bg"
         fill={colors.background.muted}
-        style={tw.style('absolute flex-1 w-full h-full')}
+        style={tw.style('absolute flex-1')}
         width={screenWidth}
         height={screenHeight}
       />

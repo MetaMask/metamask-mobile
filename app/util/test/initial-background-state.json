@@ -58,6 +58,9 @@
       }
     }
   },
+  "DelegationController": {
+    "delegations": {}
+  },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
@@ -650,7 +653,8 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "claimTransactions": {},
+    "claimTransaction": null,
+    "depositTransaction": null,
     "isOnboarded": {}
   }
 }
