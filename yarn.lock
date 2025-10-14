@@ -7197,28 +7197,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.10.0, @metamask/controller-utils@npm:^11.11.0, @metamask/controller-utils@npm:^11.12.0, @metamask/controller-utils@npm:^11.14.0, @metamask/controller-utils@npm:^11.3.0, @metamask/controller-utils@npm:^11.5.0, @metamask/controller-utils@npm:^11.9.0":
-  version: 11.14.0
-  resolution: "@metamask/controller-utils@npm:11.14.0"
-  dependencies:
-    "@metamask/eth-query": ^4.0.0
-    "@metamask/ethjs-unit": ^0.3.0
-    "@metamask/utils": ^11.8.0
-    "@spruceid/siwe-parser": 2.1.0
-    "@types/bn.js": ^5.1.5
-    bignumber.js: ^9.1.2
-    bn.js: ^5.2.1
-    cockatiel: ^3.1.2
-    eth-ens-namehash: ^2.0.8
-    fast-deep-equal: ^3.1.3
-    lodash: ^4.17.21
-  peerDependencies:
-    "@babel/runtime": ^7.0.0
-  checksum: 727a627e96645a1b17f629bcb640ab5e26f656121d38e34e1ff9ac357f47f3b9deefb17f7e4a6a639594e5fa7f0d1ef3764fd54908f24c3d6e6b4a89758815e6
-  languageName: node
-  linkType: hard
-
-"@metamask/controller-utils@npm:^11.14.1":
+"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.10.0, @metamask/controller-utils@npm:^11.11.0, @metamask/controller-utils@npm:^11.12.0, @metamask/controller-utils@npm:^11.14.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.3.0, @metamask/controller-utils@npm:^11.5.0, @metamask/controller-utils@npm:^11.9.0":
   version: 11.14.1
   resolution: "@metamask/controller-utils@npm:11.14.1"
   dependencies:
@@ -7709,28 +7688,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^24.0.0":
-  version: 24.0.0
-  resolution: "@metamask/gas-fee-controller@npm:24.0.0"
-  dependencies:
-    "@metamask/base-controller": ^8.0.1
-    "@metamask/controller-utils": ^11.10.0
-    "@metamask/eth-query": ^4.0.0
-    "@metamask/ethjs-unit": ^0.3.0
-    "@metamask/polling-controller": ^14.0.0
-    "@metamask/utils": ^11.2.0
-    "@types/bn.js": ^5.1.5
-    "@types/uuid": ^8.3.0
-    bn.js: ^5.2.1
-    uuid: ^8.3.2
-  peerDependencies:
-    "@babel/runtime": ^7.0.0
-    "@metamask/network-controller": ^24.0.0
-  checksum: 27d7e3cd3fce389fa739fed68972faf90c6e1a34474514f1b8ec7b7692acd4ace7b0425da1f995efda553b293ab6e88bcf759c8f90620b7d77c1335811990780
-  languageName: node
-  linkType: hard
-
-"@metamask/gas-fee-controller@npm:^24.1.0":
+"@metamask/gas-fee-controller@npm:^24.0.0, @metamask/gas-fee-controller@npm:^24.1.0":
   version: 24.1.0
   resolution: "@metamask/gas-fee-controller@npm:24.1.0"
   dependencies:
@@ -8071,26 +8029,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-network-controller@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/multichain-network-controller@npm:1.0.0"
-  dependencies:
-    "@metamask/base-controller": ^8.4.0
-    "@metamask/controller-utils": ^11.14.0
-    "@metamask/keyring-api": ^21.0.0
-    "@metamask/keyring-internal-api": ^9.0.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.8.0
-    "@solana/addresses": ^2.0.0
-    lodash: ^4.17.21
-  peerDependencies:
-    "@metamask/accounts-controller": ^33.0.0
-    "@metamask/network-controller": ^24.0.0
-  checksum: 5de679e60e39d99c5bf995a624606260babf494f16215591bbc0eca49db061f29e8920498d47f2e71034c5a7a72c69ba84d378f6c489090167034f3d8254a97e
-  languageName: node
-  linkType: hard
-
-"@metamask/multichain-network-controller@npm:^1.0.1":
+"@metamask/multichain-network-controller@npm:^1.0.0, @metamask/multichain-network-controller@npm:^1.0.1":
   version: 1.0.1
   resolution: "@metamask/multichain-network-controller@npm:1.0.1"
   dependencies:
@@ -8284,23 +8223,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/polling-controller@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/polling-controller@npm:14.0.0"
-  dependencies:
-    "@metamask/base-controller": ^8.0.1
-    "@metamask/controller-utils": ^11.10.0
-    "@metamask/utils": ^11.2.0
-    "@types/uuid": ^8.3.0
-    fast-json-stable-stringify: ^2.1.0
-    uuid: ^8.3.2
-  peerDependencies:
-    "@metamask/network-controller": ^24.0.0
-  checksum: 6e38015ee0c52c0f24c2e2746ec8f406a6a7df9095f0353baaae8e201c00fe06c7d57021bf7e340adc0058ed3a64a3842fd8833ff747587015cc4046259d7e57
-  languageName: node
-  linkType: hard
-
-"@metamask/polling-controller@npm:^14.0.1":
+"@metamask/polling-controller@npm:^14.0.0, @metamask/polling-controller@npm:^14.0.1":
   version: 14.0.1
   resolution: "@metamask/polling-controller@npm:14.0.1"
   dependencies:
