@@ -10,7 +10,6 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
-import { usePerpsWithdrawProgress } from '../../hooks/usePerpsWithdrawProgress';
 import { useWithdrawalRequests } from '../../hooks/useWithdrawalRequests';
 import {
   TransactionMeta,
@@ -89,7 +88,6 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
   const { colors } = useAppTheme();
   const styles = createStyles(colors, height);
   const { isDepositInProgress } = usePerpsDepositProgress();
-  const { isWithdrawInProgress } = usePerpsWithdrawProgress();
 
   // Get withdrawal requests using the hook that combines pending and completed withdrawals
   const { withdrawalRequests } = useWithdrawalRequests({
@@ -180,7 +178,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
 
       // Simulate withdrawal progress stages - 5 minutes total, every 30 seconds
       const progressStages = [25, 35, 45, 55, 65, 75, 85, 90, 95, 98];
-      let currentStage = 0;
+      let currentStage = 10;
 
       const progressInterval = setInterval(() => {
         if (currentStage < progressStages.length) {
@@ -196,9 +194,6 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       }, 30000); // Progress every 30 seconds
 
       return () => clearInterval(progressInterval);
-    } else {
-      // Only reset when withdrawal is truly completed
-      setWithdrawalProgress(0);
     }
   }, [hasActiveWithdrawals, activeWithdrawal, onWithdrawalAmountChange]);
 
@@ -209,23 +204,8 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       (request) => request.status === 'completed',
     );
 
-    console.log('Withdrawal completion check:', {
-      hasCompletedWithdrawal: !!completedWithdrawal,
-      withdrawalProgress,
-      shouldShow,
-      hasActiveWithdrawals,
-      withdrawalRequests: withdrawalRequests.map((r) => ({
-        id: r.id,
-        status: r.status,
-      })),
-    });
-
     // Check if we were showing progress and now there's a completed withdrawal
     if (completedWithdrawal && shouldShow && !hasActiveWithdrawals) {
-      console.log(
-        'Withdrawal completed, animating to 100% and hiding progress bar',
-      );
-
       // Withdrawal was completed - animate to 100% and hide
       progressWidth.value = withTiming(100, {
         duration: 500,

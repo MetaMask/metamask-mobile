@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 export interface WithdrawalRequest {
   id: string;
@@ -49,7 +50,7 @@ export const useWithdrawalRequests = (
     (state) => state?.withdrawalRequests || [],
   );
 
-  console.log('Pending withdrawals from controller state:', {
+  DevLogger.log('Pending withdrawals from controller state:', {
     count: pendingWithdrawals.length,
     withdrawals: pendingWithdrawals.map((w) => ({
       id: w.id,
@@ -69,8 +70,6 @@ export const useWithdrawalRequests = (
     try {
       setIsLoading(true);
       setError(null);
-
-      console.log('Fetching completed withdrawals from HyperLiquid API...');
 
       const controller = Engine.context.PerpsController;
       if (!controller) {
@@ -96,12 +95,6 @@ export const useWithdrawalRequests = (
       ).getTime();
       const searchStartTime = startTime ?? startOfToday;
 
-      console.log('Fetching withdrawals from:', {
-        searchStartTime: new Date(searchStartTime).toISOString(),
-        currentTime: now.toISOString(),
-        isToday: searchStartTime === startOfToday,
-      });
-
       const updates = await (
         provider as {
           getUserNonFundingLedgerUpdates: (
@@ -111,19 +104,6 @@ export const useWithdrawalRequests = (
       ).getUserNonFundingLedgerUpdates({
         startTime: searchStartTime,
         endTime: undefined,
-      });
-
-      console.log('Raw ledger updates from HyperLiquid:', {
-        count: updates?.length || 0,
-        latestTimestamp: (updates as { time: number }[])?.[0]?.time
-          ? new Date((updates as { time: number }[])[0].time).toISOString()
-          : 'N/A',
-        oldestTimestamp: (updates as { time: number }[])?.[updates.length - 1]
-          ?.time
-          ? new Date(
-              (updates as { time: number }[])[updates.length - 1].time,
-            ).toISOString()
-          : 'N/A',
       });
 
       // Transform ledger updates to withdrawal requests
@@ -155,16 +135,6 @@ export const useWithdrawalRequests = (
           withdrawalId: update.delta.nonce?.toString(), // Use nonce as withdrawal ID if available
         }));
 
-      console.log('Processed completed withdrawals:', {
-        count: withdrawalData.length,
-        withdrawals: withdrawalData.map((w) => ({
-          id: w.id,
-          timestamp: new Date(w.timestamp).toISOString(),
-          amount: w.amount,
-          asset: w.asset,
-        })),
-      });
-
       setCompletedWithdrawals(withdrawalData);
     } catch (err) {
       const errorMessage =
@@ -180,11 +150,6 @@ export const useWithdrawalRequests = (
 
   // Combine pending and completed withdrawals
   const allWithdrawals = useMemo(() => {
-    console.log('Combining withdrawals:', {
-      pendingCount: pendingWithdrawals.length,
-      completedCount: completedWithdrawals.length,
-    });
-
     // Combine both sources and sort by timestamp (newest first)
     const combined = [...pendingWithdrawals, ...completedWithdrawals];
 
@@ -226,21 +191,9 @@ export const useWithdrawalRequests = (
               withdrawal.txHash,
             );
           }
-
-          console.log('Matched and updated withdrawal:', {
-            originalId: matchedWithdrawal.id,
-            originalStatus: matchedWithdrawal.status,
-            newStatus: 'completed',
-            txHash: withdrawal.txHash,
-          });
         } else {
           // No pending/bridging match found, add as new completed withdrawal
           acc.push(withdrawal);
-          console.log('No match found, added new completed withdrawal:', {
-            id: withdrawal.id,
-            amount: withdrawal.amount,
-            timestamp: new Date(withdrawal.timestamp).toISOString(),
-          });
         }
       } else {
         // For failed withdrawals, add as-is
@@ -253,7 +206,7 @@ export const useWithdrawalRequests = (
     // Sort by timestamp (newest first)
     const sorted = uniqueWithdrawals.sort((a, b) => b.timestamp - a.timestamp);
 
-    console.log('Final combined withdrawals:', {
+    DevLogger.log('Final combined withdrawals:', {
       count: sorted.length,
       withdrawals: sorted.map((w) => ({
         id: w.id,
@@ -287,16 +240,12 @@ export const useWithdrawalRequests = (
       return; // No need to poll if no active withdrawals
     }
 
-    console.log('Setting up polling for completed withdrawals...');
-
     // Poll every 10 seconds when there are active withdrawals
     const pollInterval = setInterval(() => {
-      console.log('Polling for completed withdrawals...');
       fetchCompletedWithdrawals();
     }, 10000); // 10 seconds
 
     return () => {
-      console.log('Clearing withdrawal polling interval');
       clearInterval(pollInterval);
     };
   }, [pendingWithdrawals, fetchCompletedWithdrawals]);

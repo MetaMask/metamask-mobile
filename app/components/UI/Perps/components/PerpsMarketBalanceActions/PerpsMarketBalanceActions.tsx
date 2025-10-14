@@ -37,7 +37,6 @@ import {
   useBalanceComparison,
   usePerpsTrading,
   usePerpsNetworkManagement,
-  usePerpsWithdrawProgress,
 } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsFiat } from '../../utils/formatUtils';
@@ -116,18 +115,11 @@ const PerpsMarketBalanceActions: React.FC<
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
   const { isDepositInProgress } = usePerpsDepositProgress();
-  const { isWithdrawInProgress } = usePerpsWithdrawProgress();
 
   // Get withdrawal requests from controller state
   const withdrawalRequests = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.withdrawalRequests || [],
-  );
-
-  // Get last withdraw result from controller state
-  const lastWithdrawResult = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.PerpsController?.lastWithdrawResult,
   );
 
   // State for eligibility modal
@@ -151,10 +143,6 @@ const PerpsMarketBalanceActions: React.FC<
     );
 
     if (activeWithdrawal?.amount) {
-      console.log(
-        'Withdrawal amount from withdrawalRequests:',
-        activeWithdrawal.amount,
-      );
       setWithdrawalAmount(activeWithdrawal.amount);
     } else {
       // Clear withdrawal amount when no active withdrawals
@@ -165,8 +153,6 @@ const PerpsMarketBalanceActions: React.FC<
   // Convert amount to USD display (handles both USD strings and wei)
   const convertToUSD = (amount: string): string => {
     try {
-      console.log('Converting amount to USD:', amount);
-
       // If it's already a USD string (e.g., "$10.32"), return it without decimals
       if (amount.startsWith('$')) {
         const numericValue = parseFloat(amount.replace('$', ''));
@@ -192,8 +178,8 @@ const PerpsMarketBalanceActions: React.FC<
 
       return '$0.00';
     } catch (error) {
-      console.log('Error converting amount:', error);
-      return '$0.00';
+      console.error('Error converting amount:', error);
+      return '';
     }
   };
 
@@ -366,7 +352,7 @@ const PerpsMarketBalanceActions: React.FC<
               </Text>
               <Text
                 variant={TextVariant.BodySMMedium}
-                color={TextColor.Inverse}
+                color={TextColor.Default}
               >
                 {transactionAmountWei
                   ? convertToUSD(transactionAmountWei)
