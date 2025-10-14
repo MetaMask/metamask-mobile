@@ -34,13 +34,6 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-// Mock the new hook to avoid dependencies
-jest.mock('../../../../../components/UI/Assets/hooks', () => ({
-  useAssetsUpdateAllAccountBalances: jest.fn(() => ({
-    updateBalances: jest.fn(),
-  })),
-}));
-
 jest.mock('../../../../../core/Engine', () => ({
   default: {
     context: {
