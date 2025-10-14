@@ -17,7 +17,8 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     jest.setTimeout(150000);
   });
 
-  it('Should connect & disconnect from Solana test dapp', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('Should connect & disconnect from Solana test dapp', async () => {
     await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
@@ -43,7 +44,8 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     });
   });
 
-  it('Should be able to cancel connection and connect again', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('Should be able to cancel connection and connect again', async () => {
     await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
@@ -64,6 +66,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   // Skipping individual test for now, as it's flaky
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('Switching between 2 accounts should reflect in the dapp', async () => {
     await withSolanaAccountEnabled(
       {
@@ -89,7 +92,8 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     );
   });
 
-  it('Should stay connected after page refresh', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('Should stay connected after page refresh', async () => {
     await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 

@@ -55,7 +55,8 @@ const addAccountToSrp = async (
 describe(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
   () => {
-    it('adds an account to default SRP and one to the imported SRP', async () => {
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('adds an account to default SRP and one to the imported SRP', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()

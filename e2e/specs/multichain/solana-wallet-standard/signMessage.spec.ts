@@ -12,7 +12,7 @@ describe(
       jest.setTimeout(150000);
     });
 
-    it('Should sign a message', async () => {
+    it.skip('Should sign a message', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
 

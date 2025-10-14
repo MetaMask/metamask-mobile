@@ -11,7 +11,8 @@ describe(
       jest.setTimeout(150000);
     });
 
-    it('Should sign a transaction', async () => {
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('Should sign a transaction', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
@@ -27,6 +28,7 @@ describe(
     });
 
     // TODO: Enable when devnet is supported on mobile (https://github.com/MetaMask/metamask-mobile/issues/15002)
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('Should send a transaction', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();

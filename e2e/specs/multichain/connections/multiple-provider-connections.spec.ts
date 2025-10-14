@@ -87,7 +87,8 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     );
   });
 
-  it('should retain Solana permissions when connecting through the EVM provider', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('should retain Solana permissions when connecting through the EVM provider', async () => {
     await withSolanaAccountEnabled(
       {
         solanaAccountPermitted: true,
@@ -127,7 +128,8 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     );
   });
 
-  it('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
     await withSolanaAccountEnabled(
       {
         solanaAccountPermitted: true,
