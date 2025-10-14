@@ -8,7 +8,12 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useMemo } from 'react';
+import React, {
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -22,30 +27,41 @@ import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { PROVIDER_ID } from '../../providers/polymarket/constants';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { TouchableOpacity } from 'react-native';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
 
-interface MarketsWonCardProps {
-  availableBalance?: number;
-  totalClaimableAmount?: number;
-  onClaimPress?: () => void;
-  isLoading?: boolean;
-  address?: string;
-  providerId?: string;
+export interface PredictAccountStateHandle {
+  refresh: () => Promise<void>;
 }
 
 // TODO: rename to something like `PredictPositionsHeader` (given its purpose has evolved)
-const PredictAccountState: React.FC<MarketsWonCardProps> = () => {
-  const { address, balance } = usePredictAccountState();
+const PredictAccountState = forwardRef<PredictAccountStateHandle>((_, ref) => {
+  const { address, balance, loadAccountState } = usePredictAccountState();
   const { positions } = usePredictClaimablePositions({
     loadOnMount: true,
   });
-  const { unrealizedPnL, isFetching: isUnrealizedPnLFetching } =
-    useUnrealizedPnL({
-      address,
-      providerId: PROVIDER_ID,
-    });
+  const {
+    unrealizedPnL,
+    isFetching: isUnrealizedPnLFetching,
+    refetch,
+  } = useUnrealizedPnL({
+    address,
+    providerId: PROVIDER_ID,
+  });
+  const { deposit } = usePredictDeposit();
+
+  const handleDeposit = useCallback(async () => {
+    deposit();
+  }, [deposit]);
+
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      await Promise.all([loadAccountState({ isRefresh: true }), refetch()]);
+    },
+  }));
 
   const wonPositions = useMemo(
     () =>
@@ -118,43 +134,45 @@ const PredictAccountState: React.FC<MarketsWonCardProps> = () => {
           testID="markets-won-card"
         >
           {hasAvailableBalance && (
-            <Box
-              twClassName="px-4 mb-3"
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-            >
+            <TouchableOpacity onPress={handleDeposit}>
               <Box
+                twClassName="px-4 mb-3"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-alternative"
-                  testID="markets-won-count"
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
                 >
-                  {strings('predict.available_balance')}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="flex-row items-center"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-primary mr-1"
-                  testID="claimable-amount"
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-alternative"
+                    testID="markets-won-count"
+                  >
+                    {strings('predict.available_balance')}
+                  </Text>
+                </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="flex-row items-center"
                 >
-                  {formatPrice(balance)}
-                </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary mr-1"
+                    testID="claimable-amount"
+                  >
+                    {formatPrice(balance)}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </Box>
               </Box>
-            </Box>
+            </TouchableOpacity>
           )}
           {hasUnrealizedPnL && (
             <>
@@ -200,6 +218,8 @@ const PredictAccountState: React.FC<MarketsWonCardProps> = () => {
       )}
     </>
   );
-};
+});
+
+PredictAccountState.displayName = 'PredictAccountState';
 
 export default PredictAccountState;

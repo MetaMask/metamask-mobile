@@ -102,7 +102,6 @@ export function usePredictPositions(
           })),
         });
       } catch (err) {
-        console.log('usePredictPositions: Error loading positions', err);
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to load positions';
         setError(errorMessage);

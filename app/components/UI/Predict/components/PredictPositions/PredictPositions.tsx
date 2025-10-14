@@ -1,4 +1,9 @@
-import React, { useCallback, useRef } from 'react';
+import React, {
+  useCallback,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
@@ -13,16 +18,26 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 
-const PredictPositions = () => {
+export interface PredictPositionsHandle {
+  refresh: () => Promise<void>;
+}
+
+const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { positions, isRefreshing, loadPositions, isLoading, error } =
+  const { positions, isRefreshing, loadPositions, isLoading } =
     usePredictPositions({
       loadOnMount: true,
       refreshOnFocus: true,
     });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
+
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      await loadPositions({ isRefresh: true });
+    },
+  }));
 
   const renderPosition = useCallback(
     ({ item }: { item: PredictPositionType }) => (
@@ -51,9 +66,8 @@ const PredictPositions = () => {
       </View>
     );
   }
-  {
-    /* TODO: Sort positions in the controller (business logic) */
-  }
+
+  // TODO: Sort positions in the controller (business logic)
   return (
     <FlashList
       ref={listRef}
@@ -67,6 +81,8 @@ const PredictPositions = () => {
       ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
     />
   );
-};
+});
+
+PredictPositions.displayName = 'PredictPositions';
 
 export default PredictPositions;

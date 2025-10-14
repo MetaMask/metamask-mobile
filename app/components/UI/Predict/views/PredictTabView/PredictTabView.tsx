@@ -1,31 +1,50 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { default as React } from 'react';
+import { default as React, useRef, useState, useCallback } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
-import PredictAccountState from '../../components/PredictAccountState';
-import PredictClaimablePositions from '../../components/PredictClaimablePositions/PredictClaimablePositions';
-import PredictDeposit from '../../components/PredictDeposit/PredictDeposit';
-import PredictPositions from '../../components/PredictPositions/PredictPositions';
+import PredictAccountState, {
+  PredictAccountStateHandle,
+} from '../../components/PredictAccountState';
+import PredictClaimablePositions, {
+  PredictClaimablePositionsHandle,
+} from '../../components/PredictClaimablePositions/PredictClaimablePositions';
+import PredictPositions, {
+  PredictPositionsHandle,
+} from '../../components/PredictPositions/PredictPositions';
 
 interface PredictTabViewProps {}
 
 const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const tw = useTailwind();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
-    // TODO: implement refresh
-  };
+  const predictPositionsRef = useRef<PredictPositionsHandle>(null);
+  const predictClaimablePositionsRef =
+    useRef<PredictClaimablePositionsHandle>(null);
+  const predictAccountStateRef = useRef<PredictAccountStateHandle>(null);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        predictPositionsRef.current?.refresh(),
+        predictClaimablePositionsRef.current?.refresh(),
+        predictAccountStateRef.current?.refresh(),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
       >
-        <PredictDeposit />
-        <PredictAccountState />
-        <PredictPositions />
-        <PredictClaimablePositions />
+        <PredictAccountState ref={predictAccountStateRef} />
+        <PredictPositions ref={predictPositionsRef} />
+        <PredictClaimablePositions ref={predictClaimablePositionsRef} />
       </ScrollView>
     </View>
   );
