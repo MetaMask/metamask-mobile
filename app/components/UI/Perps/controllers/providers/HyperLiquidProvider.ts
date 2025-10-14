@@ -537,7 +537,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         dexName: dexName || 'main',
       });
 
-      // HIP-3 DEX Balance Check
+      // HIP-3 DEX Balance Check - DIAGNOSTIC ONLY
+      // Don't block order, just log the balance for debugging
       if (dexName) {
         const infoClient = this.clientService.getInfoClient();
         const userAddress =
@@ -545,7 +546,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         try {
           // Note: SDK types don't include 'dex' param for clearinghouseState,
-          // but the API does support it for HIP-3 DEXs. We need to cast to unknown first.
+          // but the API does support it for HIP-3 DEXs
           const dexState = await infoClient.clearinghouseState({
             user: userAddress,
             dex: dexName,
@@ -553,29 +554,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
           const dexBalance = parseFloat(dexState.withdrawable || '0');
 
-          DevLogger.log('HIP-3 DEX balance check:', {
+          DevLogger.log('HIP-3 DEX balance (diagnostic):', {
             dexName,
-            balance: dexBalance,
-            required: 'TBD',
+            dexBalance,
+            mainBalance: availableBalance,
+            note: 'Allowing order to proceed to test if API handles routing automatically',
           });
 
-          if (dexBalance === 0) {
-            throw new Error(
-              `No collateral in ${dexName} DEX. You must transfer USDC to this DEX before trading ${params.coin}. ` +
-                `Use perpDexClassTransfer to move funds from main DEX to ${dexName} DEX.`,
-            );
-          }
+          // DON'T block the order - let's see what the API does
+          // if (dexBalance === 0) {
+          //   Maybe API auto-transfers? Testing...
+          // }
         } catch (balanceError) {
-          // If it's our helpful error, re-throw it
-          if (
-            balanceError instanceof Error &&
-            balanceError.message.includes('No collateral')
-          ) {
-            throw balanceError;
-          }
-          // Otherwise log and continue (don't block on balance check failure)
           DevLogger.log(
-            'Failed to check HIP-3 DEX balance, continuing anyway:',
+            'Failed to check HIP-3 DEX balance (non-blocking):',
             balanceError,
           );
         }
