@@ -126,7 +126,6 @@ import { TransactionControllerInit } from './controllers/transaction-controller'
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
-import I18n from '../../../locales/i18n';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -147,7 +146,6 @@ import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
-import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
@@ -175,6 +173,7 @@ import { userStorageControllerInit } from './controllers/identity/user-storage-c
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { ratesControllerInit } from './controllers/rates-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
+import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -240,8 +239,6 @@ export class Engine {
       store.dispatch(scanCompleted());
     },
   });
-
-  rewardsDataService: RewardsDataService;
 
   permissionController: PermissionController<
     PermissionSpecificationConstraint,
@@ -357,6 +354,7 @@ export class Engine {
         PerpsController: perpsControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
+        RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -385,17 +383,6 @@ export class Engine {
       controllersByName.SelectedNetworkController;
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
-
-    // Initialize and store RewardsDataService
-    this.rewardsDataService = new RewardsDataService({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'RewardsDataService',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      fetch,
-      locale: I18n.locale,
-    });
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;

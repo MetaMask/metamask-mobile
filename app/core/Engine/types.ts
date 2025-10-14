@@ -741,6 +741,7 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
+  | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController';

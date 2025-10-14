@@ -100,6 +100,7 @@ import {
   getEarnControllerInitMessenger,
   getEarnControllerMessenger,
 } from './earn-controller-messenger';
+import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 
 import {
   getDelegationControllerInitMessenger,
@@ -303,6 +304,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  RewardsDataService: {
+    getMessenger: getRewardsDataServiceMessenger,
     getInitMessenger: noop,
   },
   TokenBalancesController: {
