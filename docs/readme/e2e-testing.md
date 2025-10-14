@@ -480,32 +480,20 @@ yarn run-appwright:ios
 
 Our CI/CD process is automated through various Bitrise pipelines, each designed to streamline and optimize different aspects of our E2E testing.
 
-#### **1. PR_Smoke_e2e_Pipeline**
-
-- **Triggers**:
-  - **When "run-ios-e2e-smoke" label is applied to a Pull request**: Automatically runs smoke tests.
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `pr_smoke_e2e_pipeline` from the pipeline dropdown menu.
-
-#### **2. PR_Regression_e2e_Pipeline**
-
-- **Triggers**:
-  - **Nightly**: Automatically runs all regression tests against main branch.
-- **Manual Trigger**: Select the main branch (or another branch of choice) in the Bitrise dashboard and choose `pr_regression_e2e_pipeline` from the pipeline dropdown menu.
-
-#### **3. Release_e2e_Pipeline**
+#### **1. Release_e2e_Pipeline**
 
 - **Workflows**:
   - **Build**: Creates iOS and Android artifacts.
   - **Test**: Executes regression tests across both platforms.
 - **Manual Trigger**: Typically run on release branches but can be manually triggered in the Bitrise dashboard.
 
-#### **4. App Launch Times Pipeline**
+#### **2. App Launch Times Pipeline**
 
 - **Function**: Measures and monitors app launch times on real devices using BrowserStack to ensure consistent performance over time.
 - **Nightly**: Automatically runs on the main branch.
 - **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
 
-#### **5. App Upgrade Pipeline**
+#### **3. App Upgrade Pipeline**
 
 - **Function**: Automates testing of app upgrades to verify smooth transitions between versions.
 - **Configuration**: Requires the `PRODUCTION_APP_URL` environment variable to be set with the current production build's BrowserStack URL.You would need to search and update `PRODUCTION_APP_URL` in the bitrise.yml with the production browserstack build URL.
