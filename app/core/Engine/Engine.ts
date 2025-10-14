@@ -322,8 +322,8 @@ export class Engine {
         ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
-        TransactionController: TransactionControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
+        TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         TokensController: tokensControllerInit,
@@ -376,9 +376,9 @@ export class Engine {
     const accountTrackerController = controllersByName.AccountTrackerController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
-    const transactionController = controllersByName.TransactionController;
     const smartTransactionsController =
       controllersByName.SmartTransactionsController;
+    const transactionController = controllersByName.TransactionController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
