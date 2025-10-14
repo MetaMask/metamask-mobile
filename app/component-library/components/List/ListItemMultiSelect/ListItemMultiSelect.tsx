@@ -56,9 +56,10 @@ const TouchableOpacity = ({
     .shouldCancelWhenOutside(false)
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
-    .onEnd((gestureEvent) => {
+    .onStart((gestureEvent) => {
       // Only handle gesture when we KNOW accessibility is OFF
       // When accessibility is ON or UNKNOWN, let TouchableOpacity handle the press
+      // Using onStart instead of onEnd to avoid conflicts with BottomSheet PanGestureHandler
       if (onPress && !isDisabled && isAccessibilityEnabled === false) {
         // Create a proper GestureResponderEvent-like object from gesture event
         const syntheticEvent = {
