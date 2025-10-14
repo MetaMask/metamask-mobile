@@ -359,7 +359,7 @@ const Routes = {
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
-      FAILED: 'CardOnboardingFailed',
+      KYC_FAILED: 'CardOnboardingKYCFailed',
     },
   },
   SEND: {

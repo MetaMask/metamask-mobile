@@ -8,34 +8,34 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ActivityIndicator } from 'react-native';
 
-const ValidatingKYC = () => {
+const KYCFailed = () => {
   const navigation = useNavigation();
 
   const handleContinue = () => {
-    navigation.navigate(Routes.CARD.ONBOARDING.KYC_FAILED);
+    navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS);
   };
 
-  const renderFormFields = () => <ActivityIndicator />;
+  const renderFormFields = () => null;
 
   const renderActions = () => (
     <Button
       variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
+      label={strings('card.card_onboarding.retry_button')}
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
     />
   );
+
   return (
     <OnboardingStep
-      title={strings('card.card_onboarding.validating_kyc.title')}
-      description={''}
+      title={strings('card.card_onboarding.kyc_failed.title')}
+      description={strings('card.card_onboarding.kyc_failed.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
     />
   );
 };
 
-export default ValidatingKYC;
+export default KYCFailed;

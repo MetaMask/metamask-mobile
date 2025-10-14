@@ -63,7 +63,7 @@ const ConfirmPhoneNumber = () => {
   const { phoneNumber } = useParams<{ phoneNumber: string }>();
 
   const handleContinue = useCallback(() => {
-    navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
+    navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
   }, [navigation]);
 
   const handleValueChange = useCallback((text: string) => {

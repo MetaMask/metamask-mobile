@@ -8,13 +8,13 @@ import SetPhoneNumber from '../components/Onboarding/SetPhoneNumber';
 import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import ValidatingKYC from '../components/Onboarding/ValidatingKYC';
+import KYCFailed from '../components/Onboarding/KYCFailed';
+import PersonalDetails from '../components/Onboarding/PersonalDetails';
+import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 
 // TODO: Import other onboarding components when they are created
-const OnboardingPersonalDetails = () => null;
-const OnboardingPhysicalAddress = () => null;
 const OnboardingMailingAddress = () => null;
 const OnboardingComplete = () => null;
-const OnboardingFailed = () => null;
 
 const Stack = createStackNavigator();
 const onboardingDefaultNavigationOptions = {
@@ -24,7 +24,7 @@ const onboardingDefaultNavigationOptions = {
 const OnboardingNavigator: React.FC = () => (
   <UnmountOnBlur>
     <Stack.Navigator
-      initialRouteName={Routes.CARD.ONBOARDING.SIGN_UP}
+      initialRouteName={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
       headerMode="screen"
     >
       <Stack.Screen
@@ -58,13 +58,18 @@ const OnboardingNavigator: React.FC = () => (
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
+        name={Routes.CARD.ONBOARDING.KYC_FAILED}
+        component={KYCFailed}
+        options={onboardingDefaultNavigationOptions}
+      />
+      <Stack.Screen
         name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
-        component={OnboardingPersonalDetails}
+        component={PersonalDetails}
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
-        component={OnboardingPhysicalAddress}
+        component={PhysicalAddress}
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
@@ -75,11 +80,6 @@ const OnboardingNavigator: React.FC = () => (
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.COMPLETE}
         component={OnboardingComplete}
-        options={onboardingDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.FAILED}
-        component={OnboardingFailed}
         options={onboardingDefaultNavigationOptions}
       />
     </Stack.Navigator>
