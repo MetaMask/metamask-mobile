@@ -6194,6 +6194,7 @@
       "bridge_fee": "Bridge fee",
       "network_fee": "Network fee",
       "paid_with": "Paid with",
+      "retry_button": "Try again",
       "total": "Total"
     },
     "summary_title": {

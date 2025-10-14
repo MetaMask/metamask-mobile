@@ -6,6 +6,7 @@ import React from 'react';
 import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Tooltip from '../../UI/Tooltip';
 import AnimatedSpinner, {
@@ -15,13 +16,20 @@ import { View } from 'react-native';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
-import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
+import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './transaction-details-status.styles';
 
 export function TransactionDetailsStatus({
   gap,
@@ -57,6 +65,7 @@ export function TransactionDetailsStatus({
       flexDirection={FlexDirection.Row}
       gap={gap ?? 6}
       alignItems={AlignItems.center}
+      justifyContent={JustifyContent.spaceBetween}
     >
       <StatusIcon status={status} transactionMeta={transactionMeta} />
       <Text color={textColour} variant={TextVariant.BodyMDMedium}>
@@ -73,6 +82,7 @@ function StatusIcon({
   status: TransactionStatus;
   transactionMeta: TransactionMeta;
 }) {
+  const { styles } = useStyles(styleSheet, {});
   const iconName = getStatusIcon(status);
   const iconColour = getIconColour(status);
   const errorMessage = getErrorMessage(transactionMeta);
@@ -82,6 +92,8 @@ function StatusIcon({
       <Tooltip
         iconColor={iconColour}
         iconName={iconName}
+        iconSize={ButtonIconSizes.Md}
+        iconStyle={styles.tooltipIcon}
         tooltipTestId="status-tooltip"
         content={errorMessage}
       />
@@ -94,6 +106,7 @@ function StatusIcon({
         testID={`status-icon-${status}`}
         name={iconName}
         color={iconColour}
+        size={IconSize.Md}
       />
     );
   }
