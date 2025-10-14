@@ -77,6 +77,22 @@ export const cardAuthenticationNavigationOptions = ({
   headerRight: () => <View />,
 });
 
+export const cardOnboardingNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+  headerRight: () => <View />,
+});
+
 const CardRoutes = () => (
   <Stack.Navigator
     initialRouteName={Routes.CARD.ONBOARDING.ROOT}
@@ -100,6 +116,7 @@ const CardRoutes = () => (
     <Stack.Screen
       name={Routes.CARD.ONBOARDING.ROOT}
       component={OnboardingNavigator}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

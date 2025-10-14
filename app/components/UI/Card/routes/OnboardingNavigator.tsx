@@ -13,72 +13,67 @@ import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
 import Complete from '../components/Onboarding/Complete';
+import { cardOnboardingNavigationOptions } from '.';
 
 const Stack = createStackNavigator();
-const onboardingDefaultNavigationOptions = {
-  headerShown: false,
-};
 
 const OnboardingNavigator: React.FC = () => (
   <UnmountOnBlur>
-    <Stack.Navigator
-      initialRouteName={Routes.CARD.ONBOARDING.SIGN_UP}
-      headerMode="screen"
-    >
+    <Stack.Navigator initialRouteName={Routes.CARD.ONBOARDING.SIGN_UP}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.CONFIRM_EMAIL}
         component={ConfirmEmail}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
         component={SetPhoneNumber}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
         component={ConfirmPhoneNumber}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
         component={VerifyIdentity}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
         component={ValidatingKYC}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
         component={PersonalDetails}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
         component={PhysicalAddress}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
         component={MailingAddress}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.COMPLETE}
         component={Complete}
-        options={onboardingDefaultNavigationOptions}
+        options={cardOnboardingNavigationOptions}
       />
     </Stack.Navigator>
   </UnmountOnBlur>

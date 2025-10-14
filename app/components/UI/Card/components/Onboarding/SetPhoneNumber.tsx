@@ -17,11 +17,18 @@ import { MOCK_COUNTRIES } from './SignUp';
 import SelectComponent from '../../../SelectComponent';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
-const selectOptions = MOCK_COUNTRIES.map((country) => ({
-  key: country.key,
-  value: country.areaCode,
-  label: country.areaCode,
-}));
+const selectOptions = Array.from(
+  new Map(
+    MOCK_COUNTRIES.map((country) => [
+      country.areaCode,
+      {
+        key: country.areaCode,
+        value: country.areaCode,
+        label: country.areaCode,
+      },
+    ]),
+  ).values(),
+);
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
