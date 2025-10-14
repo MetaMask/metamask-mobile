@@ -13,7 +13,6 @@ jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 }));
 
 jest.mock('../../../hooks/gas/useGasFeeToken');
-jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),

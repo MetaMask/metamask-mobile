@@ -101,8 +101,11 @@ const PerpsGTMModal = () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
-    navigate(Routes.PERPS.TUTORIAL, {
-      isFromGTMModal: true,
+    navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.TUTORIAL,
+      params: {
+        isFromGTMModal: true,
+      },
     });
   };
 

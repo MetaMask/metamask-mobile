@@ -4,9 +4,8 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Image, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Alert, Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -18,28 +17,26 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
-import {
-  PredictMarket,
-  PredictOutcome as PredictOutcomeType,
-} from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPercentage, formatVolume } from '../../utils/format';
+import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { PredictOutcome as PredictOutcomeType } from '../../types';
+import { formatVolume, formatPercentage } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 interface PredictMarketOutcomeProps {
-  market: PredictMarket;
   outcome: PredictOutcomeType;
 }
 
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
-  market,
   outcome,
 }) => {
   // const outcome = market.outcomes[0];
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { reset, loading, currentOrderParams } = usePredictBuy({
+    onError: (error) => {
+      Alert.alert('Order failed', error);
+      reset();
+    },
+  });
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -58,26 +55,18 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
+  const isOutcomeTokenLoading = useCallback(
+    (outcomeTokenId: string) =>
+      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
+    [currentOrderParams, loading],
+  );
+
   const handleYes = () => {
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[0],
-      },
-    });
+    // TODO: Implement buy yes functionality
   };
 
   const handleNo = () => {
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[1],
-      },
-    });
+    // TODO: Implement buy no functionality
   };
 
   return (
@@ -127,6 +116,8 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           }
           onPress={handleYes}
           style={styles.buttonYes}
+          disabled={loading}
+          loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
         />
         <Button
           variant={ButtonVariants.Secondary}
@@ -140,6 +131,8 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           }
           onPress={handleNo}
           style={styles.buttonNo}
+          disabled={loading}
+          loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
         />
       </View>
     </View>

@@ -1,4 +1,3 @@
-import { getVersion } from 'react-native-device-info';
 import {
   NotificationServicesControllerMessenger,
   NotificationServicesControllerState,
@@ -17,7 +16,6 @@ export const createNotificationServicesController = (props: {
         platform: 'mobile',
         accessToken: process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN ?? '',
         spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID ?? '',
-        platformVersion: getVersion(),
       },
     },
   });

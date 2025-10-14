@@ -51,10 +51,8 @@ describe('MultichainAccountServiceInit', () => {
 
     multichainAccountServiceInit(initRequestMock);
 
-    expect(multichainAccountServiceClassMock).toHaveBeenCalledTimes(1);
-    const callArgs = multichainAccountServiceClassMock.mock.calls[0][0];
-
-    expect(callArgs.messenger).toBe(initRequestMock.controllerMessenger);
-    expect(callArgs.providers).toHaveLength(2);
+    expect(multichainAccountServiceClassMock).toHaveBeenCalledWith({
+      messenger: initRequestMock.controllerMessenger,
+    });
   });
 });

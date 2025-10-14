@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  trace,
-  endTrace,
-  TraceName,
-  TraceOperation,
-} from '../../../../util/trace';
 
 // Static helper functions - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
@@ -16,9 +12,11 @@ const allTrue = (conditionArray: boolean[]): boolean =>
 const anyTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.length > 0 && conditionArray.some(Boolean);
 
+// Cache for boolean conversions to avoid repeated map operations
+const toBooleanArray = (arr: unknown[]): boolean[] => arr.map(Boolean);
+
 interface MeasurementOptions {
-  traceName: TraceName;
-  op?: TraceOperation; // Optional operation type, defaults to PerpsOperation
+  measurementName: PerpsMeasurementName;
 
   // Simple API - most common case
   conditions?: boolean[]; // Start immediately, end when all conditions are true
@@ -29,6 +27,8 @@ interface MeasurementOptions {
   resetConditions?: boolean[];
 
   debugContext?: Record<string, unknown>;
+  // Legacy support for usePerpsScreenTracking pattern
+  dependencies?: unknown[];
 }
 
 /**
@@ -42,22 +42,21 @@ interface MeasurementOptions {
  * @example
  * // SIMPLE: Immediate single measurement (most common case)
  * usePerpsMeasurement({
- *   traceName: TraceName.PerpsClosePositionView,
+ *   measurementName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
  *   // No conditions = immediate measurement
- *   // op defaults to PerpsOperation
  * });
  *
  * @example
  * // CONDITIONAL: Wait for data before measuring
  * usePerpsMeasurement({
- *   traceName: TraceName.PerpsPositionDetailsView,
+ *   measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
  *   conditions: [dataLoaded, !isLoading] // Start immediately, end when both true
  * });
  *
  * @example
  * // BOTTOM SHEET: With auto-reset
  * usePerpsMeasurement({
- *   traceName: TraceName.PerpsOrderView,
+ *   measurementName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
  *   conditions: [isVisible, !!currentPrice], // Auto-resets when !isVisible
  *   debugContext: { asset }
  * });
@@ -65,27 +64,32 @@ interface MeasurementOptions {
  * @example
  * // ADVANCED: Full control when needed
  * usePerpsMeasurement({
- *   traceName: TraceName.PerpsOrderExecution,
- *   op: TraceOperation.PerpsOrderSubmission, // Override default operation
+ *   measurementName: PerpsMeasurementName.COMPLEX_WORKFLOW,
  *   startConditions: [userInteracted, dataReady],
  *   endConditions: [workflowComplete, !hasErrors],
  *   resetConditions: [userCanceled, sessionExpired]
  * });
+ *
+ * @example
+ * // LEGACY: usePerpsScreenTracking compatibility
+ * usePerpsMeasurement({
+ *   measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+ *   dependencies: [market, marketStats, !isLoadingHistory, !isLoadingPosition]
+ * });
  */
 export const usePerpsMeasurement = ({
-  traceName,
-  op = TraceOperation.PerpsOperation, // Default to PerpsOperation for all UI measurements
+  measurementName,
   conditions,
   startConditions,
   endConditions,
   resetConditions,
   debugContext = {},
+  dependencies, // Legacy support
 }: MeasurementOptions) => {
+  const startTime = useRef<number | null>(null);
   const hasCompleted = useRef(false);
   const previousStartState = useRef(false);
   const previousEndState = useRef(false);
-  const traceStarted = useRef(false);
-  const traceId = useRef<string>(uuidv4()); // Generate new ID on each trace start
 
   // Note: debugContext is used directly rather than memoized since:
   // 1. It's typically used sparingly for debugging/logging
@@ -95,6 +99,15 @@ export const usePerpsMeasurement = ({
   // Memoize smart defaults logic to avoid recalculation on every render
   const { actualStartConditions, actualEndConditions, actualResetConditions } =
     useMemo(() => {
+      if (dependencies) {
+        // Legacy usePerpsScreenTracking pattern
+        return {
+          actualStartConditions: [],
+          actualEndConditions: toBooleanArray(dependencies),
+          actualResetConditions: resetConditions || [],
+        };
+      }
+
       if (conditions) {
         // Simple API: start immediately, end when conditions are met
         return {
@@ -106,8 +119,13 @@ export const usePerpsMeasurement = ({
         };
       }
 
-      // Default case - immediate single measurement
-      if (!startConditions && !endConditions && !resetConditions) {
+      // NEW: Default case - immediate single measurement
+      if (
+        !startConditions &&
+        !endConditions &&
+        !resetConditions &&
+        !dependencies
+      ) {
         return {
           actualStartConditions: [],
           actualEndConditions: [true], // Always true = immediate completion
@@ -121,7 +139,13 @@ export const usePerpsMeasurement = ({
         actualEndConditions: endConditions || [],
         actualResetConditions: resetConditions || [],
       };
-    }, [conditions, startConditions, endConditions, resetConditions]);
+    }, [
+      dependencies,
+      conditions,
+      startConditions,
+      endConditions,
+      resetConditions,
+    ]);
 
   // Memoize condition checks to avoid recalculation
   const shouldStart = useMemo(
@@ -141,19 +165,8 @@ export const usePerpsMeasurement = ({
 
   useEffect(() => {
     // Handle reset conditions
-    if (shouldReset && (traceStarted.current || hasCompleted.current)) {
-      // End any active trace before resetting
-      if (traceStarted.current) {
-        endTrace({
-          name: traceName,
-          id: traceId.current,
-          data: {
-            success: false,
-            reason: 'reset',
-          },
-        });
-        traceStarted.current = false;
-      }
+    if (shouldReset && (startTime.current !== null || hasCompleted.current)) {
+      startTime.current = null;
       hasCompleted.current = false;
       previousStartState.current = false;
       previousEndState.current = false;
@@ -161,49 +174,42 @@ export const usePerpsMeasurement = ({
     }
 
     // Handle start conditions
-    if (shouldStart && !previousStartState.current && !traceStarted.current) {
-      // Generate a new trace ID for this measurement cycle
-      traceId.current = uuidv4();
-
-      // Start a Sentry trace using the provided trace name
-      // Use unique traceId to prevent conflicts when multiple
-      // usePerpsMeasurement hooks are used simultaneously
-      trace({
-        name: traceName,
-        op,
-        id: traceId.current,
-        data: debugContext as Record<string, string | number | boolean>,
-      });
-      traceStarted.current = true;
+    if (
+      shouldStart &&
+      !previousStartState.current &&
+      startTime.current === null
+    ) {
+      startTime.current = performance.now();
     }
 
     // Handle end conditions
     if (
       shouldEnd &&
       !previousEndState.current &&
-      traceStarted.current &&
+      startTime.current !== null &&
       !hasCompleted.current
     ) {
+      const duration = performance.now() - startTime.current;
+
       // Pre-build log object to avoid conditional spread operations
       const logData: Record<string, unknown> = {
-        metric: traceName,
+        metric: measurementName,
+        duration: `${duration.toFixed(0)}ms`,
         endConditions: actualEndConditions.length,
         context: debugContext,
       };
 
+      // Add dependencies length only if needed (avoids conditional spread)
+      if (dependencies) {
+        logData.dependencies = dependencies.length;
+      }
+
       DevLogger.log(
-        `${PERFORMANCE_CONFIG.LOGGING_MARKERS.SENTRY_PERFORMANCE} PerpsScreen: ${traceName} completed`,
+        `${PERFORMANCE_CONFIG.LOGGING_MARKERS.SENTRY_PERFORMANCE} PerpsScreen: ${measurementName} completed`,
         logData,
       );
 
-      // End the trace - Sentry calculates duration from timestamps automatically
-      endTrace({
-        name: traceName,
-        id: traceId.current,
-        data: { success: true },
-      });
-      traceStarted.current = false;
-
+      setMeasurement(measurementName, duration, 'millisecond');
       hasCompleted.current = true;
     }
 
@@ -211,13 +217,13 @@ export const usePerpsMeasurement = ({
     previousStartState.current = shouldStart;
     previousEndState.current = shouldEnd;
   }, [
-    traceName,
-    op,
+    measurementName,
     shouldStart,
     shouldEnd,
     shouldReset,
     debugContext,
     actualStartConditions,
     actualEndConditions,
+    dependencies,
   ]);
 };

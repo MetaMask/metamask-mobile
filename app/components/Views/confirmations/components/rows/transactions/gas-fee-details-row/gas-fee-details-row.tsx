@@ -31,7 +31,6 @@ import {
   TextColor,
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
 
 const EstimationInfo = ({
   hideFiatForTestnet,
@@ -252,7 +251,6 @@ const GasFeesDetailsRow = ({
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}
-      <GasFeeTokenToast />
     </>
   );
 };

@@ -32,7 +32,6 @@ import {
   usePerpsNetworkManagement,
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
@@ -46,7 +45,6 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
 import { createFontScaleHandler } from '../../utils/textUtils';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   SHORT_LONG = '01_Short_Long',
@@ -222,16 +220,6 @@ const PerpsTutorialCarousel: React.FC = () => {
       hasTrackedViewed.current = true;
     }
   }, [track]);
-
-  // Initialize connection in background while user views tutorial
-  useEffect(() => {
-    PerpsConnectionManager.connect().catch((error) => {
-      DevLogger.log(
-        'Background connection initialization during tutorial:',
-        error,
-      );
-    });
-  }, []);
 
   // Cleanup timeouts on unmount
   useEffect(
@@ -461,8 +449,8 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <View key={screen.id}>
-              <View style={styles.screenContainer}>
+            <>
+              <View key={screen.id} style={styles.screenContainer}>
                 {/* Header Section - Fixed height for text content */}
                 <View style={styles.headerSection}>
                   <Text
@@ -520,7 +508,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                   </Text>
                 )}
               </View>
-            </View>
+            </>
           ))}
         </ScrollableTabView>
       </View>

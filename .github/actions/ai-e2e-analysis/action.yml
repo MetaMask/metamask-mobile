@@ -32,16 +32,17 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Full checkout for AI analysis
+    - name: Minimal checkout for AI analysis
       uses: actions/checkout@v4
       with:
-        fetch-depth: 50
-
-    - name: Disable sparse checkout and restore all files
-      shell: bash
-      run: |
-        git sparse-checkout disable
-        git checkout HEAD -- .
+        sparse-checkout: |
+          .github/scripts
+          e2e/scripts
+          e2e/specs
+          e2e/tags.js
+          .nvmrc
+        sparse-checkout-cone-mode: false
+        fetch-depth: 1
 
     - name: Setup Node.js
       uses: actions/setup-node@v4

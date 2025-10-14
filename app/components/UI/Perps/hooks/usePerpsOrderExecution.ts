@@ -3,7 +3,9 @@ import { strings } from '../../../../../locales/i18n';
 import type { OrderParams, OrderResult, Position } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { captureException } from '@sentry/react-native';
+import performance from 'react-native-performance';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { setMeasurement, captureException } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
@@ -11,7 +13,6 @@ import {
 } from '../constants/eventNames';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
-import { TraceName, TraceOperation } from '../../../../util/trace';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -42,8 +43,7 @@ export function usePerpsOrderExecution(
 
   // Track order submission toast with unified measurement hook
   usePerpsMeasurement({
-    traceName: TraceName.PerpsOrderSubmissionToast,
-    op: TraceOperation.PerpsOrderSubmission,
+    measurementName: PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
     startConditions: [isPlacing], // Start when placing begins
     endConditions: [!!lastResult || !!error], // End when we have result or error
     resetConditions: [!isPlacing], // Reset when not placing
@@ -94,6 +94,9 @@ export function usePerpsOrderExecution(
             });
           }
 
+          // Track order confirmation timing
+          const orderConfirmationStart = performance.now();
+
           // Try to fetch the newly created position
           try {
             // Add a small delay to ensure the position is available
@@ -102,6 +105,15 @@ export function usePerpsOrderExecution(
             const fetchedPositions = await getPositions();
             const newPosition = fetchedPositions.find(
               (p) => p.coin === orderParams.coin,
+            );
+
+            // Measure order confirmation toast loaded
+            const confirmationDuration =
+              performance.now() - orderConfirmationStart;
+            setMeasurement(
+              PerpsMeasurementName.ORDER_CONFIRMATION_TOAST_LOADED,
+              confirmationDuration,
+              'millisecond',
             );
 
             if (newPosition) {

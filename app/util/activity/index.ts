@@ -6,12 +6,6 @@ import {
 } from '@metamask/transaction-controller';
 import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
-import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
-
-export const PAY_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.predictDeposit,
-];
 
 /**
  * Determines if the transaction is from or to the current wallet
@@ -92,12 +86,42 @@ export const filterByAddressAndNetwork = (
   allTransactions?: TransactionMeta[],
 ): boolean => {
   const {
+    batchId,
+    id: transactionId,
     isTransfer,
     transferInformation,
     txParams: { from, to },
+    type,
   } = tx;
 
-  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [])) {
+  const requiredTransactionIds = allTransactions
+    ?.map((t) => t.requiredTransactionIds ?? [])
+    .flat();
+
+  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
+
+  if (isRequiredTransaction) {
+    return false;
+  }
+
+  const requiredTransactionHashes = allTransactions
+    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
+    .map((t) => t.hash?.toLowerCase());
+
+  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
+    return false;
+  }
+
+  const isInBatchWithPerpsDeposit =
+    type !== TransactionType.perpsDeposit &&
+    allTransactions?.some(
+      (t) =>
+        batchId &&
+        t.batchId === batchId &&
+        t.type === TransactionType.perpsDeposit,
+    );
+
+  if (isInBatchWithPerpsDeposit) {
     return false;
   }
 
@@ -134,12 +158,42 @@ export const filterByAddress = (
   allTransactions?: TransactionMeta[],
 ): boolean => {
   const {
+    batchId,
+    id: transactionId,
     isTransfer,
     transferInformation,
     txParams: { from, to },
+    type,
   } = tx;
 
-  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [])) {
+  const requiredTransactionIds = allTransactions
+    ?.map((t) => t.requiredTransactionIds ?? [])
+    .flat();
+
+  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
+
+  if (isRequiredTransaction) {
+    return false;
+  }
+
+  const requiredTransactionHashes = allTransactions
+    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
+    .map((t) => t.hash?.toLowerCase());
+
+  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
+    return false;
+  }
+
+  const isInBatchWithPerpsDeposit =
+    type !== TransactionType.perpsDeposit &&
+    allTransactions?.some(
+      (t) =>
+        batchId &&
+        t.batchId === batchId &&
+        t.type === TransactionType.perpsDeposit,
+    );
+
+  if (isInBatchWithPerpsDeposit) {
     return false;
   }
 
@@ -178,38 +232,4 @@ export function isTransactionOnChains(
   );
 
   return requiredTransactionChainIds.some((id) => chainIds.includes(id));
-}
-
-function isFilteredByMetaMaskPay(
-  tx: TransactionMeta,
-  allTransactions: TransactionMeta[],
-): boolean {
-  const { batchId, id: transactionId } = tx;
-
-  const requiredTransactionIds = allTransactions
-    ?.map((t) => t.requiredTransactionIds ?? [])
-    .flat();
-
-  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
-
-  if (isRequiredTransaction) {
-    return true;
-  }
-
-  const requiredTransactionHashes = allTransactions
-    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
-    .map((t) => t.hash?.toLowerCase());
-
-  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
-    return true;
-  }
-
-  const isInPayBatch =
-    !hasTransactionType(tx, PAY_TYPES) &&
-    Boolean(batchId) &&
-    allTransactions?.some(
-      (t) => t.batchId === batchId && hasTransactionType(t, PAY_TYPES),
-    );
-
-  return isInPayBatch;
 }

@@ -10,7 +10,7 @@ import {
   getIsAllowedRpcUrlForSmartTransactions,
   wipeSmartTransactions,
 } from './index';
-import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 // eslint-disable-next-line import/no-namespace
 import * as environment from '../environment';
 import Engine, { type BaseControllerMessenger } from '../../core/Engine';
@@ -428,7 +428,6 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
-        is_smart_transaction: true,
       });
     });
 
@@ -463,7 +462,6 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({
         smart_transaction_timed_out: true,
         smart_transaction_proxied: false,
-        is_smart_transaction: true,
       });
     });
 
@@ -482,7 +480,7 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({});
     });
 
-    it('returns correct object if smartTransaction is found but statusMetadata is undefined', async () => {
+    it('returns empty object if smartTransaction is found but statusMetadata is undefined', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {};
       (
@@ -495,7 +493,7 @@ describe('Smart Transactions utils', () => {
         false,
         controllerMessenger,
       );
-      expect(result).toEqual({ is_smart_transaction: true });
+      expect(result).toEqual({});
     });
 
     it('returns metrics if smartTransaction is found with statusMetadata', async () => {
@@ -519,7 +517,6 @@ describe('Smart Transactions utils', () => {
       expect(result).toEqual({
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
-        is_smart_transaction: true,
       });
     });
   });

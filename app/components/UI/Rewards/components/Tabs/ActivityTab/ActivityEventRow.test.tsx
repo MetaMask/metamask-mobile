@@ -1,43 +1,15 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { ActivityEventRow } from './ActivityEventRow';
 import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { formatRewardsDate } from '../../../utils/formatUtils';
-import { getEventDetails } from '../../../utils/eventDetailsUtils';
+import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import TEST_ADDRESS from '../../../../../../constants/address';
 
 // Mock the utility functions
 jest.mock('../../../utils/formatUtils', () => ({
-  formatRewardsDate: jest.fn(),
-  formatNumber: jest
-    .fn()
-    .mockImplementation((value) => value?.toString() || '0'),
-}));
-
-jest.mock('../../../utils/eventDetailsUtils', () => ({
   getEventDetails: jest.fn(),
-}));
-
-// Mock selectors
-jest.mock('../../../../../../selectors/networkController', () => ({
-  selectEvmNetworkConfigurationsByChainId: jest.fn(),
-}));
-
-// Mock react-redux
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
-// Mock navigation
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-  }),
+  formatRewardsDate: jest.fn(),
 }));
 
 const mockGetEventDetails = getEventDetails as jest.MockedFunction<
@@ -174,7 +146,6 @@ describe('ActivityEventRow', () => {
     jest.clearAllMocks();
     mockGetEventDetails.mockReturnValue(defaultEventDetails);
     mockFormatRewardsDate.mockReturnValue('Sep 9, 2025');
-    mockUseSelector.mockReturnValue({});
   });
 
   describe('event details display', () => {

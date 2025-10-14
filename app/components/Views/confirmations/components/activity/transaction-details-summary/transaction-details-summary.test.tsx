@@ -119,21 +119,6 @@ describe('TransactionDetailsSummary', () => {
     ).toBeDefined();
   });
 
-  it('renders predict deposit line title', () => {
-    const { getByText } = render({
-      transactions: [
-        {
-          ...TRANSACTION_META_MOCK,
-          nestedTransactions: [{ type: TransactionType.predictDeposit }],
-        },
-      ],
-    });
-
-    expect(
-      getByText(strings('transaction_details.summary_title.predict_deposit')),
-    ).toBeDefined();
-  });
-
   it('renders bridge line title', () => {
     const { getByText } = render({
       transactions: [

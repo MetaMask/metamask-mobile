@@ -14,10 +14,9 @@ import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/Cre
 import ImportFromSeedScreen from '../../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 
-import { dissmissAllModals } from '../../../utils/Flows.js';
+import { tapPerpsBottomSheetGotItButton } from '../../../utils/Flows.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
-test.setTimeout(150000000);
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,
@@ -99,8 +98,8 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   timer8.stop();
 
   timer9.start();
-  await dissmissAllModals(device);
-  await WalletMainScreen.tapOnToken('ETH');
+  await tapPerpsBottomSheetGotItButton(device);
+  await WalletMainScreen.isTokenVisible('ETH');
   timer9.stop();
 
   performanceTracker.addTimer(timer3);

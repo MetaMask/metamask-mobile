@@ -6,6 +6,8 @@ import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
@@ -14,6 +16,8 @@ export function useInsufficientPayTokenBalanceAlert({
 }: {
   amountOverrides?: Record<Hex, string>;
 } = {}): Alert[] {
+  const { type } = useTransactionMetadataRequest() ?? {};
+
   const { payToken } = useTransactionPayToken();
   const { balance, symbol } = payToken ?? {};
 
@@ -28,7 +32,8 @@ export function useInsufficientPayTokenBalanceAlert({
   const balanceValue = new BigNumber(balance ?? '0');
 
   const isInsufficientForFees =
-    Boolean(payToken) && balanceValue.isLessThan(totalHuman ?? '0');
+    type === TransactionType.perpsDeposit &&
+    balanceValue.isLessThan(totalHuman ?? '0');
 
   const isInsufficientForAmount =
     isInsufficientForFees && balanceValue.isLessThan(tokenAmount);

@@ -6,28 +6,20 @@ import Batcher from '../Batcher';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
 import {
-  ControllerStorage,
-  createPersistController,
-} from '../../store/persistConfig';
-import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
-import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
-import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
-
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
-import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
-import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
-import { StateConstraint } from '@metamask/base-controller';
+import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
 
 export class EngineService {
   private engineInitialized = false;
@@ -68,7 +60,6 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
-    const persistedState = await ControllerStorage.getAllPersistedState();
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
@@ -82,12 +73,7 @@ export class EngineService {
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
     });
-
-    const state =
-      (isE2E
-        ? reduxState?.engine?.backgroundState
-        : persistedState?.backgroundState) ?? {};
-
+    const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
@@ -96,9 +82,7 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
-      this.initializeControllers(Engine as unknown as TypedEngine);
-
-      this.setupEnginePersistence();
+      this.updateControllers(Engine as unknown as TypedEngine);
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -122,8 +106,7 @@ export class EngineService {
     endTrace({ name: TraceName.EngineInitialization });
   };
 
-  private initializeControllers = (engine: TypedEngine) => {
-    // coordination mechanism to prevent race conditions between engine initialization and UI rendering
+  private updateControllers = (engine: TypedEngine) => {
     if (!engine.context) {
       Logger.error(
         new Error(
@@ -147,65 +130,25 @@ export class EngineService {
       },
       () => !this.engineInitialized,
     );
-  };
 
-  /**
-   * Sets up persistence subscriptions for all engine controllers.
-   *
-   * This method subscribes to each controller's state change events and automatically:
-   * 1. Updates Redux store with the new controller state
-   * 2. Persists the filtered state to individual filesystem storage files
-   *
-   * The persistence is debounced in createPersistController to prevent excessive disk writes during rapid state changes.
-   */
-  private setupEnginePersistence = () => {
-    try {
-      if (UntypedEngine.controllerMessenger) {
-        BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
-          const controllerName = eventName.split(':')[0];
-
-          // Skip CronjobController state change events
-          // as they are handled separately in the CronjobControllerStorageManager.
-          // This prevents duplicate updates to the Redux store.
-          if (eventName === 'CronjobController:stateChange') {
-            return;
-          }
-
-          const persistController = createPersistController(200);
-
-          UntypedEngine.controllerMessenger.subscribe(
-            eventName,
-            async (controllerState: StateConstraint) => {
-              try {
-                // Filter out non-persistent fields based on controller metadata
-                const filteredState = getPersistentState(
-                  controllerState,
-                  // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
-                  UntypedEngine.context[controllerName]?.metadata,
-                );
-
-                this.updateBatcher.add(controllerName);
-
-                await persistController(filteredState, controllerName);
-              } catch (error) {
-                Logger.error(
-                  error as Error,
-                  `Failed to process ${controllerName} state change`,
-                );
-              }
-            },
-          );
-        });
-        Logger.log(
-          'Individual controller persistence and Redux update subscriptions set up successfully',
-        );
+    const update_bg_state_cb = (controllerName: string) => {
+      if (!engine.context.KeyringController.metadata.vault) {
+        Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'Failed to set up Engine persistence subscription',
+      this.updateBatcher.add(controllerName);
+    };
+
+    BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+      // Skip CronjobController state change events
+      // as they are handled separately in the CronjobControllerStorageManager.
+      // This prevents duplicate updates to the Redux store.
+      if (eventName === 'CronjobController:stateChange') {
+        return;
+      }
+      engine.controllerMessenger.subscribe(eventName, () =>
+        update_bg_state_cb(eventName.split(':')[0]),
       );
-    }
+    });
   };
 
   /**
@@ -219,9 +162,10 @@ export class EngineService {
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
     const vaultBackupResult = await getVaultFromBackup();
-    const persistedState = await ControllerStorage.getAllPersistedState();
-    const state = persistedState?.backgroundState ?? {};
+    const reduxState = ReduxService.store.getState();
+    const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
+    // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
     if (vaultBackupResult.success) {
@@ -238,7 +182,7 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       const instance = Engine.init(state, newKeyringState, metaMetricsId);
       if (instance) {
-        this.initializeControllers(instance);
+        this.updateControllers(instance);
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {
