@@ -105,7 +105,7 @@ const AccountCell = ({
             color={TextColor.Default}
             testID={AccountCellIds.BALANCE}
           >
-            {displayBalance}
+            {totalBalance ? displayBalance : null}
           </Text>
         </TouchableOpacity>
         {!hideMenu && (
