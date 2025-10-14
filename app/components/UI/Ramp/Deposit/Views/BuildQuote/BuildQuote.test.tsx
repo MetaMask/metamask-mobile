@@ -277,7 +277,7 @@ describe('BuildQuote Component', () => {
       expect(screen.toJSON()).toMatchSnapshot();
     });
 
-    it.only('does not show the duration when selected payment method is null', () => {
+    it('does not show the duration when selected payment method is null', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           selectedPaymentMethod: null,
