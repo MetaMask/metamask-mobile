@@ -31,6 +31,7 @@ import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../utils/perpsErrorHandler';
+import { processL2BookData } from '../utils/hyperLiquidOrderBookProcessor';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions
@@ -955,41 +956,14 @@ export class HyperLiquidSubscriptionService {
 
     subscriptionClient
       .l2Book({ coin: symbol, nSigFigs: 5 }, (data: L2BookResponse) => {
-        if (data.coin === symbol && data.levels) {
-          // Extract best bid and ask from order book
-          const bestBid = data.levels[0]?.[0]; // First bid level
-          const bestAsk = data.levels[1]?.[0]; // First ask level
-
-          if (bestBid || bestAsk) {
-            const bidPrice = bestBid ? parseFloat(bestBid.px) : 0;
-            const askPrice = bestAsk ? parseFloat(bestAsk.px) : 0;
-            const spread =
-              bidPrice > 0 && askPrice > 0
-                ? (askPrice - bidPrice).toFixed(5)
-                : undefined;
-
-            // Update order book cache
-            this.orderBookCache.set(symbol, {
-              bestBid: bestBid?.px,
-              bestAsk: bestAsk?.px,
-              spread,
-              lastUpdated: Date.now(),
-            });
-
-            // Update cached price data with new order book data
-            const currentCachedPrice = this.cachedPriceData?.get(symbol);
-            if (currentCachedPrice) {
-              const updatedPrice = this.createPriceUpdate(
-                symbol,
-                currentCachedPrice.price,
-              );
-
-              this.cachedPriceData ??= new Map<string, PriceUpdate>();
-              this.cachedPriceData.set(symbol, updatedPrice);
-              this.notifyAllPriceSubscribers();
-            }
-          }
-        }
+        processL2BookData({
+          symbol,
+          data,
+          orderBookCache: this.orderBookCache,
+          cachedPriceData: this.cachedPriceData,
+          createPriceUpdate: this.createPriceUpdate.bind(this),
+          notifySubscribers: this.notifyAllPriceSubscribers.bind(this),
+        });
       })
       .then((sub) => {
         this.globalL2BookSubscriptions.set(symbol, sub);
