@@ -6,6 +6,11 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayTokenAmounts');
@@ -16,6 +21,10 @@ function runHook() {
 }
 
 describe('useInsufficientPayTokenBalanceAlert', () => {
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
+  );
+
   const useTransactionPayTokenAmountsMock = jest.mocked(
     useTransactionPayTokenAmounts,
   );
@@ -24,6 +33,10 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta);
   });
 
   it('returns alert if balance less than total', () => {
@@ -97,13 +110,17 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('returns no alert if no pay token selected', () => {
+  it('returns no alert if type is not perps deposit', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.contractInteraction,
+    } as TransactionMeta);
+
     useTransactionPayTokenAmountsMock.mockReturnValue({
       totalHuman: '123.456',
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: undefined,
+      payToken: { balance: '123.455' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook();

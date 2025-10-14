@@ -16,11 +16,14 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import { setHideUnlinkedAccountsBanner } from '../../../../actions/rewards';
 import { setHideCurrentAccountNotOptedInBanner } from '../../../../reducers/rewards';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { convertInternalAccountToCaipAccountId } from '../utils';
+import { CaipAccountId } from '@metamask/utils';
 import DontMissOutIcon from '../../../../images/rewards/dont-miss-out.png';
-import { useLinkAccountGroup } from './useLinkAccountGroup';
+import { useLinkAccount } from './useLinkAccount';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../util/address';
-import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 
 /**
  * Session tracking singleton to prevent multiple modal shows per app session per account group.
@@ -84,15 +87,15 @@ export type RewardsDashboardModalType =
 export const useRewardDashboardModals = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const sessionTracker = useRef(ModalSessionTracker.getInstance());
-  const { linkAccountGroup, isLoading: isLinking } = useLinkAccountGroup();
-  const getAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
+  const { linkAccount, isLoading: isLinking } = useLinkAccount();
 
   // Shared tracking key for session management
   const trackingKey = useMemo(
-    () => selectedAccountGroup?.id || 'unknown',
-    [selectedAccountGroup?.id],
+    () => accountGroupId || selectedAccount?.id || 'unknown',
+    [accountGroupId, selectedAccount?.id],
   );
 
   // Shared icon element for consistency across modals
@@ -104,7 +107,7 @@ export const useRewardDashboardModals = () => {
    */
   const showUnlinkedAccountsModal = useCallback(() => {
     if (
-      !selectedAccountGroup ||
+      !selectedAccount ||
       sessionTracker.current.hasShownModal(
         'unlinked-accounts',
         'unlinked-accounts',
@@ -145,7 +148,7 @@ export const useRewardDashboardModals = () => {
       'unlinked-accounts',
       'unlinked-accounts',
     );
-  }, [navigation, dispatch, dontMissOutIcon, selectedAccountGroup]);
+  }, [navigation, dispatch, dontMissOutIcon, selectedAccount]);
 
   /**
    * Shows modal encouraging the current account to opt into rewards.
@@ -153,20 +156,24 @@ export const useRewardDashboardModals = () => {
    */
   const showNotOptedInModal = useCallback(() => {
     if (
-      !selectedAccountGroup?.id ||
+      !selectedAccount ||
       sessionTracker.current.hasShownModal(trackingKey, 'not-opted-in')
     ) {
       return;
     }
 
     const handleDismissCurrentAccountBanner = () => {
-      if (selectedAccountGroup?.id) {
-        dispatch(
-          setHideCurrentAccountNotOptedInBanner({
-            accountGroupId: selectedAccountGroup.id,
-            hide: true,
-          }),
-        );
+      if (selectedAccount) {
+        const caipAccountId =
+          convertInternalAccountToCaipAccountId(selectedAccount);
+        if (caipAccountId) {
+          dispatch(
+            setHideCurrentAccountNotOptedInBanner({
+              accountId: caipAccountId as CaipAccountId,
+              hide: true,
+            }),
+          );
+        }
       }
     };
 
@@ -178,10 +185,12 @@ export const useRewardDashboardModals = () => {
       customIcon: dontMissOutIcon,
       confirmAction: {
         label: strings('rewards.dashboard_modal_info.active_account.confirm'),
-        loadOnPress: true,
+        isLoading: isLinking,
         onPress: async () => {
           if (!isLinking) {
-            const linkSuccess = await linkAccountGroup(selectedAccountGroup.id);
+            const linkSuccess = await linkAccount(
+              selectedAccount as InternalAccount,
+            );
             navigation.navigate(Routes.REWARDS_DASHBOARD);
             if (linkSuccess) {
               handleDismissCurrentAccountBanner();
@@ -197,13 +206,13 @@ export const useRewardDashboardModals = () => {
 
     sessionTracker.current.markModalAsShown(trackingKey, 'not-opted-in');
   }, [
-    selectedAccountGroup?.id,
-    trackingKey,
     navigation,
     dontMissOutIcon,
     isLinking,
+    selectedAccount,
     dispatch,
-    linkAccountGroup,
+    linkAccount,
+    trackingKey,
   ]);
 
   /**
@@ -211,19 +220,15 @@ export const useRewardDashboardModals = () => {
    * Provides different messaging for hardware wallets vs other account types.
    */
   const showNotSupportedModal = useCallback(() => {
-    if (!selectedAccountGroup?.id) {
+    if (!selectedAccount) {
       return;
     }
-    const accountsForGroup = getAccountsByGroupId(selectedAccountGroup.id);
-    const hasHardwareAccounts = accountsForGroup.some((account) =>
-      isHardwareAccount(account.address),
-    );
 
     navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
       title: strings(
         'rewards.dashboard_modal_info.account_not_supported.title',
       ),
-      description: hasHardwareAccounts
+      description: isHardwareAccount(selectedAccount?.address as string)
         ? strings(
             'rewards.dashboard_modal_info.account_not_supported.description_hardware',
           )
@@ -250,7 +255,7 @@ export const useRewardDashboardModals = () => {
       showCancelButton: true,
       cancelMode: 'top-right-cross-icon',
     });
-  }, [getAccountsByGroupId, navigation, selectedAccountGroup?.id]);
+  }, [navigation, selectedAccount]);
 
   /**
    * Resets session tracking for all modal types.
@@ -268,12 +273,12 @@ export const useRewardDashboardModals = () => {
    */
   const hasShownModal = useCallback(
     (modalType: RewardsDashboardModalType) => {
-      if (!selectedAccountGroup?.id) {
+      if (!selectedAccount) {
         return false;
       }
       return sessionTracker.current.hasShownModal(trackingKey, modalType);
     },
-    [selectedAccountGroup?.id, trackingKey],
+    [selectedAccount, trackingKey],
   );
 
   /**
@@ -281,10 +286,10 @@ export const useRewardDashboardModals = () => {
    * Useful when you want to allow modals to be shown again for the current account group.
    */
   const resetSessionTrackingForCurrentAccountGroup = useCallback(() => {
-    if (selectedAccountGroup?.id) {
+    if (selectedAccount) {
       sessionTracker.current.resetForAccountGroup(trackingKey);
     }
-  }, [selectedAccountGroup?.id, trackingKey]);
+  }, [selectedAccount, trackingKey]);
 
   const resetAllSessionTracking = useCallback(() => {
     sessionTracker.current.reset();

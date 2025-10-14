@@ -39,7 +39,7 @@ class PerpsTutorialScreen {
 
   async expectFirstScreenVisible() {
     const title = await this.title;
-    expect(await title).toBeVisible();
+    expect(await title).toBeVisible({ timeout: 10000 });
   }
 
   async flowTapContinueTutorial(times = 1) {
@@ -51,3 +51,5 @@ class PerpsTutorialScreen {
 }
 
 export default new PerpsTutorialScreen();
+
+

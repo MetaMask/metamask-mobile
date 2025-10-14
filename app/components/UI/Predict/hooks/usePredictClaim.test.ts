@@ -32,7 +32,7 @@ function createMockState(overrides: any = {}): any {
     engine: {
       backgroundState: {
         PredictController: {
-          claimTransaction: null,
+          claimTransactions: {},
           ...overrides.PredictController,
         },
         ...overrides,
@@ -127,87 +127,176 @@ describe('usePredictClaim', () => {
   });
 
   describe('initial state', () => {
-    it('returns initial state correctly when no claim transaction exists', () => {
+    it('returns initial state correctly when no claim transactions exist', () => {
       const { result } = setupUsePredictClaimTest();
 
       expect(result.current.loading).toBe(false);
       expect(result.current.completed).toBe(false);
       expect(result.current.error).toBe(false);
+      expect(result.current.cancelled).toBe(false);
+      expect(result.current.completedClaimPositionIds).toEqual(new Set());
       expect(typeof result.current.claim).toBe('function');
     });
 
-    it('returns initial state correctly when claim transaction is null', () => {
+    it('returns initial state correctly when claim transactions are null', () => {
       const { result } = setupUsePredictClaimTest({
         PredictController: {
-          claimTransaction: null,
+          claimTransactions: null,
         },
       });
 
       expect(result.current.loading).toBe(false);
       expect(result.current.completed).toBe(false);
       expect(result.current.error).toBe(false);
+      expect(result.current.cancelled).toBe(false);
+      expect(result.current.completedClaimPositionIds).toEqual(new Set());
     });
   });
 
-  describe('state computation from claim transaction', () => {
-    it('computes completed state when transaction is confirmed', () => {
-      const claimTransaction = createMockClaimTransaction({
-        status: 'confirmed',
-        positionId: 'pos-1',
-      });
+  describe('state computation from claim transactions', () => {
+    it('computes completed state when all transactions are confirmed', () => {
+      const claimTransactions = {
+        'tx-1': [
+          createMockClaimTransaction({
+            status: 'confirmed',
+            positionId: 'pos-1',
+          }),
+          createMockClaimTransaction({
+            status: 'confirmed',
+            positionId: 'pos-2',
+          }),
+        ],
+        'tx-2': [
+          createMockClaimTransaction({
+            status: 'confirmed',
+            positionId: 'pos-3',
+          }),
+        ],
+      };
 
       const { result } = setupUsePredictClaimTest({
-        PredictController: { claimTransaction },
+        PredictController: { claimTransactions },
       });
 
       expect(result.current.completed).toBe(true);
+      expect(result.current.completedClaimPositionIds).toEqual(
+        new Set(['pos-1', 'pos-2', 'pos-3']),
+      );
     });
 
-    it('computes pending state when transaction is pending', () => {
-      const claimTransaction = createMockClaimTransaction({
-        status: 'pending',
-      });
+    it('computes pending state when any transaction is pending', () => {
+      const claimTransactions = {
+        'tx-1': [createMockClaimTransaction({ status: 'confirmed' })],
+        'tx-2': [createMockClaimTransaction({ status: 'pending' })],
+      };
 
       const { result } = setupUsePredictClaimTest({
-        PredictController: { claimTransaction },
+        PredictController: { claimTransactions },
       });
 
       expect(result.current.loading).toBe(true); // loading = claiming || pending
     });
 
-    it('computes error state when transaction has error status', () => {
-      const claimTransaction = createMockClaimTransaction({ status: 'error' });
+    it('computes error state when any transaction has error status', () => {
+      const claimTransactions = {
+        'tx-1': [createMockClaimTransaction({ status: 'confirmed' })],
+        'tx-2': [createMockClaimTransaction({ status: 'error' })],
+      };
 
       const { result } = setupUsePredictClaimTest({
-        PredictController: { claimTransaction },
+        PredictController: { claimTransactions },
       });
 
       expect(result.current.error).toBe(true);
     });
 
-    it('computes mixed states correctly', () => {
-      const claimTransaction = createMockClaimTransaction({
-        status: 'pending',
-        positionId: 'pos-1',
-      });
+    it('computes cancelled state when any transaction is cancelled', () => {
+      const claimTransactions = {
+        'tx-1': [createMockClaimTransaction({ status: 'confirmed' })],
+        'tx-2': [createMockClaimTransaction({ status: 'cancelled' })],
+      };
 
       const { result } = setupUsePredictClaimTest({
-        PredictController: { claimTransaction },
+        PredictController: { claimTransactions },
+      });
+
+      expect(result.current.cancelled).toBe(true);
+    });
+
+    it('computes mixed states correctly', () => {
+      const claimTransactions = {
+        'tx-1': [
+          createMockClaimTransaction({
+            status: 'confirmed',
+            positionId: 'pos-1',
+          }),
+        ],
+        'tx-2': [
+          createMockClaimTransaction({
+            status: 'pending',
+            positionId: 'pos-2',
+          }),
+        ],
+        'tx-3': [
+          createMockClaimTransaction({ status: 'error', positionId: 'pos-3' }),
+        ],
+        'tx-4': [
+          createMockClaimTransaction({
+            status: 'cancelled',
+            positionId: 'pos-4',
+          }),
+        ],
+      };
+
+      const { result } = setupUsePredictClaimTest({
+        PredictController: { claimTransactions },
       });
 
       expect(result.current.completed).toBe(false);
       expect(result.current.loading).toBe(true); // has pending
-      expect(result.current.error).toBe(false);
+      expect(result.current.error).toBe(true); // has error
+      expect(result.current.cancelled).toBe(true); // has cancelled
+      expect(result.current.completedClaimPositionIds).toEqual(
+        new Set(['pos-1']),
+      );
     });
 
-    it('handles null transaction', () => {
+    it('handles empty transaction arrays', () => {
+      const claimTransactions = {
+        'tx-1': [],
+        'tx-2': [],
+      };
+
       const { result } = setupUsePredictClaimTest({
-        PredictController: { claimTransaction: null },
+        PredictController: { claimTransactions },
       });
 
+      // When there are transaction arrays but they're empty, completed should be false
       expect(result.current.completed).toBe(false);
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.completedClaimPositionIds).toEqual(new Set());
+    });
+
+    it('handles mixed null and valid transaction arrays', () => {
+      const claimTransactions = {
+        'tx-1': null,
+        'tx-2': [
+          createMockClaimTransaction({
+            status: 'confirmed',
+            positionId: 'pos-1',
+          }),
+        ],
+      };
+
+      const { result } = setupUsePredictClaimTest({
+        PredictController: { claimTransactions },
+      });
+
+      // When there's a null transaction array, completed should be false
+      // but completedClaimPositionIds should still collect confirmed transactions
+      expect(result.current.completed).toBe(false);
+      expect(result.current.completedClaimPositionIds).toEqual(
+        new Set(['pos-1']),
+      );
     });
   });
 
@@ -222,10 +311,7 @@ describe('usePredictClaim', () => {
         claimResult = await result.current.claim(mockClaimParams);
       });
 
-      expect(mockClaim).toHaveBeenCalledWith({
-        ...mockClaimParams,
-        providerId: 'polymarket',
-      });
+      expect(mockClaim).toHaveBeenCalledWith(mockClaimParams);
       expect(claimResult).toEqual(mockClaimResult);
     });
 
@@ -242,10 +328,7 @@ describe('usePredictClaim', () => {
         claimResult = await result.current.claim(mockClaimParams);
       });
 
-      expect(mockClaim).toHaveBeenCalledWith({
-        ...mockClaimParams,
-        providerId: 'polymarket',
-      });
+      expect(mockClaim).toHaveBeenCalledWith(mockClaimParams);
       expect(onErrorMock).toHaveBeenCalledWith(mockError);
       expect(claimResult).toEqual({
         success: false,
@@ -253,26 +336,30 @@ describe('usePredictClaim', () => {
       });
     });
 
-    it('returns non-success results from claimWinnings', async () => {
+    it('handles non-success results from claimWinnings', async () => {
       const mockErrorResult = {
         success: false,
         error: 'Insufficient balance',
       };
+      const onErrorMock = jest.fn();
 
       mockClaim.mockResolvedValue(mockErrorResult);
 
-      const { result } = setupUsePredictClaimTest();
+      const { result } = setupUsePredictClaimTest({}, { onError: onErrorMock });
 
       let claimResult;
       await act(async () => {
         claimResult = await result.current.claim(mockClaimParams);
       });
 
-      expect(mockClaim).toHaveBeenCalledWith({
-        ...mockClaimParams,
-        providerId: 'polymarket',
+      expect(mockClaim).toHaveBeenCalledWith(mockClaimParams);
+      expect(onErrorMock).toHaveBeenCalledWith(
+        new Error('Insufficient balance'),
+      );
+      expect(claimResult).toEqual({
+        success: false,
+        error: new Error('Insufficient balance'),
       });
-      expect(claimResult).toEqual(mockErrorResult);
     });
   });
 
@@ -291,6 +378,24 @@ describe('usePredictClaim', () => {
 
       expect(onErrorMock).toHaveBeenCalledWith(mockError);
     });
+
+    it('calls onError callback when claimWinnings returns unsuccessful result', async () => {
+      const mockErrorResult = {
+        success: false,
+        error: 'Insufficient funds',
+      };
+      const onErrorMock = jest.fn();
+
+      mockClaim.mockResolvedValue(mockErrorResult);
+
+      const { result } = setupUsePredictClaimTest({}, { onError: onErrorMock });
+
+      await act(async () => {
+        await result.current.claim(mockClaimParams);
+      });
+
+      expect(onErrorMock).toHaveBeenCalledWith(new Error('Insufficient funds'));
+    });
   });
 
   describe('hook stability', () => {
@@ -306,15 +411,17 @@ describe('usePredictClaim', () => {
   });
 
   describe('memoization', () => {
-    it('recomputes completed state when claimTransaction changes', () => {
+    it('recomputes completed state when claimTransactions change', () => {
       const { result, rerender } = setupUsePredictClaimTest();
 
       expect(result.current.completed).toBe(false);
 
-      // Update state with completed transaction
+      // Update state with completed transactions
       mockState = createMockState({
         PredictController: {
-          claimTransaction: createMockClaimTransaction({ status: 'confirmed' }),
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'confirmed' })],
+          },
         },
       });
 
@@ -323,7 +430,7 @@ describe('usePredictClaim', () => {
       expect(result.current.completed).toBe(true);
     });
 
-    it('recomputes loading state when pending transaction changes', () => {
+    it('recomputes loading state when pending transactions change', () => {
       const { result, rerender } = setupUsePredictClaimTest();
 
       expect(result.current.loading).toBe(false);
@@ -331,7 +438,9 @@ describe('usePredictClaim', () => {
       // Add pending transaction
       mockState = createMockState({
         PredictController: {
-          claimTransaction: createMockClaimTransaction({ status: 'pending' }),
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'pending' })],
+          },
         },
       });
 
@@ -345,10 +454,10 @@ describe('usePredictClaim', () => {
     it('calls onComplete callback when completed becomes true while claiming', async () => {
       const onComplete = jest.fn();
 
-      // Start with no transaction
+      // Start with no transactions
       mockState = createMockState({
         PredictController: {
-          claimTransaction: null,
+          claimTransactions: {},
         },
       });
 
@@ -366,10 +475,12 @@ describe('usePredictClaim', () => {
       // Verify claiming is true
       expect(result.current.loading).toBe(true);
 
-      // Now simulate completion by updating state with confirmed transaction
+      // Now simulate completion by updating state with confirmed transactions
       mockState = createMockState({
         PredictController: {
-          claimTransaction: createMockClaimTransaction({ status: 'confirmed' }),
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'confirmed' })],
+          },
         },
       });
 
@@ -384,10 +495,10 @@ describe('usePredictClaim', () => {
     it('calls onError when error status is detected while claiming', async () => {
       const onError = jest.fn();
 
-      // Start with no transaction, then simulate error
+      // Start with no transactions, then simulate error
       mockState = createMockState({
         PredictController: {
-          claimTransaction: null,
+          claimTransactions: {},
         },
       });
 
@@ -402,10 +513,12 @@ describe('usePredictClaim', () => {
         await result.current.claim({ positions: [createMockPosition()] });
       });
 
-      // Now simulate error by updating state with error transaction
+      // Now simulate error by updating state with error transactions
       mockState = createMockState({
         PredictController: {
-          claimTransaction: createMockClaimTransaction({ status: 'error' }),
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'error' })],
+          },
         },
       });
 
@@ -417,6 +530,45 @@ describe('usePredictClaim', () => {
       expect(onError).toHaveBeenCalledWith(
         new Error('Error claiming winnings'),
       );
+      expect(mockClearClaimTransactionsCasted).toHaveBeenCalled();
+    });
+
+    it('calls onError when cancelled status is detected while claiming', async () => {
+      const onError = jest.fn();
+
+      // Start with no transactions, then simulate cancellation
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {},
+        },
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictClaim({ onError }),
+      );
+
+      // Mock successful claim to set claiming to true
+      mockClaim.mockResolvedValueOnce({ success: true });
+
+      await act(async () => {
+        await result.current.claim({ positions: [createMockPosition()] });
+      });
+
+      // Now simulate cancellation by updating state with cancelled transactions
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'cancelled' })],
+          },
+        },
+      });
+
+      // Re-render to trigger useEffect with cancelled state
+      await act(async () => {
+        rerender({ onError });
+      });
+
+      expect(onError).toHaveBeenCalledWith(new Error('Claim cancelled'));
       expect(mockClearClaimTransactionsCasted).toHaveBeenCalled();
     });
   });

@@ -12,7 +12,6 @@ import SentryTest from './SentryTest';
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -45,7 +44,6 @@ const DeveloperOptions = () => {
     <ScrollView style={styles.wrapper}>
       <SentryTest />
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
-      <ConfirmationsDeveloperOptions />
     </ScrollView>
   );
 };

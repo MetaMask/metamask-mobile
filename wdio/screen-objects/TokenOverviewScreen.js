@@ -3,7 +3,6 @@ import Gestures from '../helpers/Gestures';
 import { TokenOverviewSelectorsIDs } from '../../e2e/selectors/wallet/TokenOverview.selectors';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import { expect as expectAppwright } from 'appwright';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 class TokenOverviewScreen {
   get device() {
     return this._device;
@@ -30,11 +29,7 @@ class TokenOverviewScreen {
   }
 
   get sendButton() {
-    if (!this._device) {
-      return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.SEND_BUTTON);
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, TokenOverviewSelectorsIDs.SEND_BUTTON);
-    }
+    return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.SEND_BUTTON);
   }
 
   async isTokenOverviewVisible() {
@@ -59,24 +54,9 @@ class TokenOverviewScreen {
   }
 
   async tapSendButton() {
-    if (!this._device) {
     await Gestures.swipeUp(0.5);
     await driver.pause(1000);
     await Gestures.waitAndTap(this.sendButton);
-    }
-    else {
-      await AppwrightGestures.tap(this.sendButton);
-    }
-  }
-
-  async isSendButtonVisible() {
-    if (!this._device) {
-      const element = await this.sendButton;
-      await element.waitForDisplayed();
-    } else {
-      const element = await this.sendButton;
-      expectAppwright(await element).toBeVisible();
-    }
   }
 }
 

@@ -10,7 +10,6 @@ import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/s
 import { cloneDeep } from 'lodash';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -175,11 +174,7 @@ describe('BridgeSourceNetworkSelector', () => {
     // Wait for async operations to complete
     await waitFor(() => {
       // Should call setSelectedSourceChainIds with just Optimism chainId
-      expect(setSelectedSourceChainIds).toHaveBeenCalledWith([
-        optimismChainId,
-        SolScope.Mainnet,
-        BtcScope.Mainnet,
-      ]);
+      expect(setSelectedSourceChainIds).toHaveBeenCalledWith([optimismChainId]);
 
       // Should navigate back
       expect(mockGoBack).toHaveBeenCalled();
@@ -246,7 +241,7 @@ describe('BridgeSourceNetworkSelector', () => {
     ] = {
       isActiveSrc: true,
       isActiveDest: true,
-      isGaslessSwapEnabled: false,
+      isUnifiedUIEnabled: true,
     };
 
     const { getByText } = renderScreen(

@@ -221,10 +221,6 @@
     "remind_later_description2": "ウォレットのバックアップやシークレットリカバリーフレーズの確認は、",
     "setting_security_privacy": "「設定」>「セキュリティとプライバシー」"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
-  },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
     "title2": "デジタル資産の管理",
@@ -393,7 +389,6 @@
     "description": "このデバイスでのみMetaMaskのロックが解除されます。",
     "description_social_login": "これは、すべてのデバイスでのウォレットの復元に使用します。",
     "description_social_login_update": "このパスワードを紛失すると、どのデバイスでもウォレットにアクセスできなくなります。安全な場所に保管してください。",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask側でリセットすることはできません。",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
     "password": "パスワードを作成",
@@ -667,14 +662,7 @@
       "bullet_2_description": "USDCは価値が安定するよう設計されているため、計画、貯蓄、支出が容易になります。",
       "bullet_3_title": "銀行よりも高速",
       "bullet_3_description": "銀行の営業時間を待ったり、国際送金の遅延を心配したりすることなく、数分で送金・受け取りが可能です。",
-      "button": "開始",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "開始"
     },
     "enter_email": {
       "navbar_title": "本人確認を行う",
@@ -891,6 +879,7 @@
     "refresh_balance": "残高を更新",
     "add_funds": "資金を追加",
     "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "保有ポジション",
     "loading_positions": "ポジションを読み込み中...",
     "refreshing_positions": "ポジションを更新中...",
@@ -2795,13 +2784,12 @@
   },
   "gas_fee_token_modal": {
     "title": "トークンの選択",
+    "title_pay_eth": "ETHでの支払い",
     "native_toggle_wallet": "ウォレットの残高を使用してネットワーク手数料を支払います。",
     "list_balance": "残高:",
     "insufficient_balance": "資金不足",
-    "native_toggle_metamask": "このトランザクションを完了させるために、MetaMaskが残高を補完します。"
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "このトランザクションを完了させるために、MetaMaskが残高を補完します。",
+    "title_pay_with_other_tokens": "他のトークンでの支払い"
   },
   "transaction": {
     "transaction_id": "トランザクションID",
@@ -3855,7 +3843,7 @@
     "list": {
       "0": "すべて",
       "1": "ウォレット",
-      "2": "お知らせ"
+       "2": "お知らせ"
     },
     "copied_to_clipboard": "クリップボードにコピーされました",
     "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
@@ -5938,7 +5926,9 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6104,10 +6094,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

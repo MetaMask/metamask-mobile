@@ -52,7 +52,7 @@ const QuoteDetailsCard = () => {
 
   const locale = I18n.locale;
   const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumFractionDigits: 6,
+    maximumFractionDigits: 3,
   });
 
   const {

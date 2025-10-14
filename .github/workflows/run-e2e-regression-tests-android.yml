@@ -1,14 +1,10 @@
 name: Android E2E Regression Tests
 
 on:
+  workflow_call:
   schedule:
-    - cron: '0 */3 * * *'  # Every 3 hours
+    - cron: '30 4 * * *'  # 4:30 AM UTC
   workflow_dispatch:
-    inputs:
-      notify_on_pass:
-        description: 'Send Slack notification even when all tests pass'
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -86,6 +82,22 @@ jobs:
       test-suite-name: regression-wallet-platform-android-${{ matrix.split }}
       platform: android
       test_suite_tag: 'RegressionWalletPlatform'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-identity-android:
+    name: 'Identity Regression (Android) - ${{ matrix.split }}'
+    needs: [build-android-apks]
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-identity-android-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'RegressionIdentity'
       split_number: ${{ matrix.split }}
       total_splits: 4
     secrets: inherit
@@ -175,11 +187,11 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
-      - build-android-apks
       - regression-confirmations-android
       - regression-confirmations-redesigned-android
       - regression-trade-android
       - regression-wallet-platform-android
+      - regression-identity-android
       - regression-accounts-android
       - regression-network-abstraction-android
       - regression-network-expansion-android
@@ -213,48 +225,3 @@ jobs:
         with:
           name: android-merged-test-report
           path: all-test-results/**/*.xml
-
-      - name: Generate Test Summary
-        id: summary
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          EXIT_CODE=0
-          {
-            echo "summary<<EOF"
-            node .github/scripts/generate-regression-slack-summary.mjs Android || EXIT_CODE=$?
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          exit $EXIT_CODE
-
-      - name: Prepare Slack Payload
-        if: always() && (steps.summary.outcome == 'failure' || inputs.notify_on_pass == true)
-        run: |
-          node -e "
-          const fs = require('fs');
-          const message = \`${{ steps.summary.outputs.summary }}\`;
-          const hasFailed = '${{ steps.summary.outcome }}' === 'failure';
-          const title = hasFailed ? 'Android E2E Regression Test Failures' : 'Android E2E Regression Test Results';
-          const payload = {
-            text: title,
-            blocks: [
-              {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: message
-                }
-              }
-            ]
-          };
-          fs.writeFileSync('/tmp/slack-payload.json', JSON.stringify(payload, null, 2));
-          "
-
-      - name: Send Slack Notification
-        if: always() && (steps.summary.outcome == 'failure' || inputs.notify_on_pass == true)
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
-        with:
-          webhook: ${{ secrets.REGRESSION_E2E_SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload-file-path: /tmp/slack-payload.json

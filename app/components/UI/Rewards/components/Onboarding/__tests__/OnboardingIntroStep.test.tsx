@@ -90,44 +90,50 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-// Helper to create mock account group accounts
-const createMockAccountGroupAccounts = (
-  overrides: Partial<{
-    id: string;
-    address: string;
-    type: string;
-    options: Record<string, unknown>;
-    methods: string[];
-    metadata: { name: string; keyring: { type: string } };
-  }>[],
-) =>
-  overrides.map((override) => ({
-    id: 'test-account',
-    address: '0x123',
-    type: 'eip155:eoa',
-    options: {},
-    methods: [],
-    metadata: {
-      name: 'Test Account',
-      keyring: { type: 'HD Key Tree' },
-    },
-    ...override,
-  }));
-
-// Default mock account group accounts
-const defaultAccountGroupAccounts = createMockAccountGroupAccounts([
-  { id: 'test-account', address: '0x123', type: 'eip155:eoa' },
-]);
-
-// Import the actual selectors to identify them in mocks
-import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
-
 // Mock redux
 const mockDispatch = createMockDispatch();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
-  useSelector: jest.fn(),
+  useSelector: jest.fn((selector) => {
+    const state = {
+      rewards: {
+        optinAllowedForGeo: true,
+        optinAllowedForGeoLoading: false,
+        onboardingActiveStep: 'intro',
+        candidateSubscriptionId: null,
+        rewardsControllerState: {
+          activeAccount: {
+            subscriptionId: null,
+            account: 'test-account',
+            hasOptedIn: false,
+          },
+        },
+      },
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'test-account',
+              accounts: {
+                'test-account': {
+                  type: 'eip155:eoa',
+                },
+              },
+            },
+          },
+          RewardsController: {
+            activeAccount: {
+              subscriptionId: null,
+              account: 'test-account',
+              hasOptedIn: false,
+            },
+          },
+        },
+      },
+    };
+    return selector(state);
+  }),
 }));
 
 // Mock metrics - first definition (will be overridden below with constants). Keeping for potential earlier imports.
@@ -211,55 +217,6 @@ describe('OnboardingIntroStep', () => {
       }
       return undefined;
     });
-
-    // Set up default useSelector mock
-    const mockUseSelector = jest.requireMock('react-redux')
-      .useSelector as jest.Mock;
-    mockUseSelector.mockImplementation((selector) => {
-      // Check if this is the accountGroupAccounts selector
-      if (selector === selectSelectedAccountGroupInternalAccounts) {
-        return defaultAccountGroupAccounts;
-      }
-
-      // Otherwise, use the normal state-based selectors
-      const state = {
-        rewards: {
-          optinAllowedForGeo: true,
-          optinAllowedForGeoLoading: false,
-          onboardingActiveStep: 'intro',
-          candidateSubscriptionId: null,
-          rewardsControllerState: {
-            activeAccount: {
-              subscriptionId: null,
-              account: 'test-account',
-              hasOptedIn: false,
-            },
-          },
-        },
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'test-account',
-                accounts: {
-                  'test-account': {
-                    type: 'eip155:eoa',
-                  },
-                },
-              },
-            },
-            RewardsController: {
-              activeAccount: {
-                subscriptionId: null,
-                account: 'test-account',
-                hasOptedIn: false,
-              },
-            },
-          },
-        },
-      };
-      return selector(state);
-    });
   });
 
   describe('rendering', () => {
@@ -325,13 +282,7 @@ describe('OnboardingIntroStep', () => {
 
   describe('loading states', () => {
     it('should show loading state when checking geo permissions', () => {
-      const mockUseSelector = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
-
+      const mockSelectorWithLoading = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -371,6 +322,10 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockImplementation(mockSelectorWithLoading);
+
       renderWithProviders(<OnboardingIntroStep />);
 
       const confirmButton = screen.getByText(
@@ -382,26 +337,17 @@ describe('OnboardingIntroStep', () => {
 
   describe('account validation', () => {
     it('should show error modal for Solana accounts', () => {
-      // Note: Solana accounts are now filtered out before reaching OnboardingIntroStep
-      // by the account group selector. This test verifies behavior if a Solana account
-      // somehow exists in the group (which shouldn't happen in practice).
+      // Reset the mock to ensure it returns true for this test
+      const mockIsSolanaAccount = jest.requireMock(
+        '../../../../../../core/Multichain/utils',
+      ).isSolanaAccount as jest.Mock;
+      mockIsSolanaAccount.mockClear();
+      mockIsSolanaAccount.mockReturnValue(true);
 
-      // Create account group with Solana account
-      const solanaAccountGroup = createMockAccountGroupAccounts([
-        {
-          id: 'test-solana',
-          address: 'solana-address',
-          type: 'bip122:000000000019d6689c085ae165831e93',
-        },
-      ]);
-
+      // Ensure we have a valid account for the Solana check
       const mockUseSelectorSolana = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
       mockUseSelectorSolana.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return solanaAccountGroup;
-        }
-
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -411,7 +357,7 @@ describe('OnboardingIntroStep', () => {
             rewardsControllerState: {
               activeAccount: {
                 subscriptionId: null,
-                account: 'test-solana',
+                account: 'test-account',
                 hasOptedIn: false,
               },
             },
@@ -420,10 +366,10 @@ describe('OnboardingIntroStep', () => {
             backgroundState: {
               AccountsController: {
                 internalAccounts: {
-                  selectedAccount: 'test-solana',
+                  selectedAccount: 'test-account',
                   accounts: {
-                    'test-solana': {
-                      type: 'bip122:000000000019d6689c085ae165831e93',
+                    'test-account': {
+                      type: 'solana:mainnet',
                       address: 'solana-address',
                     },
                   },
@@ -432,7 +378,7 @@ describe('OnboardingIntroStep', () => {
               RewardsController: {
                 activeAccount: {
                   subscriptionId: null,
-                  account: 'test-solana',
+                  account: 'test-account',
                   hasOptedIn: false,
                 },
               },
@@ -449,11 +395,18 @@ describe('OnboardingIntroStep', () => {
       );
       fireEvent.press(confirmButton);
 
-      // Should proceed normally (Solana check removed from this component)
+      // Should show error modal for Solana accounts
       expect(mockNavigate).toHaveBeenCalled();
     });
 
     it('should show error modal for geo-restricted regions', () => {
+      // Ensure Solana account check returns false so geo check is reached
+      const mockIsSolanaAccount = jest.requireMock(
+        '../../../../../../core/Multichain/utils',
+      ).isSolanaAccount as jest.Mock;
+      mockIsSolanaAccount.mockClear();
+      mockIsSolanaAccount.mockReturnValue(false);
+
       // Ensure hardware account check returns false so geo check is reached
       const mockIsHardwareAccount = jest.requireMock(
         '../../../../../../util/address',
@@ -461,9 +414,6 @@ describe('OnboardingIntroStep', () => {
       mockIsHardwareAccount.mockReturnValue(false);
 
       const mockSelectorWithGeoBlocked = jest.fn((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
         const state = {
           rewards: {
             optinAllowedForGeo: false,
@@ -530,25 +480,14 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should show error modal when account group contains hardware wallet', () => {
-      // Create account group with hardware wallet account
-      const hardwareAccountGroup = createMockAccountGroupAccounts([
-        { id: 'test-hardware-account', address: '0x123', type: 'eip155:eoa' },
-      ]);
-
-      // Mock hardware account check to return true for this address
+    it('should show error modal when account is hardware wallet', () => {
+      // Mock hardware account check to return true
       const mockIsHardwareAccount = jest.requireMock(
         '../../../../../../util/address',
       ).isHardwareAccount as jest.Mock;
       mockIsHardwareAccount.mockReturnValue(true);
 
-      const mockUseSelectorHardware = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorHardware.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return hardwareAccountGroup;
-        }
-
+      const mockSelectorWithHardwareAccount = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true, // Geo is allowed, so hardware check is reached
@@ -589,6 +528,12 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelectorHardware = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorHardware.mockImplementation(
+        mockSelectorWithHardwareAccount,
+      );
+
       renderWithProviders(<OnboardingIntroStep />);
 
       const confirmButton = screen.getByText(
@@ -613,14 +558,15 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should proceed to onboarding when account group has no hardware wallet', () => {
+    it('should proceed to onboarding when account is not a hardware wallet', () => {
       // Reset all mocks
       jest.clearAllMocks();
 
-      // Create regular account group
-      const regularAccountGroup = createMockAccountGroupAccounts([
-        { id: 'test-regular-account', address: '0x456', type: 'eip155:eoa' },
-      ]);
+      // Mock isSolanaAccount to return false
+      const mockIsSolanaAccount = jest.requireMock(
+        '../../../../../../core/Multichain/utils',
+      ).isSolanaAccount as jest.Mock;
+      mockIsSolanaAccount.mockReturnValue(false);
 
       // Mock hardware account check to return false
       const mockIsHardwareAccount = jest.requireMock(
@@ -636,13 +582,7 @@ describe('OnboardingIntroStep', () => {
         return undefined;
       });
 
-      const mockUseSelectorRegular = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorRegular.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return regularAccountGroup;
-        }
-
+      const mockSelectorWithRegularAccount = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -683,6 +623,10 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelectorRegular = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorRegular.mockImplementation(mockSelectorWithRegularAccount);
+
       renderWithProviders(<OnboardingIntroStep />);
 
       const confirmButton = screen.getByText(
@@ -694,17 +638,8 @@ describe('OnboardingIntroStep', () => {
       expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('should show error modal when no account in group is supported for opt-in', () => {
-      // Create account group with unsupported account type
-      const unsupportedAccountGroup = createMockAccountGroupAccounts([
-        {
-          id: 'test-unsupported-account',
-          address: '0x789',
-          type: 'unsupported:type',
-        },
-      ]);
-
-      // Mock isOptInSupported to return false for all accounts in this group
+    it('should show error modal when account type is not supported for opt-in', () => {
+      // Mock isOptInSupported to return false for unsupported account types
       mockControllerMessengerCall.mockImplementation((method, account) => {
         if (
           method === 'RewardsController:isOptInSupported' &&
@@ -721,13 +656,7 @@ describe('OnboardingIntroStep', () => {
       ).isHardwareAccount as jest.Mock;
       mockIsHardwareAccount.mockReturnValue(false);
 
-      const mockUseSelectorUnsupported = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorUnsupported.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return unsupportedAccountGroup;
-        }
-
+      const mockSelectorWithUnsupportedAccount = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true, // Geo is allowed, so account type check is reached
@@ -768,6 +697,12 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelectorUnsupported = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorUnsupported.mockImplementation(
+        mockSelectorWithUnsupportedAccount,
+      );
+
       renderWithProviders(<OnboardingIntroStep />);
 
       const confirmButton = screen.getByText(
@@ -791,14 +726,15 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should proceed to onboarding when account group has at least one supported account', () => {
+    it('should proceed to onboarding when account type is supported for opt-in', () => {
       // Reset all mocks
       jest.clearAllMocks();
 
-      // Create account group with supported account
-      const supportedAccountGroup = createMockAccountGroupAccounts([
-        { id: 'test-supported-account', address: '0x999', type: 'eip155:eoa' },
-      ]);
+      // Mock isSolanaAccount to return false
+      const mockIsSolanaAccount = jest.requireMock(
+        '../../../../../../core/Multichain/utils',
+      ).isSolanaAccount as jest.Mock;
+      mockIsSolanaAccount.mockReturnValue(false);
 
       // Mock hardware account check to return false
       const mockIsHardwareAccount = jest.requireMock(
@@ -814,13 +750,8 @@ describe('OnboardingIntroStep', () => {
         return undefined;
       });
 
-      const mockUseSelector = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return supportedAccountGroup;
-        }
-
+      // Mock useSelector to return a state with geo allowed
+      const mockSelector = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -861,6 +792,10 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockImplementation(mockSelector);
+
       // Clear navigate mock to ensure clean test state
       mockNavigate.mockClear();
 
@@ -881,13 +816,7 @@ describe('OnboardingIntroStep', () => {
 
   describe('candidateSubscriptionId states', () => {
     it('should show skeleton when candidateSubscriptionId is pending', () => {
-      const mockUseSelectorPending = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorPending.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
-
+      const mockSelectorWithPending = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -927,6 +856,10 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelectorPending = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorPending.mockImplementation(mockSelectorWithPending);
+
       renderWithProviders(<OnboardingIntroStep />);
 
       // Should not render the main container when loading
@@ -934,13 +867,7 @@ describe('OnboardingIntroStep', () => {
     });
 
     it('should show skeleton when candidateSubscriptionId is retry', () => {
-      const mockUseSelectorRetry = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorRetry.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
-
+      const mockSelectorWithRetry = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -980,6 +907,10 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelectorRetry = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorRetry.mockImplementation(mockSelectorWithRetry);
+
       renderWithProviders(<OnboardingIntroStep />);
 
       // Should not render the main container when loading
@@ -987,13 +918,7 @@ describe('OnboardingIntroStep', () => {
     });
 
     it('should show error modal when candidateSubscriptionId is error', () => {
-      const mockUseSelectorError = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorError.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
-
+      const mockSelectorWithError = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -1032,6 +957,10 @@ describe('OnboardingIntroStep', () => {
         };
         return selector(state);
       });
+
+      const mockUseSelectorError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorError.mockImplementation(mockSelectorWithError);
 
       renderWithProviders(<OnboardingIntroStep />);
 
@@ -1054,13 +983,7 @@ describe('OnboardingIntroStep', () => {
     });
 
     it('should dispatch setCandidateSubscriptionId with retry when modal retry is triggered', () => {
-      const mockUseSelectorError = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorError.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
-
+      const mockSelectorWithError = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -1099,6 +1022,10 @@ describe('OnboardingIntroStep', () => {
         };
         return selector(state);
       });
+
+      const mockUseSelectorError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorError.mockImplementation(mockSelectorWithError);
 
       renderWithProviders(<OnboardingIntroStep />);
 
@@ -1129,13 +1056,7 @@ describe('OnboardingIntroStep', () => {
     });
 
     it('should navigate back when modal cancel is triggered', () => {
-      const mockUseSelectorError = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorError.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
-
+      const mockSelectorWithError = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -1175,6 +1096,10 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelectorError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorError.mockImplementation(mockSelectorWithError);
+
       renderWithProviders(<OnboardingIntroStep />);
 
       // Should have called navigation with cancel function
@@ -1199,13 +1124,7 @@ describe('OnboardingIntroStep', () => {
 
   describe('auto-redirect functionality', () => {
     it('should navigate to rewards dashboard when user already has subscription', () => {
-      const mockUseSelectorWithSubscription = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorWithSubscription.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
-
+      const mockSelectorWithSubscription = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -1245,6 +1164,12 @@ describe('OnboardingIntroStep', () => {
         return selector(state);
       });
 
+      const mockUseSelectorWithSubscription = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorWithSubscription.mockImplementation(
+        mockSelectorWithSubscription,
+      );
+
       renderWithProviders(<OnboardingIntroStep />);
 
       // Should navigate to rewards dashboard
@@ -1253,14 +1178,52 @@ describe('OnboardingIntroStep', () => {
   });
 
   describe('edge cases', () => {
-    it('should render skeleton when candidateSubscriptionId is pending and no subscription exists', () => {
-      const mockUseSelectorWithSubscriptionId = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorWithSubscriptionId.mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroupInternalAccounts) {
-          return defaultAccountGroupAccounts;
-        }
+    it('should handle missing account gracefully', () => {
+      const mockSelectorWithNoAccount = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: null,
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: null,
+                  accounts: {},
+                },
+              },
+              RewardsController: {
+                activeAccount: null,
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
 
+      const mockUseSelectorNoAccount = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorNoAccount.mockImplementation(mockSelectorWithNoAccount);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const confirmButton = screen.getByText(
+        'mocked_rewards.onboarding.intro_confirm',
+      );
+      fireEvent.press(confirmButton);
+
+      // Should still proceed with onboarding when no account
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('should render skeleton when candidateSubscriptionId is pending and no subscription exists', () => {
+      const mockSelectorWithSubscriptionId = jest.fn((selector) => {
         const state = {
           rewards: {
             optinAllowedForGeo: true,
@@ -1299,6 +1262,12 @@ describe('OnboardingIntroStep', () => {
         };
         return selector(state);
       });
+
+      const mockUseSelectorWithSubscriptionId = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorWithSubscriptionId.mockImplementation(
+        mockSelectorWithSubscriptionId,
+      );
 
       renderWithProviders(<OnboardingIntroStep />);
 

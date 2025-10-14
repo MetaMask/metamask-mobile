@@ -154,7 +154,6 @@ export const useOptout = (): UseOptoutResult => {
           label: isLoading
             ? strings('rewards.optout.modal.processing')
             : strings('rewards.optout.modal.confirm'),
-          loadOnPress: true,
           onPress: handleOptoutConfirm,
           variant: ButtonVariant.Primary,
           disabled: isLoading,

@@ -59,6 +59,13 @@ export interface OffchainTradeResponse {
   response: unknown;
 }
 
+export type PredictOrderStatus =
+  | 'idle'
+  | 'pending'
+  | 'filled'
+  | 'cancelled'
+  | 'error';
+
 export enum PredictClaimStatus {
   IDLE = 'idle',
   PENDING = 'pending',
@@ -67,13 +74,35 @@ export enum PredictClaimStatus {
   ERROR = 'error',
 }
 
-export enum PredictDepositStatus {
-  IDLE = 'idle',
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
-  ERROR = 'error',
-}
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictOrder = {
+  id: string;
+  providerId: string;
+  chainId: number;
+  marketId?: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  isBuy: boolean;
+  size: number;
+  price: number;
+  status: PredictOrderStatus;
+  error?: string;
+  timestamp: number;
+  lastUpdated: number;
+  onchainTradeParams: OnchainTradeParams[];
+  offchainTradeParams?: OffchainTradeParams;
+};
+
+export type PredictClaim = {
+  positionId: string;
+  chainId: number;
+  status: PredictClaimStatus;
+  txParams: {
+    to: Hex;
+    data: Hex;
+    value: Hex;
+  };
+};
 
 export type PredictMarket = {
   id: string;
@@ -102,7 +131,6 @@ export type PredictCategory =
 
 export type PredictOutcome = {
   id: string;
-  providerId: string;
   marketId: string;
   title: string;
   description: string;
@@ -113,7 +141,6 @@ export type PredictOutcome = {
   groupItemTitle: string;
   negRisk?: boolean;
   tickSize?: string;
-  resolvedBy?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -203,41 +230,30 @@ export type PredictPosition = {
   negRisk?: boolean;
 };
 
-export interface ClaimParams {
-  positions: PredictPosition[];
-  providerId: string;
+export type PredictNotification = {
+  orderId: string;
+  status: PredictOrderStatus;
+};
+
+export interface BuyParams {
+  market: PredictMarket;
+  outcomeId: string;
+  outcomeTokenId: string;
+  size: number;
 }
 
-export interface GetMarketPriceResponse {
-  price: number;
+export interface SellParams {
+  position: PredictPosition;
+}
+
+export interface ClaimParams {
+  positions: PredictPosition[];
 }
 
 export type Result<T = void> = {
   success: boolean;
+  id?: string;
+  ids?: string[];
   error?: string;
-  response?: T;
-};
-
-export interface UnrealizedPnL {
-  user: string;
-  cashUpnl: number;
-  percentUpnl: number;
-}
-
-export type PredictClaim = {
-  transactionId: string;
-  chainId: number;
-  status: PredictClaimStatus;
-  txParams: {
-    to: Hex;
-    data: Hex;
-    value: Hex;
-  };
-};
-
-export type PredictDeposit = {
-  batchId: string;
-  chainId: number;
-  status: PredictDepositStatus;
-  providerId: string;
+  value?: T;
 };

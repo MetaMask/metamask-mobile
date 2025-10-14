@@ -15,7 +15,11 @@ import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { baseStyles, colors as importedColors } from '../../../styles/common';
+import {
+  fontStyles,
+  baseStyles,
+  colors as importedColors,
+} from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -62,9 +66,8 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-const createStyles = () =>
+const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
       flex: 1,
@@ -73,7 +76,7 @@ const createStyles = () =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 16,
+      paddingVertical: Device.isMediumDevice() ? 16 : 30,
     },
     loaderWrapper: {
       flex: 1,
@@ -134,9 +137,28 @@ const createStyles = () =>
       marginBottom: 40,
       marginTop: -40,
     },
+    login: {
+      fontSize: 18,
+      color: colors.primary.default,
+      ...fontStyles.normal,
+    },
+    buttonDescription: {
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    importWrapper: {
+      marginVertical: 16,
+    },
     createWrapper: {
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
+      marginBottom: 16,
+      width: '100%',
+    },
+    buttonWrapper: {
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      gap: Device.isMediumDevice() ? 12 : 16,
       width: '100%',
     },
     buttonLabel: {
@@ -165,8 +187,34 @@ const createStyles = () =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border.muted,
+    },
+    bottomSheetContainer: {
+      padding: 16,
+      flexDirection: 'column',
+      rowGap: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    socialBtn: {
+      borderColor: colors.border.muted,
+      borderWidth: 1,
+      color: colors.text.default,
+    },
     blackButton: {
       backgroundColor: importedColors.btnBlack,
+    },
+    blackButtonText: {
+      color: importedColors.btnBlackText,
     },
     inverseBlackButton: {
       backgroundColor: importedColors.btnBlackInverse,
@@ -273,7 +321,7 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { navigation } = this.props;
+    const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getTransparentOnboardingNavbarOptions(
@@ -405,7 +453,6 @@ class Onboarding extends PureComponent {
   };
 
   handlePostSocialLogin = (result, createWallet, provider) => {
-    const isIOS = Platform.OS === 'ios';
     if (this.socialLoginTraceCtx) {
       endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
       this.socialLoginTraceCtx = null;
@@ -430,25 +477,11 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-
-          if (isIOS) {
-            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
-            this.props.navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-              {
-                accountName: result.accountName,
-                oauthLoginSuccess: true,
-                onboardingTraceCtx: this.onboardingTraceCtx,
-              },
-            );
-          } else {
-            // Direct navigation to ChoosePassword for Android
-            this.props.navigation.navigate('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-              onboardingTraceCtx: this.onboardingTraceCtx,
-            });
-          }
+          this.props.navigation.navigate('ChoosePassword', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
+          });
         }
       } else if (!createWallet) {
         if (result.existingUser) {
@@ -458,20 +491,11 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          isIOS
-            ? this.props.navigation.navigate(
-                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-                {
-                  [PREVIOUS_SCREEN]: ONBOARDING,
-                  oauthLoginSuccess: true,
-                  onboardingTraceCtx: this.onboardingTraceCtx,
-                },
-              )
-            : this.props.navigation.navigate('Rehydrate', {
-                [PREVIOUS_SCREEN]: ONBOARDING,
-                oauthLoginSuccess: true,
-                onboardingTraceCtx: this.onboardingTraceCtx,
-              });
+          this.props.navigation.navigate('Rehydrate', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
+          });
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
@@ -694,7 +718,8 @@ class Onboarding extends PureComponent {
   };
 
   renderLoader = () => {
-    const styles = createStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <View style={styles.loaderWrapper}>
@@ -718,7 +743,8 @@ class Onboarding extends PureComponent {
   };
 
   renderContent() {
-    const styles = createStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <View style={styles.ctas}>
@@ -783,7 +809,8 @@ class Onboarding extends PureComponent {
   }
 
   handleSimpleNotification = () => {
-    const styles = createStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     if (!this.props.route.params?.delete) return;
     return (
@@ -810,7 +837,8 @@ class Onboarding extends PureComponent {
   render() {
     const { loading } = this.props;
     const { existingUser, errorToThrow } = this.state;
-    const styles = createStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
@@ -829,7 +857,7 @@ class Onboarding extends PureComponent {
         }
       >
         <ThrowErrorIfNeeded />
-        <SafeAreaView
+        <View
           style={[
             baseStyles.flexGrow,
             {
@@ -862,7 +890,7 @@ class Onboarding extends PureComponent {
           <FadeOutOverlay />
 
           <View>{this.handleSimpleNotification()}</View>
-        </SafeAreaView>
+        </View>
       </ErrorBoundary>
     );
   }

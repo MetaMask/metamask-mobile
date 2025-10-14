@@ -5,7 +5,6 @@ import {
   ScrollView,
   Dimensions,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
@@ -33,7 +32,6 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
-  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -57,7 +55,7 @@ interface AccountStatusProps {
 interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: TraceContext;
+  onboardingTraceCtx?: string;
 }
 
 const AccountStatus = ({
@@ -143,20 +141,6 @@ const AccountStatus = ({
     );
   };
 
-  const descriptionForFoundTypeAccountStatus = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      return 'account_status.account_already_exists_ios_new_user_description';
-    }
-    return 'account_status.account_already_exists_description';
-  }, []);
-
-  const buttonLabelForFoundTypeAccountStatus = useCallback(() => {
-    if (Platform.OS === 'ios') {
-      return 'account_status.unlock_wallet';
-    }
-    return 'account_status.log_in';
-  }, []);
-
   return (
     <SafeAreaView>
       <View style={styles.root}>
@@ -176,7 +160,7 @@ const AccountStatus = ({
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings(
                   type === 'found'
-                    ? descriptionForFoundTypeAccountStatus()
+                    ? 'account_status.account_already_exists_description'
                     : 'account_status.account_not_found_description',
                   {
                     accountName,
@@ -201,7 +185,7 @@ const AccountStatus = ({
             }}
             label={
               type === 'found'
-                ? strings(buttonLabelForFoundTypeAccountStatus())
+                ? strings('account_status.log_in')
                 : strings('account_status.create_new_wallet')
             }
           />

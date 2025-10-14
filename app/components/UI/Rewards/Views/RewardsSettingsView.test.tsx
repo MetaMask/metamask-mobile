@@ -86,19 +86,44 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock RewardSettingsAccountGroupList component
-jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
+// Mock RewardsInfoBanner component
+jest.mock('../components/RewardsInfoBanner', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: function MockRewardSettingsAccountGroupList() {
+    default: function MockRewardsInfoBanner({
+      title,
+      description,
+      testID,
+    }: {
+      title?: string;
+      description?: string;
+      testID?: string;
+    }) {
       const ReactActual = jest.requireActual('react');
       return ReactActual.createElement(
         View,
-        { testID: 'reward-settings-account-group-list' },
-        ReactActual.createElement(Text, null, 'Account Group List'),
+        { testID },
+        ReactActual.createElement(Text, null, title),
+        ReactActual.createElement(Text, null, description),
       );
     },
+  };
+});
+
+// Mock Toast component
+jest.mock('../../../../component-library/components/Toast', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+
+  const MockToast = (
+    _props: Record<string, unknown>,
+    ref: React.Ref<typeof View>,
+  ) => ReactActual.createElement(View, { testID: 'toast', ref });
+
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(MockToast),
   };
 });
 
@@ -107,6 +132,9 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.settings.title': 'Settings',
+      'rewards.settings.subtitle': 'Connect Multiple Accounts',
+      'rewards.settings.description':
+        'Connect multiple accounts to maximize your rewards. Each linked account earns rewards.',
     };
     return translations[key] || key;
   }),
@@ -136,6 +164,23 @@ jest.mock('../../../hooks/useMetrics', () => ({
     REWARDS_SETTINGS_VIEWED: 'REWARDS_SETTINGS_VIEWED',
   },
 }));
+
+// Mock components
+jest.mock('../components/Settings/RewardSettingsTabs', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardSettingsTabs({
+    initialTabIndex,
+  }: {
+    initialTabIndex: number;
+  }) {
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.createElement(
+      View,
+      { testID: 'reward-settings-tabs' },
+      ReactActual.createElement(Text, null, `Tab Index: ${initialTabIndex}`),
+    );
+  };
+});
 
 // Mock selectors
 jest.mock('../../../../selectors/rewards', () => ({}));
@@ -204,9 +249,7 @@ describe('RewardsSettingsView', () => {
       const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
 
       // Assert
-      expect(
-        getByTestId('reward-settings-account-group-list'),
-      ).toBeOnTheScreen();
+      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
     });
 
     it('sets navigation options on mount', async () => {
@@ -220,18 +263,53 @@ describe('RewardsSettingsView', () => {
     });
   });
 
-  describe('Component structure', () => {
-    it('renders account group list component', () => {
+  describe('Initial tab determination', () => {
+    it('starts with linked tab (index 0) by default', () => {
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
         <RewardsSettingsView />,
       );
 
       // Assert
+      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
+      expect(getByText('Tab Index: 0')).toBeOnTheScreen();
+    });
+
+    it('starts with linked tab (index 0) regardless of account status', () => {
+      // Act
+      const { getByTestId, getByText } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Assert
+      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
+      expect(getByText('Tab Index: 0')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Component structure', () => {
+    it('renders all main sections', () => {
+      // Act
+      const { getByText, getByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Assert
+      expect(getByText('Connect Multiple Accounts')).toBeOnTheScreen();
       expect(
-        getByTestId('reward-settings-account-group-list'),
+        getByText(
+          'Connect multiple accounts to maximize your rewards. Each linked account earns rewards.',
+        ),
       ).toBeOnTheScreen();
-      expect(getByText('Account Group List')).toBeOnTheScreen();
+      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
+    });
+
+    it('renders toast component', () => {
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(getByTestId('toast')).toBeOnTheScreen();
     });
 
     it('renders component with proper styling', () => {

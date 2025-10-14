@@ -11,7 +11,6 @@ import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectUSDConversionRateByChainId } from '../../../../../selectors/currencyRateController';
-import { getTokenTransferData } from '../../utils/transaction-pay';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -54,7 +53,9 @@ export function useTransactionRequiredTokens({
 
 function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
-  const { data, to } = getTokenTransferData(transactionMetadata) ?? {};
+  const { txParams } = transactionMetadata;
+  const { data } = txParams;
+  const to = txParams.to as Hex | undefined;
   const balanceProperties = useTokenBalance(to ?? '0x0', chainId);
 
   let transferAmount: Hex | undefined;

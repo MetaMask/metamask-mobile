@@ -23,7 +23,6 @@ export interface ConfirmationMetricsState {
     TransactionBridgeQuote[] | undefined
   >;
   isTransactionBridgeQuotesLoadingById: Record<string, boolean>;
-  isTransactionUpdating: Record<string, boolean>;
 }
 
 export const initialState: ConfirmationMetricsState = {
@@ -31,7 +30,6 @@ export const initialState: ConfirmationMetricsState = {
   transactionPayTokenById: {},
   transactionBridgeQuotesById: {},
   isTransactionBridgeQuotesLoadingById: {},
-  isTransactionUpdating: {},
 };
 
 const name = 'confirmationMetrics';
@@ -91,17 +89,6 @@ const slice = createSlice({
       const { transactionId, isLoading } = action.payload;
       state.isTransactionBridgeQuotesLoadingById[transactionId] = isLoading;
     },
-
-    setTransactionUpdating: (
-      state,
-      action: PayloadAction<{
-        transactionId: string;
-        isUpdating: boolean;
-      }>,
-    ) => {
-      const { transactionId, isUpdating } = action.payload;
-      state.isTransactionUpdating[transactionId] = isUpdating;
-    },
   },
 });
 
@@ -115,7 +102,6 @@ export const {
   setTransactionPayToken,
   setTransactionBridgeQuotes,
   setTransactionBridgeQuotesLoading,
-  setTransactionUpdating,
 } = actions;
 
 // Selectors
@@ -142,11 +128,4 @@ export const selectIsTransactionBridgeQuotesLoadingById = createSelector(
   (_: RootState, transactionId: string) => transactionId,
   (isTransactionBridgeQuotesLoadingById, transactionId) =>
     isTransactionBridgeQuotesLoadingById[transactionId] ?? false,
-);
-
-export const selectIsTransactionUpdatingById = createSelector(
-  (state: RootState) => state[name].isTransactionUpdating,
-  (_: RootState, transactionId: string) => transactionId,
-  (isTransactionUpdating, transactionId) =>
-    isTransactionUpdating[transactionId] ?? false,
 );

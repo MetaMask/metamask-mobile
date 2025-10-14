@@ -287,7 +287,6 @@ interface BasePointsEventDto {
    */
   bonus: {
     bips?: number | null;
-    bonusPoints?: number | null;
     bonuses?: string[] | null;
   } | null;
 
@@ -690,7 +689,10 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (referralCode?: string) => Promise<string | null>;
+  handler: (
+    account: InternalAccount,
+    referralCode?: string,
+  ) => Promise<string | null>;
 }
 
 /**
@@ -859,16 +861,6 @@ export interface RewardsControllerLinkAccountToSubscriptionAction {
 }
 
 /**
- * Action for linking multiple accounts to a subscription candidate
- */
-export interface RewardsControllerLinkAccountsToSubscriptionCandidateAction {
-  type: 'RewardsController:linkAccountsToSubscriptionCandidate';
-  handler: (
-    accounts: InternalAccount[],
-  ) => Promise<{ account: InternalAccount; success: boolean }[]>;
-}
-
-/**
  * Action for getting candidate subscription ID
  */
 export interface RewardsControllerGetCandidateSubscriptionIdAction {
@@ -944,7 +936,6 @@ export type RewardsControllerActions =
   | RewardsControllerGetActualSubscriptionIdAction
   | RewardsControllerGetFirstSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionAction
-  | RewardsControllerLinkAccountsToSubscriptionCandidateAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction

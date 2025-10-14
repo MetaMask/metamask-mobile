@@ -6,7 +6,7 @@ exports[`TabBar renders correctly 1`] = `
     style={
       [
         {
-          "alignItems": "flex-end",
+          "alignItems": "center",
           "backgroundColor": "#ffffff",
           "borderColor": "#b7bbc866",
           "borderTopWidth": 1,

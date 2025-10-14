@@ -35,7 +35,6 @@ export interface BridgeQuoteRequest {
   bufferInitial: number;
   bufferStep: number;
   bufferSubsequent: number;
-  featureId?: FeatureId;
   from: Hex;
   slippage: number;
   sourceBalanceRaw: string;
@@ -194,7 +193,6 @@ async function getSingleBridgeQuote(
   gasFeeEstimates: GasFeeEstimates,
 ): Promise<TransactionBridgeQuote> {
   const {
-    featureId,
     from,
     slippage,
     sourceChainId,
@@ -223,7 +221,7 @@ async function getSingleBridgeQuote(
   const quotes = await BridgeController.fetchQuotes(
     quoteRequest,
     undefined,
-    featureId,
+    FeatureId.PERPS,
   );
 
   if (!quotes.length) {

@@ -7,8 +7,13 @@ import React, {
   useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, View, Keyboard, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Alert,
+  View,
+  Keyboard,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -739,7 +744,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+    <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}

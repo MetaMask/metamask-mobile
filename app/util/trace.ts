@@ -134,36 +134,16 @@ export enum TraceName {
   PerpsClosePosition = 'Perps Close Position',
   PerpsDeposit = 'Perps Deposit',
   PerpsWithdraw = 'Perps Withdraw',
-  PerpsPlaceOrder = 'Perps Place Order',
-  PerpsEditOrder = 'Perps Edit Order',
+  PerpsOrderExecution = 'Perps Order Execution',
   PerpsCancelOrder = 'Perps Cancel Order',
-  PerpsUpdateTPSL = 'Perps Update TP/SL',
-  PerpsOrderSubmissionToast = 'Perps Order Submission Toast',
   PerpsMarketDataUpdate = 'Perps Market Data Update',
+  PerpsAccountStateUpdate = 'Perps Account State Update',
   PerpsOrderView = 'Perps Order View',
-  PerpsTabView = 'Perps Tab View',
+  PerpsPositionsView = 'Perps Positions View',
   PerpsMarketListView = 'Perps Market List View',
   PerpsPositionDetailsView = 'Perps Position Details View',
-  PerpsTransactionsView = 'Perps Transactions View',
-  PerpsOrderFillsFetch = 'Perps Order Fills Fetch',
-  PerpsOrdersFetch = 'Perps Orders Fetch',
-  PerpsFundingFetch = 'Perps Funding Fetch',
-  PerpsGetPositions = 'Perps Get Positions',
-  PerpsGetAccountState = 'Perps Get Account State',
-  PerpsGetHistoricalPortfolio = 'Perps Get Historical Portfolio',
-  PerpsGetMarkets = 'Perps Get Markets',
-  PerpsFetchHistoricalCandles = 'Perps Fetch Historical Candles',
   PerpsWebSocketConnected = 'Perps WebSocket Connected',
   PerpsWebSocketDisconnected = 'Perps WebSocket Disconnected',
-  PerpsWebSocketFirstPositions = 'Perps WebSocket First Positions',
-  PerpsWebSocketFirstOrders = 'Perps WebSocket First Orders',
-  PerpsWebSocketFirstAccount = 'Perps WebSocket First Account',
-  PerpsDataLakeReport = 'Perps Data Lake Report',
-  PerpsRewardsAPICall = 'Perps Rewards API Call',
-  PerpsClosePositionView = 'Perps Close Position View',
-  PerpsWithdrawView = 'Perps Withdraw View',
-  PerpsConnectionEstablishment = 'Perps Connection Establishment',
-  PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
 }
 
 export enum TraceOperation {
@@ -220,9 +200,8 @@ export interface PendingTrace {
 }
 /**
  * A context object to associate traces with each other and generate nested traces.
- * When trace() is called without a callback, it returns a Span that can be manually ended.
  */
-export type TraceContext = Span | undefined;
+export type TraceContext = unknown;
 /**
  * A callback function that can be traced.
  */
@@ -572,7 +551,7 @@ function startTrace(request: TraceRequest): TraceContext {
     }
 
     bufferTraceStartCallLocal(request, parentTraceName);
-    return undefined;
+    return { _buffered: true, _name: name, _id: id, _local: true };
   }
 
   const callback = (span: Span | undefined) => {

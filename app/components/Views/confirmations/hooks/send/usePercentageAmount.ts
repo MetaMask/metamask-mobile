@@ -28,8 +28,9 @@ export const getEstimatedTotalGas = (
   if (!gasFeeEstimates) {
     return new BN(0);
   }
-  const suggestedMaxFeePerGas =
-    gasFeeEstimates?.medium?.suggestedMaxFeePerGas ?? '0';
+  const {
+    medium: { suggestedMaxFeePerGas },
+  } = gasFeeEstimates;
   const totalGas = new BN(suggestedMaxFeePerGas * NATIVE_TRANSFER_GAS_LIMIT);
   const conversionrate = new BN(GWEI_TO_WEI_CONVERSION_RATE);
   return totalGas.mul(conversionrate).add(hexToBN(layer1GasFee));

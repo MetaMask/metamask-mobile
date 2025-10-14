@@ -79,10 +79,6 @@ class SendScreen {
   get addAddressButton() {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
-
-  get searchTokenField() {
-    return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
-  }
   
 
   async openNetworkPicker() {
@@ -98,9 +94,7 @@ class SendScreen {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
-      console.log('Typing address in send address field');
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
-      console.log('element got found', address);
       await AppwrightGestures.typeText(element, address);
     }
   }
@@ -134,7 +128,7 @@ class SendScreen {
   }
 
   async isVisible() {
-    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
+    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Ethereum');
     await appwrightExpect(networkButton).toBeVisible();
   }
 
@@ -191,63 +185,33 @@ class SendScreen {
     }
   }
 
-  async typeTokenName(tokenName) {
-    if (!this._device) {
-      await Gestures.typeText(this.searchTokenField, tokenName);
-    } else {
-      const element = await this.searchTokenField;
-      await element.fill(tokenName);
-    }
-  }
-
-  async clickOnFirstTokenBadge() {
-    const firstTokenBadge = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`);
-    appwrightExpect(firstTokenBadge).toBeVisible();
-    await AppwrightGestures.tap(firstTokenBadge);
-  }
-
   async selectNetwork(network) {
     if (!this._device) {
       await Gestures.tapTextByXpath(network);
     } else {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
-        await AppwrightGestures.tap(networkButton);
-      } else {
-        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${network}"]`);
-        await AppwrightGestures.tap(networkButton);
-      }
+      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
+      await AppwrightGestures.tap(networkButton);
     }
   }
 
-  async selectToken(networkName = 'Ethereum', tokenSymbol) {
+  async selectToken(tokenName, tokenSymbol) {
 
     if (!this._device) {
       await Gestures.tapTextByXpath(tokenName);
     } else {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
-        const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
-        await AppwrightGestures.tap(tokenButton);
-      } else {
-        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${networkName}"]`);
-        await AppwrightGestures.tap(networkButton);
-        const tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, tokenSymbol);
-        await AppwrightGestures.tap(tokenButton);
-      }
-
+      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, `${tokenName}, ${tokenSymbol}`);
+      await tokenButton.tap();
     }
   }
 
   async assetsListIsDisplayed() {
-    const searchTokenField = await this.searchTokenField
-    await appwrightExpect(searchTokenField).toBeVisible();
+    const assetsList = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
+    await appwrightExpect(assetsList).toBeVisible();
   }
 
   async isSelectAddressScreenDisplayed() {
-    console.log('Checking if select address screen is displayed');
     const selectAddressScreen = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
-    appwrightExpect(await selectAddressScreen).toBeVisible({timeout: 10000});
+    appwrightExpect(await selectAddressScreen).toBeVisible();
   }
 }
 

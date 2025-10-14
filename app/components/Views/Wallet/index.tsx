@@ -144,7 +144,9 @@ import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -181,7 +183,6 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -561,8 +562,10 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+
   // Setup for AssetDetailsActions
-  const { goToSwaps } = useSwapBridgeNavigation({
+  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
@@ -579,6 +582,10 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
+  const displayBridgeButton =
+    !isUnifiedSwapsEnabled &&
+    AppConstants.BRIDGE.ACTIVE &&
+    isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
@@ -1278,7 +1285,6 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
-        <AssetPollingProvider />
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
@@ -1306,11 +1312,14 @@ const Wallet = ({
             <AssetDetailsActions
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
+              displayBridgeButton={displayBridgeButton}
+              goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
               onSend={onSend}
               buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
               swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+              bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
               sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
               receiveButtonActionID={
                 WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
@@ -1341,9 +1350,11 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
+      goToBridge,
       goToSwaps,
       displayBuyButton,
       displaySwapsButton,
+      displayBridgeButton,
       onReceive,
       onSend,
       route.params,
