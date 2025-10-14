@@ -1279,11 +1279,32 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
 
       // Process positions and attach TP/SL prices
+      DevLogger.log('Processing asset positions:', {
+        count: clearingState.assetPositions.length,
+        positions: clearingState.assetPositions.map((ap) => ({
+          coin: ap.position?.coin,
+          hasLeverage: !!ap.position?.leverage,
+          leverageType: ap.position?.leverage?.type,
+          type: ap.type,
+        })),
+      });
+
       return clearingState.assetPositions
         .filter((assetPos) => assetPos.position.szi !== '0')
         .map((assetPos) => {
-          const position = adaptPositionFromSDK(assetPos);
-
+          try {
+            const position = adaptPositionFromSDK(assetPos);
+            return position;
+          } catch (adaptError) {
+            DevLogger.log('Error adapting position:', {
+              coin: assetPos.position?.coin,
+              error: adaptError,
+              rawPosition: assetPos,
+            });
+            throw adaptError;
+          }
+        })
+        .map((position) => {
           // Find TP/SL orders for this position
           // First check direct trigger orders
           const positionOrders = frontendOrders.filter(
