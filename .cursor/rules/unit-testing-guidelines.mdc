@@ -3,9 +3,10 @@ description: Project Guidelines for Unit Testing
 globs: *.test.*
 alwaysApply: false
 ---
-- Use (the unit testing guidelines)[https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md]
 
-# Developer Best Practices
+Reference: [MetaMask Unit Testing Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md)
+
+# Unit Testing Guidelines
 
 ## Test Naming Rules
 
@@ -17,54 +18,27 @@ alwaysApply: false
 - **BE SPECIFIC** about conditions: use "email without domain" instead of "invalid email"
 
 ```ts
-// ❌ WRONG vs ✅ CORRECT Examples
-
-// ❌ Using "should" - NEVER use this word
+// ❌ WRONG
 it('should return fixed timestamp', () => { ... });
+it('should ignore events', () => { ... });
+it('should display error when input is invalid', () => { ... });
+it('handles invalid input correctly', () => { ... });
+
 // ✅ CORRECT
 it('returns fixed timestamp for privacy events', () => { ... });
-
-// ❌ Using "should" with vague behavior
-it('should ignore events', () => { ... });
-// ✅ CORRECT - specific about what events
 it('ignores events without privacy timestamp property', () => { ... });
-
-// ❌ Using "should" with generic error
-it('should throw error', () => { ... });
-// ✅ CORRECT - specific about when and what error
-it('throws error when strategy is null', () => { ... });
-
-// ❌ Using "should" with subjective "invalid"
-it('should display an error when input is invalid', () => { ... });
-// ✅ CORRECT - specific about what makes it invalid
 it('displays error when email is missing @ symbol', () => { ... });
-
-// ❌ Using "handles" and "correctly" - vague and subjective
-it('handles invalid input correctly', () => { ... });
-// ✅ CORRECT - specific about the condition and result
 it('returns false for email without domain', () => { ... });
-
-// ❌ Using "manages" and "successfully" - vague and subjective
-it('manages user authentication successfully', () => { ... });
-// ✅ CORRECT - specific about the action and condition
-it('redirects to login when user is not authenticated', () => { ... });
-
-// ❌ Using "should" and "correctly" - vague and subjective
-it('should render correctly', () => { ... });
-// ✅ CORRECT - specific about what it does
-it('matches snapshot', () => { ... });
 ```
 
 ## Test Structure and Organization - MANDATORY
 
 - **EVERY test MUST follow the AAA pattern** (Arrange, Act, Assert) with blank line separation
-- **NO** comments for each AAA section - use blank lines only
 - **Each test must cover ONE behavior** and be isolated from others
 - **Use helper functions** for test data creation
 - **Group related tests** in `describe` blocks
 
 ```ts
-// ✅ CORRECT AAA Pattern
 it('returns false for email without domain', () => {
   const input = 'user@';
 
@@ -72,22 +46,15 @@ it('returns false for email without domain', () => {
 
   expect(result).toBe(false);
 });
+```
 
-// ✅ CORRECT with helper function
+**Helper Functions**:
+```ts
 const createTestEvent = (overrides = {}) => ({
   type: EventType.TrackEvent,
   event: 'Test Event',
   timestamp: '2024-01-01T12:00:00.000Z',
-  properties: { data: 'value' },
   ...overrides,
-});
-
-it('returns fixed timestamp for privacy events', () => {
-  const event = createTestEvent({ privacyTimestamp: true });
-
-  const result = plugin.execute(event);
-
-  expect(result.timestamp).toBe('1970-01-01T00:00:00.000Z');
 });
 ```
 
@@ -100,32 +67,20 @@ it('returns fixed timestamp for privacy events', () => {
 - **Use realistic mock data** that reflects real usage
 
 ```ts
-// ✅ CORRECT Mocking
-import { mockFunction } from 'jest-mock';
+// ✅ CORRECT
 import { apiService } from '../services/api';
-
 jest.mock('../services/api');
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
-// ✅ CORRECT with proper types
-interface MockSegmentEvent {
+interface MockEvent {
   type: EventType;
   event: string;
   timestamp: string;
-  properties?: Record<string, unknown>;
 }
 
-const createMockEvent = (overrides: Partial<MockSegmentEvent> = {}): MockSegmentEvent => ({
-  type: EventType.TrackEvent,
-  event: 'Test Event',
-  timestamp: '2024-01-01T12:00:00.000Z',
-  properties: {},
-  ...overrides,
-});
-
-// ❌ WRONG - Never use these patterns
+// ❌ WRONG
 const mockApi = require('../services/api'); // ❌ no require
-const mockApi: any = jest.fn(); // ❌ no any type
+const mockApi: any = jest.fn();             // ❌ no any type
 ```
 
 ## Test Isolation and Focus - MANDATORY
@@ -164,7 +119,7 @@ describe('MetaMetricsCustomTimestampPlugin', () => {
 });
 ```
 
-## Test Coverage Requirements - MANDATORY
+## Test Coverage (MANDATORY)
 
 **EVERY component MUST test:**
 - ✅ **Happy path** - normal expected behavior
@@ -211,7 +166,7 @@ it.each(['small', 'medium', 'large'] as const)('renders %s size', (size) => {
 });
 ```
 
-# Test Determinism & Brittleness
+## Test Determinism
 
 - **EVERYTHING** not under test must be mocked - no exceptions.
 - Avoid brittle tests: do not test internal state or UI snapshots for logic.
@@ -238,15 +193,8 @@ jest.setSystemTime(new Date('2024-01-01'));
 expect(result).toBe(false);
 ```
 - Ensure tests use proper matchers (`toBeOnTheScreen` vs `toBeDefined`).
-- Do not approve PRs without reviewing snapshot diffs.
+- Do not approve PRs without reviewing snapshot diffs, it can reveal errors.
 - Reject tests with complex names combining multiple logical conditions (AND/OR).
-```ts
-// OK
-it('renders button when enabled')
-
-// NOT OK
-it('renders and disables button when input is empty or missing required field')
-```
 
 # Refactoring Support
 
@@ -282,50 +230,24 @@ Before submitting any test file, verify:
 # Anti-patterns to Avoid
 
 - ❌ Do not consider snapshot coverage as functional coverage.
-```ts
-expect(component).toMatchSnapshot(); // 🚫 not behavior validation
-```
 - ❌ Do not rely on code coverage percentage without real assertions.
-```ts
-// 100% lines executed, but no assertions
-```
-- ❌ Do not use weak matchers like `toBeDefined` or `toBeTruthy` to assert element presence.
-```ts
-expect(queryByText('Item')).toBeOnTheScreen(); // ✅ use strong matchers
-```
+- ❌ Do not use weak matchers like `toBeDefined` or `toBeTruthy` to assert element presence. Use `toBeOnTheScreen()`.
 
 # Unit tests developement workflow
 
 - Always run unit tests after making code changes.
-- **MANDATORY**: Use ONLY the commands defined in `.cursor/commands/` directory
 - **NEVER** use npm, npx, or other package managers - ONLY use yarn
-- **NEVER** use commands not defined in `.cursor/commands/` - check existing commands first
 
-## Required Testing Commands
+## Testing Commands
 
 ### Single File Testing
 ```shell
 # Use this command for testing a specific file
 yarn jest <filename>
-```
-**Examples:**
-- `yarn jest MyComponent.test.tsx`
-- `yarn jest utils/helpers.test.ts`
-
-### Specific Test Pattern
-```shell
 # Use this command for testing specific test cases
 yarn jest <filename> -t "<test-name-pattern>"
-```
-**Examples:**
-- `yarn jest MyComponent.test.tsx -t "displays error message"`
-- `yarn jest utils/helpers.test.ts -t "validates email format"`
-
-### All Unit Tests
-```shell
 # Use this command for running all unit tests
 yarn test:unit
-
 # Run a specific test file
 yarn jest MyComponent.test.tsx
 yarn jest utils/helpers.test.ts
@@ -337,21 +259,15 @@ yarn jest utils/helpers.test.ts
 yarn test:unit:coverage
 ```
 
-## Forbidden Commands
-- ❌ `npm test` - Use `yarn jest` instead
-- ❌ `npm run test` - Use `yarn test:unit` instead
-- ❌ `npx jest` - Use `yarn jest` instead
-- ❌ Any command not defined in `.cursor/commands/` directory
 
 ## Workflow Requirements
 - Confirm all tests are passing before commit.
 - When a snapshot update is detected, confirm the changes are expected.
 - Do not blindly update snapshots without understanding the differences.
-- **ALWAYS** check `.cursor/commands/` directory before running any command.
 
 # Reference Code Examples
 
-## ✅ Proper Test Structure (AAA)
+**Proper AAA**:
 ```ts
 it('indicates expired milk when past due date', () => {
   const today = new Date('2025-06-01');
@@ -381,19 +297,31 @@ it('displays error message when API fails', async () => {
 });
 ```
 
-## ✅ Test the Test
+**Test the Test**:
 ```ts
 it('hides selector when disabled', () => {
   const { queryByTestId } = render(<Selector enabled={false} />);
 
   expect(queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
-
-  // Intentionally break: render with enabled=true and see if test fails
+  
+  // Break test: change enabled={false} to enabled={true} and verify test fails
 });
 ```
 
-# Resources
+## Reviewer Responsibilities
 
-- Contributor docs: https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md
-- Jest Matchers: https://jestjs.io/docs/using-matchers
-- React Native Testing Library: https://testing-library.com/docs/react-native-testing-library/intro/
+Validate tests fail when code breaks • Ensure proper matchers • Review snapshot diffs • Reject complex names with AND/OR
+
+```ts
+// OK
+it('renders button when enabled')
+
+// NOT OK
+it('renders and disables button when input is empty or missing required field')
+```
+
+## Workflow
+
+Always run tests after changes • Confirm all pass before commit • Review snapshot changes • Don't blindly update snapshots
+
+**Resources**: [Contributor docs](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md) • [Jest Matchers](https://jestjs.io/docs/using-matchers) • [React Native Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/)
