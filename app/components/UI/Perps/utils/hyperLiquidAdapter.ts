@@ -66,6 +66,14 @@ export function adaptOrderToSDK(
  */
 export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
   const pos = assetPosition.position;
+
+  // Defensive handling for leverage (should always exist but handle edge cases)
+  const leverage = pos.leverage || {
+    type: 'isolated' as const,
+    value: 1,
+    rawUsd: '0',
+  };
+
   return {
     coin: pos.coin,
     size: pos.szi,
@@ -74,10 +82,12 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     unrealizedPnl: pos.unrealizedPnl,
     marginUsed: pos.marginUsed,
     leverage: {
-      type: pos.leverage.type,
-      value: pos.leverage.value,
+      type: leverage.type,
+      value: leverage.value,
       rawUsd:
-        pos.leverage.type === 'isolated' ? pos.leverage.rawUsd : undefined,
+        leverage.type === 'isolated' && 'rawUsd' in leverage
+          ? leverage.rawUsd
+          : undefined,
     },
     liquidationPrice: pos.liquidationPx,
     maxLeverage: pos.maxLeverage,
