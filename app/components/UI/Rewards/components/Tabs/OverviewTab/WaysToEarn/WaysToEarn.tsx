@@ -216,9 +216,6 @@ export const WaysToEarn = () => {
       case WayToEarnType.PERPS:
         goToPerps();
         break;
-      case WayToEarnType.REFERRALS:
-        navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
-        break;
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
