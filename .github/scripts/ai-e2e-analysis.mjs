@@ -8,10 +8,7 @@ import { appendFileSync } from 'fs';
  * Usage: node ai-e2e-analysis.mjs <event_name> <changed_files> <pr_number>
  */
 
-const args = process.argv.slice(2);
-const EVENT_NAME = args[0];
-const CHANGED_FILES = args[1] || process.env.CHANGED_FILES || '';
-const PR_NUMBER = args[2] || process.env.PR_NUMBER || '';
+const PR_NUMBER = process.env.PR_NUMBER || '';
 
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 const GITHUB_STEP_SUMMARY = process.env.GITHUB_STEP_SUMMARY;
@@ -57,15 +54,10 @@ function appendStepSummary(content) {
 }
 
 console.log('🤖 Running AI analysis...');
-console.log(`📋 Event name: ${EVENT_NAME}`);
-console.log(`📋 PR number: ${PR_NUMBER || 'N/A'}`);
-console.log('📋 Using pre-computed changed files from needs_e2e_build');
+console.log(`📋 PR number: ${PR_NUMBER}`);
 
-// Build command - prefer --pr flag for better analysis (agent can fetch diffs from GitHub)
-// Fallback to --changed-files if PR number not available
-const baseCmd = PR_NUMBER
-  ? `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --pr ${PR_NUMBER}`
-  : `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --changed-files '${CHANGED_FILES}'`;
+// Build command - use --pr flag for better analysis (agent will fetch diffs from GitHub)
+const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --pr ${PR_NUMBER}`
 
 console.log(`🤖 Running AI analysis with command: ${baseCmd}`);
 
@@ -85,10 +77,10 @@ try {
 console.log('📊 AI analysis completed successfully (builds running in parallel)');
 
 // Parse results
-const tags = parsedResult.selectedTags?.join('|') || '';  // Use pipe separator for grep regex
+const tags = parsedResult.selectedTags?.join('|') || ''; 
 const tagCount = parsedResult.selectedTags?.length || 0;
 const riskLevel = parsedResult.riskLevel || '';
-const tagDisplay = parsedResult.selectedTags?.join(', ') || '';  // Human-readable format
+const tagDisplay = parsedResult.selectedTags?.join(', ') || ''; 
 const reasoning = parsedResult.reasoning || 'AI analysis completed';
 const confidence = parsedResult.confidence || 75;
 
