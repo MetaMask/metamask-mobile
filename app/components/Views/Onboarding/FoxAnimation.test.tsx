@@ -209,6 +209,71 @@ describe('FoxAnimation', () => {
       // Assert - In normal mode (E2E is mocked as false), animation should be called
       expect(Animated.timing).toHaveBeenCalled();
     });
+
+    it('fires Loader trigger when isLoading is true', async () => {
+      // Arrange & Act
+      render(<FoxAnimation startFoxAnimation isLoading hasFooter={false} />);
+
+      await act(async () => {
+        // Wait for useEffect to trigger and animation to complete
+      });
+
+      // Assert
+      expect(Animated.timing).toHaveBeenCalled();
+
+      const mockedMethods = __getLastMockedMethods();
+      expect(mockedMethods).toBeDefined();
+      if (mockedMethods) {
+        expect(mockedMethods.fireState).toHaveBeenCalledWith(
+          'FoxRaiseUp',
+          'Loader',
+        );
+      }
+    });
+
+    it('fires Start trigger when isLoading is false (default behavior)', async () => {
+      // Arrange & Act
+      render(
+        <FoxAnimation startFoxAnimation isLoading={false} hasFooter={false} />,
+      );
+
+      await act(async () => {
+        // Wait for useEffect to trigger and animation to complete
+      });
+
+      // Assert
+      expect(Animated.timing).toHaveBeenCalled();
+
+      const mockedMethods = __getLastMockedMethods();
+      expect(mockedMethods).toBeDefined();
+      if (mockedMethods) {
+        expect(mockedMethods.fireState).toHaveBeenCalledWith(
+          'FoxRaiseUp',
+          'Start',
+        );
+      }
+    });
+
+    it('uses Start trigger when isLoading prop is not provided (backward compatibility)', async () => {
+      // Arrange & Act
+      render(<FoxAnimation startFoxAnimation hasFooter={false} />);
+
+      await act(async () => {
+        // Wait for useEffect to trigger and animation to complete
+      });
+
+      // Assert
+      expect(Animated.timing).toHaveBeenCalled();
+
+      const mockedMethods = __getLastMockedMethods();
+      expect(mockedMethods).toBeDefined();
+      if (mockedMethods) {
+        expect(mockedMethods.fireState).toHaveBeenCalledWith(
+          'FoxRaiseUp',
+          'Start',
+        );
+      }
+    });
   });
 
   describe('style calculations', () => {

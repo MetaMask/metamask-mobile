@@ -28,7 +28,6 @@ const DefaultDepositKeyboardStory = () => {
       onChange={handleChange}
       onPercentagePress={handlePercentagePress}
       onDonePress={handleDonePress}
-      hasInput={false}
     />
   );
 };

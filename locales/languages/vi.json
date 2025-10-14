@@ -221,6 +221,10 @@
     "remind_later_description2": "Bạn có thể sao lưu ví hoặc xem Cụm từ khôi phục bí mật trong phần",
     "setting_security_privacy": "Cài đặt > Bảo mật & Quyền riêng tư"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "Chào mừng bạn đến với MetaMask",
     "title2": "Quản lý các tài sản kỹ thuật số của bạn",
@@ -389,6 +393,7 @@
     "description": "Chỉ mở khóa MetaMask trên thiết bị này.",
     "description_social_login": "Sử dụng cụm từ này để khôi phục ví trên tất cả các thiết bị.",
     "description_social_login_update": "Nếu bạn làm mất mật khẩu này, bạn sẽ mất quyền truy cập vào ví của mình trên tất cả các thiết bị. Hãy lưu trữ mật khẩu ở nơi an toàn,",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask không thể đặt lại mật khẩu này.",
     "subtitle": "Mật khẩu này sẽ chỉ mở khóa ví MetaMask của bạn trên thiết bị này.",
     "password": "Tạo mật khẩu",
@@ -662,7 +667,14 @@
       "bullet_2_description": "USDC được thiết kế để duy trì tính ổn định, giúp việc lập kế hoạch, tiết kiệm và chi tiêu dễ dàng hơn.",
       "bullet_3_title": "Nhanh hơn ngân hàng",
       "bullet_3_description": "Gửi và nhận trong vài phút, không cần chờ đến giờ làm việc của ngân hàng hoặc sự chậm trễ do giao dịch quốc tế.",
-      "button": "Bắt đầu"
+      "button": "Bắt đầu",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Xác minh danh tính của bạn",
@@ -879,7 +891,6 @@
     "refresh_balance": "Làm mới số dư",
     "add_funds": "Thêm tiền",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Vị thế của bạn",
     "loading_positions": "Đang tải vị thế...",
     "refreshing_positions": "Đang làm mới vị thế...",
@@ -1512,7 +1523,7 @@
         "history_will_appear": "Lịch sử giao dịch của bạn sẽ hiển thị tại đây"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Tiếp tục",
       "skip": "Bỏ qua",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Chọn token",
-    "title_pay_eth": "Thanh toán bằng ETH",
     "native_toggle_wallet": "Thanh toán phí mạng bằng số dư trong ví của bạn.",
     "list_balance": "Số dư:",
     "insufficient_balance": "Không đủ tiền",
-    "native_toggle_metamask": "MetaMask đang bổ sung số dư để hoàn tất giao dịch này.",
-    "title_pay_with_other_tokens": "Thanh toán bằng token khác"
+    "native_toggle_metamask": "MetaMask đang bổ sung số dư để hoàn tất giao dịch này."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ID giao dịch",
@@ -5889,8 +5901,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Chốt lời",
-        "stop_loss": "Cắt lỗ",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5926,9 +5938,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6094,6 +6104,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

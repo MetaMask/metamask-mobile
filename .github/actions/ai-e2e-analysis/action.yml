@@ -1,9 +1,6 @@
 name: 'AI E2E Analysis'
 description: 'Run AI-powered E2E test selection analysis based on code changes'
 inputs:
-  changed-files:
-    description: 'Pre-computed list of changed files from needs_e2e_build job'
-    required: true
   event-name:
     description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
     required: true
@@ -11,14 +8,14 @@ inputs:
     description: 'Claude API key for AI analysis'
     required: true
   github-token:
-    description: 'GitHub token for PR comments (optional)'
-    required: false
+    description: 'GitHub token for PR comments'
+    required: true
   pr-number:
-    description: 'Pull request number for commenting (optional)'
-    required: false
+    description: 'Pull request number for commenting'
+    required: true
   repository:
-    description: 'Repository name (owner/repo) for commenting (optional)'
-    required: false
+    description: 'Repository name (owner/repo) for commenting'
+    required: true
   post-comment:
     description: 'Whether to post a comment to the PR'
     required: false
@@ -32,17 +29,16 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Minimal checkout for AI analysis
+    - name: Full checkout for AI analysis
       uses: actions/checkout@v4
       with:
-        sparse-checkout: |
-          .github/scripts
-          e2e/scripts
-          e2e/specs
-          e2e/tags.js
-          .nvmrc
-        sparse-checkout-cone-mode: false
-        fetch-depth: 1
+        fetch-depth: 50
+
+    - name: Disable sparse checkout and restore all files
+      shell: bash
+      run: |
+        git sparse-checkout disable
+        git checkout HEAD -- .
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -75,17 +71,16 @@ runs:
       shell: bash
       env:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
-        CHANGED_FILES: ${{ inputs.changed-files }}
         EVENT_NAME: ${{ inputs.event-name }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
-        # Only run AI analysis for pull_request events with changed files
-        if [[ "$EVENT_NAME" == "pull_request" ]] && [[ -n "$CHANGED_FILES" ]]; then
-          echo "✅ Running AI analysis for PR with changed files"
-          node .github/scripts/ai-e2e-analysis.mjs \
-            "$EVENT_NAME" \
-            "$CHANGED_FILES"
+        # Only run AI analysis for pull_request events
+        if [[ "$EVENT_NAME" == "pull_request" ]]; then
+          echo "✅ Running AI analysis for PR #$PR_NUMBER"
+          node .github/scripts/ai-e2e-analysis.mjs 
         else
-          echo "⏭️ Skipping AI analysis - only runs on PRs with changed files (event: $EVENT_NAME, has files: $([ -n "$CHANGED_FILES" ] && echo 'yes' || echo 'no'))"
+          echo "⏭️ Skipping AI analysis - only runs on PRs)"
           echo "test_matrix=[]" >> "$GITHUB_OUTPUT"
           echo "tags=" >> "$GITHUB_OUTPUT"
           echo "tags_display=None (AI analysis skipped)" >> "$GITHUB_OUTPUT"

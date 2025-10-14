@@ -121,3 +121,5 @@ ignores:
   - 'react-native-pager-view'
   # this dependency can probably be removed, needs investigation
   - '@types/react-test-renderer'
+  # runtime for dependecies using Nitro Modules (@metamask/native-utils)
+  - 'react-native-nitro-modules'

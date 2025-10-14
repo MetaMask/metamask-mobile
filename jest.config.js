@@ -21,6 +21,8 @@ process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
 process.env.IOS_GOOGLE_CLIENT_ID = 'iosGoogleClientId';
 process.env.IOS_GOOGLE_REDIRECT_URI = 'iosGoogleRedirectUri';
 
+process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
+
 // When running Reassure perf tests we want to avoid Jest coverage to reduce memory usage
 const isReassureRun = process.env.REASSURE === 'true';
 

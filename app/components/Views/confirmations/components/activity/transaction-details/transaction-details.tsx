@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import ScreenView from '../../../../../Base/ScreenView';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details.styles';
@@ -13,11 +12,16 @@ import { TransactionDetailsPaidWithRow } from '../transaction-details-paid-with-
 import { TransactionDetailsSummary } from '../transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero';
 import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
+import { hasTransactionType } from '../../../utils/transaction';
+import { ScrollView } from 'react-native';
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -26,7 +30,7 @@ export function TransactionDetails() {
   const { transactionMeta } = useTransactionDetails();
 
   const { colors } = theme;
-  const title = getTitle(transactionMeta.type);
+  const title = getTitle(transactionMeta);
 
   useEffect(() => {
     navigation.setOptions(
@@ -35,7 +39,7 @@ export function TransactionDetails() {
   }, [colors, navigation, theme, title]);
 
   return (
-    <ScreenView>
+    <ScrollView>
       <Box style={styles.container} gap={12}>
         <TransactionDetailsHero />
         <TransactionDetailsStatusRow />
@@ -48,12 +52,16 @@ export function TransactionDetails() {
         <TransactionDetailDivider />
         <TransactionDetailsSummary />
       </Box>
-    </ScreenView>
+    </ScrollView>
   );
 }
 
-function getTitle(type?: TransactionType) {
-  switch (type) {
+function getTitle(transactionMeta: TransactionMeta) {
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    return strings('transaction_details.title.predict_deposit');
+  }
+
+  switch (transactionMeta.type) {
     case TransactionType.perpsDeposit:
       return strings('transaction_details.title.perps_deposit');
     default:
