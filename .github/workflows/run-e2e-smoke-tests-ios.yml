@@ -14,21 +14,6 @@ permissions:
   id-token: write
 
 jobs:
-  confirmations-ios-smoke:
-    strategy:
-      matrix:
-        split: [1, 2, 3]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: confirmations-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: "SmokeConfirmations"
-      split_number: ${{ matrix.split }}
-      total_splits: 3
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   confirmations-redesigned-ios-smoke:
    strategy:
      matrix:

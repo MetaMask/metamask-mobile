@@ -49,7 +49,6 @@ export class AIE2ETagsSelector {
 
   private readonly pipelineTags = [
     'SmokeAccounts',
-    'SmokeConfirmations',
     'SmokeConfirmationsRedesigned',
     'SmokeIdentity',
     'SmokeNetworkAbstractions',
@@ -667,7 +666,6 @@ AVAILABLE TAGS:
 ${this.pipelineTags.map(tag => `- ${tag}`).join('\n')}
 
 TAG COVERAGE:
-- SmokeConfirmations: Transaction confirmations, send/receive, signatures
 - SmokeConfirmationsRedesigned: New confirmation UI as well as all confirmation flows
 - SmokeTrade: Token swaps, DEX trading
 - SmokeWalletPlatform: Core wallet, accounts, network switching
