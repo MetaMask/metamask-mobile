@@ -26,7 +26,6 @@ import {
 } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
-import { TransactionDetailsStatusIcon } from '../transaction-details-status-icon';
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
@@ -37,6 +36,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useNetworkName } from '../../../hooks/useNetworkName';
+import { TransactionDetailsStatus } from '../transaction-details-status';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -139,23 +139,19 @@ function TransactionSummary({
       <SummaryLine
         chainId={chainIdHex}
         isLast={isLast}
-        status={<TransactionDetailsStatusIcon transactionMeta={transaction} />}
         time={time}
         title={title}
+        transaction={transaction}
         transactionHash={txHash}
       />
       {receiveChainId && (
         <SummaryLine
           chainId={receiveChainId}
+          isBridgeReceive
           isLast={isLast}
-          status={
-            <TransactionDetailsStatusIcon
-              transactionMeta={transaction}
-              isBridgeReceive
-            />
-          }
           time={receiveTime}
           title={receiveTitle}
+          transaction={transaction}
           transactionHash={receiveHash}
         />
       )}
@@ -165,17 +161,19 @@ function TransactionSummary({
 
 function SummaryLine({
   chainId,
+  isBridgeReceive,
   isLast,
-  status,
   time,
   title,
+  transaction,
   transactionHash,
 }: {
   chainId: Hex;
+  isBridgeReceive?: boolean;
   isLast: boolean;
-  status: React.ReactNode;
   time: number;
   title: string;
+  transaction: TransactionMeta;
   transactionHash: string | undefined;
 }) {
   const { styles } = useStyles(styleSheet, { isLast });
@@ -212,14 +210,12 @@ function SummaryLine({
         justifyContent={JustifyContent.spaceBetween}
         alignItems={AlignItems.center}
       >
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
+        <TransactionDetailsStatus
+          transactionMeta={transaction}
+          isBridgeReceive={isBridgeReceive}
+          text={title}
           gap={12}
-        >
-          {status}
-          <Text variant={TextVariant.BodyMD}>{title}</Text>
-        </Box>
+        />
         {explorerTxUrl && (
           <ButtonIcon
             testID="block-explorer-button"

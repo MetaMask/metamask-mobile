@@ -4,22 +4,27 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { TransactionDetailsStatusIcon } from './transaction-details-status-icon';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { StatusTypes } from '@metamask/bridge-controller';
+import { TransactionDetailsStatus } from './transaction-details-status';
+import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 
 const ERROR_MESSAGE_MOCK = 'Test Error';
 
-function render(transactionMeta: Partial<TransactionMeta> = {}) {
+function render(
+  transactionMeta: Partial<TransactionMeta> = {},
+  { isBridgeReceive = false } = {},
+) {
   return renderWithProvider(
-    <TransactionDetailsStatusIcon
+    <TransactionDetailsStatus
       transactionMeta={transactionMeta as TransactionMeta}
+      isBridgeReceive={isBridgeReceive}
     />,
     {
       state: merge({}, otherControllersMock),
@@ -27,7 +32,7 @@ function render(transactionMeta: Partial<TransactionMeta> = {}) {
   );
 }
 
-describe('TransactionDetailsStatusIcon', () => {
+describe('TransactionDetailsStatus', () => {
   const useBridgeTxHistoryDataMock = jest.mocked(useBridgeTxHistoryData);
 
   beforeEach(() => {
@@ -39,12 +44,13 @@ describe('TransactionDetailsStatusIcon', () => {
     });
   });
 
-  it('renders success icon if confirmed', () => {
-    const { getByTestId } = render({
+  it('renders success if confirmed', () => {
+    const { getByTestId, getByText } = render({
       status: TransactionStatus.confirmed,
     });
 
     expect(getByTestId('status-icon-confirmed')).toBeDefined();
+    expect(getByText(strings('transaction.confirmed'))).toBeDefined();
   });
 
   it.each([
@@ -52,11 +58,12 @@ describe('TransactionDetailsStatusIcon', () => {
     TransactionStatus.signed,
     TransactionStatus.unapproved,
   ])('renders spinner if status is %s', (status) => {
-    const { getByTestId } = render({
+    const { getByTestId, getByText } = render({
       status,
     });
 
     expect(getByTestId('status-spinner')).toBeDefined();
+    expect(getByText(strings('transaction.pending'))).toBeDefined();
   });
 
   it('renders error message if status is failed', () => {
@@ -70,6 +77,7 @@ describe('TransactionDetailsStatusIcon', () => {
 
     fireEvent.press(getByTestId('status-tooltip-open-btn'));
 
+    expect(getByText(strings('transaction.failed'))).toBeDefined();
     expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();
   });
 
@@ -92,6 +100,7 @@ describe('TransactionDetailsStatusIcon', () => {
 
     fireEvent.press(getByTestId('status-tooltip-open-btn'));
 
+    expect(getByText(strings('transaction.failed'))).toBeDefined();
     expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();
   });
 
@@ -102,9 +111,10 @@ describe('TransactionDetailsStatusIcon', () => {
       },
     } as ReturnType<typeof useBridgeTxHistoryData>);
 
-    const { getByTestId } = render();
+    const { getByTestId, getByText } = render({}, { isBridgeReceive: true });
 
     expect(getByTestId('status-icon-confirmed')).toBeDefined();
+    expect(getByText(strings('transaction.confirmed'))).toBeDefined();
   });
 
   it.each([StatusTypes.PENDING, StatusTypes.UNKNOWN])(
@@ -116,9 +126,10 @@ describe('TransactionDetailsStatusIcon', () => {
         },
       } as ReturnType<typeof useBridgeTxHistoryData>);
 
-      const { getByTestId } = render();
+      const { getByTestId, getByText } = render({}, { isBridgeReceive: true });
 
       expect(getByTestId('status-spinner')).toBeDefined();
+      expect(getByText(strings('transaction.pending'))).toBeDefined();
     },
   );
 
@@ -129,8 +140,9 @@ describe('TransactionDetailsStatusIcon', () => {
       },
     } as ReturnType<typeof useBridgeTxHistoryData>);
 
-    const { getByTestId } = render();
+    const { getByTestId, getByText } = render({}, { isBridgeReceive: true });
 
     expect(getByTestId('status-icon-failed')).toBeDefined();
+    expect(getByText(strings('transaction.failed'))).toBeDefined();
   });
 });

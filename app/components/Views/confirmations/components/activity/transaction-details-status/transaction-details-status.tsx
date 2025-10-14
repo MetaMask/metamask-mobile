@@ -15,12 +15,23 @@ import { View } from 'react-native';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
+import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { Box } from '../../../../../UI/Box/Box';
+import { strings } from '../../../../../../../locales/i18n';
 
-export function TransactionDetailsStatusIcon({
+export function TransactionDetailsStatus({
+  gap,
   isBridgeReceive,
+  text,
   transactionMeta,
 }: {
+  gap?: number;
   isBridgeReceive?: boolean;
+  text?: string;
   transactionMeta: TransactionMeta;
 }) {
   const { status: statusRaw } = transactionMeta;
@@ -34,8 +45,36 @@ export function TransactionDetailsStatusIcon({
       ? getBridgeStatus(bridgeTxHistoryItem)
       : statusRaw;
 
+  const statusText = text ?? getStatusText(status);
+
+  const textColour =
+    text && status !== TransactionStatus.failed
+      ? undefined
+      : getTextColour(status);
+
+  return (
+    <Box
+      flexDirection={FlexDirection.Row}
+      gap={gap ?? 6}
+      alignItems={AlignItems.center}
+    >
+      <StatusIcon status={status} transactionMeta={transactionMeta} />
+      <Text color={textColour} variant={TextVariant.BodyMDMedium}>
+        {statusText}
+      </Text>
+    </Box>
+  );
+}
+
+function StatusIcon({
+  status,
+  transactionMeta,
+}: {
+  status: TransactionStatus;
+  transactionMeta: TransactionMeta;
+}) {
   const iconName = getStatusIcon(status);
-  const iconColour = getStatusColour(status);
+  const iconColour = getIconColour(status);
   const errorMessage = getErrorMessage(transactionMeta);
 
   if (status === TransactionStatus.failed && errorMessage) {
@@ -69,16 +108,16 @@ export function TransactionDetailsStatusIcon({
 function getStatusIcon(status: TransactionStatus): IconName | undefined {
   switch (status) {
     case TransactionStatus.confirmed:
-      return IconName.Check;
+      return IconName.Confirmation;
     case TransactionStatus.failed:
     case TransactionStatus.dropped:
-      return IconName.Close;
+      return IconName.CircleX;
     default:
       return undefined;
   }
 }
 
-export function getStatusColour(status: TransactionStatus): IconColor {
+function getIconColour(status: TransactionStatus): IconColor {
   switch (status) {
     case TransactionStatus.confirmed:
       return IconColor.Success;
@@ -87,6 +126,30 @@ export function getStatusColour(status: TransactionStatus): IconColor {
       return IconColor.Error;
     default:
       return IconColor.Warning;
+  }
+}
+
+function getStatusText(status: TransactionStatus): string {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return strings('transaction.confirmed');
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return strings('transaction.failed');
+    default:
+      return strings('transaction.pending');
+  }
+}
+
+function getTextColour(status: TransactionStatus): TextColor {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return TextColor.Success;
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return TextColor.Error;
+    default:
+      return TextColor.Warning;
   }
 }
 
