@@ -535,6 +535,16 @@ export interface IPerpsProvider {
   getMarkets(): Promise<MarketInfo[]>;
   getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
+
+  // HIP-3 DEX operations (optional - only for providers supporting HIP-3)
+  getDexBalance?(
+    dexName: string,
+  ): Promise<{ availableBalance: string; totalBalance: string }>;
+  transferToDex?(params: {
+    dexName: string;
+    amount: string;
+  }): Promise<{ success: boolean; error?: string }>;
+
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
   validateDeposit(
     params: DepositParams,

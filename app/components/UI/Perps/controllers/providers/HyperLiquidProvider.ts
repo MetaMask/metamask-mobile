@@ -537,6 +537,50 @@ export class HyperLiquidProvider implements IPerpsProvider {
         dexName: dexName || 'main',
       });
 
+      // HIP-3 DEX Balance Check
+      if (dexName) {
+        const infoClient = this.clientService.getInfoClient();
+        const userAddress =
+          await this.walletService.getUserAddressWithDefault();
+
+        try {
+          // Note: SDK types don't include 'dex' param for clearinghouseState,
+          // but the API does support it for HIP-3 DEXs. We need to cast to unknown first.
+          const dexState = await infoClient.clearinghouseState({
+            user: userAddress,
+            dex: dexName,
+          } as unknown as Parameters<typeof infoClient.clearinghouseState>[0]);
+
+          const dexBalance = parseFloat(dexState.withdrawable || '0');
+
+          DevLogger.log('HIP-3 DEX balance check:', {
+            dexName,
+            balance: dexBalance,
+            required: 'TBD',
+          });
+
+          if (dexBalance === 0) {
+            throw new Error(
+              `No collateral in ${dexName} DEX. You must transfer USDC to this DEX before trading ${params.coin}. ` +
+                `Use perpDexClassTransfer to move funds from main DEX to ${dexName} DEX.`,
+            );
+          }
+        } catch (balanceError) {
+          // If it's our helpful error, re-throw it
+          if (
+            balanceError instanceof Error &&
+            balanceError.message.includes('No collateral')
+          ) {
+            throw balanceError;
+          }
+          // Otherwise log and continue (don't block on balance check failure)
+          DevLogger.log(
+            'Failed to check HIP-3 DEX balance, continuing anyway:',
+            balanceError,
+          );
+        }
+      }
+
       // Update leverage if specified
       if (params.leverage) {
         DevLogger.log('Updating leverage before order:', {
@@ -3017,10 +3061,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       if (isReady) {
         const onFile =
-          referral.referrerState && 'data' in referral.referrerState
-            ? referral.referrerState.data?.code || ''
+          referral.referrerState &&
+          'data' in referral.referrerState &&
+          referral.referrerState.data &&
+          'code' in referral.referrerState.data
+            ? referral.referrerState.data.code || ''
             : '';
-        if (onFile.toUpperCase() !== code.toUpperCase()) {
+        if (onFile && onFile.toUpperCase() !== code.toUpperCase()) {
           throw new Error(
             `Ready for referrals but there is a config code mismatch ${onFile} vs ${code}`,
           );
