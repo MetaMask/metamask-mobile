@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { compare } from 'compare-versions';
 import { isRemoteFeatureFlagOverrideActivated } from '../../../core/Engine/controllers/remote-feature-flag-controller';
+import packageJson from '../../../../package.json';
 import { StateWithPartialEngine } from '../types';
 
 /**
@@ -48,7 +49,7 @@ export function isBitcoinAccountsEnabled(flagValue: unknown): boolean {
     }
     
     // Get current version from package.json 
-    const currentVersion = require('../../../../package.json').version;
+    const currentVersion = packageJson.version;
     
     try {
       // Use compare-versions for proper semver comparison
