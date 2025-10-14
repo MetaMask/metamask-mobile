@@ -73,13 +73,31 @@ jest.mock('../../../util/password', () => ({
   passwordRequirementsMet: jest.fn(),
 }));
 
-// Mock react-native with Keyboard
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Keyboard: {
-    dismiss: jest.fn(),
-  },
-}));
+// Mock react-native with Keyboard and Animated
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Keyboard: {
+      dismiss: jest.fn(),
+    },
+    Animated: {
+      ...RN.Animated,
+      parallel: jest.fn(() => ({
+        start: jest.fn(),
+      })),
+      timing: jest.fn(() => ({
+        start: jest.fn(),
+      })),
+      Value: jest.fn(() => ({
+        setValue: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        removeAllListeners: jest.fn(),
+      })),
+    },
+  };
+});
 
 // Mock StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -125,6 +143,40 @@ jest.mock('../../../util/authentication', () => ({
 
 jest.mock('../../../core/BackupVault', () => ({
   getVaultFromBackup: jest.fn(),
+}));
+
+// Mock OnboardingAnimation component
+jest.mock(
+  '../Onboarding/OnboardingAnimation',
+  () =>
+    ({ children }: { children: React.ReactNode }) =>
+      children,
+);
+
+// Mock FoxAnimation component
+jest.mock('../Onboarding/FoxAnimation', () => () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const ReactMock = require('react');
+  return ReactMock.createElement(View, { testID: 'fox-animation-mock' });
+});
+
+// Mock Rive animations
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: () => null,
+  Fit: { Contain: 'contain' },
+  Alignment: { Center: 'center' },
+}));
+
+// Mock safe area context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('../../../util/validators', () => ({

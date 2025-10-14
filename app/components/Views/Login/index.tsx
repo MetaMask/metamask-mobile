@@ -879,7 +879,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         >
           <FoxAnimation
             startFoxAnimation={startFoxAnimation}
-            hasFooter
+            hasFooter={false}
           />
         </TouchableOpacity>
       </SafeAreaView>

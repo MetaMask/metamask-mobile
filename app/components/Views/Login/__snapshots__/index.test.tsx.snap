@@ -3,15 +3,24 @@
 exports[`Login renders matching snapshot 1`] = `
 <RCTSafeAreaView
   style={
-    {
-      "backgroundColor": "#ffffff",
-      "flex": 1,
-      "paddingTop": 0,
-    }
+    [
+      {
+        "flex": 1,
+        "paddingTop": 0,
+      },
+      {
+        "backgroundColor": "#FFF2EB",
+      },
+    ]
   }
 >
   <RCTScrollView
     automaticallyAdjustContentInsets={false}
+    contentContainerStyle={
+      {
+        "flex": 1,
+      }
+    }
     contentInset={
       {
         "bottom": 0,
@@ -59,94 +68,23 @@ exports[`Login renders matching snapshot 1`] = `
             "alignItems": "center",
             "flex": 1,
             "flexDirection": "column",
-            "justifyContent": "flex-start",
+            "justifyContent": "center",
             "width": "100%",
           }
         }
         testID="login"
       >
-        <Image
-          resizeMethod="auto"
-          source={1}
-          style={
-            {
-              "height": 40,
-              "marginTop": 10,
-              "tintColor": "#121314",
-              "width": 80,
-            }
-          }
-        />
-        <TouchableOpacity
-          activeOpacity={1}
-          delayLongPress={10000}
-          onLongPress={[Function]}
-          style={
-            {
-              "alignSelf": "center",
-              "height": 175,
-              "justifyContent": "center",
-              "marginTop": 48,
-              "width": 175,
-            }
-          }
-        >
-          <Image
-            resizeMethod="auto"
-            source={1}
-            style={
-              {
-                "alignSelf": "center",
-                "height": 175,
-                "width": 175,
-              }
-            }
-          />
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Bold",
-              "fontSize": 32,
-              "letterSpacing": 0,
-              "lineHeight": 40,
-              "marginVertical": 24,
-              "textAlign": "center",
-            }
-          }
-          testID="login-title"
-        >
-          Welcome Back!
-        </Text>
         <View
           style={
             {
               "flexDirection": "column",
               "justifyContent": "flex-start",
-              "marginBottom": 10,
+              "marginBottom": 0,
               "rowGap": 8,
               "width": "100%",
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginBottom": -4,
-              }
-            }
-            testID="label"
-          >
-            Password
-          </Text>
           <View
             accessibilityState={
               {
@@ -258,7 +196,7 @@ exports[`Login renders matching snapshot 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "column",
-              "marginTop": 24,
+              "marginTop": 0,
               "rowGap": 24,
               "width": "100%",
             }
@@ -320,7 +258,7 @@ exports[`Login renders matching snapshot 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "marginVertical": 14,
+                "marginVertical": 0,
                 "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
@@ -360,21 +298,48 @@ exports[`Login renders matching snapshot 1`] = `
       }
     }
   />
+  <TouchableOpacity
+    activeOpacity={1}
+    delayLongPress={10000}
+    onLongPress={[Function]}
+    style={
+      {
+        "bottom": 0,
+        "height": 200,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+      }
+    }
+  >
+    <View
+      testID="fox-animation-mock"
+    />
+  </TouchableOpacity>
 </RCTSafeAreaView>
 `;
 
 exports[`Login renders matching snapshot when password input is focused 1`] = `
 <RCTSafeAreaView
   style={
-    {
-      "backgroundColor": "#ffffff",
-      "flex": 1,
-      "paddingTop": 0,
-    }
+    [
+      {
+        "flex": 1,
+        "paddingTop": 0,
+      },
+      {
+        "backgroundColor": "#FFF2EB",
+      },
+    ]
   }
 >
   <RCTScrollView
     automaticallyAdjustContentInsets={false}
+    contentContainerStyle={
+      {
+        "flex": 1,
+      }
+    }
     contentInset={
       {
         "bottom": 0,
@@ -422,94 +387,23 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             "alignItems": "center",
             "flex": 1,
             "flexDirection": "column",
-            "justifyContent": "flex-start",
+            "justifyContent": "center",
             "width": "100%",
           }
         }
         testID="login"
       >
-        <Image
-          resizeMethod="auto"
-          source={1}
-          style={
-            {
-              "height": 40,
-              "marginTop": 10,
-              "tintColor": "#121314",
-              "width": 80,
-            }
-          }
-        />
-        <TouchableOpacity
-          activeOpacity={1}
-          delayLongPress={10000}
-          onLongPress={[Function]}
-          style={
-            {
-              "alignSelf": "center",
-              "height": 175,
-              "justifyContent": "center",
-              "marginTop": 48,
-              "width": 175,
-            }
-          }
-        >
-          <Image
-            resizeMethod="auto"
-            source={1}
-            style={
-              {
-                "alignSelf": "center",
-                "height": 175,
-                "width": 175,
-              }
-            }
-          />
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Bold",
-              "fontSize": 32,
-              "letterSpacing": 0,
-              "lineHeight": 40,
-              "marginVertical": 24,
-              "textAlign": "center",
-            }
-          }
-          testID="login-title"
-        >
-          Welcome Back!
-        </Text>
         <View
           style={
             {
               "flexDirection": "column",
               "justifyContent": "flex-start",
-              "marginBottom": 10,
+              "marginBottom": 0,
               "rowGap": 8,
               "width": "100%",
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginBottom": -4,
-              }
-            }
-            testID="label"
-          >
-            Password
-          </Text>
           <View
             accessibilityState={
               {
@@ -621,7 +515,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "column",
-              "marginTop": 24,
+              "marginTop": 0,
               "rowGap": 24,
               "width": "100%",
             }
@@ -683,7 +577,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "marginVertical": 14,
+                "marginVertical": 0,
                 "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
@@ -723,5 +617,23 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
       }
     }
   />
+  <TouchableOpacity
+    activeOpacity={1}
+    delayLongPress={10000}
+    onLongPress={[Function]}
+    style={
+      {
+        "bottom": 0,
+        "height": 200,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+      }
+    }
+  >
+    <View
+      testID="fox-animation-mock"
+    />
+  </TouchableOpacity>
 </RCTSafeAreaView>
 `;
