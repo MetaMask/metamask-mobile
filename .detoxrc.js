@@ -17,7 +17,6 @@ module.exports = {
       },
     },
   },
-  
   testRunner: {
     args: {
       $0: 'jest',
@@ -27,7 +26,7 @@ module.exports = {
       setupTimeout: 220000,
       teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
     },
-    retries: 1,
+    retries: process.env.CI ? 1 : 0,
   },
   configurations: {
     'ios.sim.apiSpecs': {
@@ -39,42 +38,34 @@ module.exports = {
         },
       },
     },
-    'ios.sim.debug': {
-      device: 'ios.simulator',
-      app: 'ios.debug',
-    },
-    'ios.sim.main.release': {
-      device: 'ios.simulator',
-      app: 'ios.main.release',
-    },
-    'ios.sim.flask.release': {
-      device: 'ios.simulator',
-      app: 'ios.flask.release',
-    },
-    'ios.github_ci.main.release': {
-      device: 'ios.github_ci.simulator',
-      app: 'ios.debug',
-    },
-    'android.emu.debug': {
+    'android.emu.main': {
       device: 'android.emulator',
       app: 'android.debug',
     },
-    'android.emu.release': {
-      device: 'android.bitrise.emulator',
-      app: 'android.release',
+    'ios.sim.main': {
+      device: 'ios.simulator',
+      app: 'ios.debug',
     },
-    'android.github_ci.release': {
+    'ios.sim.flask': {
+      device: 'ios.simulator',
+      app: 'ios.flask.release',
+    },
+    'android.emu.main.ci': {
       device: 'android.github_ci.emulator',
       app: 'android.release',
     },
-    'android.github_ci.flask.release': {
+    'android.emu.flask.ci': {
       device: 'android.github_ci.emulator',
       app: 'android.flask.release',
     },
-    'android.emu.flask.release': {
-      device: 'android.bitrise.emulator',
-      app: 'android.flask.release',
+    'ios.sim.main.ci': {
+      device: 'ios.simulator',
+      app: 'ios.main.release',
     },
+    'ios.sim.flask.ci': {
+      device: 'ios.simulator',
+      app: 'ios.debug',
+    }
   },
   devices: {
     'ios.simulator': {
@@ -83,21 +74,11 @@ module.exports = {
         type: 'iPhone 15 Pro',
       },
     },
-    'ios.github_ci.simulator': {
-      type: 'ios.simulator',
-      device: {
-        type: 'iPhone 16 Pro',
-        os: 'iOS 18.6',
-      },
-    },
-    'android.bitrise.emulator': {
+    'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'emulator',
+        avdName: 'Pixel_5_Pro_API_34',
       },
-      // optimized for Bitrise CI runners
-      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
-      forceAdbInstall: true,
     },
     'android.github_ci.emulator': {
       type: 'android.emulator',
@@ -108,12 +89,15 @@ module.exports = {
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },
-    'android.emulator': {
+    'android.bitrise.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_5_Pro_API_34',
+        avdName: 'emulator',
       },
-    },
+      // optimized for Bitrise CI runners
+      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
+      forceAdbInstall: true,
+    }
   },
   apps: {
     'ios.debug': {
