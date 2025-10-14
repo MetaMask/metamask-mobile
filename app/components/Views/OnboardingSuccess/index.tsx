@@ -33,6 +33,7 @@ import { useDispatch } from 'react-redux';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -49,12 +50,13 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
   const styles = useMemo(
-    () => createStyles(colors, isDarkMode),
-    [colors, isDarkMode],
+    () => createStyles(colors, isDarkMode, insets),
+    [colors, isDarkMode, insets],
   );
 
   useLayoutEffect(() => {
@@ -88,8 +90,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const renderContent = useCallback(() => {
     const getTitleString = () => {
       switch (successFlow) {
-        case ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP:
-        case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
+        case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
           return strings('onboarding_success.title');
         default:
           return strings('onboarding_success.wallet_ready');

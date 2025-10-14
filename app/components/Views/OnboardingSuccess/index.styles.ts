@@ -1,12 +1,17 @@
 import { StyleSheet } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../styles/common';
+import { EdgeInsets } from 'react-native-safe-area-context';
 
-const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
+const createStyles = (
+  colors: ThemeColors,
+  isDarkMode: boolean = false,
+  insets?: EdgeInsets,
+) =>
   StyleSheet.create({
     root: {
       flexGrow: 1,
-      paddingBottom: 16,
+      paddingBottom: Math.max(16, (insets?.bottom || 0) + 8),
       backgroundColor: isDarkMode
         ? colors.background.default
         : importedColors.white,
@@ -30,12 +35,12 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
     },
     buttonContainer: {
       position: 'absolute',
-      bottom: 16,
+      bottom: Math.max(16, (insets?.bottom || 0) + 4),
       left: 0,
       right: 0,
       paddingHorizontal: 16,
       paddingTop: 8,
-      paddingBottom: 40,
+      paddingBottom: Math.max(40, (insets?.bottom || 0) + 8),
       backgroundColor: isDarkMode
         ? colors.background.default
         : importedColors.white,
@@ -104,7 +109,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
     },
     footerWrapper: {
       marginTop: 16,
-      marginBottom: 16,
+      marginBottom: Math.max(16, (insets?.bottom || 0) + 8),
       flexDirection: 'column',
       rowGap: 16,
     },
