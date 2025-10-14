@@ -21,6 +21,17 @@ import packageJSON from '../../../../../package.json';
 
 const { version: clientVersion } = packageJSON;
 
+export const handleBridgeFetch = (
+  url: RequestInfo | URL,
+  options: RequestInit = {},
+) => {
+  if (url.toString().includes('Stream')) {
+    // @ts-expect-error types are different
+    return expoFetch(url.toString(), options);
+  }
+  return handleFetch(url, options);
+};
+
 export const bridgeControllerInit: ControllerInitFunction<
   BridgeController,
   BridgeControllerMessenger
@@ -47,13 +58,7 @@ export const bridgeControllerInit: ControllerInitFunction<
           chainId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any,
-      fetchFn: (url, options) => {
-        if (url.toString().includes('Stream')) {
-          // @ts-expect-error types are different
-          return expoFetch(url.toString(), options);
-        }
-        return handleFetch(url, options);
-      },
+      fetchFn: handleBridgeFetch,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
