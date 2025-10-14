@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import Button, {
@@ -13,28 +13,34 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import Checkbox from '../../../../../component-library/components/Checkbox';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
-const PhysicalAddress = () => {
+const MailingAddress = () => {
   const navigation = useNavigation();
-  const tw = useTailwind();
 
-  const [addressLine1, setAddressLine1] = useState('');
-  const [addressLine2, setAddressLine2] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [zipCode, setZipCode] = useState('');
-  const [isSameMailingAddress, setIsSameMailingAddress] = useState(true);
-  const [electronicConsent, setElectronicConsent] = useState(false);
+  const {
+    addressLine1: initialAddressLine1,
+    addressLine2: initialAddressLine2,
+    city: initialCity,
+    state: initialState,
+    zipCode: initialZipCode,
+  } = useParams<{
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  }>();
 
-  const handleSameMailingAddressToggle = useCallback(() => {
-    setIsSameMailingAddress(!isSameMailingAddress);
-  }, [isSameMailingAddress]);
+  const [addressLine1, setAddressLine1] = useState(initialAddressLine1);
+  const [addressLine2, setAddressLine2] = useState(initialAddressLine2);
+  const [city, setCity] = useState(initialCity);
+  const [state, setState] = useState(initialState);
+  const [zipCode, setZipCode] = useState(initialZipCode);
 
-  const handleElectronicConsentToggle = useCallback(() => {
-    setElectronicConsent(!electronicConsent);
-  }, [electronicConsent]);
+  const handleContinue = () => {
+    navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+  };
 
   const handleZipCodeChange = (text: string) => {
     const cleanedText = text.replace(/\D/g, '');
@@ -42,26 +48,9 @@ const PhysicalAddress = () => {
   };
 
   const isDisabled = useMemo(
-    () => !addressLine1 || !city || !state || !zipCode || !electronicConsent,
-    [addressLine1, city, state, zipCode, electronicConsent],
+    () => !addressLine1 || !city || !state || !zipCode,
+    [addressLine1, city, state, zipCode],
   );
-
-  const additionalParams = isSameMailingAddress
-    ? {
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        zipCode,
-      }
-    : {};
-
-  const handleContinue = () => {
-    navigation.navigate(
-      Routes.CARD.ONBOARDING.MAILING_ADDRESS,
-      additionalParams,
-    );
-  };
 
   const renderFormFields = () => (
     <>
@@ -183,26 +172,6 @@ const PhysicalAddress = () => {
           )}
         />
       </Box>
-
-      {/* Check box 1: Same Mailing Address */}
-      <Checkbox
-        isChecked={isSameMailingAddress}
-        onPress={handleSameMailingAddressToggle}
-        label={strings(
-          'card.card_onboarding.physical_address.same_mailing_address_label',
-        )}
-        style={tw.style('h-auto')}
-      />
-
-      {/* Check box 2: Electronic Consent */}
-      <Checkbox
-        isChecked={electronicConsent}
-        onPress={handleElectronicConsentToggle}
-        label={strings(
-          'card.card_onboarding.physical_address.electronic_consent',
-        )}
-        style={tw.style('h-auto')}
-      />
     </>
   );
 
@@ -219,12 +188,12 @@ const PhysicalAddress = () => {
 
   return (
     <OnboardingStep
-      title={strings('card.card_onboarding.physical_address.title')}
-      description={strings('card.card_onboarding.physical_address.description')}
+      title={strings('card.card_onboarding.mailing_address.title')}
+      description={strings('card.card_onboarding.mailing_address.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
     />
   );
 };
 
-export default PhysicalAddress;
+export default MailingAddress;

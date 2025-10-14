@@ -5915,6 +5915,14 @@
         "same_mailing_address_label": "Physical address is the same as mailing address",
         "electronic_consent":"I agree to the E-Sign Act Consent and Disclosure and to receive all communictions electronically."
       },
+      "mailing_address": {
+        "title": "Mailing address",
+        "description": "Please provide your mailing address"
+      },
+      "complete": {
+        "title": "Approved!",
+        "description": "Your KYC was approved. You can now use your Card."
+      },
        "continue_button": "Next",
        "confirm_button": "Confirm",
        "retry_button":"Try again"

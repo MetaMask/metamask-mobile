@@ -11,10 +11,8 @@ import ValidatingKYC from '../components/Onboarding/ValidatingKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
-
-// TODO: Import other onboarding components when they are created
-const OnboardingMailingAddress = () => null;
-const OnboardingComplete = () => null;
+import MailingAddress from '../components/Onboarding/MailingAddress';
+import Complete from '../components/Onboarding/Complete';
 
 const Stack = createStackNavigator();
 const onboardingDefaultNavigationOptions = {
@@ -24,7 +22,7 @@ const onboardingDefaultNavigationOptions = {
 const OnboardingNavigator: React.FC = () => (
   <UnmountOnBlur>
     <Stack.Navigator
-      initialRouteName={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
+      initialRouteName={Routes.CARD.ONBOARDING.SIGN_UP}
       headerMode="screen"
     >
       <Stack.Screen
@@ -74,12 +72,12 @@ const OnboardingNavigator: React.FC = () => (
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
-        component={OnboardingMailingAddress}
+        component={MailingAddress}
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.COMPLETE}
-        component={OnboardingComplete}
+        component={Complete}
         options={onboardingDefaultNavigationOptions}
       />
     </Stack.Navigator>
