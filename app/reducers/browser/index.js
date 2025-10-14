@@ -101,7 +101,7 @@ const browserReducer = (state = initialState, action) => {
     case 'TOGGLE_FULLSCREEN':
       return {
         ...state,
-        isFullscreen: !state.isFullscreen,
+        isFullscreen: action.isFullscreen,
       };
     default:
       return state;

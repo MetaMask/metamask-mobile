@@ -91,7 +91,7 @@ interface BrowserBottomBarProps {
   /**
    * Function that toggles fullscreen mode
    */
-  toggleFullscreen?: () => void;
+  toggleFullscreen?: (isFullscreen: boolean) => void;
   /**
    * Boolean that determines if currently in fullscreen mode
    */
@@ -172,7 +172,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         createEventBuilder(MetaMetricsEvents.BROWSER_OPENED_FULLSCREEN).build(),
       );
     }
-    toggleFullscreen?.();
+    toggleFullscreen?.(!isFullscreen);
   };
 
   const homeDisabled = !goHome;

@@ -139,8 +139,9 @@ export function storeFavicon({ origin, url }) {
  * Toggles fullscreen mode for the browser
  * @returns {{type: string}}
  */
-export function toggleFullscreen() {
+export function toggleFullscreen(isFullscreen) {
   return {
     type: BrowserActionTypes.TOGGLE_FULLSCREEN,
+    isFullscreen,
   };
 }

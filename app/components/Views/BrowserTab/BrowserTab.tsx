@@ -1595,7 +1595,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   addToBrowserHistory: ({ url, name }: { name: string; url: string }) =>
     dispatch(addToHistory({ url, name })),
   addToWhitelist: (url: string) => dispatch(addToWhitelist(url)),
-  toggleFullscreen: () => dispatch(toggleFullscreen()),
+  toggleFullscreen: (isFullscreen: boolean) =>
+    dispatch(toggleFullscreen(isFullscreen)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(BrowserTab);
