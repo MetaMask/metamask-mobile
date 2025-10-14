@@ -222,44 +222,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const withdrawalTransactions = useMemo(() => {
     const transformed =
       transformWithdrawalRequestsToTransactions(withdrawalRequests);
-    console.log('Withdrawal transactions for UI:', {
-      rawCount: withdrawalRequests.length,
-      transformedCount: transformed.length,
-      raw: withdrawalRequests.map((w) => ({
-        id: w.id,
-        status: w.status,
-        amount: w.amount,
-        timestamp: new Date(w.timestamp).toISOString(),
-      })),
-      transformed: transformed.map((t) => ({
-        id: t.id,
-        title: t.title,
-        subtitle: t.subtitle,
-        timestamp: new Date(t.timestamp).toISOString(),
-      })),
-    });
     return transformed;
   }, [withdrawalRequests]);
 
   // Transform deposit requests to transactions
   const depositTransactions = useMemo(() => {
     const transformed = transformDepositRequestsToTransactions(depositRequests);
-    console.log('Deposit transactions for UI:', {
-      rawCount: depositRequests.length,
-      transformedCount: transformed.length,
-      raw: depositRequests.map((d) => ({
-        id: d.id,
-        status: d.status,
-        amount: d.amount,
-        timestamp: new Date(d.timestamp).toISOString(),
-      })),
-      transformed: transformed.map((t) => ({
-        id: t.id,
-        title: t.title,
-        subtitle: t.subtitle,
-        timestamp: new Date(t.timestamp).toISOString(),
-      })),
-    });
     return transformed;
   }, [depositRequests]);
 
@@ -272,39 +240,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       Withdraw: groupTransactionsByDate(withdrawalTransactions),
       Deposit: groupTransactionsByDate(depositTransactions),
     };
-
-    console.log('Grouped transactions for Withdraw tab:', {
-      withdrawalTransactionsCount: withdrawalTransactions.length,
-      groupedWithdrawCount: grouped.Withdraw.length,
-      groupedWithdraw: grouped.Withdraw.map((group) => ({
-        title: group.title,
-        dataCount: group.data.length,
-        data: group.data.map((item) => ({
-          id: item.id,
-          title: item.title,
-          subtitle: item.subtitle,
-          timestamp: new Date(item.timestamp).toISOString(),
-        })),
-      })),
-    });
-
-    // Log each transaction individually to see the actual data
-    grouped.Withdraw.forEach((group, groupIndex) => {
-      console.log(
-        `Group ${groupIndex} (${group.title}):`,
-        group.data.length,
-        'transactions',
-      );
-      group.data.forEach((transaction, index) => {
-        console.log(`  Transaction ${index}:`, {
-          id: transaction.id,
-          title: transaction.title,
-          subtitle: transaction.subtitle,
-          timestamp: new Date(transaction.timestamp).toISOString(),
-          status: transaction.depositWithdrawal?.status,
-        });
-      });
-    });
 
     return grouped;
   }, [

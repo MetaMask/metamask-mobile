@@ -180,6 +180,13 @@ export type PerpsControllerState = {
     withdrawalId?: string;
   }[];
 
+  // Withdrawal progress tracking (persistent across navigation)
+  withdrawalProgress: {
+    progress: number; // 0-100
+    lastUpdated: number; // timestamp
+    activeWithdrawalId?: string; // ID of the withdrawal being tracked
+  };
+
   // Deposit request tracking (persistent, for transaction history)
   depositRequests: {
     id: string;
@@ -229,6 +236,11 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   lastDepositTransactionId: null,
   lastWithdrawResult: null,
   withdrawalRequests: [],
+  withdrawalProgress: {
+    progress: 0,
+    lastUpdated: 0,
+    activeWithdrawalId: undefined,
+  },
   depositRequests: [],
   lastError: null,
   lastUpdateTimestamp: 0,
@@ -320,6 +332,12 @@ const metadata = {
     usedInUi: true,
   },
   withdrawalRequests: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  withdrawalProgress: {
     includeInStateLogs: true,
     persist: true,
     anonymous: false,
@@ -1930,6 +1948,15 @@ export class PerpsController extends BaseController<
           state.withdrawalRequests[withdrawalIndex].txHash = txHash;
         }
 
+        // Clear withdrawal progress when withdrawal completes
+        if (status === 'completed' || status === 'failed') {
+          state.withdrawalProgress = {
+            progress: 0,
+            lastUpdated: Date.now(),
+            activeWithdrawalId: undefined,
+          };
+        }
+
         DevLogger.log('PerpsController: Updated withdrawal status', {
           withdrawalId,
           status,
@@ -1937,6 +1964,33 @@ export class PerpsController extends BaseController<
         });
       }
     });
+  }
+
+  /**
+   * Update withdrawal progress (persistent across navigation)
+   */
+  updateWithdrawalProgress(
+    progress: number,
+    activeWithdrawalId?: string,
+  ): void {
+    this.update((state) => {
+      state.withdrawalProgress = {
+        progress,
+        lastUpdated: Date.now(),
+        activeWithdrawalId,
+      };
+    });
+  }
+
+  /**
+   * Get current withdrawal progress
+   */
+  getWithdrawalProgress(): {
+    progress: number;
+    lastUpdated: number;
+    activeWithdrawalId?: string;
+  } {
+    return this.state.withdrawalProgress;
   }
 
   /**

@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { useWithdrawalRequests } from '../../hooks/useWithdrawalRequests';
+import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -94,9 +95,13 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
     skipInitialFetch: false,
   });
 
+  // Get persistent withdrawal progress from controller
+  const persistentWithdrawalProgress = usePerpsSelector(
+    (state) => state?.withdrawalProgress || { progress: 0, lastUpdated: 0 },
+  );
+
   // Track transaction progress
   const [transactionProgress, setTransactionProgress] = useState(0);
-  const [withdrawalProgress, setWithdrawalProgress] = useState(0);
   const [shouldShow, setShouldShow] = useState(false);
   const [lastProgress, setLastProgress] = useState(0);
 
@@ -176,26 +181,66 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
         onWithdrawalAmountChange?.(activeWithdrawal.amount);
       }
 
+      // Check if we have existing progress for this withdrawal
+      const existingProgress = persistentWithdrawalProgress.progress;
+      const isSameWithdrawal =
+        persistentWithdrawalProgress.activeWithdrawalId ===
+        activeWithdrawal?.id;
+
+      // If we have existing progress for the same withdrawal, continue from there
+      // Otherwise, start fresh
+      let currentStage = 0;
+
+      if (isSameWithdrawal && existingProgress > 0) {
+        // Continue from existing progress
+        // Find the current stage based on progress
+        const progressStages = [25, 35, 45, 55, 65, 75, 85, 90, 95, 98];
+        currentStage = progressStages.findIndex(
+          (stage) => stage > existingProgress,
+        );
+        if (currentStage === -1) currentStage = progressStages.length;
+      } else {
+        // Start fresh - set initial progress
+        const controller = Engine.context.PerpsController;
+        if (controller && activeWithdrawal?.id) {
+          controller.updateWithdrawalProgress(25, activeWithdrawal.id);
+        }
+        currentStage = 1; // Start from second stage
+      }
+
       // Simulate withdrawal progress stages - 5 minutes total, every 30 seconds
       const progressStages = [25, 35, 45, 55, 65, 75, 85, 90, 95, 98];
-      let currentStage = 10;
 
       const progressInterval = setInterval(() => {
         if (currentStage < progressStages.length) {
           const progress = progressStages[currentStage];
-          setWithdrawalProgress(progress);
+
+          // Update controller with persistent progress
+          const controller = Engine.context.PerpsController;
+          if (controller && activeWithdrawal?.id) {
+            controller.updateWithdrawalProgress(progress, activeWithdrawal.id);
+          }
 
           currentStage++;
         } else {
-          // Keep at 95% until withdrawal is actually completed
-          setWithdrawalProgress(95);
+          // Keep at 98% until withdrawal is actually completed
+          const controller = Engine.context.PerpsController;
+          if (controller && activeWithdrawal?.id) {
+            controller.updateWithdrawalProgress(98, activeWithdrawal.id);
+          }
           clearInterval(progressInterval);
         }
       }, 30000); // Progress every 30 seconds
 
       return () => clearInterval(progressInterval);
     }
-  }, [hasActiveWithdrawals, activeWithdrawal, onWithdrawalAmountChange]);
+  }, [
+    hasActiveWithdrawals,
+    activeWithdrawal,
+    onWithdrawalAmountChange,
+    persistentWithdrawalProgress.progress,
+    persistentWithdrawalProgress.activeWithdrawalId,
+  ]);
 
   // Handle withdrawal completion - animate to 100% and hide when withdrawal is truly completed
   useEffect(() => {
@@ -214,12 +259,16 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       // Hide after animation completes
       setTimeout(() => {
         setShouldShow(false);
-        setWithdrawalProgress(0);
+        // Clear persistent progress
+        const controller = Engine.context.PerpsController;
+        if (controller) {
+          controller.updateWithdrawalProgress(0);
+        }
       }, 500);
     }
   }, [
     withdrawalRequests,
-    withdrawalProgress,
+    persistentWithdrawalProgress,
     shouldShow,
     hasActiveWithdrawals,
     progressWidth,
@@ -247,12 +296,15 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
     } else if (hasActiveWithdrawals) {
       setShouldShow(true);
 
+      // Use persistent progress for animation
+      const currentProgress = persistentWithdrawalProgress.progress;
+
       // Trigger haptic feedback when progress increases
-      if (withdrawalProgress > lastProgress) {
-        setLastProgress(withdrawalProgress);
+      if (currentProgress > lastProgress) {
+        setLastProgress(currentProgress);
       }
 
-      progressWidth.value = withTiming(withdrawalProgress, {
+      progressWidth.value = withTiming(currentProgress, {
         duration: 1000,
         easing: Easing.out(Easing.cubic),
       });
@@ -269,6 +321,20 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       });
       // Hide after animation completes
       setTimeout(() => setShouldShow(false), 500);
+    } else if (
+      shouldShow &&
+      !isDepositInProgress &&
+      !hasActiveWithdrawals &&
+      transactionProgress > 0
+    ) {
+      // Handle failed deposits or any other deposit completion case
+      // Animate to 100% and hide
+      progressWidth.value = withTiming(100, {
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+      });
+      // Hide after animation completes
+      setTimeout(() => setShouldShow(false), 500);
     } else if (!isDepositInProgress && !hasActiveWithdrawals) {
       progressWidth.value = withTiming(progressAmount, {
         duration: 1000,
@@ -278,7 +344,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
   }, [
     progressAmount,
     transactionProgress,
-    withdrawalProgress,
+    persistentWithdrawalProgress,
     isDepositInProgress,
     hasActiveWithdrawals,
     shouldShow,

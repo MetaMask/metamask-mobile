@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 export interface DepositRequest {
   id: string;
@@ -49,7 +50,7 @@ export const useDepositRequests = (
     (state) => state?.depositRequests || [],
   );
 
-  console.log('Pending deposits from controller state:', {
+  DevLogger.log('Pending deposits from controller state:', {
     count: pendingDeposits.length,
     deposits: pendingDeposits.map((d) => ({
       id: d.id,
@@ -70,8 +71,6 @@ export const useDepositRequests = (
     try {
       setIsLoading(true);
       setError(null);
-
-      console.log('Fetching completed deposits from HyperLiquid API...');
 
       const controller = Engine.context.PerpsController;
       if (!controller) {
@@ -97,12 +96,6 @@ export const useDepositRequests = (
       ).getTime();
       const searchStartTime = startTime ?? startOfToday;
 
-      console.log('Fetching deposits from:', {
-        searchStartTime: new Date(searchStartTime).toISOString(),
-        currentTime: now.toISOString(),
-        isToday: searchStartTime === startOfToday,
-      });
-
       const updates = await (
         provider as {
           getUserNonFundingLedgerUpdates: (
@@ -112,19 +105,6 @@ export const useDepositRequests = (
       ).getUserNonFundingLedgerUpdates({
         startTime: searchStartTime,
         endTime: undefined,
-      });
-
-      console.log('Raw ledger updates from HyperLiquid:', {
-        count: updates?.length || 0,
-        latestTimestamp: (updates as { time: number }[])?.[0]?.time
-          ? new Date((updates as { time: number }[])[0].time).toISOString()
-          : 'N/A',
-        oldestTimestamp: (updates as { time: number }[])?.[updates.length - 1]
-          ?.time
-          ? new Date(
-              (updates as { time: number }[])[updates.length - 1].time,
-            ).toISOString()
-          : 'N/A',
       });
 
       // Transform ledger updates to deposit requests
@@ -156,16 +136,6 @@ export const useDepositRequests = (
           depositId: update.delta.nonce?.toString(), // Use nonce as deposit ID if available
         }));
 
-      console.log('Processed completed deposits:', {
-        count: depositData.length,
-        deposits: depositData.map((d) => ({
-          id: d.id,
-          timestamp: new Date(d.timestamp).toISOString(),
-          amount: d.amount,
-          asset: d.asset,
-        })),
-      });
-
       setCompletedDeposits(depositData);
     } catch (err) {
       const errorMessage =
@@ -181,11 +151,6 @@ export const useDepositRequests = (
 
   // Combine pending and completed deposits
   const allDeposits = useMemo(() => {
-    console.log('Combining deposits:', {
-      pendingCount: pendingDeposits.length,
-      completedCount: completedDeposits.length,
-    });
-
     // Combine both sources and sort by timestamp (newest first)
     const combined = [...pendingDeposits, ...completedDeposits];
 
@@ -200,29 +165,13 @@ export const useDepositRequests = (
 
       const shouldInclude = isCompleted && hasActualAmount && hasTxHash;
 
-      if (!shouldInclude) {
-        console.log('Filtering out deposit:', {
-          id: deposit.id,
-          status: deposit.status,
-          amount: deposit.amount,
-          hasTxHash,
-          reason: !isCompleted
-            ? 'not completed'
-            : !hasActualAmount
-            ? 'no actual amount'
-            : !hasTxHash
-            ? 'no txHash'
-            : 'unknown',
-        });
-      }
-
       return shouldInclude;
     });
 
     // Sort by timestamp (newest first)
     const sorted = uniqueDeposits.sort((a, b) => b.timestamp - a.timestamp);
 
-    console.log('Final combined deposits:', {
+    DevLogger.log('Final combined deposits:', {
       count: sorted.length,
       deposits: sorted.map((d) => ({
         id: d.id,

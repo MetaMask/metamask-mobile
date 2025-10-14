@@ -335,7 +335,7 @@ const PerpsMarketBalanceActions: React.FC<
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
         <PerpsProgressBar
-          progressAmount={0}
+          progressAmount={10}
           height={4}
           onTransactionAmountChange={setTransactionAmountWei}
           onWithdrawalAmountChange={setWithdrawalAmount}

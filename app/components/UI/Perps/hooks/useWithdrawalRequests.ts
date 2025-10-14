@@ -106,9 +106,12 @@ export const useWithdrawalRequests = (
         endTime: undefined,
       });
 
+      // Ensure updates is an array before processing
+      const safeUpdates = Array.isArray(updates) ? updates : [];
+
       // Transform ledger updates to withdrawal requests
       const withdrawalData = (
-        updates as {
+        safeUpdates as {
           delta: {
             coin?: string;
             usdc: string;
@@ -150,7 +153,8 @@ export const useWithdrawalRequests = (
 
   // Combine pending and completed withdrawals
   const allWithdrawals = useMemo(() => {
-    // Combine both sources and sort by timestamp (newest first)
+    // More nuanced approach: only mark as completed if we have a matching completed withdrawal
+    // with a transaction hash (indicating it reached Arbitrum)
     const combined = [...pendingWithdrawals, ...completedWithdrawals];
 
     // Remove duplicates by matching pending/bridging withdrawals with completed ones
@@ -163,36 +167,55 @@ export const useWithdrawalRequests = (
 
       // For completed withdrawals, try to match with a pending or bridging one
       if (withdrawal.status === 'completed') {
-        // Look for a pending or bridging withdrawal with similar timestamp and amount
-        const pendingMatch = acc.findIndex(
-          (w) =>
-            (w.status === 'pending' || w.status === 'bridging') &&
-            w.amount === withdrawal.amount &&
-            w.asset === withdrawal.asset &&
-            Math.abs(w.timestamp - withdrawal.timestamp) < 300000, // Within 5 minutes
-        );
+        // Only match if the completed withdrawal has a transaction hash (reached Arbitrum)
+        if (withdrawal.txHash) {
+          // Look for a pending or bridging withdrawal with similar timestamp and amount
+          const pendingMatch = acc.findIndex((w) => {
+            if (w.status !== 'pending' && w.status !== 'bridging') {
+              return false;
+            }
 
-        if (pendingMatch >= 0) {
-          // Update the pending/bridging withdrawal with completed data
-          const matchedWithdrawal = acc[pendingMatch];
-          acc[pendingMatch] = {
-            ...matchedWithdrawal,
-            status: 'completed',
-            txHash: withdrawal.txHash,
-            withdrawalId: withdrawal.withdrawalId,
-          };
-
-          // Update the controller state to reflect the completion
-          const controller = Engine.context.PerpsController;
-          if (controller) {
-            controller.updateWithdrawalStatus(
-              matchedWithdrawal.id,
-              'completed',
-              withdrawal.txHash,
+            // More flexible amount matching - allow for small differences
+            const amountDiff = Math.abs(
+              parseFloat(w.amount) - parseFloat(withdrawal.amount),
             );
+            const isAmountMatch = amountDiff < 0.01; // Allow up to 1 cent difference
+
+            // More flexible timestamp matching - allow up to 15 minutes
+            const timeDiff = Math.abs(w.timestamp - withdrawal.timestamp);
+            const isTimeMatch = timeDiff < 900000; // 15 minutes
+
+            // Asset must match
+            const isAssetMatch = w.asset === withdrawal.asset;
+
+            return isAmountMatch && isTimeMatch && isAssetMatch;
+          });
+
+          if (pendingMatch >= 0) {
+            // Update the pending/bridging withdrawal with completed data
+            const matchedWithdrawal = acc[pendingMatch];
+            acc[pendingMatch] = {
+              ...matchedWithdrawal,
+              status: 'completed',
+              txHash: withdrawal.txHash,
+              withdrawalId: withdrawal.withdrawalId,
+            };
+
+            // Update the controller state to reflect the completion
+            const controller = Engine.context.PerpsController;
+            if (controller) {
+              controller.updateWithdrawalStatus(
+                matchedWithdrawal.id,
+                'completed',
+                withdrawal.txHash,
+              );
+            }
+          } else {
+            // No pending/bridging match found, add as new completed withdrawal
+            acc.push(withdrawal);
           }
         } else {
-          // No pending/bridging match found, add as new completed withdrawal
+          // Completed withdrawal without txHash - don't match, keep as separate
           acc.push(withdrawal);
         }
       } else {
@@ -206,7 +229,7 @@ export const useWithdrawalRequests = (
     // Sort by timestamp (newest first)
     const sorted = uniqueWithdrawals.sort((a, b) => b.timestamp - a.timestamp);
 
-    DevLogger.log('Final combined withdrawals:', {
+    console.log('Final combined withdrawals:', {
       count: sorted.length,
       withdrawals: sorted.map((w) => ({
         id: w.id,
