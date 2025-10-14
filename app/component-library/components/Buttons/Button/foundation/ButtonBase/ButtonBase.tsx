@@ -38,8 +38,10 @@ export const TouchableOpacity = ({
   // Handle both 'disabled' and 'isDisabled' props for compatibility
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Track accessibility state
-  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState(false);
+  // Track accessibility state - start with null to indicate "unknown"
+  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     // Check initial accessibility state
@@ -61,9 +63,9 @@ export const TouchableOpacity = ({
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
     .onEnd((gestureEvent) => {
-      // Only handle gesture when accessibility is OFF
-      // When accessibility is ON, let TouchableOpacity handle the press
-      if (onPress && !isDisabled && !isAccessibilityEnabled) {
+      // Only handle gesture when we KNOW accessibility is OFF
+      // When accessibility is ON or UNKNOWN, let TouchableOpacity handle the press
+      if (onPress && !isDisabled && isAccessibilityEnabled === false) {
         // Create a proper GestureResponderEvent-like object from gesture event
         const syntheticEvent = {
           nativeEvent: {
@@ -105,7 +107,9 @@ export const TouchableOpacity = ({
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={isAccessibilityEnabled && !isDisabled ? onPress : undefined} // Only use TouchableOpacity onPress when accessibility is active and not disabled
+        onPress={
+          isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined
+        } // Use TouchableOpacity onPress when accessibility is ON or UNKNOWN (safer for accessibility users)
         {...props}
       >
         {children}
