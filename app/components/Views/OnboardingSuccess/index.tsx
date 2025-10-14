@@ -90,7 +90,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const renderContent = useCallback(() => {
     const getTitleString = () => {
       switch (successFlow) {
-        case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
         case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
           return strings('onboarding_success.title');
         default:
