@@ -405,6 +405,42 @@ describe('marketDataTransform', () => {
       // Assert
       expect(result).toBe('-$0.5678');
     });
+
+    it('handles values in different PRICE_RANGES_UNIVERSAL ranges', () => {
+      // Arrange & Act & Assert
+      // This test covers lines 148, 153, 154 in marketDataTransform.ts (formatChange function)
+      // Line 148: formatPerpsFiat(Math.abs(change), { ranges: PRICE_RANGES_UNIVERSAL })
+      // Line 153: formatted.replace('$', '')
+      // Line 154: change > 0 ? `+$${valueWithoutDollar}` : `-$${valueWithoutDollar}`
+
+      // Test > $100k range: 0 decimals, 6 sig figs
+      expect(formatChange(123456.78)).toBe('+$123,457');
+      expect(formatChange(-123456.78)).toBe('-$123,457');
+
+      // Test $10k-$100k range: 0 decimals, 5 sig figs
+      expect(formatChange(12345.67)).toBe('+$12,346');
+      expect(formatChange(-12345.67)).toBe('-$12,346');
+
+      // Test $1k-$10k range: 1 decimal, 5 sig figs
+      expect(formatChange(1234.56)).toBe('+$1,234.6');
+      expect(formatChange(-1234.56)).toBe('-$1,234.6');
+
+      // Test $100-$1k range: 2 decimals, 5 sig figs
+      expect(formatChange(234.567)).toBe('+$234.57');
+      expect(formatChange(-234.567)).toBe('-$234.57');
+
+      // Test $10-$100 range: 4 decimals, 5 sig figs
+      expect(formatChange(23.4567)).toBe('+$23.457');
+      expect(formatChange(-23.4567)).toBe('-$23.457');
+
+      // Test $0.01-$10 range: 5 sig figs, min 2 max 6 decimals
+      expect(formatChange(2.34567)).toBe('+$2.3457');
+      expect(formatChange(-2.34567)).toBe('-$2.3457');
+
+      // Test < $0.01 range: 4 sig figs, min 2 max 6 decimals
+      expect(formatChange(0.0012345)).toBe('+$0.001234');
+      expect(formatChange(-0.0012345)).toBe('-$0.001234');
+    });
   });
 
   describe('formatPercentage', () => {
@@ -704,10 +740,11 @@ describe('marketDataTransform', () => {
 
     it('handles very small numbers close to zero', () => {
       // Arrange & Act & Assert
-      // formatPerpsFiat with PRICE_RANGES_UNIVERSAL, very small numbers show as $0 (trailing zeros removed)
+      // formatPerpsFiat with PRICE_RANGES_UNIVERSAL: values below VERY_SMALL threshold (0.000001) show as "<$0"
+      // This indicates "less than the smallest displayable value" which is more accurate than $0
       expect(
         formatPerpsFiat(0.0000001, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('$0');
+      ).toBe('<$0');
       expect(formatVolume(0.1)).toBe('$0.10'); // Now shows 2 decimals
       expect(formatPercentage(0.001)).toBe('+0.00%');
     });
