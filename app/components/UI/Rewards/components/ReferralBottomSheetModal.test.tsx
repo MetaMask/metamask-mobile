@@ -1,15 +1,37 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ReferralBottomSheetModal from './ReferralBottomSheetModal';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock navigation
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
+  navigate: mockNavigate,
 };
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
+}));
+
+// Mock Redux
+const mockSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockSelector(selector),
+}));
+
+// Mock useReferralDetails hook
+const mockFetchReferralDetails = jest.fn();
+jest.mock('../hooks/useReferralDetails', () => ({
+  useReferralDetails: () => ({
+    fetchReferralDetails: mockFetchReferralDetails,
+  }),
+}));
+
+// Mock Routes
+jest.mock('../../../../constants/navigation/Routes', () => ({
+  SETTINGS_VIEW: 'SettingsView',
 }));
 
 // Mock useTailwind
@@ -55,6 +77,13 @@ interface ButtonIconProps extends ComponentProps {
   iconProps?: Record<string, unknown>;
 }
 
+interface ButtonProps extends ComponentProps {
+  onPress?: () => void;
+  variant?: string;
+  size?: string;
+  isFullWidth?: boolean;
+}
+
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -86,6 +115,18 @@ jest.mock('@metamask/design-system-react-native', () => {
           ReactActual.createElement(RNText, {}, 'ButtonIcon'),
         ),
       ),
+    Button: ({ children, onPress, variant, size, ...props }: ButtonProps) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        {
+          onPress,
+          testID: 'primary-button',
+          'data-variant': variant,
+          'data-size': size,
+          ...props,
+        },
+        ReactActual.createElement(RNText, {}, children),
+      ),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       BodySm: 'BodySm',
@@ -109,21 +150,70 @@ jest.mock('@metamask/design-system-react-native', () => {
     IconColor: {
       IconDefault: 'icon-default',
     },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+    },
+    ButtonSize: {
+      Lg: 'lg',
+      Md: 'md',
+      Sm: 'sm',
+    },
   };
 });
 
-// Mock ReferralDetails child component
-jest.mock('./ReferralDetails/ReferralDetails', () => {
+// Mock RewardsErrorBanner component
+jest.mock('./RewardsErrorBanner', () => {
   const mockReact = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return function MockReferralDetails(props: { showInfoSection?: boolean }) {
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsErrorBanner(props: {
+    title?: string;
+    description?: string;
+    onConfirm?: () => void;
+    confirmButtonLabel?: string;
+  }) {
     return mockReact.createElement(
-      Text,
+      View,
       {
-        testID: 'referral-details',
-        'data-show-info-section': props.showInfoSection,
+        testID: 'rewards-error-banner',
+        'data-title': props.title,
+        'data-description': props.description,
       },
-      'ReferralDetails',
+      [
+        mockReact.createElement(
+          Text,
+          { key: 'title', testID: 'error-banner-title' },
+          props.title,
+        ),
+        mockReact.createElement(
+          Text,
+          { key: 'description', testID: 'error-banner-description' },
+          props.description,
+        ),
+      ],
+    );
+  };
+});
+
+// Mock ReferralStatsSection component
+jest.mock('./ReferralDetails/ReferralStatsSection', () => {
+  const mockReact = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockReferralStatsSection(props: {
+    earnedPointsFromReferees?: number;
+    refereeCount?: number;
+    earnedPointsFromRefereesLoading?: boolean;
+    refereeCountLoading?: boolean;
+    refereeCountError?: boolean;
+  }) {
+    return mockReact.createElement(
+      View,
+      {
+        testID: 'referral-stats-section',
+        'data-earned-points': props.earnedPointsFromReferees,
+        'data-referee-count': props.refereeCount,
+      },
+      mockReact.createElement(Text, {}, 'ReferralStatsSection'),
     );
   };
 });
@@ -150,16 +240,64 @@ jest.mock('../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'rewards.ways_to_earn.referrals.sheet.title': 'Refer friends',
       'rewards.ways_to_earn.referrals.sheet.points': '+500 Points',
+      'rewards.ways_to_earn.referrals.sheet.cta_label': 'Refer a friend',
       'rewards.referral.info.description':
         'Invite friends to earn rewards together.',
+      'rewards.season_status_error.error_fetching_title': 'Season Status Error',
+      'rewards.season_status_error.error_fetching_description':
+        'Failed to load season status',
+      'rewards.referral_details_error.error_fetching_title':
+        'Referral Details Error',
+      'rewards.referral_details_error.error_fetching_description':
+        'Failed to load referral details',
+      'rewards.referral_details_error.retry_button': 'Retry',
     };
     return translations[key] || key;
   }),
 }));
 
 describe('ReferralBottomSheetModal', () => {
+  const defaultSelectorValues = {
+    referralCode: 'TEST123',
+    refereeCount: 5,
+    balanceRefereePortion: 100,
+    seasonStatusLoading: false,
+    seasonStatusError: null,
+    seasonStartDate: '2024-01-01',
+    referralDetailsLoading: false,
+    referralDetailsError: null,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    // Setup default selector return values
+    mockSelector.mockImplementation((selector) => {
+      const selectorMap = new Map([
+        ['selectReferralCode', defaultSelectorValues.referralCode],
+        ['selectReferralCount', defaultSelectorValues.refereeCount],
+        [
+          'selectBalanceRefereePortion',
+          defaultSelectorValues.balanceRefereePortion,
+        ],
+        [
+          'selectSeasonStatusLoading',
+          defaultSelectorValues.seasonStatusLoading,
+        ],
+        ['selectSeasonStatusError', defaultSelectorValues.seasonStatusError],
+        ['selectSeasonStartDate', defaultSelectorValues.seasonStartDate],
+        [
+          'selectReferralDetailsLoading',
+          defaultSelectorValues.referralDetailsLoading,
+        ],
+        [
+          'selectReferralDetailsError',
+          defaultSelectorValues.referralDetailsError,
+        ],
+      ] as [string, string | number | boolean | null][]);
+      // Return the value based on selector function name
+      const key = selector.name || selector.toString();
+      return selectorMap.get(key) ?? null;
+    });
   });
 
   describe('rendering', () => {
@@ -219,12 +357,21 @@ describe('ReferralBottomSheetModal', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should render ReferralDetails component', () => {
+    it('should render ReferralStatsSection when no errors', () => {
       // Act
       const { getByTestId } = render(<ReferralBottomSheetModal />);
 
       // Assert
-      expect(getByTestId('referral-details')).toBeOnTheScreen();
+      expect(getByTestId('referral-stats-section')).toBeOnTheScreen();
+    });
+
+    it('should render primary CTA button', () => {
+      // Act
+      const { getByTestId, getByText } = render(<ReferralBottomSheetModal />);
+
+      // Assert
+      expect(getByTestId('primary-button')).toBeOnTheScreen();
+      expect(getByText('Refer a friend')).toBeOnTheScreen();
     });
   });
 
@@ -255,14 +402,88 @@ describe('ReferralBottomSheetModal', () => {
     });
   });
 
-  describe('ReferralDetails integration', () => {
-    it('should pass showInfoSection as false to ReferralDetails', () => {
-      // Act
+  describe('primary CTA button interaction', () => {
+    it('should navigate to settings when CTA button is pressed', () => {
+      // Arrange
       const { getByTestId } = render(<ReferralBottomSheetModal />);
-      const referralDetails = getByTestId('referral-details');
+      const ctaButton = getByTestId('primary-button');
+
+      // Act
+      fireEvent.press(ctaButton);
 
       // Assert
-      expect(referralDetails.props['data-show-info-section']).toBe(false);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    });
+
+    it('should call navigation.navigate only once per press', () => {
+      // Arrange
+      const { getByTestId } = render(<ReferralBottomSheetModal />);
+      const ctaButton = getByTestId('primary-button');
+
+      // Act
+      fireEvent.press(ctaButton);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('error handling', () => {
+    it('should render season status error banner when season error exists and no season start date', () => {
+      // Arrange
+      mockSelector.mockReturnValue(null);
+      mockSelector
+        .mockReturnValueOnce(null) // referralCode
+        .mockReturnValueOnce(0) // refereeCount
+        .mockReturnValueOnce(0) // balanceRefereePortion
+        .mockReturnValueOnce(false) // seasonStatusLoading
+        .mockReturnValueOnce(true) // seasonStatusError
+        .mockReturnValueOnce(null) // seasonStartDate
+        .mockReturnValueOnce(false) // referralDetailsLoading
+        .mockReturnValueOnce(null); // referralDetailsError
+
+      // Act
+      const { getByTestId, queryByTestId } = render(
+        <ReferralBottomSheetModal />,
+      );
+
+      // Assert
+      expect(getByTestId('rewards-error-banner')).toBeOnTheScreen();
+      expect(queryByTestId('referral-stats-section')).not.toBeOnTheScreen();
+    });
+
+    it('should render referral details error banner when referral error exists and no referral code', () => {
+      // Arrange
+      mockSelector.mockReturnValue(null);
+      mockSelector
+        .mockReturnValueOnce(null) // referralCode
+        .mockReturnValueOnce(0) // refereeCount
+        .mockReturnValueOnce(0) // balanceRefereePortion
+        .mockReturnValueOnce(false) // seasonStatusLoading
+        .mockReturnValueOnce(null) // seasonStatusError
+        .mockReturnValueOnce('2024-01-01') // seasonStartDate
+        .mockReturnValueOnce(false) // referralDetailsLoading
+        .mockReturnValueOnce(true); // referralDetailsError
+
+      // Act
+      const { getByTestId, queryByTestId } = render(
+        <ReferralBottomSheetModal />,
+      );
+
+      // Assert
+      expect(getByTestId('rewards-error-banner')).toBeOnTheScreen();
+      expect(queryByTestId('referral-stats-section')).not.toBeOnTheScreen();
+    });
+
+    it('should not render error banner when no errors exist', () => {
+      // Act
+      const { queryByTestId, getByTestId } = render(
+        <ReferralBottomSheetModal />,
+      );
+
+      // Assert
+      expect(queryByTestId('rewards-error-banner')).not.toBeOnTheScreen();
+      expect(getByTestId('referral-stats-section')).toBeOnTheScreen();
     });
   });
 
@@ -278,12 +499,29 @@ describe('ReferralBottomSheetModal', () => {
       expect(
         getByText('Invite friends to earn rewards together.'),
       ).toBeOnTheScreen();
-      expect(getByTestId('referral-details')).toBeOnTheScreen();
+      expect(getByTestId('referral-stats-section')).toBeOnTheScreen();
+      expect(getByTestId('primary-button')).toBeOnTheScreen();
     });
 
     it('should use Box components for layout', () => {
       // Act & Assert
       expect(() => render(<ReferralBottomSheetModal />)).not.toThrow();
+    });
+  });
+
+  describe('ReferralStatsSection integration', () => {
+    it('should pass correct props to ReferralStatsSection', () => {
+      // Act
+      const { getByTestId } = render(<ReferralBottomSheetModal />);
+      const statsSection = getByTestId('referral-stats-section');
+
+      // Assert
+      expect(statsSection.props['data-earned-points']).toBe(
+        defaultSelectorValues.balanceRefereePortion,
+      );
+      expect(statsSection.props['data-referee-count']).toBe(
+        defaultSelectorValues.refereeCount,
+      );
     });
   });
 
@@ -324,6 +562,19 @@ describe('ReferralBottomSheetModal', () => {
       // Assert
       expect(strings).toHaveBeenCalledWith('rewards.referral.info.description');
     });
+
+    it('should use correct translation keys for CTA button', () => {
+      // Arrange
+      const { strings } = jest.requireMock('../../../../../locales/i18n');
+
+      // Act
+      render(<ReferralBottomSheetModal />);
+
+      // Assert
+      expect(strings).toHaveBeenCalledWith(
+        'rewards.ways_to_earn.referrals.sheet.cta_label',
+      );
+    });
   });
 
   describe('accessibility', () => {
@@ -331,9 +582,11 @@ describe('ReferralBottomSheetModal', () => {
       // Act
       const { getByTestId } = render(<ReferralBottomSheetModal />);
 
-      // Assert - Close button should be accessible
+      // Assert - Both buttons should be accessible
       const closeButton = getByTestId('button-icon');
+      const ctaButton = getByTestId('primary-button');
       expect(closeButton).toBeOnTheScreen();
+      expect(ctaButton).toBeOnTheScreen();
     });
 
     it('should have proper icon configuration for close button', () => {
@@ -342,6 +595,15 @@ describe('ReferralBottomSheetModal', () => {
 
       // Assert - Verify icon name is correct
       expect(getByTestId('button-icon-Close')).toBeOnTheScreen();
+    });
+
+    it('should have proper variant for primary button', () => {
+      // Act
+      const { getByTestId } = render(<ReferralBottomSheetModal />);
+      const ctaButton = getByTestId('primary-button');
+
+      // Assert - Verify button variant is primary
+      expect(ctaButton.props['data-variant']).toBe('primary');
     });
   });
 });
