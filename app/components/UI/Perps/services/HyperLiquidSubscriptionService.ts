@@ -64,6 +64,8 @@ export class HyperLiquidSubscriptionService {
   private globalActiveAssetSubscriptions = new Map<string, Subscription>();
   private globalL2BookSubscriptions = new Map<string, Subscription>();
   private symbolSubscriberCounts = new Map<string, number>();
+  // HIP-3 DEX allMids subscriptions
+  private hip3AllMidsSubscriptions = new Map<string, Subscription>();
 
   // Shared webData2 subscription for positions and orders
   private sharedWebData2Subscription?: Subscription;
@@ -151,6 +153,7 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure global subscriptions are established
     this.ensureGlobalAllMidsSubscription();
+    this.ensureHip3AllMidsSubscriptions();
 
     // Cache funding rates from initial market data fetch if available
     if (includeMarketData) {
@@ -813,6 +816,65 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Ensure allMids subscriptions for HIP-3 DEXs
+   */
+  private async ensureHip3AllMidsSubscriptions(): Promise<void> {
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      return;
+    }
+
+    try {
+      // Get the info client to fetch HIP-3 DEXs
+      const infoClient = this.clientService.getInfoClient();
+      const perpDexs = await infoClient.perpDexs();
+
+      DevLogger.log('Setting up HIP-3 price subscriptions:', {
+        dexCount: perpDexs.length,
+      });
+
+      for (const dex of perpDexs) {
+        if (!dex || this.hip3AllMidsSubscriptions.has(dex.name)) {
+          continue; // Skip if dex is null or already subscribed
+        }
+
+        subscriptionClient
+          .allMids({ dex: dex.name }, (data: WsAllMids) => {
+            // Update cache for all symbols from this HIP-3 DEX
+            Object.entries(data.mids).forEach(([symbol, price]) => {
+              if (!this.cachedPriceData) {
+                this.cachedPriceData = new Map<string, PriceUpdate>();
+              }
+
+              const priceUpdate = this.createPriceUpdate(
+                symbol,
+                price.toString(),
+              );
+              this.cachedPriceData.set(symbol, priceUpdate);
+            });
+
+            // Notify subscribers
+            this.notifyAllPriceSubscribers();
+          })
+          .then((sub) => {
+            this.hip3AllMidsSubscriptions.set(dex.name, sub);
+            DevLogger.log(
+              `HyperLiquid: HIP-3 allMids subscription established for DEX: ${dex.name}`,
+            );
+          })
+          .catch((error) => {
+            DevLogger.log(
+              `Failed to establish HIP-3 allMids subscription for DEX ${dex.name}:`,
+              error,
+            );
+          });
+      }
+    } catch (error) {
+      DevLogger.log('Error setting up HIP-3 price subscriptions:', error);
+    }
+  }
+
+  /**
    * Ensure activeAssetCtx subscription for specific symbol (with reference counting)
    */
   private ensureActiveAssetSubscription(symbol: string): void {
@@ -1105,6 +1167,7 @@ export class HyperLiquidSubscriptionService {
     this.globalAllMidsSubscription = undefined;
     this.globalActiveAssetSubscriptions.clear();
     this.globalL2BookSubscriptions.clear();
+    this.hip3AllMidsSubscriptions.clear();
     this.sharedWebData2Subscription = undefined;
     this.webData2SubscriptionPromise = undefined;
 

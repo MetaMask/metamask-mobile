@@ -249,6 +249,53 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Find asset info from main DEX or HIP-3 DEXs
+   * @param coin - The coin/asset symbol to find
+   * @returns Asset info and optional dex name for HIP-3 assets
+   */
+  private async findAssetInfo(coin: string): Promise<{
+    assetInfo: import('@deeeed/hyperliquid-node20').PerpsUniverse;
+    dexName?: string;
+  }> {
+    const infoClient = this.clientService.getInfoClient();
+
+    // First, check main DEX
+    const mainMeta = await infoClient.meta();
+    const mainAsset = mainMeta.universe.find((asset) => asset.name === coin);
+
+    if (mainAsset) {
+      return { assetInfo: mainAsset };
+    }
+
+    // Not in main DEX, search HIP-3 DEXs
+    try {
+      const perpDexs = await infoClient.perpDexs();
+
+      for (const dex of perpDexs) {
+        if (!dex) continue;
+
+        try {
+          const dexMeta = await infoClient.meta({ dex: dex.name });
+          const dexAsset = dexMeta.universe.find(
+            (asset) => asset.name === coin,
+          );
+
+          if (dexAsset) {
+            DevLogger.log(`Found asset ${coin} in HIP-3 DEX: ${dex.name}`);
+            return { assetInfo: dexAsset, dexName: dex.name };
+          }
+        } catch (dexError) {
+          DevLogger.log(`Error searching HIP-3 DEX ${dex.name}:`, dexError);
+        }
+      }
+    } catch (error) {
+      DevLogger.log('Error fetching HIP-3 DEXs:', error);
+    }
+
+    throw new Error(`Asset ${coin} not found in any DEX`);
+  }
+
+  /**
    * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
    */
   private mapError(error: unknown): Error {
@@ -405,15 +452,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         this.ensureReferralSet(),
       ]);
 
-      // Get asset info - use provided current price to avoid extra API call
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
+      // Get asset info - searches both main DEX and HIP-3 DEXs
+      const { assetInfo, dexName } = await this.findAssetInfo(params.coin);
 
-      const assetInfo = meta.universe.find(
-        (asset) => asset.name === params.coin,
-      );
-      if (!assetInfo) {
-        throw new Error(`Asset ${params.coin} not found`);
+      if (dexName) {
+        DevLogger.log(
+          `Placing order for HIP-3 asset ${params.coin} on DEX: ${dexName}`,
+        );
       }
 
       // Use provided current price or fetch if not provided
@@ -427,7 +472,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       } else {
         DevLogger.log('Fetching current price via API (fallback)');
-        const mids = await infoClient.allMids();
+        const infoClient = this.clientService.getInfoClient();
+        // Fetch price with dex parameter if HIP-3 asset
+        const mids = dexName
+          ? await infoClient.allMids({ dex: dexName })
+          : await infoClient.allMids();
         currentPrice = parseFloat(mids[params.coin] || '0');
         if (currentPrice === 0) {
           throw new Error(`No price available for ${params.coin}`);
@@ -644,17 +693,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      // Get asset info for proper formatting
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
-      const mids = await infoClient.allMids(); // Default to perps data (same as subscription service)
-
-      const assetInfo = meta.universe.find(
-        (asset) => asset.name === params.newOrder.coin,
+      // Get asset info - searches both main DEX and HIP-3 DEXs
+      const { assetInfo, dexName } = await this.findAssetInfo(
+        params.newOrder.coin,
       );
-      if (!assetInfo) {
-        throw new Error(`Asset ${params.newOrder.coin} not found`);
-      }
+      const infoClient = this.clientService.getInfoClient();
+
+      // Fetch price with dex parameter if HIP-3 asset
+      const mids = dexName
+        ? await infoClient.allMids({ dex: dexName })
+        : await infoClient.allMids();
 
       const currentPrice = parseFloat(mids[params.newOrder.coin] || '0');
       if (currentPrice === 0) {
@@ -913,18 +961,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log('Cancel result:', cancelResult);
       }
 
-      // Get asset info for proper formatting
-      const meta = await infoClient.meta();
+      // Get asset info - searches both main DEX and HIP-3 DEXs
+      const { assetInfo, dexName: tpslDexName } = await this.findAssetInfo(
+        coin,
+      );
 
-      // Check if meta is an error response (string) or doesn't have universe property
-      if (!meta || typeof meta === 'string' || !meta.universe) {
-        DevLogger.log('Failed to fetch metadata for asset mapping', { meta });
-        throw new Error('Failed to fetch market metadata');
-      }
-
-      const assetInfo = meta.universe.find((asset) => asset.name === coin);
-      if (!assetInfo) {
-        throw new Error(`Asset ${coin} not found`);
+      if (tpslDexName) {
+        DevLogger.log(
+          `Updating TP/SL for HIP-3 asset ${coin} on DEX: ${tpslDexName}`,
+        );
       }
 
       const assetId = this.coinToAssetId.get(coin);
@@ -2416,32 +2461,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
+      // Search for asset in both main DEX and HIP-3 DEXs
+      try {
+        const { assetInfo } = await this.findAssetInfo(asset);
 
-      // Check if meta and universe exist
-      if (!meta?.universe) {
-        console.warn(
-          'Meta or universe not available, using default max leverage',
-        );
-        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
-      }
+        // Cache the result
+        this.maxLeverageCache.set(asset, {
+          value: assetInfo.maxLeverage,
+          timestamp: now,
+        });
 
-      const assetInfo = meta.universe.find((a) => a.name === asset);
-      if (!assetInfo) {
+        return assetInfo.maxLeverage;
+      } catch (error) {
         DevLogger.log(
-          `Asset ${asset} not found in universe, using default max leverage`,
+          `Asset ${asset} not found in any DEX, using default max leverage`,
+          error,
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
-
-      // Cache the result
-      this.maxLeverageCache.set(asset, {
-        value: assetInfo.maxLeverage,
-        timestamp: now,
-      });
-
-      return assetInfo.maxLeverage;
     } catch (error) {
       DevLogger.log('Error getting max leverage:', error);
       return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
