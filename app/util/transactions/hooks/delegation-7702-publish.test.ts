@@ -22,8 +22,8 @@ import {
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 
 jest.mock('../transaction-relay');
-jest.mock('../../../core/RPCMethods/lib/transaction/delegation', () => ({
-  ...jest.requireActual('../../../core/RPCMethods/lib/transaction/delegation'),
+jest.mock('../../../core/Delegation/delegation', () => ({
+  ...jest.requireActual('../../../core/Delegation/delegation'),
   encodeRedeemDelegations: jest.fn(() => '0xdeadbeef'),
   signDelegation: jest.fn(async () => '0xsignature'),
 }));
