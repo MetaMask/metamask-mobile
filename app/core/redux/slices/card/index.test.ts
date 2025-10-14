@@ -121,6 +121,15 @@ const CARD_STATE_MOCK: CardSliceState = {
   geoLocation: 'US',
   isAuthenticated: false,
   userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
@@ -135,6 +144,15 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   geoLocation: 'UNKNOWN',
   isAuthenticated: false,
   userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 // Mock account object that matches the expected structure
@@ -407,6 +425,15 @@ describe('Card Reducer', () => {
         geoLocation: 'US',
         isAuthenticated: false,
         userCardLocation: 'us',
+        onboarding: {
+          onboardingId: null,
+          selectedCountry: null,
+          contactVerificationId: null,
+        },
+        cache: {
+          data: {},
+          timestamps: {},
+        },
       };
 
       const state = cardReducer(currentState, resetCardState());

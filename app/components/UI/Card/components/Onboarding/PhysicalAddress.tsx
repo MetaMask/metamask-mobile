@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -15,27 +15,33 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
+import { useSelector } from 'react-redux';
+import {
+  selectOnboardingId,
+  selectSelectedCountry,
+} from '../../../../../core/redux/slices/card';
 
 export const AddressFields = ({
   addressLine1,
-  setAddressLine1,
+  handleAddressLine1Change,
   addressLine2,
-  setAddressLine2,
+  handleAddressLine2Change,
   city,
-  setCity,
+  handleCityChange,
   state,
-  setState,
+  handleStateChange,
   zipCode,
   handleZipCodeChange,
 }: {
   addressLine1: string;
-  setAddressLine1: (text: string) => void;
+  handleAddressLine1Change: (text: string) => void;
   addressLine2: string;
-  setAddressLine2: (text: string) => void;
+  handleAddressLine2Change: (text: string) => void;
   city: string;
-  setCity: (text: string) => void;
+  handleCityChange: (text: string) => void;
   state: string;
-  setState: (text: string) => void;
+  handleStateChange: (text: string) => void;
   zipCode: string;
   handleZipCodeChange: (text: string) => void;
 }) => (
@@ -47,7 +53,7 @@ export const AddressFields = ({
       </Label>
       <TextField
         autoCapitalize={'none'}
-        onChangeText={setAddressLine1}
+        onChangeText={handleAddressLine1Change}
         placeholder={strings(
           'card.card_onboarding.physical_address.address_line_1_placeholder',
         )}
@@ -68,7 +74,7 @@ export const AddressFields = ({
       </Label>
       <TextField
         autoCapitalize={'none'}
-        onChangeText={setAddressLine2}
+        onChangeText={handleAddressLine2Change}
         placeholder={strings(
           'card.card_onboarding.physical_address.address_line_2_placeholder',
         )}
@@ -89,7 +95,7 @@ export const AddressFields = ({
       </Label>
       <TextField
         autoCapitalize={'none'}
-        onChangeText={setCity}
+        onChangeText={handleCityChange}
         placeholder={strings(
           'card.card_onboarding.physical_address.city_placeholder',
         )}
@@ -110,7 +116,7 @@ export const AddressFields = ({
       </Label>
       <TextField
         autoCapitalize={'none'}
-        onChangeText={setState}
+        onChangeText={handleStateChange}
         placeholder={strings(
           'card.card_onboarding.physical_address.state_placeholder',
         )}
@@ -151,6 +157,8 @@ export const AddressFields = ({
 const PhysicalAddress = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const onboardingId = useSelector(selectOnboardingId);
+  const selectedCountry = useSelector(selectSelectedCountry);
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -160,6 +168,14 @@ const PhysicalAddress = () => {
   const [isSameMailingAddress, setIsSameMailingAddress] = useState(true);
   const [electronicConsent, setElectronicConsent] = useState(false);
 
+  const {
+    registerAddress,
+    isLoading: registerLoading,
+    isError: registerIsError,
+    error: registerError,
+    reset: resetRegisterAddress,
+  } = useRegisterPhysicalAddress();
+
   const handleSameMailingAddressToggle = useCallback(() => {
     setIsSameMailingAddress(!isSameMailingAddress);
   }, [isSameMailingAddress]);
@@ -168,44 +184,121 @@ const PhysicalAddress = () => {
     setElectronicConsent(!electronicConsent);
   }, [electronicConsent]);
 
-  const handleZipCodeChange = (text: string) => {
-    const cleanedText = text.replace(/\D/g, '');
-    setZipCode(cleanedText);
-  };
-
-  const isDisabled = useMemo(
-    () => !addressLine1 || !city || !state || !zipCode || !electronicConsent,
-    [addressLine1, city, state, zipCode, electronicConsent],
+  const handleAddressLine1Change = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setAddressLine1(text);
+    },
+    [resetRegisterAddress],
   );
 
-  const additionalParams = isSameMailingAddress
-    ? {
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        zipCode,
-      }
-    : {};
+  const handleAddressLine2Change = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setAddressLine2(text);
+    },
+    [resetRegisterAddress],
+  );
 
-  const handleContinue = () => {
-    navigation.navigate(
-      Routes.CARD.ONBOARDING.MAILING_ADDRESS,
-      additionalParams,
-    );
+  const handleCityChange = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setCity(text);
+    },
+    [resetRegisterAddress],
+  );
+
+  const handleStateChange = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setState(text);
+    },
+    [resetRegisterAddress],
+  );
+
+  const handleZipCodeChange = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setZipCode(text);
+    },
+    [resetRegisterAddress],
+  );
+
+  const isDisabled = useMemo(
+    () =>
+      registerLoading ||
+      registerIsError ||
+      !onboardingId ||
+      !addressLine1 ||
+      !city ||
+      (!state && selectedCountry === 'US') ||
+      !zipCode ||
+      !electronicConsent,
+    [
+      registerLoading,
+      registerIsError,
+      onboardingId,
+      addressLine1,
+      city,
+      state,
+      selectedCountry,
+      zipCode,
+      electronicConsent,
+    ],
+  );
+
+  const handleContinue = async () => {
+    if (
+      !onboardingId ||
+      !addressLine1 ||
+      !city ||
+      (!state && selectedCountry === 'US') ||
+      !zipCode ||
+      !electronicConsent
+    ) {
+      return;
+    }
+    try {
+      const { accessToken } = await registerAddress(
+        {
+          onboardingId,
+          addressLine1,
+          addressLine2: addressLine2 || undefined,
+          city,
+          usState: state || undefined,
+          zip: zipCode,
+          isSameMailingAddress,
+        },
+        selectedCountry === 'US' ? 'us' : 'international',
+      );
+
+      if (accessToken) {
+        // Registration complete
+        navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+      }
+
+      // When isSameMailingAddress = false AND countryOfResidence = "US"
+      if (!isSameMailingAddress && selectedCountry === 'US') {
+        navigation.navigate(Routes.CARD.ONBOARDING.MAILING_ADDRESS);
+      }
+
+      // Something is wrong. We need to display the registerError or restart the flow
+    } catch (error) {
+      return;
+    }
   };
 
   const renderFormFields = () => (
     <>
       <AddressFields
         addressLine1={addressLine1}
-        setAddressLine1={setAddressLine1}
+        handleAddressLine1Change={handleAddressLine1Change}
         addressLine2={addressLine2}
-        setAddressLine2={setAddressLine2}
+        handleAddressLine2Change={handleAddressLine2Change}
         city={city}
-        setCity={setCity}
+        handleCityChange={handleCityChange}
         state={state}
-        setState={setState}
+        handleStateChange={handleStateChange}
         zipCode={zipCode}
         handleZipCodeChange={handleZipCodeChange}
       />
@@ -233,14 +326,21 @@ const PhysicalAddress = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-    />
+    <Box>
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+      />
+      {!!registerError && (
+        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          {registerError}
+        </Text>
+      )}
+    </Box>
   );
 
   return (

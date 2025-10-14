@@ -19,6 +19,13 @@ import {
 } from 'react-native-confirmation-code-field';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
+import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
+import {
+  selectOnboardingId,
+  selectSelectedCountry,
+} from '../../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
+import { CardError } from '../../types';
 
 const CELL_COUNT = 6;
 
@@ -60,16 +67,70 @@ const ConfirmPhoneNumber = () => {
     string | null
   >(null);
 
-  const { phoneNumber } = useParams<{ phoneNumber: string }>();
+  const { phoneNumber, phoneCountryCode } = useParams<{
+    phoneNumber: string;
+    phoneCountryCode: string;
+  }>();
+
+  const onboardingId = useSelector(selectOnboardingId);
+  const selectedCountry = useSelector(selectSelectedCountry);
+
+  const {
+    verifyPhoneVerification,
+    isLoading: verifyLoading,
+    isError: verifyIsError,
+    error: verifyError,
+    reset: resetVerifyPhoneVerification,
+  } = usePhoneVerificationVerify();
 
   const handleContinue = useCallback(() => {
-    navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
-  }, [navigation]);
+    if (
+      !confirmCode ||
+      confirmCode.length !== CELL_COUNT ||
+      !onboardingId ||
+      !phoneNumber ||
+      !phoneCountryCode
+    ) {
+      return;
+    }
+    try {
+      verifyPhoneVerification(
+        {
+          onboardingId,
+          phoneNumber,
+          phoneCountryCode,
+          verificationCode: confirmCode,
+        },
+        selectedCountry === 'US' ? 'us' : 'international',
+      );
+      navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+    } catch (error) {
+      if (
+        error instanceof CardError &&
+        error.message.includes('Phone number does not match')
+      ) {
+        // navigate back and reset phone
+        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+      }
+    }
+  }, [
+    confirmCode,
+    onboardingId,
+    phoneNumber,
+    phoneCountryCode,
+    verifyPhoneVerification,
+    selectedCountry,
+    navigation,
+  ]);
 
-  const handleValueChange = useCallback((text: string) => {
-    setConfirmCode(text);
-    setLatestValueSubmitted(null);
-  }, []);
+  const handleValueChange = useCallback(
+    (text: string) => {
+      resetVerifyPhoneVerification();
+      setConfirmCode(text);
+      setLatestValueSubmitted(null);
+    },
+    [resetVerifyPhoneVerification],
+  );
 
   // Auto-submit when all digits are entered
   useEffect(() => {
@@ -91,6 +152,15 @@ const ConfirmPhoneNumber = () => {
     value: confirmCode,
     setValue: handleValueChange,
   });
+
+  const isDisabled =
+    verifyLoading ||
+    verifyIsError ||
+    !confirmCode ||
+    confirmCode.length !== CELL_COUNT ||
+    !onboardingId ||
+    !phoneNumber ||
+    !phoneCountryCode;
 
   const renderFormFields = () => (
     <Box>
@@ -124,6 +194,11 @@ const ConfirmPhoneNumber = () => {
           </View>
         )}
       />
+      {verifyIsError && (
+        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          {verifyError}
+        </Text>
+      )}
     </Box>
   );
 
@@ -134,7 +209,7 @@ const ConfirmPhoneNumber = () => {
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
-      isDisabled={!confirmCode || confirmCode.length < CELL_COUNT}
+      isDisabled={isDisabled}
     />
   );
 
@@ -143,7 +218,7 @@ const ConfirmPhoneNumber = () => {
       title={strings('card.card_onboarding.confirm_phone_number.title')}
       description={strings(
         'card.card_onboarding.confirm_phone_number.description',
-        { phoneNumber },
+        { phoneNumber: `+${phoneCountryCode} ${phoneNumber}` },
       )}
       formFields={renderFormFields()}
       actions={renderActions()}

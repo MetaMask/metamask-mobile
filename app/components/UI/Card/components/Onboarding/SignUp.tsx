@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -16,105 +16,49 @@ import OnboardingStep from './OnboardingStep';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import SelectComponent from '../../../SelectComponent';
-import { CountriesOutput } from '../../types';
-
-// Mock countries data following DepositRegion structure
-export const MOCK_COUNTRIES: CountriesOutput = {
-  countries: [
-    {
-      id: 'us-country-id-001',
-      name: 'United States',
-      iso3166alpha2: 'US',
-      callingCode: '1',
-      canSignUp: true,
-    },
-    {
-      id: 'uk-country-id-002',
-      name: 'United Kingdom',
-      iso3166alpha2: 'GB',
-      callingCode: '44',
-      canSignUp: true,
-    },
-    {
-      id: 'de-country-id-003',
-      name: 'Germany',
-      iso3166alpha2: 'DE',
-      callingCode: '49',
-      canSignUp: true,
-    },
-    {
-      id: 'fr-country-id-004',
-      name: 'France',
-      iso3166alpha2: 'FR',
-      callingCode: '33',
-      canSignUp: true,
-    },
-    {
-      id: 'au-country-id-005',
-      name: 'Australia',
-      iso3166alpha2: 'AU',
-      callingCode: '61',
-      canSignUp: true,
-    },
-    {
-      id: 'jp-country-id-006',
-      name: 'Japan',
-      iso3166alpha2: 'JP',
-      callingCode: '81',
-      canSignUp: true,
-    },
-  ],
-  usStates: [
-    {
-      id: '8c334d96-6bf6-424b-9bed-d8d140141043',
-      name: 'Alaska',
-      postalAbbreviation: 'AK',
-      canSignUp: true,
-    },
-  ],
-  links: {
-    us: {
-      termsAndConditions: '',
-      accountOpeningDisclosure: '',
-      noticeOfPrivacy: '',
-    },
-    intl: {
-      termsAndConditions: '',
-      rightToInformation: '',
-    },
-  },
-  config: {
-    us: {
-      emailSpecialCharactersDomainsException: '',
-      consentSmsNumber: '',
-      supportEmail: '',
-    },
-    intl: {
-      emailSpecialCharactersDomainsException: '',
-      consentSmsNumber: '',
-      supportEmail: '',
-    },
-  },
-};
-
-const selectOptions = MOCK_COUNTRIES.countries.map((country) => ({
-  key: country.iso3166alpha2,
-  value: country.iso3166alpha2,
-  label: country.name,
-}));
+import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
+import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import {
+  selectSelectedCountry,
+  setContactVerificationId,
+  setSelectedCountry,
+} from '../../../../../core/redux/slices/card';
+import { useDispatch, useSelector } from 'react-redux';
 
 const SignUp = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<string>('us');
   const [isPasswordError, setIsPasswordError] = useState(false);
+  const selectedCountry = useSelector(selectSelectedCountry);
+
+  const { data: registrationSettings } = useRegistrationSettings();
+
+  const {
+    sendEmailVerification,
+    isLoading: emailVerificationIsLoading,
+    isError: emailVerificationIsError,
+    error: emailVerificationError,
+    reset: resetEmailVerificationSend,
+  } = useEmailVerificationSend();
 
   const debouncedEmail = useDebouncedValue(email, 1000);
   const debouncedConfirmPassword = useDebouncedValue(confirmPassword, 1000);
+
+  const selectOptions = useMemo(() => {
+    if (!registrationSettings?.countries) {
+      return [];
+    }
+    return registrationSettings.countries.map((country) => ({
+      key: country.iso3166alpha2,
+      value: country.iso3166alpha2,
+      label: country.name,
+    }));
+  }, [registrationSettings]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -132,23 +76,65 @@ const SignUp = () => {
 
   const isDisabled = useMemo(
     () =>
-      email.length === 0 ||
-      password.length === 0 ||
+      !debouncedEmail ||
+      !password ||
+      !debouncedConfirmPassword ||
       !selectedCountry ||
       isPasswordError ||
+      isEmailError ||
+      emailVerificationIsError ||
+      emailVerificationIsLoading,
+    [
+      debouncedEmail,
+      password,
+      debouncedConfirmPassword,
+      selectedCountry,
+      isPasswordError,
       isEmailError,
-    [email, password, selectedCountry, isPasswordError, isEmailError],
+      emailVerificationIsError,
+      emailVerificationIsLoading,
+    ],
   );
 
-  const handleContinue = () => {
+  const handleEmailChange = useCallback(
+    (email: string) => {
+      resetEmailVerificationSend();
+      setEmail(email);
+    },
+    [resetEmailVerificationSend],
+  );
+
+  const handlePasswordChange = useCallback(
+    (password: string) => {
+      resetEmailVerificationSend();
+      setPassword(password);
+    },
+    [resetEmailVerificationSend],
+  );
+
+  const handleContinue = async () => {
+    if (!debouncedEmail || !debouncedConfirmPassword || !selectedCountry) {
+      return;
+    }
+    const { contactVerificationId } = await sendEmailVerification(
+      debouncedEmail,
+      selectedCountry === 'US' ? 'us' : 'international',
+    );
+    dispatch(setContactVerificationId(contactVerificationId));
+
     navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
-      email,
+      email: debouncedEmail,
+      password: debouncedConfirmPassword,
     });
   };
 
-  const handleCountrySelect = (countryValue: string) => {
-    setSelectedCountry(countryValue);
-  };
+  const handleCountrySelect = useCallback(
+    (countryValue: string) => {
+      resetEmailVerificationSend();
+      dispatch(setSelectedCountry(countryValue));
+    },
+    [dispatch, resetEmailVerificationSend],
+  );
 
   const renderFormFields = () => (
     <>
@@ -156,7 +142,7 @@ const SignUp = () => {
         <Label>{strings('card.card_onboarding.sign_up.email_label')}</Label>
         <TextField
           autoCapitalize={'none'}
-          onChangeText={setEmail}
+          onChangeText={handleEmailChange}
           placeholder={strings(
             'card.card_onboarding.sign_up.email_placeholder',
           )}
@@ -170,18 +156,22 @@ const SignUp = () => {
           )}
           isError={debouncedEmail.length > 0 && isEmailError}
         />
-        {debouncedEmail.length > 0 && isEmailError && (
+        {debouncedEmail.length > 0 && emailVerificationIsError ? (
+          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            {emailVerificationError}
+          </Text>
+        ) : isEmailError ? (
           <Text variant={TextVariant.BodySm} twClassName="text-error-default">
             {strings('card.card_onboarding.sign_up.invalid_email')}
           </Text>
-        )}
+        ) : null}
       </Box>
 
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.password_label')}</Label>
         <TextField
           autoCapitalize={'none'}
-          onChangeText={setPassword}
+          onChangeText={handlePasswordChange}
           placeholder={strings(
             'card.card_onboarding.sign_up.password_placeholder',
           )}
