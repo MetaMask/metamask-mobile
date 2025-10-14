@@ -23,28 +23,28 @@ const getSafeBottomPosition = (hasFooter: boolean, insets?: EdgeInsets) => {
       // Footer case: position above footer + safe area
       return Math.max(100, basePadding + 60);
     }
-      if (basePadding > 0) {
-        // iPhone X+ with home indicator
-        return Math.max(-40, -(basePadding - 10));
-      }
-        return -20;
-
-
+    if (basePadding > 0) {
+      // iPhone X+ with home indicator
+      return Math.max(-40, -(basePadding - 10));
+    }
+    return -20;
   }
 
   // Android specific
   if (Platform.OS === 'android') {
     // Samsung and other Android devices with gesture navigation
     if (basePadding > 20) {
+      const extraSamsungPadding = basePadding > 35 ? 30 : 20;
+
       return hasFooter
         ? Math.max(100, basePadding + 60)
-        : Math.max(-20, basePadding - 10);
+        : Math.max(20, basePadding + extraSamsungPadding);
     }
 
     // Standard Android devices
     return hasFooter
       ? Math.max(100, basePadding + 40)
-      : Math.max(-20, basePadding - 20);
+      : Math.max(-20, basePadding - 10);
   }
 
   // Fallback for other platforms
