@@ -1,6 +1,8 @@
 import {
   MultichainAccountService,
   MultichainAccountServiceMessenger,
+  AccountProviderWrapper,
+  BtcAccountProvider,
 } from '@metamask/multichain-account-service';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
@@ -11,8 +13,16 @@ import {
   getMultichainAccountServiceMessenger,
   MultichainAccountServiceInitMessenger,
 } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
+import { selectIsBitcoinAccountsEnabled } from '../../../../selectors/featureFlagController/bitcoinAccountsEnabled';
+import ReduxService from '../../../redux';
 
 jest.mock('@metamask/multichain-account-service');
+jest.mock('../../../../selectors/featureFlagController/bitcoinAccountsEnabled');
+jest.mock('../../../redux', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<
@@ -35,9 +45,34 @@ describe('MultichainAccountServiceInit', () => {
   const multichainAccountServiceClassMock = jest.mocked(
     MultichainAccountService,
   );
+  const accountProviderWrapperMock = jest.mocked(AccountProviderWrapper);
+  const btcAccountProviderMock = jest.mocked(BtcAccountProvider);
+  const selectIsBitcoinAccountsEnabledMock = jest.mocked(
+    selectIsBitcoinAccountsEnabled,
+  );
+
+  let mockSetEnabled: jest.Mock;
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockSetEnabled = jest.fn();
+
+    // Mock AccountProviderWrapper instance with setEnabled method
+    accountProviderWrapperMock.mockImplementation(
+      () =>
+        ({
+          setEnabled: mockSetEnabled,
+        } as unknown as AccountProviderWrapper),
+    );
+
+    // Mock BtcAccountProvider instance
+    btcAccountProviderMock.mockImplementation(
+      () => ({} as unknown as BtcAccountProvider),
+    );
+
+    // Default: feature flag disabled
+    selectIsBitcoinAccountsEnabledMock.mockReturnValue(false);
+    (ReduxService.store.getState as jest.Mock).mockReturnValue({});
   });
 
   it('returns service instance', () => {
@@ -59,5 +94,79 @@ describe('MultichainAccountServiceInit', () => {
     if (callArgs.providers) {
       expect(Array.isArray(callArgs.providers)).toBe(true);
     }
+  });
+
+  describe('Bitcoin provider feature flag', () => {
+    it('does not enable Bitcoin provider when feature flag is disabled', () => {
+      // Given the feature flag is disabled
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(false);
+
+      // When initializing the service
+      multichainAccountServiceInit(getInitRequestMock());
+
+      // Then Bitcoin provider should not be enabled
+      expect(mockSetEnabled).not.toHaveBeenCalled();
+    });
+
+    it('does not enable Bitcoin provider when app version is below minimum', () => {
+      // Given the feature flag indicates version requirement not met
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(false);
+
+      // When initializing the service
+      multichainAccountServiceInit(getInitRequestMock());
+
+      // Then Bitcoin provider should not be enabled
+      expect(mockSetEnabled).not.toHaveBeenCalled();
+    });
+
+    it('enables Bitcoin provider when feature flag is enabled and version meets minimum', () => {
+      // Given the feature flag is enabled and version meets minimum
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(true);
+
+      // When initializing the service
+      const initRequestMock = getInitRequestMock();
+      multichainAccountServiceInit(initRequestMock);
+
+      // Then Bitcoin provider should be enabled
+      expect(mockSetEnabled).toHaveBeenCalledTimes(1);
+      expect(mockSetEnabled).toHaveBeenCalledWith(true);
+    });
+
+    it('subscribes to account group updates when Bitcoin is enabled', () => {
+      // Given the feature flag is enabled
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(true);
+
+      // When initializing the service
+      const initRequestMock = getInitRequestMock();
+      const subscribeMock = jest.spyOn(
+        initRequestMock.initMessenger,
+        'subscribe',
+      );
+
+      multichainAccountServiceInit(initRequestMock);
+
+      // Then should subscribe to multichain account group updates
+      expect(subscribeMock).toHaveBeenCalledWith(
+        'MultichainAccountService:multichainAccountGroupUpdated',
+        expect.any(Function),
+      );
+    });
+
+    it('does not subscribe to account group updates when Bitcoin is disabled', () => {
+      // Given the feature flag is disabled
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(false);
+
+      // When initializing the service
+      const initRequestMock = getInitRequestMock();
+      const subscribeMock = jest.spyOn(
+        initRequestMock.initMessenger,
+        'subscribe',
+      );
+
+      multichainAccountServiceInit(initRequestMock);
+
+      // Then should not subscribe to multichain account group updates
+      expect(subscribeMock).not.toHaveBeenCalled();
+    });
   });
 });
