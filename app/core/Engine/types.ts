@@ -725,6 +725,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
+  | 'SwapsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'

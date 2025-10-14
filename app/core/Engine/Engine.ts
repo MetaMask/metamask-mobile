@@ -34,15 +34,11 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { isTestNet } from '../../util/networks';
-import {
-  fetchEstimatedMultiLayerL1Fee,
-  deprecatedGetNetworkId,
-} from '../../util/networks/engineNetworkUtils';
+import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import {
@@ -110,7 +106,6 @@ import {
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
-  swapsSupportedChainIds,
 } from './constants';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
@@ -174,6 +169,7 @@ import { authenticationControllerInit } from './controllers/identity/authenticat
 import { ratesControllerInit } from './controllers/rates-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
+import { swapsControllerInit } from './controllers/swaps-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -328,6 +324,7 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
+        SwapsController: swapsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -410,6 +407,7 @@ export class Engine {
     const bridgeController = controllersByName.BridgeController;
     const nftController = controllersByName.NftController;
     const nftDetectionController = controllersByName.NftDetectionController;
+    const swapsController = controllersByName.SwapsController;
     const networkController = controllersByName.NetworkController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -539,29 +537,7 @@ export class Engine {
       TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
       SmartTransactionsController: this.smartTransactionsController,
-      SwapsController: new SwapsController({
-        clientId: AppConstants.SWAPS.CLIENT_ID,
-        fetchAggregatorMetadataThreshold:
-          AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-        fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-        fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-        supportedChainIds: swapsSupportedChainIds,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'SwapsController',
-          // TODO: allow these internal calls once GasFeeController
-          // export these action types and register its action handlers
-          // allowedActions: [
-          //   'GasFeeController:getEIP1559GasFeeEstimates',
-          // ],
-          allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: ['NetworkController:networkDidChange'],
-        }),
-        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-        // TODO: Remove once GasFeeController exports this action type
-        fetchGasFeeEstimates: () =>
-          this.gasFeeController.fetchGasFeeEstimates(),
-        fetchEstimatedMultiLayerL1Fee,
-      }),
+      SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,

@@ -101,6 +101,7 @@ import {
   getEarnControllerMessenger,
 } from './earn-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
+import { getSwapsControllerMessenger } from './swaps-controller-messenger';
 
 import {
   getDelegationControllerInitMessenger,
@@ -276,6 +277,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SwapsController: {
+    getMessenger: getSwapsControllerMessenger,
     getInitMessenger: noop,
   },
   NetworkEnablementController: {
