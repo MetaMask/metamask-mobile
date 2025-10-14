@@ -171,9 +171,8 @@ export class EngineService {
   /**
    * Sets up persistence subscriptions for all engine controllers.
    *
-   * This method subscribes to each controller's state change events and automatically:
-   * 1. Updates Redux store with the new controller state
-   * 2. Persists the filtered state to individual filesystem storage files
+   * This method subscribes to each controller's state change events and automatically
+   * persists the filtered state to individual filesystem storage files.
    *
    * The persistence is debounced in createPersistController to prevent excessive disk writes during rapid state changes.
    */
