@@ -34,7 +34,28 @@ export function ConfirmationsDeveloperOptions() {
   return (
     <>
       <PredictDeposit />
+      <PredictClaim />
     </>
+  );
+}
+
+function PredictClaim() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleClaim = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      headerShown: false,
+      transactionType: TransactionType.predictClaim,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Predict Claim"
+      description="Trigger a Predict claim confirmation."
+      buttonLabel="Claim"
+      onPress={handleClaim}
+    />
   );
 }
 
@@ -42,7 +63,10 @@ function PredictDeposit() {
   const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
 
   const handleDeposit = useCallback(async () => {
-    addTransactionBatchAndNavigate();
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.predictDeposit,
+    });
   }, [addTransactionBatchAndNavigate]);
 
   return (
@@ -69,37 +93,49 @@ function useAddTransactionBatch() {
     amount: '0x0',
   }) as Hex;
 
-  const addTransactionBatchAndNavigate = useCallback(async () => {
-    navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.PREDICT.ROOT,
-    });
+  const addTransactionBatchAndNavigate = useCallback(
+    async ({
+      headerShown,
+      loader,
+      transactionType,
+    }: {
+      headerShown?: boolean;
+      loader?: ConfirmationLoader;
+      transactionType: TransactionType;
+    }) => {
+      navigateToConfirmation({
+        headerShown,
+        loader,
+        stack: Routes.PREDICT.ROOT,
+      });
 
-    addTransactionBatch({
-      from: selectedAccount as Hex,
-      origin: ORIGIN_METAMASK,
-      networkClientId,
-      disableHook: true,
-      disableSequential: true,
-      transactions: [
-        {
-          params: {
-            to: PROXY_ADDRESS,
-            value: '0x1',
+      addTransactionBatch({
+        from: selectedAccount as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        transactions: [
+          {
+            params: {
+              to: PROXY_ADDRESS,
+              value: '0x1',
+            },
           },
-        },
-        {
-          params: {
-            to: POLYGON_USDCE_ADDRESS,
-            data: transferData,
+          {
+            params: {
+              to: POLYGON_USDCE_ADDRESS,
+              data: transferData,
+            },
+            type: transactionType,
           },
-          type: TransactionType.predictDeposit,
-        },
-      ],
-    }).catch((e) => {
-      console.error('Predict deposit error', e);
-    });
-  }, [navigateToConfirmation, networkClientId, selectedAccount, transferData]);
+        ],
+      }).catch((e) => {
+        console.error('Predict transaction error', e);
+      });
+    },
+    [navigateToConfirmation, networkClientId, selectedAccount, transferData],
+  );
 
   return {
     addTransactionBatchAndNavigate,
