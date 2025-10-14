@@ -404,21 +404,23 @@ const CardHome = () => {
         <View
           style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
         >
-          {!isLoading &&
-            isAuthenticated &&
-            priorityToken?.allowanceState === AllowanceState.Limited &&
-            priorityToken?.allowance !== undefined &&
-            priorityToken?.availableBalance !== undefined &&
-            priorityToken?.symbol !== undefined && (
-              <>
-                <View style={styles.spendingLimitDivider} />
-                <SpendingLimitProgressBar
-                  spendingLimit={priorityToken?.allowance}
-                  availableBalance={priorityToken?.availableBalance}
-                  symbol={priorityToken?.symbol ?? ''}
-                />
-              </>
-            )}
+          <>
+            {!isLoading &&
+              isAuthenticated &&
+              priorityToken?.allowanceState === AllowanceState.Limited &&
+              priorityToken?.allowance !== undefined &&
+              priorityToken?.availableBalance !== undefined &&
+              priorityToken?.symbol !== undefined && (
+                <>
+                  <View style={styles.spendingLimitDivider} />
+                  <SpendingLimitProgressBar
+                    spendingLimit={priorityToken?.allowance}
+                    availableBalance={priorityToken?.availableBalance}
+                    symbol={priorityToken?.symbol ?? ''}
+                  />
+                </>
+              )}
+          </>
           {isLoading ? (
             <Skeleton
               height={28}
