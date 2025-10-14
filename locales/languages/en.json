@@ -5836,7 +5836,21 @@
     "card_onboarding": {
       "title": "Welcome to Card",
       "description": "To use card features, you’ll need to verify your account with our partner.",
-      "verify_account_button": "Verify account"
+      "verify_account_button": "Verify account",
+      "sign_up": {
+        "title": "Sign-up",
+        "description": "Register your details with Crypto Life, the provider of MetaMask Card. You'll use this account to access and manage your card.",
+        "email_label": "Email",
+        "password_label": "Password",
+        "confirm_password_label": "Confirm password",
+        "country_label": "Country of Residence",
+        "email_placeholder": "Enter your email address",
+        "password_placeholder": "Enter your password",
+        "country_placeholder": "Select your country",
+        "password_mismatch": "Passwords do not match",
+        "invalid_email": "Invalid email address"
+      },
+       "continue_button": "Next"
     },
     "card_home": {
       "error_title": "Can’t fetch data",

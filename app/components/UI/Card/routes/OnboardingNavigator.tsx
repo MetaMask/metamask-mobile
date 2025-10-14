@@ -2,6 +2,19 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import UnmountOnBlur from '../../../Views/UnmountOnBlur';
 import Routes from '../../../../constants/navigation/Routes';
+import SignUp from '../components/Onboarding/SignUp';
+
+// TODO: Import other onboarding components when they are created
+const OnboardingConfirmEmail = () => null;
+const OnboardingSetPhoneNumber = () => null;
+const OnboardingConfirmPhoneNumber = () => null;
+const OnboardingVerifyIdentity = () => null;
+const OnboardingValidatingKyc = () => null;
+const OnboardingPersonalDetails = () => null;
+const OnboardingPhysicalAddress = () => null;
+const OnboardingMailingAddress = () => null;
+const OnboardingComplete = () => null;
+const OnboardingFailed = () => null;
 
 const Stack = createStackNavigator();
 const onboardingDefaultNavigationOptions = {
@@ -16,7 +29,7 @@ const OnboardingNavigator: React.FC = () => (
     >
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
-        component={OnboardingSignUp}
+        component={SignUp}
         options={onboardingDefaultNavigationOptions}
       />
       <Stack.Screen
