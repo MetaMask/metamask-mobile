@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { usePerpsTrading } from './usePerpsTrading';
-import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+import { usePerpsConnection } from './usePerpsConnection';
 import type { Position } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 

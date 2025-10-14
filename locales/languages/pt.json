@@ -221,9 +221,11 @@
     "remind_later_description2": "Você pode fazer o backup das suas carteiras ou ver sua Frase de Recuperação Secreta em",
     "setting_security_privacy": "Configurações > Segurança e Privacidade"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Boas-vindas à MetaMask",
@@ -1523,7 +1525,7 @@
         "history_will_appear": "Seu histórico de negociação aparecerá aqui"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continuar",
       "skip": "Pular",
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "Ganhou {{count}} mercados",
     "claim_amount_text": "Resgatar $ {{amount}}",
     "unrealized_pnl_label": "P&L não realizados",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Receber"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Depósito de empréstimo",
     "tx_review_lending_withdraw": "Saque de empréstimo",
     "tx_review_perps_deposit": "Depósito de fundos na conta de perps",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ethers enviados",
     "self_sent_ether": "Ethers enviados a si mesmo",
     "received_ether": "Ethers recebidos",
@@ -5288,7 +5297,8 @@
       "transfer": "Solicitação de transferência",
       "switch_account_type": "Atualização da conta",
       "approve": "Aprovar solicitação",
-      "perps_deposit": "Adicionar fundos"
+      "perps_deposit": "Adicionar fundos",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",
@@ -5306,6 +5316,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "Trocaremos seus tokens por USDC na HyperEVM, a rede usada pelos perps. Os provedores de troca podem cobrar uma taxa, mas a MetaMask não cobra."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Taxas"
@@ -5524,7 +5537,9 @@
     "account_not_found": "Carteira não encontrada",
     "account_not_found_description": "Não foi possível encontrar uma carteira para \"{{accountName}}\". Deseja criar uma carteira com esse login?",
     "create_new_wallet": "Criar uma nova carteira",
-    "use_different_login_method": "Usar um método de login diferente"
+    "use_different_login_method": "Usar um método de login diferente",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Ainda está aí?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Não há suporte a essa região",
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Depositou em conta de perps",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Dados da transação"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "Ponte",
       "default": "Transação",
       "perps_deposit": "Adicionar fundos",
+      "predict_deposit": "Add funds",
       "swap": "Trocar tokens",
       "swap_approval": "Aprovar tokens"
     }
