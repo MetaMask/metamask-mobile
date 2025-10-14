@@ -666,38 +666,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // 6. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
 
-      // For HIP-3 DEXs, we need to get the deployer address to use as vaultAddress
-      let vaultAddress: Hex | undefined;
-      if (dexName) {
-        try {
-          const infoClient = this.clientService.getInfoClient();
-          const perpDexs = await infoClient.perpDexs();
-          const targetDex = perpDexs.find((dex) => dex?.name === dexName);
-          if (targetDex) {
-            vaultAddress = targetDex.deployer as Hex;
-            DevLogger.log(
-              'Using HIP-3 deployer as vaultAddress for DEX routing:',
-              {
-                dexName,
-                deployer: vaultAddress,
-              },
-            );
-          }
-        } catch (error) {
-          DevLogger.log('Failed to get deployer address for HIP-3 DEX:', error);
-        }
-      }
-
       DevLogger.log('Submitting order to exchange:', {
         coin: params.coin,
         assetId,
         dexName: dexName || 'main',
-        vaultAddress: vaultAddress || 'none',
         orderCount: orders.length,
         grouping,
         isBuy: params.isBuy,
         size: formattedSize,
         price: formattedPrice,
+        note: dexName ? 'HIP-3 order - DEX routing TBD' : 'Regular order',
       });
 
       const result = await exchangeClient.order({
@@ -707,7 +685,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
           f: builderFee,
         },
-        ...(vaultAddress && { vaultAddress }),
       });
 
       if (result.status !== 'ok') {
