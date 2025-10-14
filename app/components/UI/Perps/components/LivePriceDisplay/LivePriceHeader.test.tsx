@@ -3,7 +3,6 @@ import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
 import { PriceUpdate, usePerpsLivePrices } from '../../hooks/stream';
 
-// Mock dependencies
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
 }));
