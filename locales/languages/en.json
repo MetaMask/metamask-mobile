@@ -5850,6 +5850,20 @@
         "password_mismatch": "Passwords do not match",
         "invalid_email": "Invalid email address"
       },
+      "confirm_email": {
+        "title": "Confirm your email",
+        "description": "We've sent a confirmation code to: {{email}}",
+        "confirm_code_label": "Confirmation code",
+        "confirm_code_placeholder": "Enter the confirmation code"
+      },
+      "set_phone_number": {
+        "title": "Phone number",
+        "description": "Enter your phone number to receive verification codes",
+        "phone_number_label": "Phone number",
+        "phone_number_placeholder": "Enter your phone number",
+        "country_area_code_label": "Country area code",
+        "invalid_phone_number": "Invalid phone number"
+      },
        "continue_button": "Next"
     },
     "card_home": {

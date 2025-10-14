@@ -55,7 +55,9 @@ const OnboardingStep = ({
             </Text>
 
             {/* Description */}
-            <Text variant={TextVariant.BodySm}>{description}</Text>
+            <Text variant={TextVariant.BodyMd} twClassName="text-center">
+              {description}
+            </Text>
 
             {/* Form */}
             <Box twClassName="gap-4">{formFields}</Box>

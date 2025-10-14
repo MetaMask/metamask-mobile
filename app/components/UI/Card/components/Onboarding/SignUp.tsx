@@ -12,54 +12,66 @@ import TextField, {
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import PickerBase from '../../../../../component-library/components/Pickers/PickerBase';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import OnboardingStep from './OnboardingStep';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-
-// Country type definition
-interface Country {
-  name: string;
-}
+import SelectComponent from '../../../SelectComponent';
+import { Country } from '../../types';
 
 // Mock countries data following DepositRegion structure
-const MOCK_COUNTRIES: Country[] = [
+export const MOCK_COUNTRIES: Country[] = [
   {
+    key: 'us',
     name: 'United States',
+    areaCode: '+1',
   },
   {
+    key: 'ca',
     name: 'Canada',
+    areaCode: '+1',
   },
   {
+    key: 'uk',
     name: 'United Kingdom',
+    areaCode: '+44',
   },
   {
+    key: 'de',
     name: 'Germany',
+    areaCode: '+49',
   },
   {
+    key: 'fr',
     name: 'France',
+    areaCode: '+33',
   },
   {
+    key: 'au',
     name: 'Australia',
+    areaCode: '+61',
   },
   {
+    key: 'jp',
     name: 'Japan',
+    areaCode: '+81',
   },
 ];
 
+const selectOptions = MOCK_COUNTRIES.map((country) => ({
+  key: country.key,
+  value: country.key,
+  label: country.name,
+}));
+
 const SignUp = () => {
   const navigation = useNavigation();
-  const tw = useTailwind();
 
   const [email, setEmail] = useState('');
-  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isEmailError, setIsEmailError] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string>('us');
+  const [isPasswordError, setIsPasswordError] = useState(false);
 
   const debouncedEmail = useDebouncedValue(email, 1000);
   const debouncedConfirmPassword = useDebouncedValue(confirmPassword, 1000);
@@ -68,14 +80,14 @@ const SignUp = () => {
     if (!debouncedEmail) {
       return;
     }
-    setIsEmailValid(validateEmail(debouncedEmail));
+    setIsEmailError(!validateEmail(debouncedEmail));
   }, [debouncedEmail]);
 
   useEffect(() => {
     if (!debouncedConfirmPassword) {
       return;
     }
-    setIsPasswordValid(debouncedConfirmPassword === password);
+    setIsPasswordError(debouncedConfirmPassword !== password);
   }, [debouncedConfirmPassword, password]);
 
   const isDisabled = useMemo(
@@ -83,26 +95,19 @@ const SignUp = () => {
       email.length === 0 ||
       password.length === 0 ||
       !selectedCountry ||
-      !isPasswordValid ||
-      !isEmailValid,
-    [email, password, selectedCountry, isPasswordValid, isEmailValid],
+      isPasswordError ||
+      isEmailError,
+    [email, password, selectedCountry, isPasswordError, isEmailError],
   );
 
   const handleContinue = () => {
     navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
       email,
-      password,
-      country: selectedCountry?.name || '',
     });
   };
 
-  const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country);
-    setIsDropdownOpen(false);
-  };
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+  const handleCountrySelect = (countryValue: string) => {
+    setSelectedCountry(countryValue);
   };
 
   const renderFormFields = () => (
@@ -124,9 +129,9 @@ const SignUp = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.email_label',
           )}
-          isError={debouncedEmail.length > 0 && !isEmailValid}
+          isError={debouncedEmail.length > 0 && isEmailError}
         />
-        {debouncedEmail.length > 0 && !isEmailValid && (
+        {debouncedEmail.length > 0 && isEmailError && (
           <Text variant={TextVariant.BodySm} twClassName="text-error-default">
             {strings('card.card_onboarding.sign_up.invalid_email')}
           </Text>
@@ -172,9 +177,9 @@ const SignUp = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.confirm_password_label',
           )}
-          isError={debouncedConfirmPassword.length > 0 && !isPasswordValid}
+          isError={debouncedConfirmPassword.length > 0 && isPasswordError}
         />
-        {debouncedConfirmPassword.length > 0 && !isPasswordValid && (
+        {debouncedConfirmPassword.length > 0 && isPasswordError && (
           <Text variant={TextVariant.BodySm} twClassName="text-error-default">
             {strings('card.card_onboarding.sign_up.password_mismatch')}
           </Text>
@@ -183,49 +188,30 @@ const SignUp = () => {
 
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
-        <PickerBase onPress={toggleDropdown} style={tw.style('rounded-lg')}>
-          <Box twClassName="flex-row items-center flex-1">
-            {selectedCountry ? (
-              <Text variant={TextVariant.BodyMd}>{selectedCountry.name}</Text>
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="text-text-alternative"
-              >
-                {strings('card.card_onboarding.sign_up.country_placeholder')}
-              </Text>
+        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+          <SelectComponent
+            options={selectOptions}
+            selectedValue={selectedCountry}
+            onValueChange={handleCountrySelect}
+            label={strings('card.card_onboarding.sign_up.country_label')}
+            defaultValue={strings(
+              'card.card_onboarding.sign_up.country_placeholder',
             )}
-          </Box>
-        </PickerBase>
-
-        {isDropdownOpen && (
-          <Box twClassName="mt-4 max-h-400 overflow-y-auto">
-            {MOCK_COUNTRIES.map((country) => (
-              <ListItemSelect
-                key={country.name}
-                isSelected={selectedCountry?.name === country.name}
-                onPress={() => handleCountrySelect(country)}
-              >
-                <Text variant={TextVariant.BodyMd}>{country.name}</Text>
-              </ListItemSelect>
-            ))}
-          </Box>
-        )}
+          />
+        </Box>
       </Box>
     </>
   );
 
   const renderActions = () => (
-    <>
-      <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
-        disabled={isDisabled}
-      />
-    </>
+    <Button
+      variant={ButtonVariants.Primary}
+      label={strings('card.card_onboarding.continue_button')}
+      size={ButtonSize.Lg}
+      onPress={handleContinue}
+      width={ButtonWidthTypes.Full}
+      isDisabled={isDisabled}
+    />
   );
 
   return (

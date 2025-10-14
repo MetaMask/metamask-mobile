@@ -84,3 +84,10 @@ export class CardError extends Error {
     this.originalError = originalError;
   }
 }
+
+// Country type definition
+export interface Country {
+  key: string;
+  name: string;
+  areaCode: string;
+}
