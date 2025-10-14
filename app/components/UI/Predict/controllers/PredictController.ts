@@ -50,6 +50,7 @@ import {
   PredictActivity,
   PredictPriceHistoryPoint,
   Result,
+  UnrealizedPnL,
 } from '../types';
 
 /**
@@ -671,6 +672,53 @@ export class PredictController extends BaseController<
             : PREDICT_ERROR_CODES.ACTIVITY_NOT_AVAILABLE;
         state.lastUpdateTimestamp = Date.now();
       });
+      throw error;
+    }
+  }
+
+  /**
+   * Get unrealized P&L for a user
+   */
+  async getUnrealizedPnL({
+    address,
+    providerId = 'polymarket',
+  }: {
+    address?: string;
+    providerId?: string;
+  }): Promise<UnrealizedPnL> {
+    try {
+      const { AccountsController } = Engine.context;
+      const selectedAddress =
+        address ?? AccountsController.getSelectedAccount().address;
+
+      const provider = this.providers.get(providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const unrealizedPnL = await provider.getUnrealizedPnL({
+        address: selectedAddress,
+      });
+
+      // Update state on successful call
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      });
+
+      return unrealizedPnL;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch unrealized P&L';
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
       throw error;
     }
   }

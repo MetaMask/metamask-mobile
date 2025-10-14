@@ -9,6 +9,8 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { SkeletonRow } from '../skeleton-row';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
 
+const SAME_CHAIN_DURATION_SECONDS = 2;
+
 export function BridgeTimeRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
   const { isLoading } = useIsTransactionPayLoading();
@@ -24,6 +26,10 @@ export function BridgeTimeRow() {
     0,
   );
 
+  const isSameChainPayment = (quotes ?? []).some(
+    (quote) => quote.quote.srcChainId === quote.quote.destChainId,
+  );
+
   if (!showEstimate) {
     return null;
   }
@@ -35,8 +41,26 @@ export function BridgeTimeRow() {
   return (
     <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
       <Text>
-        {estimatedTimeSeconds} {strings('unit.second')}
+        {formatSeconds(estimatedTimeSeconds ?? 0, isSameChainPayment)}
       </Text>
     </InfoRow>
   );
+}
+
+function formatSeconds(seconds: number, isSameChainPayment: boolean) {
+  if (isSameChainPayment) {
+    return `${SAME_CHAIN_DURATION_SECONDS} ${strings('unit.second')}`;
+  }
+
+  if (seconds <= 30) {
+    return `< 1 ${strings('unit.minute')}`;
+  }
+
+  if (seconds <= 60) {
+    return `1 ${strings('unit.minute')}`;
+  }
+
+  const minutes = Math.ceil(seconds / 60);
+
+  return `${minutes} ${strings('unit.minute')}`;
 }
