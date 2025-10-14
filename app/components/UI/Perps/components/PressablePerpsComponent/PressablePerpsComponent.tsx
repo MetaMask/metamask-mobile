@@ -43,10 +43,13 @@ export const TouchablePerpsComponent =
  * including test environment handling and TalkBack compatibility.
  */
 export const useCoordinatedPress = () => {
-  // Shared coordination system for maximum reliability
-  // Both custom TouchableOpacity and main component use the same timestamp reference
-  const lastPressTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+  // Shared coordination state to prevent race conditions between gesture and accessibility handlers
+  const coordinationRef = useRef<{
+    lastPressTime: number;
+    isProcessing: boolean;
+  }>({ lastPressTime: 0, isProcessing: false });
+
+  const COORDINATION_WINDOW = 200; // 200ms window for TalkBack compatibility
 
   return useCallback((onPress?: () => void) => {
     // Skip coordination logic in test environments
@@ -55,12 +58,25 @@ export const useCoordinatedPress = () => {
       return;
     }
 
-    const now = Date.now();
-    const timeSinceLastPress = now - lastPressTime.current;
+    if (!onPress) return;
 
-    if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
-      lastPressTime.current = now;
-      onPress();
+    const now = Date.now();
+    const timeSinceLastPress = now - coordinationRef.current.lastPressTime;
+
+    // Prevent double firing using both processing flag and timing window
+    if (
+      !coordinationRef.current.isProcessing &&
+      timeSinceLastPress > COORDINATION_WINDOW
+    ) {
+      coordinationRef.current.isProcessing = true;
+      coordinationRef.current.lastPressTime = now;
+
+      try {
+        onPress();
+      } finally {
+        // Synchronously reset processing flag after execution completes
+        coordinationRef.current.isProcessing = false;
+      }
     }
   }, []); // Empty dependency array - function never changes
 };

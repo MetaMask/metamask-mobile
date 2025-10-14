@@ -37,7 +37,7 @@ const TouchableOpacity = ({
     isProcessing: boolean;
   }>({ lastPressTime: 0, isProcessing: false });
 
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+  const COORDINATION_WINDOW = 200; // 200ms window for TalkBack compatibility
 
   // Centralized coordination logic for Android
   const handlePress = (pressEvent?: GestureResponderEvent) => {
@@ -126,7 +126,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 
   // Coordination for checkbox interaction on non-Android platforms
   const lastCheckboxGestureTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+  const COORDINATION_WINDOW = 200; // 200ms window for TalkBack compatibility
 
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =

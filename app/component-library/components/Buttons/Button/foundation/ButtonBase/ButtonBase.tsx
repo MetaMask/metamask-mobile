@@ -43,7 +43,7 @@ export const TouchableOpacity = ({
     isProcessing: boolean;
   }>({ lastPressTime: 0, isProcessing: false });
 
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+  const COORDINATION_WINDOW = 200; // 200ms window for TalkBack compatibility
 
   // Centralized coordination logic for Android
   const handlePress = (pressEvent?: GestureResponderEvent) => {
