@@ -1,13 +1,12 @@
 import {
   type Subscription,
-  type WsAllMids,
-  type WsWebData2,
-  type WsUserFills,
-  type WsActiveAssetCtx,
-  type WsActiveSpotAssetCtx,
-  type PerpsAssetCtx,
-  type Book,
-} from '@deeeed/hyperliquid-node20';
+  type WsAllMidsEvent,
+  type WsWebData2Event,
+  type WsUserFillsEvent,
+  type WsActiveAssetCtxEvent,
+  type WsActiveSpotAssetCtxEvent,
+  type L2BookResponse,
+} from '@nktkas/hyperliquid';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -276,7 +275,7 @@ export class HyperLiquidSubscriptionService {
 
     return new Promise((resolve, reject) => {
       subscriptionClient
-        .webData2({ user: userAddress }, (data: WsWebData2) => {
+        .webData2({ user: userAddress }, (data: WsWebData2Event) => {
           // Extract and process positions with TP/SL data
           const positions = data.clearinghouseState.assetPositions
             .filter((assetPos) => assetPos.position.szi !== '0')
@@ -546,7 +545,7 @@ export class HyperLiquidSubscriptionService {
 
           return subscriptionClient.userFills(
             { user: userAddress },
-            (data: WsUserFills) => {
+            (data: WsUserFillsEvent) => {
               const orderFills: OrderFill[] = data.fills.map((fill) => ({
                 orderId: fill.oid.toString(),
                 symbol: fill.coin,
@@ -777,7 +776,7 @@ export class HyperLiquidSubscriptionService {
 
     // Store the promise immediately to prevent duplicate calls
     this.globalAllMidsPromise = subscriptionClient
-      .allMids((data: WsAllMids) => {
+      .allMids((data: WsAllMidsEvent) => {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
@@ -856,39 +855,39 @@ export class HyperLiquidSubscriptionService {
     subscriptionClient
       .activeAssetCtx(
         { coin: symbol },
-        (data: WsActiveAssetCtx | WsActiveSpotAssetCtx) => {
+        (data: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent) => {
           subscriptionMetrics.messagesReceived++;
 
           if (data.coin === symbol && data.ctx) {
-            const ctx = data.ctx;
-
-            // Type guard to determine if this is perps or spot context
+            // Type guard using SDK types: check if this is perps (has funding) or spot (no funding)
             const isPerpsContext = (
-              context: typeof data.ctx,
-            ): context is PerpsAssetCtx =>
-              'funding' in context &&
-              'openInterest' in context &&
-              'oraclePx' in context;
+              event: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent,
+            ): event is WsActiveAssetCtxEvent =>
+              'funding' in event.ctx &&
+              'openInterest' in event.ctx &&
+              'oraclePx' in event.ctx;
+
+            const ctx = data.ctx;
 
             // Cache market data for consolidation with price updates
             const marketData = {
               prevDayPx: parseFloat(ctx.prevDayPx?.toString() || '0'),
               // Cache funding rate from activeAssetCtx for real-time updates
-              funding:
-                isPerpsContext(ctx) && ctx.funding !== undefined
-                  ? parseFloat(ctx.funding.toString())
-                  : undefined,
+              // SDK defines funding as string (not nullable) in ActiveAssetCtxEvent
+              funding: isPerpsContext(data)
+                ? parseFloat(data.ctx.funding.toString())
+                : undefined,
               // Convert openInterest from token units to USD by multiplying by current price
               // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
-              openInterest: isPerpsContext(ctx)
-                ? parseFloat(ctx.openInterest?.toString() || '0') *
+              openInterest: isPerpsContext(data)
+                ? parseFloat(data.ctx.openInterest.toString()) *
                   parseFloat(
                     ctx.midPx?.toString() || ctx.markPx?.toString() || '0',
                   )
                 : 0,
               volume24h: parseFloat(ctx.dayNtlVlm?.toString() || '0'),
-              oraclePrice: isPerpsContext(ctx)
-                ? parseFloat(ctx.oraclePx?.toString() || '0')
+              oraclePrice: isPerpsContext(data)
+                ? parseFloat(data.ctx.oraclePx.toString())
                 : 0,
               lastUpdated: Date.now(),
             };
@@ -980,7 +979,7 @@ export class HyperLiquidSubscriptionService {
     }
 
     subscriptionClient
-      .l2Book({ coin: symbol, nSigFigs: 5 }, (data: Book) => {
+      .l2Book({ coin: symbol, nSigFigs: 5 }, (data: L2BookResponse) => {
         if (data.coin === symbol && data.levels) {
           // Extract best bid and ask from order book
           const bestBid = data.levels[0]?.[0]; // First bid level

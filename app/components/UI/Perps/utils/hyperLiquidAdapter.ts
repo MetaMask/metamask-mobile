@@ -1,12 +1,12 @@
-import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import type {
   AssetPosition,
-  PerpsClearinghouseState,
-  SpotClearinghouseState,
-} from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
-import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
-import type { FrontendOrder } from '@deeeed/hyperliquid-node20/esm/src/types/info/orders';
-import { isHexString } from '@metamask/utils';
+  FrontendOrder,
+  ClearinghouseStateResponse,
+  SpotClearinghouseStateResponse,
+  MetaResponse,
+  SDKOrderParams,
+} from '../types/hyperliquid-types';
+import { Hex, isHexString } from '@metamask/utils';
 import type {
   AccountState,
   MarketInfo,
@@ -54,8 +54,8 @@ export function adaptOrderToSDK(
           },
     c:
       order.clientOrderId && isHexString(order.clientOrderId)
-        ? (order.clientOrderId as `0x${string}`)
-        : null,
+        ? (order.clientOrderId as Hex)
+        : undefined,
   };
 }
 
@@ -144,7 +144,10 @@ export function adaptOrderFromSDK(
   let stopLossPrice: string | undefined;
 
   if (rawOrder.children && rawOrder.children.length > 0) {
-    rawOrder.children.forEach((child) => {
+    // Note: SDK exports children field as 'any' type in FrontendOpenOrdersResponse
+    // See: node_modules/@nktkas/hyperliquid/esm/src/api/info/frontendOpenOrders.d.ts
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK itself uses any for children field
+    rawOrder.children.forEach((child: any) => {
       if (child.isTrigger && child.orderType) {
         if (child.orderType.includes('Take Profit')) {
           takeProfitPrice = child.triggerPx || child.limitPx;
@@ -189,7 +192,9 @@ export function adaptOrderFromSDK(
  * @param sdkMarket - Market metadata from HyperLiquid SDK
  * @returns MetaMask Perps API market info object
  */
-export function adaptMarketFromSDK(sdkMarket: PerpsUniverse): MarketInfo {
+export function adaptMarketFromSDK(
+  sdkMarket: MetaResponse['universe'][number],
+): MarketInfo {
   return {
     name: sdkMarket.name,
     szDecimals: sdkMarket.szDecimals,
@@ -202,13 +207,13 @@ export function adaptMarketFromSDK(sdkMarket: PerpsUniverse): MarketInfo {
 
 /**
  * Transform SDK clearinghouse state to MetaMask Perps API AccountState
- * @param perpsState - PerpsClearinghouseState from HyperLiquid SDK
+ * @param perpsState - ClearinghouseState from HyperLiquid SDK
  * @param spotState - SpotClearinghouseState from HyperLiquid SDK (optional)
  * @returns MetaMask Perps API account state object
  */
 export function adaptAccountStateFromSDK(
-  perpsState: PerpsClearinghouseState,
-  spotState?: SpotClearinghouseState,
+  perpsState: ClearinghouseStateResponse,
+  spotState?: SpotClearinghouseStateResponse,
 ): AccountState {
   // Calculate total unrealized PnL from all positions
   const { totalUnrealizedPnl, weightedReturnOnEquity } =
@@ -294,7 +299,7 @@ export function adaptAccountStateFromSDK(
  * @param metaUniverse - Array of asset metadata from HyperLiquid
  * @returns Maps for bidirectional symbol/ID lookup
  */
-export function buildAssetMapping(metaUniverse: PerpsUniverse[]): {
+export function buildAssetMapping(metaUniverse: MetaResponse['universe']): {
   coinToAssetId: Map<string, number>;
   assetIdToCoin: Map<number, string>;
 } {

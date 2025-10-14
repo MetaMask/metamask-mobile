@@ -8,7 +8,7 @@ import type {
   HyperLiquidTransportConfig,
   TradingDefaultsConfig,
   FeeRatesConfig,
-} from '../types';
+} from '../types/perps-types';
 
 // Network constants
 export const ARBITRUM_MAINNET_CHAIN_ID = '42161';

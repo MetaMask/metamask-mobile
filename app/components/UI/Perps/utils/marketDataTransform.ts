@@ -1,9 +1,9 @@
 import type {
-  AllMids,
-  PerpsAssetCtx,
+  AllMidsResponse,
   PerpsUniverse,
+  PerpsAssetCtx,
   PredictedFunding,
-} from '@deeeed/hyperliquid-node20';
+} from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsMarketData } from '../controllers/types';
 import { formatVolume } from './formatUtils';
@@ -15,7 +15,7 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
 export interface HyperLiquidMarketData {
   universe: PerpsUniverse[];
   assetCtxs: PerpsAssetCtx[];
-  allMids: AllMids;
+  allMids: AllMidsResponse;
   predictedFundings?: PredictedFunding[];
 }
 

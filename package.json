@@ -197,7 +197,6 @@
     "@consensys/native-ramps-sdk": "^2.1.2",
     "@consensys/on-ramp-sdk": "2.1.11",
     "@craftzdog/react-native-buffer": "^6.1.0",
-    "@deeeed/hyperliquid-node20": "^0.23.1-node20.1",
     "@ethersproject/abi": "^5.7.0",
     "@expo/fingerprint": "^0.15.0",
     "@expo/repack-app": "^0.2.9",
@@ -300,6 +299,7 @@
     "@metamask/tron-wallet-snap": "^1.1.0",
     "@metamask/utils": "^11.8.1",
     "@ngraveio/bc-ur": "^1.1.6",
+    "@nktkas/hyperliquid": "^0.25.1",
     "@noble/curves": "1.9.6",
     "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
@@ -489,6 +489,7 @@
     "valid-url": "1.0.9",
     "viem": "^2.28.0",
     "vm-browserify": "1.1.2",
+    "ws": "^8.18.3",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -710,6 +711,8 @@
       "@storybook/addon-ondevice-controls>core-js": false,
       "viem>ws>bufferutil": false,
       "viem>ws>utf-8-validate": false,
+      "ws>bufferutil": false,
+      "ws>utf-8-validate": false,
       "detox>@wix-pilot/core>canvas": true,
       "ts-node>@swc/core": false,
       "@metamask/test-dapp-solana>@solana/spl-token>@solana/buffer-layout-utils>bigint-buffer": false,

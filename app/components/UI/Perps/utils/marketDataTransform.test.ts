@@ -10,11 +10,11 @@ import {
   HyperLiquidMarketData,
 } from './marketDataTransform';
 import { formatVolume } from './formatUtils';
-import {
-  AllMids,
+import type {
+  AllMidsResponse,
   PerpsAssetCtx,
   PredictedFunding,
-} from '@deeeed/hyperliquid-node20';
+} from '../types/hyperliquid-types';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
@@ -775,7 +775,7 @@ describe('marketDataTransform', () => {
         assetCtxs: [
           createMockAssetCtx({ prevDayPx: '50000', dayNtlVlm: '1000000' }),
         ],
-        allMids: { BTC: 'invalid-price' } as unknown as AllMids,
+        allMids: { BTC: 'invalid-price' } as unknown as AllMidsResponse,
       };
 
       // Act
