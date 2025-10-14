@@ -253,7 +253,6 @@ const Routes = {
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
-      BALANCE_MODAL: 'PerpsBalanceModal',
       GTM_MODAL: 'PerpsGTMModal',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',

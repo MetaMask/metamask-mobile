@@ -710,6 +710,7 @@ export type ControllersToInitialize =
   | 'NftDetectionController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
+  | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
