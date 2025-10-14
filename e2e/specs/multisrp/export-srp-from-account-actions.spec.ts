@@ -16,7 +16,7 @@ describe(
   SmokeWalletPlatform('Multi-SRP: Exports the correct srp in account actions'),
   () => {
     // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('exports the correct srp for the default hd keyring', async () => {
+    it('exports the correct srp for the default hd keyring', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
@@ -33,7 +33,7 @@ describe(
     });
 
     // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('exports the correct srp for the imported hd keyring', async () => {
+    it('exports the correct srp for the imported hd keyring', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
