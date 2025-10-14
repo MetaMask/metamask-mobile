@@ -14,35 +14,38 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn(),
 }));
 
-jest.mock('./SignUp', () => ({
-  MOCK_COUNTRIES: {
-    countries: [
-      {
-        id: 'us-country-id-001',
-        name: 'United States',
-        iso3166alpha2: 'US',
-        callingCode: '1',
-        canSignUp: true,
-      },
-      {
-        id: 'uk-country-id-002',
-        name: 'United Kingdom',
-        iso3166alpha2: 'GB',
-        callingCode: '44',
-        canSignUp: true,
-      },
-      {
-        id: 'fr-country-id-004',
-        name: 'France',
-        iso3166alpha2: 'FR',
-        callingCode: '33',
-        canSignUp: true,
-      },
-    ],
-    usStates: [],
-    links: { us: {}, intl: {} },
-    config: { us: {}, intl: {} },
-  },
+jest.mock('../../hooks/useRegistrationSettings', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    data: {
+      countries: [
+        {
+          id: 'us-country-id-001',
+          name: 'United States',
+          iso3166alpha2: 'US',
+          callingCode: '1',
+          canSignUp: true,
+        },
+        {
+          id: 'uk-country-id-002',
+          name: 'United Kingdom',
+          iso3166alpha2: 'GB',
+          callingCode: '44',
+          canSignUp: true,
+        },
+        {
+          id: 'fr-country-id-004',
+          name: 'France',
+          iso3166alpha2: 'FR',
+          callingCode: '33',
+          canSignUp: true,
+        },
+      ],
+      usStates: [],
+      links: { us: {}, intl: {} },
+      config: { us: {}, intl: {} },
+    },
+  })),
 }));
 
 // Mock OnboardingStep component
@@ -505,8 +508,8 @@ describe('SetPhoneNumber Component', () => {
     });
   });
 
-  describe('MOCK_COUNTRIES Integration', () => {
-    it('should use MOCK_COUNTRIES data for area code options', () => {
+  describe('Registration Settings Integration', () => {
+    it('should use registration settings data for area code options', () => {
       const { getByTestId } = render(<SetPhoneNumber />);
 
       const selectComponent = getByTestId('select-component');

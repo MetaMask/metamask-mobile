@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
-import SignUp, { MOCK_COUNTRIES } from './SignUp';
+import SignUp from './SignUp';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
@@ -390,30 +390,6 @@ describe('SignUp Component', () => {
       const button = getByTestId('button');
 
       expect(button.props.disabled).toBe(true);
-    });
-  });
-
-  describe('MOCK_COUNTRIES Data', () => {
-    it('should export MOCK_COUNTRIES with correct structure', () => {
-      expect(MOCK_COUNTRIES).toBeDefined();
-      expect(Array.isArray(MOCK_COUNTRIES.countries)).toBe(true);
-      expect(MOCK_COUNTRIES.countries.length).toBeGreaterThan(0);
-
-      const firstCountry = MOCK_COUNTRIES.countries[0];
-      expect(firstCountry).toHaveProperty('id');
-      expect(firstCountry).toHaveProperty('name');
-      expect(firstCountry).toHaveProperty('callingCode');
-    });
-
-    it('should include expected countries', () => {
-      const countryKeys = MOCK_COUNTRIES.countries.map(
-        (country) => country.iso3166alpha2,
-      );
-
-      expect(countryKeys).toContain('US');
-      expect(countryKeys).toContain('FR');
-      expect(countryKeys).toContain('GB');
-      expect(countryKeys).toContain('DE');
     });
   });
 

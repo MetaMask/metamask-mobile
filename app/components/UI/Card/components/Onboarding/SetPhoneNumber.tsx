@@ -13,45 +13,99 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import { MOCK_COUNTRIES } from './SignUp';
 import SelectComponent from '../../../SelectComponent';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-
-const selectOptions = Array.from(
-  new Map(
-    MOCK_COUNTRIES.countries.map((country) => [
-      country.callingCode,
-      {
-        key: country.iso3166alpha2,
-        value: `+${country.callingCode}`,
-        label: `+${country.callingCode}`,
-      },
-    ]),
-  ).values(),
-);
+import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
+import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import {
+  selectContactVerificationId,
+  selectSelectedCountry,
+} from '../../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
 
+  const contactVerificationId = useSelector(selectContactVerificationId);
+  const selectedCountry = useSelector(selectSelectedCountry);
+
+  const { data: registrationSettings } = useRegistrationSettings();
+
+  const selectOptions = useMemo(() => {
+    if (!registrationSettings?.countries) {
+      return [];
+    }
+    return Array.from(
+      new Map(
+        registrationSettings.countries.map((country) => [
+          country.callingCode,
+          {
+            key: country.iso3166alpha2,
+            value: `+${country.callingCode}`,
+            label: `+${country.callingCode}`,
+          },
+        ]),
+      ).values(),
+    );
+  }, [registrationSettings]);
+
+  const initialSelectedCountryAreaCode = useMemo(() => {
+    if (!registrationSettings?.countries) {
+      return '+1';
+    }
+    const selectedCountryWithCallingCode = registrationSettings.countries.find(
+      (country) => country.iso3166alpha2 === selectedCountry,
+    );
+    return selectedCountryWithCallingCode?.callingCode
+      ? `+${selectedCountryWithCallingCode.callingCode}`
+      : '+1';
+  }, [selectedCountry, registrationSettings]);
+
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
-    useState<string>('+1');
+    useState<string>(initialSelectedCountryAreaCode);
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
-  const handleContinue = () => {
+  const {
+    sendPhoneVerification,
+    isLoading: phoneVerificationIsLoading,
+    isError: phoneVerificationIsError,
+    error: phoneVerificationError,
+    reset: resetPhoneVerificationSend,
+  } = usePhoneVerificationSend();
+
+  const handleContinue = async () => {
+    if (
+      !debouncedPhoneNumber ||
+      !selectedCountryAreaCode ||
+      !contactVerificationId
+    ) {
+      return;
+    }
+
+    await sendPhoneVerification(
+      {
+        phoneCountryCode: selectedCountryAreaCode,
+        phoneNumber: debouncedPhoneNumber,
+        contactVerificationId,
+      },
+      selectedCountry === 'US' ? 'us' : 'international',
+    );
+
     navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
-      phoneNumber: `${
-        selectedCountryAreaCode ? `${selectedCountryAreaCode} ` : ''
-      }${debouncedPhoneNumber}`,
+      phoneCountryCode: selectedCountryAreaCode,
+      phoneNumber: debouncedPhoneNumber,
     });
   };
 
   const handleCountrySelect = (areaCode: string) => {
+    resetPhoneVerificationSend();
     setSelectedCountryAreaCode(areaCode);
   };
 
   const handlePhoneNumberChange = (text: string) => {
+    resetPhoneVerificationSend();
     const cleanedText = text.replace(/\D/g, '');
     setPhoneNumber(cleanedText);
   };
@@ -68,8 +122,21 @@ const SetPhoneNumber = () => {
   }, [debouncedPhoneNumber]);
 
   const isDisabled = useMemo(
-    () => !phoneNumber || !selectedCountryAreaCode || isPhoneNumberError,
-    [phoneNumber, selectedCountryAreaCode, isPhoneNumberError],
+    () =>
+      !debouncedPhoneNumber ||
+      !selectedCountryAreaCode ||
+      !contactVerificationId ||
+      isPhoneNumberError ||
+      phoneVerificationIsLoading ||
+      phoneVerificationIsError,
+    [
+      debouncedPhoneNumber,
+      selectedCountryAreaCode,
+      contactVerificationId,
+      isPhoneNumberError,
+      phoneVerificationIsLoading,
+      phoneVerificationIsError,
+    ],
   );
 
   const renderFormFields = () => (
@@ -109,13 +176,17 @@ const SetPhoneNumber = () => {
           />
         </Box>
       </Box>
-      {debouncedPhoneNumber && isPhoneNumberError && (
+      {debouncedPhoneNumber && phoneVerificationIsError ? (
+        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          {phoneVerificationError}
+        </Text>
+      ) : isPhoneNumberError ? (
         <Text variant={TextVariant.BodySm} twClassName="text-error-default">
           {strings(
             'card.card_onboarding.set_phone_number.invalid_phone_number',
           )}
         </Text>
-      )}
+      ) : null}
     </Box>
   );
 
