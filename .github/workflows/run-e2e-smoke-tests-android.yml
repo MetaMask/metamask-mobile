@@ -124,7 +124,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs:
-      - confirmations-android-smoke
       - trade-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke
