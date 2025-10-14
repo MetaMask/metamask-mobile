@@ -405,7 +405,7 @@ const BuildQuote = () => {
     const isNonEvm = isNonEvmAddress(selectedAddress);
     const balanceValue = isNonEvm ? balance : addressBalance;
 
-    return balanceValue || null;
+    return balanceValue ?? null;
   }, [selectedAddress, balance, addressBalance]);
 
   const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
