@@ -17,8 +17,10 @@ interface ProfilerManagerProps {
   enabled?: boolean;
 }
 
+const shouldEnableProfiler = isRc || isExp;
+
 const ProfilerManager: React.FC<ProfilerManagerProps> = ({
-  enabled = isRc || isExp,
+  enabled = shouldEnableProfiler,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
