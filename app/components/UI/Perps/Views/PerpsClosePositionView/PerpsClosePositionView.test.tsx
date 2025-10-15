@@ -468,7 +468,8 @@ describe('PerpsClosePositionView', () => {
       );
       expect(receiveText).toBeDefined();
       // Look for 1000 in the display (margin + P&L - fees)
-      expect(getByText('$1,000.00')).toBeDefined();
+      // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
+      expect(getByText('$1,000')).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
