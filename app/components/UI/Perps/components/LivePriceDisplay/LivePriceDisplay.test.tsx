@@ -7,7 +7,6 @@ import {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 
-// Mock dependencies
 jest.mock('../../hooks/stream');
 
 describe('LivePriceDisplay', () => {

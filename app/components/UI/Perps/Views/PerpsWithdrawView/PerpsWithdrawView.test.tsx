@@ -53,7 +53,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));

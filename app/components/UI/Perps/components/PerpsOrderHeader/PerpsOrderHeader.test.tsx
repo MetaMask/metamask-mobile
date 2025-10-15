@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import PerpsOrderHeader from './PerpsOrderHeader';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));

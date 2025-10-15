@@ -28,7 +28,6 @@ const mockTransaction = {
   },
 };
 
-// Mock dependencies
 const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
 

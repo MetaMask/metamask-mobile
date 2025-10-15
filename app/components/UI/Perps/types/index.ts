@@ -74,3 +74,16 @@ export interface OrderFormState {
 }
 
 export type OrderDirection = 'long' | 'short';
+
+/**
+ * Options for reconnecting the Perps connection
+ */
+export interface ReconnectOptions {
+  /**
+   * If true, forces immediate disconnect and cancels all pending operations.
+   * Use for user-initiated retry actions.
+   * If false (default), waits for pending operations to complete.
+   * Use for automatic reconnections like account switches.
+   */
+  force?: boolean;
+}
