@@ -322,7 +322,7 @@ yarn start:android:e2e:flask
 
 | Aspect            | Main Build                          | Flask Build                                  |
 | ----------------- | ----------------------------------- | -------------------------------------------- |
-| **Snaps Support** | ❌ Disabled                         | ✅ Enabled (with `BRIDGE_USE_DEV_APIS=true`) |
+| **Snaps Support** | ❌ Limited                          | ✅ Enabled (with `BRIDGE_USE_DEV_APIS=true`) |
 | **Dev APIs**      | ❌ Limited                          | ✅ Full access                               |
 | **App Icon**      | Standard MetaMask                   | Flask logo                                   |
 | **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                          |
