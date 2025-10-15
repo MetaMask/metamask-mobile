@@ -127,11 +127,9 @@ export const calculateEvmBalances = ({
     };
   });
 
-// TODO Look into useMultichainBalances hook, or useGetFormattedTokensPerChain hook
-// the above hooks don't return icon info, just balance and fiat values
-
 /**
  * Hook to get tokens with fiat balances
+ * TODO refactor to use selectAssetsBySelectedAccountGroup or selectSortedAssetsBySelectedAccountGroup (BIP44 only and it does pretty much everything for you, fiat value, etc) and also use Asset type
  * @param {Object} params - The parameters object
  * @param {Hex[]} params.chainIds - Array of chain IDs to filter by
  * @returns {BridgeToken[]} Array of tokens (native and non-native) with sortable fiat balances
@@ -168,11 +166,9 @@ export const useTokensWithBalance: ({
   // EVM non-native token balances in atomic hex amount
   const evmTokenBalances = useSelector(selectTokensBalances);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
   const nonEvmTokens = useNonEvmTokensWithBalance();
-  ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
     if (!chainIds) {
@@ -185,11 +181,9 @@ export const useTokensWithBalance: ({
       .filter((token) => chainIds.includes(token.chainId as Hex))
       .filter((token) => !token.isStaked);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allNonEvmAccountTokens = Object.values(nonEvmTokens)
       .flat()
       .filter((token) => chainIds.includes(token.chainId));
-    ///: END:ONLY_INCLUDE_IF
 
     const evmBalances = calculateEvmBalances({
       assets: allEvmAccountTokens,
@@ -202,12 +196,7 @@ export const useTokensWithBalance: ({
       evmAccountsByChainId,
     });
 
-    const allTokens = [
-      ...allEvmAccountTokens,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      ...allNonEvmAccountTokens,
-      ///: END:ONLY_INCLUDE_IF
-    ];
+    const allTokens = [...allEvmAccountTokens, ...allNonEvmAccountTokens];
 
     const properTokens: BridgeToken[] = allTokens
       .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
@@ -234,6 +223,7 @@ export const useTokensWithBalance: ({
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+          accountType: token.accountType,
         };
       });
     return sortAssets(properTokens, tokenSortConfig);
@@ -248,9 +238,7 @@ export const useTokensWithBalance: ({
     evmAddress,
     chainIds,
     evmAccountsByChainId,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmTokens,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return sortedTokens;

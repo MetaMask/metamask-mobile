@@ -4,11 +4,13 @@ import {
   formatAddressToAssetId,
   formatChainIdToCaip,
   formatChainIdToHex,
+  isBitcoinChainId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
+import { BtcAccountType } from '@metamask/keyring-api';
 import { BridgeToken } from '../../types';
 import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
@@ -21,12 +23,29 @@ import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 import { memoize } from 'lodash';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
-import { TokenListToken } from '@metamask/assets-controllers';
+import { Asset, TokenListToken } from '@metamask/assets-controllers';
 import packageJSON from '../../../../../../package.json';
 
 const { version: clientVersion } = packageJSON;
 const MAX_TOP_TOKENS = 30;
 export const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
+
+/**
+ * Only needed for BTC
+ * @param chainId - The chain ID to get the account type for
+ * @returns The account type for the chain ID
+ */
+const getAccountType = (
+  chainId: Hex | CaipChainId,
+): Asset['accountType'] | undefined => {
+  let accountType: Asset['accountType'] | undefined;
+
+  if (isBitcoinChainId(chainId)) {
+    accountType = BtcAccountType.P2wpkh;
+  }
+
+  return accountType;
+};
 
 /**
  * Convert cached tokens from TokenListController to BridgeToken format
@@ -59,6 +78,7 @@ const formatCachedTokenListControllerTokens = (
       image: token.iconUrl || '',
       decimals: token.decimals,
       chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
+      accountType: getAccountType(caipChainId),
     };
   });
 
@@ -169,7 +189,9 @@ export const useTopTokens = ({
       const hexChainId = formatChainIdToHex(bridgeAsset.chainId);
 
       // Convert non-EVM addresses to CAIP format for consistent deduplication
-      const tokenAddress = isNonEvmChainId(caipChainId)
+      const isNonEvmChain = isNonEvmChainId(caipChainId);
+
+      const tokenAddress = isNonEvmChain
         ? bridgeAsset.assetId
         : bridgeAsset.address;
 
@@ -180,6 +202,7 @@ export const useTopTokens = ({
         image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
         chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
+        accountType: getAccountType(caipChainId),
       };
     });
 
