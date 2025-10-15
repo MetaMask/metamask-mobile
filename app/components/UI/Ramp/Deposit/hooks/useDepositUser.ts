@@ -11,13 +11,8 @@ export function useDepositUser() {
     useDepositSdkMethod({
       method: 'getUserDetails',
       onMount: false,
+      throws: true,
     });
-
-  const [, fetchUserDetailsThrowable] = useDepositSdkMethod({
-    method: 'getUserDetails',
-    onMount: false,
-    throws: true,
-  });
 
   useEffect(() => {
     if (isAuthenticated && !userDetails && !isFetching && !error) {
@@ -27,18 +22,16 @@ export function useDepositUser() {
 
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
-      const result = await fetchUserDetailsThrowable();
+      const result = await fetchUserDetails();
       return result;
     } catch (error) {
       if ((error as AxiosError).status === 401) {
-        Logger.log(
-          'useDepositUser: 401 error detected in throwable fetch, clearing authentication',
-        );
+        Logger.log('useDepositUser: 401 error, clearing authentication');
         await logoutFromProvider(false);
       }
       throw error;
     }
-  }, [fetchUserDetailsThrowable, logoutFromProvider]);
+  }, [fetchUserDetails, logoutFromProvider]);
 
   return {
     userDetails: isAuthenticated ? userDetails : null,

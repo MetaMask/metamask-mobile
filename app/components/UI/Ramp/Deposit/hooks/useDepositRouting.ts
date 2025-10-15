@@ -34,8 +34,12 @@ import { useDepositUser } from './useDepositUser';
 export const useDepositRouting = () => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const { selectedRegion, selectedPaymentMethod, selectedWalletAddress } =
-    useDepositSDK();
+  const {
+    selectedRegion,
+    selectedPaymentMethod,
+    selectedWalletAddress,
+    logoutFromProvider,
+  } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const { fetchUserDetails } = useDepositUser();
@@ -452,6 +456,7 @@ export const useDepositRouting = () => {
         }
       } catch (error) {
         if ((error as AxiosError).status === 401) {
+          logoutFromProvider();
           popToBuildQuote();
           navigation.navigate(...createEnterEmailNavDetails({}));
           return;
@@ -482,6 +487,7 @@ export const useDepositRouting = () => {
       selectedWalletAddress,
       themeAppearance,
       colors,
+      logoutFromProvider,
     ],
   );
 

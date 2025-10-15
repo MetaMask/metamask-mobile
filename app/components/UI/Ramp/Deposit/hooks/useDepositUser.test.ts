@@ -19,7 +19,6 @@ jest.mock('../sdk', () => ({
 
 describe('useDepositUser', () => {
   const mockFetchUserDetails = jest.fn();
-  const mockFetchUserDetailsThrowable = jest.fn();
   const mockUserDetails = {
     firstName: 'John',
     lastName: 'Doe',
@@ -43,8 +42,12 @@ describe('useDepositUser', () => {
     mockUseDepositSdkMethod.mockImplementation((config) => {
       if (config.throws) {
         return [
-          { data: null, error: null, isFetching: false },
-          mockFetchUserDetailsThrowable,
+          {
+            data: overrides?.data ?? null,
+            error: overrides?.error ?? null,
+            isFetching: overrides?.isFetching ?? false,
+          },
+          mockFetchUserDetails,
         ];
       }
       return [
@@ -60,6 +63,8 @@ describe('useDepositUser', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockLogoutFromProvider.mockResolvedValue(undefined);
 
     mockUseDepositSDK.mockReturnValue(
       createMockSDKReturn({
@@ -108,11 +113,6 @@ describe('useDepositUser', () => {
 
     it('calls useDepositSdkMethod with correct parameters', () => {
       renderHook(() => useDepositUser());
-
-      expect(mockUseDepositSdkMethod).toHaveBeenCalledWith({
-        method: 'getUserDetails',
-        onMount: false,
-      });
 
       expect(mockUseDepositSdkMethod).toHaveBeenCalledWith({
         method: 'getUserDetails',
@@ -251,7 +251,7 @@ describe('useDepositUser', () => {
     });
   });
 
-  describe('fetchUserDetails (throwable callback)', () => {
+  describe('fetchUserDetails', () => {
     it('returns user details when successful', async () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
@@ -260,7 +260,7 @@ describe('useDepositUser', () => {
         }),
       );
 
-      mockFetchUserDetailsThrowable.mockResolvedValue(mockUserDetails);
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
       setupMockSdkMethod();
 
       const { result } = renderHook(() => useDepositUser());
@@ -268,12 +268,13 @@ describe('useDepositUser', () => {
       const userDetails = await result.current.fetchUserDetails();
 
       expect(userDetails).toEqual(mockUserDetails);
-      expect(mockFetchUserDetailsThrowable).toHaveBeenCalled();
+      expect(mockFetchUserDetails).toHaveBeenCalled();
     });
 
     it('logs out and throws on 401 error', async () => {
-      const error401 = new Error('Unauthorized') as AxiosError;
-      error401.status = 401;
+      const error401 = Object.assign(new Error('Unauthorized'), {
+        status: 401,
+      }) as AxiosError;
 
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
@@ -282,8 +283,8 @@ describe('useDepositUser', () => {
         }),
       );
 
-      mockFetchUserDetailsThrowable.mockRejectedValue(error401);
-      setupMockSdkMethod();
+      mockFetchUserDetails.mockRejectedValue(error401);
+      setupMockSdkMethod({ data: mockUserDetails });
 
       const { result } = renderHook(() => useDepositUser());
 
@@ -295,7 +296,9 @@ describe('useDepositUser', () => {
     });
 
     it('throws error without logging out for non-401 errors', async () => {
-      const networkError = new Error('Network error');
+      const networkError = Object.assign(new Error('Network error'), {
+        status: 500,
+      }) as AxiosError;
 
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
@@ -304,8 +307,8 @@ describe('useDepositUser', () => {
         }),
       );
 
-      mockFetchUserDetailsThrowable.mockRejectedValue(networkError);
-      setupMockSdkMethod();
+      mockFetchUserDetails.mockRejectedValue(networkError);
+      setupMockSdkMethod({ data: mockUserDetails });
 
       const { result } = renderHook(() => useDepositUser());
 
@@ -314,13 +317,6 @@ describe('useDepositUser', () => {
       );
 
       expect(mockLogoutFromProvider).not.toHaveBeenCalled();
-    });
-
-    it('returns the function in the hook return value', () => {
-      const { result } = renderHook(() => useDepositUser());
-
-      expect(result.current.fetchUserDetails).toBeDefined();
-      expect(typeof result.current.fetchUserDetails).toBe('function');
     });
   });
 });
