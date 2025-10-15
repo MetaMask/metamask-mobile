@@ -1,4 +1,4 @@
-import { Json, JsonRpcRequest, JsonRpcResponse } from '@metamask/utils';
+import { Json, JsonRpcResponse } from '@metamask/utils';
 
 export type RPCResponse =
   | JsonRpcResponse<Json>
@@ -11,6 +11,6 @@ export type RPCResponse =
  */
 export interface IRPCBridgeAdapter {
   on: (event: 'response', listener: (response: RPCResponse) => void) => void;
-  send: (request: JsonRpcRequest) => void;
+  send: (request: unknown) => void;
   dispose: () => void;
 }

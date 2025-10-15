@@ -8,8 +8,6 @@ import { ImageSourcePropType } from 'react-native';
 import { ConnectionInfo } from '../types/connection-info';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
-import Logger from '../../../util/Logger';
-import { JsonRpcRequest } from '@metamask/utils';
 
 export class RPCBridgeAdapter
   extends EventEmitter
@@ -20,7 +18,7 @@ export class RPCBridgeAdapter
   private messenger: BaseControllerMessenger | null = null;
   private initialized: Promise<void> | null = null;
   private processing = false;
-  private queue: JsonRpcRequest[] = [];
+  private queue: unknown[] = [];
 
   constructor(connInfo: ConnectionInfo) {
     super();
@@ -31,7 +29,7 @@ export class RPCBridgeAdapter
   /**
    * Sends an RPC request to the background bridge.
    */
-  public send(request: JsonRpcRequest): void {
+  public send(request: unknown): void {
     this.queue.push(request);
     this.processQueue();
   }
@@ -93,7 +91,6 @@ export class RPCBridgeAdapter
       const request = this.queue.shift();
       this.client.onMessage({
         name: 'metamask-multichain-provider',
-        origin: this.connInfo.id,
         data: request,
       });
     }
