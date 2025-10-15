@@ -12,7 +12,6 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import * as PerpsHooks from '../../hooks';
 import PerpsTabControlBar from './PerpsTabControlBar';
 
-// Mock dependencies
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     account: {
