@@ -1,14 +1,14 @@
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useIsGaslessSupported } from './useIsGaslessSupported';
-import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { transferTransactionStateMock } from '../../__mocks__/transfer-transaction-mock';
-import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
-import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
-import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import { transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
-import { waitFor } from '@testing-library/react-native';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
+import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
+import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
+import { transferTransactionStateMock } from '../../__mocks__/transfer-transaction-mock';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useIsGaslessSupported } from './useIsGaslessSupported';
 
 jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../../../../../util/transaction-controller');
