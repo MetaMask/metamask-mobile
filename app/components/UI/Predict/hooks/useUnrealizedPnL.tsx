@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { UnrealizedPnL } from '../types';
@@ -56,6 +56,7 @@ export const useUnrealizedPnL = (
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isInitialMount = useRef(true);
 
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
@@ -104,7 +105,8 @@ export const useUnrealizedPnL = (
     if (loadOnMount) {
       loadUnrealizedPnL();
     }
-  }, [loadOnMount, loadUnrealizedPnL]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadOnMount]);
 
   // Refresh unrealized P&L when screen comes into focus if enabled
   useFocusEffect(
@@ -117,12 +119,17 @@ export const useUnrealizedPnL = (
     }, [refreshOnFocus, loadUnrealizedPnL]),
   );
 
+  // Reset and reload data when address changes (but not on initial mount)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     setUnrealizedPnL(null);
-    setIsLoading(true);
-    setIsRefreshing(false);
     setError(null);
-  }, [address]);
+    loadUnrealizedPnL();
+  }, [address, loadUnrealizedPnL]);
 
   return {
     unrealizedPnL,
