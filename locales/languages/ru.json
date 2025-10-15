@@ -221,9 +221,11 @@
     "remind_later_description2": "Вы можете создать резервную копию своих кошельков или увидеть свою секретную фразу для восстановления в",
     "setting_security_privacy": "разделе «Настройки» > «Безопасность и конфиденциальность»"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Добро пожаловать в MetaMask",
@@ -1523,7 +1525,7 @@
         "history_will_appear": "Ваша история торговли отобразится здесь"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Продолжить",
       "skip": "Пропустить",
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "Выиграны {{count}} рынка(-ов)",
     "claim_amount_text": "Получить {{amount}} $",
     "unrealized_pnl_label": "Нереализованные П/У",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Получить"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Кредитование депозита",
     "tx_review_lending_withdraw": "Кредитование вывода средств",
     "tx_review_perps_deposit": "Счет бессрочных фьючерсов пополнен",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Отправлен эфир",
     "self_sent_ether": "Отправил(-а) себе эфир",
     "received_ether": "Получен эфир",
@@ -5288,7 +5297,8 @@
       "transfer": "Запрос на перевод",
       "switch_account_type": "Обновление счета",
       "approve": "Одобрить запрос",
-      "perps_deposit": "Внести средства"
+      "perps_deposit": "Внести средства",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
@@ -5306,6 +5316,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "Мы обменяем ваши токены на USDC в HyperEVM, сети, используемой Перами. Поставщики услуг свопов могут взимать комиссию, но MetaMask не взимает ее."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Комиссии"
@@ -5524,7 +5537,9 @@
     "account_not_found": "Кошелек не найден",
     "account_not_found_description": "Мы не смогли найти кошелек для«{{accountName}}» Хотите создать новый с этим логином?",
     "create_new_wallet": "Создать новый кошелек",
-    "use_different_login_method": "Используйте другой способ входа"
+    "use_different_login_method": "Используйте другой способ входа",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Вы все еще там?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Регион не поддерживается",
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Счет перпов пополнен",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Сведения о транзакции"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "Мост",
       "default": "Транзакция",
       "perps_deposit": "Внести средства",
+      "predict_deposit": "Add funds",
       "swap": "Обменять токены",
       "swap_approval": "Одобрить токены"
     }

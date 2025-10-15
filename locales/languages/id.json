@@ -221,9 +221,11 @@
     "remind_later_description2": "Anda dapat mencadangkan dompet atau melihat Frasa Pemulihan Rahasia di",
     "setting_security_privacy": "Pengaturan > Keamanan dan Privasi"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Selamat datang di MetaMask",
@@ -1523,7 +1525,7 @@
         "history_will_appear": "Riwayat perdagangan Anda akan muncul di sini"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Lanjutkan",
       "skip": "Lewati",
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "Memenangkan {{count}} pasar",
     "claim_amount_text": "Klaim ${{amount}}",
     "unrealized_pnl_label": "P&L Belum Terealisasi",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Terima"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Deposit Pinjaman",
     "tx_review_lending_withdraw": "Penarikan Pinjaman",
     "tx_review_perps_deposit": "Akun Perp yang didanai",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Mengirim Ether",
     "self_sent_ether": "Mengirim Ether ke Diri Sendiri",
     "received_ether": "Menerima Ether",
@@ -5288,7 +5297,8 @@
       "transfer": "Permintaan transfer",
       "switch_account_type": "Pembaruan akun",
       "approve": "Setujui permintaan",
-      "perps_deposit": "Tambahkan dana"
+      "perps_deposit": "Tambahkan dana",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
@@ -5306,6 +5316,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "Kami akan menukar token Anda dengan USDC di HyperEVM, jaringan yang digunakan oleh Perp. Penyedia swap mungkin akan mengenakan biaya, tetapi MetaMask tidak."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Biaya"
@@ -5524,7 +5537,9 @@
     "account_not_found": "Dompet tidak ditemukan",
     "account_not_found_description": "Kami tidak dapat menemukan dompet untuk \"{{accountName}}\". Ingin membuat yang baru dengan login ini?",
     "create_new_wallet": "Buat dompet baru",
-    "use_different_login_method": "Gunakan metode login yang berbeda"
+    "use_different_login_method": "Gunakan metode login yang berbeda",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Masih di situ?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Wilayah tidak didukung",
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Akun perp yang didanai",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Detail transaksi"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "Bridge",
       "default": "Transaksi",
       "perps_deposit": "Tambahkan dana",
+      "predict_deposit": "Add funds",
       "swap": "Tukar token",
       "swap_approval": "Setujui token"
     }
