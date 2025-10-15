@@ -5,9 +5,11 @@ import { PredictActivityType } from '../../components/PredictActivity/PredictAct
 
 // Mock Tailwind - necessary because MMDS components use it internally
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: (...args: unknown[]) => (Array.isArray(args[0]) ? {} : args[0]),
-  }),
+  useTailwind: () => {
+    const tw = (...args: unknown[]) => (Array.isArray(args[0]) ? {} : args[0]);
+    tw.style = tw;
+    return tw;
+  },
 }));
 
 // Mock localization with param-aware strings
