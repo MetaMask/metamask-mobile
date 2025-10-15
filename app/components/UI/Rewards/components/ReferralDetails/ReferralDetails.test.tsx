@@ -129,6 +129,18 @@ const mockUseReferralDetails = jest.requireMock(
   '../../hooks/useReferralDetails',
 ).useReferralDetails;
 
+// Mock useMetrics hook
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
+  },
+}));
+
+const mockUseMetrics = jest.requireMock(
+  '../../../../hooks/useMetrics',
+).useMetrics;
+
 // Type for Redux selector functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SelectorFunction = (state: any) => any;
@@ -137,7 +149,8 @@ describe('ReferralDetails', () => {
   const mockClipboard = Clipboard as jest.Mocked<typeof Clipboard>;
   const mockShare = Share as jest.Mocked<typeof Share>;
 
-  const renderComponent = () => render(<ReferralDetails />);
+  const renderComponent = (props = {}) =>
+    render(<ReferralDetails {...props} />);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -179,6 +192,18 @@ describe('ReferralDetails', () => {
     mockUseReferralDetails.mockReturnValue({
       fetchReferralDetails: jest.fn(),
     });
+
+    // Mock useMetrics hook return value
+    const mockTrackEvent = jest.fn();
+    const mockCreateEventBuilder = jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }));
+    mockUseMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
+
     (mockClipboard.setString as jest.Mock).mockClear();
     (mockShare.open as jest.Mock).mockResolvedValue(undefined);
   });
@@ -696,6 +721,65 @@ describe('ReferralDetails', () => {
       expect(getByTestId('rewards-error-banner')).toBeTruthy();
       expect(getByTestId('error-title')).toBeTruthy();
       expect(getByTestId('error-description')).toBeTruthy();
+    });
+  });
+
+  describe('showInfoSection prop', () => {
+    it('should render info section when showInfoSection is true', () => {
+      // Act
+      const { getByTestId } = renderComponent({ showInfoSection: true });
+
+      // Assert
+      expect(getByTestId('referral-info-section')).toBeTruthy();
+    });
+
+    it('should not render info section when showInfoSection is false', () => {
+      // Act
+      const { queryByTestId } = renderComponent({ showInfoSection: false });
+
+      // Assert
+      expect(queryByTestId('referral-info-section')).toBeNull();
+    });
+
+    it('should render info section by default when showInfoSection prop is not provided', () => {
+      // Act
+      const { getByTestId } = renderComponent();
+
+      // Assert
+      expect(getByTestId('referral-info-section')).toBeTruthy();
+    });
+  });
+
+  describe('metrics tracking', () => {
+    it('should use the useMetrics hook', () => {
+      // Act
+      renderComponent();
+
+      // Assert
+      expect(mockUseMetrics).toHaveBeenCalled();
+    });
+
+    it('should have trackEvent and createEventBuilder available', () => {
+      // Arrange
+      const mockTrackEvent = jest.fn();
+      const mockCreateEventBuilder = jest.fn(() => ({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      }));
+      mockUseMetrics.mockReturnValue({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      });
+
+      // Act
+      renderComponent();
+
+      // Assert
+      expect(mockUseMetrics).toHaveBeenCalled();
+      const hookResult = mockUseMetrics.mock.results[0]?.value;
+      expect(hookResult).toBeDefined();
+      expect(hookResult.trackEvent).toBeDefined();
+      expect(hookResult.createEventBuilder).toBeDefined();
     });
   });
 });
