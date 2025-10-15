@@ -1,3 +1,24 @@
+diff --git a/dist/AccountTrackerController.cjs b/dist/AccountTrackerController.cjs
+index 572b8889be40106357251bcbb7152e4ff6c3f15d..e0365c4eccf99237205e2fd3d951828b48ab9449 100644
+--- a/dist/AccountTrackerController.cjs
++++ b/dist/AccountTrackerController.cjs
+@@ -23,6 +23,7 @@ const polling_controller_1 = require("@metamask/polling-controller");
+ const utils_1 = require("@metamask/utils");
+ const async_mutex_1 = require("async-mutex");
+ const lodash_1 = require("lodash");
++const AssetsContractController_1 = require("./AssetsContractController.cjs");
+ const api_balance_fetcher_1 = require("./multi-chain-accounts-service/api-balance-fetcher.cjs");
+ const rpc_balance_fetcher_1 = require("./rpc-service/rpc-balance-fetcher.cjs");
+ /**
+@@ -285,7 +286,7 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+                             hasChanges = true;
+                         }
+                     }
+-                    else {
++                    else if (AssetsContractController_1.STAKING_CONTRACT_ADDRESS_BY_CHAINID[chainId]?.toLowerCase() === token.toLowerCase()) {
+                         // Staked balance (from staking contract address)
+                         if (!stakedBalancesByChainAndAddress[chainId]) {
+                             stakedBalancesByChainAndAddress[chainId] = {};
 diff --git a/dist/multi-chain-accounts-service/api-balance-fetcher.cjs b/dist/multi-chain-accounts-service/api-balance-fetcher.cjs
 index 340fffe498b3fec0c0b335c1fea4b816926d945c..8bff516e428a2960d2dee85cf7e95f72f2bd01aa 100644
 --- a/dist/multi-chain-accounts-service/api-balance-fetcher.cjs

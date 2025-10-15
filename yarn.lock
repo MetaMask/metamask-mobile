@@ -7002,7 +7002,7 @@ __metadata:
 
 "@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A79.0.0#./.yarn/patches/@metamask-assets-controllers-npm-79.0.0-8b55992ea9.patch::locator=metamask%40workspace%3A.":
   version: 79.0.0
-  resolution: "@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A79.0.0#./.yarn/patches/@metamask-assets-controllers-npm-79.0.0-8b55992ea9.patch::version=79.0.0&hash=08a834&locator=metamask%40workspace%3A."
+  resolution: "@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A79.0.0#./.yarn/patches/@metamask-assets-controllers-npm-79.0.0-8b55992ea9.patch::version=79.0.0&hash=e7d7c2&locator=metamask%40workspace%3A."
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@ethersproject/abi": ^5.7.0
@@ -7046,7 +7046,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 92317f31c401a739cacbefc8a947092b6b3b30a7906b64360421598cea6c382d4b4290539f1883053c8891bde91c5075e2d978e46411d82424d7308cb321f296
+  checksum: d19c859dbdadb85ddb7d9eb540ef86aebe64c67f70d388dd9619d0125f5f294d634e13386501d2b707cb5dfe13eb2c4652bf6a870563a1b73256a12ce335e932
   languageName: node
   linkType: hard
 
@@ -34098,7 +34098,7 @@ __metadata:
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
     "@metamask/approval-controller": ^7.1.3
-    "@metamask/assets-controllers": ^79.0.0
+    "@metamask/assets-controllers": 79.0.0
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.3.0
     "@metamask/bridge-controller": ^50.0.0
