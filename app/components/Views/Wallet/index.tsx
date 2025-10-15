@@ -929,12 +929,6 @@ const Wallet = ({
    */
   useRewardsIntroModal();
 
-  useEffect(() => {
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.ONBOARDING.ROOT,
-    });
-  }, [navigation]);
-
   /**
    * Callback to trigger when pressing the navigation title.
    */
