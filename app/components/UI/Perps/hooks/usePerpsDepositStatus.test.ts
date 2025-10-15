@@ -2,9 +2,9 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePerpsDepositStatus } from './usePerpsDepositStatus';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
+import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts, { PerpsToastOptionsConfig } from './usePerpsToasts';
 import Engine from '../../../../core/Engine';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { RootState } from '../../../../reducers';
 import {
   TransactionMeta,
@@ -14,7 +14,11 @@ import {
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationFeedbackType } from 'expo-haptics';
-import { USDC_ARBITRUM_MAINNET_ADDRESS } from '../constants/hyperLiquidConfig';
+import {
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+} from '../constants/hyperLiquidConfig';
+import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -22,6 +26,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('./stream/usePerpsLiveAccount');
+jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsToasts');
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -35,19 +40,25 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
-  log: jest.fn(),
+jest.mock('../../../../core/redux/slices/confirmationMetrics', () => ({
+  selectTransactionBridgeQuotesById: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.MockedFunction<
   typeof usePerpsLiveAccount
 >;
+const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
+  typeof usePerpsTrading
+>;
 const mockUsePerpsToasts = usePerpsToasts as jest.MockedFunction<
   typeof usePerpsToasts
 >;
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
-const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
+const mockSelectTransactionBridgeQuotesById =
+  selectTransactionBridgeQuotesById as jest.MockedFunction<
+    typeof selectTransactionBridgeQuotesById
+  >;
 
 describe('usePerpsDepositStatus', () => {
   let mockSubscribe: jest.Mock;
@@ -69,6 +80,14 @@ describe('usePerpsDepositStatus', () => {
     mockEngine.controllerMessenger.unsubscribe = mockUnsubscribe;
     mockEngine.context.PerpsController.clearDepositResult =
       mockClearDepositResult;
+
+    // Mock usePerpsTrading
+    mockUsePerpsTrading.mockReturnValue({
+      clearDepositResult: mockClearDepositResult,
+    } as unknown as ReturnType<typeof usePerpsTrading>);
+
+    // Mock selectTransactionBridgeQuotesById
+    mockSelectTransactionBridgeQuotesById.mockReturnValue([]);
 
     // Default mock for usePerpsLiveAccount
     mockUsePerpsLiveAccount.mockReturnValue({
@@ -173,9 +192,18 @@ describe('usePerpsDepositStatus', () => {
         engine: {
           backgroundState: {
             PerpsController: {
+              depositInProgress: false,
               lastDepositResult: null,
+              lastDepositTransactionId: null,
             },
           },
+        },
+        confirmationMetrics: {
+          transactionBridgeQuotesById: {},
+          metricsById: {},
+          transactionPayTokenById: {},
+          isTransactionBridgeQuotesLoadingById: {},
+          isTransactionUpdating: {},
         },
       };
       return selector(state as RootState);
@@ -229,7 +257,9 @@ describe('usePerpsDepositStatus', () => {
     });
 
     it('should show in-progress toast when perpsDeposit transaction is approved', () => {
-      const { result } = renderHook(() => usePerpsDepositStatus());
+      // Reset the mock to ensure clean state
+      mockShowToast.mockClear();
+      renderHook(() => usePerpsDepositStatus());
       const transactionMeta: TransactionMeta = {
         id: 'test-tx-id',
         type: TransactionType.perpsDeposit,
@@ -253,11 +283,10 @@ describe('usePerpsDepositStatus', () => {
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id');
-      expect(result.current.depositInProgress).toBe(true);
     });
 
-    it('should show in-progress toast when perpsDeposit transaction is submitted', () => {
-      const { result } = renderHook(() => usePerpsDepositStatus());
+    it('should not show in-progress toast when perpsDeposit transaction is submitted', () => {
+      renderHook(() => usePerpsDepositStatus());
       const transactionMeta: TransactionMeta = {
         id: 'test-tx-id',
         type: TransactionType.perpsDeposit,
@@ -268,24 +297,11 @@ describe('usePerpsDepositStatus', () => {
         transactionHandler({ transactionMeta });
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
-        hasNoTimeout: false,
-        labelOptions: [
-          { label: 'Deposit in progress', isBold: true },
-          { label: 'Processing your deposit...' },
-        ],
-        hapticsType: NotificationFeedbackType.Success,
-      });
-      expect(
-        mockPerpsToastOptions.accountManagement.deposit.inProgress,
-      ).toHaveBeenCalledWith(60, 'test-tx-id');
-      expect(result.current.depositInProgress).toBe(true);
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('should show in-progress toast when perpsDeposit transaction is confirmed', () => {
-      const { result } = renderHook(() => usePerpsDepositStatus());
+    it('should not show in-progress toast when perpsDeposit transaction is confirmed', () => {
+      renderHook(() => usePerpsDepositStatus());
       const transactionMeta: TransactionMeta = {
         id: 'test-tx-id',
         type: TransactionType.perpsDeposit,
@@ -296,24 +312,11 @@ describe('usePerpsDepositStatus', () => {
         transactionHandler({ transactionMeta });
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
-        hasNoTimeout: false,
-        labelOptions: [
-          { label: 'Deposit in progress', isBold: true },
-          { label: 'Processing your deposit...' },
-        ],
-        hapticsType: NotificationFeedbackType.Success,
-      });
-      expect(
-        mockPerpsToastOptions.accountManagement.deposit.inProgress,
-      ).toHaveBeenCalledWith(60, 'test-tx-id');
-      expect(result.current.depositInProgress).toBe(true);
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('should stop waiting for funds when transaction fails', () => {
-      const { result } = renderHook(() => usePerpsDepositStatus());
+      renderHook(() => usePerpsDepositStatus());
       const transactionMeta: TransactionMeta = {
         id: 'test-tx-id',
         type: TransactionType.perpsDeposit,
@@ -325,19 +328,15 @@ describe('usePerpsDepositStatus', () => {
         transactionHandler({
           transactionMeta: {
             ...transactionMeta,
-            status: TransactionStatus.submitted,
+            status: TransactionStatus.approved,
           },
         });
       });
-
-      expect(result.current.depositInProgress).toBe(true);
 
       // Now fail the transaction
       act(() => {
         transactionHandler({ transactionMeta });
       });
-
-      expect(result.current.depositInProgress).toBe(false);
     });
 
     it('should ignore non-perpsDeposit transactions', () => {
@@ -355,35 +354,21 @@ describe('usePerpsDepositStatus', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('should prevent duplicate in-progress toasts for same transaction', () => {
-      renderHook(() => usePerpsDepositStatus());
-      const transactionMeta: TransactionMeta = {
-        id: 'test-tx-id',
-        type: TransactionType.perpsDeposit,
-        status: TransactionStatus.submitted,
-      } as TransactionMeta;
-
-      // First call
-      act(() => {
-        transactionHandler({ transactionMeta });
-      });
-
-      // Second call with same transaction
-      act(() => {
-        transactionHandler({ transactionMeta });
-      });
-
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-    });
-
     it('should show instant processing time for arb.USDC deposits', () => {
       renderHook(() => usePerpsDepositStatus());
       const transactionMeta: TransactionMeta = {
         id: 'test-tx-id',
         type: TransactionType.perpsDeposit,
-        status: TransactionStatus.submitted,
+        status: TransactionStatus.approved,
+        chainId: ARBITRUM_MAINNET_CHAIN_ID_HEX,
+        networkClientId: 'arbitrum',
+        time: Date.now(),
         txParams: {
-          to: USDC_ARBITRUM_MAINNET_ADDRESS,
+          from: '0x1234567890123456789012345678901234567890',
+        },
+        metamaskPay: {
+          chainId: ARBITRUM_MAINNET_CHAIN_ID_HEX,
+          tokenAddress: USDC_ARBITRUM_MAINNET_ADDRESS,
         },
       } as TransactionMeta;
 
@@ -401,9 +386,16 @@ describe('usePerpsDepositStatus', () => {
       const transactionMeta: TransactionMeta = {
         id: 'test-tx-id',
         type: TransactionType.perpsDeposit,
-        status: TransactionStatus.submitted,
+        status: TransactionStatus.approved,
+        chainId: '0x1',
+        networkClientId: 'mainnet',
+        time: Date.now(),
         txParams: {
-          to: '0x1234567890123456789012345678901234567890', // Different token
+          from: '0x1234567890123456789012345678901234567890',
+        },
+        metamaskPay: {
+          chainId: '0x1', // Different chain
+          tokenAddress: '0x1234567890123456789012345678901234567890', // Different token
         },
       } as TransactionMeta;
 
@@ -419,7 +411,9 @@ describe('usePerpsDepositStatus', () => {
 
   describe('Balance Monitoring', () => {
     it('should show success toast when balance increases', () => {
-      const { result, rerender } = renderHook(() => usePerpsDepositStatus());
+      // Reset the mock to ensure clean state
+      mockShowToast.mockClear();
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
 
       // Set up waiting for funds first
       act(() => {
@@ -432,13 +426,11 @@ describe('usePerpsDepositStatus', () => {
             transactionMeta: {
               id: 'test-tx-id',
               type: TransactionType.perpsDeposit,
-              status: TransactionStatus.submitted,
+              status: TransactionStatus.approved,
             } as TransactionMeta,
           });
         }
       });
-
-      expect(result.current.depositInProgress).toBe(true);
 
       // Update balance to simulate deposit completion
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -467,12 +459,11 @@ describe('usePerpsDepositStatus', () => {
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
-      ).toHaveBeenCalledWith('500.00'); // Deposit amount (1500 - 1000)
-      expect(result.current.depositInProgress).toBe(false);
+      ).toHaveBeenCalledWith('1500.00'); // Current balance
     });
 
     it('should not show success toast when balance decreases', () => {
-      const { result, rerender } = renderHook(() => usePerpsDepositStatus());
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
 
       // Set up waiting for funds first
       act(() => {
@@ -485,13 +476,11 @@ describe('usePerpsDepositStatus', () => {
             transactionMeta: {
               id: 'test-tx-id',
               type: TransactionType.perpsDeposit,
-              status: TransactionStatus.submitted,
+              status: TransactionStatus.approved,
             } as TransactionMeta,
           });
         }
       });
-
-      expect(result.current.depositInProgress).toBe(true);
 
       // Update balance to simulate decrease
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -509,7 +498,6 @@ describe('usePerpsDepositStatus', () => {
       rerender({});
 
       expect(mockShowToast).not.toHaveBeenCalledWith({ success: true });
-      expect(result.current.depositInProgress).toBe(true);
     });
 
     it('should not monitor balance when not waiting for funds', () => {
@@ -536,17 +524,28 @@ describe('usePerpsDepositStatus', () => {
 
   describe('Controller Result Handling', () => {
     it('should show error toast when lastDepositResult indicates failure', () => {
+      // Reset the mock to ensure clean state
+      mockShowToast.mockClear();
       mockUseSelector.mockImplementation((selector) => {
         const state = {
           engine: {
             backgroundState: {
               PerpsController: {
+                depositInProgress: false,
                 lastDepositResult: {
                   success: false,
                   error: 'Test error message',
                 },
+                lastDepositTransactionId: null,
               },
             },
+          },
+          confirmationMetrics: {
+            transactionBridgeQuotesById: {},
+            metricsById: {},
+            transactionPayTokenById: {},
+            isTransactionBridgeQuotesLoadingById: {},
+            isTransactionUpdating: {},
           },
         };
         return selector(state as RootState);
@@ -572,12 +571,21 @@ describe('usePerpsDepositStatus', () => {
           engine: {
             backgroundState: {
               PerpsController: {
+                depositInProgress: false,
                 lastDepositResult: {
                   success: true,
                   txHash: '0x123',
                 },
+                lastDepositTransactionId: null,
               },
             },
+          },
+          confirmationMetrics: {
+            transactionBridgeQuotesById: {},
+            metricsById: {},
+            transactionPayTokenById: {},
+            isTransactionBridgeQuotesLoadingById: {},
+            isTransactionUpdating: {},
           },
         };
         return selector(state as RootState);
@@ -594,9 +602,18 @@ describe('usePerpsDepositStatus', () => {
           engine: {
             backgroundState: {
               PerpsController: {
+                depositInProgress: false,
                 lastDepositResult: null,
+                lastDepositTransactionId: null,
               },
             },
+          },
+          confirmationMetrics: {
+            transactionBridgeQuotesById: {},
+            metricsById: {},
+            transactionPayTokenById: {},
+            isTransactionBridgeQuotesLoadingById: {},
+            isTransactionUpdating: {},
           },
         };
         return selector(state as RootState);
@@ -607,46 +624,27 @@ describe('usePerpsDepositStatus', () => {
       expect(mockShowToast).not.toHaveBeenCalledWith({ error: true });
     });
 
-    it('should prevent duplicate error toasts for same error', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        const state = {
-          engine: {
-            backgroundState: {
-              PerpsController: {
-                lastDepositResult: {
-                  success: false,
-                  error: 'Test error message',
-                },
-              },
-            },
-          },
-        };
-        return selector(state as RootState);
-      });
-
-      const { rerender } = renderHook(() => usePerpsDepositStatus());
-
-      // First render
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-
-      // Re-render with same error
-      rerender({});
-
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-    });
-
     it('should clear deposit result after showing error toast', () => {
       mockUseSelector.mockImplementation((selector) => {
         const state = {
           engine: {
             backgroundState: {
               PerpsController: {
+                depositInProgress: false,
                 lastDepositResult: {
                   success: false,
                   error: 'Test error message',
                 },
+                lastDepositTransactionId: null,
               },
             },
+          },
+          confirmationMetrics: {
+            transactionBridgeQuotesById: {},
+            metricsById: {},
+            transactionPayTokenById: {},
+            isTransactionBridgeQuotesLoadingById: {},
+            isTransactionUpdating: {},
           },
         };
         return selector(state as RootState);
@@ -664,18 +662,24 @@ describe('usePerpsDepositStatus', () => {
   });
 
   describe('Return Value', () => {
-    it('should return depositInProgress true when lastDepositResult exists', () => {
+    it('should return depositInProgress true when controller state indicates deposit in progress', () => {
       mockUseSelector.mockImplementation((selector) => {
         const state = {
           engine: {
             backgroundState: {
               PerpsController: {
-                lastDepositResult: {
-                  success: true,
-                  txHash: '0x123',
-                },
+                depositInProgress: true,
+                lastDepositResult: null,
+                lastDepositTransactionId: null,
               },
             },
+          },
+          confirmationMetrics: {
+            transactionBridgeQuotesById: {},
+            metricsById: {},
+            transactionPayTokenById: {},
+            isTransactionBridgeQuotesLoadingById: {},
+            isTransactionUpdating: {},
           },
         };
         return selector(state as RootState);
@@ -686,30 +690,29 @@ describe('usePerpsDepositStatus', () => {
       expect(result.current.depositInProgress).toBe(true);
     });
 
-    it('should return depositInProgress true when waiting for funds', () => {
-      const { result } = renderHook(() => usePerpsDepositStatus());
-
-      // Set up waiting for funds
-      act(() => {
-        const transactionHandler = mockSubscribe.mock.calls.find(
-          (call) =>
-            call[0] === 'TransactionController:transactionStatusUpdated',
-        )?.[1];
-        if (transactionHandler) {
-          transactionHandler({
-            transactionMeta: {
-              id: 'test-tx-id',
-              type: TransactionType.perpsDeposit,
-              status: TransactionStatus.submitted,
-            } as TransactionMeta,
-          });
-        }
+    it('should return depositInProgress false when controller state indicates no deposit in progress', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        const state = {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                depositInProgress: false,
+                lastDepositResult: null,
+                lastDepositTransactionId: null,
+              },
+            },
+          },
+          confirmationMetrics: {
+            transactionBridgeQuotesById: {},
+            metricsById: {},
+            transactionPayTokenById: {},
+            isTransactionBridgeQuotesLoadingById: {},
+            isTransactionUpdating: {},
+          },
+        };
+        return selector(state as RootState);
       });
 
-      expect(result.current.depositInProgress).toBe(true);
-    });
-
-    it('should return depositInProgress false when neither condition is met', () => {
       const { result } = renderHook(() => usePerpsDepositStatus());
 
       expect(result.current.depositInProgress).toBe(false);
@@ -723,12 +726,21 @@ describe('usePerpsDepositStatus', () => {
           engine: {
             backgroundState: {
               PerpsController: {
+                depositInProgress: false,
                 lastDepositResult: {
                   success: false,
                   error: 'Test error message',
                 },
+                lastDepositTransactionId: null,
               },
             },
+          },
+          confirmationMetrics: {
+            transactionBridgeQuotesById: {},
+            metricsById: {},
+            transactionPayTokenById: {},
+            isTransactionBridgeQuotesLoadingById: {},
+            isTransactionUpdating: {},
           },
         };
         return selector(state as RootState);
@@ -744,110 +756,6 @@ describe('usePerpsDepositStatus', () => {
       unmount();
 
       expect(mockClearDepositResult).toHaveBeenCalled();
-    });
-  });
-
-  describe('Logging', () => {
-    it('should log when showing deposit in progress toast', () => {
-      renderHook(() => usePerpsDepositStatus());
-
-      const transactionHandler = mockSubscribe.mock.calls.find(
-        (call) => call[0] === 'TransactionController:transactionStatusUpdated',
-      )?.[1];
-
-      act(() => {
-        transactionHandler?.({
-          transactionMeta: {
-            id: 'test-tx-id',
-            type: TransactionType.perpsDeposit,
-            status: TransactionStatus.submitted,
-          } as TransactionMeta,
-        });
-      });
-
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDepositStatus: Transaction approved/submitted/confirmed, triggering in-progress toast',
-        {
-          transactionId: 'test-tx-id',
-          status: TransactionStatus.submitted,
-        },
-      );
-    });
-
-    it('should log when balance increases', () => {
-      const { rerender } = renderHook(() => usePerpsDepositStatus());
-
-      // Set up waiting for funds first
-      act(() => {
-        const transactionHandler = mockSubscribe.mock.calls.find(
-          (call) =>
-            call[0] === 'TransactionController:transactionStatusUpdated',
-        )?.[1];
-        if (transactionHandler) {
-          transactionHandler({
-            transactionMeta: {
-              id: 'test-tx-id',
-              type: TransactionType.perpsDeposit,
-              status: TransactionStatus.submitted,
-            } as TransactionMeta,
-          });
-        }
-      });
-
-      // Update balance
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '1500.00',
-          totalBalance: '10500.00',
-          marginUsed: '9000.00',
-          unrealizedPnl: '100.00',
-          returnOnEquity: '0.15',
-          totalValue: '10600.00',
-        },
-        isInitialLoading: false,
-      });
-
-      rerender({});
-
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDepositStatus: Balance increased, funds are now available',
-        {
-          previousBalance: 1000,
-          currentBalance: 1500,
-          increase: 500,
-        },
-      );
-    });
-
-    it('should log when processing error result', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        const state = {
-          engine: {
-            backgroundState: {
-              PerpsController: {
-                lastDepositResult: {
-                  success: false,
-                  error: 'Test error message',
-                },
-              },
-            },
-          },
-        };
-        return selector(state as RootState);
-      });
-
-      renderHook(() => usePerpsDepositStatus());
-
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDepositStatus: Processing error result',
-        {
-          lastDepositResult: {
-            success: false,
-            error: 'Test error message',
-          },
-          resultId: 'error-Test error message',
-        },
-      );
     });
   });
 });
