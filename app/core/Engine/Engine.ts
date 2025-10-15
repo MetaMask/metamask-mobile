@@ -491,6 +491,7 @@ export class Engine {
       }),
       state: initialState.LoggingController,
     });
+
     const tokenListController = new TokenListController({
       chainId: getGlobalChainId(networkController),
       onNetworkStateChange: (listener) =>
@@ -504,6 +505,17 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
+
+    // TODO: Move this to `network-controller`
+    const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
+      if (isRpcFailoverEnabled) {
+        Logger.log('Enabling RPC failover');
+        networkController.enableRpcFailover();
+      } else {
+        Logger.log('Disabling RPC failover');
+        networkController.disableRpcFailover();
+      }
+    };
     const remoteFeatureFlagControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
@@ -512,30 +524,19 @@ export class Engine {
       });
     remoteFeatureFlagControllerMessenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      (isRpcFailoverEnabled) => {
-        if (isRpcFailoverEnabled) {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', enabling RPC failover',
-          );
-          networkController.enableRpcFailover();
-        } else {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', disabling RPC failover',
-          );
-          networkController.disableRpcFailover();
-        }
-      },
+      toggleRpcFailover,
       (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
     );
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      state: initialState.RemoteFeatureFlagController,
       messenger: remoteFeatureFlagControllerMessenger,
       disabled: !isBasicFunctionalityToggleEnabled(),
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
+    toggleRpcFailover(
+      remoteFeatureFlagController.state.remoteFeatureFlags
+        .walletFrameworkRpcFailoverEnabled,
+    );
 
     const tokenSearchDiscoveryController = createTokenSearchDiscoveryController(
       {
