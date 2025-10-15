@@ -38958,13 +38958,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-browser-polyfill@npm:0.1.2":
-  version: 0.1.2
-  resolution: "react-native-browser-polyfill@npm:0.1.2"
-  checksum: 10/d88599fa495b4add9f57106a4560f62350aac8230a3540eafd1fe216680d3026eed3ca721745c660dca068af954ab66fa91d1240965f52425e7c6ce6d3de59eb
-  languageName: node
-  linkType: hard
-
 "react-native-confetti-cannon@npm:^1.5.0":
   version: 1.5.2
   resolution: "react-native-confetti-cannon@npm:1.5.2"

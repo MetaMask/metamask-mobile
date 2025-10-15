@@ -19,9 +19,6 @@ import { getPublicKey } from '@metamask/native-utils';
 const secp256k1_1 = require('@noble/curves/secp256k1');
 secp256k1_1.secp256k1.getPublicKey = getPublicKey;
 
-// Needed to polyfill document and RedableStream for @microsoft/fetch-event-source
-import '@expo/browser-polyfill';
-
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
 
@@ -31,8 +28,8 @@ import '@walletconnect/react-native-compat';
 // Needed to polyfill URL
 import 'react-native-url-polyfill/auto';
 
-// Needed to polyfill browser
-require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+// Needed to polyfill browser, document and RedableStream for @microsoft/fetch-event-source
+import '@expo/browser-polyfill';
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (isE2E) {
