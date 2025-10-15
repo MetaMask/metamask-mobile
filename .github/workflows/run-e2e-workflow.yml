@@ -226,33 +226,6 @@ jobs:
           path: e2e/reports/
           retention-days: 7
 
-      - name: Prepare screenshots
-        # if: failure()
-        if: false
-        run: |
-          echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
-
-          case "${{ inputs.platform }}" in
-            android)
-              KEEP_PREFIX="android"
-              ;;
-            ios)
-              KEEP_PREFIX="ios"
-              ;;
-            *)
-              echo "⚠️ Unknown platform '${{ inputs.platform }}'; skipping pruning to avoid accidental deletion."
-              exit 0
-              ;;
-          esac
-
-          # Remove all artifacts except the ones that match the keep prefix. We should later on improve this to avoid having rm -rf references.
-          find artifacts -mindepth 1 -prune \
-            ! -name "${KEEP_PREFIX}*" \
-            ! -name 'coverage-*' \
-            -exec echo "Removing:" {} \; \
-            -exec rm -rf {} + 2>/dev/null || true
-        continue-on-error: true
-
       - name: Upload screenshots
         if: failure()
         uses: actions/upload-artifact@v4
