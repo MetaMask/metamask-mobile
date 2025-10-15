@@ -14,6 +14,7 @@ import {
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationFeedbackType } from 'expo-haptics';
+import { USDC_ARBITRUM_MAINNET_ADDRESS } from '../constants/hyperLiquidConfig';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -227,6 +228,34 @@ describe('usePerpsDepositStatus', () => {
       });
     });
 
+    it('should show in-progress toast when perpsDeposit transaction is approved', () => {
+      const { result } = renderHook(() => usePerpsDepositStatus());
+      const transactionMeta: TransactionMeta = {
+        id: 'test-tx-id',
+        type: TransactionType.perpsDeposit,
+        status: TransactionStatus.approved,
+      } as TransactionMeta;
+
+      act(() => {
+        transactionHandler({ transactionMeta });
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Loading,
+        hasNoTimeout: false,
+        labelOptions: [
+          { label: 'Deposit in progress', isBold: true },
+          { label: 'Processing your deposit...' },
+        ],
+        hapticsType: NotificationFeedbackType.Success,
+      });
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.inProgress,
+      ).toHaveBeenCalledWith(60, 'test-tx-id');
+      expect(result.current.depositInProgress).toBe(true);
+    });
+
     it('should show in-progress toast when perpsDeposit transaction is submitted', () => {
       const { result } = renderHook(() => usePerpsDepositStatus());
       const transactionMeta: TransactionMeta = {
@@ -346,6 +375,46 @@ describe('usePerpsDepositStatus', () => {
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
+
+    it('should show instant processing time for arb.USDC deposits', () => {
+      renderHook(() => usePerpsDepositStatus());
+      const transactionMeta: TransactionMeta = {
+        id: 'test-tx-id',
+        type: TransactionType.perpsDeposit,
+        status: TransactionStatus.submitted,
+        txParams: {
+          to: USDC_ARBITRUM_MAINNET_ADDRESS,
+        },
+      } as TransactionMeta;
+
+      act(() => {
+        transactionHandler({ transactionMeta });
+      });
+
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.inProgress,
+      ).toHaveBeenCalledWith(0, 'test-tx-id'); // 0 seconds for arb.USDC
+    });
+
+    it('should show 1 minute processing time for non-arb.USDC deposits', () => {
+      renderHook(() => usePerpsDepositStatus());
+      const transactionMeta: TransactionMeta = {
+        id: 'test-tx-id',
+        type: TransactionType.perpsDeposit,
+        status: TransactionStatus.submitted,
+        txParams: {
+          to: '0x1234567890123456789012345678901234567890', // Different token
+        },
+      } as TransactionMeta;
+
+      act(() => {
+        transactionHandler({ transactionMeta });
+      });
+
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.inProgress,
+      ).toHaveBeenCalledWith(60, 'test-tx-id'); // 60 seconds for other tokens
+    });
   });
 
   describe('Balance Monitoring', () => {
@@ -398,7 +467,7 @@ describe('usePerpsDepositStatus', () => {
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
-      ).toHaveBeenCalledWith('');
+      ).toHaveBeenCalledWith('500.00'); // Deposit amount (1500 - 1000)
       expect(result.current.depositInProgress).toBe(false);
     });
 
@@ -697,7 +766,7 @@ describe('usePerpsDepositStatus', () => {
       });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDepositStatus: Transaction submitted/confirmed, triggering in-progress toast',
+        'usePerpsDepositStatus: Transaction approved/submitted/confirmed, triggering in-progress toast',
         {
           transactionId: 'test-tx-id',
           status: TransactionStatus.submitted,

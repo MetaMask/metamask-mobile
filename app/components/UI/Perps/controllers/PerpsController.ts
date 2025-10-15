@@ -3035,33 +3035,41 @@ export class PerpsController extends BaseController<
   /**
    * Refresh eligibility status
    */
+  // async refreshEligibility(): Promise<void> {
+  //   // Default to false in case of error.
+  //   let isEligible = false;
+
+  //   try {
+  //     DevLogger.log('PerpsController: Refreshing eligibility');
+
+  //     // Returns UNKNOWN if we can't fetch the geo location
+  //     const geoLocation = await this.#fetchGeoLocation();
+
+  //     // Only set to eligible if we have valid geolocation and it's not blocked
+  //     if (geoLocation !== 'UNKNOWN') {
+  //       isEligible = this.blockedRegionList.list.every(
+  //         (geoBlockedRegion) => !geoLocation.startsWith(geoBlockedRegion),
+  //       );
+  //     }
+  //   } catch (error) {
+  //     Logger.error(error as Error, {
+  //       message: 'PerpsController: Eligibility refresh failed',
+  //       context: 'PerpsController.refreshEligibility',
+  //       timestamp: new Date().toISOString(),
+  //     });
+  //   } finally {
+  //     this.update((state) => {
+  //       state.isEligible = isEligible;
+  //     });
+  //   }
+  // }
   async refreshEligibility(): Promise<void> {
-    // Default to false in case of error.
-    let isEligible = false;
+    // HARDCODED: Always set to false to block Add funds
+    const isEligible = true;
 
-    try {
-      DevLogger.log('PerpsController: Refreshing eligibility');
-
-      // Returns UNKNOWN if we can't fetch the geo location
-      const geoLocation = await this.#fetchGeoLocation();
-
-      // Only set to eligible if we have valid geolocation and it's not blocked
-      if (geoLocation !== 'UNKNOWN') {
-        isEligible = this.blockedRegionList.list.every(
-          (geoBlockedRegion) => !geoLocation.startsWith(geoBlockedRegion),
-        );
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Eligibility refresh failed',
-        context: 'PerpsController.refreshEligibility',
-        timestamp: new Date().toISOString(),
-      });
-    } finally {
-      this.update((state) => {
-        state.isEligible = isEligible;
-      });
-    }
+    this.update((state) => {
+      state.isEligible = isEligible;
+    });
   }
 
   /**

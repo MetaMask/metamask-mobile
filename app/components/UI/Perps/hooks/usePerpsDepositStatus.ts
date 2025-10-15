@@ -10,6 +10,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { USDC_ARBITRUM_MAINNET_ADDRESS } from '../constants/hyperLiquidConfig';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -44,6 +45,18 @@ export const usePerpsDepositStatus = () => {
   useEffect(() => {
     liveAccountRef.current = liveAccount;
   }, [liveAccount]);
+
+  /**
+   * Check if the transaction is an arb.USDC deposit
+   */
+  const isArbUsdcDeposit = useCallback(
+    (transactionMeta: TransactionMeta): boolean => {
+      // Check if the transaction is to the arb.USDC token address
+      const tokenAddress = transactionMeta.txParams?.to?.toLowerCase();
+      return tokenAddress === USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase();
+    },
+    [],
+  );
 
   // Handle deposit error results (success is handled by balance monitoring)
   useEffect(() => {
@@ -103,8 +116,9 @@ export const usePerpsDepositStatus = () => {
         return;
       }
 
-      // When transaction is submitted/confirmed, trigger in-progress toast and start balance monitoring
+      // When transaction is approved/submitted/confirmed, trigger in-progress toast and start balance monitoring
       if (
+        transactionMeta.status === TransactionStatus.approved ||
         transactionMeta.status === TransactionStatus.submitted ||
         transactionMeta.status === TransactionStatus.confirmed
       ) {
@@ -113,17 +127,19 @@ export const usePerpsDepositStatus = () => {
         // Only show if we haven't already shown this toast
         if (hasShownInProgressToastRef.current !== toastId) {
           DevLogger.log(
-            'usePerpsDepositStatus: Transaction submitted/confirmed, triggering in-progress toast',
+            'usePerpsDepositStatus: Transaction approved/submitted/confirmed, triggering in-progress toast',
             {
               transactionId: transactionMeta.id,
               status: transactionMeta.status,
             },
           );
 
-          // Show deposit in progress toast with ETA (1 minute)
+          // Show deposit in progress toast with appropriate ETA
+          // arb.USDC deposits are instant (0 seconds), others take ~1 minute
+          const processingTime = isArbUsdcDeposit(transactionMeta) ? 0 : 60;
           showToast(
             PerpsToastOptions.accountManagement.deposit.inProgress(
-              60, // 1 minute ETA
+              processingTime,
               transactionMeta.id,
             ),
           );
@@ -154,7 +170,11 @@ export const usePerpsDepositStatus = () => {
         handlePerpsDepositTransactionStatusUpdate,
       );
     };
-  }, [showToast, PerpsToastOptions.accountManagement.deposit]);
+  }, [
+    showToast,
+    PerpsToastOptions.accountManagement.deposit,
+    isArbUsdcDeposit,
+  ]);
 
   // Monitor balance changes to detect when funds are available
   useEffect(() => {
@@ -176,8 +196,11 @@ export const usePerpsDepositStatus = () => {
         },
       );
 
-      // Show success toast
-      showToast(PerpsToastOptions.accountManagement.deposit.success(''));
+      // Calculate deposit amount and show success toast
+      const depositAmount = currentBalance.toFixed(2);
+      showToast(
+        PerpsToastOptions.accountManagement.deposit.success(depositAmount),
+      );
 
       // Stop waiting for funds and clear state
       setIsWaitingForFunds(false);
