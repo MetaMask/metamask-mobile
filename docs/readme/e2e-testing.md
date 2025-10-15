@@ -182,7 +182,7 @@ To know more about the E2E testing framework, see [E2E Testing Architecture and 
 
 ## Flask E2E Testing (Snaps Support)
 
-Flask is a special build variant that enables Snaps support and other experimental features. Flask E2E tests require specific configuration to enable development APIs.
+Flask is a special build variant that enables wider Snaps support and other experimental features. Flask E2E tests require specific configuration to enable development APIs.
 
 ### Flask Prerequisites
 
