@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Dimensions } from 'react-native';
+import Device from '../util/device';
 
 export interface ScreenDimensions {
   screenWidth: number;
@@ -10,9 +11,12 @@ export interface ScreenDimensions {
 export const useScreenDimensions = (): ScreenDimensions =>
   useMemo(() => {
     const { width, height } = Dimensions.get('window');
+
+    const animationHeightRatio = Device.isSmallDevice() ? 0.4 : 0.5;
+
     return {
       screenWidth: width,
       screenHeight: height,
-      animationHeight: height * 0.5,
+      animationHeight: height * animationHeightRatio,
     };
   }, []);

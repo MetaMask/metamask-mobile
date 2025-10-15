@@ -51,7 +51,7 @@ const OnboardingSuccessAnimation: React.FC<
           source={onboardingRiveFile}
           style={styles.riveAnimation}
           autoplay
-          fit={Fit.Cover}
+          fit={Fit.FitWidth}
           alignment={Alignment.Center}
         />
       </View>

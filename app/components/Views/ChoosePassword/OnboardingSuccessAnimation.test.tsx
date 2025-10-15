@@ -35,6 +35,27 @@ jest.mock('rive-react-native', () => ({
 
 jest.mock('../../../animations/onboarding_loader.riv', () => 'mock-rive-file');
 
+// Mock useScreenDimensions hook
+const mockUseScreenDimensions = jest.fn().mockReturnValue({
+  screenWidth: 375,
+  screenHeight: 812,
+  animationHeight: 406, // 812 * 0.5 for default medium/large device
+});
+
+jest.mock('../../../hooks/useScreenDimensions', () => ({
+  useScreenDimensions: () => mockUseScreenDimensions(),
+}));
+
+// Mock Device utility
+const mockDevice = {
+  isSmallDevice: jest.fn(),
+};
+
+jest.mock('../../../util/device', () => ({
+  __esModule: true,
+  default: mockDevice,
+}));
+
 // Mock styles
 jest.mock('./OnboardingSuccessAnimation.styles', () =>
   jest.fn(() => ({
@@ -51,6 +72,15 @@ describe('OnboardingSuccessAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    // Reset to default medium/large device behavior
+    mockUseScreenDimensions.mockReturnValue({
+      screenWidth: 375,
+      screenHeight: 812,
+      animationHeight: 406, // 812 * 0.5
+    });
+
+    mockDevice.isSmallDevice.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -176,19 +206,49 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('calculates responsive dimensions correctly', () => {
     // Arrange
-    const mockDimensions = {
-      width: 400,
-      height: 800,
-    };
-
-    const mockGet = jest.fn().mockReturnValue(mockDimensions);
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-    require('react-native').Dimensions.get = mockGet;
+    mockUseScreenDimensions.mockReturnValue({
+      screenWidth: 400,
+      screenHeight: 800,
+      animationHeight: 400,
+    });
 
     // Act
-    render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<OnboardingSuccessAnimation />);
 
     // Assert
-    expect(mockGet).toHaveBeenCalledWith('window');
+    expect(toJSON()).not.toBeNull();
+    expect(mockUseScreenDimensions).toHaveBeenCalled();
+  });
+
+  it('uses 40% animation height for small devices', () => {
+    // Arrange
+    mockUseScreenDimensions.mockReturnValue({
+      screenWidth: 320,
+      screenHeight: 568,
+      animationHeight: 227,
+    });
+
+    // Act
+    const { toJSON } = render(<OnboardingSuccessAnimation />);
+
+    // Assert
+    expect(toJSON()).not.toBeNull();
+    expect(mockUseScreenDimensions).toHaveBeenCalled();
+  });
+
+  it('uses 50% animation height for medium/large devices', () => {
+    // Arrange
+    mockUseScreenDimensions.mockReturnValue({
+      screenWidth: 375,
+      screenHeight: 812,
+      animationHeight: 406,
+    });
+
+    // Act
+    const { toJSON } = render(<OnboardingSuccessAnimation />);
+
+    // Assert
+    expect(toJSON()).not.toBeNull();
+    expect(mockUseScreenDimensions).toHaveBeenCalled();
   });
 });

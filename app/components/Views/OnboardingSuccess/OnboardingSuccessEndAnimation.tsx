@@ -43,7 +43,7 @@ const OnboardingSuccessEndAnimation: React.FC<
           stateMachineName="OnboardingLoader"
           style={styles.riveAnimation}
           autoplay
-          fit={Fit.Cover}
+          fit={Fit.Contain}
           alignment={Alignment.Center}
         />
       </View>
