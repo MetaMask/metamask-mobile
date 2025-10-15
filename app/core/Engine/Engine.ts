@@ -223,6 +223,7 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -660,9 +661,10 @@ export class Engine {
           assetsContractController,
         ),
       includeStakedAssets: true,
-      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: initialState },
-      }) as `0x${string}`[],
+      accountsApiChainIds: () =>
+        selectAssetsAccountApiBalancesEnabled({
+          engine: { backgroundState: initialState },
+        }) as `0x${string}`[],
       allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
 
@@ -1140,6 +1142,7 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:getState',
             'AccountTrackerController:updateNativeBalances',
             'AccountTrackerController:updateStakedBalances',
           ],
@@ -1156,9 +1159,10 @@ export class Engine {
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
           preferencesController.state.isMultiAccountBalancesEnabled,
-        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-          engine: { backgroundState: initialState },
-        }) as `0x${string}`[],
+        accountsApiChainIds: () =>
+          selectAssetsAccountApiBalancesEnabled({
+            engine: { backgroundState: initialState },
+          }) as `0x${string}`[],
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1725,7 +1729,7 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async () => {
+  getSnapKeyring = async (): Promise<SnapKeyring> => {
     // TODO: Replace `getKeyringsByType` with `withKeyring`
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
@@ -1737,7 +1741,7 @@ export class Engine {
         KeyringTypes.snap,
       );
     }
-    return snapKeyring;
+    return snapKeyring as SnapKeyring;
   };
 
   /**

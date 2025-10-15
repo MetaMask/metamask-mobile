@@ -28,6 +28,30 @@ describe('Browser utils :: prefixUrlWithProtocol', () => {
   });
 });
 
+describe('Browser utils :: safeDecodeUrl', () => {
+  it('should handle URLs with URL-encoded characters', () => {
+    const input =
+      'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile%2F&metricsEnabled=true';
+    const url = processUrlForBrowser(input, 'Google');
+    expect(url).toBe(input);
+  });
+
+  it('should handle URLs with encoded path segments', () => {
+    const input = 'https://example.com/path%2Fto%2Fresource';
+    const url = processUrlForBrowser(input, 'Google');
+    expect(url).toBe(input);
+  });
+
+  it('should gracefully handle invalid URL encoding', () => {
+    const input = 'https://example.com/path%GG';
+    const url = processUrlForBrowser(input, 'Google');
+    // Should fall back to treating it as a search query since invalid encoding
+    expect(url).toBe(
+      'https://www.google.com/search?q=' + encodeURIComponent(input),
+    );
+  });
+});
+
 describe('Browser utils :: onUrlSubmit', () => {
   it('should prefix url with https: protocol', () => {
     const url = processUrlForBrowser('test.com');
