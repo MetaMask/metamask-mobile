@@ -569,7 +569,7 @@ export class RewardsController extends BaseController<
 
     if (isSolanaAddress(account.address)) {
       const result = await signSolanaRewardsMessage(
-        account.address,
+        account.id,
         Buffer.from(message, 'utf8').toString('base64'),
       );
       return `0x${Buffer.from(base58.decode(result.signature)).toString(
