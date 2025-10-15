@@ -210,6 +210,18 @@ jest.mock('../../hooks/usePredictClaimablePositions', () => ({
   usePredictClaimablePositions: () => mockClaimablePositionsResult,
 }));
 
+// Mock usePredictClaim hook
+const mockClaim = jest.fn();
+const mockClaimResult = {
+  claim: mockClaim,
+  loading: false,
+  completed: false,
+  error: false,
+};
+jest.mock('../../hooks/usePredictClaim', () => ({
+  usePredictClaim: () => mockClaimResult,
+}));
+
 // Mock useNavigation
 const mockNavigate = jest.fn();
 const mockNavigationResult = {
@@ -339,6 +351,9 @@ describe('MarketsWonCard', () => {
     mockBalanceResult.isLoading = false;
     mockClaimablePositionsResult.positions = [];
     mockClaimablePositionsResult.isLoading = false;
+    mockClaimResult.loading = false;
+    mockClaimResult.completed = false;
+    mockClaimResult.error = false;
   });
 
   describe('Component Rendering', () => {
