@@ -285,187 +285,136 @@ export function transformFundingToTransactions(
 
 /**
  * Transform UserHistoryItem objects to PerpsTransaction format
+ * Only shows completed deposits/withdrawals (txHash not displayed in UI)
  * @param userHistory - Array of UserHistoryItem objects (deposits/withdrawals)
  * @returns Array of PerpsTransaction objects
  */
 export function transformUserHistoryToTransactions(
   userHistory: UserHistoryItem[],
 ): PerpsTransaction[] {
-  return userHistory.map((item) => {
-    const { id, timestamp, type, amount, asset, txHash, status } = item;
+  return userHistory
+    .filter((item) => item.status === 'completed')
+    .map((item) => {
+      const { id, timestamp, type, amount, asset, txHash, status } = item;
 
-    const isDeposit = type === 'deposit';
-    const isWithdrawal = type === 'withdrawal';
+      const isDeposit = type === 'deposit';
 
-    // Format amount with appropriate sign
-    const amountBN = BigNumber(amount);
-    const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
+      // Format amount with appropriate sign
+      const amountBN = BigNumber(amount);
+      const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
 
-    // Determine status text
-    let statusText = '';
-    if (status === 'completed') {
-      statusText = 'Completed';
-    } else if (status === 'failed') {
-      statusText = 'Failed';
-    } else {
-      statusText = 'Pending';
-    }
+      // For completed transactions, status is always positive (green)
+      const statusText = 'Completed';
 
-    return {
-      id: `${type}-${id}`,
-      type: isDeposit ? 'deposit' : 'withdrawal',
-      category: isDeposit ? 'deposit' : 'withdrawal',
-      title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
-      subtitle: `${statusText} • ${txHash.slice(0, 8)}...${txHash.slice(-6)}`,
-      timestamp,
-      asset,
-      depositWithdrawal: {
-        amount: displayAmount,
-        amountNumber: amountBN.toNumber(),
-        isPositive: isDeposit,
-        asset,
-        txHash,
-        status,
+      return {
+        id: `${type}-${id}`,
         type: isDeposit ? 'deposit' : 'withdrawal',
-      },
-    };
-  });
+        category: isDeposit ? 'deposit' : 'withdrawal',
+        title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
+        subtitle: statusText,
+        timestamp,
+        asset,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive: isDeposit,
+          asset,
+          txHash: txHash || '',
+          status,
+          type: isDeposit ? 'deposit' : 'withdrawal',
+        },
+      };
+    });
 }
 
 /**
  * Transform WithdrawalRequest objects to PerpsTransaction format
+ * Only shows completed withdrawals (txHash not displayed in UI)
  * @param withdrawalRequests - Array of WithdrawalRequest objects
  * @returns Array of PerpsTransaction objects
  */
 export function transformWithdrawalRequestsToTransactions(
   withdrawalRequests: WithdrawalRequest[],
 ): PerpsTransaction[] {
-  return withdrawalRequests.map((request) => {
-    const { id, timestamp, amount, asset, txHash, status, destination } =
-      request;
+  return withdrawalRequests
+    .filter((request) => request.status === 'completed')
+    .map((request) => {
+      const { id, timestamp, amount, asset, txHash, status } = request;
 
-    // Format amount with negative sign for withdrawals
-    const amountBN = BigNumber(amount);
-    const displayAmount = `-$${amountBN.toFixed(2)}`;
+      // Format amount with negative sign for withdrawals
+      const amountBN = BigNumber(amount);
+      const displayAmount = `-$${amountBN.toFixed(2)}`;
 
-    // Determine status text and styling
-    let statusText = '';
-    let isPositive = false;
+      // For completed withdrawals, status is always positive (green)
+      const statusText = 'Completed';
+      const isPositive = true;
 
-    switch (status) {
-      case 'completed':
-        statusText = 'Completed';
-        isPositive = true; // Completed withdrawals are shown as positive (green)
-        break;
-      case 'bridging':
-        statusText = 'Bridging to Arbitrum USDC';
-        isPositive = false;
-        break;
-      case 'failed':
-        statusText = 'Failed';
-        isPositive = false;
-        break;
-      case 'pending':
-        statusText = 'Pending';
-        isPositive = false;
-        break;
-    }
-
-    // Create subtitle with status and transaction hash if available
-    let subtitle = `${statusText}`;
-    if (txHash) {
-      subtitle += ` • ${txHash.slice(0, 8)}...${txHash.slice(-6)}`;
-    } else if (status === 'pending' || status === 'bridging') {
-      // Add estimated time for pending and bridging states
-      subtitle += ` • Est. time 5 minutes`;
-    }
-
-    return {
-      id: `withdrawal-${id}`,
-      type: 'withdrawal',
-      category: 'withdrawal',
-      title: `Withdrew ${amount} ${asset}`,
-      subtitle,
-      timestamp,
-      asset,
-      depositWithdrawal: {
-        amount: displayAmount,
-        amountNumber: -amountBN.toNumber(), // Negative for withdrawals
-        isPositive,
-        asset,
-        txHash: txHash || '',
-        status,
+      return {
+        id: `withdrawal-${id}`,
         type: 'withdrawal',
-      },
-    };
-  });
+        category: 'withdrawal',
+        title: `Withdrew ${amount} ${asset}`,
+        subtitle: statusText,
+        timestamp,
+        asset,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: -amountBN.toNumber(), // Negative for withdrawals
+          isPositive,
+          asset,
+          txHash: txHash || '',
+          status,
+          type: 'withdrawal',
+        },
+      };
+    });
 }
 
 /**
  * Transform DepositRequest objects to PerpsTransaction format
+ * Only shows completed deposits (txHash not displayed in UI)
  * @param depositRequests - Array of DepositRequest objects
  * @returns Array of PerpsTransaction objects
  */
 export function transformDepositRequestsToTransactions(
   depositRequests: DepositRequest[],
 ): PerpsTransaction[] {
-  return depositRequests.map((request) => {
-    const { id, timestamp, amount, asset, txHash, status, source } = request;
+  return depositRequests
+    .filter((request) => request.status === 'completed')
+    .map((request) => {
+      const { id, timestamp, amount, asset, txHash, status } = request;
 
-    // Format amount with positive sign for deposits
-    const amountBN = BigNumber(amount);
-    const displayAmount = `+$${amountBN.toFixed(2)}`;
+      // Format amount with positive sign for deposits
+      const amountBN = BigNumber(amount);
+      const displayAmount = `+$${amountBN.toFixed(2)}`;
 
-    // Determine status text and styling
-    let statusText = '';
-    let isPositive = true; // Deposits are always positive
+      // For completed deposits, status is always positive (green)
+      const statusText = 'Completed';
+      const isPositive = true;
 
-    switch (status) {
-      case 'completed':
-        statusText = 'Completed';
-        break;
-      case 'bridging':
-        // For deposits, bridging state should not be shown - treat as pending
-        statusText = 'Pending';
-        break;
-      case 'failed':
-        statusText = 'Failed';
-        isPositive = false;
-        break;
-      case 'pending':
-        statusText = 'Pending';
-        break;
-    }
+      // Create title based on whether we have the actual amount
+      const title =
+        amount === '0' || amount === '0.00'
+          ? 'Deposit'
+          : `Deposited ${amount} ${asset}`;
 
-    // Create subtitle with status and transaction hash if available
-    let subtitle = `${statusText}`;
-    if (txHash) {
-      subtitle += ` • ${txHash.slice(0, 8)}...${txHash.slice(-6)}`;
-    }
-
-    // Create title based on whether we have the actual amount
-    const title =
-      amount === '0' || amount === '0.00'
-        ? 'Deposit'
-        : `Deposited ${amount} ${asset}`;
-
-    return {
-      id: `deposit-${id}`,
-      type: 'deposit',
-      category: 'deposit',
-      title,
-      subtitle,
-      timestamp,
-      asset,
-      depositWithdrawal: {
-        amount: displayAmount,
-        amountNumber: amountBN.toNumber(),
-        isPositive,
-        asset,
-        txHash: txHash || '',
-        status,
+      return {
+        id: `deposit-${id}`,
         type: 'deposit',
-      },
-    };
-  });
+        category: 'deposit',
+        title,
+        subtitle: statusText,
+        timestamp,
+        asset,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive,
+          asset,
+          txHash: txHash || '',
+          status,
+          type: 'deposit',
+        },
+      };
+    });
 }
