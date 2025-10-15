@@ -76,6 +76,9 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
 jest.mock('../hooks/usePerpsWithdrawStatus', () => ({
   usePerpsWithdrawStatus: jest.fn(() => undefined),
 }));
+jest.mock('../hooks/usePerpsDepositStatus', () => ({
+  usePerpsDepositStatus: jest.fn(() => undefined),
+}));
 jest.mock('../hooks', () => ({
   usePerpsNetworkValidation: jest.fn(() => undefined),
 }));
@@ -96,6 +99,23 @@ jest.mock('../Views/PerpsTabView/PerpsTabView', () => ({
 jest.mock('../providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  usePerpsStream: jest.fn(() => ({
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    prices: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    fills: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+  })),
 }));
 
 describe('Connection Lifecycle Integration Tests', () => {
