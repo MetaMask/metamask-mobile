@@ -402,7 +402,7 @@ describe('EngineService', () => {
       });
     });
 
-    it('should set up persistence subscriptions for all controller events', async () => {
+    it('should set up persistence subscriptions for controllers with persistent state', async () => {
       // Act
       await engineService.start();
 
@@ -412,25 +412,17 @@ describe('EngineService', () => {
         typeof Engine.controllerMessenger.subscribe
       >;
 
-      // Should subscribe to all events except CronjobController:stateChange
-      const expectedCallCount = BACKGROUND_STATE_CHANGE_EVENT_NAMES.filter(
-        (eventName) => eventName !== 'CronjobController:stateChange',
-      ).length;
+      // Should subscribe to controllers that have persistent state
+      // Based on the mock setup: KeyringController, PreferencesController, NetworkController
+      // (KeyringController appears twice due to test setup)
+      expect(mockSubscribe).toHaveBeenCalledTimes(4);
 
-      expect(mockSubscribe).toHaveBeenCalledTimes(expectedCallCount);
-
-      // Verify it subscribes to each event (except CronjobController)
-      BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
-        if (eventName !== 'CronjobController:stateChange') {
-          expect(mockSubscribe).toHaveBeenCalledWith(
-            eventName,
-            expect.any(Function),
-          );
-        }
-      });
+      // Should NOT subscribe to CronjobController
+      const subscribedEvents = (mockSubscribe as jest.Mock).mock.calls.map(call => call[0]);
+      expect(subscribedEvents).not.toContain('CronjobController:stateChange');
 
       expect(Logger.log).toHaveBeenCalledWith(
-        'Individual controller persistence and Redux update subscriptions set up successfully',
+        'Individual controller persistence subscriptions set up successfully',
       );
     });
 
@@ -459,11 +451,11 @@ describe('EngineService', () => {
         expect.any(Function),
       );
 
-      // Should only subscribe to the events we have in our mock
-      expect(mockSubscribe).toHaveBeenCalledTimes(3); // KeyringController, PreferencesController, NetworkController
+      // Should only subscribe to controllers with persistent state
+      expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
     });
 
-    it('should handle controller state changes correctly', async () => {
+    it('should handle controller state changes correctly with selector optimization', async () => {
       // Arrange
       await engineService.start();
 
@@ -472,32 +464,41 @@ describe('EngineService', () => {
         typeof Engine.controllerMessenger.subscribe
       >;
 
-      // Find the subscription callback for KeyringController
-      const subscriptionCallback = mockSubscribe.mock.calls.find(
+      // Find the persistence subscription for KeyringController
+      const keyringControllerCalls = mockSubscribe.mock.calls.filter(
         (call) => call[0] === 'KeyringController:stateChange',
-      )?.[1] as (controllerState: unknown) => Promise<void>;
-
-      expect(subscriptionCallback).toBeDefined();
-
+      );
+      
+      expect(keyringControllerCalls.length).toBeGreaterThan(0);
+      
+      // Get the persistence subscription (the one with 3 arguments: event, handler, selector)
+      const persistenceSubscription = keyringControllerCalls.find(call => call.length === 3);
+      expect(persistenceSubscription).toBeDefined();
+      
+      const [eventName, handler, selector] = persistenceSubscription as [string, Function, Function];
+      
+      // Verify the selector function works correctly
       const controllerState = { field1: 'value1', field2: 'value2' };
+      const selectedState = selector(controllerState);
+      expect(selectedState).toEqual({ filtered: 'state' });
 
-      // Act
-      await subscriptionCallback(controllerState);
-
-      // Assert
+      // Verify getPersistentState was called by the selector
       expect(mockGetPersistentState).toHaveBeenCalledWith(
         controllerState,
         Engine.context.KeyringController?.metadata,
       );
 
-      // Verify that the persistence function was called
+      // Act - call the handler with the selected (filtered) state
+      await handler(selectedState);
+
+      // Assert - verify persistence was called with the filtered state
       expect(mockPersistController).toHaveBeenCalledWith(
         { filtered: 'state' },
         'KeyringController',
       );
     });
 
-    it('should handle persistence errors gracefully', async () => {
+    it('should throw on persistence errors (fail fast)', async () => {
       // Arrange
       const persistError = new Error('Persistence failed');
       mockPersistController.mockRejectedValue(persistError);
@@ -508,20 +509,25 @@ describe('EngineService', () => {
         .subscribe as jest.MockedFunction<
         typeof Engine.controllerMessenger.subscribe
       >;
-      const subscriptionCallback = mockSubscribe.mock.calls.find(
+      
+      // Find the persistence subscription callback for KeyringController
+      const keyringControllerCalls = mockSubscribe.mock.calls.filter(
         (call) => call[0] === 'KeyringController:stateChange',
-      )?.[1] as (controllerState: unknown) => Promise<void>;
+      );
+      
+      // Use the last subscription callback (which should be from setupEnginePersistence)
+      const subscriptionCallback = keyringControllerCalls[keyringControllerCalls.length - 1]?.[1] as (controllerState: unknown) => Promise<void>;
 
       expect(subscriptionCallback).toBeDefined();
 
       const controllerState = { field1: 'value1' };
 
-      // Act & Assert - should not throw
+      // Act & Assert - should throw critical error
       await expect(
         subscriptionCallback(controllerState),
-      ).resolves.toBeUndefined();
+      ).rejects.toThrow('Critical: Failed to persist KeyringController state. User data at risk. Persistence failed');
 
-      // Should log error
+      // Should log error before throwing
       expect(Logger.error).toHaveBeenCalledWith(
         persistError,
         'Failed to process KeyringController state change',

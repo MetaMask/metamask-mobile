@@ -27,7 +27,8 @@ import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
-import { StateConstraint } from '@metamask/base-controller';
+import { StateConstraint, StateMetadata, StatePropertyMetadata } from '@metamask/base-controller';
+import { Json } from '@metamask/utils';
 
 export class EngineService {
   private engineInitialized = false;
@@ -55,12 +56,12 @@ export class EngineService {
    * @param metadata - The controller's state metadata
    * @returns true if the controller has properties marked for persistence, false otherwise
    */
-  private hasPersistedState = (metadata: any): boolean => {
+  private hasPersistedState = (metadata: StateMetadata<StateConstraint> | undefined): boolean => {
     if (!metadata) {
       return false;
     }
 
-    return Object.values(metadata).some((propertyMetadata: any) => {
+    return Object.values(metadata).some((propertyMetadata: StatePropertyMetadata<Json>) => {
       if (!propertyMetadata) {
         return false;
       }
@@ -221,15 +222,9 @@ export class EngineService {
 
           UntypedEngine.controllerMessenger.subscribe(
             eventName,
-            async (controllerState: StateConstraint) => {
+            async (persistentState: Record<string, Json>) => {
               try {
-                // Filter out non-persistent fields based on controller metadata
-                const filteredState = getPersistentState(
-                  controllerState,
-                  controllerMetadata,
-                );
-
-                await persistController(filteredState, controllerName);
+                await persistController(persistentState, controllerName);
               } catch (error) {
                 Logger.error(
                   error as Error,
@@ -241,6 +236,12 @@ export class EngineService {
                   `Critical: Failed to persist ${controllerName} state. User data at risk. ${(error as Error).message}`,
                 );
               }
+            },
+            // Selector: only trigger handler when persistent state changes, preventin unnecessary writes
+            // Controller state change events have varying formats, first arg is always the state
+            (...args: unknown[]) => {
+              const controllerState = args[0] as StateConstraint;
+              return getPersistentState(controllerState, controllerMetadata);
             },
           );
         });
