@@ -13,12 +13,12 @@ jobs:
     if: ${{ github.event_name != 'merge_group' }} # Skip this step for merge_group events
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1 # This retrieves only the latest commit.
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
 
