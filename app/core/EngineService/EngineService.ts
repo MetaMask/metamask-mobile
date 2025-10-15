@@ -1,6 +1,5 @@
 import { unstable_batchedUpdates as batchFunc } from 'react-native';
 import { KeyringControllerState } from '@metamask/keyring-controller';
-import RNFS from 'react-native-fs';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
 import Batcher from '../Batcher';
@@ -29,70 +28,6 @@ import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
-
-// Debug function to save snaps data to a JSON file
-const debugSaveSnaps = async (state: any) => {
-  try {
-    const snaps = state?.SnapController?.snaps || {};
-    const snapController = state?.SnapController || {};
-    
-    // Save summary
-    const summary = {
-      timestamp: new Date().toISOString(),
-      totalSnaps: Object.keys(snaps).length,
-      snapIds: Object.keys(snaps),
-      preinstalledSnaps: Object.keys(snaps).filter(id => id.startsWith('npm:@metamask/')),
-      userSnaps: Object.keys(snaps).filter(id => !id.startsWith('npm:@metamask/')),
-    };
-    
-    // Save full controller state
-    const fullData = {
-      summary,
-      fullSnapController: snapController,
-    };
-    
-    const timestamp = Date.now();
-    const filePath = `${RNFS.DocumentDirectoryPath}/debug_snaps_${timestamp}.json`;
-    const jsonString = JSON.stringify(fullData, null, 2);
-    
-    await RNFS.writeFile(filePath, jsonString, 'utf8');
-    
-    console.log('=== SNAPS DEBUG SAVED ===');
-    console.log('File path:', filePath);
-    console.log('Summary:', summary);
-    
-    return filePath;
-  } catch (error) {
-    console.error('Failed to save snaps debug:', error);
-    return null;
-  }
-};
-
-/**
- * Debug utility to check current SnapController state in Redux
- */
-const debugReduxSnapState = () => {
-  try {
-    const reduxState = ReduxService.store.getState();
-    const snapControllerState = reduxState?.engine?.backgroundState?.SnapController;
-    
-    if (snapControllerState?.snaps) {
-      const snapCount = Object.keys(snapControllerState.snaps).length;
-      const snapIds = Object.keys(snapControllerState.snaps);
-      
-      console.log(`🔍 [REDUX CHECK] SnapController has ${snapCount} snaps in Redux state`);
-      if (snapCount > 0) {
-        console.log('🔍 [REDUX CHECK] Snap IDs in Redux:', snapIds);
-      } else {
-        console.log('🔍 [REDUX CHECK] ✅ Snaps object is empty in Redux - filtering working!');
-      }
-    } else {
-      console.log('🔍 [REDUX CHECK] No snaps property found in Redux SnapController state');
-    }
-  } catch (error) {
-    console.log('🔍 [REDUX CHECK] Error checking Redux state:', error);
-  }
-};
 
 /**
  * Removes all snaps from SnapController state to test performance impact.
@@ -174,18 +109,15 @@ export class EngineService {
     });
 
     let state = persistedState?.backgroundState ?? {};
-    
-    // Save snaps debug data to file (before filtering)
-    await debugSaveSnaps(state);
 
     // 🧪 EXPERIMENTAL: Filter preinstalled snaps from initial state before engine initialization
-    if (state.SnapController) {
+    if ((state as any).SnapController) {
       console.log('🔧 [INIT FILTER] Applying snap filter to initial engine state');
       state = {
         ...state,
-        SnapController: filterPreinstalledSnapsFromState(state.SnapController),
+        SnapController: filterPreinstalledSnapsFromState((state as any).SnapController),
       };
-      console.log('🔧 [INIT FILTER] Initial state filtered - snaps count:', Object.keys(state.SnapController?.snaps || {}).length);
+      console.log('🔧 [INIT FILTER] Initial state filtered - snaps count:', Object.keys(((state as any).SnapController?.snaps) || {}).length);
     }
 
     const Engine = UntypedEngine;
@@ -244,14 +176,6 @@ export class EngineService {
         // so that the initial state is available to the redux store
         this.updateBatcher.flush();
         this.engineInitialized = true;
-        
-        // Debug: Check if snap filtering is working
-        setTimeout(() => {
-          debugReduxSnapState();
-        }, 1000); // Wait 1 second for state to settle
-        
-        // Make debug function globally available for manual testing
-        (global as any).debugSnapState = debugReduxSnapState;
       },
       () => !this.engineInitialized,
     );
@@ -340,13 +264,13 @@ export class EngineService {
     let state = persistedState?.backgroundState ?? {};
     
     // 🧪 EXPERIMENTAL: Filter preinstalled snaps from backup recovery state  
-    if (state.SnapController) {
+    if ((state as any).SnapController) {
       console.log('🔧 [BACKUP FILTER] Applying snap filter to vault backup state');
       state = {
         ...state,
-        SnapController: filterPreinstalledSnapsFromState(state.SnapController),
+        SnapController: filterPreinstalledSnapsFromState((state as any).SnapController),
       };
-      console.log('🔧 [BACKUP FILTER] Backup state filtered - snaps count:', Object.keys(state.SnapController?.snaps || {}).length);
+      console.log('🔧 [BACKUP FILTER] Backup state filtered - snaps count:', Object.keys(((state as any).SnapController?.snaps) || {}).length);
     }
     
     const Engine = UntypedEngine;
