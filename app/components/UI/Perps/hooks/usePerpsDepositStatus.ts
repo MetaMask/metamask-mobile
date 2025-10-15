@@ -140,10 +140,12 @@ export const usePerpsDepositStatus = () => {
 
       expectingDepositRef.current = false;
 
-      // Clear the error after showing toast
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         clearDepositResult();
       }, 500);
+
+      // Clear the error after showing toast
+      return () => clearTimeout(timeout);
     }
   }, [
     lastDepositResult,
