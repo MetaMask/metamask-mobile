@@ -49,7 +49,6 @@ class PerpsConnectionManagerClass {
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
-
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
 
   private constructor() {
@@ -406,9 +405,6 @@ class PerpsConnectionManagerClass {
     // Start connection timeout to prevent hanging indefinitely
     this.startConnectionTimeout();
 
-    // Start connection timeout to prevent hanging indefinitely
-    this.startConnectionTimeout();
-
     this.initPromise = (async () => {
       const traceId = uuidv4();
       const connectionStartTime = performance.now();
@@ -619,6 +615,15 @@ class PerpsConnectionManagerClass {
       if (this.pendingReconnectPromise) {
         return this.pendingReconnectPromise;
       }
+    }
+
+    // Create a new reconnection promise
+    this.pendingReconnectPromise = this.performReconnection();
+
+    try {
+      await this.pendingReconnectPromise;
+    } finally {
+      this.pendingReconnectPromise = null;
     }
   }
 
