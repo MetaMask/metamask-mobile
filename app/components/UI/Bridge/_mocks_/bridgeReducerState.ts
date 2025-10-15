@@ -30,4 +30,5 @@ export const mockBridgeReducerState: BridgeState = {
   slippage: '0.5',
   isSubmittingTx: false,
   bridgeViewMode: BridgeViewMode.Bridge,
+  isSelectingRecipient: false,
 };
