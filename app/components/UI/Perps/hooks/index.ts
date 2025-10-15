@@ -9,8 +9,8 @@ export { usePerpsWithdrawStatus } from './usePerpsWithdrawStatus';
 export { usePerpsWithdrawProgress } from './usePerpsWithdrawProgress';
 
 // Connection management hooks
-export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
+export { usePerpsConnection } from './usePerpsConnection';
 
 // State hooks (Redux selectors)
 // Portfolio balance hook (for wallet integration)

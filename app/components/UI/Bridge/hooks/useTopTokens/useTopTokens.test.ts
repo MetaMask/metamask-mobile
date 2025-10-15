@@ -166,6 +166,7 @@ describe('useTopTokens', () => {
         BridgeClientId.MOBILE,
         handleFetch,
         BRIDGE_PROD_API_BASE_URL,
+        expect.stringMatching(/^\d+\.\d+\.\d+$/), // Version from package.json
       );
     });
 

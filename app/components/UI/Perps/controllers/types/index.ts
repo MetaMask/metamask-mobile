@@ -637,6 +637,7 @@ export interface IPerpsProvider {
   initialize(): Promise<InitializeResult>;
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
+  ping(timeoutMs?: number): Promise<void>; // Lightweight WebSocket health check with configurable timeout
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;

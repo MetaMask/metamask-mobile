@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { captureException } from '@sentry/react-native';
+import { ensureError } from '../../utils/perpsErrorHandler';
 import {
   BUILDER_FEE_CONFIG,
   FEE_RATES,
@@ -216,6 +216,25 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Return original error to preserve stack trace for unmapped errors
     return error instanceof Error ? error : new Error(String(error));
+  }
+
+  /**
+   * Get error context for logging with consistent metadata
+   * @param method - The method name where the error occurred
+   * @param extra - Additional context to include
+   * @returns Object with standardized error context
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+      context: `HyperLiquidProvider.${method}`,
+      provider: this.protocolId,
+      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      ...extra,
+    };
   }
 
   /**
@@ -574,10 +593,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         averagePrice: filledOrder?.avgPx,
       };
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'Order placement failed',
-        context: 'HyperLiquidProvider.placeOrder',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('placeOrder', {
+          coin: params.coin,
+          orderType: params.orderType,
+          isBuy: params.isBuy,
+        }),
+      );
       const mappedError = this.mapError(error);
       return createErrorResult(mappedError, { success: false });
     }
@@ -682,10 +705,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderId: params.orderId.toString(),
       };
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'Order modification failed',
-        context: 'HyperLiquidProvider.editOrder',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('editOrder', {
+          orderId: params.orderId,
+          coin: params.newOrder.coin,
+          orderType: params.newOrder.orderType,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -731,10 +758,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error: success ? undefined : 'Order cancellation failed',
       };
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'Order cancellation failed',
-        context: 'HyperLiquidProvider.cancelOrder',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('cancelOrder', {
+          orderId: params.orderId,
+          coin: params.coin,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -770,37 +800,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         positions = await this.getPositions();
       } catch (error) {
-        Logger.error(error as Error, {
-          message: 'Error getting positions during close position',
-          context: 'HyperLiquidProvider.closePosition',
-        });
-
-        // Capture exception with data context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'HyperLiquidProvider',
-              action: 'data_fetch',
-              operation: 'data_management',
-              dataType: 'positions',
-            },
-            extra: {
-              dataContext: {
-                dataType: 'positions',
-                timestamp: new Date().toISOString(),
-                method: 'updatePositionTPSL',
-              },
-            },
-          },
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('updatePositionTPSL > getPositions', {
+            coin,
+          }),
         );
-
-        // If it's a WebSocket error, try to provide a more helpful message
-        if (error instanceof Error && error.message.includes('WebSocket')) {
-          throw new Error(
-            'Connection error. Please check your network and try again.',
-          );
-        }
         throw error;
       }
 
@@ -986,7 +991,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderId: 'TP/SL orders placed',
       };
     } catch (error) {
-      DevLogger.log('Position TP/SL update failed:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('updatePositionTPSL', {
+          coin: params.coin,
+          hasTakeProfit: params.takeProfitPrice !== undefined,
+          hasStopLoss: params.stopLossPrice !== undefined,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -1020,7 +1032,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return result;
     } catch (error) {
-      DevLogger.log('Position closing failed:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('closePosition', {
+          coin: params.coin,
+          orderType: params.orderType,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -1590,10 +1608,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return accountState;
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'Error getting account state',
-        context: 'HyperLiquidProvider.getAccountState',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getAccountState', {
+          accountId: params?.accountId,
+        }),
+      );
       // Re-throw the error so the controller can handle it properly
       // This allows the UI to show proper error messages instead of zeros
       throw error;
@@ -1615,7 +1635,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return markets;
     } catch (error) {
-      DevLogger.log('Error getting markets:', error);
+      Logger.error(ensureError(error), this.getErrorContext('getMarkets'));
       return [];
     }
   }
@@ -1624,39 +1644,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get market data with prices, volumes, and 24h changes
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
-    try {
-      DevLogger.log('Getting market data with prices via HyperLiquid SDK');
+    DevLogger.log('Getting market data with prices via HyperLiquid SDK');
 
-      await this.ensureReady();
+    await this.ensureReady();
 
-      const infoClient = this.clientService.getInfoClient();
+    const infoClient = this.clientService.getInfoClient();
 
-      // Fetch all required data in parallel for better performance
-      const [perpsMeta, allMids, predictedFundings] = await Promise.all([
-        infoClient.meta(),
-        infoClient.allMids(),
-        infoClient.predictedFundings(),
-      ]);
+    // Fetch all required data in parallel for better performance
+    const [perpsMeta, allMids, predictedFundings] = await Promise.all([
+      infoClient.meta(),
+      infoClient.allMids(),
+      infoClient.predictedFundings(),
+    ]);
 
-      if (!perpsMeta?.universe || !allMids) {
-        throw new Error('Failed to fetch market data - no data received');
-      }
-
-      // Also fetch asset contexts for additional data like volume and previous day prices
-      const metaAndCtxs = await infoClient.metaAndAssetCtxs();
-      const assetCtxs = metaAndCtxs?.[1] || [];
-
-      // Transform to UI-friendly format using standalone utility
-      return transformMarketData({
-        universe: perpsMeta.universe,
-        assetCtxs,
-        allMids,
-        predictedFundings,
-      });
-    } catch (error) {
-      DevLogger.log('Error getting market data with prices:', error);
-      return [];
+    if (!perpsMeta?.universe || !allMids) {
+      throw new Error('Failed to fetch market data - no data received');
     }
+
+    // Also fetch asset contexts for additional data like volume and previous day prices
+    const metaAndCtxs = await infoClient.metaAndAssetCtxs();
+    const assetCtxs = metaAndCtxs?.[1] || [];
+
+    // Transform to UI-friendly format using standalone utility
+    return transformMarketData({
+      universe: perpsMeta.universe,
+      assetCtxs,
+      allMids,
+      predictedFundings,
+    });
   }
 
   /**
@@ -2092,6 +2107,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params,
         timestamp: new Date().toISOString(),
       });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('withdraw', {
+          assetId: params.assetId,
+          amount: params.amount,
+          destination: params.destination,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -2116,7 +2139,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       })
       .catch((error) => {
-        DevLogger.log('Error subscribing to prices:', error);
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('subscribeToPrices', {
+            symbols: params.symbols,
+          }),
+        );
       });
 
     return () => {
@@ -2312,7 +2340,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Ensure liquidation price is non-negative
       return String(Math.max(0, liquidationPrice));
     } catch (error) {
-      DevLogger.log('Error calculating liquidation price:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('calculateLiquidationPrice', {
+          asset: params.asset,
+          entryPrice: params.entryPrice,
+          leverage: params.leverage,
+          direction: params.direction,
+        }),
+      );
       return '0.00';
     }
   }
@@ -2380,7 +2416,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return assetInfo.maxLeverage;
     } catch (error) {
-      DevLogger.log('Error getting max leverage:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getMaxLeverage', {
+          asset,
+        }),
+      );
       return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
     }
   }
@@ -2707,6 +2748,58 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return { success: true };
     } catch (error) {
       return createErrorResult(error, { success: false });
+    }
+  }
+
+  /**
+   * Lightweight WebSocket health check using SDK's built-in ready() method
+   * Checks if WebSocket connection is open without making expensive API calls
+   *
+   * @param timeoutMs - Optional timeout in milliseconds (defaults to WEBSOCKET_PING_TIMEOUT_MS)
+   * @throws {Error} If WebSocket connection times out or fails
+   */
+  async ping(timeoutMs?: number): Promise<void> {
+    await this.ensureReady();
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    const timeout = timeoutMs ?? PERPS_CONSTANTS.WEBSOCKET_PING_TIMEOUT_MS;
+
+    DevLogger.log(
+      `HyperLiquid: WebSocket health check ping starting (timeout: ${timeout}ms)`,
+    );
+
+    const controller = new AbortController();
+    let didTimeout = false;
+
+    const timeoutId = setTimeout(() => {
+      didTimeout = true;
+      controller.abort();
+    }, timeout);
+
+    try {
+      // Use SDK's built-in ready() method which checks socket.readyState === OPEN
+      // This is much more efficient than creating a subscription just for health check
+      await subscriptionClient.transport.ready(controller.signal);
+
+      DevLogger.log('HyperLiquid: WebSocket health check ping succeeded');
+    } catch (error) {
+      // Check if we timed out first
+      if (didTimeout) {
+        DevLogger.log(
+          `HyperLiquid: WebSocket health check ping timed out after ${timeout}ms`,
+        );
+        throw new Error(PERPS_ERROR_CODES.CONNECTION_TIMEOUT);
+      }
+
+      // Otherwise throw the actual error
+      DevLogger.log('HyperLiquid: WebSocket health check ping failed', error);
+      throw ensureError(error);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
