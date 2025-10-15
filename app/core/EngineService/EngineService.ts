@@ -85,7 +85,7 @@ export class EngineService {
     engine.controllerMessenger.subscribeOnceIf(
       'ComposableController:stateChange',
       () => {
-        if (!engine.context.KeyringController.metadata.vault) {
+        if (!engine.context.KeyringController.metadata?.vault) {
           Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
         }
         this.updateBatcher.add(INIT_BG_STATE_KEY);
@@ -100,7 +100,7 @@ export class EngineService {
     // Set up immediate Redux updates for all controller state changes
     // This ensures Redux is updated right away when controllers change
     const update_bg_state_cb = (controllerName: string) => {
-      if (!engine.context.KeyringController.metadata.vault) {
+      if (!engine.context.KeyringController.metadata?.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
       this.updateBatcher.add(controllerName);

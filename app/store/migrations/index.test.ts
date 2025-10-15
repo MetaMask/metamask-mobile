@@ -252,7 +252,7 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
 
       const testMigrationList = {
-        105: (state: unknown) => ({ ...state, test: 'passed' }),
+        105: (state: unknown) => ({ ...(state as object), test: 'passed' }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
@@ -337,7 +337,7 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.setItem.mockResolvedValue();
 
       const testMigrationList = {
-        105: (state: unknown) => ({ ...state, migrated: true }),
+        105: (state: unknown) => ({ ...(state as object), migrated: true }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
@@ -396,7 +396,7 @@ describe('Critical Error Handling', () => {
     it('should not trigger inflation/deflation for migrations <= 104', async () => {
       // Arrange
       const testMigrationList = {
-        104: (state: unknown) => ({ ...state, test: 'migration104' }),
+        104: (state: unknown) => ({ ...(state as object), test: 'migration104' }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
@@ -422,9 +422,9 @@ describe('Critical Error Handling', () => {
       } as PersistedState;
 
       const testMigrationList = {
-        103: (state: unknown) => ({ ...state, step103: true }),
-        104: (state: unknown) => ({ ...state, step104: true }),
-        105: (state: unknown) => ({ ...state, step105: true }),
+        103: (state: unknown) => ({ ...(state as object), step103: true }),
+        104: (state: unknown) => ({ ...(state as object), step104: true }),
+        105: (state: unknown) => ({ ...(state as object), step105: true }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
