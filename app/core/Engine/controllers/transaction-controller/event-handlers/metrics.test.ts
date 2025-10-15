@@ -282,7 +282,7 @@ describe('Transaction Metric Event Handlers', () => {
     });
 
     it('includes builder metrics', async () => {
-      await handleTransactionApprovedEventForMetrics(
+      await handleTransactionFinalizedEventForMetrics(
         mockTransactionMeta,
         mockTransactionMetricRequest,
       );
