@@ -282,18 +282,19 @@ describe('BridgeController Init', () => {
       const url = new URL(
         'http://localhost:3000/getQuoteStream?srcChainId=1&destChainId=2&srcTokenAddress=0x123&destTokenAddress=0x456&srcAmount=100&destAmount=200',
       );
-      const options = {};
+      const options = { headers: { 'Content-Type': 'application/json' } };
 
       handleBridgeFetch(url, options);
       expect(expoFetch).toHaveBeenCalledWith(url.toString(), options);
     });
 
     it.each([
-      'http://localhost:3000/getQuote?srcChainId',
-      'http://localhost:3000/getTokens',
-    ])('should use handleFetch if the url is %s', (url) => {
-      const options = {};
-
+      ['http://localhost:3000/getQuote?srcChainId', {}],
+      [
+        'http://localhost:3000/getTokens',
+        { headers: { 'Content-Type': 'application/json' } },
+      ],
+    ])('should use handleFetch if the url is %s', (url, options) => {
       handleBridgeFetch(url, options);
       expect(handleFetch).toHaveBeenCalledWith(url.toString(), options);
     });
