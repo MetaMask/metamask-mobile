@@ -177,6 +177,7 @@ import {
   WebSocketService,
   WebSocketServiceActions,
   WebSocketServiceEvents,
+  MultichainRouter,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -350,6 +351,7 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 type RequiredControllers = Omit<
   Controllers,
   | 'ErrorReportingService'
+  | 'MultichainRouter'
   | 'PPOMController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
@@ -361,6 +363,7 @@ type RequiredControllers = Omit<
 type OptionalControllers = Pick<
   Controllers,
   | 'ErrorReportingService'
+  | 'MultichainRouter'
   | 'PPOMController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
@@ -589,6 +592,7 @@ export type Controllers = {
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
+  MultichainRouter: MultichainRouter;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapKeyringBuilder: SnapKeyringBuilder;
@@ -730,6 +734,7 @@ export type ControllersToInitialize =
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
+  | 'MultichainRouter'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
   | 'RatesController'

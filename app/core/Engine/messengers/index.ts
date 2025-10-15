@@ -119,6 +119,10 @@ import { getErrorReportingServiceMessenger } from './error-reporting-service-mes
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
+import {
+  getMultichainRouterInitMessenger,
+  getMultichainRouterMessenger,
+} from './multichain-router-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -274,6 +278,10 @@ export const CONTROLLER_MESSENGERS = {
   MultichainBalancesController: {
     getMessenger: getMultichainBalancesControllerMessenger,
     getInitMessenger: noop,
+  },
+  MultichainRouter: {
+    getMessenger: getMultichainRouterMessenger,
+    getInitMessenger: getMultichainRouterInitMessenger,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,

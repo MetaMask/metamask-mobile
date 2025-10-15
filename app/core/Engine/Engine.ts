@@ -120,14 +120,8 @@ import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
-import {
-  MultichainRouter,
-  MultichainRouterMessenger,
-  MultichainRouterArgs,
-} from '@metamask/snaps-controllers';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
-
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
@@ -169,6 +163,7 @@ import { errorReportingServiceInit } from './controllers/error-reporting-service
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
+import { multichainRouterInit } from './controllers/multichain-router-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -226,7 +221,6 @@ export class Engine {
   keyringController: KeyringController;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-  multichainRouter: MultichainRouter;
   preferencesController: PreferencesController;
 
   readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
@@ -336,6 +330,7 @@ export class Engine {
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
+        MultichainRouter: multichainRouterInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
         RatesController: ratesControllerInit,
@@ -634,35 +629,6 @@ export class Engine {
       },
     );
     ///: END:ONLY_INCLUDE_IF
-
-    // @TODO(snaps): This fixes an issue where `withKeyring` would lock the `KeyringController` mutex.
-    // That meant that if a snap requested a keyring operation (like requesting entropy) while the `KeyringController` was locked,
-    // it would cause a deadlock.
-    // This is a temporary fix until we can refactor how we handle requests to the Snaps Keyring.
-    const withSnapKeyring = async (
-      operation: ({ keyring }: { keyring: unknown }) => void,
-    ) => {
-      const keyring = await this.getSnapKeyring();
-
-      return operation({ keyring });
-    };
-
-    const multichainRouterMessenger = this.controllerMessenger.getRestricted({
-      name: 'MultichainRouter',
-      allowedActions: [
-        `SnapController:getAll`,
-        `SnapController:handleRequest`,
-        `PermissionController:getPermissions`,
-        `AccountsController:listMultichainAccounts`,
-      ],
-      allowedEvents: [],
-    }) as MultichainRouterMessenger;
-
-    this.multichainRouter = new MultichainRouter({
-      messenger: multichainRouterMessenger,
-      withSnapKeyring:
-        withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
-    });
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
