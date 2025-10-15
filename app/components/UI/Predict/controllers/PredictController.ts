@@ -27,17 +27,15 @@ import {
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
-  CalculateBetAmountsParams,
-  CalculateBetAmountsResponse,
-  CalculateCashOutAmountsParams,
-  CalculateCashOutAmountsResponse,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
+  OrderPreview,
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
+  PreviewOrderParams,
 } from '../providers/types';
 import {
   ClaimParams,
@@ -693,7 +691,16 @@ export class PredictController extends BaseController<
     }
   }
 
-  async placeOrder<T>(params: PlaceOrderParams): Promise<Result<T>> {
+  async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+
+    return provider.previewOrder(params);
+  }
+
+  async placeOrder(params: PlaceOrderParams): Promise<Result> {
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
@@ -723,26 +730,6 @@ export class PredictController extends BaseController<
             : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
       };
     }
-  }
-
-  async calculateBetAmounts(
-    params: CalculateBetAmountsParams,
-  ): Promise<CalculateBetAmountsResponse> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-    return provider.calculateBetAmounts(params);
-  }
-
-  async calculateCashOutAmounts(
-    params: CalculateCashOutAmountsParams,
-  ): Promise<CalculateCashOutAmountsResponse> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-    return provider.calculateCashOutAmounts(params);
   }
 
   async claim({ positions, providerId }: ClaimParams): Promise<PredictClaim> {

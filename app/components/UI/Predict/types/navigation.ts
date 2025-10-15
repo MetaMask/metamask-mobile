@@ -12,11 +12,11 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictMarketDetails: {
     marketId?: string;
   };
-  PredictCashOut: {
+  PredictSellPreview: {
     position: PredictPosition;
     outcome: PredictOutcome;
   };
-  PredictPlaceBet: {
+  PredictBuyPreview: {
     market: PredictMarket;
     outcome: PredictOutcome;
     outcomeToken: PredictOutcomeToken;

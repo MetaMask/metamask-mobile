@@ -266,9 +266,9 @@ const Routes = {
     MARKET_DETAILS: 'PredictMarketDetails',
     MODALS: {
       ROOT: 'PredictModals',
-      CASH_OUT: 'PredictCashOut',
+      BUY_PREVIEW: 'PredictBuyPreview',
+      SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
-      PLACE_BET: 'PredictPlaceBet',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },

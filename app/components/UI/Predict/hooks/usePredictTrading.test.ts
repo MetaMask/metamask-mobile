@@ -87,20 +87,29 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.placeOrder({
+      const mockPreview = {
+        marketId: 'market-1',
         outcomeId: 'outcome-789',
         outcomeTokenId: 'outcome-token-101',
+        timestamp: Date.now(),
         side: Side.BUY,
-        size: 100,
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 180,
+        slippage: 0.01,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const response = await result.current.placeOrder({
         providerId: 'polymarket',
+        preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        outcomeId: 'outcome-789',
-        outcomeTokenId: 'outcome-token-101',
-        side: Side.BUY,
-        size: 100,
         providerId: 'polymarket',
+        preview: mockPreview,
       });
       expect(response).toEqual(mockBuyResult);
     });
@@ -117,20 +126,29 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.placeOrder({
+      const mockPreview = {
+        marketId: 'market-1',
         outcomeId: 'outcome-101',
         outcomeTokenId: 'outcome-token-202',
+        timestamp: Date.now(),
         side: Side.SELL,
-        size: 50,
+        sharePrice: 0.7,
+        maxAmountSpent: 50,
+        minAmountReceived: 35,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const response = await result.current.placeOrder({
         providerId: 'polymarket',
+        preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        outcomeId: 'outcome-101',
-        outcomeTokenId: 'outcome-token-202',
-        side: Side.SELL,
-        size: 50,
         providerId: 'polymarket',
+        preview: mockPreview,
       });
       expect(response).toEqual(mockSellResult);
     });
@@ -143,13 +161,25 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
+      const mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-789',
+        outcomeTokenId: 'outcome-token-101',
+        timestamp: Date.now(),
+        side: Side.BUY,
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 180,
+        slippage: 0.01,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
       await expect(
         result.current.placeOrder({
-          outcomeId: 'outcome-789',
-          outcomeTokenId: 'outcome-token-101',
-          side: Side.BUY,
-          size: 100,
           providerId: 'polymarket',
+          preview: mockPreview,
         }),
       ).rejects.toThrow('Failed to place order');
     });
@@ -304,104 +334,6 @@ describe('usePredictTrading', () => {
     });
   });
 
-  describe('calculateBetAmounts', () => {
-    it('calls PredictController.calculateBetAmounts and returns result', async () => {
-      const mockBetAmounts = {
-        toWin: 110,
-        sharePrice: 1.1,
-      };
-
-      (
-        Engine.context.PredictController.calculateBetAmounts as jest.Mock
-      ).mockResolvedValue(mockBetAmounts);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      const response = await result.current.calculateBetAmounts({
-        outcomeTokenId: 'outcome-token-123',
-        userBetAmount: 100,
-        providerId: 'polymarket',
-      });
-
-      expect(
-        Engine.context.PredictController.calculateBetAmounts,
-      ).toHaveBeenCalledWith({
-        outcomeTokenId: 'outcome-token-123',
-        userBetAmount: 100,
-        providerId: 'polymarket',
-      });
-      expect(response).toEqual(mockBetAmounts);
-    });
-
-    it('handles errors from PredictController.calculateBetAmounts', async () => {
-      const mockError = new Error('Failed to calculate bet amounts');
-      (
-        Engine.context.PredictController.calculateBetAmounts as jest.Mock
-      ).mockRejectedValue(mockError);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      await expect(
-        result.current.calculateBetAmounts({
-          outcomeTokenId: 'outcome-token-123',
-          userBetAmount: 100,
-          providerId: 'polymarket',
-        }),
-      ).rejects.toThrow('Failed to calculate bet amounts');
-    });
-  });
-
-  describe('calculateCashOutAmounts', () => {
-    it('calls PredictController.calculateCashOutAmounts and returns result', async () => {
-      const mockCashOutAmounts = {
-        currentValue: 110,
-        cashPnl: 10,
-        percentPnl: 10,
-      };
-
-      (
-        Engine.context.PredictController.calculateCashOutAmounts as jest.Mock
-      ).mockResolvedValue(mockCashOutAmounts);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      const response = await result.current.calculateCashOutAmounts({
-        outcomeTokenId: 'outcome-token-123',
-        marketId: 'market-1',
-        address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
-      });
-
-      expect(
-        Engine.context.PredictController.calculateCashOutAmounts,
-      ).toHaveBeenCalledWith({
-        outcomeTokenId: 'outcome-token-123',
-        marketId: 'market-1',
-        address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
-      });
-      expect(response).toEqual(mockCashOutAmounts);
-    });
-
-    it('handles errors from PredictController.calculateCashOutAmounts', async () => {
-      const mockError = new Error('Failed to calculate cash out amounts');
-      (
-        Engine.context.PredictController.calculateCashOutAmounts as jest.Mock
-      ).mockRejectedValue(mockError);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      await expect(
-        result.current.calculateCashOutAmounts({
-          outcomeTokenId: 'outcome-token-123',
-          marketId: 'market-1',
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-        }),
-      ).rejects.toThrow('Failed to calculate cash out amounts');
-    });
-  });
-
   describe('getBalance', () => {
     it('calls PredictController.getBalance and returns balance', async () => {
       const mockBalance = 1500.75;
@@ -468,23 +400,16 @@ describe('usePredictTrading', () => {
       const initialGetPositions = result.current.getPositions;
       const initialPlaceOrder = result.current.placeOrder;
       const initialClaim = result.current.claim;
-      const initialCalculateBetAmounts = result.current.calculateBetAmounts;
-      const initialCalculateCashOutAmounts =
-        result.current.calculateCashOutAmounts;
       const initialGetBalance = result.current.getBalance;
+      const initialPreviewOrder = result.current.previewOrder;
 
       rerender({});
 
       expect(result.current.getPositions).toBe(initialGetPositions);
       expect(result.current.placeOrder).toBe(initialPlaceOrder);
       expect(result.current.claim).toBe(initialClaim);
-      expect(result.current.calculateBetAmounts).toBe(
-        initialCalculateBetAmounts,
-      );
-      expect(result.current.calculateCashOutAmounts).toBe(
-        initialCalculateCashOutAmounts,
-      );
       expect(result.current.getBalance).toBe(initialGetBalance);
+      expect(result.current.previewOrder).toBe(initialPreviewOrder);
     });
   });
 });
