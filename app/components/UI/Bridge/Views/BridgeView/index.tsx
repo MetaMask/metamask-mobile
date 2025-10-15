@@ -243,13 +243,14 @@ const BridgeView = () => {
 
   // Blur input when quotes have loaded
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading || activeQuote) {
       setIsInputFocused(false);
       if (inputRef.current) {
         inputRef.current.blur();
       }
     }
-  }, [isLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, quotesLastFetched]);
 
   // Reset bridge state when component unmounts
   useEffect(

@@ -638,7 +638,7 @@ describe('BridgeView', () => {
       expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
-    it('displays "Fetching quote" when quotes are loading', () => {
+    it('displays "Fetching quote" when quotes are loading and there is no active quote', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLastFetched: null,
@@ -650,6 +650,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: true,
+          activeQuote: null,
         }));
 
       const { getByText } = renderScreen(
@@ -671,6 +672,42 @@ describe('BridgeView', () => {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuote as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0', // Less than balance of 2.0 ETH
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: false,
+          willRefresh: false,
+        }));
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const continueButton = getByTestId('bridge-confirm-button');
+      expect(continueButton).toBeTruthy();
+    });
+
+    it('displays Continue button and Terms link when a quote is available but other quotes are still loading', () => {
+      const mockQuote = mockQuoteWithMetadata;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.LOADING,
           quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
