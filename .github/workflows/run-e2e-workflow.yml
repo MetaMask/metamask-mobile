@@ -228,7 +228,7 @@ jobs:
 
       - name: Prepare screenshots
         # if: failure()
-        if: never()
+        if: false
         run: |
           echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
 
