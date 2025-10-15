@@ -127,6 +127,8 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
         return 50;
       case TransactionStatus.confirmed:
         return 75;
+      default:
+        return 0;
     }
   };
 

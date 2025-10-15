@@ -73,7 +73,23 @@ export const useArbitrumTransactionMonitor =
           return null;
         }
 
-        return detectHyperLiquidWithdrawal(tx, selectedAddress, currentChainId);
+        // Convert TransactionMeta to the expected format
+        const txForDetection = {
+          hash: tx.hash,
+          from: tx.txParams?.from,
+          to: tx.txParams?.to,
+          data: tx.txParams?.data,
+          chainId: tx.chainId,
+          time: tx.time,
+          status: tx.status,
+          blockNumber: tx.blockNumber,
+        };
+
+        return detectHyperLiquidWithdrawal(
+          txForDetection,
+          selectedAddress,
+          currentChainId,
+        );
       },
       [currentChainId, selectedAddress],
     );

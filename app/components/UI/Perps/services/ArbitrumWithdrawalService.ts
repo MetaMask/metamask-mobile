@@ -95,8 +95,20 @@ export class ArbitrumWithdrawalService {
       const withdrawals: ArbitrumWithdrawal[] = [];
 
       transactions.forEach((tx) => {
+        // Convert TransactionMeta to the expected format
+        const txForDetection = {
+          hash: tx.hash || '',
+          from: tx.txParams?.from,
+          to: tx.txParams?.to,
+          data: tx.txParams?.data,
+          chainId: tx.chainId,
+          time: tx.time,
+          status: tx.status,
+          blockNumber: tx.blockNumber,
+        };
+
         const withdrawal = detectHyperLiquidWithdrawal(
-          tx,
+          txForDetection,
           currentAddress,
           currentChainId,
         );
