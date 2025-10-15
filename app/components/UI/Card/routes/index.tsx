@@ -90,6 +90,7 @@ export const cardOnboardingNavigationOptions = ({
       onPress={() => navigation.goBack()}
     />
   ),
+  headerTitle: () => <View />,
   headerRight: () => <View />,
 });
 
