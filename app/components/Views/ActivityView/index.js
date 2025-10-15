@@ -252,10 +252,10 @@ const ActivityView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <Box
-        twClassName="flex-1 px-4 bg-default gap-4"
+        twClassName="flex-1 bg-default gap-4"
         style={{ marginTop: insets.top }}
       >
-        <Box twClassName="mb-4">
+        <Box twClassName="px-4 mb-4">
           <TextComponent
             variant={TextVariant.HeadingLG}
             twClassName="text-default"

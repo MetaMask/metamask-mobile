@@ -1,10 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import {
-  FlatList,
-  TouchableHighlight,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, TouchableHighlight, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -16,9 +11,13 @@ import OrderListItem from '../../components/OrderListItem';
 import createStyles from './OrdersList.styles';
 
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import {
   FIAT_ORDER_PROVIDERS,
@@ -34,6 +33,7 @@ type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const tw = useTailwind();
   const navigation = useNavigation();
   const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
@@ -101,30 +101,36 @@ function OrdersList() {
     const isActive = currentFilter === filter;
 
     return (
-      <TouchableOpacity
+      <Pressable
         key={filter}
-        style={[styles.filterTab, isActive && styles.filterTabActive]}
         onPress={() => setCurrentFilter(filter)}
-        activeOpacity={0.7}
+        style={({ pressed }) =>
+          tw.style(
+            'h-10 px-4 rounded-xl items-center justify-center',
+            isActive ? 'bg-icon-default' : 'bg-background-muted',
+            pressed && 'opacity-70',
+          )
+        }
       >
         <Text
-          variant={TextVariant.BodySMBold}
-          style={isActive ? null : styles.filterTabText}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName={isActive ? 'text-icon-inverse' : 'text-default'}
         >
           {label}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
   return (
     <FlatList
       ListHeaderComponent={
-        <View style={styles.filterContainer}>
+        <Box twClassName="py-2 bg-default">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.filterScrollView}
+            contentContainerStyle={tw.style('flex-row gap-3')}
           >
             {renderFilterTab('ALL', strings('fiat_on_ramp_aggregator.All'))}
             {renderFilterTab(
@@ -133,7 +139,7 @@ function OrdersList() {
             )}
             {renderFilterTab('SELL', strings('fiat_on_ramp_aggregator.Sold'))}
           </ScrollView>
-        </View>
+        </Box>
       }
       data={orders}
       renderItem={renderItem}

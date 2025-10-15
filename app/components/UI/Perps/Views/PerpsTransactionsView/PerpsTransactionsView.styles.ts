@@ -18,9 +18,6 @@ export const styleSheet = (params: { theme: Theme }) => {
     filterScrollView: {
       flexGrow: 0,
     },
-    filterTabContainer: {
-      gap: 8,
-    },
     filterTabActive: {
       backgroundColor: colors.background.defaultPressed,
     },

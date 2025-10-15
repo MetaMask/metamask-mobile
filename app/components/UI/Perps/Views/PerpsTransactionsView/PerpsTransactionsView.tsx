@@ -7,15 +7,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
@@ -44,13 +47,10 @@ import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Transaction data is now computed from hooks instead of stored in state
@@ -257,17 +257,29 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       };
 
       return (
-        <Button
+        <Pressable
           key={tab}
-          variant={isActive ? ButtonVariants.Primary : ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
           onPress={handleTabPress}
           accessibilityRole="button"
-          label={strings(`perps.transactions.tabs.${i18nKey}`)}
-        />
+          style={({ pressed }) =>
+            tw.style(
+              'h-10 px-4 rounded-xl items-center justify-center',
+              isActive ? 'bg-icon-default' : 'bg-background-muted',
+              pressed && 'opacity-70',
+            )
+          }
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName={isActive ? 'text-icon-inverse' : 'text-default'}
+          >
+            {strings(`perps.transactions.tabs.${i18nKey}`)}
+          </Text>
+        </Pressable>
       );
     },
-    [activeFilter],
+    [activeFilter, tw],
   );
 
   const handleTransactionPress = (transaction: PerpsTransaction) => {
@@ -298,7 +310,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     if (item.fill) {
       return (
         <Text
-          variant={TextVariant.BodySM}
+          variant={TextVariant.BodySm}
           style={item.fill.isPositive ? styles.profitAmount : styles.lossAmount}
         >
           {item.fill.amount}
@@ -317,7 +329,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       }
 
       return (
-        <Text variant={TextVariant.BodySM} style={statusStyle}>
+        <Text variant={TextVariant.BodySm} style={statusStyle}>
           {item.order.text}
         </Text>
       );
@@ -326,7 +338,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     if (item.fundingAmount) {
       return (
         <Text
-          variant={TextVariant.BodySM}
+          variant={TextVariant.BodySm}
           style={
             item.fundingAmount.isPositive
               ? styles.profitAmount
@@ -425,6 +437,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.filterScrollView}
+            contentContainerStyle={tw.style('flex-row gap-3')}
             pointerEvents="auto"
             scrollEnabled={false}
           >
@@ -434,7 +447,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
         {filterTabDescription && (
           <View style={styles.tabDescription}>
-            <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
+            <Text variant={TextVariant.BodySm}>{filterTabDescription}</Text>
           </View>
         )}
 
@@ -448,7 +461,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       <View style={styles.filterContainer} pointerEvents="box-none">
         <ScrollView
           horizontal
-          contentContainerStyle={styles.filterTabContainer}
+          contentContainerStyle={tw.style('flex-row gap-3')}
           showsHorizontalScrollIndicator={false}
           pointerEvents="auto"
           scrollEnabled={false}
@@ -459,7 +472,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
       {filterTabDescription && (
         <View style={styles.tabDescription}>
-          <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
+          <Text variant={TextVariant.BodySm}>{filterTabDescription}</Text>
         </View>
       )}
 
