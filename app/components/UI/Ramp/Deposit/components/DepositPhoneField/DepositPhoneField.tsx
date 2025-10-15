@@ -83,7 +83,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
           regions,
           onRegionSelect: setPhoneRegion,
           behavior: {
-            isRegionSelectable: (region) => region.transakSupported,
+            isRegionSelectable: (_) => true,
             updateGlobalRegion: false,
             trackSelection: false,
           },
