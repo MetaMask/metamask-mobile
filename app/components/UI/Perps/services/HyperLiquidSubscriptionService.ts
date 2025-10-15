@@ -293,6 +293,7 @@ export class HyperLiquidSubscriptionService {
 
     if (!subscriptionClient) {
       throw new Error('Subscription client not initialized');
+      throw new Error('Subscription client not initialized');
     }
 
     const userAddress = await this.walletService.getUserAddressWithDefault(
