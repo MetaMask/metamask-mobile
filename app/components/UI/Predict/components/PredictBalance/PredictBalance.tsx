@@ -7,7 +7,7 @@ import {
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -28,16 +28,16 @@ import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
 } from '../../../Perps/constants/hyperLiquidConfig';
-import { formatPrice } from '../../../Perps/utils/formatUtils';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { PredictDepositStatus } from '../../types';
+import { formatPrice } from '../../utils/format';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 const PredictBalance: React.FC = () => {
   const tw = useTailwind();
 
-  const { balance, isLoading } = usePredictBalance({
+  const { balance, isLoading, loadBalance } = usePredictBalance({
     loadOnMount: true,
     refreshOnFocus: true,
   });
@@ -45,6 +45,12 @@ const PredictBalance: React.FC = () => {
 
   const isAddingFunds = status === PredictDepositStatus.PENDING;
   const hasBalance = balance > 0;
+
+  useEffect(() => {
+    if (status === PredictDepositStatus.CONFIRMED) {
+      loadBalance({ isRefresh: true });
+    }
+  }, [status, loadBalance]);
 
   const handleWithdraw = useCallback(() => {
     // TODO: implement withdraw

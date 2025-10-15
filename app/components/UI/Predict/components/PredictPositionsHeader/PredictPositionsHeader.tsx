@@ -10,7 +10,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
@@ -23,9 +28,14 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-import { PredictPosition, PredictPositionStatus } from '../../types';
+import {
+  PredictDepositStatus,
+  PredictPosition,
+  PredictPositionStatus,
+} from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
@@ -48,6 +58,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
       loadOnMount: true,
       refreshOnFocus: true,
     });
+    const { status } = usePredictDeposit();
     const { positions, isLoading: isClaimablePositionsLoading } =
       usePredictClaimablePositions({
         loadOnMount: true,
@@ -60,9 +71,15 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
       providerId: POLYMARKET_PROVIDER_ID,
     });
 
+    useEffect(() => {
+      if (status === PredictDepositStatus.CONFIRMED) {
+        loadBalance({ isRefresh: true });
+      }
+    }, [status, loadBalance]);
+
     const handleBalanceTouch = () => {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ROOT,
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
       });
     };
 
