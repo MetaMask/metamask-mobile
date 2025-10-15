@@ -186,7 +186,7 @@ exports[`Onboarding should render correctly 1`] = `
         {
           "bottom": -20,
           "height": 300,
-          "opacity": 1,
+          "opacity": 0,
           "pointerEvents": "none",
         },
       ]
@@ -383,7 +383,7 @@ exports[`Onboarding should render correctly with android 1`] = `
         {
           "bottom": -20,
           "height": 300,
-          "opacity": 1,
+          "opacity": 0,
           "pointerEvents": "none",
         },
       ]
@@ -580,7 +580,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
         {
           "bottom": -20,
           "height": 300,
-          "opacity": 1,
+          "opacity": 0,
           "pointerEvents": "none",
         },
       ]
@@ -777,7 +777,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
         {
           "bottom": -20,
           "height": 300,
-          "opacity": 1,
+          "opacity": 0,
           "pointerEvents": "none",
         },
       ]
