@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { useDepositUser } from './useDepositUser';
 import { NativeTransakUserDetails } from '@consensys/native-ramps-sdk';
 import { KycStatus } from '../constants';
-import Logger from '../../../../../util/Logger';
 
 export interface UserDetailsPollingResult {
   userDetails: NativeTransakUserDetails | null;
@@ -47,19 +46,8 @@ const useUserDetailsPolling = (
     pollCountRef.current = 0;
     setPollingError(null);
 
-    const pollUserDetails = async () => {
-      try {
-        await fetchUserDetails();
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'useUserDetailsPolling: Error fetching user details',
-        );
-      }
-    };
-
     // Call immediately
-    pollUserDetails();
+    fetchUserDetails();
     pollCountRef.current += 1;
 
     // Set up interval
@@ -74,7 +62,7 @@ const useUserDetailsPolling = (
         return;
       }
 
-      pollUserDetails();
+      fetchUserDetails();
     }, pollingInterval);
   }, [fetchUserDetails, pollingInterval, stopPolling, maxPollingAttempts]);
 

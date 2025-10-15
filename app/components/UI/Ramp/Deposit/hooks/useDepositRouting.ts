@@ -456,7 +456,7 @@ export const useDepositRouting = () => {
         }
       } catch (error) {
         if ((error as AxiosError).status === 401) {
-          logoutFromProvider(false);
+          await logoutFromProvider(false);
           popToBuildQuote();
           navigation.navigate(...createEnterEmailNavDetails({}));
           return;
