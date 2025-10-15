@@ -19,7 +19,7 @@ exports[`OnboardingSuccessAnimation displays Rive animation and ActivityIndicato
     <RiveView
       alignment="Center"
       autoplay={true}
-      source="mock-rive-file"
+      source="fox_loading.riv"
       style={
         {
           "testID": "rive-animation",
@@ -61,7 +61,7 @@ exports[`OnboardingSuccessAnimation renders animation and ActivityIndicator in c
     <RiveView
       alignment="Center"
       autoplay={true}
-      source="mock-rive-file"
+      source="fox_loading.riv"
       style={
         {
           "testID": "rive-animation",

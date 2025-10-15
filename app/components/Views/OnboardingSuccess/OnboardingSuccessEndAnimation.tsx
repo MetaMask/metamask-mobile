@@ -6,7 +6,7 @@ import createStyles from './OnboardingSuccessEndAnimation.styles.ts';
 import { useScreenDimensions } from './hooks/useScreenDimensions';
 import { useRiveAnimation } from './hooks/useRiveAnimation';
 
-import onboardingLoaderEndAnimation from '../../../animations/onboarding_loader_end_animation.riv';
+import onboardingLoaderEndAnimation from '../../../animations/onboarding_loader.riv';
 
 interface OnboardingSuccessEndAnimationProps {
   onAnimationComplete: () => void;
@@ -28,7 +28,7 @@ const OnboardingSuccessEndAnimation: React.FC<
   const { riveRef } = useRiveAnimation(isDarkMode, {
     stateMachineName: 'OnboardingLoader',
     darkModeInputName: 'Dark mode',
-    startTriggerName: 'Start',
+    startTriggerName: 'Only_End',
   });
 
   return (

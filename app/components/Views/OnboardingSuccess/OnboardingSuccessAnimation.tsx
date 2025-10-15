@@ -6,7 +6,7 @@ import createStyles from './OnboardingSuccessAnimation.styles.ts';
 import { useScreenDimensions } from './hooks/useScreenDimensions';
 import { useRiveAnimation } from './hooks/useRiveAnimation';
 
-import onboardingRiveFile from '../../../animations/onboarding_loader.riv';
+import onboardingRiveFile from '../../../animations/fox_loading.riv';
 
 interface OnboardingSuccessAnimationProps {}
 
@@ -24,18 +24,21 @@ const OnboardingSuccessAnimation: React.FC<
   );
 
   const { riveRef, clearRiveTimer } = useRiveAnimation(isDarkMode, {
-    stateMachineName: 'OnboardingLoader',
-    darkModeInputName: 'Dark mode',
-    startTriggerName: 'Start',
+    stateMachineName: 'FoxRaiseUp',
+    darkModeInputName: '', // fox_loading.riv doesn't have Dark mode input
+    startTriggerName: 'Loader2',
   });
 
   const clearTimers = useCallback(() => {
     clearRiveTimer();
   }, [clearRiveTimer]);
 
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       clearTimers();
-    }, [clearTimers]);
+    },
+    [clearTimers],
+  );
 
   return (
     <View

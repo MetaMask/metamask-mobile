@@ -37,11 +37,14 @@ export const useRiveAnimation = (
     riveTimeoutId.current = setTimeout(() => {
       if (riveRef.current) {
         try {
-          riveRef.current.setInputState(
-            config.stateMachineName,
-            config.darkModeInputName,
-            isDarkMode,
-          );
+          // Only set dark mode input exists
+          if (config.darkModeInputName) {
+            riveRef.current.setInputState(
+              config.stateMachineName,
+              config.darkModeInputName,
+              isDarkMode,
+            );
+          }
           riveRef.current.fireState(
             config.stateMachineName,
             config.startTriggerName,
