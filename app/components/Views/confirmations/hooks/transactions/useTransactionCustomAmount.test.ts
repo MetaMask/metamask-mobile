@@ -10,15 +10,23 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  TransactionToken,
+  useTransactionRequiredTokens,
+} from '../pay/useTransactionRequiredTokens';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
+jest.mock('../pay/useTransactionRequiredTokens');
 
 jest.useFakeTimers();
 
+const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
 const TOKEN_TRANSFER_DATA =
   '0xa9059cbb0000000000000000000000005a52e96bacdabb82fd05763e25335261b270efcb0000000000000000000000000000000000000000000000004563918244f40000';
 
@@ -51,6 +59,9 @@ describe('useTransactionCustomAmount', () => {
   const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useParamsMock = jest.mocked(useParams);
+  const useTransactionRequiredTokensMock = jest.mocked(
+    useTransactionRequiredTokens,
+  );
 
   const updateTokenAmountMock: ReturnType<
     typeof useUpdateTokenAmount
@@ -66,10 +77,15 @@ describe('useTransactionCustomAmount', () => {
     } as ReturnType<typeof useUpdateTokenAmountMock>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { tokenFiatAmount: 1234.56 },
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        chainId: '0x1' as Hex,
+        tokenFiatAmount: 1234.56,
+      },
     } as ReturnType<typeof useTransactionPayToken>);
 
     useParamsMock.mockReturnValue({});
+    useTransactionRequiredTokensMock.mockReturnValue([]);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -177,16 +193,6 @@ describe('useTransactionCustomAmount', () => {
     expect(updateTokenAmountMock).toHaveBeenCalledWith('61.725');
   });
 
-  it('updatePendingAmountPercentage updates amount fiat to percentage of token balance', async () => {
-    const { result } = runHook();
-
-    await act(async () => {
-      result.current.updatePendingAmountPercentage(43);
-    });
-
-    expect(result.current.amountFiat).toBe('530.86');
-  });
-
   it('returns default amount from params if available', async () => {
     useParamsMock.mockReturnValue({ amount: '43.21' });
 
@@ -241,5 +247,73 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(result.current.hasInput).toBe(false);
+  });
+
+  describe('updatePendingAmountPercentage updates amount fiat', () => {
+    it('to percentage of token balance', async () => {
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(43);
+      });
+
+      expect(result.current.amountFiat).toBe('530.86');
+    });
+
+    it('minus buffers if 100', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        {},
+        {},
+      ] as TransactionToken[]);
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1141.96');
+    });
+
+    it('minus additional buffer if 100 and pay token is native', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        {},
+        {},
+      ] as TransactionToken[]);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: NATIVE_TOKEN_ADDRESS as Hex,
+          tokenFiatAmount: 1234.56,
+        },
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1111.1');
+    });
+
+    it('minus no buffer if 100 but pay token matches required token', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        {
+          address: TOKEN_ADDRESS_MOCK,
+        },
+        {},
+      ] as TransactionToken[]);
+
+      useParamsMock.mockReturnValue({ amount: '43.21' });
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1234.56');
+    });
   });
 });
