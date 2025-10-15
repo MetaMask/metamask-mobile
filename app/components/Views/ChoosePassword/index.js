@@ -67,7 +67,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import OnboardingSuccessAnimation from '../OnboardingSuccess/OnboardingSuccessAnimation';
+import OnboardingSuccessAnimation from './OnboardingSuccessAnimation';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -238,8 +238,6 @@ class ChoosePassword extends PureComponent {
     inputWidth: { width: '99%' },
     showPasswordIndex: [0, 1],
     passwordInputContainerFocusedIndex: -1,
-    // Data for slide out completion
-    navigationData: null,
   };
 
   mounted = true;

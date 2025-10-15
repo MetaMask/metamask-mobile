@@ -224,7 +224,6 @@ describe('AccountBackupStep1', () => {
   });
 
   it('renders continue button on SkipAccountSecurityModal when remind me later button is pressed', () => {
-    mockIsEnabled.mockReturnValue(true);
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
     const { wrapper } = setupTest();
     const reminderButton = wrapper.getByText(
@@ -270,7 +269,6 @@ describe('AccountBackupStep1', () => {
   });
 
   it('navigates to SkipAccountSecurityModal when customBackPress is called', () => {
-    mockIsEnabled.mockReturnValue(false);
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
 

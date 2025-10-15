@@ -188,7 +188,6 @@ const AccountBackupStep1 = (props) => {
         },
       },
     });
-
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 

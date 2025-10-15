@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-import { ScreenDimensions } from './hooks/useScreenDimensions';
+import { ScreenDimensions } from '../../../hooks/useScreenDimensions';
 
 const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
   StyleSheet.create({

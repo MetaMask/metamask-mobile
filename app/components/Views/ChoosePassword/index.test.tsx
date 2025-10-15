@@ -55,7 +55,7 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('lottie-react-native', () => 'LottieView');
 
-jest.mock('../OnboardingSuccess/OnboardingSuccessAnimation', () => {
+jest.mock('./OnboardingSuccessAnimation', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const MockReact = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { ScreenDimensions } from './hooks/useScreenDimensions';
+import { ScreenDimensions } from '../../../hooks/useScreenDimensions';
 
 const createStyles = (dimensions: ScreenDimensions) =>
   StyleSheet.create({

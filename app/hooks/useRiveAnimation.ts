@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { RiveRef } from 'rive-react-native';
-import { isE2E } from '../../../../util/test/utils';
+import { isE2E } from '../util/test/utils';
 
 export interface RiveAnimationConfig {
   stateMachineName: string;
