@@ -156,6 +156,7 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import PerformanceMetricsPanel from '../../UI/PerformanceMetricsPanel';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1221,6 +1222,7 @@ const App: React.FC = () => {
       <AppFlow />
       <Toast ref={toastRef} />
       <ProfilerManager />
+      <PerformanceMetricsPanel />
     </>
   );
 };

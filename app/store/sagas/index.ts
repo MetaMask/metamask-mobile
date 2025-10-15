@@ -28,6 +28,8 @@ import {
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
+import { endPerformanceTrace } from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
@@ -222,6 +224,13 @@ export function* startAppServices() {
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
+
+  // END app startup performance trace
+  yield put(
+    endPerformanceTrace({
+      eventName: PerformanceEventNames.AppStartupComplete,
+    }),
+  );
 }
 
 // Main generator function that initializes other sagas in parallel.

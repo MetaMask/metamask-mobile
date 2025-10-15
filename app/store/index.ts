@@ -15,6 +15,11 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
+import { 
+  startPerformanceTrace, 
+  endPerformanceTrace 
+} from '../core/redux/slices/performance';
+import { PerformanceEventNames } from '../core/redux/slices/performance/constants';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -24,12 +29,14 @@ const pReducer = persistReducer<RootState, AnyAction>(
 
 // eslint-disable-next-line import/no-mutable-exports
 let store: ReduxStore, persistor: Persistor;
+
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
     op: TraceOperation.StoreInit,
   });
+  
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isE2E
     ? await ReadOnlyNetworkStore.getState()
@@ -62,6 +69,14 @@ const createStoreAndPersistor = async () => {
    */
   const onPersistComplete = () => {
     endTrace({ name: TraceName.StoreInit });
+    
+    // START app startup performance trace - AFTER store is stable
+    store.dispatch(
+      startPerformanceTrace({
+        eventName: PerformanceEventNames.AppStartupComplete,
+      }),
+    );
+    
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
 
