@@ -1,8 +1,8 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { default as React, useRef, useState, useCallback } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
-import PredictAccountState, {
-  PredictAccountStateHandle,
+import PredictPositionsHeader, {
+  PredictPositionsHeaderHandle,
 } from '../../components/PredictPositionsHeader';
 import PredictClaimablePositions, {
   PredictClaimablePositionsHandle,
@@ -22,7 +22,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
   const predictClaimablePositionsRef =
     useRef<PredictClaimablePositionsHandle>(null);
-  const predictAccountStateRef = useRef<PredictAccountStateHandle>(null);
+  const predictAccountStateRef = useRef<PredictPositionsHeaderHandle>(null);
 
   usePredictDepositToasts();
 
@@ -46,7 +46,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
       >
-        <PredictAccountState ref={predictAccountStateRef} />
+        <PredictPositionsHeader ref={predictAccountStateRef} />
         <PredictPositions ref={predictPositionsRef} />
         <PredictClaimablePositions ref={predictClaimablePositionsRef} />
         <PredictAddFundsSheet />
