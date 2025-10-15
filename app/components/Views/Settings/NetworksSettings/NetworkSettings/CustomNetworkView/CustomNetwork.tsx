@@ -27,6 +27,7 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
@@ -34,7 +35,6 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
-import Tag from '../../../../../../component-library/components/Tags/Tag';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -150,15 +150,22 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold={!isNetworkUiRedesignEnabled()}>
-              {networkConfiguration.nickname}
-            </CustomText>
-            {isGasFeesSponsoredNetworkEnabled(networkConfiguration.chainId) ? (
-              <Tag
-                label={strings('networks.no_network_fee')}
-                style={networkSettingsStyles.tagLabelSpacing}
-              />
-            ) : null}
+            <View style={customNetworkStyles.nameAndTagContainer}>
+              <CustomText bold={!isNetworkUiRedesignEnabled()}>
+                {networkConfiguration.nickname}
+              </CustomText>
+              {isGasFeesSponsoredNetworkEnabled(
+                networkConfiguration.chainId,
+              ) ? (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={customNetworkStyles.tagLabelBelowName}
+                >
+                  {strings('networks.no_network_fee')}
+                </Text>
+              ) : null}
+            </View>
           </View>
 
           <View style={networkSettingsStyles.popularWrapper}>

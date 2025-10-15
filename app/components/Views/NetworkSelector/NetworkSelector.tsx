@@ -558,9 +558,25 @@ const NetworkSelector = () => {
             variant={
               isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu
             }
-            title={name}
-            tagLabel={
-              isGasFeesSponsoredNetworkEnabled(chainId)
+            title={
+              isSendFlow ? (
+                name
+              ) : (
+                <View>
+                  <Text variant={TextVariant.BodyMD}>{name}</Text>
+                  {isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
+                  ) : undefined}
+                </View>
+              )
+            }
+            tertiaryText={
+              isSendFlow && isGasFeesSponsoredNetworkEnabled(chainId)
                 ? strings('networks.no_network_fee')
                 : undefined
             }
