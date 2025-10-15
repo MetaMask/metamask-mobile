@@ -32,12 +32,12 @@ describe('ProfilerManager', () => {
 
   describe('environment-based enabling', () => {
     it('enables profiler when enabled prop is true', () => {
-      render(<ProfilerManager />);
+      render(<ProfilerManager enabled />);
       expect(ShakeDetector).toHaveBeenCalled();
     });
 
     it('disables profiler when enabled prop is false', () => {
-      const { toJSON } = render(<ProfilerManager />);
+      const { toJSON } = render(<ProfilerManager enabled={false} />);
       expect(toJSON()).toBeNull();
       expect(ShakeDetector).not.toHaveBeenCalled();
     });
@@ -51,12 +51,12 @@ describe('ProfilerManager', () => {
 
   describe('forced enabling via props', () => {
     it('enables profiler when forced via props regardless of environment', () => {
-      render(<ProfilerManager />);
+      render(<ProfilerManager enabled />);
       expect(ShakeDetector).toHaveBeenCalled();
     });
 
     it('disables profiler when explicitly disabled via props', () => {
-      const { toJSON } = render(<ProfilerManager />);
+      const { toJSON } = render(<ProfilerManager enabled={false} />);
       expect(toJSON()).toBeNull();
       expect(ShakeDetector).not.toHaveBeenCalled();
     });
@@ -70,7 +70,7 @@ describe('ProfilerManager', () => {
     it('toggles visibility on shake and can be closed via the close button on iOS', async () => {
       Platform.OS = 'ios';
       const { queryByText, getByText, getByTestId } = render(
-        <ProfilerManager />,
+        <ProfilerManager enabled />,
       );
       expect(queryByText('Performance Profiler')).toBeNull();
       // Trigger shake
@@ -94,7 +94,7 @@ describe('ProfilerManager', () => {
 
     it('toggles visibility on shake and calls exportTrace when Export is pressed', async () => {
       Platform.OS = 'ios';
-      const { queryByText, getByText } = render(<ProfilerManager />);
+      const { queryByText, getByText } = render(<ProfilerManager enabled />);
       expect(queryByText('Performance Profiler')).toBeNull();
 
       const firstCallProps = (ShakeDetector as jest.Mock).mock.calls[0][0];
@@ -135,7 +135,7 @@ describe('ProfilerManager', () => {
     it('toggles visibility on shake and can be closed via the close button on Android', async () => {
       Platform.OS = 'android';
       const { queryByText, getByText, getByTestId } = render(
-        <ProfilerManager />,
+        <ProfilerManager enabled />,
       );
       expect(queryByText('Performance Profiler')).toBeNull();
       // Trigger shake
