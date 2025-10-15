@@ -275,7 +275,7 @@ class SmartTransactionHook {
       LOG_PREFIX,
       'Started submit batch hook',
       'Transaction IDs:',
-      this.#transactions?.map((tx) => tx.id).join(', '),
+      (this.#transactions?.map((tx) => tx.id) ?? []).join(', '),
     );
 
     try {

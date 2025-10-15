@@ -182,12 +182,16 @@ async function publishHook({
       messenger: initMessenger,
     }).getHook();
 
-    return await hook(transactionMeta, signedTransactionInHex);
+    const result = await hook(transactionMeta, signedTransactionInHex);
+    if (result?.transactionHash) {
+      return result;
+    }
+    // else, fall back to regular regular transaction submission
   }
 
   if (
     shouldUseSmartTransaction &&
-    (sendBundleSupport || transactionMeta.selectedGasFeeToken !== undefined)
+    (sendBundleSupport || transactionMeta.selectedGasFeeToken === undefined)
   ) {
     const result = await submitSmartTransactionHook({
       transactionMeta,
@@ -206,6 +210,7 @@ async function publishHook({
     }
   }
 
+  // Default: fall back to regular transaction submission
   return { transactionHash: undefined };
 }
 

@@ -16,6 +16,7 @@ import {
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
+  UnrealizedPnL,
   Result,
 } from '../../types';
 import {
@@ -339,6 +340,33 @@ export class PolymarketProvider implements PredictProvider {
     });
 
     return parsedPositions;
+  }
+
+  public async getUnrealizedPnL({
+    address,
+  }: {
+    address: string;
+  }): Promise<UnrealizedPnL> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+
+    const response = await fetch(`${DATA_API_ENDPOINT}/upnl?user=${address}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch unrealized P&L');
+    }
+
+    const data = (await response.json()) as UnrealizedPnL[];
+
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('No unrealized P&L data found');
+    }
+
+    return data[0];
   }
 
   public async placeOrder<OrderResponse>(
