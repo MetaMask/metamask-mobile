@@ -89,7 +89,7 @@ const FoxAnimation = ({
 
     Animated.timing(foxOpacity, {
       toValue: 1,
-      duration: 600,
+      duration: 500,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {

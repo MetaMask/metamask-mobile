@@ -156,7 +156,7 @@ describe('FoxAnimation', () => {
         expect.any(Animated.Value),
         expect.objectContaining({
           toValue: 1,
-          duration: 600,
+          duration: 500,
           useNativeDriver: true,
         }),
       );
