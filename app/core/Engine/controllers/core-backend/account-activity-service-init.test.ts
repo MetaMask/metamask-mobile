@@ -6,6 +6,7 @@ import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenge
 
 jest.mock('../../../../util/Logger');
 jest.mock('@metamask/core-backend');
+jest.mock('../../../../util/trace');
 
 describe('accountActivityServiceInit', () => {
   beforeEach(() => {
@@ -31,6 +32,7 @@ describe('accountActivityServiceInit', () => {
     // Assert
     expect(AccountActivityService).toHaveBeenCalledWith({
       messenger: mocks.controllerMessenger,
+      traceFn: expect.any(Function),
     });
     expect(result.controller).toBeDefined();
   });
