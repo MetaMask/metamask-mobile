@@ -100,18 +100,18 @@ describe('actionButtonTracking', () => {
   describe('ActionPosition enum', () => {
     it('has correct numeric values', () => {
       // Given/When/Then: enum values should match expected numbers
-      expect(ActionPosition.BUY).toBe(0);
-      expect(ActionPosition.SWAP).toBe(1);
-      expect(ActionPosition.SEND).toBe(2);
-      expect(ActionPosition.RECEIVE).toBe(3);
+      expect(ActionPosition.FIRST_POSITION).toBe(0);
+      expect(ActionPosition.SECOND_POSITION).toBe(1);
+      expect(ActionPosition.THIRD_POSITION).toBe(2);
+      expect(ActionPosition.FOURTH_POSITION).toBe(3);
     });
 
     it('has corresponding ActionButtonType values', () => {
       // Given/When/Then: position values should correspond to button type values
-      expect(ActionPosition.BUY).toBe(0);
-      expect(ActionPosition.SWAP).toBe(1);
-      expect(ActionPosition.SEND).toBe(2);
-      expect(ActionPosition.RECEIVE).toBe(3);
+      expect(ActionPosition.FIRST_POSITION).toBe(0);
+      expect(ActionPosition.SECOND_POSITION).toBe(1);
+      expect(ActionPosition.THIRD_POSITION).toBe(2);
+      expect(ActionPosition.FOURTH_POSITION).toBe(3);
       // Verify ActionButtonType has corresponding string values
       expect(ActionButtonType.BUY).toBe('buy');
       expect(ActionButtonType.SWAP).toBe('swap');
@@ -123,7 +123,7 @@ describe('actionButtonTracking', () => {
   describe('trackActionButtonClick', () => {
     const mockProperties: ActionButtonProperties = {
       action_name: ActionButtonType.BUY,
-      action_position: ActionPosition.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
       button_label: 'Buy',
       location: ActionLocation.HOME,
     };
@@ -189,7 +189,7 @@ describe('actionButtonTracking', () => {
       // Given: buy button properties
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: 'Buy',
         location: ActionLocation.HOME,
       };
@@ -214,7 +214,7 @@ describe('actionButtonTracking', () => {
       // Given: swap button properties
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       };
@@ -239,7 +239,7 @@ describe('actionButtonTracking', () => {
       // Given: send button properties with i18n label
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.SEND,
-        action_position: ActionPosition.SEND,
+        action_position: ActionPosition.THIRD_POSITION,
         button_label: 'Send',
         location: ActionLocation.HOME,
       };
@@ -264,7 +264,7 @@ describe('actionButtonTracking', () => {
       // Given: receive button properties with i18n label
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.RECEIVE,
-        action_position: ActionPosition.RECEIVE,
+        action_position: ActionPosition.FOURTH_POSITION,
         button_label: 'Receive',
         location: ActionLocation.HOME,
       };
@@ -289,7 +289,7 @@ describe('actionButtonTracking', () => {
       // Given: properties with optional action_id
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: 'Buy',
         location: ActionLocation.HOME,
         action_id: 'custom-action-123',
@@ -317,25 +317,25 @@ describe('actionButtonTracking', () => {
       const buttonTestCases = [
         {
           type: ActionButtonType.BUY,
-          position: ActionPosition.BUY,
+          position: ActionPosition.FIRST_POSITION,
           label: 'Buy',
           location: ActionLocation.HOME,
         },
         {
           type: ActionButtonType.SWAP,
-          position: ActionPosition.SWAP,
+          position: ActionPosition.SECOND_POSITION,
           label: 'Swap',
           location: ActionLocation.ASSET_DETAILS,
         },
         {
           type: ActionButtonType.SEND,
-          position: ActionPosition.SEND,
+          position: ActionPosition.THIRD_POSITION,
           label: 'Send',
           location: ActionLocation.HOME,
         },
         {
           type: ActionButtonType.RECEIVE,
-          position: ActionPosition.RECEIVE,
+          position: ActionPosition.FOURTH_POSITION,
           label: 'Receive',
           location: ActionLocation.HOME,
         },
@@ -400,7 +400,7 @@ describe('actionButtonTracking', () => {
         // Given: properties with this location
         const properties: ActionButtonProperties = {
           action_name: ActionButtonType.BUY,
-          action_position: ActionPosition.BUY,
+          action_position: ActionPosition.FIRST_POSITION,
           button_label: 'Buy',
           location: testCase.location,
         };
@@ -427,7 +427,7 @@ describe('actionButtonTracking', () => {
         'Very Long Button Label That Might Be Used in Some Languages';
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: longLabel,
         location: ActionLocation.HOME,
       };
@@ -452,7 +452,7 @@ describe('actionButtonTracking', () => {
       const specialLabel = 'Buy & Sell (Crypto)';
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: specialLabel,
         location: ActionLocation.HOME,
       };
@@ -477,7 +477,7 @@ describe('actionButtonTracking', () => {
       const unicodeLabel = 'Buy 🚀 Crypto 💰';
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: unicodeLabel,
         location: ActionLocation.HOME,
       };
@@ -501,7 +501,7 @@ describe('actionButtonTracking', () => {
       // Given: properties that should be type-safe
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY, // Should be type-safe
-        action_position: ActionPosition.BUY, // Should be type-safe
+        action_position: ActionPosition.FIRST_POSITION, // Should be type-safe
         button_label: 'Buy',
         location: ActionLocation.HOME, // Should be type-safe
         action_id: 'test-id', // Optional property
@@ -524,7 +524,7 @@ describe('actionButtonTracking', () => {
       // Given: properties with additional JsonMap properties
       const properties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: 'Buy',
         location: ActionLocation.HOME,
         custom_property: 'custom_value',
@@ -549,7 +549,7 @@ describe('actionButtonTracking', () => {
       // Given: properties with all mandatory fields
       const validProperties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: 'Buy',
         location: ActionLocation.HOME,
       };
@@ -566,7 +566,7 @@ describe('actionButtonTracking', () => {
       // Given: properties with optional action_id
       const propertiesWithId: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: 'Buy',
         location: ActionLocation.HOME,
         action_id: 'optional-id',
@@ -581,7 +581,7 @@ describe('actionButtonTracking', () => {
       // Given: properties with additional fields
       const extendedProperties: ActionButtonProperties = {
         action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
         button_label: 'Buy',
         location: ActionLocation.HOME,
         custom_field: 'custom_value',
