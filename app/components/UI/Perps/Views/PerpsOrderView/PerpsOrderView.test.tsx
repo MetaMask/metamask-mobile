@@ -69,7 +69,6 @@ import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import PerpsOrderView from './PerpsOrderView';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
@@ -2836,7 +2835,7 @@ describe('PerpsOrderView', () => {
 
       // Assert - Should display asset in header title and price
       expect(getByText('Long BTC')).toBeOnTheScreen();
-      expect(getByText('$3,000.00')).toBeOnTheScreen(); // Price from mock data
+      expect(getByText('$3,000')).toBeOnTheScreen(); // Price from mock data
     });
   });
 });

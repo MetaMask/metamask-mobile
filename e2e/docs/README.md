@@ -11,6 +11,7 @@
 
 ## E2E Framework Structure
 
+- **Testing Scenarios (`e2e/specs/`)** - Test files organized by feature
 - **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
 - **Page Objects (`e2e/pages/`)**: Page Object Model implementation
