@@ -34631,7 +34631,6 @@ __metadata:
     react-native-blob-jsi-helper: ^0.3.1
     react-native-blob-util: ^0.19.9
     react-native-branch: ^5.6.2
-    react-native-browser-polyfill: 0.1.2
     react-native-confetti: ^0.1.0
     react-native-confetti-cannon: ^1.5.0
     react-native-confirmation-code-field: ^7.6.1
@@ -38994,13 +38993,6 @@ __metadata:
   peerDependencies:
     react-native: ">= 0.60"
   checksum: 2cd1e0c85098199b2a911ef9fa920d2eeb3acc03f409d45ebc44641192a9ba810ad7483b4e58674da7521b71c09a48d876209ddcf363de5a88fe0a632a56b882
-  languageName: node
-  linkType: hard
-
-"react-native-browser-polyfill@npm:0.1.2":
-  version: 0.1.2
-  resolution: "react-native-browser-polyfill@npm:0.1.2"
-  checksum: 2ebc2367f7c56ca7fcde7b0bffcd505c6ead680c4fb558ae841f0f75a397015b467c36d51bc040490c7f0fea2d94dfbff027764d37409f619f1d4e879e6d0895
   languageName: node
   linkType: hard
 
