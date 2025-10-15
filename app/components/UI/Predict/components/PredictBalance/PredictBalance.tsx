@@ -98,7 +98,7 @@ const PredictBalance: React.FC = () => {
           twClassName="bg-muted rounded-t-xl p-4 border-b border-muted"
         >
           <Text style={tw.style('text-body-sm')}>
-            {strings('predict.deposit.adding_funds')}
+            {strings('predict.deposit.adding_your_funds')}
           </Text>
           <Spinner />
         </Box>
