@@ -21,6 +21,10 @@ jobs:
         if: steps.extract_version.outputs.version
         uses: actions/checkout@v4
 
+      - name: Enable Corepack
+        if: steps.extract_version.outputs.version
+        run: corepack enable
+
       - name: Set up Node.js
         if: steps.extract_version.outputs.version
         uses: actions/setup-node@v3
