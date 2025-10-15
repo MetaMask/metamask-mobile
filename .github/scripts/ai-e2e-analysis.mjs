@@ -77,10 +77,10 @@ try {
 console.log('📊 AI analysis completed successfully (builds running in parallel)');
 
 // Parse results
-const tags = parsedResult.selectedTags?.join('|') || ''; 
+const tags = parsedResult.selectedTags?.join('|') || '';
 const tagCount = parsedResult.selectedTags?.length || 0;
 const riskLevel = parsedResult.riskLevel || '';
-const tagDisplay = parsedResult.selectedTags?.join(', ') || ''; 
+const tagDisplay = parsedResult.selectedTags?.join(', ') || '';
 const reasoning = parsedResult.reasoning || 'AI analysis completed';
 const confidence = parsedResult.confidence || 75;
 
@@ -138,20 +138,21 @@ if (tagCount === 0) {
 // Create readable test plan with file breakdown
 appendStepSummary('## 🔍 AI E2E Analysis Report');
 if (tagCount === 0) {
-  appendStepSummary('- **Selected Tags**: None (no tests recommended)');
+  appendStepSummary('- **Selected E2E tags**: None (no tests recommended)');
   appendStepSummary(`- **Risk Level**: ${riskLevel}`);
   appendStepSummary(`- **AI Confidence**: ${confidence}%`);
-  appendStepSummary('- **Matrix Jobs**: 0 (AI determined changes are very low risk)');
 } else {
-  appendStepSummary(`- **Selected Tags**: ${tagDisplay}`);
+  appendStepSummary(`- **Selected E2E tags**: ${tagDisplay}`);
   appendStepSummary(`- **Risk Level**: ${riskLevel}`);
   appendStepSummary(`- **AI Confidence**: ${confidence}%`);
-  appendStepSummary(`- **Matrix Jobs**: ${matrixLength} (dynamically generated based on test files)`);
 }
 
-// Add AI reasoning
+// Add AI reasoning in expandable section
 appendStepSummary('');
-appendStepSummary('### 🤖 AI Analysis Reasoning');
+appendStepSummary('<details>');
+appendStepSummary('<summary><strong>🤖 Click to see AI Analysis Details</strong></summary>');
+appendStepSummary('');
+appendStepSummary('### 🤖 AI Reasoning');
 appendStepSummary(reasoning);
 
 // Add test file breakdown if available
@@ -166,5 +167,8 @@ if (parsedResult.testFileBreakdown && parsedResult.testFileBreakdown.length > 0)
     appendStepSummary(breakdown);
   }
 }
+
+appendStepSummary('');
+appendStepSummary('</details>');
 
 console.log('✅ AI analysis script completed successfully');
