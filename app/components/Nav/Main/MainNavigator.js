@@ -94,6 +94,7 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
   PerpsModalStack,
+  PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import {
@@ -116,6 +117,8 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
+import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
@@ -262,6 +265,15 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+      component={RewardOptInAccountGroupModal}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
+      component={ReferralBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -997,6 +1009,13 @@ const MainNavigator = () => {
             component={PerpsScreenStack}
             options={{
               animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.TUTORIAL}
+            component={PerpsTutorialCarousel}
+            options={{
+              headerShown: false,
             }}
           />
           <Stack.Screen

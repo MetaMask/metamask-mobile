@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PriceUpdate } from '../controllers/types';
 import { useStableArray } from './useStableArray';
 import { usePerpsTrading } from './usePerpsTrading';
-import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+import { usePerpsConnection } from './usePerpsConnection';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 /**

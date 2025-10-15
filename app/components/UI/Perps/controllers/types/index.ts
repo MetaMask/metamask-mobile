@@ -358,6 +358,7 @@ export interface GetPositionsParams {
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
+  source?: string; // Optional: source of the call for tracing (e.g., 'health_check', 'initial_connection')
 }
 
 export interface GetOrderFillsParams {
@@ -592,6 +593,7 @@ export interface IPerpsProvider {
   initialize(): Promise<InitializeResult>;
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
+  ping(timeoutMs?: number): Promise<void>; // Lightweight WebSocket health check with configurable timeout
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;

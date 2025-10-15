@@ -1,70 +1,62 @@
 /**
  * Performance measurement names for Sentry monitoring
  * These constants ensure consistency across the Perps feature
+ * Used for direct setMeasurement() calls in controllers and services
+ *
+ * Naming Convention: perps.{category}.{metric_name}
+ * - Uses dot notation for hierarchical grouping in Sentry
+ * - Categories: websocket, connection, api, operation, screen, ui
+ * - Enables easy filtering (e.g., perps.websocket.*) and dashboard aggregation
  */
 export enum PerpsMeasurementName {
-  // ===== DASHBOARD REQUIRED METRICS (From Sentry Dashboard) =====
-  // Screen Load Metrics - Funding (milliseconds)
-  FUNDING_SCREEN_INPUT_LOADED = 'funding_screen_input_loaded',
-  FUNDING_SCREEN_REVIEW_LOADED = 'funding_screen_review_loaded',
-  FUNDING_SOURCE_TOKEN_LIST_LOADED = 'funding_source_token_list_loaded',
-  TRANSACTION_SUBMISSION_SCREEN_LOADED = 'transaction_submission_screen_loaded',
-  TRANSACTION_EXECUTION_CONFIRMATION_SCREEN_LOADED = 'transaction_execution_confirmation_screen_loaded',
-
-  // Screen Load Metrics - Withdrawal (milliseconds)
-  WITHDRAWAL_SCREEN_LOADED = 'withdrawal_screen_loaded',
-  WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED = 'withdrawal_transaction_submission_loaded',
-  WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED = 'withdrawal_transaction_confirmation_loaded',
-
-  // Screen Load Metrics - Trading (milliseconds)
-  MARKETS_SCREEN_LOADED = 'markets_screen_loaded',
-  ASSET_SCREEN_LOADED = 'asset_screen_loaded',
-  TRADE_SCREEN_LOADED = 'trade_screen_loaded',
-  TP_SL_BOTTOM_SHEET_LOADED = 'tp_sl_bottom_sheet_loaded',
-  LEVERAGE_BOTTOM_SHEET_LOADED = 'leverage_bottom_sheet_loaded',
-  QUOTE_RECEIVED = 'quote_received',
-  ORDER_SUBMISSION_TOAST_LOADED = 'order_submission_toast_loaded',
-  ORDER_CONFIRMATION_TOAST_LOADED = 'order_confirmation_toast_loaded',
-  ASSET_BALANCES_DISPLAYED_UPDATED = 'asset_balances_displayed_updated',
-
-  // Screen Load Metrics - Position Close (milliseconds)
-  CLOSE_SCREEN_LOADED = 'close_screen_loaded',
-  CLOSE_ORDER_SUBMISSION_TOAST_LOADED = 'close_order_submission_toast_loaded',
-  CLOSE_ORDER_CONFIRMATION_TOAST_LOADED = 'close_order_confirmation_toast_loaded',
-
-  // Screen Load Metrics - History (milliseconds)
-  TRANSACTION_HISTORY_SCREEN_LOADED = 'transaction_history_screen_loaded',
-
-  // Screen Load Metrics - Tab Performance (milliseconds)
-  PERPS_TAB_LOADED = 'perps_tab_loaded',
-
-  // Data Lake API Metrics (milliseconds)
-  DATA_LAKE_API_CALL = 'data_lake_api_call',
-  DATA_LAKE_API_RETRY = 'data_lake_api_retry',
-
-  // Rewards API Metrics (milliseconds)
-  REWARDS_FEE_DISCOUNT_API_CALL = 'rewards_fee_discount_api_call',
-  REWARDS_POINTS_ESTIMATION_API_CALL = 'rewards_points_estimation_api_call',
-  REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL = 'rewards_order_execution_fee_discount_api_call',
+  // ===== ACTIVE SENTRY METRICS =====
 
   // WebSocket Performance Metrics (milliseconds)
-  WEBSOCKET_CONNECTION_ESTABLISHMENT = 'websocket_connection_establishment',
-  WEBSOCKET_CONNECTION_WITH_PRELOAD = 'websocket_connection_with_preload',
-  WEBSOCKET_FIRST_POSITION_DATA = 'websocket_first_position_data',
-  WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION = 'websocket_account_switch_reconnection',
+  // Tracks WebSocket connection lifecycle and data flow
+  PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT = 'perps.websocket.connection_establishment',
+  PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD = 'perps.websocket.connection_with_preload',
+  PERPS_WEBSOCKET_FIRST_POSITION_DATA = 'perps.websocket.first_position_data',
+  PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION = 'perps.websocket.account_switch_reconnection',
+  PERPS_CONNECTION_HEALTH_CHECK = 'perps.websocket.health_check',
+  PERPS_RECONNECTION_HEALTH_CHECK = 'perps.websocket.reconnection_health_check',
 
-  // Transaction Operation Metrics (milliseconds)
-  ORDER_EDIT_OPERATION = 'order_edit_operation',
-  ORDER_CANCEL_OPERATION = 'order_cancel_operation',
-  POSITION_TPSL_UPDATE_OPERATION = 'position_tpsl_update_operation',
+  // Connection Lifecycle Metrics (milliseconds)
+  // Tracks connection initialization and reconnection sub-stages
+  PERPS_PROVIDER_INIT = 'perps.connection.provider_init',
+  PERPS_ACCOUNT_STATE_FETCH = 'perps.connection.account_state_fetch',
+  PERPS_SUBSCRIPTIONS_PRELOAD = 'perps.connection.subscriptions_preload',
+  PERPS_RECONNECTION_CLEANUP = 'perps.connection.cleanup',
+  PERPS_CONTROLLER_REINIT = 'perps.connection.controller_reinit',
+  PERPS_NEW_ACCOUNT_FETCH = 'perps.connection.new_account_fetch',
+  PERPS_RECONNECTION_PRELOAD = 'perps.connection.reconnection_preload',
 
-  // Data Fetch Operation Metrics (milliseconds)
-  GET_POSITIONS_OPERATION = 'get_positions_operation',
-  GET_ACCOUNT_STATE_OPERATION = 'get_account_state_operation',
-  GET_MARKETS_OPERATION = 'get_markets_operation',
-  GET_ORDER_FILLS_OPERATION = 'get_order_fills_operation',
-  GET_ORDERS_OPERATION = 'get_orders_operation',
-  GET_OPEN_ORDERS_OPERATION = 'get_open_orders_operation',
-  GET_FUNDING_OPERATION = 'get_funding_operation',
-  GET_HISTORICAL_PORTFOLIO_OPERATION = 'get_historical_portfolio_operation',
+  // API Call Metrics (milliseconds)
+  // Tracks external API performance
+  PERPS_DATA_LAKE_API_CALL = 'perps.api.data_lake_call',
+  PERPS_REWARDS_FEE_DISCOUNT_API_CALL = 'perps.api.rewards_fee_discount',
+  PERPS_REWARDS_POINTS_ESTIMATION_API_CALL = 'perps.api.rewards_points_estimation',
+  PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL = 'perps.api.rewards_order_execution_fee_discount',
+
+  // Data Operation Metrics (milliseconds)
+  // Tracks data fetch operations
+  PERPS_GET_POSITIONS_OPERATION = 'perps.operation.get_positions',
+  PERPS_GET_OPEN_ORDERS_OPERATION = 'perps.operation.get_open_orders',
+
+  // Screen Load Metrics (milliseconds)
+  // Tracks full screen render performance
+  PERPS_WITHDRAWAL_SCREEN_LOADED = 'perps.screen.withdrawal_loaded',
+  PERPS_MARKETS_SCREEN_LOADED = 'perps.screen.markets_loaded',
+  PERPS_ASSET_SCREEN_LOADED = 'perps.screen.asset_loaded',
+  PERPS_TRADE_SCREEN_LOADED = 'perps.screen.trade_loaded',
+  PERPS_CLOSE_SCREEN_LOADED = 'perps.screen.close_loaded',
+  PERPS_TRANSACTION_HISTORY_SCREEN_LOADED = 'perps.screen.transaction_history_loaded',
+  PERPS_TAB_LOADED = 'perps.screen.tab_loaded',
+
+  // UI Component Metrics (milliseconds)
+  // Tracks individual UI component render performance
+  PERPS_LEVERAGE_BOTTOM_SHEET_LOADED = 'perps.ui.leverage_bottom_sheet_loaded',
+  PERPS_ORDER_SUBMISSION_TOAST_LOADED = 'perps.ui.order_submission_toast_loaded',
+  PERPS_ORDER_CONFIRMATION_TOAST_LOADED = 'perps.ui.order_confirmation_toast_loaded',
+  PERPS_CLOSE_ORDER_SUBMISSION_TOAST_LOADED = 'perps.ui.close_order_submission_toast_loaded',
+  PERPS_CLOSE_ORDER_CONFIRMATION_TOAST_LOADED = 'perps.ui.close_order_confirmation_toast_loaded',
 }
