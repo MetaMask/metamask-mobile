@@ -107,14 +107,14 @@ export class EngineService {
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
       const controllerName = eventName.split(':')[0];
-      
+
       // Skip CronjobController state change events
       // as they are handled separately in the CronjobControllerStorageManager.
       // This prevents duplicate updates to the Redux store.
       if (eventName === 'CronjobController:stateChange') {
         return;
       }
-      
+
       engine.controllerMessenger.subscribe(eventName, () =>
         update_bg_state_cb(controllerName),
       );
