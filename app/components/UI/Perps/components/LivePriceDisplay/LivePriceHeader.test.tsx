@@ -101,7 +101,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(<LivePriceHeader symbol="ETH" />);
-    expect(getByText('$3,000.00')).toBeTruthy();
+    expect(getByText('$3,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+5.50%')).toBeTruthy();
   });
 
@@ -115,7 +115,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(<LivePriceHeader symbol="ETH" />);
-    expect(getByText('$2,500.00')).toBeTruthy();
+    expect(getByText('$2,500')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('-3.20%')).toBeTruthy();
   });
 
@@ -129,7 +129,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(<LivePriceHeader symbol="ETH" />);
-    expect(getByText('$2,000.00')).toBeTruthy();
+    expect(getByText('$2,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+0.00%')).toBeTruthy();
   });
 
@@ -143,7 +143,7 @@ describe('LivePriceHeader', () => {
       },
     });
     const { getByText } = render(<LivePriceHeader symbol="SOL" />);
-    expect(getByText('$100.00')).toBeTruthy();
+    expect(getByText('$100')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+2.10%')).toBeTruthy();
   });
 
@@ -156,7 +156,7 @@ describe('LivePriceHeader', () => {
         fallbackChange="1.5"
       />,
     );
-    expect(getByText('$1,500.00')).toBeTruthy();
+    expect(getByText('$1,500')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+1.50%')).toBeTruthy();
   });
 
@@ -185,7 +185,7 @@ describe('LivePriceHeader', () => {
         fallbackChange="2.0"
       />,
     );
-    expect(getByText('$50,000.00')).toBeTruthy();
+    expect(getByText('$50,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+3.00%')).toBeTruthy();
   });
 });
