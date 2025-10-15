@@ -12,7 +12,8 @@ import {
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { EthScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { getDecimalChainId } from '../../../../../util/networks';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -140,6 +141,16 @@ export const useSwapBridgeNavigation = ({
             ? ActionLocation.HOME
             : ActionLocation.ASSET_DETAILS,
       });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+          .addProperties({
+            location,
+            chain_id_source: getDecimalChainId(sourceToken.chainId),
+            token_symbol_source: sourceToken?.symbol,
+            token_address_source: sourceToken?.address,
+          })
+          .build(),
+      );
       trace({
         name: TraceName.SwapViewLoaded,
         startTime: Date.now(),

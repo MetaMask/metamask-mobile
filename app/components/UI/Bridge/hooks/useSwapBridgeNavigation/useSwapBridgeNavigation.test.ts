@@ -26,12 +26,16 @@ const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  })),
-}));
+jest.mock('../../../../hooks/useMetrics', () => {
+  const actualMetrics = jest.requireActual('../../../../hooks/useMetrics');
+  return {
+    ...actualMetrics,
+    useMetrics: jest.fn(() => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    })),
+  };
+});
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -588,10 +592,11 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
-      expect(mockBuild).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      // The hook tracks two events: ACTION_BUTTON_CLICKED and SWAP_BUTTON_CLICKED
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+      expect(mockAddProperties).toHaveBeenCalledTimes(2);
+      expect(mockBuild).toHaveBeenCalledTimes(2);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     });
 
     it('tracks action button click with provided source token', () => {
