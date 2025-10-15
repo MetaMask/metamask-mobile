@@ -1,7 +1,7 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
   artifacts: {
-    rootDir: "./artifacts",
+    rootDir: "./e2e/artifacts",
     plugins: {
       screenshot: {
         shouldTakeAutomaticSnapshots: true,
