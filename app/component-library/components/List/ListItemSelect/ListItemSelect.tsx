@@ -112,7 +112,9 @@ const TouchableOpacity = ({
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={!isDisabled ? onPress : undefined} // Always enable TouchableOpacity onPress as fallback
+        onPress={
+          isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined
+        } // Use TouchableOpacity onPress when accessibility is ON or UNKNOWN (safer for accessibility users)
         {...props}
       >
         {children}
