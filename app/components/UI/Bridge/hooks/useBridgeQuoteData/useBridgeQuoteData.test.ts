@@ -126,6 +126,8 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -162,6 +164,8 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: RequestStatus.FETCHED,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -199,6 +203,8 @@ describe('useBridgeQuoteData', () => {
       isExpired: true,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -232,6 +238,8 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: RequestStatus.LOADING,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -266,6 +274,8 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
