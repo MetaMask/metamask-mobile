@@ -16,6 +16,7 @@ Our end-to-end (E2E) testing strategy leverages a combination of technologies to
   - [iOS builds](#ios-builds)
   - [Android builds](#android-builds)
 - [Run the E2E Tests](#run-the-e2e-tests)
+- [Flask E2E Testing (Snaps Support)](#flask-e2e-testing-snaps-support)
 - [Setup Troubleshooting](#setup-troubleshooting)
 - [Appium](#appium)
 
