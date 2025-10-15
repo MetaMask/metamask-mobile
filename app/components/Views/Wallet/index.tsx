@@ -585,7 +585,7 @@ const Wallet = ({
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.RECEIVE,
-      action_position: ActionPosition.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
       button_label: strings('asset_overview.receive_button'),
       location: ActionLocation.HOME,
     });
@@ -647,7 +647,7 @@ const Wallet = ({
     try {
       trackActionButtonClick(trackEvent, createEventBuilder, {
         action_name: ActionButtonType.SEND,
-        action_position: ActionPosition.SEND,
+        action_position: ActionPosition.THIRD_POSITION,
         button_label: strings('asset_overview.send_button'),
         location: ActionLocation.HOME,
       });

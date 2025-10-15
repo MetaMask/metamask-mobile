@@ -18,11 +18,15 @@ export enum ActionButtonType {
   RECEIVE = 'receive',
 }
 
+/**
+ * The position of the button in the action button for remote config use and a/b testing
+ * Not in use but will be in the future
+ */
 export enum ActionPosition {
-  BUY = 0,
-  SWAP = 1,
-  SEND = 2,
-  RECEIVE = 3,
+  FIRST_POSITION = 0,
+  SECOND_POSITION = 1,
+  THIRD_POSITION = 2,
+  FOURTH_POSITION = 3,
 }
 
 /**

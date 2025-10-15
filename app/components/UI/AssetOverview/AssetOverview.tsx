@@ -199,6 +199,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onReceive = () => {
     // Show QR code for receiving this specific asset
     if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.RECEIVE,
+        action_position: ActionPosition.FOURTH_POSITION,
+        button_label: strings('asset_overview.receive_button'),
+        location: ActionLocation.ASSET_DETAILS,
+      });
+
       navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
@@ -225,6 +232,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
+
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.SEND,
+      action_position: ActionPosition.THIRD_POSITION,
+      button_label: strings('asset_overview.send_button'),
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
     );
@@ -263,6 +278,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
+
     navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
@@ -289,7 +305,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.BUY,
-      action_position: ActionPosition.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
       button_label: strings('asset_overview.buy_button'),
       location: ActionLocation.ASSET_DETAILS,
     });

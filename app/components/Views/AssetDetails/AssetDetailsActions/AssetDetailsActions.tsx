@@ -73,7 +73,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     // Track the home screen Buy button click
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.BUY,
-      action_position: ActionPosition.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
       button_label: strings('asset_overview.buy_button'),
       location: ActionLocation.HOME,
     });

@@ -191,12 +191,16 @@ const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  })),
-}));
+jest.mock('../../../components/hooks/useMetrics', () => {
+  const actualMetrics = jest.requireActual('../../../components/hooks/useMetrics');
+  return {
+    ...actualMetrics,
+    useMetrics: jest.fn(() => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    })),
+  };
+});
 
 jest.mock(
   '../../../selectors/featureFlagController/multichainAccounts',
@@ -345,7 +349,7 @@ describe('AssetOverview', () => {
     // Verify addProperties was called with correct properties
     expect(mockAddProperties).toHaveBeenCalledWith({
       action_name: ActionButtonType.BUY,
-      action_position: ActionPosition.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
       button_label: 'Buy',
       location: ActionLocation.ASSET_DETAILS,
     });
@@ -412,6 +416,43 @@ describe('AssetOverview', () => {
     await Promise.resolve();
 
     expect(navigate.mock.calls[1][0]).toEqual('Send');
+  });
+
+  it('should track send button click analytics with correct properties', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const sendButton = getByTestId('token-send-button');
+    fireEvent.press(sendButton);
+
+    // Wait for async operations to complete
+    await Promise.resolve();
+
+    // Verify createEventBuilder was called with correct event
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+    );
+
+    // Verify addProperties was called with correct properties
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.SEND,
+      action_position: ActionPosition.THIRD_POSITION,
+      button_label: 'Send',
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
+    // Verify build was called
+    expect(mockBuild).toHaveBeenCalled();
+
+    // Verify trackEvent was called with the built event
+    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
@@ -542,6 +583,55 @@ describe('AssetOverview', () => {
         }),
       },
     );
+
+    // Cleanup mocks for isolation
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
+  });
+
+  it('should track receive button click analytics with correct properties', async () => {
+    // Arrange - Mock the selectors directly to ensure conditions are met
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    // Act
+    const receiveButton = getByTestId('token-receive-button');
+    fireEvent.press(receiveButton);
+
+    // Assert - Verify createEventBuilder was called with correct event
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+    );
+
+    // Verify addProperties was called with correct properties
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: 'Receive',
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
+    // Verify build was called
+    expect(mockBuild).toHaveBeenCalled();
+
+    // Verify trackEvent was called with the built event
+    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
 
     // Cleanup mocks for isolation
     selectSelectedInternalAccount.mockReset();

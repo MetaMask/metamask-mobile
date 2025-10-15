@@ -134,7 +134,7 @@ export const useSwapBridgeNavigation = ({
       // Track Swap button click with new consolidated event
       trackActionButtonClick(trackEvent, createEventBuilder, {
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
         button_label: strings('asset_overview.swap'),
         location:
           location === 'TabBar'

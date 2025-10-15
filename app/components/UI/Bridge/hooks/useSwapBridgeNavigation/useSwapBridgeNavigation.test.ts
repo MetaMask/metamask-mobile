@@ -511,7 +511,7 @@ describe('useSwapBridgeNavigation', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
         button_label: 'Swap',
         location: ActionLocation.HOME,
       });
@@ -534,7 +534,7 @@ describe('useSwapBridgeNavigation', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       });
@@ -554,7 +554,7 @@ describe('useSwapBridgeNavigation', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       });
@@ -574,7 +574,7 @@ describe('useSwapBridgeNavigation', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       });
@@ -623,7 +623,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       });
