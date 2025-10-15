@@ -195,6 +195,7 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       flex: 1,
+      marginTop: 8,
     },
     loader: {
       backgroundColor: colors.background.default,

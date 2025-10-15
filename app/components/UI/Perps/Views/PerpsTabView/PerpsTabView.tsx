@@ -21,10 +21,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
+import { TouchablePerpsComponent } from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -113,11 +110,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
-  const coordinatedPress = useCoordinatedPress();
-
   const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handleNewTrade);
-  }, [coordinatedPress, handleNewTrade]);
+    handleNewTrade();
+  }, [handleNewTrade]);
 
   const renderStartTradeCTA = () => (
     <TouchablePerpsComponent
