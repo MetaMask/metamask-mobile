@@ -16,7 +16,6 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { PredictDepositStatus } from '../types';
 import { usePredictDeposit } from './usePredictDeposit';
 
 const toastStyles = StyleSheet.create({
@@ -129,26 +128,14 @@ export const usePredictDepositToasts = () => {
         return;
       }
 
-      // Handle PredictDeposit approved - set deposit in progress
-      if (transactionMeta.status === TransactionStatus.approved) {
-        Engine.context.PredictController.setDepositStatus(
-          PredictDepositStatus.PENDING,
-        );
-        showPendingToast();
-      }
-
       if (transactionMeta.status === TransactionStatus.confirmed) {
-        Engine.context.PredictController.setDepositStatus(
-          PredictDepositStatus.CONFIRMED,
-        );
+        Engine.context.PredictController.clearDepositTransaction();
         showConfirmedToast(transactionMeta.metamaskPay?.totalFiat ?? 'Balance');
       }
 
       // Handle PredictDeposit failed - clear deposit in progress
       if (transactionMeta.status === TransactionStatus.failed) {
-        Engine.context.PredictController.setDepositStatus(
-          PredictDepositStatus.ERROR,
-        );
+        Engine.context.PredictController.clearDepositTransaction();
         showErrorToast();
       }
     };

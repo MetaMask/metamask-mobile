@@ -6,7 +6,6 @@ import {
 } from '@metamask/transaction-controller';
 import { usePredictDepositToasts } from './usePredictDepositToasts';
 import Engine from '../../../../core/Engine';
-import { PredictDepositStatus } from '../types';
 import { ToastContext } from '../../../../component-library/components/Toast';
 
 // Mock @react-navigation/native
@@ -63,7 +62,6 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       clearDepositTransaction: jest.fn(),
-      setDepositStatus: jest.fn(),
       depositWithConfirmation: jest.fn(() => Promise.resolve()),
     },
   },
@@ -118,7 +116,7 @@ describe('usePredictDepositToasts', () => {
       Engine.context.PredictController.clearDepositTransaction as jest.Mock
     ).mockClear();
     (
-      Engine.context.PredictController.setDepositStatus as jest.Mock
+      Engine.context.PredictController.clearDepositTransaction as jest.Mock
     ).mockClear();
 
     // Capture the subscribe callback
@@ -180,26 +178,26 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.setDepositStatus,
+        Engine.context.PredictController.clearDepositTransaction,
       ).not.toHaveBeenCalled();
       expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
     });
 
-    it('shows pending toast when transaction is approved', async () => {
+    it('shows confirmed toast when transaction is approved', async () => {
       renderHook(() => usePredictDepositToasts(), { wrapper });
 
       await act(async () => {
         mockSubscribeCallback?.({
           transactionMeta: {
-            status: TransactionStatus.approved,
+            status: TransactionStatus.confirmed,
             nestedTransactions: [{ type: TransactionType.predictDeposit }],
           },
         });
       });
 
       expect(
-        Engine.context.PredictController.setDepositStatus,
-      ).toHaveBeenCalledWith(PredictDepositStatus.PENDING);
+        Engine.context.PredictController.clearDepositTransaction,
+      ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: expect.anything(),
@@ -226,8 +224,8 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.setDepositStatus,
-      ).toHaveBeenCalledWith(PredictDepositStatus.CONFIRMED);
+        Engine.context.PredictController.clearDepositTransaction,
+      ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: expect.anything(),
@@ -249,8 +247,8 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.setDepositStatus,
-      ).toHaveBeenCalledWith(PredictDepositStatus.ERROR);
+        Engine.context.PredictController.clearDepositTransaction,
+      ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: expect.anything(),

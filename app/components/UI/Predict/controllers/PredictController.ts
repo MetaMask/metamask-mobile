@@ -897,14 +897,4 @@ export class PredictController extends BaseController<
       address: params.address ?? selectedAddress,
     });
   }
-
-  public setDepositStatus(status: PredictDepositStatus): void {
-    this.update((state) => {
-      if (!state.depositTransaction) return;
-      state.depositTransaction = {
-        ...state.depositTransaction,
-        status,
-      };
-    });
-  }
 }
