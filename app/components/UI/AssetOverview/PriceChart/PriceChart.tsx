@@ -255,36 +255,40 @@ const PriceChart = ({
     );
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.chartLoading}>
-        <SkeletonPlaceholder
-          backgroundColor={theme.colors.background.section}
-          highlightColor={theme.colors.background.subsection}
-        >
-          <SkeletonPlaceholder.Item
-            width={Dimensions.get('screen').width - 32}
-            height={CHART_HEIGHT}
-            borderRadius={6}
-          ></SkeletonPlaceholder.Item>
-        </SkeletonPlaceholder>
-      </View>
-    );
-  }
+  // When we were returning the loading overlay, there was a bug on android where some charts did not load until we touched the screen
+  // This is why we check for "isLoading" inside the actual return statement and treat its an an overlay
+  const LoadingOverlay = () => (
+    <View style={styles.noDataOverlay}>
+      <SkeletonPlaceholder
+        backgroundColor={theme.colors.background.section}
+        highlightColor={theme.colors.background.subsection}
+      >
+        <SkeletonPlaceholder.Item
+          width={Dimensions.get('screen').width - 32}
+          height={CHART_HEIGHT}
+          borderRadius={6}
+        ></SkeletonPlaceholder.Item>
+      </SkeletonPlaceholder>
+    </View>
+  );
 
   const chartHasData = priceList.length > 0;
 
   return (
     <View style={styles.chart}>
       <View style={styles.chartArea} {...panResponder.current.panHandlers}>
-        {!chartHasData && <NoDataOverlay />}
+        {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
           contentInset={{ top: apx(40), bottom: apx(40) }}
-          svg={chartHasData ? { fill: `url(#dataGradient)` } : undefined}
+          svg={
+            chartHasData && !isLoading
+              ? { fill: `url(#dataGradient)` }
+              : undefined
+          }
         >
-          <Line chartHasData={chartHasData} />
+          {!isLoading && <Line chartHasData={chartHasData} />}
           {chartHasData ? <Tooltip /> : <NoDataGradient />}
           {chartHasData && <DataGradient />}
         </AreaChart>
