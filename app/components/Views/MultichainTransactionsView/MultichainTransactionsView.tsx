@@ -11,7 +11,6 @@ import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
-import Text from '../../../component-library/components/Texts/Text';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
