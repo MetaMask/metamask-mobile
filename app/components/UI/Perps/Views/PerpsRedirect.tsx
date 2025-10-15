@@ -3,7 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import PerpsLoader from '../components/PerpsLoader';
-import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+import { usePerpsConnection } from '../hooks/usePerpsConnection';
 
 const PerpsRedirect: React.FC = () => {
   const { isConnected, isConnecting, isInitialized } = usePerpsConnection();
