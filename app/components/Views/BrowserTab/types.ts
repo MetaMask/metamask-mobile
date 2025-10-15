@@ -114,7 +114,7 @@ export type BrowserTabProps = SharedTabProps & {
   /**
    * Function to toggle fullscreen mode
    */
-  toggleFullscreen: () => void;
+  toggleFullscreen: (isFullscreen: boolean) => void;
 };
 // This event should be exported from the webview package
 export interface WebViewErrorEvent {
