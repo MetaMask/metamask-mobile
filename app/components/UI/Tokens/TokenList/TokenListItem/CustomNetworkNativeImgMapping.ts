@@ -13,6 +13,7 @@ import SophonImg from '../../../../../images/sophon.png';
 import SophonTestnetImg from '../../../../../images/sophon-testnet.png';
 import MegaethTestnetImg from '../../../../../images/megaeth-testnet-logo.png';
 import LuksoImg from '../../../../../images/lukso.png';
+import PlasmaImg from '../../../../../images/plasma-native.png';
 
 export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: FlareMainnetImg,
@@ -30,4 +31,5 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: ethImg,
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: MegaethTestnetImg,
   [NETWORK_CHAIN_ID.LUKSO]: LuksoImg,
+  [NETWORK_CHAIN_ID.PLASMA]: PlasmaImg,
 };
