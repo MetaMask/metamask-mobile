@@ -1,4 +1,4 @@
-name: Android Flask E2E Smoke Tests Workflow
+name: Android Flask E2E Smoke Tests
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ jobs:
     # - schedule: always run
     # - merge_group: never run
     # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label
-    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke'))) }}
+    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
     uses: ./.github/workflows/needs-e2e-build.yml
 
   build-android-flask-apps:

@@ -1236,15 +1236,15 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -1349,15 +1349,15 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -1462,15 +1462,15 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -1575,15 +1575,15 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -3003,15 +3003,15 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -3116,15 +3116,15 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -3229,15 +3229,15 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -3342,15 +3342,15 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -4770,15 +4770,15 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -4883,15 +4883,15 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -4996,15 +4996,15 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -5109,15 +5109,15 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -6578,15 +6578,15 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -6691,15 +6691,15 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -6804,15 +6804,15 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -6917,15 +6917,15 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -8345,15 +8345,15 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -8458,15 +8458,15 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -8571,15 +8571,15 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -8684,15 +8684,15 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -10112,15 +10112,15 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -10225,15 +10225,15 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -10338,15 +10338,15 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -10451,15 +10451,15 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -12450,15 +12450,15 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -12563,15 +12563,15 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -12676,15 +12676,15 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -12789,15 +12789,15 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -14217,15 +14217,15 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="AttachMoney"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -14330,15 +14330,15 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="SwapVertical"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -14443,15 +14443,15 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Send"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
@@ -14556,15 +14556,15 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               <SvgMock
                                                 color="#686e7d"
                                                 fill="currentColor"
-                                                height={20}
+                                                height={24}
                                                 name="Received"
                                                 style={
                                                   {
-                                                    "height": 20,
-                                                    "width": 20,
+                                                    "height": 24,
+                                                    "width": 24,
                                                   }
                                                 }
-                                                width={20}
+                                                width={24}
                                               />
                                               <Text
                                                 accessibilityRole="text"
