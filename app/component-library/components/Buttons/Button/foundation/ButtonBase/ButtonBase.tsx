@@ -25,7 +25,12 @@ import {
   DEFAULT_BUTTONBASE_ICON_SIZE,
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
 } from './ButtonBase.constants';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  type GestureStateChangeEvent,
+  type TapGestureHandlerEventPayload,
+} from 'react-native-gesture-handler';
 
 export const TouchableOpacity = ({
   onPress,
@@ -62,34 +67,40 @@ export const TouchableOpacity = ({
     .shouldCancelWhenOutside(false)
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
-    .onStart((gestureEvent) => {
-      // Only handle gesture when we KNOW accessibility is OFF
-      // When accessibility is ON or UNKNOWN, let TouchableOpacity handle the press
-      // Using onStart instead of onEnd to avoid conflicts with BottomSheet PanGestureHandler
-      if (onPress && !isDisabled && isAccessibilityEnabled === false) {
-        // Create a proper GestureResponderEvent-like object from gesture event
-        const syntheticEvent = {
-          nativeEvent: {
-            locationX: gestureEvent.x || 0,
-            locationY: gestureEvent.y || 0,
-            pageX: gestureEvent.absoluteX || 0,
-            pageY: gestureEvent.absoluteY || 0,
-            timestamp: Date.now(),
-          },
-          persist: () => {
-            /* no-op for synthetic event */
-          },
-          preventDefault: () => {
-            /* no-op for synthetic event */
-          },
-          stopPropagation: () => {
-            /* no-op for synthetic event */
-          },
-        } as GestureResponderEvent;
+    .requireExternalGestureToFail() // Wait for other gestures to fail before activating
+    .maxDuration(300) // Tight constraint: must complete within 300ms
+    .minPointers(1)
+    .onEnd(
+      (
+        gestureEvent: GestureStateChangeEvent<TapGestureHandlerEventPayload>,
+      ) => {
+        // Only handle gesture when we KNOW accessibility is OFF
+        // When accessibility is ON or UNKNOWN, let TouchableOpacity handle the press
+        if (onPress && !isDisabled && isAccessibilityEnabled === false) {
+          // Create a proper GestureResponderEvent-like object from gesture event
+          const syntheticEvent = {
+            nativeEvent: {
+              locationX: gestureEvent.x || 0,
+              locationY: gestureEvent.y || 0,
+              pageX: gestureEvent.absoluteX || 0,
+              pageY: gestureEvent.absoluteY || 0,
+              timestamp: Date.now(),
+            },
+            persist: () => {
+              /* no-op for synthetic event */
+            },
+            preventDefault: () => {
+              /* no-op for synthetic event */
+            },
+            stopPropagation: () => {
+              /* no-op for synthetic event */
+            },
+          } as GestureResponderEvent;
 
-        onPress(syntheticEvent);
-      }
-    });
+          onPress(syntheticEvent);
+        }
+      },
+    );
 
   // In test environments, behave like standard TouchableOpacity
   if (process.env.NODE_ENV === 'test') {
@@ -108,9 +119,7 @@ export const TouchableOpacity = ({
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={
-          isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined
-        } // Use TouchableOpacity onPress when accessibility is ON or UNKNOWN (safer for accessibility users)
+        onPress={!isDisabled ? onPress : undefined} // Always enable TouchableOpacity onPress as fallback
         {...props}
       >
         {children}
