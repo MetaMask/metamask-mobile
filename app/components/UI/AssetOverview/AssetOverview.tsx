@@ -197,15 +197,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, [selectedNetworkClientId]);
 
   const onReceive = () => {
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: strings('asset_overview.receive_button'),
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
     // Show QR code for receiving this specific asset
     if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
-      trackActionButtonClick(trackEvent, createEventBuilder, {
-        action_name: ActionButtonType.RECEIVE,
-        action_position: ActionPosition.FOURTH_POSITION,
-        button_label: strings('asset_overview.receive_button'),
-        location: ActionLocation.ASSET_DETAILS,
-      });
-
       navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
@@ -230,9 +230,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onSend = async () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // Try non-EVM first, if handled, return early
-
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.SEND,
       action_position: ActionPosition.THIRD_POSITION,
@@ -240,6 +237,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Try non-EVM first, if handled, return early
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
     );
@@ -284,6 +283,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const onBuy = () => {
     let assetId: string | undefined;
+
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
+      button_label: strings('asset_overview.buy_button'),
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
     try {
       if (isCaipAssetType(asset.address)) {
         assetId = asset.address;
@@ -302,13 +309,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         assetId,
       }),
     );
-
-    trackActionButtonClick(trackEvent, createEventBuilder, {
-      action_name: ActionButtonType.BUY,
-      action_position: ActionPosition.FIRST_POSITION,
-      button_label: strings('asset_overview.buy_button'),
-      location: ActionLocation.ASSET_DETAILS,
-    });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
