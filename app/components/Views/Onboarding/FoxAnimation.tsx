@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Platform } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { StyleSheet, Platform, View } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
 import Logger from '../../../util/Logger';
-import { isE2E } from '../../../util/test/utils';
 import Device from '../../../util/device';
 import FoxAnimationRive from '../../../animations/fox_appear.riv';
 
@@ -68,57 +67,32 @@ const createStyles = (hasFooter: boolean, insets?: EdgeInsets) =>
   });
 
 const FoxAnimation = ({
-  startFoxAnimation,
   hasFooter,
-  isLoading = false,
+  trigger,
 }: {
-  startFoxAnimation: boolean;
   hasFooter: boolean;
-  isLoading?: boolean;
+  trigger?: 'Loader' | 'Start';
 }) => {
   const foxRef = useRef<RiveRef>(null);
   const insets = useSafeAreaInsets();
   const styles = createStyles(hasFooter, insets);
-  const foxOpacity = useMemo(() => new Animated.Value(0), []);
 
   const showFoxAnimation = useCallback(async () => {
-    if (isE2E) {
-      foxOpacity.setValue(1);
-      return;
-    }
-
-    Animated.timing(foxOpacity, {
-      toValue: 1,
-      duration: 500,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      if (foxRef.current) {
-        try {
-          const trigger = isLoading ? 'Loader' : 'Start';
-          foxRef.current?.fireState('FoxRaiseUp', trigger);
-        } catch (error) {
-          Logger.error(error as Error, 'Error triggering Fox Rive animation');
-        }
+    if (foxRef.current && trigger) {
+      try {
+        foxRef.current?.fireState('FoxRaiseUp', trigger);
+      } catch (error) {
+        Logger.error(error as Error, 'Error triggering Fox Rive animation');
       }
-    });
-  }, [foxOpacity, foxRef, isLoading]);
+    }
+  }, [foxRef, trigger]);
 
   useEffect(() => {
-    if (startFoxAnimation) {
-      showFoxAnimation();
-    }
-  }, [startFoxAnimation, showFoxAnimation]);
+    showFoxAnimation();
+  }, [showFoxAnimation]);
 
   return (
-    <Animated.View
-      style={[
-        styles.foxAnimationWrapper,
-        {
-          opacity: foxOpacity,
-        },
-      ]}
-    >
+    <View style={[styles.foxAnimationWrapper]}>
       <Rive
         ref={foxRef}
         style={styles.foxAnimation}
@@ -129,7 +103,7 @@ const FoxAnimation = ({
         stateMachineName="FoxRaiseUp"
         testID="fox-animation"
       />
-    </Animated.View>
+    </View>
   );
 };
 
