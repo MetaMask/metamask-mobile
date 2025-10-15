@@ -229,7 +229,7 @@ Flask E2E builds use these key environment variables:
 ```bash
 METAMASK_BUILD_TYPE=flask          # Enables Flask build variant
 METAMASK_ENVIRONMENT=e2e           # Enables E2E-specific configurations
-BRIDGE_USE_DEV_APIS=true          # CRITICAL: Enables Snaps and dev APIs
+BRIDGE_USE_DEV_APIS=true          # Enables more snaps funcationality and dev APIs
 ```
 
 **Build Script Architecture:**
@@ -266,23 +266,7 @@ export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-production}
 - Snaps tests work on CI but fail locally
 - Flask features not available despite using Flask build commands
 
-#### 2. Missing `BRIDGE_USE_DEV_APIS` ⚠️
-
-**Problem**: Snaps and other Flask features require `BRIDGE_USE_DEV_APIS=true` to be set during the build process.
-
-**Symptoms:**
-
-- Snaps installation button is disabled
-- Console logs show Snaps features are disabled
-- Tests timeout waiting for Snaps UI elements
-
-**Solution**: The Flask E2E commands (`yarn start:*:e2e:flask`, `yarn test:e2e:*:flask:*`) automatically set this variable. If building manually, ensure you include it:
-
-```bash
-METAMASK_BUILD_TYPE=flask BRIDGE_USE_DEV_APIS=true ./scripts/build.sh android flaskDebugE2E e2e
-```
-
-#### 3. Using Wrong Build for Tests ⚠️
+#### 2. Using Wrong Build for Tests ⚠️
 
 **Problem**: Testing with a Main build instead of Flask build, or testing with an old Flask build that was built before environment variables were properly configured.
 
@@ -304,7 +288,7 @@ yarn watch:flask:clean
 yarn start:android:e2e:flask  # or iOS
 ```
 
-#### 4. Metro Bundler Not Running ⚠️
+#### 3. Metro Bundler Not Running ⚠️
 
 **Problem**: Flask development builds require Metro bundler to be running with correct environment variables.
 
