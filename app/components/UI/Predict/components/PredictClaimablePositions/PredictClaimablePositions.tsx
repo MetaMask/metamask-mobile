@@ -65,6 +65,7 @@ const PredictClaimablePositions = forwardRef<PredictClaimablePositionsHandle>(
           </Text>
         </Box>
         <FlashList
+          testID="flash-list"
           data={positions.sort(
             (a, b) =>
               new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),

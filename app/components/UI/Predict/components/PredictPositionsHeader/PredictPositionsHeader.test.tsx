@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import MarketsWonCard from './PredictAccountState';
+import MarketsWonCard from './PredictPositionsHeader';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import Routes from '../../../../../constants/navigation/Routes';

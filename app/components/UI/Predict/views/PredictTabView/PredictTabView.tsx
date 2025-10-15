@@ -3,7 +3,7 @@ import { default as React, useRef, useState, useCallback } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import PredictAccountState, {
   PredictAccountStateHandle,
-} from '../../components/PredictAccountState';
+} from '../../components/PredictPositionsHeader';
 import PredictClaimablePositions, {
   PredictClaimablePositionsHandle,
 } from '../../components/PredictClaimablePositions/PredictClaimablePositions';

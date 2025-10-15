@@ -61,7 +61,11 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     return (
       <View style={tw.style('flex-1 bg-default')}>
         <Box style={tw.style('flex-1 px-4 py-4 justify-center items-center')}>
-          <ActivityIndicator size="large" color={IconColor.Alternative} />
+          <ActivityIndicator
+            testID="activity-indicator"
+            size="large"
+            color={IconColor.Alternative}
+          />
         </Box>
       </View>
     );
@@ -70,6 +74,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   // TODO: Sort positions in the controller (business logic)
   return (
     <FlashList
+      testID="flash-list"
       ref={listRef}
       data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
       renderItem={renderPosition}
