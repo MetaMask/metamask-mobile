@@ -29,10 +29,10 @@ describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
       },
       async () => {
         await loginToApp();
-        // await device.disableSynchronization();
         await WalletView.tapOnSolana();
-        await TokenOverview.tapSendButton();
         await device.disableSynchronization();
+        await TokenOverview.tapSendButton();
+        // await device.disableSynchronization();
         // using 0 value as balance of SOL is not loaded at times making test flaky
         await SendView.enterZeroAmount();
         await SendView.pressContinueButton();
