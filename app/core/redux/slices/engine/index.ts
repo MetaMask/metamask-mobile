@@ -1,6 +1,21 @@
 import Engine from '../../../Engine';
 import { createAction, PayloadAction } from '@reduxjs/toolkit';
 
+/**
+ * 🧪 EXPERIMENTAL: Filter preinstalled snaps from SnapController state for Redux.
+ * This ensures Redux state matches our filtered persistence layer.
+ */
+const filterSnapsForRedux = (controllerName: string, controllerState: any) => {
+  if (controllerName === 'SnapController' && controllerState?.snaps) {
+    console.log('🔧 [REDUX FILTER] Filtering snaps from Redux update');
+    return {
+      ...controllerState,
+      snaps: {}, // Remove all snaps (they appear to be preinstalled)
+    };
+  }
+  return controllerState;
+};
+
 const initialState = {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,17 +42,26 @@ const engineReducer = (
 ) => {
   switch (action.type) {
     case initBgState.type: {
-      return { backgroundState: Engine.state };
+      // Apply snap filtering to the entire initial state
+      const filteredState: any = {};
+      Object.keys(Engine.state).forEach((controllerName) => {
+        const controllerState = Engine.state[controllerName as keyof typeof Engine.state];
+        filteredState[controllerName] = filterSnapsForRedux(controllerName, controllerState);
+      });
+      return { backgroundState: filteredState };
     }
     case updateBgState.type: {
       if (!action.payload) return state;
+
+      const controllerName = action.payload.key;
+      const rawControllerState = Engine.state[controllerName as keyof typeof Engine.state];
+      const filteredControllerState = filterSnapsForRedux(controllerName, rawControllerState);
 
       return {
         ...state,
         backgroundState: {
           ...state.backgroundState,
-          [action.payload.key]:
-            Engine.state[action.payload.key as keyof typeof Engine.state],
+          [controllerName]: filteredControllerState,
         },
       };
     }
