@@ -351,8 +351,8 @@ export function transformWithdrawalRequestsToTransactions(
 
       return {
         id: `withdrawal-${id}`,
-        type: 'withdrawal',
-        category: 'withdrawal',
+        type: 'withdrawal' as const,
+        category: 'withdrawal' as const,
         title: `Withdrew ${amount} ${asset}`,
         subtitle: statusText,
         timestamp,
@@ -364,7 +364,7 @@ export function transformWithdrawalRequestsToTransactions(
           asset,
           txHash: txHash || '',
           status,
-          type: 'withdrawal',
+          type: 'withdrawal' as const,
         },
       };
     });
@@ -400,8 +400,8 @@ export function transformDepositRequestsToTransactions(
 
       return {
         id: `deposit-${id}`,
-        type: 'deposit',
-        category: 'deposit',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
         title,
         subtitle: statusText,
         timestamp,
@@ -413,7 +413,7 @@ export function transformDepositRequestsToTransactions(
           asset,
           txHash: txHash || '',
           status,
-          type: 'deposit',
+          type: 'deposit' as const,
         },
       };
     });

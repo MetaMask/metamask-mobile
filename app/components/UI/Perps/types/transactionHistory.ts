@@ -91,12 +91,7 @@ export type ListItem =
   | { type: 'header'; title: string; id: string }
   | { type: 'transaction'; transaction: PerpsTransaction; id: string };
 
-export type FilterTab =
-  | 'Trades'
-  | 'Orders'
-  | 'Funding'
-  | 'Withdraw'
-  | 'Deposit';
+export type FilterTab = 'Trades' | 'Orders' | 'Funding' | 'Deposits';
 
 export interface PerpsTransactionsViewProps {}
 

@@ -104,13 +104,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const withdrawalParams = useMemo(
     () => ({
       startTime: (() => {
-        // Get start of today (midnight UTC) to see today's withdrawals
+        // Get start of 30 days ago to see recent deposits/withdrawals
         const now = new Date();
-        return new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-        ).getTime();
+        const thirtyDaysAgo = new Date(
+          now.getTime() - 30 * 24 * 60 * 60 * 1000,
+        );
+        return thirtyDaysAgo.getTime();
       })(),
     }),
     [], // Empty dependency array since we want this to be stable
@@ -233,12 +232,17 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(() => {
+    // Combine deposits and withdrawals into a single "Deposits" category
+    const combinedDepositsAndWithdrawals = [
+      ...depositTransactions,
+      ...withdrawalTransactions,
+    ].sort((a, b) => b.timestamp - a.timestamp); // Sort chronologically (newest first)
+
     const grouped = {
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
       Funding: groupTransactionsByDate(fundingTransactions),
-      Withdraw: groupTransactionsByDate(withdrawalTransactions),
-      Deposit: groupTransactionsByDate(depositTransactions),
+      Deposits: groupTransactionsByDate(combinedDepositsAndWithdrawals),
     };
 
     return grouped;
@@ -246,8 +250,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     fillTransactions,
     orderTransactions,
     fundingTransactions,
-    withdrawalTransactions,
     depositTransactions,
+    withdrawalTransactions,
     groupTransactionsByDate,
   ]);
 
@@ -298,8 +302,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     (tab: FilterTab, index: number) => {
       const isActive = activeFilter === tab;
 
-      // Convert index to i18n key
-      const i18nKeys = ['trades', 'orders', 'funding', 'withdraw', 'deposit'];
+      // Convert tab to i18n key
+      const i18nKeys = ['trades', 'orders', 'funding', 'deposits'];
       const i18nKey = i18nKeys[index];
 
       const handleTabPress = () => {
@@ -440,13 +444,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   );
 
   const filterTabs: FilterTab[] = useMemo(
-    () => [
-      strings('perps.transactions.tabs.trades'),
-      strings('perps.transactions.tabs.orders'),
-      strings('perps.transactions.tabs.funding'),
-      strings('perps.transactions.tabs.withdraw'),
-      strings('perps.transactions.tabs.deposit'),
-    ],
+    () => ['Trades', 'Orders', 'Funding', 'Deposits'],
     [],
   );
 
