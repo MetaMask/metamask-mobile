@@ -1,16 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1`] = `
+exports[`OnboardingSuccessAnimation displays Rive animation and ActivityIndicator 1`] = `
 <View
-  collapsable={false}
   style={
     {
       "testID": "animation-container",
-      "transform": [
-        {
-          "translateX": 0,
-        },
-      ],
     }
   }
   testID="onboarding-success-animation"
@@ -25,7 +19,7 @@ exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1
     <RiveView
       alignment="Center"
       autoplay={true}
-      source="mock-rive-file"
+      source="fox_loading.riv"
       style={
         {
           "testID": "rive-animation",
@@ -40,31 +34,19 @@ exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1
       }
     }
   >
-    <Text
-      style={
-        {
-          "testID": "text-title",
-        }
-      }
-      variant="HeadingLG"
-    >
-      onboarding_success.setting_up_wallet_base.
-    </Text>
+    <ActivityIndicator
+      color="#121314"
+      size="large"
+    />
   </View>
 </View>
 `;
 
-exports[`OnboardingSuccessAnimation renders animation and text in correct layout structure 1`] = `
+exports[`OnboardingSuccessAnimation renders animation and ActivityIndicator in correct layout structure 1`] = `
 <View
-  collapsable={false}
   style={
     {
       "testID": "animation-container",
-      "transform": [
-        {
-          "translateX": 0,
-        },
-      ],
     }
   }
   testID="onboarding-success-animation"
@@ -79,7 +61,7 @@ exports[`OnboardingSuccessAnimation renders animation and text in correct layout
     <RiveView
       alignment="Center"
       autoplay={true}
-      source="mock-rive-file"
+      source="fox_loading.riv"
       style={
         {
           "testID": "rive-animation",
@@ -94,16 +76,10 @@ exports[`OnboardingSuccessAnimation renders animation and text in correct layout
       }
     }
   >
-    <Text
-      style={
-        {
-          "testID": "text-title",
-        }
-      }
-      variant="HeadingLG"
-    >
-      onboarding_success.setting_up_wallet_base.
-    </Text>
+    <ActivityIndicator
+      color="#121314"
+      size="large"
+    />
   </View>
 </View>
 `;

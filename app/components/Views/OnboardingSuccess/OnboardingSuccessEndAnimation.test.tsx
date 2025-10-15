@@ -58,7 +58,7 @@ jest.mock('../../../util/test/utils', () => ({
 
 // Mock Rive file
 jest.mock(
-  '../../../animations/onboarding_loader_end_animation.riv',
+  '../../../animations/onboarding_loader.riv',
   () => 'mocked-rive-file',
 );
 
@@ -194,7 +194,7 @@ describe('OnboardingSuccessEndAnimation', () => {
       'Dark mode',
       false,
     );
-    expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Start');
+    expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Only_End');
   });
 
   it('calculates correct dimensions for animation styles', () => {

@@ -240,8 +240,6 @@ class ChoosePassword extends PureComponent {
     passwordInputContainerFocusedIndex: -1,
     // Data for slide out completion
     navigationData: null,
-    shouldSlideOut: false,
-    resolveAnimation: null,
   };
 
   mounted = true;
@@ -258,10 +256,6 @@ class ChoosePassword extends PureComponent {
   };
 
   getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
-
-  handleAnimationComplete = () => {
-    if (this.state.resolveAnimation) this.state.resolveAnimation();
-  };
 
   headerLeft = () => {
     const { navigation } = this.props;
@@ -481,11 +475,6 @@ class ChoosePassword extends PureComponent {
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-
-      // wait for the slideOut animation to complete
-      await new Promise((resolve) => {
-        this.setState({ shouldSlideOut: true, resolveAnimation: resolve });
-      });
 
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
@@ -721,8 +710,7 @@ class ChoosePassword extends PureComponent {
   };
 
   renderContent = () => {
-    const { isSelected, password, confirmPassword, loading, shouldSlideOut } =
-      this.state;
+    const { isSelected, password, confirmPassword, loading } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     let canSubmit;
     if (this.getOauth2LoginSuccess()) {
@@ -740,10 +728,7 @@ class ChoosePassword extends PureComponent {
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <OnboardingSuccessAnimation
-              slideOut={shouldSlideOut}
-              onAnimationComplete={this.handleAnimationComplete}
-            />
+            <OnboardingSuccessAnimation />
           </View>
         ) : (
           <KeyboardAwareScrollView
