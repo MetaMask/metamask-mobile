@@ -35,8 +35,6 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 
-const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE = 2000; // About 30 items to pre-render - cell size is about 65px
-
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
@@ -340,7 +338,6 @@ const MultichainAccountSelectorList = ({
             }
             // Performance optimizations
             removeClippedSubviews
-            drawDistance={MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE}
             {...props}
           />
         )}
