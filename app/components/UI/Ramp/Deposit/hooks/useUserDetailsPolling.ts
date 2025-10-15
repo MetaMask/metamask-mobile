@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useDepositSdkMethod } from './useDepositSdkMethod';
+import { useDepositUser } from './useDepositUser';
 import { NativeTransakUserDetails } from '@consensys/native-ramps-sdk';
 import { KycStatus } from '../constants';
+import Logger from '../../../../../util/Logger';
 
 export interface UserDetailsPollingResult {
   userDetails: NativeTransakUserDetails | null;
@@ -27,13 +28,12 @@ const useUserDetailsPolling = (
   const pollCountRef = useRef<number>(0);
   const [pollingError, setPollingError] = useState<string | null>(null);
 
-  const [
-    { data: userDetails, error: sdkError, isFetching: loading },
+  const {
+    userDetails,
+    error: sdkError,
+    isFetching: loading,
     fetchUserDetails,
-  ] = useDepositSdkMethod({
-    method: 'getUserDetails',
-    onMount: false,
-  });
+  } = useDepositUser();
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
@@ -47,8 +47,19 @@ const useUserDetailsPolling = (
     pollCountRef.current = 0;
     setPollingError(null);
 
+    const pollUserDetails = async () => {
+      try {
+        await fetchUserDetails();
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'useUserDetailsPolling: Error fetching user details',
+        );
+      }
+    };
+
     // Call immediately
-    fetchUserDetails();
+    pollUserDetails();
     pollCountRef.current += 1;
 
     // Set up interval
@@ -63,7 +74,7 @@ const useUserDetailsPolling = (
         return;
       }
 
-      fetchUserDetails();
+      pollUserDetails();
     }, pollingInterval);
   }, [fetchUserDetails, pollingInterval, stopPolling, maxPollingAttempts]);
 
