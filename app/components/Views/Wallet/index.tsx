@@ -195,6 +195,7 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       flex: 1,
+      marginTop: 8,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -207,7 +208,7 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
     },
     assetsActionsContainer: {
-      marginBottom: 24,
+      marginBottom: 16,
     },
     carousel: {
       marginBottom: 16,
