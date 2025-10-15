@@ -3240,7 +3240,7 @@ export class PerpsController extends BaseController<
    */
   async refreshEligibility(): Promise<void> {
     // Default to false in case of error.
-    let isEligible = false;
+    let isEligible = true;
 
     try {
       DevLogger.log('PerpsController: Refreshing eligibility');

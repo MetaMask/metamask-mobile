@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useAppTheme } from '../../../../../util/theme';
@@ -53,6 +53,9 @@ interface PerpsProgressBarProps {
  * Renders two overlayed Box components where the top Box represents
  * the progress as a percentage of the background Box width.
  *
+ * Always animates to 100% before disappearing to provide visual feedback
+ * that the operation completed successfully.
+ *
  * @example
  * <PerpsProgressBar
  *   progressAmount={75}
@@ -104,6 +107,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
   const [transactionProgress, setTransactionProgress] = useState(0);
   const [shouldShow, setShouldShow] = useState(false);
   const [lastProgress, setLastProgress] = useState(0);
+  const [isAnimatingToComplete, setIsAnimatingToComplete] = useState(false);
 
   // Check if there are any pending or bridging withdrawals
   const hasActiveWithdrawals = withdrawalRequests.some(
@@ -131,6 +135,31 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
         return 0;
     }
   };
+
+  // Helper function to animate to 100% and then hide
+  const animateToCompleteAndHide = useCallback(() => {
+    if (isAnimatingToComplete) return; // Prevent multiple animations
+
+    setIsAnimatingToComplete(true);
+
+    // Animate to 100%
+    progressWidth.value = withTiming(100, {
+      duration: 500,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    // Hide after animation completes
+    setTimeout(() => {
+      setShouldShow(false);
+      setIsAnimatingToComplete(false);
+
+      // Clear persistent progress for withdrawals
+      const controller = Engine.context.PerpsController;
+      if (controller) {
+        controller.updateWithdrawalProgress(0);
+      }
+    }, 500);
+  }, [isAnimatingToComplete, progressWidth]);
 
   // Listen for transaction status updates
   useEffect(() => {
@@ -252,28 +281,22 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
     );
 
     // Check if we were showing progress and now there's a completed withdrawal
-    if (completedWithdrawal && shouldShow && !hasActiveWithdrawals) {
+    if (
+      completedWithdrawal &&
+      shouldShow &&
+      !hasActiveWithdrawals &&
+      !isAnimatingToComplete
+    ) {
       // Withdrawal was completed - animate to 100% and hide
-      progressWidth.value = withTiming(100, {
-        duration: 500,
-        easing: Easing.out(Easing.cubic),
-      });
-      // Hide after animation completes
-      setTimeout(() => {
-        setShouldShow(false);
-        // Clear persistent progress
-        const controller = Engine.context.PerpsController;
-        if (controller) {
-          controller.updateWithdrawalProgress(0);
-        }
-      }, 500);
+      animateToCompleteAndHide();
     }
   }, [
     withdrawalRequests,
     persistentWithdrawalProgress,
     shouldShow,
     hasActiveWithdrawals,
-    progressWidth,
+    isAnimatingToComplete,
+    animateToCompleteAndHide,
   ]);
 
   // Animated style for the progress bar
@@ -312,32 +335,15 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       });
     } else if (
       shouldShow &&
-      transactionProgress === 75 &&
-      !isDepositInProgress &&
-      !hasActiveWithdrawals
-    ) {
-      // Animate deposit to 100% before hiding (only for completed deposits)
-      progressWidth.value = withTiming(100, {
-        duration: 500,
-        easing: Easing.out(Easing.cubic),
-      });
-      // Hide after animation completes
-      setTimeout(() => setShouldShow(false), 500);
-    } else if (
-      shouldShow &&
       !isDepositInProgress &&
       !hasActiveWithdrawals &&
+      !isAnimatingToComplete &&
       transactionProgress > 0
     ) {
-      // Handle failed deposits or any other deposit completion case
-      // Animate to 100% and hide
-      progressWidth.value = withTiming(100, {
-        duration: 500,
-        easing: Easing.out(Easing.cubic),
-      });
-      // Hide after animation completes
-      setTimeout(() => setShouldShow(false), 500);
-    } else if (!isDepositInProgress && !hasActiveWithdrawals) {
+      // Any deposit completion case - always animate to 100% before hiding
+      animateToCompleteAndHide();
+    } else if (!isDepositInProgress && !hasActiveWithdrawals && !shouldShow) {
+      // Default progress bar behavior when not showing
       progressWidth.value = withTiming(progressAmount, {
         duration: 1000,
         easing: Easing.out(Easing.cubic),
@@ -352,6 +358,8 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
     shouldShow,
     progressWidth,
     lastProgress,
+    isAnimatingToComplete,
+    animateToCompleteAndHide,
   ]);
 
   if (!shouldShow && !isDepositInProgress && !hasActiveWithdrawals) {
