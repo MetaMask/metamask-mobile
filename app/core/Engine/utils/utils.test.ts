@@ -24,6 +24,7 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/approval-controller');
 jest.mock('../controllers/permission-controller-init');
+jest.mock('../controllers/delegation/delegation-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);

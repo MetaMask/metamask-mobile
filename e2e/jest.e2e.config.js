@@ -2,7 +2,7 @@
 require('dotenv').config({ path: '.e2e.env' });
 
 // Determine maxWorkers based on environment
-let workers = process.env.GITHUB_CI ? 2 : process.env.CI ? 3 : 1;
+let workers = process.env.CI ? 1 : 1;
 
 // Set maxWorkers to 1 for performance workflows
 if (process.env.BITRISE_TRIGGERED_WORKFLOW_ID) {
@@ -18,8 +18,9 @@ if (process.env.BITRISE_TRIGGERED_WORKFLOW_ID) {
 module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/specs/**/*.spec.{js,ts}'],
-  testTimeout: 500000,
+  testTimeout: 300000,
   maxWorkers: workers,
+  clearMocks: true,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
