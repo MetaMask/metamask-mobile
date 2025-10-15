@@ -388,17 +388,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
-                                "height": 1334,
-                                "maxHeight": 1334,
                                 "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -413,142 +403,163 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                "backgroundColor": "#ffffff",
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
+                                "height": 1334,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
                                 },
-                                false,
-                              ]
-                            }
-                            testID="header"
-                          >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               }
-                            >
-                              <View
-                                onLayout={[Function]}
-                              />
-                            </View>
+                            }
+                          >
                             <View
                               style={
                                 {
                                   "alignItems": "center",
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
+                                  "alignSelf": "stretch",
+                                  "padding": 4,
                                 }
                               }
                             >
                               <View
-                                onLayout={[Function]}
-                              >
-                                <TouchableOpacity>
-                                  <TouchableOpacity
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={false}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      }
-                                    }
-                                  >
-                                    <SvgMock
-                                      color="#686e7d"
-                                      fill="currentColor"
-                                      height={24}
-                                      name="Close"
-                                      style={
-                                        {
-                                          "height": 24,
-                                          "width": 24,
-                                        }
-                                      }
-                                      width={24}
-                                    />
-                                  </TouchableOpacity>
-                                </TouchableOpacity>
-                              </View>
+                                style={
+                                  {
+                                    "backgroundColor": "#b7bbc866",
+                                    "borderRadius": 2,
+                                    "height": 4,
+                                    "width": 40,
+                                  }
+                                }
+                              />
                             </View>
-                          </View>
-                          <RNCSafeAreaView
-                            edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
-                            }
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                          >
                             <View
                               style={
                                 [
                                   {
                                     "backgroundColor": "#ffffff",
-                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "padding": 16,
+                                    "paddingVertical": 0,
                                   },
-                                  undefined,
+                                  false,
                                 ]
+                              }
+                              testID="header"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                  }
+                                }
+                              />
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                >
+                                  <TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <SvgMock
+                                        color="#686e7d"
+                                        fill="currentColor"
+                                        height={24}
+                                        name="Close"
+                                        style={
+                                          {
+                                            "height": 24,
+                                            "width": 24,
+                                          }
+                                        }
+                                        width={24}
+                                      />
+                                    </TouchableOpacity>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                            <RNCSafeAreaView
+                              edges={
+                                {
+                                  "bottom": "additive",
+                                  "left": "additive",
+                                  "right": "additive",
+                                  "top": "off",
+                                }
+                              }
+                              style={
+                                {
+                                  "flex": 1,
+                                }
                               }
                             >
                               <View
                                 style={
                                   [
                                     {
+                                      "backgroundColor": "#ffffff",
                                       "flex": 1,
                                     },
                                     undefined,
                                   ]
                                 }
-                              />
-                            </View>
-                          </RNCSafeAreaView>
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "flex": 1,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                />
+                              </View>
+                            </RNCSafeAreaView>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -952,17 +963,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
-                                "height": 1334,
-                                "maxHeight": 1334,
                                 "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -977,244 +978,265 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                "backgroundColor": "#ffffff",
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
+                                "height": 1334,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
                                 },
-                                false,
-                              ]
-                            }
-                            testID="header"
-                          >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               }
-                            >
-                              <View
-                                onLayout={[Function]}
-                              />
-                            </View>
+                            }
+                          >
                             <View
                               style={
                                 {
                                   "alignItems": "center",
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
+                                  "alignSelf": "stretch",
+                                  "padding": 4,
                                 }
                               }
                             >
                               <View
-                                onLayout={[Function]}
-                              >
-                                <TouchableOpacity>
-                                  <TouchableOpacity
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={false}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      }
-                                    }
-                                  >
-                                    <SvgMock
-                                      color="#686e7d"
-                                      fill="currentColor"
-                                      height={24}
-                                      name="Close"
-                                      style={
-                                        {
-                                          "height": 24,
-                                          "width": 24,
-                                        }
-                                      }
-                                      width={24}
-                                    />
-                                  </TouchableOpacity>
-                                </TouchableOpacity>
-                              </View>
+                                style={
+                                  {
+                                    "backgroundColor": "#b7bbc866",
+                                    "borderRadius": 2,
+                                    "height": 4,
+                                    "width": 40,
+                                  }
+                                }
+                              />
                             </View>
-                          </View>
-                          <RNCSafeAreaView
-                            edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
-                            }
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                          >
                             <View
                               style={
                                 [
                                   {
                                     "backgroundColor": "#ffffff",
-                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "padding": 16,
+                                    "paddingVertical": 0,
                                   },
-                                  undefined,
+                                  false,
                                 ]
+                              }
+                              testID="header"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                  }
+                                }
+                              />
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                >
+                                  <TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <SvgMock
+                                        color="#686e7d"
+                                        fill="currentColor"
+                                        height={24}
+                                        name="Close"
+                                        style={
+                                          {
+                                            "height": 24,
+                                            "width": 24,
+                                          }
+                                        }
+                                        width={24}
+                                      />
+                                    </TouchableOpacity>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                            <RNCSafeAreaView
+                              edges={
+                                {
+                                  "bottom": "additive",
+                                  "left": "additive",
+                                  "right": "additive",
+                                  "top": "off",
+                                }
+                              }
+                              style={
+                                {
+                                  "flex": 1,
+                                }
                               }
                             >
                               <View
                                 style={
                                   [
                                     {
+                                      "backgroundColor": "#ffffff",
                                       "flex": 1,
                                     },
                                     undefined,
                                   ]
                                 }
                               >
-                                <RNCSafeAreaView
-                                  edges={
-                                    {
-                                      "bottom": "additive",
-                                      "left": "additive",
-                                      "right": "additive",
-                                      "top": "off",
-                                    }
-                                  }
+                                <View
                                   style={
-                                    {
-                                      "flex": 1,
-                                    }
+                                    [
+                                      {
+                                        "flex": 1,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  <View
+                                  <RNCSafeAreaView
+                                    edges={
+                                      {
+                                        "bottom": "additive",
+                                        "left": "additive",
+                                        "right": "additive",
+                                        "top": "off",
+                                      }
+                                    }
                                     style={
-                                      [
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "flex": 1,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
                                         [
                                           {
-                                            "padding": 15,
+                                            "backgroundColor": "#ffffff",
+                                            "flex": 1,
                                           },
                                           undefined,
-                                          {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "gap": 16,
-                                            "justifyContent": "center",
-                                          },
                                         ]
                                       }
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#ca35421a",
-                                            "borderRadius": 28,
-                                            "height": 56,
-                                            "justifyContent": "center",
-                                            "width": 56,
-                                          }
+                                          [
+                                            {
+                                              "padding": 15,
+                                            },
+                                            undefined,
+                                            {
+                                              "alignItems": "center",
+                                              "flex": 1,
+                                              "gap": 16,
+                                              "justifyContent": "center",
+                                            },
+                                          ]
                                         }
                                       >
-                                        <SvgMock
-                                          color="#ca3542"
-                                          fill="currentColor"
-                                          height={32}
-                                          name="Close"
+                                        <View
                                           style={
                                             {
-                                              "height": 32,
-                                              "width": 32,
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ca35421a",
+                                              "borderRadius": 28,
+                                              "height": 56,
+                                              "justifyContent": "center",
+                                              "width": 56,
                                             }
                                           }
-                                          width={32}
-                                        />
+                                        >
+                                          <SvgMock
+                                            color="#ca3542"
+                                            fill="currentColor"
+                                            height={32}
+                                            name="Close"
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            width={32}
+                                          />
+                                        </View>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#ca3542",
+                                              "fontFamily": "Geist Bold",
+                                              "fontSize": 18,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            }
+                                          }
+                                        >
+                                          There was an error
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#686e7d",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            }
+                                          }
+                                        >
+                                          Webview received error: 404
+                                        </Text>
                                       </View>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#ca3542",
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 18,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "textAlign": "center",
-                                          }
-                                        }
-                                      >
-                                        There was an error
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "textAlign": "center",
-                                          }
-                                        }
-                                      >
-                                        Webview received error: 404
-                                      </Text>
                                     </View>
-                                  </View>
-                                </RNCSafeAreaView>
+                                  </RNCSafeAreaView>
+                                </View>
                               </View>
-                            </View>
-                          </RNCSafeAreaView>
+                            </RNCSafeAreaView>
+                          </View>
                         </View>
                       </View>
                     </View>

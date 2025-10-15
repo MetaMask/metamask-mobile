@@ -244,12 +244,14 @@ const BottomSheetDialog = forwardRef<
             onLayout={updateSheetHeight}
             style={combinedSheetStyle}
           >
-            {isInteractable && (
-              <View style={styles.notchWrapper}>
-                <View style={styles.notch} />
-              </View>
-            )}
-            {children}
+            <View style={styles.innerSheetContainer}>
+              {isInteractable && (
+                <View style={styles.notchWrapper}>
+                  <View style={styles.notch} />
+                </View>
+              )}
+              {children}
+            </View>
           </Animated.View>
         </PanGestureHandler>
       </KeyboardAvoidingView>

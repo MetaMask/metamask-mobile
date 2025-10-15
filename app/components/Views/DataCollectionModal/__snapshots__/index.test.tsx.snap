@@ -77,16 +77,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
-            "maxHeight": 5,
             "overflow": "hidden",
-            "paddingBottom": 3,
-            "shadowColor": "#0000001a",
-            "shadowOffset": {
-              "height": 2,
-              "width": 0,
-            },
-            "shadowOpacity": 1,
-            "shadowRadius": 40,
           },
           {
             "transform": [
@@ -101,113 +92,83 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
       <View
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "padding": 4,
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
+            "maxHeight": 5,
+            "overflow": "hidden",
+            "paddingBottom": 3,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
           }
         }
       >
         <View
           style={
             {
-              "backgroundColor": "#b7bbc866",
-              "borderRadius": 2,
-              "height": 4,
-              "width": 40,
-            }
-          }
-        />
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-            "marginBottom": 10,
-            "marginTop": 10,
-          }
-        }
-      >
-        <SvgMock
-          color="#9a6300"
-          fill="currentColor"
-          height={24}
-          name="Warning"
-          style={
-            {
-              "height": 24,
-              "width": 24,
-            }
-          }
-          testID="data-collection-modal-icon-warning"
-          width={24}
-        />
-        <View
-          style={
-            {
-              "display": "flex",
-              "flexDirection": "column",
-              "gap": 10,
-              "margin": 20,
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "padding": 4,
             }
           }
         >
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 2,
+                "height": 4,
+                "width": 40,
               }
             }
-          >
-            Mocked string
-          </Text>
+          />
         </View>
         <View
           style={
             {
-              "backgroundColor": "#ffffff",
-              "flexDirection": "row",
-              "paddingHorizontal": 8,
-              "paddingVertical": 4,
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "marginBottom": 10,
+              "marginTop": 10,
             }
           }
-          testID="bottomsheetfooter"
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          <SvgMock
+            color="#9a6300"
+            fill="currentColor"
+            height={24}
+            name="Warning"
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
-                "borderRadius": 12,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
+                "height": 24,
+                "width": 24,
               }
             }
-            testID="data-collection-modal-accept-button"
+            testID="data-collection-modal-icon-warning"
+            width={24}
+          />
+          <View
+            style={
+              {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": 10,
+                "margin": 20,
+              }
+            }
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -216,7 +177,57 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             >
               Mocked string
             </Text>
-          </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "flexDirection": "row",
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              }
+            }
+            testID="bottomsheetfooter"
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="data-collection-modal-accept-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Mocked string
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

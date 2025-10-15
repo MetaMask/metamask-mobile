@@ -388,16 +388,7 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
-                                "maxHeight": 1334,
                                 "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -412,243 +403,263 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
                                 "backgroundColor": "#ffffff",
-                                "flexDirection": "row",
-                                "height": 32,
-                                "justifyContent": "space-between",
-                                "margin": 16,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
+                                },
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               }
                             }
-                          >
-                            <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Bold",
-                                  "fontSize": 18,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Enable NFT autodetection
-                            </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-end",
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            testID="nft-detection-modal"
                           >
                             <View
                               style={
                                 {
                                   "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "padding": 4,
                                 }
                               }
                             >
-                              <Image
-                                source={1}
-                                style={
-                                  {
-                                    "height": 219,
-                                    "width": 219,
-                                  }
-                                }
-                              />
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "marginLeft": 32,
-                                  "marginRight": 32,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Allow MetaMask to detect and display your NFTs with autodetection. You’ll be able to:
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                 • 
-                                Immediately access your NFTs
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                 • 
-                                Effortlessly navigate your digital assets
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                 • 
-                                Dive straight into using your NFTs
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "marginLeft": 16,
-                                  "marginRight": 16,
-                                  "paddingTop": 24,
-                                }
-                              }
-                            >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
-                                    "borderRadius": 12,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 16,
-                                  }
-                                }
-                                testID="allow"
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Allow
-                                </Text>
-                              </TouchableOpacity>
                               <View
                                 style={
                                   {
-                                    "height": 8,
+                                    "backgroundColor": "#b7bbc866",
+                                    "borderRadius": 2,
+                                    "height": 4,
+                                    "width": 40,
                                   }
                                 }
                               />
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "flexDirection": "row",
+                                  "height": 32,
+                                  "justifyContent": "space-between",
+                                  "margin": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                  }
+                                }
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Bold",
+                                    "fontSize": 18,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Enable NFT autodetection
+                              </Text>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              />
+                            </View>
+                            <View
+                              testID="nft-detection-modal"
+                            >
+                              <View
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "transparent",
-                                    "borderRadius": 12,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 16,
                                   }
                                 }
-                                testID="cancel"
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "height": 219,
+                                      "width": 219,
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "marginLeft": 32,
+                                    "marginRight": 32,
+                                  }
+                                }
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#4459ff",
-                                      "fontFamily": "Geist Medium",
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  Not right now
+                                  Allow MetaMask to detect and display your NFTs with autodetection. You’ll be able to:
                                 </Text>
-                              </TouchableOpacity>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   • 
+                                  Immediately access your NFTs
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   • 
+                                  Effortlessly navigate your digital assets
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                   • 
+                                  Dive straight into using your NFTs
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "marginLeft": 16,
+                                    "marginRight": 16,
+                                    "paddingTop": 24,
+                                  }
+                                }
+                              >
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="allow"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Allow
+                                  </Text>
+                                </TouchableOpacity>
+                                <View
+                                  style={
+                                    {
+                                      "height": 8,
+                                    }
+                                  }
+                                />
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "transparent",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="cancel"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#4459ff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Not right now
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </View>
