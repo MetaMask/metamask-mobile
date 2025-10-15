@@ -55,6 +55,39 @@ jest.mock('../../../../core/Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
+const mockRewardsController = {
+  getPerpsDiscountForAccount: jest.fn(),
+};
+
+const mockNetworkController = {
+  getNetworkClientById: jest.fn().mockReturnValue({
+    configuration: { chainId: '0x1' },
+  }),
+};
+
+jest.mock('../../../../core/Engine', () => ({
+  Engine: {
+    context: {
+      RewardsController: mockRewardsController,
+      NetworkController: mockNetworkController,
+      TransactionController: {},
+    },
+  },
+}));
+
+jest.mock('../../../../util/accounts', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
+    address: '0x1234567890123456789012345678901234567890',
+  }),
+}));
+
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  formatAccountToCaipAccountId: jest
+    .fn()
+    .mockReturnValue('eip155:1:0x1234567890123456789012345678901234567890'),
+}));
+
 describe('PerpsController', () => {
   let controller: PerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
@@ -116,7 +149,6 @@ describe('PerpsController', () => {
     });
 
     it('should return provider when initialized', () => {
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
 
@@ -168,7 +200,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockResolvedValue(mockPositions);
@@ -182,7 +213,6 @@ describe('PerpsController', () => {
     it('should handle getPositions error', async () => {
       const errorMessage = 'Network error';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockRejectedValue(new Error(errorMessage));
@@ -203,7 +233,6 @@ describe('PerpsController', () => {
         totalValue: '1600',
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getAccountState.mockResolvedValue(mockAccountState);
@@ -231,7 +260,6 @@ describe('PerpsController', () => {
         averagePrice: '50000',
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
@@ -252,7 +280,6 @@ describe('PerpsController', () => {
 
       const errorMessage = 'Order placement failed';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.placeOrder.mockRejectedValue(new Error(errorMessage));
@@ -261,6 +288,108 @@ describe('PerpsController', () => {
         errorMessage,
       );
       expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
+    });
+
+    describe('fee discounts', () => {
+      it('should apply fee discount when placing order with rewards', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        const mockOrderResult = {
+          success: true,
+          orderId: 'order-123',
+          filledSize: '0.1',
+          averagePrice: '50000',
+        };
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should clear fee discount context even when place order fails', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        const mockError = new Error('Order placement failed');
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.placeOrder.mockRejectedValue(mockError);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+          'Order placement failed',
+        );
+
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should place order without discount when user has no rewards', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        const mockOrderResult = {
+          success: true,
+          orderId: 'order-123',
+          filledSize: '0.1',
+          averagePrice: '50000',
+        };
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(undefined);
+
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
+        expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
+      });
     });
   });
 
@@ -281,7 +410,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getMarkets.mockResolvedValue(mockMarkets);
@@ -305,7 +433,6 @@ describe('PerpsController', () => {
         orderId: 'order-123',
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.cancelOrder.mockResolvedValue(mockCancelResult);
@@ -332,7 +459,6 @@ describe('PerpsController', () => {
         averagePrice: '50000',
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.closePosition.mockResolvedValue(mockCloseResult);
@@ -341,6 +467,105 @@ describe('PerpsController', () => {
 
       expect(result).toEqual(mockCloseResult);
       expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
+    });
+
+    describe('fee discounts', () => {
+      it('should apply fee discount when closing position with rewards', async () => {
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+          size: '0.5',
+        };
+
+        const mockCloseResult = {
+          success: true,
+          orderId: 'close-order-123',
+          filledSize: '0.5',
+          averagePrice: '50000',
+        };
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.closePosition.mockResolvedValue(mockCloseResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        const result = await controller.closePosition(closeParams);
+
+        expect(result).toEqual(mockCloseResult);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should clear fee discount context even when close position fails', async () => {
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+          size: '0.5',
+        };
+
+        const mockError = new Error('Close position failed');
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.closePosition.mockRejectedValue(mockError);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        await expect(controller.closePosition(closeParams)).rejects.toThrow(
+          'Close position failed',
+        );
+
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should close position without discount when user has no rewards', async () => {
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+          size: '0.5',
+        };
+
+        const mockCloseResult = {
+          success: true,
+          orderId: 'close-order-123',
+          filledSize: '0.5',
+          averagePrice: '50000',
+        };
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.closePosition.mockResolvedValue(mockCloseResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(undefined);
+
+        const result = await controller.closePosition(closeParams);
+
+        expect(result).toEqual(mockCloseResult);
+        expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
+        expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
+      });
     });
   });
 
@@ -357,7 +582,6 @@ describe('PerpsController', () => {
         isValid: true,
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.validateOrder.mockResolvedValue(mockValidationResult);
@@ -386,7 +610,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getOrderFills.mockResolvedValue(mockOrderFills);
@@ -416,7 +639,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getOrders.mockResolvedValue(mockOrders);
@@ -436,7 +658,6 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToPrices.mockReturnValue(mockUnsubscribe);
@@ -455,7 +676,6 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToPositions.mockReturnValue(mockUnsubscribe);
@@ -483,7 +703,6 @@ describe('PerpsController', () => {
         withdrawalId: 'withdrawal-123',
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.withdraw.mockResolvedValue(mockWithdrawResult);
@@ -508,7 +727,6 @@ describe('PerpsController', () => {
 
       const mockLiquidationPrice = '45000';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.calculateLiquidationPrice.mockResolvedValue(
@@ -531,7 +749,6 @@ describe('PerpsController', () => {
       const asset = 'BTC';
       const mockMaxLeverage = 50;
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getMaxLeverage.mockResolvedValue(mockMaxLeverage);
@@ -559,7 +776,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getWithdrawalRoutes.mockReturnValue(mockRoutes);
@@ -577,7 +793,6 @@ describe('PerpsController', () => {
       const mockUrl =
         'https://app.hyperliquid.xyz/explorer/address/0x1234567890123456789012345678901234567890';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getBlockExplorerUrl.mockReturnValue(mockUrl);
@@ -593,7 +808,6 @@ describe('PerpsController', () => {
     it('should handle provider errors gracefully', async () => {
       const errorMessage = 'Provider connection failed';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockRejectedValue(new Error(errorMessage));
@@ -605,7 +819,6 @@ describe('PerpsController', () => {
     it('should handle network errors', async () => {
       const errorMessage = 'Network timeout';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getAccountState.mockRejectedValue(new Error(errorMessage));
@@ -639,7 +852,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockResolvedValue(mockPositions);
@@ -654,7 +866,6 @@ describe('PerpsController', () => {
     it('should handle errors without updating state', async () => {
       const errorMessage = 'Failed to fetch positions';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockRejectedValue(new Error(errorMessage));
@@ -666,7 +877,6 @@ describe('PerpsController', () => {
 
   describe('connection management', () => {
     it('should handle disconnection', async () => {
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.disconnect.mockResolvedValue({ success: true });
@@ -701,7 +911,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getFunding.mockResolvedValue(mockFunding);
@@ -729,7 +938,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getOrderFills.mockResolvedValue(mockOrderFills);
@@ -760,7 +968,6 @@ describe('PerpsController', () => {
         updatedOrder: editParams.newOrder,
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.editOrder.mockResolvedValue(mockEditResult);
@@ -785,7 +992,6 @@ describe('PerpsController', () => {
 
       const errorMessage = 'Order edit failed';
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.editOrder.mockRejectedValue(new Error(errorMessage));
@@ -804,7 +1010,6 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToOrderFills.mockReturnValue(mockUnsubscribe);
@@ -821,7 +1026,6 @@ describe('PerpsController', () => {
         positionThrottleMs: 2000,
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.setLiveDataConfig.mockReturnValue(undefined);
@@ -838,7 +1042,6 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToPrices.mockReturnValue(mockUnsubscribe);
@@ -894,7 +1097,6 @@ describe('PerpsController', () => {
         },
       ];
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getWithdrawalRoutes.mockReturnValue(mockRoutes);
@@ -929,7 +1131,6 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToOrders.mockReturnValue(mockUnsubscribe);
@@ -946,7 +1147,6 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToAccount.mockReturnValue(mockUnsubscribe);
@@ -971,7 +1171,6 @@ describe('PerpsController', () => {
         errors: [],
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.validateClosePosition.mockResolvedValue(
@@ -998,7 +1197,6 @@ describe('PerpsController', () => {
         errors: [],
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.validateWithdrawal.mockResolvedValue(mockValidationResult);
@@ -1025,7 +1223,6 @@ describe('PerpsController', () => {
         positionId: 'pos-123',
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockUpdateResult);
@@ -1038,6 +1235,105 @@ describe('PerpsController', () => {
       );
     });
 
+    describe('TP/SL fee discounts', () => {
+      it('should apply fee discount when updating TP/SL with rewards', async () => {
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          stopLossPrice: '45000',
+        };
+
+        const mockUpdateResult = {
+          success: true,
+          positionId: 'pos-123',
+        };
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.updatePositionTPSL.mockResolvedValue(mockUpdateResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        const result = await controller.updatePositionTPSL(updateParams);
+
+        expect(result).toEqual(mockUpdateResult);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(
+          updateParams,
+        );
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should clear fee discount context even when TP/SL update fails', async () => {
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          stopLossPrice: '45000',
+        };
+
+        const mockError = new Error('TP/SL update failed');
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.updatePositionTPSL.mockRejectedValue(mockError);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        await expect(
+          controller.updatePositionTPSL(updateParams),
+        ).rejects.toThrow('TP/SL update failed');
+
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should update TP/SL without discount when user has no rewards', async () => {
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          stopLossPrice: '45000',
+        };
+
+        const mockUpdateResult = {
+          success: true,
+          positionId: 'pos-123',
+        };
+
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.updatePositionTPSL.mockResolvedValue(mockUpdateResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(undefined);
+
+        const result = await controller.updatePositionTPSL(updateParams);
+
+        expect(result).toEqual(mockUpdateResult);
+        expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
+        expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(
+          updateParams,
+        );
+      });
+    });
+
     it('should calculate maintenance margin', async () => {
       const marginParams = {
         coin: 'BTC',
@@ -1048,7 +1344,6 @@ describe('PerpsController', () => {
 
       const mockMargin = 2500;
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.calculateMaintenanceMargin.mockResolvedValue(mockMargin);
@@ -1081,7 +1376,6 @@ describe('PerpsController', () => {
         metamaskFeeRate: 0.0002,
       };
 
-      // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.calculateFees.mockResolvedValue(mockFees);
@@ -1137,13 +1431,11 @@ describe('PerpsController', () => {
       // Clear any fetch calls from controller initialization
       (global.fetch as jest.Mock).mockClear();
 
-      // Act
       const result = await (testnetController as any).reportOrderToDataLake({
         action: 'open',
         coin: 'BTC',
       });
 
-      // Assert
       expect(result.success).toBe(true);
       expect(result.error).toBe('Skipped for testnet');
       expect(global.fetch).not.toHaveBeenCalled();
@@ -1157,6 +1449,9 @@ describe('PerpsController', () => {
     });
 
     it('handles data lake reporting errors gracefully', async () => {
+      (controller as any).isInitialized = true;
+      (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
+
       mockProvider.placeOrder.mockResolvedValue({
         success: true,
         orderId: 'order123',
@@ -1184,12 +1479,16 @@ describe('PerpsController', () => {
       expect(result.orderId).toBe('order123');
 
       // Verify that Logger.error was called for the data lake failure
+      // The new implementation uses getErrorContext() which has different structure
       const errorCalls = (Logger.error as jest.Mock).mock.calls;
+
       const hasDataLakeError = errorCalls.some((call) => {
         const secondArg = call[1];
         return (
           typeof secondArg === 'object' &&
-          secondArg.message === 'DataLake API: Request failed'
+          secondArg.context === 'PerpsController.reportOrderToDataLake' &&
+          secondArg.coin === 'BTC' &&
+          secondArg.action === 'open'
         );
       });
       expect(hasDataLakeError).toBe(true);

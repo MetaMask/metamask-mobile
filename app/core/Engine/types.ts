@@ -326,6 +326,12 @@ import {
   GatorPermissionsController,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
+import { DelegationController } from '@metamask/delegation-controller';
+import {
+  DelegationControllerActions,
+  DelegationControllerEvents,
+  DelegationControllerState,
+} from '@metamask/delegation-controller/dist/types.cjs';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 
@@ -428,7 +434,8 @@ type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
-  | ErrorReportingServiceActions;
+  | ErrorReportingServiceActions
+  | DelegationControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -488,7 +495,8 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
-  | AccountTreeControllerEvents;
+  | AccountTreeControllerEvents
+  | DelegationControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -574,6 +582,7 @@ export type Controllers = {
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
+  DelegationController: DelegationController;
 };
 
 /**
@@ -645,6 +654,7 @@ export type EngineState = {
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   GatorPermissionsController: GatorPermissionsControllerState;
+  DelegationController: DelegationControllerState;
 };
 
 /** Controller names */
@@ -678,6 +688,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  | 'AuthenticationController'
   | 'CronjobController'
   | 'ExecutionService'
   | 'SnapController'
@@ -688,6 +699,7 @@ export type ControllersToInitialize =
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
   | 'SubjectMetadataController'
+  | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
@@ -710,6 +722,7 @@ export type ControllersToInitialize =
   | 'NftDetectionController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
+  | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
@@ -727,6 +740,7 @@ export type ControllersToInitialize =
   | 'NetworkEnablementController'
   | 'RewardsController'
   | 'GatorPermissionsController'
+  | 'DelegationController'
   | 'SelectedNetworkController';
 
 /**
