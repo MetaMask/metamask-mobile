@@ -118,6 +118,7 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
+import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
@@ -269,6 +270,10 @@ const RewardsHome = () => (
       name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
       component={RewardOptInAccountGroupModal}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
+      component={ReferralBottomSheetModal}
     />
   </Stack.Navigator>
 );

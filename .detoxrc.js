@@ -42,9 +42,17 @@ module.exports = {
       device: 'android.emulator',
       app: 'android.debug',
     },
+    'android.emu.flask': {
+      device: 'android.emulator',
+      app: 'android.flask.debug',
+    },
     'ios.sim.main': {
       device: 'ios.simulator',
       app: 'ios.debug',
+    },
+    'ios.sim.flask': {
+      device: 'ios.simulator',
+      app: 'ios.flask.debug',
     },
     'android.emu.main.ci': {
       device: 'android.github_ci.emulator',
@@ -104,6 +112,12 @@ module.exports = {
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: `yarn build:ios:main:e2e`,
     },
+    'ios.flask.debug': {
+      type: 'ios.app',
+      binaryPath:
+        'ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app',
+      build: 'yarn start:ios:e2e:flask',
+    },
     'ios.flask.release': {
       type: 'ios.app',
       binaryPath:
@@ -115,6 +129,12 @@ module.exports = {
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
       testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
       build: 'yarn start:android:e2e',
+    },
+    'android.flask.debug': {
+      type: 'android.apk',
+      binaryPath: 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
+      testBinaryPath: 'android/app/build/outputs/apk/androidTest/flask/debug/app-flask-debug-androidTest.apk',
+      build: 'yarn start:android:e2e:flask',
     },
     'android.release': {
       type: 'android.apk',

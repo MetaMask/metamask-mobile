@@ -221,9 +221,11 @@
     "remind_later_description2": "설정 > 보호 및 보안에서 지갑을 백업하거나",
     "setting_security_privacy": "설정 > 보안 & 개인정보 보호"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "MetaMask에 오신 것을 환영합니다",
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "{{count}}개 시장에서 수익을 냄",
     "claim_amount_text": "${{amount}} 수령",
     "unrealized_pnl_label": "미실현 손익",
-    "unrealized_pnl_value": "{{amount}}({{percent}})"
+    "unrealized_pnl_value": "{{amount}}({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "받기"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "대출 예치",
     "tx_review_lending_withdraw": "대출 출금",
     "tx_review_perps_deposit": "자금이 입금된 무기한 선물 계정",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "보낸 이더",
     "self_sent_ether": "나에게 보낸 이더",
     "received_ether": "받은 이더",
@@ -5288,7 +5297,8 @@
       "transfer": "전송 요청",
       "switch_account_type": "계정 업데이트",
       "approve": "요청 승인",
-      "perps_deposit": "자금 추가"
+      "perps_deposit": "자금 추가",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
@@ -5306,6 +5316,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "무기한 선물에서 사용하는 네트워크인 HyperEVM에서 토큰을 USDC로 스왑합니다. 스왑 제공업체가 수수료를 부과할 수 있지만 MetaMask에서 부과하는 수수료는 없습니다."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "수수료"
@@ -5524,7 +5537,9 @@
     "account_not_found": "지갑을 찾을 수 없음",
     "account_not_found_description": "'{{accountName}}'에 대한 지갑을 찾을 수 없습니다. 로그인한 상태에서 새 지갑을 만드시겠습니까?",
     "create_new_wallet": "새 지갑 생성",
-    "use_different_login_method": "다른 로그인 방법 사용"
+    "use_different_login_method": "다른 로그인 방법 사용",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "아직 자리에 계세요?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "지원되지 않는 지역입니다",
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "입금 완료된 무기한 선물 계정",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "트랜잭션 세부 사항"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "브릿지",
       "default": "트랜잭션",
       "perps_deposit": "자금 추가",
+      "predict_deposit": "Add funds",
       "swap": "토큰 스왑",
       "swap_approval": "토큰 승인"
     }

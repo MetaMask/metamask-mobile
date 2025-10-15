@@ -53,7 +53,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
@@ -259,7 +258,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
-            amount: '$1,000.00',
+            amount: '$1,000',
           }),
         ),
       ).toBeOnTheScreen();
