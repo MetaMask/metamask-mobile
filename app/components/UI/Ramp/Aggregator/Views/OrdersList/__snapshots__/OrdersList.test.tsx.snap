@@ -1668,52 +1668,72 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
 exports[`OrdersList renders correctly 1`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <Row>
-      <Text
-        color="Muted"
-        style={
-          {
-            "textAlign": "center",
-          }
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "paddingVertical": 40,
+          "width": "100%",
         }
-        variant="sHeadingMD"
-      >
-        No bank or card transfers yet.
-      </Text>
-    </Row>
+      }
+    >
+      <TabEmptyState
+        description="No bank or card transfers yet."
+      />
+    </View>
   }
   ListHeaderComponent={
-    <ForwardRef
-      horizontal={true}
+    <Box
+      twClassName="py-2 bg-default"
     >
-      <Row
-        style={
+      <ForwardRef
+        contentContainerStyle={
           {
-            "alignItems": "center",
-            "columnGap": 8,
             "flexDirection": "row",
-            "marginHorizontal": 24,
-            "marginVertical": 16,
+            "gap": 12,
           }
         }
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
       >
-        <FilterButton
-          label="All"
+        <Memo(Pressable)
           onPress={[Function]}
-          selected={true}
-        />
-        <FilterButton
-          label="Purchased"
+          style={[Function]}
+        >
+          <Text
+            fontWeight="500"
+            twClassName="text-icon-inverse"
+            variant="body-md"
+          >
+            All
+          </Text>
+        </Memo(Pressable)>
+        <Memo(Pressable)
           onPress={[Function]}
-          selected={false}
-        />
-        <FilterButton
-          label="Sold"
+          style={[Function]}
+        >
+          <Text
+            fontWeight="500"
+            twClassName="text-default"
+            variant="body-md"
+          >
+            Purchased
+          </Text>
+        </Memo(Pressable)>
+        <Memo(Pressable)
           onPress={[Function]}
-          selected={false}
-        />
-      </Row>
-    </ForwardRef>
+          style={[Function]}
+        >
+          <Text
+            fontWeight="500"
+            twClassName="text-default"
+            variant="body-md"
+          >
+            Sold
+          </Text>
+        </Memo(Pressable)>
+      </ForwardRef>
+    </Box>
   }
   data={
     [
@@ -1876,148 +1896,221 @@ exports[`OrdersList renders correctly 1`] = `
       collapsable={false}
       onLayout={[Function]}
     >
-      <RCTScrollView
-        collapsable={false}
-        handlerTag={-1}
-        handlerType="NativeViewGestureHandler"
-        horizontal={true}
-        onGestureHandlerEvent={[Function]}
-        onGestureHandlerStateChange={[Function]}
+      <View
+        style={
+          [
+            {
+              "backgroundColor": "#ffffff",
+              "display": "flex",
+              "paddingBottom": 8,
+              "paddingTop": 8,
+            },
+            undefined,
+          ]
+        }
       >
-        <View>
-          <View
-            style={
-              [
-                {
-                  "marginVertical": 8,
-                },
-                undefined,
-                undefined,
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                  "marginHorizontal": 24,
-                  "marginVertical": 16,
-                },
-              ]
+        <RCTScrollView
+          collapsable={false}
+          contentContainerStyle={
+            {
+              "flexDirection": "row",
+              "gap": 12,
             }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
+          }
+          handlerTag={-1}
+          handlerType="NativeViewGestureHandler"
+          horizontal={true}
+          onGestureHandlerEvent={[Function]}
+          onGestureHandlerStateChange={[Function]}
+          showsHorizontalScrollIndicator={false}
+        >
+          <View>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
-                  "alignSelf": "flex-start",
                   "backgroundColor": "#121314",
                   "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 32,
+                  "height": 40,
                   "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#ffffff",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
               >
                 All
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityRole="button"
+            </View>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
-                  "alignSelf": "flex-start",
                   "backgroundColor": "#3c4d9d0f",
-                  "borderColor": "transparent",
                   "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 32,
+                  "height": 40,
                   "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
               >
                 Purchased
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityRole="button"
+            </View>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
-                  "alignSelf": "flex-start",
                   "backgroundColor": "#3c4d9d0f",
-                  "borderColor": "transparent",
                   "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 32,
+                  "height": 40,
                   "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
                 }
               >
                 Sold
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </RCTScrollView>
+        </RCTScrollView>
+      </View>
     </View>
     <View
       onFocusCapture={[Function]}
