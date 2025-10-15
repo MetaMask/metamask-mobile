@@ -12,11 +12,12 @@ import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFi
 import { selectAccountBalanceByChainId } from '../../../../../selectors/accountTrackerController';
 import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const fiatFormatter = useFiatFormatter();
+  const nativeTokenAddress = getNativeTokenAddress(chainId);
 
   const token = useSelector((state: RootState) =>
     selectSingleTokenByAddressAndChainId(state, tokenAddress, chainId),
@@ -52,7 +53,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const nativeBalanceHex = (nativeBalanceResult?.balance as Hex) ?? '0x0';
 
   const isNative =
-    tokenAddress.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
+    tokenAddress.toLowerCase() === nativeTokenAddress.toLowerCase();
 
   return useMemo(() => {
     if (!token && !isNative) {
