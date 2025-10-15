@@ -11,7 +11,6 @@
 
 ## E2E Framework Structure
 
-- **Testing Scenarios (`e2e/specs/`)** - Test files organized by feature
 - **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
 - **Page Objects (`e2e/pages/`)**: Page Object Model implementation
@@ -26,6 +25,16 @@
 - **`Matchers.ts`** - Type-safe element selectors with flexible options
 - **`Utilities.ts`** - Core utilities with specialized element state checking
 - **`FixtureBuilder.ts`** - Builder pattern for creating test fixtures
+
+**Key E2E Directories:**
+
+- `e2e/framework/` - TypeScript framework foundation (USE THIS)
+- `e2e/specs/` - Test files organized by feature
+- `e2e/pages/` - Page Object classes following POM pattern
+- `e2e/selectors/` - Element selectors (avoid direct use in tests)
+- `e2e/api-mocking/` - API mocking utilities and responses
+- `e2e/fixtures/` - Test fixtures and data (⚠️ being deprecated)
+- `e2e/utils/` - Legacy utilities (⚠️ deprecated - use framework/)
 
 ## E2E Testing Best Practices
 
