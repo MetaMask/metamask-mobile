@@ -32,12 +32,12 @@ const createStyles = () =>
     },
     createWrapper: {
       flexDirection: 'column',
-      rowGap: Device.isMediumDevice() ? 12 : 16,
+      rowGap: Device.isMediumDevice() ? 6 : 8,
       marginBottom: 16,
       position: 'absolute',
       top: '50%',
-      left: Device.isMediumDevice() ? 26 : 36,
-      right: Device.isMediumDevice() ? 26 : 36,
+      left: 8,
+      right: 8,
       marginTop: 180,
       alignItems: 'stretch',
     },
@@ -69,7 +69,7 @@ const OnboardingAnimation = ({
 
   const moveLogoUp = useCallback(() => {
     if (isE2E) {
-      logoPosition.setValue(-180);
+      logoPosition.setValue(-240);
       buttonsOpacity.setValue(1);
       setStartFoxAnimation(true);
       return;
@@ -77,7 +77,7 @@ const OnboardingAnimation = ({
 
     Animated.parallel([
       Animated.timing(logoPosition, {
-        toValue: -180,
+        toValue: -240,
         duration: 1200,
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,

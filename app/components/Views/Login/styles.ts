@@ -1,13 +1,13 @@
-import { Theme } from '@metamask/design-tokens';
+import { Theme } from '../../../util/theme/models';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
 const styleSheet = (params: { theme: Theme }) => {
   const {
-    theme: { colors },
+    theme: { colors, themeAppearance },
   } = params;
 
   return StyleSheet.create({
@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
         android: StatusBar.currentHeight ?? 0,
         default: 0,
       }),
-      backgroundColor: colors.background.default,
       flex: 1,
     },
     wrapper: {
@@ -25,10 +24,20 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     container: {
       flex: 1,
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
       alignItems: 'center',
       flexDirection: 'column',
       width: '100%',
+    },
+    scrollContentContainer: {
+      flex: 1,
+    },
+    foxAnimationWrapper: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 200,
     },
     foxWrapper: {
       justifyContent: 'center',
@@ -47,28 +56,25 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 24,
     },
     field: {
-      marginBottom: Device.isAndroid() ? 0 : 10,
+      marginBottom: 0,
       flexDirection: 'column',
       width: '100%',
       rowGap: 8,
       justifyContent: 'flex-start',
-    },
-    label: {
-      marginBottom: -4,
     },
     ctaWrapper: {
       width: '100%',
       flexDirection: 'column',
       alignItems: 'center',
       rowGap: 24,
-      marginTop: 24,
+      marginTop: 0,
     },
     footer: {
       marginVertical: 40,
       alignItems: 'center',
     },
     goBack: {
-      marginVertical: 14,
+      marginVertical: 0,
       alignSelf: 'center',
     },
     biometrics: {
@@ -159,6 +165,12 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'flex-start',
       rowGap: 2,
       alignSelf: 'flex-start',
+    },
+    textField: {
+      backgroundColor:
+        themeAppearance === 'dark'
+          ? importedColors.gettingStartedTextColor
+          : importedColors.gettingStartedPageBackgroundColorLightMode,
     },
   });
 };

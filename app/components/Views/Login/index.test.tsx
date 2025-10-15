@@ -25,6 +25,9 @@ import {
   TRUE,
 } from '../../../constants/storage';
 import { useMetrics } from '../../hooks/useMetrics';
+import styleSheet from './styles';
+import { colors as importedColors } from '../../../styles/common';
+import { Theme } from '../../../util/theme/models';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -73,13 +76,16 @@ jest.mock('../../../util/password', () => ({
   passwordRequirementsMet: jest.fn(),
 }));
 
-// Mock react-native with Keyboard
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Keyboard: {
-    dismiss: jest.fn(),
-  },
-}));
+// Mock react-native Keyboard
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Keyboard: {
+      dismiss: jest.fn(),
+    },
+  };
+});
 
 // Mock StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -125,6 +131,67 @@ jest.mock('../../../util/authentication', () => ({
 
 jest.mock('../../../core/BackupVault', () => ({
   getVaultFromBackup: jest.fn(),
+}));
+
+// Mock animation components
+jest.mock('../Onboarding/OnboardingAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+
+  return ({
+    children,
+    startOnboardingAnimation,
+    setStartFoxAnimation,
+  }: {
+    children: React.ReactNode;
+    startOnboardingAnimation: boolean;
+    setStartFoxAnimation: (value: boolean) => void;
+  }) => {
+    // Use synchronous execution
+    if (startOnboardingAnimation && setStartFoxAnimation) {
+      // Call immediately and synchronously
+      setStartFoxAnimation(true);
+    }
+
+    return React.createElement(
+      View,
+      { testID: 'onboarding-animation-mock' },
+      children,
+    );
+  };
+});
+
+jest.mock('../Onboarding/FoxAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View, Text } = require('react-native');
+
+  return () =>
+    React.createElement(
+      View,
+      { testID: 'fox-animation-mock' },
+      React.createElement(Text, null, 'Fox Animation Mock'),
+    );
+});
+
+// Mock Rive animations
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: () => null,
+  Fit: { Contain: 'contain' },
+  Alignment: { Center: 'center' },
+}));
+
+// Mock safe area context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('../../../util/validators', () => ({
@@ -1278,7 +1345,60 @@ describe('Login', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('Login Styles', () => {
+    it('should return correct textField background color for light theme', () => {
+      // Arrange
+      const mockTheme = {
+        colors: {
+          background: { default: '#FFFFFF' },
+          text: { default: '#000000', alternative: '#666666' },
+          border: { default: '#E5E5E5' },
+          error: { default: '#FF0000' },
+          icon: { default: '#000000' },
+        },
+        themeAppearance: 'light',
+        typography: {},
+        shadows: {},
+        brandColors: {},
+      } as unknown as Theme;
+
+      // Act
+      const styles = styleSheet({ theme: mockTheme });
+
+      // Assert
+      expect(styles.textField.backgroundColor).toBe(
+        importedColors.gettingStartedPageBackgroundColorLightMode,
+      );
+    });
+
+    it('should return correct textField background color for dark theme', () => {
+      // Arrange
+      const mockDarkTheme = {
+        colors: {
+          background: { default: '#000000' },
+          text: { default: '#FFFFFF', alternative: '#CCCCCC' },
+          border: { default: '#333333' },
+          error: { default: '#FF6B6B' },
+          icon: { default: '#FFFFFF' },
+        },
+        themeAppearance: 'dark',
+        typography: {},
+        shadows: {},
+        brandColors: {},
+      } as unknown as Theme;
+
+      // Act
+      const styles = styleSheet({ theme: mockDarkTheme });
+
+      // Assert
+      expect(styles.textField.backgroundColor).toBe(
+        importedColors.gettingStartedTextColor,
+      );
+    });
+  });
 });
+
 // it('should navigate back and reset OAuth state when using other methods', async () => {
 //   mockRoute.mockReturnValue({
 //     params: {
