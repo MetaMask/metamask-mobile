@@ -90,6 +90,8 @@ import { getAccountTrackerControllerMessenger } from './account-tracker-controll
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
 import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
+import { getUserStorageControllerMessenger } from './identity/user-storage-controller-messenger';
+import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
 
 import {
   getDelegationControllerInitMessenger,
@@ -176,6 +178,10 @@ export const CONTROLLER_MESSENGERS = {
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  AuthenticationController: {
+    getMessenger: getAuthenticationControllerMessenger,
+    getInitMessenger: noop,
+  },
   CronjobController: {
     getMessenger: getCronjobControllerMessenger,
     getInitMessenger: noop,
@@ -206,6 +212,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SubjectMetadataController: {
     getMessenger: getSubjectMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
+  UserStorageController: {
+    getMessenger: getUserStorageControllerMessenger,
     getInitMessenger: noop,
   },
   WebSocketService: {
