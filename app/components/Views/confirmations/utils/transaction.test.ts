@@ -177,28 +177,39 @@ describe('hasTransactionType', () => {
       type: TransactionType.simpleSend,
     } as TransactionMeta;
 
-    expect(hasTransactionType(txMeta, [TransactionType.bridge, TransactionType.simpleSend])).toBe(true);
+    expect(
+      hasTransactionType(txMeta, [
+        TransactionType.bridge,
+        TransactionType.simpleSend,
+      ]),
+    ).toBe(true);
   });
 
   it('returns true if nested transaction type matches', () => {
     const txMeta = {
       type: TransactionType.batch,
-      nestedTransactions: [
-        { type: TransactionType.simpleSend },
-      ],
+      nestedTransactions: [{ type: TransactionType.simpleSend }],
     } as TransactionMeta;
 
-    expect(hasTransactionType(txMeta, [TransactionType.bridge, TransactionType.simpleSend])).toBe(true);
+    expect(
+      hasTransactionType(txMeta, [
+        TransactionType.bridge,
+        TransactionType.simpleSend,
+      ]),
+    ).toBe(true);
   });
 
   it('returns false if neither transaction type nor nested transaction types match', () => {
     const txMeta = {
       type: TransactionType.batch,
-      nestedTransactions: [
-        { type: TransactionType.bridge },
-      ],
+      nestedTransactions: [{ type: TransactionType.bridge }],
     } as TransactionMeta;
 
-    expect(hasTransactionType(txMeta, [TransactionType.simpleSend, TransactionType.cancel])).toBe(false);
+    expect(
+      hasTransactionType(txMeta, [
+        TransactionType.simpleSend,
+        TransactionType.cancel,
+      ]),
+    ).toBe(false);
   });
 });

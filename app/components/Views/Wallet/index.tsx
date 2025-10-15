@@ -104,7 +104,6 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import CollectibleContracts from '../../UI/CollectibleContracts';
 import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -181,6 +180,7 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -195,6 +195,7 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       flex: 1,
+      marginTop: 8,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -423,12 +424,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
+    if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
       tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
-    } else if (collectiblesEnabled) {
-      tabs.push(
-        <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
-      );
     }
 
     return tabs;
@@ -1277,6 +1274,7 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
+        <AssetPollingProvider />
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
