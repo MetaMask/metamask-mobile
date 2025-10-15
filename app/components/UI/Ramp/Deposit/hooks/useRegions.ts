@@ -29,10 +29,9 @@ export function useRegions(): UseRegionsResult {
 
     if (regions && regions.length > 0) {
       if (isAuthenticated && userDetails?.address?.countryCode) {
-        const userRegion =
-          regions.find(
-            (region) => region.isoCode === userDetails.address.countryCode,
-          ) || null;
+        const userRegion = regions.find(
+          (region) => region.isoCode === userDetails.address.countryCode,
+        );
 
         if (userRegion) {
           setSelectedRegion(userRegion);
