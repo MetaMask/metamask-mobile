@@ -1,30 +1,27 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo } from 'react';
-import { makeSelectAssetByAddressAndChainId } from '../../../../selectors/multichain';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { Hex } from '@metamask/utils';
 import {
-  selectCurrencyRateForChainId,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectShowFiatInTestnets } from '../../../../selectors/settings';
-import { selectSingleTokenPriceMarketData } from '../../../../selectors/tokenRatesController';
-import { selectSingleTokenBalance } from '../../../../selectors/tokenBalancesController';
-import { formatWithThreshold } from '../../../../util/assets';
-import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_RATE_UNDEFINED,
-} from '../../Tokens/constants';
-import I18n, { strings } from '../../../../../locales/i18n';
+  selectPrimaryCurrency,
+  selectShowFiatInTestnets,
+} from '../../../../selectors/settings';
+import { TOKEN_RATE_UNDEFINED } from '../../Tokens/constants';
+import { strings } from '../../../../../locales/i18n';
 import { isTestNet } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
+import {
+  selectCurrencyRateForChainId,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
+import { selectSingleTokenPriceMarketData } from '../../../../selectors/tokenRatesController';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -37,10 +34,6 @@ export const useAssetBalance = (
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
 } => {
-  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
   const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
   const chainIds = Object.entries(popularNetworks || {})
     .map((network) => network[1]?.chainId)
@@ -49,31 +42,29 @@ export const useAssetBalance = (
     chainIds,
   });
 
-  const selectEvmAsset = useMemo(
-    () => makeSelectAssetByAddressAndChainId(),
-    [],
-  );
-
-  const evmAsset = useSelector((state: RootState) =>
-    token?.chainId
-      ? selectEvmAsset(state, {
+  let asset = useSelector((state: RootState) =>
+    token
+      ? selectAsset(state, {
           address: token.address,
+          chainId: token.chainId as string,
           isStaked: token.isStaked,
-          chainId: token.chainId,
         })
       : undefined,
   );
-
-  let asset = evmAsset;
-  let isMappedAsset = false;
+  const chainId = asset?.chainId as Hex;
 
   if (!asset && token) {
-    const iconUrl = buildTokenIconUrl(token.chainId, token.address);
-    const filteredToken = tokensWithBalance.find(
-      (t) =>
+    const iconUrl = buildTokenIconUrl(chainId, token.address);
+    const filteredToken = tokensWithBalance.find((t) => {
+      if (token.chainId && isSolanaChainId(token.chainId)) {
+        return t.address === token.address && t.chainId === token.chainId;
+      }
+
+      return (
         t.address.toLowerCase() === token.address.toLowerCase() &&
-        t.chainId === token.chainId,
-    );
+        t.chainId === token.chainId
+      );
+    });
 
     asset = {
       ...token,
@@ -84,53 +75,17 @@ export const useAssetBalance = (
       balance: filteredToken?.balance ?? '0',
       balanceFiat: filteredToken?.balanceFiat ?? '0',
     } as TokenI;
-    isMappedAsset = true;
   }
 
-  const primaryCurrency = useSelector(
-    (state: RootState) => state.settings.primaryCurrency,
+  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
+  const conversionRate = useSelector((state: RootState) =>
+    selectCurrencyRateForChainId(state, chainId as Hex),
+  );
+  const exchangeRates = useSelector((state: RootState) =>
+    selectSingleTokenPriceMarketData(state, chainId, asset?.address as Hex),
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-
-  // Market data selectors
-  const exchangeRates = useSelector((state: RootState) =>
-    asset?.chainId && asset?.address
-      ? selectSingleTokenPriceMarketData(
-          state,
-          asset.chainId as Hex,
-          asset.address as Hex,
-        )
-      : undefined,
-  );
-
-  // Token balance selectors
-  let tokenBalances = useSelector((state: RootState) =>
-    selectedInternalAccountAddress && asset?.chainId && asset?.address
-      ? selectSingleTokenBalance(
-          state,
-          selectedInternalAccountAddress as Hex,
-          asset.chainId as Hex,
-          asset.address as Hex,
-        )
-      : undefined,
-  );
-
-  const conversionRate = useSelector((state: RootState) =>
-    asset?.chainId
-      ? selectCurrencyRateForChainId(state, asset.chainId as Hex)
-      : undefined,
-  );
-
-  if (token?.availableBalance) {
-    tokenBalances = {
-      ...tokenBalances,
-      [token.address]: token.availableBalance.toString() as `0x${string}`,
-    };
-  }
-
-  const oneHundredths = 0.01;
-  const oneHundredThousandths = 0.00001;
 
   const { balanceFiat, balanceValueFormatted, rawFiatNumber, rawTokenBalance } =
     useMemo(() => {
@@ -143,94 +98,41 @@ export const useAssetBalance = (
         };
       }
 
-      if (isMappedAsset) {
-        const zeroBalanceFiat = formatWithThreshold(
-          0,
-          oneHundredths,
-          I18n.locale,
-          { style: 'currency', currency: currentCurrency },
-        );
-        const zeroBalanceFormatted = `0 ${asset.symbol}`;
-        const parsedBalance = asset.balance ? parseFloat(asset.balance) : 0;
-        const parsedFiat = asset.balanceFiat
-          ? parseFloat(String(asset.balanceFiat).replace(/[^0-9.]/g, ''))
-          : 0;
-
-        return {
-          balanceFiat:
-            asset.balanceFiat && asset.balanceFiat !== '0'
-              ? asset.balanceFiat
-              : zeroBalanceFiat,
-          balanceValueFormatted:
-            asset.balance && asset.balance !== '0'
-              ? formatWithThreshold(
-                  parseFloat(asset.balance),
-                  oneHundredThousandths,
-                  I18n.locale,
-                  { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-                )
-              : zeroBalanceFormatted,
-          rawTokenBalance: isNaN(parsedBalance) ? undefined : parsedBalance,
-          rawFiatNumber: isNaN(parsedFiat) ? undefined : parsedFiat,
+      if (token.availableBalance) {
+        const tokenBalances = {
+          [token.address]: token.availableBalance.toString() as `0x${string}`,
         };
-      }
-
-      if (isEvmNetworkSelected && asset) {
-        const derived = deriveBalanceFromAssetMarketDetails(
+        const derivedBalance = deriveBalanceFromAssetMarketDetails(
           asset,
           exchangeRates || {},
-          tokenBalances || {},
+          tokenBalances,
           conversionRate || 0,
           currentCurrency || '',
         );
+
         return {
-          ...derived,
-          rawTokenBalance: derived.balance
-            ? parseFloat(String(derived.balance).replace(/[^0-9.]/g, ''))
+          ...derivedBalance,
+          rawTokenBalance: derivedBalance.balance
+            ? parseFloat(String(derivedBalance.balance).replace(/[^0-9.]/g, ''))
             : undefined,
-          rawFiatNumber: derived.balanceFiatCalculation,
+          rawFiatNumber: derivedBalance.balanceFiatCalculation,
         };
       }
 
       return {
-        balanceFiat: asset?.balanceFiat
-          ? formatWithThreshold(
-              parseFloat(asset.balanceFiat),
-              oneHundredths,
-              I18n.locale,
-              { style: 'currency', currency: currentCurrency },
-            )
-          : TOKEN_BALANCE_LOADING,
-        balanceValueFormatted: asset?.balance
-          ? formatWithThreshold(
-              parseFloat(asset.balance),
-              oneHundredThousandths,
-              I18n.locale,
-              { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-            )
-          : TOKEN_BALANCE_LOADING,
-        rawTokenBalance: asset?.balance
-          ? parseFloat(String(asset.balance).replace(/[^0-9.]/g, ''))
+        balanceFiat: asset.balanceFiat,
+        balanceValueFormatted: asset.balance,
+        rawFiatNumber: asset.balanceFiat
+          ? parseFloat(asset.balanceFiat)
           : undefined,
-        rawFiatNumber: asset?.balanceFiat
-          ? parseFloat(String(asset.balanceFiat).replace(/[^0-9.]/g, ''))
-          : undefined,
+        rawTokenBalance: asset.balance ? parseFloat(asset.balance) : undefined,
       };
-    }, [
-      token,
-      isEvmNetworkSelected,
-      asset,
-      exchangeRates,
-      tokenBalances,
-      conversionRate,
-      currentCurrency,
-      isMappedAsset,
-    ]);
+    }, [asset, token, exchangeRates, conversionRate, currentCurrency]);
 
   let mainBalance;
   let secondaryBalance;
   const shouldNotShowBalanceOnTestnets =
-    isTestNet(asset?.chainId as Hex) && !showFiatOnTestnets;
+    isTestNet(chainId) && !showFiatOnTestnets;
 
   if (primaryCurrency === 'ETH') {
     mainBalance = balanceValueFormatted;
@@ -252,8 +154,8 @@ export const useAssetBalance = (
     }
   }
 
-  if (evmAsset?.hasBalanceError) {
-    mainBalance = evmAsset.symbol;
+  if (asset?.hasBalanceError) {
+    mainBalance = asset.symbol;
     secondaryBalance = strings('wallet.unable_to_load');
   }
 

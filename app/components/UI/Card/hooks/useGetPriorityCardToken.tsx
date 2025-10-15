@@ -439,12 +439,11 @@ export const useGetPriorityCardToken = () => {
       symbol: cardExternalWalletDetail.tokenDetails.symbol ?? '',
       name: cardExternalWalletDetail.tokenDetails.name ?? '',
       walletAddress: cardExternalWalletDetail.walletAddress,
+      chainId: cardExternalWalletDetail.chainId,
       allowanceState,
       allowance,
       availableBalance: ethers.BigNumber.from(availableBalance),
       isStaked: false,
-      // TODO: Add solana chain id -- verify how to handle that because Solana doesn't have a chain id
-      chainId: LINEA_CHAIN_ID,
     };
   };
 

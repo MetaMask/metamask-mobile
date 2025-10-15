@@ -29,23 +29,24 @@ import { CustomNetworkNativeImgMapping } from '../../../Tokens/TokenList/TokenLi
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { View } from 'react-native';
-import { CardTokenAllowance } from '../../types';
-import { useAssetBalance } from '../../hooks/useAssetBalance';
 
 interface CardAssetItemProps {
-  assetKey: CardTokenAllowance | null;
+  asset: TokenI | undefined;
+  mainBalance: string | undefined;
+  secondaryBalance: string | undefined;
   privacyMode: boolean;
   onPress?: (asset: TokenI) => void;
 }
 
 const CardAssetItem: React.FC<CardAssetItemProps> = ({
-  assetKey,
+  asset,
+  mainBalance,
+  secondaryBalance,
   onPress,
   privacyMode,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const chainId = assetKey?.chainId as Hex;
-  const { asset, mainBalance, secondaryBalance } = useAssetBalance(assetKey);
+  const chainId = asset?.chainId as Hex;
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {

@@ -95,8 +95,14 @@ const CardHome = () => {
     error: priorityTokenError,
     warning: priorityTokenWarning,
   } = useGetPriorityCardToken();
-  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
-    useAssetBalance(priorityToken);
+  const {
+    balanceFiat,
+    mainBalance,
+    secondaryBalance,
+    rawFiatNumber,
+    rawTokenBalance,
+    asset,
+  } = useAssetBalance(priorityToken);
   const {
     cardDetails,
     fetchCardDetails,
@@ -308,6 +314,7 @@ const CardHome = () => {
         testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
       />
     );
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addFundsAction, priorityTokenWarning, isLoading]);
 
@@ -473,7 +480,12 @@ const CardHome = () => {
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
-            <CardAssetItem assetKey={priorityToken} privacyMode={privacyMode} />
+            <CardAssetItem
+              asset={asset}
+              mainBalance={mainBalance}
+              secondaryBalance={secondaryBalance}
+              privacyMode={privacyMode}
+            />
           )}
         </View>
 

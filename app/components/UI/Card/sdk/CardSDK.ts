@@ -14,6 +14,7 @@ import {
   CardErrorType,
   CardExchangeTokenRawResponse,
   CardExchangeTokenResponse,
+  CardExternalWalletDetail,
   CardExternalWalletDetailsResponse,
   CardLocation,
   CardLoginInitiateResponse,
@@ -25,6 +26,7 @@ import {
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
+import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -837,18 +839,31 @@ export class CardSDK {
             id: priorityWallet?.id ?? 0,
             walletAddress: wallet.address,
             currency: wallet.currency,
-            network: wallet.network,
             balance: wallet.balance,
             allowance: wallet.allowance,
             priority: priorityWallet?.priority ?? 0,
             tokenDetails,
-          };
+            chainId: this.mapCardWalletExternalNetworkToChainId(wallet.network),
+          } as CardExternalWalletDetail;
         },
       );
 
       // Sort - lower number = higher priority
       return combinedDetails.sort((a, b) => a.priority - b.priority);
     };
+
+  private mapCardWalletExternalNetworkToChainId(
+    network: 'linea' | 'solana',
+  ): string {
+    switch (network) {
+      case 'linea':
+        return LINEA_CHAIN_ID;
+      case 'solana':
+        return SOLANA_MAINNET.chainId;
+      default:
+        throw new Error('Invalid network');
+    }
+  }
 
   private getFirstSupportedTokenOrNull(): CardToken | null {
     return this.supportedTokens.length > 0

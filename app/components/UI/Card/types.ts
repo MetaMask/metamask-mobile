@@ -118,9 +118,9 @@ export interface CardExternalWalletDetail {
   currency: string;
   balance: string;
   allowance: string;
-  network: 'linea' | 'solana';
   priority: number;
   tokenDetails: CardToken;
+  chainId: string;
 }
 
 export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
