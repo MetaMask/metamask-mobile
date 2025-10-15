@@ -82,6 +82,7 @@ describe('browserReducer TOGGLE_FULLSCREEN', () => {
 
     const action = {
       type: 'TOGGLE_FULLSCREEN',
+      isFullscreen: true,
     };
 
     const expectedState = {
@@ -113,6 +114,7 @@ describe('browserReducer TOGGLE_FULLSCREEN', () => {
 
     const action = {
       type: 'TOGGLE_FULLSCREEN',
+      isFullscreen: false,
     };
 
     const expectedState = {
@@ -144,6 +146,7 @@ describe('browserReducer TOGGLE_FULLSCREEN', () => {
 
     const action = {
       type: 'TOGGLE_FULLSCREEN',
+      isFullscreen: true,
     };
 
     // Act
