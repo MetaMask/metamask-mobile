@@ -268,6 +268,7 @@ const Routes = {
       CASH_OUT: 'PredictCashOut',
       UNAVAILABLE: 'PredictUnavailable',
       PLACE_BET: 'PredictPlaceBet',
+      ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
   LOCK_SCREEN: 'LockScreen',

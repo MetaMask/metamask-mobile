@@ -8,28 +8,24 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, {
-  useMemo,
-  forwardRef,
-  useImperativeHandle,
-  useCallback,
-} from 'react';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { usePredictAccountState } from '../../hooks/usePredictAccountState';
+import Routes from '../../../../../constants/navigation/Routes';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { PredictPosition, PredictPositionStatus } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { TouchableOpacity } from 'react-native';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
@@ -40,31 +36,41 @@ export interface PredictAccountStateHandle {
 
 // TODO: rename to something like `PredictPositionsHeader` (given its purpose has evolved)
 const PredictAccountState = forwardRef<PredictAccountStateHandle>((_, ref) => {
-  const { address, loadAccountState } = usePredictAccountState();
-  const { balance } = usePredictBalance({
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const tw = useTailwind();
+  const {
+    balance,
+    loadBalance,
+    isLoading: isBalanceLoading,
+  } = usePredictBalance({
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const { positions } = usePredictClaimablePositions({
-    loadOnMount: true,
-  });
+  const { positions, isLoading: isClaimablePositionsLoading } =
+    usePredictClaimablePositions({
+      loadOnMount: true,
+    });
   const {
     unrealizedPnL,
-    isFetching: isUnrealizedPnLFetching,
-    refetch,
+    isLoading: isUnrealizedPnLLoading,
+    loadUnrealizedPnL,
   } = useUnrealizedPnL({
-    address,
     providerId: POLYMARKET_PROVIDER_ID,
   });
-  const { deposit } = usePredictDeposit();
 
-  const handleDeposit = useCallback(async () => {
-    deposit();
-  }, [deposit]);
+  const handleBalanceTouch = () => {
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.ROOT,
+    });
+  };
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
-      await Promise.all([loadAccountState({ isRefresh: true }), refetch()]);
+      await Promise.all([
+        loadUnrealizedPnL({ isRefresh: true }),
+        loadBalance({ isRefresh: true }),
+      ]);
     },
   }));
 
@@ -98,50 +104,60 @@ const PredictAccountState = forwardRef<PredictAccountStateHandle>((_, ref) => {
     return `${sign}${percent.toFixed(1)}%`;
   };
 
-  const hasClaimableAmount = totalClaimableAmount !== undefined;
+  const hasClaimableAmount =
+    wonPositions.length > 0 && totalClaimableAmount !== undefined;
   const hasAvailableBalance = balance !== undefined && balance > 0;
   const hasUnrealizedPnL = unrealizedPnL?.cashUpnl !== undefined;
   const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
+  if (
+    isBalanceLoading ||
+    isUnrealizedPnLLoading ||
+    isClaimablePositionsLoading
+  ) {
+    return null;
+  }
+
   return (
-    <>
+    <Box twClassName="gap-4 pb-4 pt-2">
       {hasClaimableAmount && (
-        <Box twClassName="py-2">
-          <Button
-            variant={ButtonVariant.Secondary}
-            onPress={() => {
-              // TODO: implement claim
-            }}
-            twClassName="min-w-full bg-primary-default"
-            style={{
-              backgroundColor: BUTTON_COLOR, // TODO: update once call pull from a tw class
-            }}
+        <Button
+          variant={ButtonVariant.Secondary}
+          onPress={() => {
+            // TODO: implement claim
+          }}
+          twClassName="min-w-full bg-primary-default"
+          style={{
+            backgroundColor: BUTTON_COLOR, // TODO: update once call pull from a tw class
+          }}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="gap-2"
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="gap-2"
-            >
-              <Text variant={TextVariant.BodyMd}>
-                {strings('predict.claim_amount_text', {
-                  amount: totalClaimableAmount.toFixed(2),
-                })}
-              </Text>
-            </Box>
-          </Button>
-        </Box>
+            <Text variant={TextVariant.BodyMd}>
+              {strings('predict.claim_amount_text', {
+                amount: totalClaimableAmount.toFixed(2),
+              })}
+            </Text>
+          </Box>
+        </Button>
       )}
 
       {shouldShowMainCard && (
         <Box
-          twClassName="bg-muted rounded-xl pt-4 pb-2 my-4"
+          style={tw.style(
+            'bg-muted rounded-xl pt-3',
+            !hasUnrealizedPnL && 'pb-3',
+          )}
           testID="markets-won-card"
         >
           {hasAvailableBalance && (
-            <TouchableOpacity onPress={handleDeposit}>
+            <TouchableOpacity onPress={handleBalanceTouch}>
               <Box
-                twClassName="px-4 mb-3"
+                style={tw.style('px-4', hasUnrealizedPnL && 'pb-3')}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -183,7 +199,7 @@ const PredictAccountState = forwardRef<PredictAccountStateHandle>((_, ref) => {
             <>
               <Box twClassName="h-px bg-alternative" />
               <Box
-                twClassName="px-4 pb-2 mt-3"
+                twClassName="px-4 pb-3 mt-3"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -199,29 +215,25 @@ const PredictAccountState = forwardRef<PredictAccountStateHandle>((_, ref) => {
                     {strings('predict.unrealized_pnl_label')}
                   </Text>
                 </Box>
-                {isUnrealizedPnLFetching ? (
-                  <Skeleton height={20} width={100} />
-                ) : (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName={
-                      unrealizedAmount >= 0
-                        ? 'text-success-default'
-                        : 'text-error-default'
-                    }
-                  >
-                    {strings('predict.unrealized_pnl_value', {
-                      amount: formatAmount(unrealizedAmount),
-                      percent: formatPercent(unrealizedPercent),
-                    })}
-                  </Text>
-                )}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName={
+                    unrealizedAmount >= 0
+                      ? 'text-success-default'
+                      : 'text-error-default'
+                  }
+                >
+                  {strings('predict.unrealized_pnl_value', {
+                    amount: formatAmount(unrealizedAmount),
+                    percent: formatPercent(unrealizedPercent),
+                  })}
+                </Text>
               </Box>
             </>
           )}
         </Box>
       )}
-    </>
+    </Box>
   );
 });
 

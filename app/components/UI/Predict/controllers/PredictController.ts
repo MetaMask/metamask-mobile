@@ -102,9 +102,6 @@ export type PredictControllerState = {
   // --------------
   // Setup
   isOnboarded: { [address: string]: boolean };
-
-  // Positions management
-  claimablePositions: PredictPosition[];
 };
 
 /**
@@ -117,7 +114,6 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   claimTransaction: null,
   depositTransaction: null,
   isOnboarded: {},
-  claimablePositions: [],
 });
 
 /**
@@ -130,7 +126,6 @@ const metadata = {
   claimTransaction: { persist: false, anonymous: false },
   depositTransaction: { persist: false, anonymous: false },
   isOnboarded: { persist: true, anonymous: false },
-  claimablePositions: { persist: false, anonymous: false },
 };
 
 /**
@@ -294,16 +289,6 @@ export class PredictController extends BaseController<
       });
       return;
     }
-
-    // Check deposit transaction (batch)
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.CONFIRMED;
-      });
-      return;
-    }
   }
 
   /**
@@ -329,16 +314,6 @@ export class PredictController extends BaseController<
       });
       return;
     }
-
-    // Check deposit transaction
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.ERROR;
-      });
-      return;
-    }
   }
 
   /**
@@ -361,16 +336,6 @@ export class PredictController extends BaseController<
       this.update((state) => {
         if (!state.claimTransaction) return;
         state.claimTransaction.status = PredictClaimStatus.CANCELLED;
-      });
-      return;
-    }
-
-    // Check deposit transaction
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.CANCELLED;
       });
       return;
     }
@@ -673,7 +638,6 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
-        state.claimablePositions = positions;
       });
 
       return positions;

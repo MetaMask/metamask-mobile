@@ -10,6 +10,8 @@ import PredictClaimablePositions, {
 import PredictPositions, {
   PredictPositionsHandle,
 } from '../../components/PredictPositions/PredictPositions';
+import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
+import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 
 interface PredictTabViewProps {}
 
@@ -21,6 +23,8 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const predictClaimablePositionsRef =
     useRef<PredictClaimablePositionsHandle>(null);
   const predictAccountStateRef = useRef<PredictAccountStateHandle>(null);
+
+  usePredictDepositToasts();
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -45,6 +49,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
         <PredictAccountState ref={predictAccountStateRef} />
         <PredictPositions ref={predictPositionsRef} />
         <PredictClaimablePositions ref={predictClaimablePositionsRef} />
+        <PredictAddFundsSheet />
       </ScrollView>
     </View>
   );

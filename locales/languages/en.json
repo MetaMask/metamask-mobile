@@ -1622,9 +1622,20 @@
     },
     "deposit": {
       "in_progress": "Deposit in progress",
-      "adding_funds": "Adding your funds",
+      "adding_funds": "Adding funds",
+      "adding_your_funds": "Adding your funds",
       "add_funds": "Add funds",
-      "withdraw": "Withdraw"
+      "withdraw": "Withdraw",
+      "estimated_processing_time": "Est. {{time}} seconds",
+      "account_ready": "Your account is ready",
+      "account_ready_description": "{{amount}} added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Your account wasn't funded",
+      "try_again": "Try again"
+    },
+    "add_funds_sheet": {
+      "title": "Add funds",
+      "description": "You’ll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds. "
     }
   },
   "receive": {

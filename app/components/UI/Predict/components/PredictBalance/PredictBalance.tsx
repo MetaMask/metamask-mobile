@@ -31,7 +31,6 @@ import {
 import { formatPrice } from '../../../Perps/utils/formatUtils';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { usePredictDepositStatus } from '../../hooks/usePredictDepositStatus';
 import { PredictDepositStatus } from '../../types';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
@@ -42,8 +41,7 @@ const PredictBalance: React.FC = () => {
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const { deposit } = usePredictDeposit({ fromPredictView: true });
-  const { status } = usePredictDepositStatus();
+  const { deposit, status } = usePredictDeposit();
 
   const isAddingFunds = status === PredictDepositStatus.PENDING;
   const hasBalance = balance > 0;

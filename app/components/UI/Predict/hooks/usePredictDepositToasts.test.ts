@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
-import { usePredictDepositStatus } from './usePredictDepositStatus';
+import { usePredictDepositToasts } from './usePredictDepositToasts';
 import Engine from '../../../../core/Engine';
 import { PredictDepositStatus } from '../types';
 
@@ -65,7 +65,7 @@ describe('usePredictDepositStatus', () => {
 
   describe('initialization', () => {
     it('does not trigger any action when depositTransaction is null', () => {
-      renderHook(() => usePredictDepositStatus());
+      renderHook(() => usePredictDepositToasts());
 
       expect(Alert.alert).not.toHaveBeenCalled();
       expect(
@@ -86,7 +86,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      renderHook(() => usePredictDepositStatus());
+      renderHook(() => usePredictDepositToasts());
 
       expect(Alert.alert).not.toHaveBeenCalled();
     });
@@ -106,7 +106,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to CONFIRMED
       mockState = {
@@ -148,9 +148,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() =>
-        usePredictDepositStatus({ onSuccess }),
-      );
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to CONFIRMED
       mockState = {
@@ -187,7 +185,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to CONFIRMED
       mockState = {
@@ -228,7 +226,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to ERROR
       mockState = {
@@ -270,9 +268,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() =>
-        usePredictDepositStatus({ onError }),
-      );
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to ERROR
       mockState = {
@@ -309,7 +305,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to ERROR
       mockState = {
@@ -350,7 +346,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to CANCELLED
       mockState = {
@@ -393,7 +389,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Clear previous calls
       (Alert.alert as jest.Mock).mockClear();
@@ -421,7 +417,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change from null to CONFIRMED
       mockState = {
@@ -461,7 +457,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Transaction becomes null
       mockState = {
@@ -517,7 +513,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() => usePredictDepositStatus());
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to CONFIRMED
       mockState = {
@@ -559,9 +555,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() =>
-        usePredictDepositStatus({ onSuccess, onError }),
-      );
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to CONFIRMED
       mockState = {
@@ -603,9 +597,7 @@ describe('usePredictDepositStatus', () => {
         },
       };
 
-      const { rerender } = renderHook(() =>
-        usePredictDepositStatus({ onSuccess, onError }),
-      );
+      const { rerender } = renderHook(() => usePredictDepositToasts());
 
       // Change status to ERROR
       mockState = {

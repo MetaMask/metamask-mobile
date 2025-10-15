@@ -351,12 +351,19 @@ export class PolymarketProvider implements PredictProvider {
   }): Promise<UnrealizedPnL> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
-    const response = await fetch(`${DATA_API_ENDPOINT}/upnl?user=${address}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const predictAddress =
+      this.#accountStateByAddress.get(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
+
+    const response = await fetch(
+      `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error('Failed to fetch unrealized P&L');

@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
@@ -25,6 +25,7 @@ interface UsePredictBalanceOptions {
 
 interface UsePredictBalanceReturn {
   balance: number;
+  hasNoBalance: boolean;
   isLoading: boolean;
   isRefreshing: boolean;
   error: string | null;
@@ -54,6 +55,11 @@ export function usePredictBalance(
 
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
+  );
+
+  const hasNoBalance = useMemo(
+    () => !isLoading && !isRefreshing && balance === 0,
+    [balance, isLoading, isRefreshing],
   );
 
   const loadBalance = useCallback(
@@ -111,8 +117,16 @@ export function usePredictBalance(
     }, [refreshOnFocus, loadBalance]),
   );
 
+  useEffect(() => {
+    setBalance(0);
+    setIsLoading(true);
+    setIsRefreshing(false);
+    setError(null);
+  }, [selectedInternalAccountAddress]);
+
   return {
     balance,
+    hasNoBalance,
     isLoading,
     isRefreshing,
     error,
