@@ -17,7 +17,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager, Alert } from 'react-native';
+import { InteractionManager, Alert, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -1558,6 +1558,148 @@ describe('ChoosePassword', () => {
 
         expect(submitButton.props.disabled).toBe(true);
       });
+    });
+  });
+
+  describe('iOS OAuth Login Success UI', () => {
+    const originalPlatform = Platform.OS;
+
+    beforeEach(() => {
+      Platform.OS = 'ios';
+    });
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('should show PIN labels for OAuth login success on iOS', async () => {
+      // Arrange
+      const component = renderWithProviders(
+        <ChoosePassword
+          {...{
+            route: {
+              params: {
+                previousScreen: ONBOARDING,
+                oauthLoginSuccess: true,
+              },
+            },
+            navigation: mockNavigation,
+            metrics: { isEnabled: mockMetricsIsEnabled },
+            setDataCollectionForMarketing: mockSetDataCollectionForMarketing,
+          }}
+        />,
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Act & Assert
+      const createPinElements = component.getAllByText('Create PIN');
+      const confirmPinElements = component.getAllByText('Confirm PIN');
+
+      expect(createPinElements.length).toBeGreaterThan(0);
+      expect(confirmPinElements.length).toBeGreaterThan(0);
+    });
+
+    it('should show PIN input labels instead of password labels for OAuth login success on iOS', async () => {
+      // Arrange
+      const component = renderWithProviders(
+        <ChoosePassword
+          {...{
+            route: {
+              params: {
+                oauthLoginSuccess: true,
+              },
+            },
+            navigation: mockNavigation,
+            metrics: { isEnabled: mockMetricsIsEnabled },
+            setDataCollectionForMarketing: mockSetDataCollectionForMarketing,
+          }}
+        />,
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Act & Assert
+      const pinLabels = component.getAllByText('Create PIN');
+      const confirmPinLabels = component.getAllByText('Confirm PIN');
+
+      expect(pinLabels.length).toBeGreaterThan(0);
+      expect(confirmPinLabels.length).toBeGreaterThan(0);
+    });
+
+    it('should show create PIN button for OAuth login success on iOS', async () => {
+      // Arrange
+      const component = renderWithProviders(
+        <ChoosePassword
+          {...{
+            route: {
+              params: {
+                oauthLoginSuccess: true,
+              },
+            },
+            navigation: mockNavigation,
+            metrics: { isEnabled: mockMetricsIsEnabled },
+            setDataCollectionForMarketing: mockSetDataCollectionForMarketing,
+          }}
+        />,
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Act & Assert
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      expect(submitButton).toBeOnTheScreen();
+
+      // Check that "Create PIN" text exists
+      const createPinTexts = component.getAllByText('Create PIN');
+      expect(createPinTexts.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should show PIN error message for OAuth login success on iOS when passwords do not match', async () => {
+      // Arrange
+      const component = renderWithProviders(
+        <ChoosePassword
+          {...{
+            route: {
+              params: {
+                oauthLoginSuccess: true,
+              },
+            },
+            navigation: mockNavigation,
+            metrics: { isEnabled: mockMetricsIsEnabled },
+            setDataCollectionForMarketing: mockSetDataCollectionForMarketing,
+          }}
+        />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      // Act
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test1234');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'Different123');
+      });
+
+      // Assert
+      expect(
+        component.getByText(strings('choose_password.pin_error')),
+      ).toBeOnTheScreen();
     });
   });
 });
