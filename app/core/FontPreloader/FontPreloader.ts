@@ -1,6 +1,4 @@
 import { Platform } from 'react-native';
-import { getFontFamily } from '../../component-library/components/Texts/Text/Text.utils';
-import { TextVariant } from '../../component-library/components/Texts/Text/Text.types';
 import Logger from '../../util/Logger';
 
 /**
@@ -20,7 +18,7 @@ class FontPreloader {
   }
 
   /**
-   * Preload all Geist font variants by creating invisible text elements
+   * Preload all Geist font files by creating invisible text elements
    * This forces React Native to load and cache the fonts
    */
   preloadFonts(): Promise<void> {
@@ -38,28 +36,24 @@ class FontPreloader {
 
     this.loadingPromise = new Promise((resolve) => {
       try {
-        // Get all font variants used in the app
-        const fontVariants = [
-          TextVariant.DisplayLG,
-          TextVariant.DisplayMD,
-          TextVariant.HeadingLG,
-          TextVariant.HeadingMD,
-          TextVariant.HeadingSM,
-          TextVariant.BodyLGMedium,
-          TextVariant.BodyMD,
-          TextVariant.BodyMDMedium,
-          TextVariant.BodyMDBold,
-          TextVariant.BodySM,
-          TextVariant.BodySMMedium,
-          TextVariant.BodySMBold,
-          TextVariant.BodyXS,
-          TextVariant.BodyXSMedium,
+        // All available font families
+        const fontFamilies = [
+          'Geist Regular',
+          'Geist Medium',
+          'Geist Bold',
+          'Geist Regular Italic',
+          'Geist Medium Italic',
+          'Geist Bold Italic',
+          'MM Poly Regular',
+          'MM Sans Regular',
+          'MM Sans Medium',
+          'MM Sans Bold',
         ];
 
         if (Platform.OS === 'web') {
-          this.preloadFontsWeb(fontVariants, resolve);
+          this.preloadFontsWeb(fontFamilies, resolve);
         } else {
-          this.preloadFontsNative(fontVariants, resolve);
+          this.preloadFontsNative(fontFamilies, resolve);
         }
       } catch (error) {
         Logger.error(
@@ -78,38 +72,38 @@ class FontPreloader {
   /**
    * Preload fonts for web platform using FontFace API
    */
-  private preloadFontsWeb(
-    fontVariants: TextVariant[],
-    resolve: () => void,
-  ): void {
+  private preloadFontsWeb(fontFamilies: string[], resolve: () => void): void {
     const preloadContainer = document.createElement('div');
     preloadContainer.style.position = 'absolute';
     preloadContainer.style.left = '-9999px';
     preloadContainer.style.top = '-9999px';
     preloadContainer.style.visibility = 'hidden';
 
-    fontVariants.forEach((variant) => {
-      const fontFamily = getFontFamily(variant);
-
-      // Create elements for Regular, Medium, and Bold weights
-      ['400', '500', '700'].forEach((weight) => {
-        const span = document.createElement('span');
-        span.style.fontFamily = fontFamily;
-        span.style.fontWeight = weight;
-        span.textContent = 'Font preload test';
-        preloadContainer.appendChild(span);
-      });
+    fontFamilies.forEach((fontFamily) => {
+      const span = document.createElement('span');
+      span.style.fontFamily = fontFamily;
+      span.textContent = 'Font preload test';
+      preloadContainer.appendChild(span);
     });
 
     document.body.appendChild(preloadContainer);
 
     // Use FontFace API if available
     if ('fonts' in document) {
-      Promise.all([
+      const fontLoadPromises = [
         document.fonts.load('400 16px "Geist Regular"'),
         document.fonts.load('500 16px "Geist Medium"'),
         document.fonts.load('700 16px "Geist Bold"'),
-      ])
+        document.fonts.load('400 italic 16px "Geist Regular Italic"'),
+        document.fonts.load('500 italic 16px "Geist Medium Italic"'),
+        document.fonts.load('700 italic 16px "Geist Bold Italic"'),
+        document.fonts.load('400 16px "MM Poly Regular"'),
+        document.fonts.load('400 16px "MM Sans Regular"'),
+        document.fonts.load('500 16px "MM Sans Medium"'),
+        document.fonts.load('700 16px "MM Sans Bold"'),
+      ];
+
+      Promise.all(fontLoadPromises)
         .then(() => {
           document.body.removeChild(preloadContainer);
           this.fontsLoaded = true;
@@ -144,12 +138,11 @@ class FontPreloader {
    * Fonts are typically loaded synchronously but we ensure they're cached
    */
   private preloadFontsNative(
-    fontVariants: TextVariant[],
+    fontFamilies: string[],
     resolve: () => void,
   ): void {
     // For React Native, fonts are registered in Info.plist (iOS) and assets (Android)
     // We create a small delay to ensure font cache is warmed up
-    const fontFamilies = fontVariants.map((variant) => getFontFamily(variant));
 
     // Log the fonts we're expecting to be available
     Logger.log('FontPreloader: Expected font families:', fontFamilies);
