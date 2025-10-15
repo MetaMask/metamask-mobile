@@ -12,7 +12,7 @@ export function useNetworkName(chainId: Hex | undefined) {
     return undefined;
   }
 
-  const nickname = networkConfigurations[chainId].name;
+  const nickname = networkConfigurations[chainId]?.name;
 
   const name = Object.values(NetworkList).find(
     (network: { chainId?: Hex; shortName: string }) =>
