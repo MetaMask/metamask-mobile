@@ -17,6 +17,7 @@ import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridg
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { Hex } from '@metamask/utils';
+import { useTokenAmount } from '../../../hooks/useTokenAmount';
 
 const mockNavigate = jest.fn();
 
@@ -25,6 +26,7 @@ jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../hooks/useNetworkName');
+jest.mock('../../../hooks/useTokenAmount');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -76,6 +78,7 @@ describe('TransactionDetailsSummary', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
   const useBridgeTxHistoryDataMock = jest.mocked(useBridgeTxHistoryData);
   const useNetworkNameMock = jest.mocked(useNetworkName);
+  const useTokenAmountMock = jest.mocked(useTokenAmount);
 
   const useMultichainBlockExplorerTxUrlMock = jest.mocked(
     useMultichainBlockExplorerTxUrl,
@@ -142,6 +145,8 @@ describe('TransactionDetailsSummary', () => {
       bridgeTxHistoryItem: undefined,
       isBridgeComplete: null,
     });
+
+    useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
   });
 
   it('renders perps deposit line title', () => {
