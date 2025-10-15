@@ -210,47 +210,6 @@ export function transformMarketData(
 }
 
 /**
- * Format price with appropriate decimal places
- */
-export function formatPrice(price: number): string {
-  if (isNaN(price) || !isFinite(price)) return '$0.00';
-  if (price === 0) return '$0.00';
-
-  const absPrice = Math.abs(price);
-
-  if (absPrice >= 1000) {
-    return getIntlNumberFormatter('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  }
-  if (absPrice >= 1) {
-    return getIntlNumberFormatter('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  }
-  if (absPrice >= 0.01) {
-    return getIntlNumberFormatter('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    }).format(price);
-  }
-  return getIntlNumberFormatter('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 6,
-    maximumFractionDigits: 6,
-  }).format(price);
-}
-
-/**
  * Format 24h change with sign
  * Uses more decimal places for smaller amounts to show meaningful precision
  */
