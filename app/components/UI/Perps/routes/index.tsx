@@ -15,6 +15,7 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
+import HIP3DebugView from '../Debug/HIP3DebugView';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -106,6 +107,15 @@ const PerpsScreenStack = () => (
           component={PerpsClosePositionView}
           options={{
             title: strings('perps.close_position.title'),
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name={Routes.PERPS.HIP3_DEBUG}
+          component={HIP3DebugView}
+          options={{
+            title: 'HIP-3 Debug',
             headerShown: false,
           }}
         />

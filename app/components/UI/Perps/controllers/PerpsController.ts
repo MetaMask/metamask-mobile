@@ -55,6 +55,7 @@ import type {
   FeeCalculationResult,
   Funding,
   GetAccountStateParams,
+  GetAvailableDexsParams,
   GetFundingParams,
   GetOrderFillsParams,
   GetOrdersParams,
@@ -2470,8 +2471,12 @@ export class PerpsController extends BaseController<
 
   /**
    * Get available markets with optional filtering
+   * @param params - Optional parameters including symbol filter and HIP-3 DEX selection
    */
-  async getMarkets(params?: { symbols?: string[] }): Promise<MarketInfo[]> {
+  async getMarkets(params?: {
+    symbols?: string[];
+    dex?: string;
+  }): Promise<MarketInfo[]> {
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -2483,11 +2488,12 @@ export class PerpsController extends BaseController<
         tags: {
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
+          ...(params?.dex !== undefined && { dex: params.dex }),
         },
       });
 
       const provider = this.getActiveProvider();
-      const allMarkets = await provider.getMarkets();
+      const allMarkets = await provider.getMarkets({ dex: params?.dex });
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -2537,6 +2543,21 @@ export class PerpsController extends BaseController<
         data: traceData,
       });
     }
+  }
+
+  /**
+   * Get list of available HIP-3 builder-deployed DEXs
+   * @param params - Optional parameters for filtering
+   * @returns Array of DEX names
+   */
+  async getAvailableDexs(params?: GetAvailableDexsParams): Promise<string[]> {
+    const provider = this.getActiveProvider();
+
+    if (!provider.getAvailableDexs) {
+      throw new Error('Provider does not support HIP-3 DEXs');
+    }
+
+    return provider.getAvailableDexs(params);
   }
 
   /**

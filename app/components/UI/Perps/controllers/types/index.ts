@@ -393,6 +393,14 @@ export interface GetSupportedPathsParams {
   chainId?: CaipChainId; // Optional: filter by chain (CAIP-2 format)
 }
 
+export interface GetAvailableDexsParams {
+  // Reserved for future extensibility (filters, pagination, etc.)
+}
+
+export interface GetMarketsParams {
+  dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
+}
+
 export interface SubscribePricesParams {
   symbols: string[];
   callback: (prices: PriceUpdate[]) => void;
@@ -515,7 +523,7 @@ export interface IPerpsProvider {
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
-  getMarkets(): Promise<MarketInfo[]>;
+  getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;
   getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
@@ -600,4 +608,12 @@ export interface IPerpsProvider {
 
   // Fee discount context (optional - for MetaMask reward discounts)
   setUserFeeDiscount?(discountBips: number | undefined): void;
+
+  // HIP-3 (Builder-deployed DEXs) operations - optional for backward compatibility
+  /**
+   * Get list of available HIP-3 builder-deployed DEXs
+   * @param params - Optional parameters (reserved for future filters/pagination)
+   * @returns Array of DEX names (empty string '' represents main DEX)
+   */
+  getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
 }

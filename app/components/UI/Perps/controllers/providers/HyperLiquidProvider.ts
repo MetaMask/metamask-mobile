@@ -58,7 +58,9 @@ import type {
   FeeCalculationResult,
   Funding,
   GetAccountStateParams,
+  GetAvailableDexsParams,
   GetFundingParams,
+  GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetPositionsParams,
@@ -1532,20 +1534,28 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Get available markets
+   * @param params - Optional parameters including HIP-3 DEX filter
    */
-  async getMarkets(): Promise<MarketInfo[]> {
+  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
-      DevLogger.log('Getting markets via HyperLiquid SDK');
+      DevLogger.log('Getting markets via HyperLiquid SDK', {
+        dex: params?.dex,
+      });
 
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
+      const meta = await infoClient.meta(
+        params?.dex !== undefined ? { dex: params.dex } : undefined,
+      );
       const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
 
       return markets;
     } catch (error) {
-      Logger.error(ensureError(error), this.getErrorContext('getMarkets'));
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getMarkets', { dex: params?.dex }),
+      );
       return [];
     }
   }
@@ -2710,6 +2720,29 @@ export class HyperLiquidProvider implements IPerpsProvider {
       throw ensureError(error);
     } finally {
       clearTimeout(timeoutId);
+    }
+  }
+
+  /**
+   * Get list of available HIP-3 builder-deployed DEXs
+   * @param _params - Optional parameters (reserved for future filters/pagination)
+   * @returns Array of DEX names (empty string '' represents main DEX)
+   */
+  async getAvailableDexs(_params?: GetAvailableDexsParams): Promise<string[]> {
+    try {
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const dexs = await infoClient.perpDexs();
+
+      // Map DEX objects to names: null -> '' (main DEX), object -> object.name
+      return dexs.map((dex) => (dex === null ? '' : dex.name));
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        'HyperLiquidProvider: Failed to fetch available DEXs',
+      );
+      throw error;
     }
   }
 

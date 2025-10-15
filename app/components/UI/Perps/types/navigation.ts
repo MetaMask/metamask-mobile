@@ -116,6 +116,9 @@ export interface PerpsNavigationParamList extends ParamListBase {
     isFromGTMModal?: boolean;
   };
 
+  // Debug routes
+  HIP3Debug: undefined;
+
   // Root perps view
   Perps: undefined;
 }
