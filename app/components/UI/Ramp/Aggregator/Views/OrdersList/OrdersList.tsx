@@ -104,6 +104,8 @@ function OrdersList() {
       <Pressable
         key={filter}
         onPress={() => setCurrentFilter(filter)}
+        accessibilityRole="button"
+        accessibilityLabel={label}
         style={({ pressed }) =>
           tw.style(
             'h-10 px-4 rounded-xl items-center justify-center',
