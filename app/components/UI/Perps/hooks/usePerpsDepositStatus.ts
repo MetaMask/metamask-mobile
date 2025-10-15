@@ -51,9 +51,46 @@ export const usePerpsDepositStatus = () => {
    */
   const isArbUsdcDeposit = useCallback(
     (transactionMeta: TransactionMeta): boolean => {
-      // Check if the transaction is to the arb.USDC token address
-      const tokenAddress = transactionMeta.txParams?.to?.toLowerCase();
-      return tokenAddress === USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase();
+      // For direct perps deposits, check if the transaction is to the arb.USDC token address
+      if (transactionMeta.type === 'perpsDeposit') {
+        const tokenAddress = transactionMeta.txParams?.to?.toLowerCase();
+        const isArbUsdc =
+          tokenAddress === USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase();
+
+        DevLogger.log(
+          'usePerpsDepositStatus: Checking direct arb.USDC detection',
+          {
+            tokenAddress,
+            expectedAddress: USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase(),
+            isArbUsdc,
+            transactionId: transactionMeta.id,
+          },
+        );
+
+        return isArbUsdc;
+      }
+
+      // For bridge transactions, they are never instant (they need bridging time)
+      // Bridge transactions are ETH -> USDC conversions that take time
+      if (transactionMeta.type === 'bridge') {
+        DevLogger.log(
+          'usePerpsDepositStatus: Bridge transaction detected - not instant',
+          {
+            transactionId: transactionMeta.id,
+            type: transactionMeta.type,
+          },
+        );
+
+        return false; // Bridge transactions always take time
+      }
+
+      // For other transaction types, assume not arb.USDC
+      DevLogger.log('usePerpsDepositStatus: Unknown transaction type', {
+        type: transactionMeta.type,
+        transactionId: transactionMeta.id,
+      });
+
+      return false;
     },
     [],
   );
@@ -112,7 +149,16 @@ export const usePerpsDepositStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (transactionMeta.type !== TransactionType.perpsDeposit) {
+      DevLogger.log('usePerpsDepositStatus: Processing transaction', {
+        type: transactionMeta.type,
+        status: transactionMeta.status,
+        id: transactionMeta.id,
+      });
+      // Handle both perpsDeposit and bridge transactions
+      if (
+        transactionMeta.type !== TransactionType.perpsDeposit &&
+        transactionMeta.type !== 'bridge'
+      ) {
         return;
       }
 
@@ -122,21 +168,27 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.status === TransactionStatus.submitted ||
         transactionMeta.status === TransactionStatus.confirmed
       ) {
-        const toastId = `in-progress-${transactionMeta.id}`;
-
-        // Only show if we haven't already shown this toast
-        if (hasShownInProgressToastRef.current !== toastId) {
+        // Only show if we haven't already shown this toast for this transaction
+        if (hasShownInProgressToastRef.current !== transactionMeta.id) {
           DevLogger.log(
             'usePerpsDepositStatus: Transaction approved/submitted/confirmed, triggering in-progress toast',
             {
               transactionId: transactionMeta.id,
               status: transactionMeta.status,
+              txParams: transactionMeta.txParams,
             },
           );
 
           // Show deposit in progress toast with appropriate ETA
           // arb.USDC deposits are instant (0 seconds), others take ~1 minute
-          const processingTime = isArbUsdcDeposit(transactionMeta) ? 0 : 60;
+          const isArbUsdc = isArbUsdcDeposit(transactionMeta);
+          const processingTime = isArbUsdc ? 0 : 60;
+
+          DevLogger.log('usePerpsDepositStatus: Processing time decision', {
+            isArbUsdc,
+            processingTime,
+            transactionId: transactionMeta.id,
+          });
           showToast(
             PerpsToastOptions.accountManagement.deposit.inProgress(
               processingTime,
@@ -144,7 +196,7 @@ export const usePerpsDepositStatus = () => {
             ),
           );
 
-          hasShownInProgressToastRef.current = toastId;
+          hasShownInProgressToastRef.current = transactionMeta.id;
         }
 
         // Start monitoring balance changes to detect when funds are available
@@ -153,9 +205,10 @@ export const usePerpsDepositStatus = () => {
           liveAccountRef.current?.availableBalance || '0';
       }
 
-      // Handle transaction failure - stop waiting for funds
+      // Handle transaction failure - stop waiting for funds and reset toast tracking
       if (transactionMeta.status === TransactionStatus.failed) {
         setIsWaitingForFunds(false);
+        hasShownInProgressToastRef.current = null;
       }
     };
 
@@ -206,11 +259,13 @@ export const usePerpsDepositStatus = () => {
       setIsWaitingForFunds(false);
       prevAvailableBalanceRef.current = liveAccount.availableBalance;
 
+      // Reset toast tracking immediately
+      hasShownInProgressToastRef.current = null;
+
       // Clear any pending deposit result after a delay
       setTimeout(() => {
         clearDepositResult();
         hasProcessedResultRef.current = null;
-        hasShownInProgressToastRef.current = null;
       }, 500);
     }
   }, [
