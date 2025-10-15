@@ -227,7 +227,8 @@ jobs:
           retention-days: 7
 
       - name: Prepare screenshots
-        if: failure()
+        # if: failure()
+        if: never()
         run: |
           echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
 
@@ -257,5 +258,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.test-suite-name }}-screenshots
-          path: artifacts/
+          path: e2e/artifacts/
           retention-days: 7
