@@ -474,7 +474,7 @@ export class Engine {
     });
 
     // TODO: Move this to `network-controller`
-    const enableOrDisableRpcFailover = (isRpcFailoverEnabled: Json) => {
+    const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
       if (isRpcFailoverEnabled) {
         Logger.log('Enabling RPC failover');
         networkController.enableRpcFailover();
@@ -491,7 +491,7 @@ export class Engine {
       });
     remoteFeatureFlagControllerMessenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      enableOrDisableRpcFailover,
+      toggleRpcFailover,
       (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
     );
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
@@ -500,7 +500,7 @@ export class Engine {
       disabled: !isBasicFunctionalityToggleEnabled(),
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
-    enableOrDisableRpcFailover(
+    toggleRpcFailover(
       remoteFeatureFlagController.state.remoteFeatureFlags
         .walletFrameworkRpcFailoverEnabled,
     );

@@ -419,8 +419,7 @@ describe('Engine', () => {
       },
     };
     const keyringState = null;
-    const metaMetricsId =
-      '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420';
+    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const enableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
       'enableRpcFailover',
@@ -464,8 +463,7 @@ describe('Engine', () => {
       },
     };
     const keyringState = null;
-    const metaMetricsId =
-      '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420';
+    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const disableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
       'disableRpcFailover',
