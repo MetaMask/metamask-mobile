@@ -11,7 +11,6 @@ import {
 } from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { EthScope } from '@metamask/keyring-api';
-import { ethers } from 'ethers';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import {
@@ -25,6 +24,7 @@ import { selectIsBridgeEnabledSourceFactory } from '../../../../../core/redux/sl
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -112,12 +112,7 @@ export const useSwapBridgeNavigation = ({
 
       if (!sourceToken) {
         // fallback to ETH on mainnet
-        sourceToken = {
-          address: ethers.constants.AddressZero,
-          chainId: EthScope.Mainnet,
-          symbol: 'ETH',
-          decimals: 18,
-        };
+        sourceToken = getNativeSourceToken(EthScope.Mainnet);
       }
 
       const params: BridgeRouteParams = {
