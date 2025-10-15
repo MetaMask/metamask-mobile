@@ -5964,6 +5964,7 @@
       "type": {
         "swap": "Swap",
         "perps": "Perps",
+        "card_spend": "Card spend",
         "referral": "Referral",
         "referral_action": "Referral action",
         "sign_up_bonus": "Sign up bonus",
