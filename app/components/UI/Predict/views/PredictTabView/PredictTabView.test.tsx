@@ -51,30 +51,6 @@ jest.mock('../../components/PredictPositions/PredictPositions', () => {
   };
 });
 
-jest.mock(
-  '../../components/PredictClaimablePositions/PredictClaimablePositions',
-  () => {
-    const ReactLib = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactLib.forwardRef(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (_props: unknown, ref: any) => {
-          ReactLib.useImperativeHandle(ref, () => ({
-            refresh: jest.fn(),
-          }));
-          return (
-            <View testID="predict-claimable-positions">
-              <Text>Claimable Positions</Text>
-            </View>
-          );
-        },
-      ),
-    };
-  },
-);
-
 jest.mock('../../components/PredictAddFundsSheet/PredictAddFundsSheet', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
@@ -279,7 +255,6 @@ describe('PredictTabView', () => {
 
     expect(screen.getByTestId('predict-account-state')).toBeOnTheScreen();
     expect(screen.getByTestId('predict-positions')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-claimable-positions')).toBeOnTheScreen();
     expect(screen.getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
   });
 
@@ -288,7 +263,6 @@ describe('PredictTabView', () => {
 
     expect(screen.getByText('Account State')).toBeOnTheScreen();
     expect(screen.getByText('Positions')).toBeOnTheScreen();
-    expect(screen.getByText('Claimable Positions')).toBeOnTheScreen();
     expect(screen.getByText('Add Funds')).toBeOnTheScreen();
   });
 
@@ -298,7 +272,6 @@ describe('PredictTabView', () => {
     // Component should render successfully with all child components
     expect(screen.getByTestId('predict-account-state')).toBeOnTheScreen();
     expect(screen.getByTestId('predict-positions')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-claimable-positions')).toBeOnTheScreen();
     expect(screen.getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
   });
 
@@ -307,7 +280,6 @@ describe('PredictTabView', () => {
     const mockRefreshFunctions = {
       accountState: jest.fn().mockResolvedValue(undefined),
       positions: jest.fn().mockResolvedValue(undefined),
-      claimablePositions: jest.fn().mockResolvedValue(undefined),
     };
 
     // Update the mocks to capture refs
@@ -316,9 +288,6 @@ describe('PredictTabView', () => {
     );
     const PredictPositionsMock = jest.requireMock(
       '../../components/PredictPositions/PredictPositions',
-    );
-    const PredictClaimablePositionsMock = jest.requireMock(
-      '../../components/PredictClaimablePositions/PredictClaimablePositions',
     );
 
     // Mock the forwardRef components with working refs
@@ -352,21 +321,6 @@ describe('PredictTabView', () => {
       },
     );
 
-    PredictClaimablePositionsMock.default = React.forwardRef(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (_props: unknown, ref: any) => {
-        const { View, Text } = jest.requireActual('react-native');
-        React.useImperativeHandle(ref, () => ({
-          refresh: mockRefreshFunctions.claimablePositions,
-        }));
-        return (
-          <View testID="predict-claimable-positions">
-            <Text>Claimable Positions</Text>
-          </View>
-        );
-      },
-    );
-
     const { UNSAFE_getByType } = renderWithProviders(<PredictTabView />);
 
     // Get the RefreshControl component
@@ -381,7 +335,6 @@ describe('PredictTabView', () => {
     // Verify all refresh functions were called
     expect(mockRefreshFunctions.accountState).toHaveBeenCalledTimes(1);
     expect(mockRefreshFunctions.positions).toHaveBeenCalledTimes(1);
-    expect(mockRefreshFunctions.claimablePositions).toHaveBeenCalledTimes(1);
   });
 
   it('handles refresh state correctly', async () => {

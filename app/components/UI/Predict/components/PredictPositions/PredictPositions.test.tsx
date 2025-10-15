@@ -130,7 +130,8 @@ describe('PredictPositions', () => {
     renderWithProvider(<PredictPositions />);
 
     // Assert - FlashList should be rendered
-    expect(screen.getByTestId('flash-list')).toBeOnTheScreen();
+    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
+    expect(screen.getByTestId('claimable-positions-list')).toBeOnTheScreen();
   });
 
   it('renders FlashList when positions exist', () => {
@@ -144,7 +145,8 @@ describe('PredictPositions', () => {
     renderWithProvider(<PredictPositions />);
 
     // Assert
-    expect(screen.getByTestId('flash-list')).toBeOnTheScreen();
+    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
+    expect(screen.getByTestId('claimable-positions-list')).toBeOnTheScreen();
   });
 
   it('exposes refresh method via ref', () => {

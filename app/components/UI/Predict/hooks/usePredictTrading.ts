@@ -4,7 +4,6 @@ import {
   CalculateBetAmountsParams,
   CalculateCashOutAmountsParams,
   GetBalanceParams,
-  GetClaimablePositionsParams,
   GetPositionsParams,
   PlaceOrderParams,
 } from '../providers/types';
@@ -15,14 +14,6 @@ export function usePredictTrading() {
     const controller = Engine.context.PredictController;
     return controller.getPositions(params);
   }, []);
-
-  const getClaimablePositions = useCallback(
-    async (params: GetClaimablePositionsParams) => {
-      const controller = Engine.context.PredictController;
-      return controller.getClaimablePositions(params);
-    },
-    [],
-  );
 
   const claim = useCallback(async (claimParams: ClaimParams) => {
     const controller = Engine.context.PredictController;
@@ -57,7 +48,6 @@ export function usePredictTrading() {
 
   return {
     getPositions,
-    getClaimablePositions,
     placeOrder,
     claim,
     calculateBetAmounts,

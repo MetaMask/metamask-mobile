@@ -304,72 +304,6 @@ describe('usePredictTrading', () => {
     });
   });
 
-  describe('getClaimablePositions', () => {
-    it('calls PredictController.getClaimablePositions and returns positions', async () => {
-      const mockClaimablePositions = [
-        {
-          id: 'claim-pos-1',
-          providerId: 'polymarket',
-          marketId: 'market-1',
-          outcomeId: 'outcome-1',
-          outcome: 'Yes',
-          outcomeTokenId: 'token-1',
-          currentValue: 100,
-          title: 'Test Market',
-          icon: 'icon.png',
-          amount: 10,
-          price: 1.5,
-          status: PredictPositionStatus.WON,
-          size: 10,
-          outcomeIndex: 0,
-          realizedPnl: 5,
-          percentPnl: 50,
-          cashPnl: 5,
-          claimable: true,
-          initialValue: 10,
-          avgPrice: 1.0,
-          endDate: '2024-01-01T00:00:00Z',
-          negRisk: false,
-        },
-      ];
-
-      (
-        Engine.context.PredictController.getClaimablePositions as jest.Mock
-      ).mockResolvedValue(mockClaimablePositions);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      const response = await result.current.getClaimablePositions({
-        address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
-      });
-
-      expect(
-        Engine.context.PredictController.getClaimablePositions,
-      ).toHaveBeenCalledWith({
-        address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
-      });
-      expect(response).toEqual(mockClaimablePositions);
-    });
-
-    it('handles errors from PredictController.getClaimablePositions', async () => {
-      const mockError = new Error('Failed to fetch claimable positions');
-      (
-        Engine.context.PredictController.getClaimablePositions as jest.Mock
-      ).mockRejectedValue(mockError);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      await expect(
-        result.current.getClaimablePositions({
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-        }),
-      ).rejects.toThrow('Failed to fetch claimable positions');
-    });
-  });
-
   describe('calculateBetAmounts', () => {
     it('calls PredictController.calculateBetAmounts and returns result', async () => {
       const mockBetAmounts = {
@@ -532,7 +466,6 @@ describe('usePredictTrading', () => {
       const { result, rerender } = renderHook(() => usePredictTrading());
 
       const initialGetPositions = result.current.getPositions;
-      const initialGetClaimablePositions = result.current.getClaimablePositions;
       const initialPlaceOrder = result.current.placeOrder;
       const initialClaim = result.current.claim;
       const initialCalculateBetAmounts = result.current.calculateBetAmounts;
@@ -543,9 +476,6 @@ describe('usePredictTrading', () => {
       rerender({});
 
       expect(result.current.getPositions).toBe(initialGetPositions);
-      expect(result.current.getClaimablePositions).toBe(
-        initialGetClaimablePositions,
-      );
       expect(result.current.placeOrder).toBe(initialPlaceOrder);
       expect(result.current.claim).toBe(initialClaim);
       expect(result.current.calculateBetAmounts).toBe(

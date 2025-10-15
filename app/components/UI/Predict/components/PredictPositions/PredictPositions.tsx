@@ -4,6 +4,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
+
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
@@ -15,8 +16,9 @@ import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictNewButton from '../PredictNewButton';
 import { ActivityIndicator, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
 
 export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
@@ -31,11 +33,21 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
       loadOnMount: true,
       refreshOnFocus: true,
     });
+  const {
+    positions: claimablePositions,
+    loadPositions: loadClaimablePositions,
+  } = usePredictPositions({
+    claimable: true,
+    loadOnMount: true,
+  });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
-      await loadPositions({ isRefresh: true });
+      await Promise.all([
+        loadPositions({ isRefresh: true }),
+        loadClaimablePositions({ isRefresh: true }),
+      ]);
     },
   }));
 
@@ -73,18 +85,35 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
 
   // TODO: Sort positions in the controller (business logic)
   return (
-    <FlashList
-      testID="flash-list"
-      ref={listRef}
-      data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
-      renderItem={renderPosition}
-      scrollEnabled={false}
-      keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-      removeClippedSubviews
-      decelerationRate={0}
-      ListEmptyComponent={<PredictPositionEmpty />}
-      ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
-    />
+    <>
+      <FlashList
+        testID="active-positions-list"
+        ref={listRef}
+        data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
+        renderItem={renderPosition}
+        scrollEnabled={false}
+        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
+        removeClippedSubviews
+        decelerationRate={0}
+        ListEmptyComponent={<PredictPositionEmpty />}
+        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
+      />
+      <Box>
+        <Text variant={TextVariant.BodyMd} twClassName="text-alternative mb-4">
+          {strings('predict.tab.resolved_markets')}
+        </Text>
+      </Box>
+      <FlashList
+        testID="claimable-positions-list"
+        data={claimablePositions.sort(
+          (a, b) =>
+            new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+        )}
+        renderItem={renderPosition}
+        scrollEnabled={false}
+        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
+      />
+    </>
   );
 });
 

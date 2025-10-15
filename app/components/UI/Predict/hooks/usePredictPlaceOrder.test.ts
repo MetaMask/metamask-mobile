@@ -35,7 +35,6 @@ describe('usePredictPlaceOrder', () => {
   const mockClaim = jest.fn();
   const mockCalculateBetAmounts = jest.fn();
   const mockCalculateCashOutAmounts = jest.fn();
-  const mockGetClaimablePositions = jest.fn();
   const mockGetBalance = jest.fn();
 
   const mockOrderParams = {
@@ -64,7 +63,6 @@ describe('usePredictPlaceOrder', () => {
       claim: mockClaim,
       calculateBetAmounts: mockCalculateBetAmounts,
       calculateCashOutAmounts: mockCalculateCashOutAmounts,
-      getClaimablePositions: mockGetClaimablePositions,
       getBalance: mockGetBalance,
     });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });

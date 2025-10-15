@@ -4,9 +4,6 @@ import { RefreshControl, ScrollView, View } from 'react-native';
 import PredictPositionsHeader, {
   PredictPositionsHeaderHandle,
 } from '../../components/PredictPositionsHeader';
-import PredictClaimablePositions, {
-  PredictClaimablePositionsHandle,
-} from '../../components/PredictClaimablePositions/PredictClaimablePositions';
 import PredictPositions, {
   PredictPositionsHandle,
 } from '../../components/PredictPositions/PredictPositions';
@@ -20,8 +17,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
-  const predictClaimablePositionsRef =
-    useRef<PredictClaimablePositionsHandle>(null);
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
 
   usePredictDepositToasts();
@@ -31,7 +26,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     try {
       await Promise.all([
         predictPositionsRef.current?.refresh(),
-        predictClaimablePositionsRef.current?.refresh(),
         predictPositionsHeaderRef.current?.refresh(),
       ]);
     } finally {
@@ -48,7 +42,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       >
         <PredictPositionsHeader ref={predictPositionsHeaderRef} />
         <PredictPositions ref={predictPositionsRef} />
-        <PredictClaimablePositions ref={predictClaimablePositionsRef} />
         <PredictAddFundsSheet />
       </ScrollView>
     </View>
