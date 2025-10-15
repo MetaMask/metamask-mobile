@@ -231,6 +231,7 @@ describe('AccountBackupStep1', () => {
     );
 
     fireEvent.press(reminderButton);
+
     const continueButton = wrapper.getByText(
       strings('account_backup_step_1.cta_text'),
     );
