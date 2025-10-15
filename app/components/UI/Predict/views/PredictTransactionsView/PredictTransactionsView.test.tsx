@@ -3,17 +3,11 @@ import { render, screen } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../components/PredictActivity/PredictActivity';
 
-// Shared mocks
+// Mock Tailwind - necessary because MMDS components use it internally
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
-    style: (className: string) => ({ className }),
+    style: (...args: unknown[]) => (Array.isArray(args[0]) ? {} : args[0]),
   }),
-}));
-
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  Text: 'Text',
-  TextVariant: { BodySm: 'BodySm' },
 }));
 
 // Mock localization with param-aware strings
