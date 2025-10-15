@@ -8,7 +8,6 @@ import {
 ///: END:ONLY_INCLUDE_IF
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
-import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -169,6 +168,7 @@ import { ppomControllerInit } from './controllers/ppom-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
+import { addressBookControllerInit } from './controllers/address-book-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -349,6 +349,7 @@ export class Engine {
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
+        AddressBookController: addressBookControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -381,6 +382,7 @@ export class Engine {
       controllersByName.SelectedNetworkController;
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
+    const addressBookController = controllersByName.AddressBookController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -465,14 +467,7 @@ export class Engine {
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,
       AccountTrackerController: accountTrackerController,
-      AddressBookController: new AddressBookController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'AddressBookController',
-          allowedActions: [],
-          allowedEvents: [],
-        }),
-        state: initialState.AddressBookController,
-      }),
+      AddressBookController: addressBookController,
       AppMetadataController: controllersByName.AppMetadataController,
       AssetsContractController: assetsContractController,
       NftController: nftController,

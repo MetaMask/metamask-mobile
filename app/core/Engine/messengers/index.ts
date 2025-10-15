@@ -51,7 +51,6 @@ import { getNotificationServicesPushControllerMessenger } from './notifications/
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
-
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
@@ -119,6 +118,7 @@ import {
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
+import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -135,6 +135,10 @@ export const CONTROLLER_MESSENGERS = {
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
     getInitMessenger: getAccountTreeControllerInitMessenger,
+  },
+  AddressBookController: {
+    getMessenger: getAddressBookControllerMessenger,
+    getInitMessenger: noop,
   },
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,

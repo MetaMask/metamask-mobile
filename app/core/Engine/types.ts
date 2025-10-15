@@ -708,6 +708,7 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  */
 export type ControllersToInitialize =
   | 'AccountTrackerController'
+  | 'AddressBookController'
   | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
