@@ -23,7 +23,7 @@ Install node version defined in the file `.nvmrc`
 Ensure you are using the correct yarn version (yarn v4.10.3) as noted in the `package.json`.
 
 <details>
-  <summary>Install Yarn v3 using corepack (recommended)</summary>
+  <summary>Install Yarn v4 using corepack (recommended)</summary>
 
 ```bash
 corepack enable
@@ -35,7 +35,7 @@ yarn --version
 </details>
 
 <details>
-  <summary>Install Yarn v3 with NPM</summary>
+  <summary>Install Yarn v4 with NPM</summary>
 
 ```bash
 npm install -g yarn@4.10.3

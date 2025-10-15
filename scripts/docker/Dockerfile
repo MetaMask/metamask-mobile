@@ -9,7 +9,7 @@ RUN apt-get update \
   && sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen \
   && locale-gen
 
-# Enable corepack to use Yarn v3 as specified in package.json
+# Enable corepack to use Yarn v4 as specified in package.json
 RUN corepack enable \
   && corepack prepare yarn@4.10.3 --activate \
   && yarn --version
