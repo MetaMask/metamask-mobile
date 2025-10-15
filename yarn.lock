@@ -7045,26 +7045,25 @@ __metadata:
     "@ethersproject/constants": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.0
-    "@metamask/base-controller": ^8.4.1
-    "@metamask/controller-utils": ^11.14.1
-    "@metamask/gas-fee-controller": ^24.1.0
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/gas-fee-controller": ^24.0.0
     "@metamask/keyring-api": ^21.0.0
     "@metamask/metamask-eth-abis": ^3.1.1
-    "@metamask/multichain-network-controller": ^1.0.1
-    "@metamask/polling-controller": ^14.0.1
+    "@metamask/multichain-network-controller": ^1.0.0
+    "@metamask/polling-controller": ^14.0.0
     "@metamask/utils": ^11.8.1
-    "@microsoft/fetch-event-source": ^2.0.1
     bignumber.js: ^9.1.2
     reselect: ^5.1.1
     uuid: ^8.3.2
   peerDependencies:
     "@metamask/accounts-controller": ^33.0.0
-    "@metamask/assets-controllers": ^81.0.0
+    "@metamask/assets-controllers": ^78.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 379e447e572fa3896b28e7b769a54f35fc5942be45264e860e55dbacccc32bddc4063a761c437b37d9a8205daa5fb255d4093187156f1265470c6a3ff59f2a38
+  checksum: 0e0c64924abd2052fff4558af237c90fcdbf48dee93ae1c2f873773eaa7313f87077c4ce25238768165901091a10d4314d7d4113f0042f4e91f1cc382724291b
   languageName: node
   linkType: hard
 
@@ -7072,9 +7071,9 @@ __metadata:
   version: 50.1.0
   resolution: "@metamask/bridge-status-controller@npm:50.1.0"
   dependencies:
-    "@metamask/base-controller": ^8.4.1
-    "@metamask/controller-utils": ^11.14.1
-    "@metamask/polling-controller": ^14.0.1
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/polling-controller": ^14.0.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.8.1
     bignumber.js: ^9.1.2
@@ -7652,7 +7651,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^24.0.0, @metamask/gas-fee-controller@npm:^24.1.0":
+"@metamask/gas-fee-controller@npm:^24.0.0":
   version: 24.1.0
   resolution: "@metamask/gas-fee-controller@npm:24.1.0"
   dependencies:
@@ -7993,7 +7992,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-network-controller@npm:^1.0.0, @metamask/multichain-network-controller@npm:^1.0.1":
+"@metamask/multichain-network-controller@npm:^1.0.0":
   version: 1.0.1
   resolution: "@metamask/multichain-network-controller@npm:1.0.1"
   dependencies:
@@ -8916,13 +8915,6 @@ __metadata:
     semver: ^7.5.4
     uuid: ^9.0.1
   checksum: f720b0f7bdd46054aa88d15a9702e1de6d7200a1ca1d4f6bc48761b039f1bbffb46ac88bc87fe79e66128c196d424f3b9ef071b3cb4b40139223786d56da35e0
-  languageName: node
-  linkType: hard
-
-"@microsoft/fetch-event-source@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "@microsoft/fetch-event-source@npm:2.0.1"
-  checksum: a50e1c0f33220206967266d0a4bbba0703e2793b079d9f6e6bfd48f71b2115964a803e14cf6e902c6fab321edc084f26022334f5eaacc2cec87f174715d41852
   languageName: node
   linkType: hard
 

@@ -32,17 +32,18 @@ describe('backendWebSocketServiceInit', () => {
     };
   };
 
-  it('initializes BackendWebSocketService with default URL', () => {
-    // Arrange
+  it('initializes BackendWebSocketService with correct configuration', () => {
     const mocks = arrangeMocks();
 
-    // Act
     const result = backendWebSocketServiceInit(mocks);
 
-    // Assert
     expect(BackendWebSocketService).toHaveBeenCalledWith(
       expect.objectContaining({
         url: 'wss://gateway.api.cx.metamask.io/v1',
+        timeout: 15000,
+        reconnectDelay: 1000,
+        maxReconnectDelay: 30000,
+        requestTimeout: 20000,
       }),
     );
     expect(result.controller).toBeDefined();
@@ -54,173 +55,64 @@ describe('backendWebSocketServiceInit', () => {
     );
   });
 
-  it('uses default URL when environment variable not set', () => {
-    // Arrange
-    const mocks = arrangeMocks();
-
-    // Act
-    backendWebSocketServiceInit(mocks);
-
-    // Assert
-    expect(BackendWebSocketService).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: 'wss://gateway.api.cx.metamask.io/v1',
-      }),
-    );
-  });
-
-  it('configures service with correct timeouts', () => {
-    // Arrange
-    const mocks = arrangeMocks();
-
-    // Act
-    backendWebSocketServiceInit(mocks);
-
-    // Assert
-    expect(BackendWebSocketService).toHaveBeenCalledWith(
-      expect.objectContaining({
-        timeout: 15000,
-        reconnectDelay: 1000,
-        maxReconnectDelay: 30000,
-        requestTimeout: 20000,
-      }),
-    );
-  });
-
   describe('isEnabled callback', () => {
-    it('provides an isEnabled callback', () => {
-      // Arrange
-      const mocks = arrangeMocks();
-      let isEnabledCallback: (() => boolean) | undefined;
-      (BackendWebSocketService as jest.Mock).mockImplementation((config) => {
-        isEnabledCallback = config.isEnabled;
-        return {};
-      });
-
-      // Act
-      backendWebSocketServiceInit(mocks);
-
-      // Assert
-      expect(isEnabledCallback).toBeDefined();
-      if (isEnabledCallback) {
-        expect(typeof isEnabledCallback()).toBe('boolean');
-      }
-    });
+    const getIsEnabledCallback = () => {
+      const { isEnabled } = (BackendWebSocketService as jest.Mock).mock
+        .calls[0][0];
+      return isEnabled;
+    };
 
     it('returns true when remote feature flag is enabled', () => {
-      // Arrange
       const mocks = arrangeMocks();
       (mocks.initMessenger.call as jest.Mock).mockReturnValue({
         remoteFeatureFlags: {
-          backendWebSocketConnection: {
-            value: true,
-          },
+          backendWebSocketConnection: { value: true },
         },
       });
 
-      // Act
       backendWebSocketServiceInit(mocks);
 
-      // Assert - Extract isEnabled from the constructor call args
-      const { isEnabled } = (BackendWebSocketService as jest.Mock).mock
-        .calls[0][0];
-      expect(isEnabled).toBeDefined();
-      expect(isEnabled?.()).toBe(true);
+      expect(getIsEnabledCallback()()).toBe(true);
       expect(mocks.initMessenger.call).toHaveBeenCalledWith(
         'RemoteFeatureFlagController:getState',
       );
     });
 
-    it('returns false when remote feature flag is disabled', () => {
-      // Arrange
-      const mocks = arrangeMocks();
-      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
-        remoteFeatureFlags: {
-          backendWebSocketConnection: {
-            value: false,
-          },
+    it.each([
+      [
+        'flag is disabled',
+        {
+          remoteFeatureFlags: { backendWebSocketConnection: { value: false } },
         },
-      });
-
-      // Act
-      backendWebSocketServiceInit(mocks);
-
-      // Assert - Extract isEnabled from the constructor call args
-      const { isEnabled } = (BackendWebSocketService as jest.Mock).mock
-        .calls[0][0];
-      expect(isEnabled).toBeDefined();
-      expect(isEnabled?.()).toBe(false);
-    });
-
-    it('returns false when remote feature flag is not an object', () => {
-      // Arrange
+      ],
+      [
+        'flag is not an object',
+        { remoteFeatureFlags: { backendWebSocketConnection: 'invalid' } },
+      ],
+      [
+        'flag has no value property',
+        { remoteFeatureFlags: { backendWebSocketConnection: {} } },
+      ],
+      ['remoteFeatureFlags is undefined', {}],
+    ])('returns false when %s', (_description, mockReturnValue) => {
       const mocks = arrangeMocks();
-      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
-        remoteFeatureFlags: {
-          backendWebSocketConnection: 'invalid',
-        },
-      });
+      (mocks.initMessenger.call as jest.Mock).mockReturnValue(mockReturnValue);
 
-      // Act
       backendWebSocketServiceInit(mocks);
 
-      // Assert - Extract isEnabled from the constructor call args
-      const { isEnabled } = (BackendWebSocketService as jest.Mock).mock
-        .calls[0][0];
-      expect(isEnabled).toBeDefined();
-      expect(isEnabled?.()).toBe(false);
-    });
-
-    it('returns false when remote feature flag does not have value property', () => {
-      // Arrange
-      const mocks = arrangeMocks();
-      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
-        remoteFeatureFlags: {
-          backendWebSocketConnection: {},
-        },
-      });
-
-      // Act
-      backendWebSocketServiceInit(mocks);
-
-      // Assert - Extract isEnabled from the constructor call args
-      const { isEnabled } = (BackendWebSocketService as jest.Mock).mock
-        .calls[0][0];
-      expect(isEnabled).toBeDefined();
-      expect(isEnabled?.()).toBe(false);
-    });
-
-    it('returns false when remoteFeatureFlags is undefined', () => {
-      // Arrange
-      const mocks = arrangeMocks();
-      (mocks.initMessenger.call as jest.Mock).mockReturnValue({});
-
-      // Act
-      backendWebSocketServiceInit(mocks);
-
-      // Assert - Extract isEnabled from the constructor call args
-      const { isEnabled } = (BackendWebSocketService as jest.Mock).mock
-        .calls[0][0];
-      expect(isEnabled).toBeDefined();
-      expect(isEnabled?.()).toBe(false);
+      expect(getIsEnabledCallback()()).toBe(false);
     });
 
     it('returns false and logs error when feature flag check throws', () => {
-      // Arrange
       const mocks = arrangeMocks();
       const testError = new Error('Feature flag check failed');
       (mocks.initMessenger.call as jest.Mock).mockImplementation(() => {
         throw testError;
       });
 
-      // Act
       backendWebSocketServiceInit(mocks);
 
-      // Assert - Extract and call the isEnabled callback
-      const { isEnabled } = (BackendWebSocketService as jest.Mock).mock
-        .calls[0][0];
-      expect(isEnabled).toBeDefined();
-      expect(isEnabled?.()).toBe(false);
+      expect(getIsEnabledCallback()()).toBe(false);
       expect(Logger.log).toHaveBeenCalledWith(
         'BackendWebSocketService: Could not check feature flag, defaulting to NOT connect',
         testError,
