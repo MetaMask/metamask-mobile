@@ -1555,7 +1555,7 @@
       "ready_to_trade": {
         "title": "取引の準備はできましたか？",
         "description": "任意のトークンでパーペチュアルアカウントに入金すれば、数秒で最初の取引ができます。",
-        "footer_text": "MetaMaskはArbitrum上で資金をUSDCに交換し、これを追加手数料なしでHyperEVMに入金します。"
+        "footer_text": "MetaMaskはArbitrum上で資金をUSDCに交換し、これを追加手数料なしでHyperCoreに入金します。"
       },
       "got_it": "了解",
       "card": {
@@ -5315,7 +5315,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Metamaskは、HyperEVM (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCに交換します。スワッププロバイダーは手数料を請求することがありますが、MetaMaskなら無料です。"
+        "transaction_fee": "Metamaskは、HyperCore (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCに交換します。スワッププロバイダーは手数料を請求することがありますが、MetaMaskなら無料です。"
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
