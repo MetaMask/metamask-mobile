@@ -48,6 +48,8 @@ import { TabsList } from '../../../component-library/components-temp/Tabs';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
@@ -162,6 +164,11 @@ const ActivityView = () => {
     [perpsEnabledFlag, isEvmSelected],
   );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useMemo(
+    () => predictEnabledFlag && isEvmSelected,
+    [predictEnabledFlag, isEvmSelected],
+  );
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -213,7 +220,10 @@ const ActivityView = () => {
   // Calculate if Perps tab is currently active
   // Perps is the last tab, so its index depends on what other tabs are shown
   const perpsTabIndex = 2;
+  const predictTabIndex = 3;
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
+  const isPredictTabActive =
+    isPredictEnabled && activeTabIndex === predictTabIndex;
   const isOrdersTabActive = activeTabIndex === 1;
 
   useFocusEffect(
@@ -357,6 +367,16 @@ const ActivityView = () => {
               <PerpsConnectionProvider isVisible={isPerpsTabActive}>
                 <PerpsTransactionsView />
               </PerpsConnectionProvider>
+            </View>
+          )}
+
+          {isPredictEnabled && (
+            <View
+              key="predict"
+              tabLabel={strings('wallet.predict')}
+              style={styles.tabWrapper}
+            >
+              <PredictTransactionsView />
             </View>
           )}
         </TabsList>
