@@ -134,6 +134,13 @@ const BuildQuote = () => {
     amount,
   );
 
+  const [, getUserLimits] = useDepositSdkMethod(
+    { method: 'getUserLimits', onMount: false, throws: true },
+    selectedRegion?.currency || '',
+    selectedPaymentMethod?.id || '',
+    'SIMPLE',
+  );
+
   const {
     tokenAmount,
     isLoading: isLoadingTokenAmount,
@@ -299,6 +306,93 @@ const BuildQuote = () => {
         return;
       }
 
+      try {
+        const userLimits = await getUserLimits();
+
+        if (!userLimits) {
+          setError(strings('deposit.buildQuote.limitError'));
+          setIsLoading(false);
+          return;
+        }
+
+        if (userLimits?.remaining) {
+          const { remaining } = userLimits;
+
+          const dailyLimit = remaining['1'];
+          const monthlyLimit = remaining['30'];
+          const yearlyLimit = remaining['365'];
+
+          if (
+            dailyLimit === undefined ||
+            monthlyLimit === undefined ||
+            yearlyLimit === undefined
+          ) {
+            setError(strings('deposit.buildQuote.limitError'));
+            setIsLoading(false);
+            return;
+          }
+
+          if (amountAsNumber > dailyLimit) {
+            setError(
+              strings('deposit.buildQuote.limitExceeded', {
+                period: 'daily',
+                remaining: formatCurrency(
+                  dailyLimit,
+                  selectedRegion?.currency || '',
+                  {
+                    currencyDisplay: 'narrowSymbol',
+                  },
+                ),
+              }),
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          if (amountAsNumber > monthlyLimit) {
+            setError(
+              strings('deposit.buildQuote.limitExceeded', {
+                period: 'monthly',
+                remaining: formatCurrency(
+                  monthlyLimit,
+                  selectedRegion?.currency || '',
+                  {
+                    currencyDisplay: 'narrowSymbol',
+                  },
+                ),
+              }),
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          if (amountAsNumber > yearlyLimit) {
+            setError(
+              strings('deposit.buildQuote.limitExceeded', {
+                period: 'yearly',
+                remaining: formatCurrency(
+                  yearlyLimit,
+                  selectedRegion?.currency || '',
+                  {
+                    currencyDisplay: 'narrowSymbol',
+                  },
+                ),
+              }),
+            );
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (limitsError) {
+        Logger.error(
+          limitsError as Error,
+          'Deposit::BuildQuote - Error checking user limits',
+        );
+        setError(strings('deposit.buildQuote.limitError'));
+        setIsLoading(false);
+        return;
+      }
+
       trackEvent('RAMPS_ORDER_SELECTED', {
         ramp_type: 'DEPOSIT',
         amount_source: quote.fiatAmount,
@@ -360,6 +454,7 @@ const BuildQuote = () => {
     selectedRegion?.currency,
     isAuthenticated,
     getQuote,
+    getUserLimits,
     routeAfterAuthentication,
     navigateToVerifyIdentity,
     shouldRouteImmediately,
