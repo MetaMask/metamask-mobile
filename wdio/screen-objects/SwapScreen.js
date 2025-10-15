@@ -1,4 +1,4 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
@@ -6,10 +6,7 @@ import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.s
 import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
 import { SwapsViewSelectorsIDs } from '../../e2e/selectors/swaps/SwapsView.selectors';
 
-class SwapScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class SwapScreen {
 
   get device() {
     return this._device;
@@ -17,7 +14,7 @@ class SwapScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
   get sourceTokenInput() {
     return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID);
@@ -127,7 +124,7 @@ class SwapScreen extends AppwrightGestures {
   }
 
   async enterDestinationTokenAmount(amount) {
-    await this.typeText(this.destTokenInput, amount); // Use inherited typeText method with retry logic
+    await AppwrightGestures.typeText(this.destTokenInput, amount);
   }
 
   async isVisible() {

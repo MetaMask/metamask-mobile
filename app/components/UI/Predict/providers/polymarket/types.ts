@@ -1,7 +1,9 @@
 import { Side } from '../../types';
+import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
+  eventId: string;
   icon: string;
   title: string;
   slug: string;
@@ -18,6 +20,7 @@ export interface PolymarketPosition {
   negativeRisk: boolean;
   endDate: string;
   asset: string;
+  realizedPnl: number;
 }
 
 export enum UtilsSide {
@@ -96,10 +99,14 @@ export type SignedOrder = (OrderData & { salt: string }) & {
   signature: string;
 };
 
-export type ClobOrderObject = Omit<SignedOrder, 'side' | 'salt'> & {
-  side: Side;
-  salt: number;
-};
+export interface ClobOrderObject {
+  order: Omit<SignedOrder, 'side' | 'salt'> & {
+    side: Side;
+    salt: number;
+  };
+  owner: string;
+  orderType: OrderType;
+}
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ClobHeaders = {
   POLY_ADDRESS: string;
@@ -112,6 +119,7 @@ export type ClobHeaders = {
 export interface PolymarketOffchainTradeParams {
   clobOrder: ClobOrderObject;
   headers: ClobHeaders;
+  feeAuthorization?: SafeFeeAuthorization;
 }
 
 export interface OrderArtifactsParams {
@@ -136,7 +144,10 @@ export interface PolymarketApiMarket {
   outcomes: string;
   outcomePrices: string;
   closed: boolean;
+  active: boolean;
+  resolvedBy: string;
   orderPriceMinTickSize: number;
+  events?: PolymarketApiEvent[];
 }
 
 export interface PolymarketApiSeries {
@@ -162,6 +173,7 @@ export interface PolymarketApiEvent {
   title: string;
   description: string;
   icon: string;
+  endDate?: string;
   closed: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];

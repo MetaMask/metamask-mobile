@@ -15,14 +15,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -30,7 +23,7 @@ import SensitiveText, {
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import createStyles, { headerStyle } from './CardHome.styles';
+import createStyles from './CardHome.styles';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -55,18 +48,11 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import {
-  Skeleton,
-  SkeletonProps,
-} from '../../../../../component-library/components/Skeleton';
-import { isE2E } from '../../../../../util/test/utils';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
-
-const SkeletonLoading = (props: SkeletonProps) => {
-  if (isE2E) return null;
-
-  return <Skeleton {...props} />;
-};
+import { useCardSDK } from '../../sdk';
+import Routes from '../../../../../constants/navigation/Routes';
+import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
 
 /**
  * CardHome Component
@@ -84,6 +70,12 @@ const CardHome = () => {
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
+  const {
+    isAuthenticated,
+    logoutFromProvider,
+    isLoading: isSDKLoading,
+  } = useCardSDK();
+  const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
@@ -100,7 +92,8 @@ const CardHome = () => {
     isLoading: isLoadingPriorityToken,
     error,
   } = useGetPriorityCardToken();
-  const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
+  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
+    useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
@@ -157,6 +150,16 @@ const CardHome = () => {
   const hasTrackedCardHomeView = useRef(false);
 
   useEffect(() => {
+    // Early return if already tracked to prevent any possibility of duplicate tracking
+    if (hasTrackedCardHomeView.current) {
+      return;
+    }
+
+    // Don't track while SDK is still loading to prevent premature tracking
+    if (isSDKLoading) {
+      return;
+    }
+
     const hasValidMainBalance =
       mainBalance !== undefined &&
       mainBalance !== TOKEN_BALANCE_LOADING &&
@@ -171,19 +174,36 @@ const CardHome = () => {
     const isLoaded =
       !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
 
-    if (isLoaded && !hasTrackedCardHomeView.current) {
+    if (isLoaded) {
+      // Set flag immediately to prevent race conditions
+      hasTrackedCardHomeView.current = true;
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
             token_symbol_priority: priorityToken?.symbol,
-            token_raw_balance_priority: mainBalance,
-            token_fiat_balance_priority: balanceFiat,
+            token_raw_balance_priority:
+              rawTokenBalance !== undefined && isNaN(rawTokenBalance)
+                ? 0
+                : rawTokenBalance,
+            token_fiat_balance_priority:
+              rawFiatNumber !== undefined && isNaN(rawFiatNumber)
+                ? 0
+                : rawFiatNumber,
           })
           .build(),
       );
-      hasTrackedCardHomeView.current = true;
     }
-  }, [trackEvent, createEventBuilder, priorityToken, mainBalance, balanceFiat]);
+  }, [
+    priorityToken,
+    mainBalance,
+    balanceFiat,
+    rawTokenBalance,
+    rawFiatNumber,
+    trackEvent,
+    createEventBuilder,
+    isSDKLoading,
+  ]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
@@ -205,6 +225,26 @@ const CardHome = () => {
     isPriorityTokenSupportedDeposit,
     selectedChainId,
   ]);
+
+  const changeAssetAction = useCallback(() => {
+    if (isAuthenticated) {
+      // open asset bottom sheet
+    } else {
+      navigation.navigate(Routes.CARD.WELCOME);
+    }
+  }, [isAuthenticated, navigation]);
+
+  const manageSpendingLimitAction = useCallback(() => {
+    if (isAuthenticated) {
+      // open spending limit screen
+    } else {
+      navigation.navigate(Routes.CARD.WELCOME);
+    }
+  }, [isAuthenticated, navigation]);
+
+  const logoutAction = () => {
+    logoutFromProvider();
+  };
 
   if (error) {
     return (
@@ -264,7 +304,7 @@ const CardHome = () => {
             {isLoadingPriorityToken ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
             balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-              <SkeletonLoading
+              <Skeleton
                 height={28}
                 width={'50%'}
                 style={styles.skeletonRounded}
@@ -328,7 +368,7 @@ const CardHome = () => {
           ]}
         >
           {isLoadingPriorityToken || !priorityToken ? (
-            <SkeletonLoading
+            <Skeleton
               height={50}
               width={'100%'}
               style={styles.skeletonRounded}
@@ -340,31 +380,71 @@ const CardHome = () => {
         </View>
 
         <View
-          style={[
-            styles.addFundsButtonContainer,
-            styles.defaultHorizontalPadding,
-          ]}
+          style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
         >
           {isLoadingPriorityToken ? (
-            <SkeletonLoading
+            <Skeleton
               height={28}
               width={'100%'}
               style={styles.skeletonRounded}
               testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
             />
           ) : (
-            <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_home.add_funds')}
-              size={ButtonSize.Sm}
-              onPress={addFundsAction}
-              width={ButtonWidthTypes.Full}
-              loading={isLoadingPriorityToken}
-              testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-            />
+            <>
+              {isBaanxLoginEnabled ? (
+                <View style={styles.buttonsContainer}>
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    style={styles.halfWidthButton}
+                    label={strings('card.card_home.add_funds')}
+                    size={ButtonSize.Lg}
+                    onPress={addFundsAction}
+                    width={ButtonWidthTypes.Full}
+                    loading={isLoadingPriorityToken}
+                    testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+                  />
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    style={styles.halfWidthButton}
+                    label={strings('card.card_home.change_asset')}
+                    size={ButtonSize.Lg}
+                    onPress={changeAssetAction}
+                    width={ButtonWidthTypes.Full}
+                    loading={isLoadingPriorityToken}
+                    testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
+                  />
+                </View>
+              ) : (
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('card.card_home.add_funds')}
+                  size={ButtonSize.Lg}
+                  onPress={addFundsAction}
+                  width={ButtonWidthTypes.Full}
+                  loading={isLoadingPriorityToken}
+                  testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+                />
+              )}
+            </>
           )}
         </View>
       </View>
+
+      {isBaanxLoginEnabled && (
+        <ManageCardListItem
+          title={strings(
+            'card.card_home.manage_card_options.manage_spending_limit',
+          )}
+          description={strings(
+            priorityToken?.allowanceState === AllowanceState.Enabled
+              ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+              : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+          )}
+          rightIcon={IconName.ArrowRight}
+          onPress={manageSpendingLimitAction}
+          testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+        />
+      )}
 
       <ManageCardListItem
         title={strings('card.card_home.manage_card_options.manage_card')}
@@ -376,40 +456,18 @@ const CardHome = () => {
         testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
       />
 
+      {isBaanxLoginEnabled && isAuthenticated ? (
+        <ManageCardListItem
+          title="Logout"
+          description="Logout of your Card account"
+          rightIcon={IconName.Logout}
+          onPress={logoutAction}
+        />
+      ) : null}
+
       {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
     </ScrollView>
   );
 };
-
-CardHome.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      style={headerStyle.invisibleIcon}
-    />
-  ),
-});
 
 export default CardHome;

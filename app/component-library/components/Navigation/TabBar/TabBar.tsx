@@ -130,7 +130,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     <View ref={tabBarRef}>
       <Box
         flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
+        alignItems={BoxAlignItems.End}
         twClassName="w-full pt-3 px-2 bg-default border-t border-muted"
         style={[tw.style(`pb-[${bottomInset}px]`)]}
       >

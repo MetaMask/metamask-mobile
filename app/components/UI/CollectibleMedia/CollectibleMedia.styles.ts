@@ -55,13 +55,12 @@ const styleSheet = (params: {
       borderRadius: 8,
     },
     textWrapper: {
+      flex: 1,
       textAlign: 'center',
       marginTop: 16,
     },
     textWrapperIcon: {
-      textAlign: 'center',
       fontSize: 18,
-      marginTop: 16,
     },
     mediaPlayer: {
       minHeight: 10,

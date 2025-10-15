@@ -6,7 +6,6 @@ import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import { ButtonIconSizes } from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import {
   IconName,
@@ -249,7 +248,6 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
               <View style={styles.valueModalHeader}>
                 <ButtonIcon
                   iconColor={IconColor.Default}
-                  size={ButtonIconSizes.Sm}
                   style={styles.valueModalHeaderIcon}
                   onPress={() => setHasValueModalOpen(false)}
                   iconName={IconName.ArrowLeft}

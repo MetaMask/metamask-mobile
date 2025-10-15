@@ -30,6 +30,7 @@ import {
   MOCK_USE_PAYMENT_METHODS_RETURN,
   MOCK_CRYPTOCURRENCIES,
   MOCK_PAYMENT_METHODS,
+  MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
 } from '../../testUtils';
 
 const createMockInteractionManager = () => ({
@@ -56,7 +57,6 @@ const {
 
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockUseAccountTokenCompatible = jest.fn();
 const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
 
 jest.mock('@react-navigation/native', () => {
@@ -92,11 +92,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock(
   '../../hooks/useDepositTokenExchange',
   () => () => mockUseDepositTokenExchange(),
-);
-
-jest.mock(
-  '../../hooks/useAccountTokenCompatible',
-  () => () => mockUseAccountTokenCompatible(),
 );
 
 jest.mock('../../hooks/useDepositRouting', () => ({
@@ -159,7 +154,6 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockUseAccountTokenCompatible.mockReturnValue(true);
     mockUseRoute.mockReturnValue({ params: {} });
 
     jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_RETURN);
@@ -236,6 +230,9 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
           screen: 'DepositUnsupportedRegionModal',
+          params: {
+            regions: MOCK_REGIONS,
+          },
         });
       });
     });
@@ -268,6 +265,28 @@ describe('BuildQuote Component', () => {
   });
 
   describe('Payment Method Selection', () => {
+    it('shows the right duration for the selected payment method', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: {
+            ...MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
+          },
+        }),
+      );
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('does not show the duration when selected payment method is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: null,
+        }),
+      );
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
     it('navigates to payment method selection when payment button is pressed', () => {
       render(BuildQuote);
       const payWithButton = screen.getByText('Pay with');
@@ -454,8 +473,11 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('navigates to incompatible token modal when user they are not compatible', async () => {
-      mockUseAccountTokenCompatible.mockReturnValue(false);
+    it('navigates to incompatible token modal when selectedWalletAddress is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ selectedWalletAddress: null }),
+      );
+
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');

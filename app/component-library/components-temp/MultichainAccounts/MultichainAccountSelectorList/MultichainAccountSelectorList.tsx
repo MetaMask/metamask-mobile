@@ -34,7 +34,6 @@ import {
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
-import { useAssetsUpdateAllAccountBalances } from '../../../../components/UI/Assets/hooks';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -67,10 +66,6 @@ const MultichainAccountSelectorList = ({
   );
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
-
-  // Update balances for all accounts when component mounts
-  // This ensures all account balances are visible without requiring user interaction
-  useAssetsUpdateAllAccountBalances();
 
   // Debounce search text with 200ms delay
   useEffect(() => {
@@ -170,7 +165,7 @@ const MultichainAccountSelectorList = ({
     const idx = flattenedData.findIndex(
       (item) => item.type === 'cell' && item.data.id === targetId,
     );
-    return idx > 0 ? idx : undefined;
+    return idx >= 0 ? idx : undefined;
   }, [flattenedData, selectedAccountGroups]);
 
   // Reset scroll to top when search text changes
@@ -341,6 +336,8 @@ const MultichainAccountSelectorList = ({
             renderScrollComponent={
               ScrollView as React.ComponentType<ScrollViewProps>
             }
+            // Performance optimizations
+            removeClippedSubviews
             {...props}
           />
         )}

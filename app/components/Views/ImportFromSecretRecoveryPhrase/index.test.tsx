@@ -25,6 +25,7 @@ import {
   trace,
   endTrace,
 } from '../../../util/trace';
+import type { Span } from '@sentry/core';
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
@@ -1621,8 +1622,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('starts and ends trace with onboardingTraceCtx', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = {
+        traceId: 'password-setup-trace-id',
+      } as unknown as Span;
 
       mockTrace.mockReturnValue(mockTraceCtx);
 

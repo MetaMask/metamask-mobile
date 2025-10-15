@@ -1,6 +1,13 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSendScope } from './useSendScope';
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 describe('useSendScope', () => {
   const mockEvmAccount = {
     id: 'evm-account-1',

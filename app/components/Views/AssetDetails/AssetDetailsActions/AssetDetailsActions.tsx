@@ -12,17 +12,13 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
-import { CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
-  displayBridgeButton: boolean | undefined;
-  chainId: Hex | CaipChainId;
   onBuy?: () => void;
   goToSwaps: () => void;
-  goToBridge: () => void;
   onSend: () => void;
   onReceive: () => void;
   // Asset context for fund flow
@@ -34,7 +30,6 @@ export interface AssetDetailsActionsProps {
   // Optional custom action IDs to avoid test ID conflicts
   buyButtonActionID?: string;
   swapButtonActionID?: string;
-  bridgeButtonActionID?: string;
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
 }
@@ -42,24 +37,20 @@ export interface AssetDetailsActionsProps {
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
-  displayBridgeButton,
-  chainId,
   onBuy,
   goToSwaps,
-  goToBridge,
   onSend,
   onReceive,
   asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
-  bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
+    selectIsSwapsEnabled(state),
   );
   const { navigate } = useNavigation();
 
@@ -107,17 +98,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           />
         </View>
       )}
-      {displayBridgeButton ? (
-        <View style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={IconName.Bridge}
-            label={strings('asset_overview.bridge')}
-            onPress={goToBridge}
-            isDisabled={!canSignTransactions}
-            testID={bridgeButtonActionID}
-          />
-        </View>
-      ) : null}
       <View style={styles.buttonContainer}>
         <MainActionButton
           iconName={IconName.Send}

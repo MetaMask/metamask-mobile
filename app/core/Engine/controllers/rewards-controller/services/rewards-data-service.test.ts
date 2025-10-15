@@ -1,4 +1,6 @@
 import {
+  InvalidTimestampError,
+  AuthorizationFailedError,
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
@@ -10,6 +12,9 @@ import type {
   SubscriptionReferralDetailsDto,
   PointsBoostEnvelopeDto,
   ClaimRewardDto,
+  GetPointsEventsLastUpdatedDto,
+  MobileLoginDto,
+  MobileOptinDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -86,15 +91,11 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:optin',
+        'RewardsDataService:mobileOptin',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:logout',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:generateChallenge',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -140,6 +141,86 @@ describe('RewardsDataService', () => {
     });
   });
 
+  // Test for mobileJoin function
+  describe('mobileJoin', () => {
+    const mockJoinRequest = {
+      account: '0x123456789',
+      timestamp: 1234567890,
+      signature: '0xabcdef',
+    };
+
+    const mockSubscriptionId = 'test-subscription-id';
+
+    const mockSubscriptionResponse = {
+      id: 'test-subscription-id',
+      referralCode: 'test-referral-code',
+      accounts: [],
+    };
+
+    it('should successfully join an account to a subscription', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockSubscriptionResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.mobileJoin(
+        mockJoinRequest as MobileLoginDto,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockSubscriptionResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/subscriptions/mobile-join',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockJoinRequest),
+        }),
+      );
+    });
+
+    it('should handle join errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({ message: 'Join failed' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Mobile join failed: 400 Join failed');
+    });
+
+    it('should throw InvalidTimestampError when server returns invalid timestamp error', async () => {
+      const mockErrorResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid timestamp',
+          serverTimestamp: 1234567000000, // Server timestamp in milliseconds
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      try {
+        await service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        );
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
+      }
+    });
+  });
+
   describe('login', () => {
     const mockLoginRequest = {
       account: '0x123456789',
@@ -182,7 +263,8 @@ describe('RewardsDataService', () => {
       const mockResponse = {
         ok: false,
         status: 401,
-      } as Response;
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(service.login(mockLoginRequest)).rejects.toThrow(
@@ -197,6 +279,28 @@ describe('RewardsDataService', () => {
         'Network error',
       );
     });
+
+    it('should throw InvalidTimestampError when server returns invalid timestamp error', async () => {
+      const mockErrorResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid timestamp',
+          serverTimestamp: 1234567000000, // Server timestamp in milliseconds
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      try {
+        await service.login(mockLoginRequest);
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
+      }
+    });
   });
 
   describe('getPointsEvents', () => {
@@ -209,7 +313,6 @@ describe('RewardsDataService', () => {
     const mockPointsEventsResponse = {
       has_more: true,
       cursor: 'next-cursor-123',
-      total_results: 100,
       results: [
         {
           id: 'event-123',
@@ -398,6 +501,172 @@ describe('RewardsDataService', () => {
 
       await expect(
         service.getPointsEvents(mockGetPointsEventsRequest),
+      ).rejects.toThrow('Request timeout after 10000ms');
+    });
+  });
+
+  describe('getPointsEventsLastUpdated', () => {
+    const mockGetPointsEventsLastUpdatedRequest: GetPointsEventsLastUpdatedDto =
+      {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+
+    it('should successfully get points events last updated timestamp', async () => {
+      // Arrange
+      const mockLastUpdatedResponse = {
+        lastUpdated: '2024-01-01T10:00:00Z',
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLastUpdatedResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(result).toEqual(new Date('2024-01-01T10:00:00Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events/last-updated',
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-access-token': 'test-access-token',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('should return null when lastUpdated is not present in response', async () => {
+      // Arrange
+      const mockResponseWithoutLastUpdated = {};
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponseWithoutLastUpdated),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should include authentication headers with subscription token', async () => {
+      // Arrange
+      const mockLastUpdatedResponse = {
+        lastUpdated: '2024-01-01T10:00:00Z',
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLastUpdatedResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(
+        mockGetPointsEventsLastUpdatedRequest.subscriptionId,
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'rewards-access-token': 'test-access-token',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+
+      const mockLastUpdatedResponse = {
+        lastUpdated: '2024-01-01T10:00:00Z',
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLastUpdatedResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(result).toEqual(new Date('2024-01-01T10:00:00Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('should handle get points events last updated errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getPointsEventsLastUpdated(
+          mockGetPointsEventsLastUpdatedRequest,
+        ),
+      ).rejects.toThrow('Get points events last update failed: 404');
+    });
+
+    it('should handle network errors', async () => {
+      // Arrange
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(
+        service.getPointsEventsLastUpdated(
+          mockGetPointsEventsLastUpdatedRequest,
+        ),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle timeout errors', async () => {
+      // Arrange
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      // Act & Assert
+      await expect(
+        service.getPointsEventsLastUpdated(
+          mockGetPointsEventsLastUpdatedRequest,
+        ),
       ).rejects.toThrow('Request timeout after 10000ms');
     });
   });
@@ -718,12 +987,54 @@ describe('RewardsDataService', () => {
       const mockResponse = {
         ok: false,
         status: 404,
-      } as Response;
+        json: jest.fn().mockResolvedValue({ message: 'Not found' }),
+      } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
         service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
       ).rejects.toThrow('Get season status failed: 404');
+    });
+
+    it('should throw AuthorizationFailedError when rewards authorization fails', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({
+          message: 'Rewards authorization failed',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      let caughtError: unknown;
+      try {
+        await service.getSeasonStatus(mockSeasonId, mockSubscriptionId);
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(caughtError).toBeInstanceOf(AuthorizationFailedError);
+      const authError = caughtError as AuthorizationFailedError;
+      expect(authError.name).toBe('AuthorizationFailedError');
+      expect(authError.message).toBe(
+        'Rewards authorization failed. Please login and try again.',
+      );
+    });
+
+    it('should detect authorization failure when message contains the phrase', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({
+          message:
+            'Some other error: Rewards authorization failed due to expiry',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
     });
 
     it('should throw error when fetch fails', async () => {
@@ -1014,12 +1325,20 @@ describe('RewardsDataService', () => {
 
   describe('optin', () => {
     const mockOptinRequest = {
-      challengeId: 'challenge-123',
+      account: '0x123',
+      timestamp: 1234567890,
       signature: '0xsignature123',
       referralCode: 'REF123',
-    };
+    } as MobileOptinDto;
 
-    it('should successfully perform optin', async () => {
+    const mockSolanaOptinRequest = {
+      account: '0x123',
+      timestamp: 1234567890,
+      signature: '0xsignature123',
+      referralCode: 'REF123',
+    } as MobileOptinDto;
+
+    it('should successfully perform optin for EVM accounts', async () => {
       // Arrange
       const mockOptinResponse = {
         sessionId: 'session-456',
@@ -1037,12 +1356,12 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.optin(mockOptinRequest);
+      const result = await service.mobileOptin(mockOptinRequest);
 
       // Assert
       expect(result).toEqual(mockOptinResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/login',
+        'https://api.rewards.test/auth/mobile-optin',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockOptinRequest),
@@ -1054,12 +1373,48 @@ describe('RewardsDataService', () => {
       );
     });
 
+    it('should successfully perform optin for Solana accounts', async () => {
+      // Arrange
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sol-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOptinResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.mobileOptin(mockSolanaOptinRequest);
+
+      // Assert
+      expect(result).toEqual(mockOptinResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-optin',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockSolanaOptinRequest),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
     it('should handle optin without referral code', async () => {
       // Arrange
       const requestWithoutReferral = {
-        challengeId: 'challenge-123',
+        account: '0x123',
+        timestamp: 1234567890,
         signature: '0xsignature123',
-      };
+      } as MobileOptinDto;
 
       const mockOptinResponse = {
         sessionId: 'session-456',
@@ -1077,12 +1432,12 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.optin(requestWithoutReferral);
+      const result = await service.mobileOptin(requestWithoutReferral);
 
       // Assert
       expect(result).toEqual(mockOptinResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/login',
+        'https://api.rewards.test/auth/mobile-optin',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(requestWithoutReferral),
@@ -1095,13 +1450,38 @@ describe('RewardsDataService', () => {
       const mockResponse = {
         ok: false,
         status: 400,
-      } as Response;
+        json: jest.fn().mockResolvedValue({ message: 'Bad request' }),
+      } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act & Assert
-      await expect(service.optin(mockOptinRequest)).rejects.toThrow(
+      await expect(service.mobileOptin(mockOptinRequest)).rejects.toThrow(
         'Optin failed: 400',
       );
+    });
+
+    it('should throw InvalidTimestampError when server returns invalid timestamp error during mobileOptin', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid timestamp',
+          serverTimestamp: 1234567000000, // Server timestamp in milliseconds
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileOptin(mockOptinRequest);
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
+      }
     });
 
     it('should handle network errors during optin', async () => {
@@ -1109,7 +1489,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       // Act & Assert
-      await expect(service.optin(mockOptinRequest)).rejects.toThrow(
+      await expect(service.mobileOptin(mockOptinRequest)).rejects.toThrow(
         'Network error',
       );
     });
@@ -1455,6 +1835,7 @@ describe('RewardsDataService', () => {
 
     const mockOptInStatusResponse = {
       ois: [true, false, true],
+      sids: ['sub_123', null, 'sub_456'],
     };
 
     it('should successfully get opt-in status for multiple addresses', async () => {
@@ -1490,6 +1871,7 @@ describe('RewardsDataService', () => {
       };
       const singleAddressResponse = {
         ois: [true],
+        sids: ['sub_123'],
       };
 
       const mockResponse = {

@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -293,7 +293,7 @@ const ActivityView = () => {
                           numberOfLines={1}
                         >
                           {enabledNetworks.length > 1
-                            ? strings('wallet.all_networks')
+                            ? strings('wallet.popular_networks')
                             : currentNetworkName ??
                               strings('wallet.current_network')}
                         </TextComponent>

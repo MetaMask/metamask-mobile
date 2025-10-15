@@ -17,12 +17,10 @@ import {
   validateTPSLPrices,
 } from '../utils/tpslValidation';
 import type { Position } from '../controllers/types';
-import {
-  formatPerpsFiat,
-  PRICE_RANGES_POSITION_VIEW,
-} from '../utils/formatUtils';
+import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
 import { regex } from '../../../../util/regex';
 import { strings } from '../../../../../locales/i18n';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 
 interface UsePerpsTPSLFormParams {
   asset: string;
@@ -315,8 +313,11 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
-      // Allow erasing but prevent adding when there are more than 5 decimal places
-      if (parts[1]?.length > 5 && sanitized.length >= takeProfitPrice.length)
+      // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
+      if (
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        sanitized.length >= takeProfitPrice.length
+      )
         return;
 
       setTakeProfitPrice(sanitized);
@@ -360,7 +361,11 @@ export function usePerpsTPSLForm(
 
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
-      const finalValue = sanitizePercentageInput(text, takeProfitPercentage, 5);
+      const finalValue = sanitizePercentageInput(
+        text,
+        takeProfitPercentage,
+        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+      );
       if (finalValue === null) return; // Invalid input, don't update state
 
       setTakeProfitPercentage(finalValue);
@@ -407,8 +412,11 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
-      // Allow erasing but prevent adding when there are more than 5 decimal places
-      if (parts[1]?.length > 5 && sanitized.length >= stopLossPrice.length)
+      // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
+      if (
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        sanitized.length >= stopLossPrice.length
+      )
         return;
 
       setStopLossPrice(sanitized);
@@ -453,7 +461,11 @@ export function usePerpsTPSLForm(
 
   const handleStopLossPercentageChange = useCallback(
     (text: string) => {
-      const finalValue = sanitizePercentageInput(text, stopLossPercentage, 5);
+      const finalValue = sanitizePercentageInput(
+        text,
+        stopLossPercentage,
+        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+      );
       if (finalValue === null) return; // Invalid input, don't update state
 
       setStopLossPercentage(finalValue);
@@ -688,7 +700,7 @@ export function usePerpsTPSLForm(
       if (price && price !== '' && parseFloat(price) > 0) {
         const priceString = price.toString();
         const formattedPriceString = formatPerpsFiat(priceString, {
-          ranges: PRICE_RANGES_POSITION_VIEW,
+          ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
           regex.nonNumber,
@@ -741,7 +753,7 @@ export function usePerpsTPSLForm(
       if (price && price !== '' && parseFloat(price) > 0) {
         const priceString = price.toString();
         const formattedPriceString = formatPerpsFiat(priceString, {
-          ranges: PRICE_RANGES_POSITION_VIEW,
+          ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
           regex.nonNumber,

@@ -58,6 +58,9 @@
       }
     }
   },
+  "DelegationController": {
+    "delegations": {}
+  },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
@@ -197,7 +200,7 @@
       "tron": {
         "tron:2494104990": false,
         "tron:3448148188": false,
-        "tron:728126428": false
+        "tron:728126428": true
       }
     }
   },
@@ -639,6 +642,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEvents": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -646,11 +650,11 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "activeOrders": {},
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "notifications": [],
-    "positions": []
+    "claimTransaction": null,
+    "depositTransaction": null,
+    "isOnboarded": {}
   }
 }

@@ -7,19 +7,7 @@ import {
   NativeEventSubscription,
 } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
-import {
-  AccountTrackerController,
-  AssetsContractController,
-  NftController,
-  NftDetectionController,
-  TokenBalancesController,
-  TokenDetectionController,
-  TokenListController,
-  TokenRatesController,
-  TokensController,
-  CodefiTokenPricesServiceV2,
-  TokenSearchDiscoveryDataController,
-} from '@metamask/assets-controllers';
+import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
@@ -30,57 +18,27 @@ import {
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
-import {
-  getDefaultNetworkControllerState,
-  NetworkController,
-  NetworkState,
-  NetworkStatus,
-} from '@metamask/network-controller';
+import { NetworkState, NetworkStatus } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import {
   TransactionController,
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
+import { AcceptOptions } from '@metamask/approval-controller';
 import {
-  AcceptOptions,
-  AddApprovalOptions,
-} from '@metamask/approval-controller';
-import { HdKeyring } from '@metamask/eth-hd-keyring';
-import {
-  SelectedNetworkController,
-  SelectedNetworkControllerState,
-} from '@metamask/selected-network-controller';
-import {
+  type CaveatSpecificationConstraint,
   PermissionController,
+  type PermissionSpecificationConstraint,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
-import {
-  buildSnapEndowmentSpecifications,
-  buildSnapRestrictedMethodSpecifications,
-} from '@metamask/snaps-rpc-methods';
-import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
-///: END:ONLY_INCLUDE_IF
-import {
-  QrKeyring,
-  QrKeyringDeferredPromiseBridge,
-} from '@metamask/eth-qr-keyring';
+import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
-import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
-import {
-  LedgerKeyring,
-  LedgerMobileBridge,
-  LedgerTransportMiddleware,
-} from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import { getDecimalChainId, isTestNet } from '../../util/networks';
+import { isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -98,24 +56,11 @@ import {
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
-import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { ExcludedSnapEndowments, ExcludedSnapPermissions } from '../Snaps';
-import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
-
-import { getAuthenticationControllerMessenger } from './messengers/identity/authentication-controller-messenger';
-import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
-import { getUserStorageControllerMessenger } from './messengers/identity/user-storage-controller-messenger';
-import { createUserStorageController } from './controllers/identity/create-user-storage-controller';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getCaveatSpecifications,
-  getPermissionSpecifications,
-  unrestrictedMethods,
-} from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
 import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -127,33 +72,17 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
-import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
-  ChainId,
-  type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
-import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '@metamask/smart-transactions-controller/dist/constants';
-import {
-  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
-  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
-} from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
-import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { createMultichainRatesController } from './controllers/RatesController/utils';
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
@@ -163,24 +92,15 @@ import { multichainTransactionsControllerInit } from './controllers/multichain-t
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { HandleSnapRequestArgs } from '../Snaps/types';
-import { handleSnapRequest } from '../Snaps/utils';
 import {
   cronjobControllerInit,
   executionServiceInit,
   snapControllerInit,
   snapInterfaceControllerInit,
   snapsRegistryInit,
-  SnapControllerClearSnapStateAction,
-  SnapControllerGetSnapAction,
-  SnapControllerGetSnapStateAction,
-  SnapControllerUpdateSnapStateAction,
-  SnapControllerIsMinimumPlatformVersionAction,
-  SnapControllerHandleRequestAction,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
   BaseControllerMessenger,
   EngineState,
@@ -193,13 +113,11 @@ import {
   swapsSupportedChainIds,
 } from './constants';
 import { getGlobalChainId } from '../../util/networks/global-network';
-import { trace } from '../../util/trace';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { ApprovalControllerInit } from './controllers/approval-controller';
-import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -210,28 +128,15 @@ import { defiPositionsControllerInit } from './controllers/defi-positions-contro
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
-import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
-import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
-import {
-  onRpcEndpointDegraded,
-  onRpcEndpointUnavailable,
-} from './controllers/network-controller/messenger-action-handlers';
-import { INFURA_PROJECT_ID } from '../../constants/network';
-import { SECOND } from '../../constants/time';
-import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 import {
   MultichainRouter,
   MultichainRouterMessenger,
   MultichainRouterArgs,
 } from '@metamask/snaps-controllers';
-import {
-  MultichainRouterGetSupportedAccountsEvent,
-  MultichainRouterIsSupportedScopeEvent,
-} from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
@@ -241,18 +146,39 @@ import { seedlessOnboardingControllerInit } from './controllers/seedless-onboard
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
-import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
+import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
+import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
+import { permissionControllerInit } from './controllers/permission-controller-init';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
+///: END:ONLY_INCLUDE_IF
+import { PreferencesController } from '@metamask/preferences-controller';
+import { preferencesControllerInit } from './controllers/preferences-controller-init';
+import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { keyringControllerInit } from './controllers/keyring-controller-init';
+import { networkControllerInit } from './controllers/network-controller-init';
+import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
+import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
+import { tokensControllerInit } from './controllers/tokens-controller-init';
+import { tokenListControllerInit } from './controllers/token-list-controller-init';
+import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
+import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
+import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
+import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
+import { accountTrackerControllerInit } from './controllers/account-tracker-controller-init';
+import { nftControllerInit } from './controllers/nft-controller-init';
+import { nftDetectionControllerInit } from './controllers/nft-detection-controller-init';
+import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
+import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
+import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
+///: END:ONLY_INCLUDE_IF
 
-const NON_EMPTY = 'NON_EMPTY';
-
-const encryptor = new Encryptor({
-  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
-});
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
@@ -304,6 +230,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  preferencesController: PreferencesController;
 
   readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
     onScanRequested: (request) => {
@@ -318,6 +245,11 @@ export class Engine {
   });
 
   rewardsDataService: RewardsDataService;
+
+  permissionController: PermissionController<
+    PermissionSpecificationConstraint,
+    CaveatSpecificationConstraint
+  >;
 
   /**
    * Creates a CoreController instance
@@ -335,29 +267,6 @@ export class Engine {
     const isBasicFunctionalityToggleEnabled = () =>
       selectBasicFunctionalityEnabled(store.getState());
 
-    const preferencesController = new PreferencesController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'PreferencesController',
-        allowedActions: [],
-        allowedEvents: ['KeyringController:stateChange'],
-      }),
-      state: {
-        ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
-        useTokenDetection:
-          initialState?.PreferencesController?.useTokenDetection ?? true,
-        useNftDetection: true, // set this to true to enable nft detection by default to new users
-        displayNftMedia: true,
-        securityAlertsEnabled: true,
-        smartTransactionsOptInStatus: true,
-        tokenSortConfig: {
-          key: 'tokenFiatAmount',
-          order: 'dsc',
-          sortCallback: 'stringNumeric',
-        },
-        ...initialState.PreferencesController,
-      },
-    });
-
     const errorReportingServiceMessenger =
       this.controllerMessenger.getRestricted({
         name: 'ErrorReportingService',
@@ -372,152 +281,182 @@ export class Engine {
       captureException,
     });
 
-    const networkControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'NetworkController',
-      allowedEvents: [],
-      allowedActions: ['ErrorReportingService:captureException'],
-    });
+    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    const additionalDefaultNetworks = [
-      ChainId['megaeth-testnet'],
-      ChainId['monad-testnet'],
-    ];
-
-    let initialNetworkControllerState = initialState.NetworkController;
-    if (!initialNetworkControllerState) {
-      initialNetworkControllerState = getDefaultNetworkControllerState(
-        additionalDefaultNetworks,
-      );
-
-      // Add failovers for default Infura RPC endpoints
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId.mainnet
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['linea-mainnet']
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('linea-mainnet');
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['base-mainnet']
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('base-mainnet');
-
-      // Update default popular network names
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId.mainnet
-      ].name = 'Ethereum';
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['linea-mainnet']
-      ].name = 'Linea';
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['base-mainnet']
-      ].name = 'Base';
-    }
-
-    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
-    const networkControllerOptions = {
-      infuraProjectId,
-      state: initialNetworkControllerState,
-      messenger: networkControllerMessenger,
-      getBlockTrackerOptions: () =>
-        process.env.IN_TEST
-          ? {}
-          : {
-              pollingInterval: 20 * SECOND,
-              // The retry timeout is pretty short by default, and if the endpoint is
-              // down, it will end up exhausting the max number of consecutive
-              // failures quickly.
-              retryTimeout: 20 * SECOND,
-            },
-      getRpcServiceOptions: (rpcEndpointUrl: string) => {
-        const maxRetries = 4;
-        const commonOptions = {
-          fetch: globalThis.fetch.bind(globalThis),
-          btoa: globalThis.btoa.bind(globalThis),
-        };
-
-        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
-          return {
-            ...commonOptions,
-            policyOptions: {
-              maxRetries,
-              // When we fail over to Quicknode, we expect it to be down at
-              // first while it is being automatically activated. If an endpoint
-              // is down, the failover logic enters a "cooldown period" of 30
-              // minutes. We'd really rather not enter that for Quicknode, so
-              // keep retrying longer.
-              maxConsecutiveFailures: (maxRetries + 1) * 14,
-            },
-          };
-        }
-
-        return {
-          ...commonOptions,
-          policyOptions: {
-            maxRetries,
-            // Ensure that the circuit does not break too quickly.
-            maxConsecutiveFailures: (maxRetries + 1) * 7,
-          },
-        };
-      },
-      additionalDefaultNetworks,
+    const initRequest = {
+      getState: () => store.getState(),
+      getGlobalChainId: () => currentChainId,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      removeAccount: this.removeAccount.bind(this),
+      ///: END:ONLY_INCLUDE_IF
+      initialKeyringState,
+      qrKeyringScanner: this.qrKeyringScanner,
+      codefiTokenApiV2,
     };
-    const networkController = new NetworkController(networkControllerOptions);
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointUnavailable({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          error,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
-        });
-      },
-    );
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointDegraded({
-          chainId,
-          endpointUrl,
-          error,
-          infuraProjectId,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
-        });
-      },
-    );
-    networkController.initializeProvider();
 
-    const assetsContractController = new AssetsContractController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'AssetsContractController',
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getNetworkConfigurationByNetworkClientId',
-          'NetworkController:getSelectedNetworkClient',
-          'NetworkController:getState',
-        ],
-        allowedEvents: [
-          'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
-        ],
-      }),
-      chainId: getGlobalChainId(networkController),
+    const { controllersByName } = initModularizedControllers({
+      controllerInitFunctions: {
+        PreferencesController: preferencesControllerInit,
+        NetworkController: networkControllerInit,
+        AccountsController: accountsControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        SnapKeyringBuilder: snapKeyringBuilderInit,
+        ///: END:ONLY_INCLUDE_IF
+        KeyringController: keyringControllerInit,
+        PermissionController: permissionControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        SubjectMetadataController: subjectMetadataControllerInit,
+        ///: END:ONLY_INCLUDE_IF
+        AccountTreeController: accountTreeControllerInit,
+        AppMetadataController: appMetadataControllerInit,
+        AssetsContractController: assetsContractControllerInit,
+        AccountTrackerController: accountTrackerControllerInit,
+        SelectedNetworkController: selectedNetworkControllerInit,
+        ApprovalController: ApprovalControllerInit,
+        GasFeeController: GasFeeControllerInit,
+        GatorPermissionsController: GatorPermissionsControllerInit,
+        SmartTransactionsController: smartTransactionsControllerInit,
+        TransactionController: TransactionControllerInit,
+        SignatureController: SignatureControllerInit,
+        CurrencyRateController: currencyRateControllerInit,
+        TokensController: tokensControllerInit,
+        TokenBalancesController: tokenBalancesControllerInit,
+        TokenRatesController: tokenRatesControllerInit,
+        TokenListController: tokenListControllerInit,
+        TokenDetectionController: tokenDetectionControllerInit,
+        TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
+        TokenSearchDiscoveryDataController:
+          tokenSearchDiscoveryDataControllerInit,
+        MultichainNetworkController: multichainNetworkControllerInit,
+        DeFiPositionsController: defiPositionsControllerInit,
+        BridgeController: bridgeControllerInit,
+        BridgeStatusController: bridgeStatusControllerInit,
+        NftController: nftControllerInit,
+        NftDetectionController: nftDetectionControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ExecutionService: executionServiceInit,
+        CronjobController: cronjobControllerInit,
+        SnapController: snapControllerInit,
+        SnapInterfaceController: snapInterfaceControllerInit,
+        SnapsRegistry: snapsRegistryInit,
+        NotificationServicesController: notificationServicesControllerInit,
+        NotificationServicesPushController:
+          notificationServicesPushControllerInit,
+        WebSocketService: WebSocketServiceInit,
+        AuthenticationController: authenticationControllerInit,
+        UserStorageController: userStorageControllerInit,
+        ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        MultichainAssetsController: multichainAssetsControllerInit,
+        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
+        MultichainBalancesController: multichainBalancesControllerInit,
+        MultichainTransactionsController: multichainTransactionsControllerInit,
+        MultichainAccountService: multichainAccountServiceInit,
+        ///: END:ONLY_INCLUDE_IF
+        SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        NetworkEnablementController: networkEnablementControllerInit,
+        PerpsController: perpsControllerInit,
+        PredictController: predictControllerInit,
+        RewardsController: rewardsControllerInit,
+        DelegationController: DelegationControllerInit,
+      },
+      persistedState: initialState as EngineState,
+      baseControllerMessenger: this.controllerMessenger,
+      ...initRequest,
     });
+
+    const accountsController = controllersByName.AccountsController;
+    const accountTreeController = controllersByName.AccountTreeController;
+    const approvalController = controllersByName.ApprovalController;
+    const assetsContractController = controllersByName.AssetsContractController;
+    const accountTrackerController = controllersByName.AccountTrackerController;
+    const gasFeeController = controllersByName.GasFeeController;
+    const signatureController = controllersByName.SignatureController;
+    const smartTransactionsController =
+      controllersByName.SmartTransactionsController;
+    const transactionController = controllersByName.TransactionController;
+    const seedlessOnboardingController =
+      controllersByName.SeedlessOnboardingController;
+    const perpsController = controllersByName.PerpsController;
+    const predictController = controllersByName.PredictController;
+    const rewardsController = controllersByName.RewardsController;
+    const gatorPermissionsController =
+      controllersByName.GatorPermissionsController;
+    const selectedNetworkController =
+      controllersByName.SelectedNetworkController;
+    const preferencesController = controllersByName.PreferencesController;
+    const delegationController = controllersByName.DelegationController;
+
+    // Initialize and store RewardsDataService
+    this.rewardsDataService = new RewardsDataService({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RewardsDataService',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      fetch,
+      locale: I18n.locale,
+    });
+
+    // Backwards compatibility for existing references
+    this.accountsController = accountsController;
+    this.gasFeeController = gasFeeController;
+    this.gatorPermissionsController = gatorPermissionsController;
+    this.transactionController = transactionController;
+    this.smartTransactionsController = smartTransactionsController;
+    this.permissionController = controllersByName.PermissionController;
+    this.preferencesController = preferencesController;
+    this.keyringController = controllersByName.KeyringController;
+
+    const multichainNetworkController =
+      controllersByName.MultichainNetworkController;
+    const currencyRateController = controllersByName.CurrencyRateController;
+    const tokensController = controllersByName.TokensController;
+    const tokenBalancesController = controllersByName.TokenBalancesController;
+    const tokenRatesController = controllersByName.TokenRatesController;
+    const tokenListController = controllersByName.TokenListController;
+    const tokenDetectionController = controllersByName.TokenDetectionController;
+    const tokenSearchDiscoveryController =
+      controllersByName.TokenSearchDiscoveryController;
+    const tokenSearchDiscoveryDataController =
+      controllersByName.TokenSearchDiscoveryDataController;
+    const bridgeController = controllersByName.BridgeController;
+    const nftController = controllersByName.NftController;
+    const nftDetectionController = controllersByName.NftDetectionController;
+    const networkController = controllersByName.NetworkController;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    const cronjobController = controllersByName.CronjobController;
+    const executionService = controllersByName.ExecutionService;
+    const snapController = controllersByName.SnapController;
+    const snapInterfaceController = controllersByName.SnapInterfaceController;
+    const snapsRegistry = controllersByName.SnapsRegistry;
+    const webSocketService = controllersByName.WebSocketService;
+    const notificationServicesController =
+      controllersByName.NotificationServicesController;
+    const notificationServicesPushController =
+      controllersByName.NotificationServicesPushController;
+    this.subjectMetadataController =
+      controllersByName.SubjectMetadataController;
+    const authenticationController = controllersByName.AuthenticationController;
+    const userStorageController = controllersByName.UserStorageController;
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsController =
+      controllersByName.MultichainAssetsController;
+    const multichainAssetsRatesController =
+      controllersByName.MultichainAssetsRatesController;
+    const multichainBalancesController =
+      controllersByName.MultichainBalancesController;
+    const multichainTransactionsController =
+      controllersByName.MultichainTransactionsController;
+    const multichainAccountService = controllersByName.MultichainAccountService;
+    ///: END:ONLY_INCLUDE_IF
+
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
+    networkEnablementController.init();
 
     const loggingController = new LoggingController({
       messenger: this.controllerMessenger.getRestricted<
@@ -530,19 +469,6 @@ export class Engine {
         allowedEvents: [],
       }),
       state: initialState.LoggingController,
-    });
-    const tokenListController = new TokenListController({
-      chainId: getGlobalChainId(networkController),
-      onNetworkStateChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          listener,
-        ),
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokenListController',
-        allowedActions: [`${networkController.name}:getNetworkClientById`],
-        allowedEvents: [`${networkController.name}:stateChange`],
-      }),
     });
     const remoteFeatureFlagControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -577,17 +503,6 @@ export class Engine {
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
 
-    const tokenSearchDiscoveryController = createTokenSearchDiscoveryController(
-      {
-        state: initialState.TokenSearchDiscoveryController,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenSearchDiscoveryController',
-          allowedActions: [],
-          allowedEvents: [],
-        }) as TokenSearchDiscoveryControllerMessenger,
-      },
-    );
-
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
@@ -595,690 +510,10 @@ export class Engine {
         allowedEvents: [],
       }),
     });
+
     if (!isProductSafetyDappScanningEnabled()) {
       phishingController.maybeUpdateState();
     }
-
-    const additionalKeyrings = [];
-
-    const qrKeyringBuilder = () => {
-      const keyring = new QrKeyring({ bridge: this.qrKeyringScanner });
-      // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
-      keyring.forgetDevice();
-      return keyring;
-    };
-    qrKeyringBuilder.type = QrKeyring.type;
-
-    additionalKeyrings.push(qrKeyringBuilder);
-
-    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
-    additionalKeyrings.push(ledgerKeyringBuilder);
-
-    const hdKeyringBuilder = () =>
-      new HdKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
-      });
-    hdKeyringBuilder.type = HdKeyring.type;
-    additionalKeyrings.push(hdKeyringBuilder);
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
-      name: 'SnapKeyring',
-      allowedActions: [
-        'ApprovalController:addRequest',
-        'ApprovalController:acceptRequest',
-        'ApprovalController:rejectRequest',
-        'ApprovalController:startFlow',
-        'ApprovalController:endFlow',
-        'ApprovalController:showSuccess',
-        'ApprovalController:showError',
-        'PhishingController:testOrigin',
-        'PhishingController:maybeUpdateState',
-        'KeyringController:getAccounts',
-        'AccountsController:setSelectedAccount',
-        'AccountsController:getAccountByAddress',
-        'AccountsController:setAccountName',
-        'AccountsController:setAccountNameAndSelectAccount',
-        'AccountsController:listMultichainAccounts',
-        SnapControllerHandleRequestAction,
-        SnapControllerGetSnapAction,
-        SnapControllerIsMinimumPlatformVersionAction,
-      ],
-      allowedEvents: [],
-    });
-
-    additionalKeyrings.push(
-      snapKeyringBuilder(snapKeyringBuildMessenger, {
-        persistKeyringHelper: async () => {
-          // Necessary to only persist the keyrings, the `AccountsController` will
-          // automatically react to `KeyringController:stateChange`.
-          await this.keyringController.persistAllKeyrings();
-        },
-        removeAccountHelper: (address) => this.removeAccount(address),
-      }),
-    );
-
-    ///: END:ONLY_INCLUDE_IF
-
-    this.keyringController = new KeyringController({
-      removeIdentity: preferencesController.removeIdentity.bind(
-        preferencesController,
-      ),
-      encryptor,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'KeyringController',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      state: initialKeyringState || initialState.KeyringController,
-      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: additionalKeyrings,
-      cacheEncryptionKey: true,
-    });
-
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    /**
-     * Gets the mnemonic of the user's primary keyring.
-     */
-    const getPrimaryKeyringMnemonic = () => {
-      const [keyring] = this.keyringController.getKeyringsByType(
-        KeyringTypes.hd,
-      ) as HdKeyring[];
-
-      if (!keyring.mnemonic) {
-        throw new Error('Primary keyring mnemonic unavailable.');
-      }
-
-      return keyring.mnemonic;
-    };
-
-    const getPrimaryKeyringMnemonicSeed = () => {
-      const [keyring] = this.keyringController.getKeyringsByType(
-        KeyringTypes.hd,
-      ) as HdKeyring[];
-
-      if (!keyring.seed) {
-        throw new Error('Primary keyring mnemonic unavailable.');
-      }
-
-      return keyring.seed;
-    };
-
-    const getUnlockPromise = () => {
-      if (this.keyringController.isUnlocked()) {
-        return Promise.resolve();
-      }
-      return new Promise<void>((resolve) => {
-        this.controllerMessenger.subscribeOnceIf(
-          'KeyringController:unlock',
-          resolve,
-          () => true,
-        );
-      });
-    };
-
-    const snapRestrictedMethods = {
-      clearSnapState: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        SnapControllerClearSnapStateAction,
-      ),
-      getMnemonic: async (source?: string) => {
-        if (!source) {
-          return getPrimaryKeyringMnemonic();
-        }
-
-        try {
-          const { type, mnemonic } = (await this.controllerMessenger.call(
-            'KeyringController:withKeyring',
-            {
-              id: source,
-            },
-            async ({ keyring }) => ({
-              type: keyring.type,
-              mnemonic: (keyring as unknown as HdKeyring).mnemonic,
-            }),
-          )) as { type: string; mnemonic?: Uint8Array };
-
-          if (type !== KeyringTypes.hd || !mnemonic) {
-            // The keyring isn't guaranteed to have a mnemonic (e.g.,
-            // hardware wallets, which can't be used as entropy sources),
-            // so we throw an error if it doesn't.
-            throw new Error(`Entropy source with ID "${source}" not found.`);
-          }
-
-          return mnemonic;
-        } catch {
-          throw new Error(`Entropy source with ID "${source}" not found.`);
-        }
-      },
-      getMnemonicSeed: async (source?: string) => {
-        if (!source) {
-          return getPrimaryKeyringMnemonicSeed();
-        }
-
-        try {
-          const { type, seed } = (await this.controllerMessenger.call(
-            'KeyringController:withKeyring',
-            {
-              id: source,
-            },
-            async ({ keyring }) => ({
-              type: keyring.type,
-              seed: (keyring as unknown as HdKeyring).seed,
-            }),
-          )) as { type: string; seed?: Uint8Array };
-
-          if (type !== KeyringTypes.hd || !seed) {
-            // The keyring isn't guaranteed to have a seed (e.g.,
-            // hardware wallets, which can't be used as entropy sources),
-            // so we throw an error if it doesn't.
-            throw new Error(`Entropy source with ID "${source}" not found.`);
-          }
-
-          return seed;
-        } catch {
-          throw new Error(`Entropy source with ID "${source}" not found.`);
-        }
-      },
-      getUnlockPromise: getUnlockPromise.bind(this),
-      getSnap: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        SnapControllerGetSnapAction,
-      ),
-      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
-        await handleSnapRequest(this.controllerMessenger, args),
-      getSnapState: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        SnapControllerGetSnapStateAction,
-      ),
-      updateSnapState: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        SnapControllerUpdateSnapStateAction,
-      ),
-      maybeUpdatePhishingList: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        'PhishingController:maybeUpdateState',
-      ),
-      isOnPhishingList: (origin: string) =>
-        this.controllerMessenger.call<'PhishingController:testOrigin'>(
-          'PhishingController:testOrigin',
-          origin,
-        ).result,
-      showDialog: (
-        origin: string,
-        type: EnumToUnion<DialogType>,
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        content: any, // should be Component from '@metamask/snaps-ui';
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        placeholder?: any,
-      ) =>
-        this.controllerMessenger.call<'ApprovalController:addRequest'>(
-          'ApprovalController:addRequest',
-          {
-            origin,
-            type,
-            requestData: { content, placeholder },
-          },
-          true,
-        ),
-      showInAppNotification: (origin: string, args: NotificationArgs) => {
-        Logger.log(
-          'Snaps/ showInAppNotification called with args: ',
-          args,
-          ' and origin: ',
-          origin,
-        );
-
-        return null;
-      },
-      createInterface: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        'SnapInterfaceController:createInterface',
-      ),
-      getInterface: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        'SnapInterfaceController:getInterface',
-      ),
-      updateInterface: this.controllerMessenger.call.bind(
-        this.controllerMessenger,
-        'SnapInterfaceController:updateInterface',
-      ),
-      requestUserApproval: (opts: AddApprovalOptions) =>
-        this.controllerMessenger.call<'ApprovalController:addRequest'>(
-          'ApprovalController:addRequest',
-          opts,
-          true,
-        ),
-      hasPermission: (origin: string, target: string) =>
-        this.controllerMessenger.call<'PermissionController:hasPermission'>(
-          'PermissionController:hasPermission',
-          origin,
-          target,
-        ),
-      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
-      getPreferences: () => {
-        const {
-          securityAlertsEnabled,
-          useTransactionSimulations,
-          useTokenDetection,
-          privacyMode,
-          useNftDetection,
-          displayNftMedia,
-          isMultiAccountBalancesEnabled,
-          showTestNetworks,
-        } = this.getPreferences();
-        const locale = I18n.locale;
-        return {
-          locale,
-          currency: this.context.CurrencyRateController.state.currentCurrency,
-          hideBalances: privacyMode,
-          useSecurityAlerts: securityAlertsEnabled,
-          simulateOnChainActions: useTransactionSimulations,
-          useTokenDetection,
-          batchCheckBalances: isMultiAccountBalancesEnabled,
-          displayNftMedia,
-          useNftDetection,
-          useExternalPricingData: true,
-          showTestnets: showTestNetworks,
-        };
-      },
-    };
-    ///: END:ONLY_INCLUDE_IF
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const keyringSnapMethods = {
-      getAllowedKeyringMethods: (origin: string) =>
-        keyringSnapPermissionsBuilder(origin),
-      getSnapKeyring: this.getSnapKeyring.bind(this),
-    };
-    ///: END:ONLY_INCLUDE_IF
-
-    const getSnapPermissionSpecifications = () => ({
-      ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
-      ...buildSnapRestrictedMethodSpecifications(
-        Object.keys(ExcludedSnapPermissions),
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-          ...snapRestrictedMethods,
-          ///: END:ONLY_INCLUDE_IF
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          ...keyringSnapMethods,
-          ///: END:ONLY_INCLUDE_IF
-        },
-      ),
-    });
-
-    const accountTrackerController = new AccountTrackerController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'AccountTrackerController',
-        allowedActions: [
-          'AccountsController:getSelectedAccount',
-          'AccountsController:listAccounts',
-          'PreferencesController:getState',
-          'NetworkController:getState',
-          'NetworkController:getNetworkClientById',
-        ],
-        allowedEvents: [
-          'AccountsController:selectedEvmAccountChange',
-          'AccountsController:selectedAccountChange',
-        ],
-      }),
-      state: initialState.AccountTrackerController ?? {
-        accountsByChainId: {},
-      },
-      getStakedBalanceForChain:
-        assetsContractController.getStakedBalanceForChain.bind(
-          assetsContractController,
-        ),
-      includeStakedAssets: true,
-      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: initialState },
-      }) as `0x${string}`[],
-      allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
-    });
-    const permissionController = new PermissionController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'PermissionController',
-        allowedActions: [
-          `ApprovalController:addRequest`,
-          `ApprovalController:hasRequest`,
-          `ApprovalController:acceptRequest`,
-          `ApprovalController:rejectRequest`,
-          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-          `SnapController:getPermitted`,
-          `SnapController:install`,
-          `SubjectMetadataController:getSubjectMetadata`,
-          ///: END:ONLY_INCLUDE_IF
-        ],
-        allowedEvents: [],
-      }),
-      state: initialState.PermissionController,
-      caveatSpecifications: getCaveatSpecifications({
-        listAccounts: (...args) =>
-          this.accountsController.listAccounts(...args),
-        findNetworkClientIdByChainId:
-          networkController.findNetworkClientIdByChainId.bind(
-            networkController,
-          ),
-        isNonEvmScopeSupported: this.controllerMessenger.call.bind(
-          this.controllerMessenger,
-          MultichainRouterIsSupportedScopeEvent,
-        ),
-        getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
-          this.controllerMessenger,
-          MultichainRouterGetSupportedAccountsEvent,
-        ),
-      }),
-      permissionSpecifications: {
-        ...getPermissionSpecifications(),
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        ...getSnapPermissionSpecifications(),
-        ///: END:ONLY_INCLUDE_IF
-      },
-      unrestrictedMethods,
-    });
-
-    const selectedNetworkController = new SelectedNetworkController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SelectedNetworkController',
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
-          'NetworkController:getSelectedNetworkClient',
-          'PermissionController:hasPermissions',
-          'PermissionController:getSubjectNames',
-        ],
-        allowedEvents: [
-          'NetworkController:stateChange',
-          'PermissionController:stateChange',
-        ],
-      }),
-      state:
-        initialState.SelectedNetworkController ||
-        ({
-          domains: {},
-          activeDappNetwork: null,
-        } as SelectedNetworkControllerState & {
-          activeDappNetwork: string | null;
-        }),
-
-      domainProxyMap: new DomainProxyMap(),
-    });
-
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    this.subjectMetadataController = new SubjectMetadataController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SubjectMetadataController',
-        allowedActions: [`${permissionController.name}:hasPermissions`],
-        allowedEvents: [],
-      }),
-      state: initialState.SubjectMetadataController || {},
-      subjectCacheLimit: 100,
-    });
-
-    const authenticationControllerMessenger =
-      getAuthenticationControllerMessenger(this.controllerMessenger);
-    const authenticationController = createAuthenticationController({
-      messenger: authenticationControllerMessenger,
-      initialState: initialState.AuthenticationController,
-      metametrics: {
-        agent: Platform.MOBILE,
-        getMetaMetricsId: async () =>
-          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
-      },
-    });
-
-    const userStorageControllerMessenger = getUserStorageControllerMessenger(
-      this.controllerMessenger,
-    );
-    const userStorageController = createUserStorageController({
-      messenger: userStorageControllerMessenger,
-      initialState: initialState.UserStorageController,
-      nativeScryptCrypto: calculateScryptKey,
-      // @ts-expect-error Controller uses string for names rather than enum
-      trace,
-      config: {
-        contactSyncing: {
-          onContactUpdated: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Contact Updated',
-                })
-                .build(),
-            );
-          },
-          onContactDeleted: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Contact Deleted',
-                })
-                .build(),
-            );
-          },
-          onContactSyncErroneousSituation(profileId, situationMessage) {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Erroneous Situation',
-                  additional_description: situationMessage,
-                })
-                .build(),
-            );
-          },
-        },
-      },
-    });
-    ///: END:ONLY_INCLUDE_IF
-
-    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
-
-    const smartTransactionsControllerTrackMetaMetricsEvent = (
-      params: {
-        event: MetaMetricsEventName;
-        category: MetaMetricsEventCategory;
-        properties?: ReturnType<
-          typeof getSmartTransactionMetricsPropertiesType
-        >;
-        sensitiveProperties?: ReturnType<
-          typeof getSmartTransactionMetricsSensitivePropertiesType
-        >;
-      },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      options?: {
-        metaMetricsId?: string;
-      },
-    ) => {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: params.event,
-        })
-          .addProperties(params.properties || {})
-          .addSensitiveProperties(params.sensitiveProperties || {})
-          .build(),
-      );
-    };
-
-    this.smartTransactionsController = new SmartTransactionsController({
-      // @ts-expect-error TODO: resolve types
-      supportedChainIds: getAllowedSmartTransactionsChainIds(),
-      clientId: ClientId.Mobile,
-      getNonceLock: (...args) =>
-        this.transactionController.getNonceLock(...args),
-      confirmExternalTransaction: (...args) =>
-        this.transactionController.confirmExternalTransaction(...args),
-      trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-      state: initialState.SmartTransactionsController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SmartTransactionsController',
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
-        ],
-        allowedEvents: ['NetworkController:stateChange'],
-      }),
-      getTransactions: (...args) =>
-        this.transactionController.getTransactions(...args),
-      updateTransaction: (...args) =>
-        this.transactionController.updateTransaction(...args),
-      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
-      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
-      trace: trace as TraceCallback,
-    });
-
-    const tokenSearchDiscoveryDataController =
-      new TokenSearchDiscoveryDataController({
-        tokenPricesService: codefiTokenApiV2,
-        swapsSupportedChainIds,
-        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-        fetchTokens: swapsUtils.fetchTokens,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenSearchDiscoveryDataController',
-          allowedActions: ['CurrencyRateController:getState'],
-          allowedEvents: [],
-        }),
-      });
-
-    const existingControllersByName = {
-      KeyringController: this.keyringController,
-      NetworkController: networkController,
-      PreferencesController: preferencesController,
-      SmartTransactionsController: this.smartTransactionsController,
-    };
-
-    const initRequest = {
-      getState: () => store.getState(),
-      getGlobalChainId: () => currentChainId,
-    };
-
-    const { controllersByName } = initModularizedControllers({
-      controllerInitFunctions: {
-        AccountsController: accountsControllerInit,
-        AccountTreeController: accountTreeControllerInit,
-        AppMetadataController: appMetadataControllerInit,
-        ApprovalController: ApprovalControllerInit,
-        GasFeeController: GasFeeControllerInit,
-        GatorPermissionsController: GatorPermissionsControllerInit,
-        TransactionController: TransactionControllerInit,
-        SignatureController: SignatureControllerInit,
-        CurrencyRateController: currencyRateControllerInit,
-        MultichainNetworkController: multichainNetworkControllerInit,
-        DeFiPositionsController: defiPositionsControllerInit,
-        BridgeController: bridgeControllerInit,
-        BridgeStatusController: bridgeStatusControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        ExecutionService: executionServiceInit,
-        CronjobController: cronjobControllerInit,
-        SnapController: snapControllerInit,
-        SnapInterfaceController: snapInterfaceControllerInit,
-        SnapsRegistry: snapsRegistryInit,
-        NotificationServicesController: notificationServicesControllerInit,
-        NotificationServicesPushController:
-          notificationServicesPushControllerInit,
-        WebSocketService: WebSocketServiceInit,
-        ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        MultichainAssetsController: multichainAssetsControllerInit,
-        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
-        MultichainBalancesController: multichainBalancesControllerInit,
-        MultichainTransactionsController: multichainTransactionsControllerInit,
-        MultichainAccountService: multichainAccountServiceInit,
-        ///: END:ONLY_INCLUDE_IF
-        SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        NetworkEnablementController: networkEnablementControllerInit,
-        PerpsController: perpsControllerInit,
-        PredictController: predictControllerInit,
-        RewardsController: rewardsControllerInit,
-      },
-      persistedState: initialState as EngineState,
-      existingControllersByName,
-      baseControllerMessenger: this.controllerMessenger,
-      ...initRequest,
-    });
-
-    const accountsController = controllersByName.AccountsController;
-    const accountTreeController = controllersByName.AccountTreeController;
-    const approvalController = controllersByName.ApprovalController;
-    const gasFeeController = controllersByName.GasFeeController;
-    const signatureController = controllersByName.SignatureController;
-    const transactionController = controllersByName.TransactionController;
-    const seedlessOnboardingController =
-      controllersByName.SeedlessOnboardingController;
-    const perpsController = controllersByName.PerpsController;
-    const predictController = controllersByName.PredictController;
-    const rewardsController = controllersByName.RewardsController;
-    const gatorPermissionsController =
-      controllersByName.GatorPermissionsController;
-
-    // Initialize and store RewardsDataService
-    this.rewardsDataService = new RewardsDataService({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'RewardsDataService',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      fetch,
-      locale: I18n.locale,
-    });
-
-    // Backwards compatibility for existing references
-    this.accountsController = accountsController;
-    this.gasFeeController = gasFeeController;
-    this.gatorPermissionsController = gatorPermissionsController;
-    this.transactionController = transactionController;
-
-    const multichainNetworkController =
-      controllersByName.MultichainNetworkController;
-    const currencyRateController = controllersByName.CurrencyRateController;
-    const bridgeController = controllersByName.BridgeController;
-
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const cronjobController = controllersByName.CronjobController;
-    const executionService = controllersByName.ExecutionService;
-    const snapController = controllersByName.SnapController;
-    const snapInterfaceController = controllersByName.SnapInterfaceController;
-    const snapsRegistry = controllersByName.SnapsRegistry;
-    const webSocketService = controllersByName.WebSocketService;
-    const notificationServicesController =
-      controllersByName.NotificationServicesController;
-    const notificationServicesPushController =
-      controllersByName.NotificationServicesPushController;
-    ///: END:ONLY_INCLUDE_IF
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsController =
-      controllersByName.MultichainAssetsController;
-    const multichainAssetsRatesController =
-      controllersByName.MultichainAssetsRatesController;
-    const multichainBalancesController =
-      controllersByName.MultichainBalancesController;
-    const multichainTransactionsController =
-      controllersByName.MultichainTransactionsController;
-    const multichainAccountService = controllersByName.MultichainAccountService;
-    ///: END:ONLY_INCLUDE_IF
-
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
-    networkEnablementController.init();
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
@@ -1308,57 +543,6 @@ export class Engine {
     // Notify Snaps that the app is active when the Engine is initialized.
     this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
-
-    const nftController = new NftController({
-      useIpfsSubdomains: false,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NftController',
-        allowedActions: [
-          'AccountsController:getAccount',
-          'AccountsController:getSelectedAccount',
-          'ApprovalController:addRequest',
-          'AssetsContractController:getERC721AssetName',
-          'AssetsContractController:getERC721AssetSymbol',
-          'AssetsContractController:getERC721TokenURI',
-          'AssetsContractController:getERC721OwnerOf',
-          'AssetsContractController:getERC1155BalanceOf',
-          'AssetsContractController:getERC1155TokenURI',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:findNetworkClientIdByChainId',
-          'PhishingController:bulkScanUrls',
-        ],
-        allowedEvents: [
-          'PreferencesController:stateChange',
-          'AccountsController:selectedEvmAccountChange',
-        ],
-      }),
-      state: initialState.NftController,
-    });
-
-    const tokensController = new TokensController({
-      chainId: getGlobalChainId(networkController),
-      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-      provider: networkController.getProviderAndBlockTracker().provider,
-      state: initialState.TokensController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokensController',
-        allowedActions: [
-          'ApprovalController:addRequest',
-          'NetworkController:getNetworkClientById',
-          'AccountsController:getAccount',
-          'AccountsController:getSelectedAccount',
-          'AccountsController:listAccounts',
-        ],
-        allowedEvents: [
-          'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
-          'NetworkController:stateChange',
-          'TokenListController:stateChange',
-          'AccountsController:selectedEvmAccountChange',
-          'KeyringController:accountRemoved',
-        ],
-      }),
-    });
 
     const earnController = new EarnController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1396,132 +580,14 @@ export class Engine {
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
-      TokenDetectionController: new TokenDetectionController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenDetectionController',
-          allowedActions: [
-            'AccountsController:getSelectedAccount',
-            'NetworkController:getNetworkClientById',
-            'NetworkController:getNetworkConfigurationByNetworkClientId',
-            'NetworkController:getState',
-            'KeyringController:getState',
-            'PreferencesController:getState',
-            'TokenListController:getState',
-            'TokensController:getState',
-            'TokensController:addDetectedTokens',
-            'AccountsController:getAccount',
-            'TokensController:addTokens',
-            'NetworkController:findNetworkClientIdByChainId',
-          ],
-          allowedEvents: [
-            'KeyringController:lock',
-            'KeyringController:unlock',
-            'PreferencesController:stateChange',
-            'NetworkController:networkDidChange',
-            'TokenListController:stateChange',
-            'TokensController:stateChange',
-            'AccountsController:selectedEvmAccountChange',
-            'TransactionController:transactionConfirmed',
-          ],
-        }),
-        trackMetaMetricsEvent: () =>
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.TOKEN_DETECTED,
-            )
-              .addProperties({
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                chain_id: getDecimalChainId(
-                  getGlobalChainId(networkController),
-                ),
-              })
-              .build(),
-          ),
-        getBalancesInSingleCall:
-          assetsContractController.getBalancesInSingleCall.bind(
-            assetsContractController,
-          ),
-        platform: 'mobile',
-        useAccountsAPI: true,
-        disabled: false,
-        useTokenDetection: () => selectUseTokenDetection(store.getState()),
-        useExternalServices: () => isBasicFunctionalityToggleEnabled(),
-      }),
-      NftDetectionController: new NftDetectionController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NftDetectionController',
-          allowedEvents: [
-            'NetworkController:stateChange',
-            'PreferencesController:stateChange',
-          ],
-          allowedActions: [
-            'ApprovalController:addRequest',
-            'NetworkController:getState',
-            'NetworkController:getNetworkClientById',
-            'PreferencesController:getState',
-            'AccountsController:getSelectedAccount',
-            'NetworkController:findNetworkClientIdByChainId',
-          ],
-        }),
-        disabled: false,
-        addNft: nftController.addNft.bind(nftController),
-        getNftState: () => nftController.state,
-      }),
+      TokenDetectionController: tokenDetectionController,
+      NftDetectionController: nftDetectionController,
       CurrencyRateController: currencyRateController,
       NetworkController: networkController,
       PhishingController: phishingController,
       PreferencesController: preferencesController,
-      TokenBalancesController: new TokenBalancesController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenBalancesController',
-          allowedActions: [
-            'NetworkController:getNetworkClientById',
-            'NetworkController:getState',
-            'TokensController:getState',
-            'PreferencesController:getState',
-            'AccountsController:getSelectedAccount',
-            'AccountsController:listAccounts',
-            'AccountTrackerController:updateNativeBalances',
-            'AccountTrackerController:updateStakedBalances',
-          ],
-          allowedEvents: [
-            'TokensController:stateChange',
-            'PreferencesController:stateChange',
-            'NetworkController:stateChange',
-            'KeyringController:accountRemoved',
-          ],
-        }),
-        // TODO: This is long, can we decrease it?
-        interval: 180000,
-        state: initialState.TokenBalancesController,
-        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
-        queryMultipleAccounts:
-          preferencesController.state.isMultiAccountBalancesEnabled,
-        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-          engine: { backgroundState: initialState },
-        }) as `0x${string}`[],
-      }),
-      TokenRatesController: new TokenRatesController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenRatesController',
-          allowedActions: [
-            'TokensController:getState',
-            'NetworkController:getNetworkClientById',
-            'NetworkController:getState',
-            'AccountsController:getAccount',
-            'AccountsController:getSelectedAccount',
-          ],
-          allowedEvents: [
-            'TokensController:stateChange',
-            'NetworkController:stateChange',
-            'AccountsController:selectedEvmAccountChange',
-          ],
-        }),
-        tokenPricesService: codefiTokenApiV2,
-        interval: 30 * 60 * 1000,
-        state: initialState.TokenRatesController || { marketData: {} },
-      }),
+      TokenBalancesController: tokenBalancesController,
+      TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
       SmartTransactionsController: this.smartTransactionsController,
       SwapsController: new SwapsController({
@@ -1550,7 +616,7 @@ export class Engine {
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
-      PermissionController: permissionController,
+      PermissionController: this.permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
@@ -1621,6 +687,7 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       RewardsController: rewardsController,
+      DelegationController: delegationController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1743,7 +810,7 @@ export class Engine {
       allowedActions: [
         `SnapController:getAll`,
         `SnapController:handleRequest`,
-        `${permissionController.name}:getPermissions`,
+        `PermissionController:getPermissions`,
         `AccountsController:listMultichainAccounts`,
       ],
       allowedEvents: [],
@@ -2067,7 +1134,7 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async () => {
+  getSnapKeyring = async (): Promise<SnapKeyring> => {
     // TODO: Replace `getKeyringsByType` with `withKeyring`
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
@@ -2079,7 +1146,7 @@ export class Engine {
         KeyringTypes.snap,
       );
     }
-    return snapKeyring;
+    return snapKeyring as SnapKeyring;
   };
 
   /**
@@ -2388,6 +1455,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      DelegationController,
     } = instance.datamodel.state;
 
     return {
@@ -2446,6 +1514,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      DelegationController,
     };
   },
 

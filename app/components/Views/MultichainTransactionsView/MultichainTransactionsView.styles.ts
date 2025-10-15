@@ -7,6 +7,9 @@ const createStyles = (colors: ThemeColors) =>
     wrapper: {
       flex: 1,
     },
+    listContentContainer: {
+      paddingBottom: 80,
+    },
     emptyContainer: {
       width: '100%',
       justifyContent: 'center',

@@ -46,14 +46,6 @@ jest.mock('../../../../../util/theme', () => ({
 }));
 
 // Mock hooks
-jest.mock('../../hooks', () => ({
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
-}));
 
 // Mock liquidation price hook to avoid async side effects
 jest.mock('../../hooks/usePerpsLiquidationPrice', () => ({
@@ -184,7 +176,7 @@ jest.mock('../../utils/formatUtils', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
   }),
-  PRICE_RANGES_POSITION_VIEW: [
+  PRICE_RANGES_UNIVERSAL: [
     {
       condition: (v: number) => v >= 1,
       minimumDecimals: 2,

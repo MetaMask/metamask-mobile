@@ -45,7 +45,6 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
 import { useRegions } from '../../hooks/useRegions';
 import { usePaymentMethods } from '../../hooks/usePaymentMethods';
-import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 import SdkErrorAlert from '../../components/SdkErrorAlert/SdkErrorAlert';
 import TruncatedError from '../../components/TruncatedError/TruncatedError';
 
@@ -63,7 +62,7 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -112,20 +111,19 @@ const BuildQuote = () => {
     selectedRegion,
     selectedPaymentMethod,
     selectedCryptoCurrency,
+    selectedWalletAddress,
   } = useDepositSDK();
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const [error, setError] = useState<string | null>();
 
-  const isAccountTokenCompatible = useAccountTokenCompatible(
-    selectedCryptoCurrency,
-  );
-
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
 
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -188,14 +186,21 @@ const BuildQuote = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedRegion && !selectedRegion.supported) {
+      if (
+        !isFetchingRegions &&
+        selectedRegion &&
+        !selectedRegion.supported &&
+        regions
+      ) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails(),
+            ...createUnsupportedRegionModalNavigationDetails({
+              regions,
+            }),
           );
         });
       }
-    }, [selectedRegion, navigation]),
+    }, [isFetchingRegions, selectedRegion, regions, navigation]),
   );
 
   const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
@@ -210,7 +215,7 @@ const BuildQuote = () => {
     if (!selectedCryptoCurrency || !selectedPaymentMethod) {
       return;
     }
-    if (!isAccountTokenCompatible) {
+    if (!selectedWalletAddress) {
       handleNavigateToIncompatibleAccountTokenModal();
       return;
     }
@@ -345,7 +350,6 @@ const BuildQuote = () => {
       setIsLoading(false);
     }
   }, [
-    isAccountTokenCompatible,
     handleNavigateToIncompatibleAccountTokenModal,
     trackEvent,
     amountAsNumber,
@@ -359,6 +363,7 @@ const BuildQuote = () => {
     routeAfterAuthentication,
     navigateToVerifyIdentity,
     shouldRouteImmediately,
+    selectedWalletAddress,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -382,6 +387,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
     );
@@ -392,6 +398,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
@@ -399,8 +406,9 @@ const BuildQuote = () => {
     );
   }, [navigation, paymentMethods, paymentMethodsError]);
 
-  const networkName =
-    allNetworkConfigurations[selectedCryptoCurrency?.chainId ?? '']?.name;
+  const networkName = selectedCryptoCurrency
+    ? networkConfigurationsByCaipChainId[selectedCryptoCurrency.chainId]?.name
+    : undefined;
 
   const networkImageSource = selectedCryptoCurrency?.chainId
     ? getNetworkImageSource({
@@ -596,12 +604,16 @@ const BuildQuote = () => {
               </ListItemColumn>
 
               <ListItemColumn>
-                <TagBase
-                  includesBorder
-                  textProps={{ variant: TextVariant.BodySM }}
-                >
-                  {strings('deposit.payment_duration.instant')}
-                </TagBase>
+                {selectedPaymentMethod ? (
+                  <TagBase
+                    includesBorder
+                    textProps={{ variant: TextVariant.BodySM }}
+                  >
+                    {strings(
+                      `deposit.payment_duration.${selectedPaymentMethod.duration}`,
+                    )}
+                  </TagBase>
+                ) : null}
               </ListItemColumn>
               <ListItemColumn>
                 <Icon
