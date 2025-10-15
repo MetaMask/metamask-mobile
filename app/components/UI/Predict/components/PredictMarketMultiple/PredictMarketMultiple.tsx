@@ -26,17 +26,23 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictEligibility } from '../../hooks/usePredictEligibility';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictMarket, PredictOutcome } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
+  entryPoint?: PredictEntryPoint;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -89,6 +95,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[0],
+        entryPoint,
       },
     });
   };
@@ -107,6 +114,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[1],
+        entryPoint,
       },
     });
   };

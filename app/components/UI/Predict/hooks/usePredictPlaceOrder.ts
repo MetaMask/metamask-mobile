@@ -5,9 +5,28 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { PlaceOrderParams } from '../providers/types';
 import type { Result } from '../types';
+import { OrderResponse } from '../providers/polymarket/types';
 import { usePredictTrading } from './usePredictTrading';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+} from '../constants/eventNames';
+
+interface PredictAnalyticsProperties {
+  marketId?: string;
+  marketTitle?: string;
+  marketCategory?: string;
+  entryPoint?: string;
+  transactionType?:
+    | typeof PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
+    | typeof PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL;
+  liquidity?: number;
+  sharePrice?: number;
+}
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -18,6 +37,10 @@ interface UsePredictPlaceOrderOptions {
    * Callback when an error occurs
    */
   onError?: (error: string) => void;
+  /**
+   * Analytics properties for tracking
+   */
+  analyticsProperties?: PredictAnalyticsProperties;
 }
 
 interface UsePredictPlaceOrderReturn {
@@ -35,8 +58,9 @@ interface UsePredictPlaceOrderReturn {
 export function usePredictPlaceOrder(
   options: UsePredictPlaceOrderOptions = {},
 ): UsePredictPlaceOrderReturn {
-  const { onError, onComplete } = options;
+  const { onError, onComplete, analyticsProperties } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
@@ -50,17 +74,91 @@ export function usePredictPlaceOrder(
 
         DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
 
+        // Track Predict Action Submitted
+        if (analyticsProperties) {
+          const regularProperties = {
+            [PredictEventProperties.TIMESTAMP]: Date.now(),
+            [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+            [PredictEventProperties.MARKET_TITLE]:
+              analyticsProperties.marketTitle,
+            [PredictEventProperties.MARKET_CATEGORY]:
+              analyticsProperties.marketCategory,
+            [PredictEventProperties.ENTRY_POINT]:
+              analyticsProperties.entryPoint,
+            [PredictEventProperties.TRANSACTION_TYPE]:
+              analyticsProperties.transactionType,
+            [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+          };
+
+          const sensitiveProperties = {
+            [PredictEventProperties.AMOUNT]: orderParams?.size,
+            [PredictEventProperties.SHARE_PRICE]:
+              analyticsProperties.sharePrice,
+          };
+
+          // eslint-disable-next-line no-console
+          console.log('📊 [Analytics] PREDICT_ACTION_SUBMITTED', {
+            regularProperties,
+            sensitiveProperties,
+          });
+
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PREDICT_ACTION_SUBMITTED)
+              .addProperties(regularProperties)
+              .addSensitiveProperties(sensitiveProperties)
+              .build(),
+          );
+        }
+
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
 
         if (!orderResult.success) {
+          const failureReason = orderResult.error || 'Unknown error';
+
+          // Track Predict Action Failed
+          if (analyticsProperties) {
+            const regularProperties = {
+              [PredictEventProperties.TIMESTAMP]: Date.now(),
+              [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+              [PredictEventProperties.MARKET_TITLE]:
+                analyticsProperties.marketTitle,
+              [PredictEventProperties.MARKET_CATEGORY]:
+                analyticsProperties.marketCategory,
+              [PredictEventProperties.ENTRY_POINT]:
+                analyticsProperties.entryPoint,
+              [PredictEventProperties.TRANSACTION_TYPE]:
+                analyticsProperties.transactionType,
+              [PredictEventProperties.FAILURE_REASON]: failureReason,
+            };
+
+            const sensitiveProperties = {
+              [PredictEventProperties.AMOUNT]: orderParams?.size,
+              [PredictEventProperties.SHARE_PRICE]:
+                analyticsProperties.sharePrice,
+            };
+
+            // eslint-disable-next-line no-console
+            console.log('📊 [Analytics] PREDICT_ACTION_FAILED', {
+              regularProperties,
+              sensitiveProperties,
+            });
+
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.PREDICT_ACTION_FAILED)
+                .addProperties(regularProperties)
+                .addSensitiveProperties(sensitiveProperties)
+                .build(),
+            );
+          }
+
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
             iconName: IconName.Loading,
             labelOptions: [{ label: 'Order failed' }],
             hasNoTimeout: false,
           });
-          throw new Error(orderResult.error);
+          throw new Error(failureReason);
         }
 
         // Clear any previous error state
@@ -69,6 +167,51 @@ export function usePredictPlaceOrder(
         onComplete?.(orderResult as Result);
 
         setResult(orderResult as Result);
+
+        // Track Predict Action Completed
+        if (analyticsProperties) {
+          // Extract order ID from response if available
+          const orderIdFromResponse =
+            orderResult.response &&
+            typeof orderResult.response === 'object' &&
+            'orderID' in orderResult.response
+              ? (orderResult.response as OrderResponse).orderID
+              : undefined;
+
+          const regularProperties = {
+            [PredictEventProperties.TIMESTAMP]: Date.now(),
+            [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+            [PredictEventProperties.MARKET_TITLE]:
+              analyticsProperties.marketTitle,
+            [PredictEventProperties.MARKET_CATEGORY]:
+              analyticsProperties.marketCategory,
+            [PredictEventProperties.ENTRY_POINT]:
+              analyticsProperties.entryPoint,
+            [PredictEventProperties.TRANSACTION_TYPE]:
+              analyticsProperties.transactionType,
+            [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+          };
+
+          const sensitiveProperties = {
+            [PredictEventProperties.AMOUNT]: orderParams?.size,
+            [PredictEventProperties.SHARE_PRICE]:
+              analyticsProperties.sharePrice,
+            [PredictEventProperties.ORDER_ID]: orderIdFromResponse,
+          };
+
+          // eslint-disable-next-line no-console
+          console.log('📊 [Analytics] PREDICT_ACTION_COMPLETED', {
+            regularProperties,
+            sensitiveProperties,
+          });
+
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PREDICT_ACTION_COMPLETED)
+              .addProperties(regularProperties)
+              .addSensitiveProperties(sensitiveProperties)
+              .build(),
+          );
+        }
 
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -92,7 +235,15 @@ export function usePredictPlaceOrder(
         setIsLoading(false);
       }
     },
-    [toastRef, controllerPlaceOrder, onComplete, onError],
+    [
+      toastRef,
+      controllerPlaceOrder,
+      onComplete,
+      onError,
+      analyticsProperties,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   return {

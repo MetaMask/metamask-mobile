@@ -23,17 +23,23 @@ import {
   PredictMarket,
   PredictOutcome as PredictOutcomeType,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
+  entryPoint?: PredictEntryPoint;
 }
 
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   market,
   outcome,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
   // const outcome = market.outcomes[0];
   const { styles } = useStyles(styleSheet, {});
@@ -65,6 +71,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[0],
+        entryPoint,
       },
     });
   };
@@ -76,6 +83,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[1],
+        entryPoint,
       },
     });
   };

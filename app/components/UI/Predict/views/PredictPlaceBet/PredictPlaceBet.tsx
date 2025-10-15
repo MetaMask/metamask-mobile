@@ -15,7 +15,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Image, ScrollView, TouchableOpacity } from 'react-native';
 import Button, {
   ButtonSize,
@@ -27,10 +27,16 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictBetAmounts } from '../../hooks/usePredictBetAmounts';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+} from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
@@ -42,13 +48,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const PredictPlaceBet = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictPlaceBet'>>();
 
-  const { market, outcome, outcomeToken } = route.params;
-  const { placeOrder, isLoading } = usePredictPlaceOrder();
+  const { market, outcome, outcomeToken, entryPoint } = route.params;
+
+  // Prepare analytics properties
+  const analyticsProperties = useMemo(
+    () => ({
+      marketId: market?.id,
+      marketTitle: market?.title,
+      marketCategory: market?.categories?.[0],
+      entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      transactionType:
+        outcomeToken?.title === 'Yes'
+          ? PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
+          : PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+      liquidity: outcome?.volume,
+      sharePrice: outcomeToken?.price,
+    }),
+    [market, outcome, outcomeToken, entryPoint],
+  );
+
+  const { placeOrder, isLoading } = usePredictPlaceOrder({
+    analyticsProperties,
+  });
 
   const [currentValue, setCurrentValue] = useState(1);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('1');
@@ -60,6 +87,39 @@ const PredictPlaceBet = () => {
     providerId: outcome.providerId,
     userBetAmount: currentValue,
   });
+
+  // Track Predict Action Initiated when screen mounts
+  useEffect(() => {
+    const regularProperties = {
+      [PredictEventProperties.TIMESTAMP]: Date.now(),
+      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]:
+        analyticsProperties.marketCategory,
+      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      [PredictEventProperties.TRANSACTION_TYPE]:
+        analyticsProperties.transactionType,
+      [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+    };
+
+    const sensitiveProperties = {
+      [PredictEventProperties.SHARE_PRICE]: outcomeToken?.price,
+    };
+
+    // eslint-disable-next-line no-console
+    console.log('📊 [Analytics] PREDICT_ACTION_INITIATED', {
+      regularProperties,
+      sensitiveProperties,
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PREDICT_ACTION_INITIATED)
+        .addProperties(regularProperties)
+        .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
