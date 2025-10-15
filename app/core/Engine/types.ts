@@ -748,6 +748,7 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'NftController'
   | 'NftDetectionController'
+  | 'PhishingController'
   | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'

@@ -18,7 +18,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
-import { PhishingController } from '@metamask/phishing-controller';
 import {
   TransactionController,
   TransactionMeta,
@@ -119,7 +118,6 @@ import { TransactionControllerInit } from './controllers/transaction-controller'
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
-import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
@@ -170,6 +168,7 @@ import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-fl
 import { ppomControllerInit } from './controllers/ppom-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
+import { phishingControllerInit } from './controllers/phishing-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -344,6 +343,7 @@ export class Engine {
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
+        PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
@@ -371,6 +371,7 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
     const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
@@ -450,18 +451,6 @@ export class Engine {
     const networkEnablementController =
       controllersByName.NetworkEnablementController;
     networkEnablementController.init();
-
-    const phishingController = new PhishingController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'PhishingController',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-    });
-
-    if (!isProductSafetyDappScanningEnabled()) {
-      phishingController.maybeUpdateState();
-    }
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();

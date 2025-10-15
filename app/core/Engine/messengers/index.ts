@@ -118,6 +118,7 @@ import {
 } from './ppom-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
+import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -326,6 +327,10 @@ export const CONTROLLER_MESSENGERS = {
   MultichainAccountService: {
     getMessenger: getMultichainAccountServiceMessenger,
     getInitMessenger: getMultichainAccountServiceInitMessenger,
+  },
+  PhishingController: {
+    getMessenger: getPhishingControllerMessenger,
+    getInitMessenger: noop,
   },
   PPOMController: {
     getMessenger: getPPOMControllerMessenger,
