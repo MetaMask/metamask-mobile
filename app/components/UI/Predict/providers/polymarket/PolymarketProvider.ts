@@ -57,6 +57,7 @@ import {
   OrderData,
   OrderType,
   PolymarketPosition,
+  PolymarketApiActivity,
   SignatureType,
   TickSize,
 } from './types';
@@ -78,6 +79,7 @@ import {
   getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  parsePolymarketActivity,
   priceValid,
   submitClobOrder,
 } from './utils';
@@ -126,7 +128,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
-    throw new Error('Method not implemented.');
+    return this.fetchActivity(_params);
   }
 
   public claimWinnings(): Promise<void> {
@@ -342,6 +344,50 @@ export class PolymarketProvider implements PredictProvider {
     });
 
     return parsedPositions;
+  }
+
+  private async fetchActivity({
+    address,
+  }: {
+    address: string;
+  }): Promise<PredictActivity[]> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+
+    if (!address) {
+      throw new Error('Address is required');
+    }
+
+    try {
+      const predictAddress =
+        this.#accountStateByAddress.get(address)?.address ??
+        (await this.getAccountState({ ownerAddress: address })).address;
+
+      const queryParams = new URLSearchParams({
+        // user: '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00',
+        user: predictAddress,
+      });
+
+      const response = await fetch(
+        `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get activity');
+      }
+
+      const activityRaw = (await response.json()) as PolymarketApiActivity[];
+      const parsedActivity = parsePolymarketActivity(activityRaw);
+      return Array.isArray(parsedActivity) ? parsedActivity : [];
+    } catch (error) {
+      DevLogger.log('Error getting activity via Polymarket API:', error);
+      return [];
+    }
   }
 
   public async getUnrealizedPnL({

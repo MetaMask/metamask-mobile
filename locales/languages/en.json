@@ -1556,7 +1556,7 @@
       "ready_to_trade": {
         "title": "Ready to trade?",
         "description": "Fund your perps account with any token and make your first trade in seconds.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
       "card": {
@@ -1636,7 +1636,17 @@
     },
     "add_funds_sheet": {
       "title": "Add funds",
-      "description": "You’ll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds. "
+      "description": "You’ll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+    },
+    "transactions": {
+      "title": "Predictions",
+      "no_transactions": "No recent activity",
+      "buy_title": "Predicted",
+      "sell_title": "Cashed out",
+      "claim_title": "Claimed winnings",
+      "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
+      "sell_detail": "Sold at {{priceCents}} per share",
+      "claim_detail": "Claimed winnings"
     }
   },
   "receive": {
@@ -5334,7 +5344,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
@@ -5798,6 +5808,12 @@
     "invalid": {
       "title": "This page doesn't exist",
       "description": "We can't find the page you're looking for.",
+      "update_to_store_link": "Update to the latest version of MetaMask",
+      "well_take_you_to_right_place": " and we'll take you to the right place."
+    },
+    "unsupported": {
+      "title": "This page is not supported in current version",
+      "description": "Update to the latest version to use this feature",
       "update_to_store_link": "Update to the latest version of MetaMask",
       "well_take_you_to_right_place": " and we'll take you to the right place."
     },
