@@ -122,7 +122,7 @@ export const BUILDER_FEE_CONFIG = {
   maxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
   maxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
     .toFixed(4)
-    .replace(/\.?0+$/, '')}%` as `${string}%`,
+    .replace(/\.?0+$/, '')}%`,
 };
 
 // Referral code configuration
