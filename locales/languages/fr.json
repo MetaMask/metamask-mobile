@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Prêt à trader ?",
         "description": "Approvisionnez votre compte de trading de contrats à terme perpétuels avec n’importe quel jeton, puis ouvrez votre première position en quelques secondes.",
-        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperEVM sans frais supplémentaires."
+        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperCore sans frais supplémentaires."
       },
       "got_it": "J’ai compris",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperEVM, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
+        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperCore, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
       },
       "title": {
         "transaction_fee": "Frais"

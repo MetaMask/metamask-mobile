@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "¿Estás listo para operar?",
         "description": "Financia tu cuenta de contratos perpetuos con cualquier token y realiza tu primera operación en segundos.",
-        "footer_text": "MetaMask canjeará tus fondos a USDC en Arbitrum y los depositará en HyperEVM sin cargo adicional."
+        "footer_text": "MetaMask canjeará tus fondos a USDC en Arbitrum y los depositará en HyperCore sin cargo adicional."
       },
       "got_it": "Entendido",
       "card": {
@@ -5293,7 +5293,8 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Canjearemos tus tokens por USDC en HyperEVM, la red que usan los contratos perpetuos. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
+
+        "transaction_fee": "Canjearemos tus tokens por USDC en HyperCore, la red que usan los contratos perpetuos. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
       },
       "title": {
         "transaction_fee": "Tarifas"

@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Handa nang mag-trade?",
         "description": "Pondohan ang perps account mo gamit ang anumang token at isagawa ang una mong trade sa ilang segundo.",
-        "footer_text": "Isu-swap ng MetaMask ang iyong mga pondo sa USDC sa Arbitrum, at idedeposito ang mga iyon sa HyperEVM nang walang dagdag na bayad."
+        "footer_text": "Isu-swap ng MetaMask ang iyong mga pondo sa USDC sa Arbitrum, at idedeposito ang mga iyon sa HyperCore nang walang dagdag na bayad."
       },
       "got_it": "Nakuha ko",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Isu-swap namin ang iyong mga token para maging USDC sa HyperEVM, ang network na ginagamit ng Perps. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
+        "transaction_fee": "Isu-swap namin ang iyong mga token para maging USDC sa HyperCore, ang network na ginagamit ng Perps. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
       },
       "title": {
         "transaction_fee": "Mga Bayarin"
