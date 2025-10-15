@@ -50,7 +50,7 @@ const SwitchChainApproval = () => {
     ? getPermittedEthChainIds(caip25CaveatValue)
     : [];
 
-  // There should only be one if one exists
+  // This approval view only handles one chainId added to permissions at a time, and the permissionDiffMap should only contain one chainId
   const chainId = permittedEthChainIds[0];
 
   const onConfirm = useCallback(() => {
