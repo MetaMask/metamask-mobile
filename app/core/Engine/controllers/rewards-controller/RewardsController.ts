@@ -569,7 +569,7 @@ export class RewardsController extends BaseController<
 
     if (isSolanaAddress(account.address)) {
       const result = await signSolanaRewardsMessage(
-        account.address,
+        account.id,
         Buffer.from(message, 'utf8').toString('base64'),
       );
       return `0x${Buffer.from(base58.decode(result.signature)).toString(
@@ -2368,7 +2368,7 @@ export class RewardsController extends BaseController<
           }
           results.push({ account: accountToLink, success });
         }
-      } catch (error) {
+      } catch {
         // Continue with other accounts even if one fails
         results.push({ account: accountToLink, success: false });
       }
