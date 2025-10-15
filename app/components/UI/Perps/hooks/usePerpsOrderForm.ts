@@ -134,22 +134,18 @@ export function usePerpsOrderForm(
   });
 
   // Calculate the maximum possible amount based on available balance and current leverage
-  const maxPossibleAmount = useMemo(
-    () =>
-      getMaxAllowedAmountUtils({
-        availableBalance,
-        assetPrice: parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals:
-          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
-        leverage: orderForm.leverage, // Use current leverage instead of default
-      }),
-    [
+  const maxPossibleAmount = useMemo(() => getMaxAllowedAmountUtils({
       availableBalance,
-      currentPrice?.price,
-      marketData?.szDecimals,
-      orderForm.leverage, // Include current leverage in dependencies
-    ],
-  );
+      assetPrice: parseFloat(currentPrice?.price) || 0,
+      assetSzDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      leverage: orderForm.leverage, // Use current leverage instead of default
+    }), [
+    availableBalance,
+    currentPrice?.price,
+    marketData?.szDecimals,
+    orderForm.leverage, // Include current leverage in dependencies
+  ]);
 
   // Optimize order amount to get the optimal USD value for the position size
   const optimizeOrderAmount = useMemo(() => {
