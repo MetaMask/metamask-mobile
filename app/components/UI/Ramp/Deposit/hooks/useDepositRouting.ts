@@ -29,18 +29,16 @@ import Logger from '../../../../../../app/util/Logger';
 import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useDepositUser } from './useDepositUser';
 
 export const useDepositRouting = () => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const {
-    selectedRegion,
-    selectedPaymentMethod,
-    logoutFromProvider,
-    selectedWalletAddress,
-  } = useDepositSDK();
+  const { selectedRegion, selectedPaymentMethod, selectedWalletAddress } =
+    useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
+  const { fetchUserDetails } = useDepositUser();
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',
@@ -50,12 +48,6 @@ export const useDepositRouting = () => {
 
   const [, getAdditionalRequirements] = useDepositSdkMethod({
     method: 'getAdditionalRequirements',
-    onMount: false,
-    throws: true,
-  });
-
-  const [, fetchUserDetails] = useDepositSdkMethod({
-    method: 'getUserDetails',
     onMount: false,
     throws: true,
   });
@@ -460,7 +452,6 @@ export const useDepositRouting = () => {
         }
       } catch (error) {
         if ((error as AxiosError).status === 401) {
-          await logoutFromProvider(false);
           popToBuildQuote();
           navigation.navigate(...createEnterEmailNavDetails({}));
           return;
@@ -482,7 +473,6 @@ export const useDepositRouting = () => {
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
       submitPurposeOfUsage,
-      logoutFromProvider,
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,

@@ -776,7 +776,6 @@ describe('useDepositRouting', () => {
       });
       const { result } = renderHook(() => useDepositRouting());
       await result.current.routeAfterAuthentication(mockQuote);
-      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith(

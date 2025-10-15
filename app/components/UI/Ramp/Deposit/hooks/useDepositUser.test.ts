@@ -3,6 +3,7 @@ import { useDepositUser } from './useDepositUser';
 import { createMockSDKReturn } from '../testUtils/constants';
 import { DepositSdkMethodQuery } from '../hooks/useDepositSdkMethod';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+import type { AxiosError } from 'axios';
 
 const mockUseDepositSdkMethod = jest.fn();
 jest.mock('./useDepositSdkMethod', () => ({
@@ -10,6 +11,7 @@ jest.mock('./useDepositSdkMethod', () => ({
     mockUseDepositSdkMethod(config),
 }));
 
+const mockLogoutFromProvider = jest.fn();
 const mockUseDepositSDK = jest.fn();
 jest.mock('../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
@@ -17,6 +19,7 @@ jest.mock('../sdk', () => ({
 
 describe('useDepositUser', () => {
   const mockFetchUserDetails = jest.fn();
+  const mockFetchUserDetailsThrowable = jest.fn();
   const mockUserDetails = {
     firstName: 'John',
     lastName: 'Doe',
@@ -32,19 +35,40 @@ describe('useDepositUser', () => {
     },
   };
 
+  const setupMockSdkMethod = (overrides?: {
+    data?: unknown;
+    error?: string | null;
+    isFetching?: boolean;
+  }) => {
+    mockUseDepositSdkMethod.mockImplementation((config) => {
+      if (config.throws) {
+        return [
+          { data: null, error: null, isFetching: false },
+          mockFetchUserDetailsThrowable,
+        ];
+      }
+      return [
+        {
+          data: overrides?.data ?? null,
+          error: overrides?.error ?? null,
+          isFetching: overrides?.isFetching ?? false,
+        },
+        mockFetchUserDetails,
+      ];
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockUseDepositSDK.mockReturnValue(
       createMockSDKReturn({
         isAuthenticated: false,
+        logoutFromProvider: mockLogoutFromProvider,
       }),
     );
 
-    mockUseDepositSdkMethod.mockReturnValue([
-      { data: null, error: null, isFetching: false },
-      mockFetchUserDetails,
-    ]);
+    setupMockSdkMethod();
   });
 
   describe('basic functionality', () => {
@@ -89,12 +113,19 @@ describe('useDepositUser', () => {
         method: 'getUserDetails',
         onMount: false,
       });
+
+      expect(mockUseDepositSdkMethod).toHaveBeenCalledWith({
+        method: 'getUserDetails',
+        onMount: false,
+        throws: true,
+      });
     });
 
     it('returns fetchUserDetails function', () => {
       const { result } = renderHook(() => useDepositUser());
 
-      expect(result.current.fetchUserDetails).toBe(mockFetchUserDetails);
+      expect(result.current.fetchUserDetails).toBeDefined();
+      expect(typeof result.current.fetchUserDetails).toBe('function');
     });
   });
 
@@ -103,12 +134,10 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
         }),
       );
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: null, error: null, isFetching: false },
-        mockFetchUserDetails,
-      ]);
+      setupMockSdkMethod();
 
       renderHook(() => useDepositUser());
 
@@ -119,6 +148,7 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: false,
+          logoutFromProvider: mockLogoutFromProvider,
         }),
       );
 
@@ -131,12 +161,38 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
         }),
       );
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: mockUserDetails, error: null, isFetching: false },
-        mockFetchUserDetails,
-      ]);
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      renderHook(() => useDepositUser());
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch user details when already fetching', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      setupMockSdkMethod({ isFetching: true });
+
+      renderHook(() => useDepositUser());
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch user details when there is an error', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      setupMockSdkMethod({ error: 'Some error' });
 
       renderHook(() => useDepositUser());
 
@@ -149,12 +205,10 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
         }),
       );
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: null, error: null, isFetching: true },
-        mockFetchUserDetails,
-      ]);
+      setupMockSdkMethod({ isFetching: true });
 
       const { result } = renderHook(() => useDepositUser());
 
@@ -168,12 +222,10 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
         }),
       );
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: null, error: mockError, isFetching: false },
-        mockFetchUserDetails,
-      ]);
+      setupMockSdkMethod({ error: mockError });
 
       const { result } = renderHook(() => useDepositUser());
 
@@ -186,18 +238,89 @@ describe('useDepositUser', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
         }),
       );
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: null, error: null, isFetching: false },
-        mockFetchUserDetails,
-      ]);
+      setupMockSdkMethod();
 
       const { rerender } = renderHook(() => useDepositUser());
       rerender({});
       rerender({});
 
       expect(mockFetchUserDetails).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('fetchUserDetails (throwable callback)', () => {
+    it('returns user details when successful', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+
+      mockFetchUserDetailsThrowable.mockResolvedValue(mockUserDetails);
+      setupMockSdkMethod();
+
+      const { result } = renderHook(() => useDepositUser());
+
+      const userDetails = await result.current.fetchUserDetails();
+
+      expect(userDetails).toEqual(mockUserDetails);
+      expect(mockFetchUserDetailsThrowable).toHaveBeenCalled();
+    });
+
+    it('logs out and throws on 401 error', async () => {
+      const error401 = new Error('Unauthorized') as AxiosError;
+      error401.status = 401;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+
+      mockFetchUserDetailsThrowable.mockRejectedValue(error401);
+      setupMockSdkMethod();
+
+      const { result } = renderHook(() => useDepositUser());
+
+      await expect(result.current.fetchUserDetails()).rejects.toThrow(
+        'Unauthorized',
+      );
+
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+    });
+
+    it('throws error without logging out for non-401 errors', async () => {
+      const networkError = new Error('Network error');
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+
+      mockFetchUserDetailsThrowable.mockRejectedValue(networkError);
+      setupMockSdkMethod();
+
+      const { result } = renderHook(() => useDepositUser());
+
+      await expect(result.current.fetchUserDetails()).rejects.toThrow(
+        'Network error',
+      );
+
+      expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+    });
+
+    it('returns the function in the hook return value', () => {
+      const { result } = renderHook(() => useDepositUser());
+
+      expect(result.current.fetchUserDetails).toBeDefined();
+      expect(typeof result.current.fetchUserDetails).toBe('function');
     });
   });
 });
