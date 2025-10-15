@@ -5808,6 +5808,18 @@
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",

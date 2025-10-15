@@ -33,7 +33,7 @@ import { CardTokenAllowance } from '../../types';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 
 interface CardAssetItemProps {
-  assetKey: CardTokenAllowance;
+  assetKey: CardTokenAllowance | null;
   privacyMode: boolean;
   onPress?: (asset: TokenI) => void;
 }
@@ -44,8 +44,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   privacyMode,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const chainId = assetKey.chainId as Hex;
-
+  const chainId = assetKey?.chainId as Hex;
   const { asset, mainBalance, secondaryBalance } = useAssetBalance(assetKey);
 
   const networkBadgeSource = useCallback(

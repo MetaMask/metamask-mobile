@@ -34,9 +34,7 @@ export const useAssetBalance = (
   balanceFiat: string | undefined;
   mainBalance: string | undefined;
   secondaryBalance: string | undefined;
-  /** Raw (unformatted) fiat value as a number when available */
   rawFiatNumber: number | undefined;
-  /** Raw (unformatted) token balance as a number when available */
   rawTokenBalance: number | undefined;
 } => {
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);

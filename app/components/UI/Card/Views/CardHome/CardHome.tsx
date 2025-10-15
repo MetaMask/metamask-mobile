@@ -33,7 +33,7 @@ import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { AllowanceState, CardType } from '../../types';
+import { AllowanceState, CardType, CardWarning } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
@@ -55,6 +55,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
 import useCardDetails from '../../hooks/useCardDetails';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
+import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 
 /**
  * CardHome Component
@@ -92,15 +93,20 @@ const CardHome = () => {
     priorityToken,
     fetchPriorityToken,
     isLoading: isLoadingPriorityToken,
-    error,
+    error: priorityTokenError,
+    warning: priorityTokenWarning,
   } = useGetPriorityCardToken();
   const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
     useAssetBalance(priorityToken);
-  const { cardDetails, isLoading: isLoadingCardDetails } = useCardDetails();
+  const {
+    cardDetails,
+    fetchCardDetails,
+    isLoading: isLoadingCardDetails,
+    error: cardDetailsError,
+  } = useCardDetails();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
-    priorityToken: priorityToken ?? undefined,
-    destinationAddress: priorityToken?.walletAddress ?? undefined,
+    priorityToken,
   });
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
@@ -124,14 +130,6 @@ const CardHome = () => {
 
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
-
-  const isPriorityTokenSupportedDeposit = useMemo(() => {
-    if (priorityToken?.symbol) {
-      return DEPOSIT_SUPPORTED_TOKENS.find(
-        (t) => t.toLowerCase() === priorityToken.symbol?.toLowerCase(),
-      );
-    }
-  }, [priorityToken]);
 
   const renderAddFundsBottomSheet = useCallback(
     () => (
@@ -215,6 +213,9 @@ const CardHome = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
+    const isPriorityTokenSupportedDeposit = !!DEPOSIT_SUPPORTED_TOKENS.find(
+      (t) => t.toLowerCase() === priorityToken?.symbol?.toLowerCase(),
+    );
 
     if (isPriorityTokenSupportedDeposit) {
       setOpenAddFundsBottomSheet(true);
@@ -228,7 +229,6 @@ const CardHome = () => {
     createEventBuilder,
     priorityToken,
     openSwaps,
-    isPriorityTokenSupportedDeposit,
     selectedChainId,
   ]);
 
@@ -255,6 +255,66 @@ const CardHome = () => {
   const isLoading = useMemo(
     () => isLoadingPriorityToken || isLoadingCardDetails,
     [isLoadingPriorityToken, isLoadingCardDetails],
+  );
+
+  const ButtonsSection = useMemo(() => {
+    if (isLoading) {
+      return (
+        <Skeleton
+          height={28}
+          width={'100%'}
+          style={styles.skeletonRounded}
+          testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
+        />
+      );
+    }
+
+    if (isBaanxLoginEnabled) {
+      if (priorityTokenWarning === CardWarning.NeedDelegation) return null;
+
+      return (
+        <View style={styles.buttonsContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            style={styles.halfWidthButton}
+            label={strings('card.card_home.add_funds')}
+            size={ButtonSize.Lg}
+            onPress={addFundsAction}
+            width={ButtonWidthTypes.Full}
+            loading={isLoading}
+            testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            style={styles.halfWidthButton}
+            label={strings('card.card_home.change_asset')}
+            size={ButtonSize.Lg}
+            onPress={changeAssetAction}
+            width={ButtonWidthTypes.Full}
+            loading={isLoading}
+            testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_home.add_funds')}
+        size={ButtonSize.Lg}
+        onPress={addFundsAction}
+        width={ButtonWidthTypes.Full}
+        loading={isLoading}
+        testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+      />
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addFundsAction, priorityTokenWarning, isLoading]);
+
+  const error = useMemo(
+    () => priorityTokenError || cardDetailsError,
+    [priorityTokenError, cardDetailsError],
   );
 
   if (error) {
@@ -287,6 +347,10 @@ const CardHome = () => {
               onPress={() => {
                 setRetries((prevState) => prevState + 1);
                 fetchPriorityToken();
+
+                if (cardDetailsError) {
+                  fetchCardDetails();
+                }
               }}
               testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
             />
@@ -303,9 +367,20 @@ const CardHome = () => {
       alwaysBounceVertical={false}
       contentContainerStyle={styles.contentContainer}
     >
+      {priorityTokenWarning && (
+        <CardWarningBox
+          warning={priorityTokenWarning}
+          onConfirm={addFundsAction}
+        />
+      )}
       <View style={styles.cardBalanceContainer}>
         <View
-          style={[styles.balanceTextContainer, styles.defaultHorizontalPadding]}
+          style={[
+            styles.balanceTextContainer,
+            styles.defaultHorizontalPadding,
+            priorityTokenWarning === CardWarning.NeedDelegation &&
+              styles.shouldBeHidden,
+          ]}
         >
           <SensitiveText
             isHidden={privacyMode}
@@ -387,9 +462,11 @@ const CardHome = () => {
           style={[
             styles.cardAssetItemContainer,
             styles.defaultHorizontalPadding,
+            priorityTokenWarning === CardWarning.NeedDelegation &&
+              styles.shouldBeHidden,
           ]}
         >
-          {isLoading || !priorityToken ? (
+          {isLoading ? (
             <Skeleton
               height={50}
               width={'100%'}
@@ -419,88 +496,51 @@ const CardHome = () => {
                 />
               </>
             )}
-          {isLoading ? (
-            <Skeleton
-              height={28}
-              width={'100%'}
-              style={styles.skeletonRounded}
-              testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
-            />
-          ) : (
-            <>
-              {isBaanxLoginEnabled ? (
-                <View style={styles.buttonsContainer}>
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    style={styles.halfWidthButton}
-                    label={strings('card.card_home.add_funds')}
-                    size={ButtonSize.Lg}
-                    onPress={addFundsAction}
-                    width={ButtonWidthTypes.Full}
-                    loading={isLoading}
-                    testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-                  />
-                  <Button
-                    variant={ButtonVariants.Secondary}
-                    style={styles.halfWidthButton}
-                    label={strings('card.card_home.change_asset')}
-                    size={ButtonSize.Lg}
-                    onPress={changeAssetAction}
-                    width={ButtonWidthTypes.Full}
-                    loading={isLoading}
-                    testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-                  />
-                </View>
-              ) : (
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('card.card_home.add_funds')}
-                  size={ButtonSize.Lg}
-                  onPress={addFundsAction}
-                  width={ButtonWidthTypes.Full}
-                  loading={isLoading}
-                  testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-                />
-              )}
-            </>
-          )}
+          {ButtonsSection}
         </View>
       </View>
 
-      {isBaanxLoginEnabled && (
-        <ManageCardListItem
-          title={strings(
-            'card.card_home.manage_card_options.manage_spending_limit',
-          )}
-          description={strings(
-            priorityToken?.allowanceState === AllowanceState.Enabled
-              ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-              : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-          )}
-          rightIcon={IconName.ArrowRight}
-          onPress={manageSpendingLimitAction}
-          testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-        />
-      )}
-
-      <ManageCardListItem
-        title={strings('card.card_home.manage_card_options.manage_card')}
-        description={strings(
-          'card.card_home.manage_card_options.advanced_card_management_description',
+      <View
+        style={[
+          priorityTokenWarning === CardWarning.NeedDelegation &&
+            styles.shouldBeHidden,
+        ]}
+      >
+        {isBaanxLoginEnabled && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.manage_spending_limit',
+            )}
+            description={strings(
+              priorityToken?.allowanceState === AllowanceState.Enabled
+                ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+                : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={manageSpendingLimitAction}
+            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+          />
         )}
-        rightIcon={IconName.Export}
-        onPress={navigateToCardPage}
-        testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
-      />
 
-      {isBaanxLoginEnabled && isAuthenticated ? (
+        <ManageCardListItem
+          title={strings('card.card_home.manage_card_options.manage_card')}
+          description={strings(
+            'card.card_home.manage_card_options.advanced_card_management_description',
+          )}
+          rightIcon={IconName.Export}
+          onPress={navigateToCardPage}
+          testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
+        />
+      </View>
+
+      {isAuthenticated && (
         <ManageCardListItem
           title="Logout"
           description="Logout of your Card account"
           rightIcon={IconName.Logout}
           onPress={logoutAction}
         />
-      ) : null}
+      )}
 
       {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
     </ScrollView>

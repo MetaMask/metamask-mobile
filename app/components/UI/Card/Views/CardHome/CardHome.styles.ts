@@ -58,7 +58,6 @@ const createStyles = (theme: Theme) =>
     },
     cardImageContainer: {
       width: '100%',
-      marginTop: 8,
     },
     cardAssetItemContainer: {
       height: 80,
@@ -97,6 +96,9 @@ const createStyles = (theme: Theme) =>
     },
     halfWidthButton: {
       width: '50%',
+    },
+    shouldBeHidden: {
+      display: 'none',
     },
   });
 

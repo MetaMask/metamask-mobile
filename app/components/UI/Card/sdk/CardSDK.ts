@@ -803,11 +803,6 @@ export class CardSDK {
       const responses = await Promise.all(promises);
 
       if (!responses[0].ok || !responses[1].ok) {
-        const errorResponse = await responses[0].json();
-        Logger.log(
-          errorResponse,
-          'Failed to get card external wallet details.',
-        );
         throw new CardError(
           CardErrorType.SERVER_ERROR,
           'Failed to get card external wallet details. Please try again.',
@@ -818,6 +813,13 @@ export class CardSDK {
         (await responses[0].json()) as CardWalletExternalResponse[];
       const priorityWalletDetails =
         (await responses[1].json()) as CardWalletExternalPriorityResponse[];
+
+      if (
+        externalWalletDetails.length === 0 ||
+        priorityWalletDetails.length === 0
+      ) {
+        return [];
+      }
 
       const combinedDetails = externalWalletDetails.map(
         (wallet: CardWalletExternalResponse) => {

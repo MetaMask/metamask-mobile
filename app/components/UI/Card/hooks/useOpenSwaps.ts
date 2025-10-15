@@ -27,15 +27,13 @@ export interface OpenSwapsParams {
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
-  priorityToken?: CardTokenAllowance;
-  destinationAddress?: string;
+  priorityToken?: CardTokenAllowance | null;
 }
 
 export const useOpenSwaps = ({
   location = SwapBridgeNavigationLocation.TokenDetails,
   sourcePage = Routes.CARD.HOME,
   priorityToken,
-  destinationAddress,
 }: UseOpenSwapsOptions = {}) => {
   const dispatch = useDispatch();
   const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
@@ -68,8 +66,8 @@ export const useOpenSwaps = ({
     ({ chainId, beforeNavigate }: OpenSwapsParams) => {
       if (!priorityToken) return;
 
-      if (destinationAddress) {
-        dispatch(setDestAddress(destinationAddress));
+      if (priorityToken.walletAddress) {
+        dispatch(setDestAddress(priorityToken.walletAddress));
       }
 
       const destToken: BridgeToken = {
@@ -102,7 +100,6 @@ export const useOpenSwaps = ({
       trackEvent,
       createEventBuilder,
       sourceToken,
-      destinationAddress,
       priorityToken,
     ],
   );

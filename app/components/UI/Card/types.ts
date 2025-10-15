@@ -10,13 +10,9 @@ export enum AllowanceState {
   NotEnabled = 'not_enabled',
 }
 
-/**
- * Enum for allowance health; used for displaying redelegation CTAs
- */
-export enum AllowanceHealth {
-  Healthy = 'healthy',
-  Warning = 'warning',
-  Critical = 'critical',
+export enum CardWarning {
+  NeedDelegation = 'need_delegation',
+  CloseSpendingLimit = 'close_spending_limit',
 }
 
 // Helper interface for token balances

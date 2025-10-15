@@ -1,41 +1,60 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { CardDetailsResponse, CardError, CardErrorType } from '../types';
 
+interface State {
+  cardDetails: CardDetailsResponse | null;
+  isLoading: boolean;
+  error: CardErrorType | null;
+}
+
 const useCardDetails = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<CardErrorType | null>(null);
+  const [state, setState] = useState<State>({
+    cardDetails: null,
+    isLoading: false,
+    error: null,
+  });
   const { sdk, isAuthenticated } = useCardSDK();
-  const [cardDetails, setCardDetails] = useState<CardDetailsResponse | null>(
-    null,
-  );
+
+  const fetchCardDetails = useCallback(async () => {
+    if (!sdk) return;
+    setState((prevState) => ({
+      ...prevState,
+      isLoading: true,
+      error: null,
+    }));
+
+    try {
+      const cardDetailsResponse = await sdk.getCardDetails();
+
+      setState((prevState) => ({
+        ...prevState,
+        cardDetails: cardDetailsResponse,
+        isLoading: false,
+      }));
+    } catch (err) {
+      if (err instanceof CardError) {
+        if (err.type === CardErrorType.NO_CARD) {
+          // Add Card Provisioning Flow
+          return;
+        }
+      }
+
+      setState((prevState) => ({
+        ...prevState,
+        isLoading: false,
+        error: CardErrorType.UNKNOWN_ERROR,
+      }));
+    }
+  }, [sdk]);
 
   useEffect(() => {
-    const fetchCardDetails = async () => {
-      if (!sdk) return;
-      setIsLoading(true);
-
-      try {
-        const cardDetailsResponse = await sdk.getCardDetails();
-        setCardDetails(cardDetailsResponse);
-        setIsLoading(false);
-      } catch (err) {
-        if (err instanceof CardError) {
-          setError(err.type);
-        } else {
-          setError(CardErrorType.UNKNOWN_ERROR);
-        }
-
-        setIsLoading(false);
-      }
-    };
-
     if (isAuthenticated) {
       fetchCardDetails();
     }
-  }, [sdk, isAuthenticated]);
+  }, [isAuthenticated, fetchCardDetails]);
 
-  return { cardDetails, isLoading, error };
+  return { ...state, fetchCardDetails };
 };
 
 export default useCardDetails;
