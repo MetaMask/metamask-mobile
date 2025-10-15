@@ -24,9 +24,6 @@ const createStyles = () =>
       marginRight: 16,
       marginTop: 4,
     },
-    tagLabelSpacing: {
-      marginLeft: 8,
-    },
   });
 
 export const createCustomNetworkStyles = (params: { colors: Colors }) =>
@@ -37,6 +34,13 @@ export const createCustomNetworkStyles = (params: { colors: Colors }) =>
     },
     iconContainer: {
       marginRight: 12,
+    },
+    nameAndTagContainer: {
+      flexDirection: 'column',
+    },
+    tagLabelBelowName: {
+      marginTop: 4,
+      alignSelf: 'flex-start',
     },
   });
 
