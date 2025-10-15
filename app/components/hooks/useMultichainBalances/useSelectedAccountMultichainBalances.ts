@@ -91,7 +91,7 @@ const useSelectedAccountMultichainBalances =
     const isPortfolioEnabled = isPortfolioViewEnabled();
 
     const selectedAccountMultichainBalance = useMemo(() => {
-      if (selectedInternalAccount) {
+      if (selectedInternalAccount && isOriginalNativeEvmTokenSymbol !== null) {
         const accountBalanceData = getAccountBalanceData(
           selectedInternalAccount,
           currentCurrency,

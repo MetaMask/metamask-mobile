@@ -44,6 +44,8 @@ const PredictCashOut = () => {
   const { placeOrder, isLoading } = usePredictPlaceOrder({
     onComplete: () => {
       try {
+        // TODO: fix this logic. This only seems to pop the stack once, but does not
+        // navigate to the market details screen
         dispatch(StackActions.pop());
         dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
       } catch (error) {

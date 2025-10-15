@@ -24,14 +24,9 @@ describe('getUIStartupSpan', () => {
 
   it('should call trace with correct parameters when UIStartupSpan is not set', () => {
     const startTime = 12345;
-    const mockTraceContext = {
-      name: traceObj.TraceName.UIStartup,
-      startTime,
-      op: traceObj.TraceOperation.UIStartup,
-    };
     const spyFetch = jest
       .spyOn(traceObj, 'trace')
-      .mockImplementation(() => mockTraceContext);
+      .mockImplementation(() => undefined);
 
     getUIStartupSpan(startTime);
 
@@ -44,15 +39,10 @@ describe('getUIStartupSpan', () => {
 
   it('should return the existing UIStartupSpan if already set', () => {
     const startTime = 12345;
-    const mockTraceContext = {
-      name: traceObj.TraceName.UIStartup,
-      startTime,
-      op: traceObj.TraceOperation.UIStartup,
-    };
 
     const spyFetch = jest
       .spyOn(traceObj, 'trace')
-      .mockImplementation(() => mockTraceContext);
+      .mockImplementation(() => undefined);
 
     // First call to set the UIStartupSpan
     getUIStartupSpan(startTime);
@@ -61,17 +51,12 @@ describe('getUIStartupSpan', () => {
     const result = getUIStartupSpan();
 
     expect(spyFetch).toHaveBeenCalledTimes(1);
-    expect(result).toBe(mockTraceContext);
+    expect(result).toBe(undefined);
   });
 
   it('should not call trace again if UIStartupSpan is already set', () => {
     const startTime = 12345;
-    const mockTraceContext = {
-      name: traceObj.TraceName.UIStartup,
-      startTime,
-      op: traceObj.TraceOperation.UIStartup,
-    };
-    jest.spyOn(traceObj, 'trace').mockImplementation(() => mockTraceContext);
+    jest.spyOn(traceObj, 'trace').mockImplementation(() => undefined);
 
     // First call to set the UIStartupSpan
     getUIStartupSpan(startTime);

@@ -12,6 +12,7 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -312,6 +313,12 @@ jest.mock('../../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../../selectors/networkController'),
 }));
 
+const mockIsNonEvmAddress = jest.fn();
+jest.mock('../../../../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../../../../core/Multichain/utils'),
+  isNonEvmAddress: (address: string) => mockIsNonEvmAddress(address),
+}));
+
 describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -348,6 +355,7 @@ describe('BuildQuote View', () => {
     mockUseGasPriceEstimationValue = {
       ...mockUseGasPriceEstimationInitialValue,
     };
+    mockIsNonEvmAddress.mockReturnValue(false);
   });
 
   //
@@ -468,6 +476,17 @@ describe('BuildQuote View', () => {
       };
     });
     expect(endTrace).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Balance display', () => {
+    it('displays balance from useBalance for non-EVM addresses', () => {
+      mockIsNonEvmAddress.mockReturnValue(true);
+      mockUseRampSDKValues.selectedAddress =
+        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      mockUseBalanceValues.balance = '1.5';
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
   });
 
   describe('Regions data', () => {
@@ -715,6 +734,29 @@ describe('BuildQuote View', () => {
         screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
       ).toBeTruthy();
     });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}100`);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('2'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}2`);
+    });
   });
 
   describe('Amount to sell input', () => {
@@ -884,6 +926,28 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
+    });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`100 ${symbol}`);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('2'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`2 ${symbol}`);
     });
   });
 
