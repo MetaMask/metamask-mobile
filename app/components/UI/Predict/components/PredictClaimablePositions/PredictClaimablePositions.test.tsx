@@ -1,13 +1,13 @@
 import { screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import PredictClaimablePositions, {
   PredictClaimablePositionsHandle,
 } from './PredictClaimablePositions';
 
-jest.mock('../../hooks/usePredictClaimablePositions');
+jest.mock('../../hooks/usePredictPositions');
 jest.mock('../PredictPositionResolved', () => 'PredictPositionResolved');
 
 // Mock strings function
@@ -20,10 +20,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-const mockUsePredictClaimablePositions =
-  usePredictClaimablePositions as jest.MockedFunction<
-    typeof usePredictClaimablePositions
-  >;
+const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
+  typeof usePredictPositions
+>;
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -97,12 +96,12 @@ describe('PredictClaimablePositions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePredictClaimablePositions.mockReturnValue(defaultMockHookReturn);
+    mockUsePredictPositions.mockReturnValue(defaultMockHookReturn);
   });
 
   it('renders nothing when there are no positions', () => {
     // Arrange
-    mockUsePredictClaimablePositions.mockReturnValue({
+    mockUsePredictPositions.mockReturnValue({
       ...defaultMockHookReturn,
       positions: [],
     });
@@ -116,7 +115,7 @@ describe('PredictClaimablePositions', () => {
 
   it('renders resolved markets title when positions exist', () => {
     // Arrange
-    mockUsePredictClaimablePositions.mockReturnValue({
+    mockUsePredictPositions.mockReturnValue({
       ...defaultMockHookReturn,
       positions: mockPositions,
     });
@@ -130,7 +129,7 @@ describe('PredictClaimablePositions', () => {
 
   it('renders PredictPositionResolved components when positions exist', () => {
     // Arrange
-    mockUsePredictClaimablePositions.mockReturnValue({
+    mockUsePredictPositions.mockReturnValue({
       ...defaultMockHookReturn,
       positions: mockPositions,
     });
@@ -147,7 +146,7 @@ describe('PredictClaimablePositions', () => {
   it('exposes refresh method via ref', () => {
     // Arrange
     const mockLoadPositions = jest.fn();
-    mockUsePredictClaimablePositions.mockReturnValue({
+    mockUsePredictPositions.mockReturnValue({
       ...defaultMockHookReturn,
       loadPositions: mockLoadPositions,
     });

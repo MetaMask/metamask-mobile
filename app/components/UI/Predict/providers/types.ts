@@ -105,13 +105,6 @@ export interface GetPositionsParams {
   marketId?: string;
 }
 
-export interface GetClaimablePositionsParams {
-  address?: string;
-  providerId?: string;
-  limit?: number;
-  offset?: number;
-}
-
 export interface PrepareDepositParams {
   providerId: string;
 }

@@ -25,7 +25,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import {
@@ -62,7 +62,8 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     });
     const { status } = usePredictDeposit();
     const { positions, isLoading: isClaimablePositionsLoading } =
-      usePredictClaimablePositions({
+      usePredictPositions({
+        claimable: true,
         loadOnMount: true,
       });
     const {

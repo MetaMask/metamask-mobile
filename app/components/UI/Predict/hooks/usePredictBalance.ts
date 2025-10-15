@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
@@ -52,6 +52,7 @@ export function usePredictBalance(
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isInitialMount = useRef(true);
 
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
@@ -104,7 +105,8 @@ export function usePredictBalance(
     if (loadOnMount) {
       loadBalance();
     }
-  }, [loadOnMount, loadBalance]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadOnMount]);
 
   // Refresh balance when screen comes into focus if enabled
   useFocusEffect(
@@ -117,12 +119,17 @@ export function usePredictBalance(
     }, [refreshOnFocus, loadBalance]),
   );
 
+  // Reset and reload data when address changes (but not on initial mount)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     setBalance(0);
-    setIsLoading(true);
-    setIsRefreshing(false);
     setError(null);
-  }, [selectedInternalAccountAddress]);
+    loadBalance();
+  }, [selectedInternalAccountAddress, loadBalance]);
 
   return {
     balance,

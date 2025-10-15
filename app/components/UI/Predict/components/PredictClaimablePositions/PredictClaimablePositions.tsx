@@ -10,7 +10,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import PredictPositionResolved from '../../components/PredictPositionResolved';
-import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 
@@ -22,7 +22,8 @@ const PredictClaimablePositions = forwardRef<PredictClaimablePositionsHandle>(
   (_props, ref) => {
     const navigation =
       useNavigation<NavigationProp<PredictNavigationParamList>>();
-    const { positions, loadPositions } = usePredictClaimablePositions({
+    const { positions, loadPositions } = usePredictPositions({
+      claimable: true,
       loadOnMount: true,
     });
 

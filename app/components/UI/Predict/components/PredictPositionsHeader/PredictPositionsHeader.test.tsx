@@ -206,8 +206,8 @@ const mockClaimablePositionsResult: {
   error: null,
   loadPositions: mockLoadClaimablePositions,
 };
-jest.mock('../../hooks/usePredictClaimablePositions', () => ({
-  usePredictClaimablePositions: () => mockClaimablePositionsResult,
+jest.mock('../../hooks/usePredictPositions', () => ({
+  usePredictPositions: () => mockClaimablePositionsResult,
 }));
 
 // Mock usePredictClaim hook
