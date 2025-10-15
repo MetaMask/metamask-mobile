@@ -2368,7 +2368,7 @@ export class RewardsController extends BaseController<
           }
           results.push({ account: accountToLink, success });
         }
-      } catch (error) {
+      } catch {
         // Continue with other accounts even if one fails
         results.push({ account: accountToLink, success: false });
       }
