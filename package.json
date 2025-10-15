@@ -295,7 +295,7 @@
     "@metamask/stake-sdk": "^3.2.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^14.0.0",
-    "@metamask/token-search-discovery-controller": "^3.1.0",
+    "@metamask/token-search-discovery-controller": "^3.5.0",
     "@metamask/transaction-controller": "^60.6.0",
     "@metamask/tron-wallet-snap": "^1.1.0",
     "@metamask/utils": "^11.8.1",
