@@ -316,7 +316,10 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
-import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
+import type {
+  ErrorReportingService,
+  ErrorReportingServiceActions,
+} from '@metamask/error-reporting-service';
 import {
   AccountTreeController,
   AccountTreeControllerState,
@@ -346,7 +349,10 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
  */
 type RequiredControllers = Omit<
   Controllers,
-  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
+  | 'ErrorReportingService'
+  | 'PPOMController'
+  | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -354,7 +360,10 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
-  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
+  | 'ErrorReportingService'
+  | 'PPOMController'
+  | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -532,6 +541,7 @@ export type Controllers = {
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
+  ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
@@ -725,6 +735,7 @@ export type ControllersToInitialize =
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
+  | 'ErrorReportingService'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'

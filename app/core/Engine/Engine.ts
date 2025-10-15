@@ -129,8 +129,6 @@ import {
   MultichainRouterMessenger,
   MultichainRouterArgs,
 } from '@metamask/snaps-controllers';
-import { ErrorReportingService } from '@metamask/error-reporting-service';
-import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
@@ -171,6 +169,7 @@ import { rewardsDataServiceInit } from './controllers/rewards-data-service-init'
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 import { ppomControllerInit } from './controllers/ppom-controller-init';
+import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -261,20 +260,6 @@ export class Engine {
 
     this.controllerMessenger = new ExtendedControllerMessenger();
 
-    const errorReportingServiceMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'ErrorReportingService',
-        allowedActions: [],
-        allowedEvents: [],
-      });
-    // We only use the ErrorReportingService through the
-    // messenger. But we need to assign a variable to make Sonar happy.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const errorReportingService = new ErrorReportingService({
-      messenger: errorReportingServiceMessenger,
-      captureException,
-    });
-
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
     const initRequest = {
@@ -291,6 +276,7 @@ export class Engine {
 
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
+        ErrorReportingService: errorReportingServiceInit,
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,

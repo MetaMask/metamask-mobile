@@ -7305,12 +7305,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/error-reporting-service@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/error-reporting-service@npm:2.0.0"
+"@metamask/error-reporting-service@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "@metamask/error-reporting-service@npm:2.2.1"
   dependencies:
-    "@metamask/base-controller": ^8.0.1
-  checksum: 210f7d6b76aac0ba0164f3c6986987cc3e7c7681f8dc2d0e3470995c109009b95eeae14207fc89e261469f61dd3ae04aa9d0b022137ecc9ec1a4a12a44cdb76c
+    "@metamask/base-controller": ^8.4.1
+  checksum: b32c24120583d10c23babe648ccb864f389621ce4c2121484deed748f254529be2ea62d3079847f7fa16e648bac0a94e643aea46f1ce84ada54b2f798a091d8f
   languageName: node
   linkType: hard
 
@@ -34073,7 +34073,7 @@ __metadata:
     "@metamask/eip-5792-middleware": ^1.2.3
     "@metamask/eip1193-permission-middleware": ^1.0.0
     "@metamask/ens-resolver-snap": ^1.0.0
-    "@metamask/error-reporting-service": ^2.0.0
+    "@metamask/error-reporting-service": ^2.2.1
     "@metamask/eslint-config-typescript": ^9.0.0
     "@metamask/eslint-plugin-design-tokens": ^1.0.0
     "@metamask/eth-hd-keyring": ^13.0.0
