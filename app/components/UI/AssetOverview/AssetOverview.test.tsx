@@ -388,10 +388,10 @@ describe('AssetOverview', () => {
     onBuyFunction();
 
     // Verify each tracking function was called exactly once
-    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-    expect(mockAddProperties).toHaveBeenCalledTimes(1);
-    expect(mockBuild).toHaveBeenCalledTimes(1);
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+    expect(mockAddProperties).toHaveBeenCalledTimes(2);
+    expect(mockBuild).toHaveBeenCalledTimes(2);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
 
   it('should handle send button press', async () => {

@@ -50,6 +50,7 @@ import { useStyles } from '../../../component-library/hooks';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -292,6 +293,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       button_label: strings('asset_overview.buy_button'),
       location: ActionLocation.ASSET_DETAILS,
     });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TokenDetails',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const goToBrowserUrl = (url: string) => {
