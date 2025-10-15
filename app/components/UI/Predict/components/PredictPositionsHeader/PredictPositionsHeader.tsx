@@ -36,6 +36,7 @@ import {
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { usePredictClaim } from '../../hooks/usePredictClaim';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
@@ -47,6 +48,7 @@ export interface PredictPositionsHeaderHandle {
 // TODO: rename to something like `PredictPositionsHeader` (given its purpose has evolved)
 const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
   (_, ref) => {
+    const { claim } = usePredictClaim();
     const navigation =
       useNavigation<NavigationProp<PredictNavigationParamList>>();
     const tw = useTailwind();
@@ -128,6 +130,10 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const hasUnrealizedPnL = unrealizedPnL?.cashUpnl !== undefined;
     const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
+    const handleClaim = async () => {
+      await claim({ positions, providerId: POLYMARKET_PROVIDER_ID });
+    };
+
     if (
       isBalanceLoading ||
       isUnrealizedPnLLoading ||
@@ -141,9 +147,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
         {hasClaimableAmount && (
           <Button
             variant={ButtonVariant.Secondary}
-            onPress={() => {
-              // TODO: implement claim
-            }}
+            onPress={handleClaim}
             twClassName="min-w-full bg-primary-default"
             style={{
               backgroundColor: BUTTON_COLOR, // TODO: update once call pull from a tw class

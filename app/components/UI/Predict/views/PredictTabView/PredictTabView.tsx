@@ -22,7 +22,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
   const predictClaimablePositionsRef =
     useRef<PredictClaimablePositionsHandle>(null);
-  const predictAccountStateRef = useRef<PredictPositionsHeaderHandle>(null);
+  const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
 
   usePredictDepositToasts();
 
@@ -32,7 +32,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       await Promise.all([
         predictPositionsRef.current?.refresh(),
         predictClaimablePositionsRef.current?.refresh(),
-        predictAccountStateRef.current?.refresh(),
+        predictPositionsHeaderRef.current?.refresh(),
       ]);
     } finally {
       setIsRefreshing(false);
@@ -46,7 +46,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
       >
-        <PredictPositionsHeader ref={predictAccountStateRef} />
+        <PredictPositionsHeader ref={predictPositionsHeaderRef} />
         <PredictPositions ref={predictPositionsRef} />
         <PredictClaimablePositions ref={predictClaimablePositionsRef} />
         <PredictAddFundsSheet />
