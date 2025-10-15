@@ -54,7 +54,6 @@ import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
 import useCardDetails from '../../hooks/useCardDetails';
-import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 
 /**
@@ -481,21 +480,6 @@ const CardHome = () => {
         <View
           style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
         >
-          {!isLoading &&
-            isAuthenticated &&
-            priorityToken?.allowanceState === AllowanceState.Limited &&
-            priorityToken?.allowance !== undefined &&
-            priorityToken?.availableBalance !== undefined &&
-            priorityToken?.symbol !== undefined && (
-              <>
-                <View style={styles.spendingLimitDivider} />
-                <SpendingLimitProgressBar
-                  spendingLimit={priorityToken?.allowance}
-                  availableBalance={priorityToken?.availableBalance}
-                  symbol={priorityToken?.symbol ?? ''}
-                />
-              </>
-            )}
           {ButtonsSection}
         </View>
       </View>
