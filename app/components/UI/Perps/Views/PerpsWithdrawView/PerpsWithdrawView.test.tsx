@@ -258,7 +258,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
-            amount: '$1,000.00',
+            amount: '$1,000',
           }),
         ),
       ).toBeOnTheScreen();

@@ -14,6 +14,7 @@ import type {
   OrderParams as PerpsOrderParams,
   Position,
 } from '../controllers/types';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -317,7 +318,7 @@ export function buildAssetMapping(metaUniverse: MetaResponse['universe']): {
 /**
  * Format price according to HyperLiquid validation rules
  * - Max 5 significant figures
- * - Max (6 - szDecimals) decimal places for perps
+ * - Max (MAX_PRICE_DECIMALS - szDecimals) decimal places for perps
  * - Integer prices always allowed
  * @param params - Price formatting parameters
  * @returns Properly formatted price string
@@ -335,7 +336,8 @@ export function formatHyperLiquidPrice(params: {
   }
 
   // Calculate max decimal places allowed
-  const maxDecimalPlaces = 6 - szDecimals;
+  const maxDecimalPlaces =
+    DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS - szDecimals;
 
   // Format with proper decimal places
   let formattedPrice = priceNum.toFixed(maxDecimalPlaces);

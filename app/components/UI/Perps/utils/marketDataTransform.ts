@@ -7,7 +7,11 @@ import type {
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
 import type { PerpsMarketData } from '../controllers/types';
-import { formatVolume } from './formatUtils';
+import {
+  formatVolume,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
@@ -102,7 +106,8 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
 
   // Look for specified exchange (e.g., 'HlPerp' for HyperLiquid)
   const targetExchange = fundingData[1].find(
-    (exchange) => Array.isArray(exchange) && exchange[0] === exchangeName,
+    (exchange: unknown) =>
+      Array.isArray(exchange) && exchange[0] === exchangeName,
   );
 
   if (targetExchange?.[1]) {
@@ -187,7 +192,9 @@ export function transformMarketData(
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
       maxLeverage: `${asset.maxLeverage}x`,
-      price: isNaN(currentPrice) ? '$0.00' : formatPrice(currentPrice),
+      price: isNaN(currentPrice)
+        ? '$0.00'
+        : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
       change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
@@ -244,16 +251,6 @@ export function formatPrice(price: number): string {
 }
 
 /**
- * Determine decimal places based on change magnitude
- * Smaller amounts need more precision to show meaningful values
- */
-function getDecimalPlacesForChange(absChange: number): number {
-  if (absChange >= 1) return 2;
-  if (absChange >= 0.01) return 4;
-  return 6;
-}
-
-/**
  * Format 24h change with sign
  * Uses more decimal places for smaller amounts to show meaningful precision
  */
@@ -261,17 +258,13 @@ export function formatChange(change: number): string {
   if (isNaN(change) || !isFinite(change)) return '$0.00';
   if (change === 0) return '$0.00';
 
-  const absChange = Math.abs(change);
-  const decimalPlaces = getDecimalPlacesForChange(absChange);
+  const formatted = formatPerpsFiat(Math.abs(change), {
+    ranges: PRICE_RANGES_UNIVERSAL,
+  });
 
-  const formatted = getIntlNumberFormatter('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: decimalPlaces,
-    maximumFractionDigits: decimalPlaces,
-  }).format(change);
-
-  return change > 0 ? `+${formatted}` : formatted;
+  // Remove $ sign and add it back with proper sign placement
+  const valueWithoutDollar = formatted.replace('$', '');
+  return change > 0 ? `+$${valueWithoutDollar}` : `-$${valueWithoutDollar}`;
 }
 
 /**
