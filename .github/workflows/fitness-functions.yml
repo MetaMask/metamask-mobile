@@ -14,9 +14,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:

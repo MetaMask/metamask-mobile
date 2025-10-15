@@ -27,8 +27,6 @@ jobs:
       - name: Get Node.js version
         id: nvm
         run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-      - name: Enable Corepack
-        run: corepack enable
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
