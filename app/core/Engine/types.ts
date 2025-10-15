@@ -736,6 +736,7 @@ export type ControllersToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'ErrorReportingService'
+  | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'

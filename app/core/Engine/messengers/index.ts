@@ -117,6 +117,7 @@ import {
   getPPOMControllerMessenger,
 } from './ppom-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
+import { getLoggingControllerMessenger } from './logging-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -148,6 +149,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   ErrorReportingService: {
     getMessenger: getErrorReportingServiceMessenger,
+    getInitMessenger: noop,
+  },
+  LoggingController: {
+    getMessenger: getLoggingControllerMessenger,
     getInitMessenger: noop,
   },
   TokenListController: {

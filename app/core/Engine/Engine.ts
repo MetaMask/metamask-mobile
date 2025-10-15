@@ -34,7 +34,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
-import { LoggingController } from '@metamask/logging-controller';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
@@ -170,6 +169,7 @@ import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 import { ppomControllerInit } from './controllers/ppom-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
+import { loggingControllerInit } from './controllers/logging-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -277,6 +277,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
+        LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
@@ -354,6 +355,7 @@ export class Engine {
       ...initRequest,
     });
 
+    const loggingController = controllersByName.LoggingController;
     const remoteFeatureFlagController =
       controllersByName.RemoteFeatureFlagController;
     const accountsController = controllersByName.AccountsController;
@@ -448,19 +450,6 @@ export class Engine {
     const networkEnablementController =
       controllersByName.NetworkEnablementController;
     networkEnablementController.init();
-
-    const loggingController = new LoggingController({
-      messenger: this.controllerMessenger.getRestricted<
-        'LoggingController',
-        never,
-        never
-      >({
-        name: 'LoggingController',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      state: initialState.LoggingController,
-    });
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
