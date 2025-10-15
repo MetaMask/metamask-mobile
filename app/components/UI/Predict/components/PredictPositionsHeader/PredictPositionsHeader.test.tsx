@@ -156,6 +156,22 @@ jest.mock('../../hooks/useUnrealizedPnL', () => ({
   useUnrealizedPnL: jest.fn(),
 }));
 
+// Mock usePredictDeposit hook
+const mockDeposit = jest.fn();
+const mockDepositResult = {
+  deposit: mockDeposit,
+  status: 'IDLE',
+};
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => mockDepositResult,
+  PredictDepositStatus: {
+    IDLE: 'IDLE',
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    FAILED: 'FAILED',
+  },
+}));
+
 // Mock usePredictBalance hook
 const mockLoadBalance = jest.fn();
 const mockBalanceResult: {
@@ -318,6 +334,7 @@ describe('MarketsWonCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset mocks to defaults
+    mockDepositResult.status = 'IDLE';
     mockBalanceResult.balance = 100.5;
     mockBalanceResult.isLoading = false;
     mockClaimablePositionsResult.positions = [];
@@ -747,8 +764,8 @@ describe('MarketsWonCard', () => {
         fireEvent.press(balanceTouchable as any);
       }
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ROOT,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
       });
     });
 
