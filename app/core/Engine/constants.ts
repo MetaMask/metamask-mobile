@@ -81,7 +81,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'DelegationController:stateChange',
-  // 'GatorPermissionsController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

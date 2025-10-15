@@ -81,13 +81,12 @@ export const createRemoteFeatureFlagController = ({
   } else if (isRemoteFeatureFlagOverrideActivated) {
     Logger.log('Remote feature flags override activated');
   } else {
-    console.log('Updating feature flags...');
     remoteFeatureFlagController
       .updateRemoteFeatureFlags()
       .then(() => {
-        console.log('Feature flags updated');
+        Logger.log('Feature flags updated');
       })
-      .catch((error) => console.error(error));
+      .catch((error) => Logger.log(error));
   }
   return remoteFeatureFlagController;
 };
