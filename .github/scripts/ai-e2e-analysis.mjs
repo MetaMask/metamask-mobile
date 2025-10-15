@@ -150,9 +150,8 @@ if (tagCount === 0) {
 // Add AI reasoning in expandable section
 appendStepSummary('');
 appendStepSummary('<details>');
-appendStepSummary('<summary><strong>🤖 Click to see AI Analysis Details</strong></summary>');
+appendStepSummary('<summary>click to see 🤖 AI reasoning details</summary>');
 appendStepSummary('');
-appendStepSummary('### 🤖 AI Reasoning');
 appendStepSummary(reasoning);
 
 // Add test file breakdown if available
