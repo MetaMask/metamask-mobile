@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import compareVersions from 'compare-versions';
 import packageJson from '../../package.json';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
@@ -110,30 +111,30 @@ function getRemoteFeatureFlags(): FeatureFlags {
  * Checks if multichain accounts state 1 is enabled.
  * Returns true if the feature is enabled for state 1 or state 2.
  */
-export const isMultichainAccountsState1Enabled = () =>
-  isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-      featureKey: STATE_1_FLAG,
-    },
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      featureKey: STATE_2_FLAG,
-    },
-  ]);
+export const isMultichainAccountsState1Enabled = () => true;
+// isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
+//   {
+//     version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+//     featureKey: STATE_1_FLAG,
+//   },
+//   {
+//     version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+//     featureKey: STATE_2_FLAG,
+//   },
+// ]);
 
 /**
  * Checks if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
-export const isMultichainAccountsState2Enabled = () =>
-  isMultichainAccountsRemoteFeatureEnabled(
-    getRemoteFeatureFlags(),
-    [
-      {
-        version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-        featureKey: STATE_2_FLAG,
-      },
-    ],
-    enableMultichainAccountsState2Local,
-  );
+export const isMultichainAccountsState2Enabled = () => true;
+// isMultichainAccountsRemoteFeatureEnabled(
+//   getRemoteFeatureFlags(),
+//   [
+//     {
+//       version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+//       featureKey: STATE_2_FLAG,
+//     },
+//   ],
+//   enableMultichainAccountsState2Local,
+// );

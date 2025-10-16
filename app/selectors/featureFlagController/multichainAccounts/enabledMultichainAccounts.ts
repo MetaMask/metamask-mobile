@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
@@ -31,26 +32,26 @@ const createMultichainAccountsStateSelector = (
  * Selector to check if multichain accounts state 1 is enabled.
  * Returns true if the feature is enabled for state 1 or state 2.
  */
-export const selectMultichainAccountsState1Enabled =
-  createMultichainAccountsStateSelector([
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-      featureKey: STATE_1_FLAG,
-    },
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      featureKey: STATE_2_FLAG,
-    },
-  ]);
+export const selectMultichainAccountsState1Enabled = true;
+// createMultichainAccountsStateSelector([
+//   {
+//     version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+//     featureKey: STATE_1_FLAG,
+//   },
+//   {
+//     version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+//     featureKey: STATE_2_FLAG,
+//   },
+// ]);
 
 /**
  * Selector to check if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
-export const selectMultichainAccountsState2Enabled =
-  createMultichainAccountsStateSelector([
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      featureKey: STATE_2_FLAG,
-    },
-  ]);
+export const selectMultichainAccountsState2Enabled = true;
+// createMultichainAccountsStateSelector([
+//   {
+//     version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+//     featureKey: STATE_2_FLAG,
+//   },
+// ]);
