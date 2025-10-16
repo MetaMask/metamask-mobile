@@ -91,7 +91,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
         )}
 
         {!isSearchVisible && (
-          <Box>
+          <Box style={tw.style('flex-1 w-full')}>
             <PredictBalance />
             <ScrollableTabView
               renderTabBar={() => (
