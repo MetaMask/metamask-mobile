@@ -21,6 +21,7 @@ import { useSelector } from 'react-redux';
 import { selectPredictClaimablePositions } from '../selectors/predictController';
 import { PredictPosition, PredictPositionStatus } from '../types';
 import { formatPrice } from '../utils/format';
+import { usePredictPositions } from './usePredictPositions';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -35,6 +36,10 @@ export const usePredictClaimToasts = () => {
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const { claim } = usePredictClaim();
+  const { loadPositions } = usePredictPositions({
+    claimable: true,
+    loadOnMount: true,
+  });
 
   const claimablePositions = useSelector(selectPredictClaimablePositions);
   const wonPositions = useMemo(
@@ -158,6 +163,7 @@ export const usePredictClaimToasts = () => {
         showConfirmedToast(
           formatPrice(totalClaimableAmount, { maximumDecimals: 2 }),
         );
+        loadPositions();
       }
 
       // Handle PredictDeposit failed - clear deposit in progress
@@ -179,6 +185,7 @@ export const usePredictClaimToasts = () => {
       );
     };
   }, [
+    loadPositions,
     showConfirmedToast,
     showErrorToast,
     showPendingToast,

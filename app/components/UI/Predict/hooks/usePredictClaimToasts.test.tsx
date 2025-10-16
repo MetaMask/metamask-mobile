@@ -17,6 +17,18 @@ jest.mock('./usePredictClaim', () => ({
   })),
 }));
 
+// Mock usePredictPositions
+const mockLoadPositions = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePredictPositions', () => ({
+  usePredictPositions: jest.fn(() => ({
+    positions: [],
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadPositions: mockLoadPositions,
+  })),
+}));
+
 // Create a mock toast ref
 const mockToastRef = {
   current: {
@@ -56,6 +68,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Mock account data
+const mockAccountId = 'test-account-id';
+const mockAccountAddress = '0x1234567890123456789012345678901234567890';
+
 // Mock react-redux
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockState: any = {
@@ -63,6 +79,22 @@ let mockState: any = {
     backgroundState: {
       PredictController: {
         claimablePositions: [],
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: mockAccountId,
+          accounts: {
+            [mockAccountId]: {
+              id: mockAccountId,
+              address: mockAccountAddress,
+              name: 'Test Account',
+              type: 'eip155:eoa',
+              metadata: {
+                lastSelected: 0,
+              },
+            },
+          },
+        },
       },
     },
   },
