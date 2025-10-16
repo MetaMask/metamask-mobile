@@ -785,10 +785,9 @@ describe('EngineService', () => {
       const persistenceSubscription = keyringControllerCalls[keyringControllerCalls.length - 1];
       expect(persistenceSubscription).toBeDefined();
 
-      const [, handler] = persistenceSubscription as [
-        string,
-        (state: unknown) => Promise<void>,
-      ];
+      // Extract the handler (second parameter)
+      const handler = persistenceSubscription?.[1] as (controllerState: unknown) => Promise<void>;
+      expect(handler).toBeDefined();
 
       // Act - call the handler with the controller state
       const controllerState = { field1: 'value1', field2: 'value2' };
