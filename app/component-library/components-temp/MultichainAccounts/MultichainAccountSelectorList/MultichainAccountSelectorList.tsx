@@ -60,6 +60,13 @@ const MultichainAccountSelectorList = ({
   const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
+  // eslint-disable-next-line no-console
+  console.log('MultichainAccountSelectorList - render', {
+    isMultichainAccountsEnabled,
+    accountSections,
+    internalAccountsById,
+  });
+
   const [searchText, setSearchText] = useState(selectedExternalAddress || '');
   const [debouncedSearchText, setDebouncedSearchText] = useState(
     selectedExternalAddress || '',
@@ -242,6 +249,8 @@ const MultichainAccountSelectorList = ({
   // Handle account selection/deselection toggle
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
+      // eslint-disable-next-line no-console
+      console.log('MultichainAccountSelectorList - onSelectAccount');
       onSelectAccount?.(accountGroup);
     },
     [onSelectAccount],
@@ -278,9 +287,10 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'external': {
-            const isSelected = selectedExternalAddress ? 
-              item.data.address.toLowerCase() ===
-              selectedExternalAddress.toLowerCase() : false;
+            const isSelected = selectedExternalAddress
+              ? item.data.address.toLowerCase() ===
+                selectedExternalAddress.toLowerCase()
+              : false;
             return (
               <ExternalAccountCell
                 address={item.data.address}
