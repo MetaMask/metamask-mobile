@@ -720,9 +720,9 @@ export class PredictController extends BaseController<
     eventType: PredictEventTypeValue;
     amount: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-    provider: PredictProvider;
+    provider?: PredictProvider;
     providerId: string;
-    ownerAddress: string;
+    ownerAddress?: string;
     completionDuration?: number;
     orderId?: string;
     failureReason?: string;
@@ -731,11 +731,19 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Get safe address from account state for analytics
-    const { address: safeAddress } = await provider.getAccountState({
-      providerId,
-      ownerAddress,
-    });
+    // Get safe address from account state for analytics (only if provider and ownerAddress available)
+    let safeAddress: string | undefined;
+    if (provider && ownerAddress) {
+      try {
+        const accountState = await provider.getAccountState({
+          providerId,
+          ownerAddress,
+        });
+        safeAddress = accountState.address;
+      } catch {
+        // If we can't get safe address, continue without it
+      }
+    }
 
     // Build regular properties (common to all events)
     const regularProperties = {
@@ -762,7 +770,10 @@ export class PredictController extends BaseController<
     // Build sensitive properties
     const sensitiveProperties = {
       [PredictEventProperties.AMOUNT]: amount,
-      [PredictEventProperties.USER_ADDRESS]: safeAddress,
+      // Add user address only if we have it
+      ...(safeAddress && {
+        [PredictEventProperties.USER_ADDRESS]: safeAddress,
+      }),
       // Add order ID for COMPLETED events
       ...(orderId && {
         [PredictEventProperties.ORDER_ID]: orderId,
@@ -806,15 +817,14 @@ export class PredictController extends BaseController<
     const startTime = performance.now();
     const { analyticsProperties, size, providerId } = params;
 
-    const provider = this.providers.get(providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-
-    const { AccountsController, KeyringController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
-
     try {
+      const provider = this.providers.get(providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const { AccountsController, KeyringController } = Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
@@ -852,10 +862,10 @@ export class PredictController extends BaseController<
         // Track Predict Action Completed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.COMPLETED,
-          amount: params.size,
+          amount: size,
           analyticsProperties,
           provider,
-          providerId: params.providerId,
+          providerId,
           ownerAddress: selectedAddress,
           completionDuration,
           orderId,
@@ -864,10 +874,10 @@ export class PredictController extends BaseController<
         // Track Predict Action Failed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.FAILED,
-          amount: params.size,
+          amount: size,
           analyticsProperties,
           provider,
-          providerId: params.providerId,
+          providerId,
           ownerAddress: selectedAddress,
           completionDuration,
           failureReason: result.error || 'Unknown error',
@@ -879,12 +889,17 @@ export class PredictController extends BaseController<
       const completionDuration = performance.now() - startTime;
 
       // Track Predict Action Failed (fire and forget)
+      // Note: If provider/ownerAddress unavailable, we'll track without user_address
+      const provider = this.providers.get(providerId);
+      const selectedAddress =
+        Engine.context?.AccountsController?.getSelectedAccount()?.address;
+
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
-        amount: params.size,
+        amount: size,
         analyticsProperties,
         provider,
-        providerId: params.providerId,
+        providerId,
         ownerAddress: selectedAddress,
         completionDuration,
         failureReason: error instanceof Error ? error.message : 'Unknown error',
