@@ -16,6 +16,7 @@ import {
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
+import { BridgeViewMode } from '../Bridge/types';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -875,7 +876,11 @@ describe('getBridgeNavbar', () => {
     it('should render headerLeft with hidden icon on Android', () => {
       Device.isAndroid.mockReturnValue(true);
       const { getBridgeNavbar } = require('.');
-      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+      const options = getBridgeNavbar(
+        mockNavigation,
+        BridgeViewMode.Swap,
+        mockThemeColors,
+      );
 
       expect(options.headerLeft).toBeDefined();
       expect(typeof options.headerLeft).toBe('function');
@@ -888,7 +893,11 @@ describe('getBridgeNavbar', () => {
     it('should have zero opacity on Android headerLeft', () => {
       Device.isAndroid.mockReturnValue(true);
       const { getBridgeNavbar } = require('.');
-      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+      const options = getBridgeNavbar(
+        mockNavigation,
+        BridgeViewMode.Swap,
+        mockThemeColors,
+      );
       const HeaderLeftComponent = options.headerLeft();
       renderWithProvider(HeaderLeftComponent, {
         state: { engine: { backgroundState } },
@@ -906,7 +915,11 @@ describe('getBridgeNavbar', () => {
     it('should not be clickable on Android headerLeft', () => {
       Device.isAndroid.mockReturnValue(true);
       const { getBridgeNavbar } = require('.');
-      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+      const options = getBridgeNavbar(
+        mockNavigation,
+        BridgeViewMode.Swap,
+        mockThemeColors,
+      );
 
       const HeaderLeftComponent = options.headerLeft();
       renderWithProvider(HeaderLeftComponent, {
@@ -920,7 +933,11 @@ describe('getBridgeNavbar', () => {
     it('should not render headerLeft on iOS', () => {
       Device.isAndroid.mockReturnValue(false);
       const { getBridgeNavbar } = require('.');
-      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+      const options = getBridgeNavbar(
+        mockNavigation,
+        BridgeViewMode.Swap,
+        mockThemeColors,
+      );
 
       expect(options.headerLeft).toBeNull();
     });
