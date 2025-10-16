@@ -12,8 +12,11 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './predict-withdraw-balance.styles';
 
 export function PredictWithdrawBalance() {
+  const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from as Hex;
   const formatFiat = useFiatFormatter();
@@ -28,7 +31,7 @@ export function PredictWithdrawBalance() {
   );
 
   return (
-    <Box alignItems={AlignItems.center}>
+    <Box alignItems={AlignItems.center} style={styles.container}>
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}

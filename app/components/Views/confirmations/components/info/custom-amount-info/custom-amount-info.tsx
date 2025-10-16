@@ -45,7 +45,7 @@ export interface CustomAmountInfoProps {
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({ children, currency, disablePay }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken();
+    useAutomaticTransactionPayToken({ disable: disablePay });
 
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setKeyboardVisible] = useState(true);
@@ -168,6 +168,6 @@ function useIsResultReady({
 
   return (
     !isKeyboardVisible &&
-    (isLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0)
+    (isLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
   );
 }
