@@ -72,12 +72,12 @@ function transformToValidPort(defaultPort: number) {
     return hash >>> 0;
   }
 
-  let seed = currentTestName;
-  if (!seed) {
-    seed = `pid:${String(process.pid)}`;
-  }
+  // Combine test name (if present) with PID to add entropy for duplicated runs
+  const seed = currentTestName
+    ? `${String(currentTestName)}|pid:${String(process.pid)}`
+    : `pid:${String(process.pid)}`;
 
-  const nameHash = hashStringToUInt32(String(seed));
+  const nameHash = hashStringToUInt32(seed);
 
   // Offset range chosen to minimize collisions while keeping within safe port limits
   const offset = nameHash % 30000; // 0..29999
