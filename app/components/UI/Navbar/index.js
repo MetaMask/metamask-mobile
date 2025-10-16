@@ -148,6 +148,9 @@ const styles = StyleSheet.create({
   iconButton: {
     marginHorizontal: 24,
   },
+  hidden: {
+    opacity: 0,
+  },
 });
 
 const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
@@ -1856,7 +1859,19 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: null,
+    // Render an empty left header action that matches the dimensions of the close button.
+    // This allows us to center align the title on Android devices.
+    headerLeft: Device.isAndroid()
+      ? () => (
+          <View style={[styles.closeButton, styles.hidden]}>
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Lg}
+              color={IconColor.Muted}
+            />
+          </View>
+        )
+      : null,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
