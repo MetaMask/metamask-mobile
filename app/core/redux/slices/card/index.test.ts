@@ -103,6 +103,7 @@ const CARD_STATE_MOCK: CardSliceState = {
   hasViewedCardButton: true,
   alwaysShowCardButton: false,
   geoLocation: 'US',
+  isAuthenticated: false,
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
@@ -113,6 +114,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   hasViewedCardButton: false,
   alwaysShowCardButton: false,
   geoLocation: 'UNKNOWN',
+  isAuthenticated: false,
 };
 
 // Mock account object that matches the expected structure
@@ -381,6 +383,7 @@ describe('Card Reducer', () => {
         hasViewedCardButton: true,
         alwaysShowCardButton: true,
         geoLocation: 'US',
+        isAuthenticated: false,
       };
 
       const state = cardReducer(currentState, resetCardState());
