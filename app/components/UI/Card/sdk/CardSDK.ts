@@ -27,6 +27,7 @@ import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
+import { CaipChainId } from '@metamask/utils';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -37,10 +38,10 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 // Ideally it should be separated into its own package in the future.
 export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
-  private chainId: string | number;
   private enableLogs: boolean;
   private cardBaanxApiBaseUrl: string;
   private cardBaanxApiKey: string | undefined;
+  lineaChainId: CaipChainId;
 
   constructor({
     cardFeatureFlag,
@@ -50,10 +51,10 @@ export class CardSDK {
     enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
-    this.chainId = getDecimalChainId(LINEA_CHAIN_ID);
     this.enableLogs = enableLogs;
     this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
+    this.lineaChainId = `eip155:${getDecimalChainId(LINEA_CHAIN_ID)}`;
   }
 
   get isBaanxLoginEnabled(): boolean {
@@ -61,18 +62,15 @@ export class CardSDK {
   }
 
   get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.enabled || false
-    );
+    return this.cardFeatureFlag.chains?.[this.lineaChainId]?.enabled || false;
   }
 
-  get supportedTokens(): SupportedToken[] {
+  getSupportedTokensByChainId(chainId: CaipChainId): SupportedToken[] {
     if (!this.isCardEnabled) {
       return [];
     }
 
-    const tokens =
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.tokens;
+    const tokens = this.cardFeatureFlag.chains?.[chainId]?.tokens;
 
     if (!tokens) {
       return [];
@@ -80,17 +78,13 @@ export class CardSDK {
 
     return tokens.filter(
       (token): token is SupportedToken =>
-        token &&
-        typeof token.address === 'string' &&
-        ethers.utils.isAddress(token.address) &&
-        token.enabled !== false,
+        token && typeof token.address === 'string' && token.enabled !== false,
     );
   }
 
   private get foxConnectAddresses() {
     const foxConnect =
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
-        ?.foxConnectAddresses;
+      this.cardFeatureFlag.chains?.[this.lineaChainId]?.foxConnectAddresses;
 
     if (!foxConnect?.global || !foxConnect?.us) {
       throw new Error(
@@ -111,8 +105,7 @@ export class CardSDK {
 
   private get balanceScannerInstance() {
     const balanceScannerAddress =
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
-        ?.balanceScannerAddress;
+      this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
     if (!balanceScannerAddress) {
       throw new Error(
@@ -297,9 +290,9 @@ export class CardSDK {
       throw new Error('Card feature is not enabled for this chain');
     }
 
-    const supportedTokensAddresses = this.supportedTokens.map(
-      (token) => token.address,
-    );
+    const supportedTokensAddresses = this.getSupportedTokensByChainId(
+      this.lineaChainId,
+    ).map((token) => token.address);
 
     if (supportedTokensAddresses.length === 0) {
       return [];
@@ -823,18 +816,42 @@ export class CardSDK {
         return [];
       }
 
-      const combinedDetails = externalWalletDetails.map(
+      const mockedExternalWalletDetails: CardWalletExternalResponse[] = [
+        {
+          balance: '10',
+          allowance: '2199023255551.0',
+          currency: 'usdc',
+          network: 'linea',
+          address: '0x9e16319a3895f88e74f3b4dea012516df8a75cdc',
+        },
+      ];
+      const mockedPriorityWalletDetails: CardWalletExternalPriorityResponse[] =
+        [
+          {
+            currency: 'usdc',
+            address: '0x9e16319a3895f88e74f3b4dea012516df8a75cdc',
+            priority: 5,
+            id: 1,
+            network: 'linea',
+          },
+        ];
+
+      const combinedDetails = mockedExternalWalletDetails.map(
         (wallet: CardWalletExternalResponse) => {
-          const priorityWallet = priorityWalletDetails.find(
+          const priorityWallet = mockedPriorityWalletDetails.find(
             (p: CardWalletExternalPriorityResponse) =>
               p?.address?.toLowerCase() === wallet?.address?.toLowerCase(),
           );
+          const supportedTokens = this.getSupportedTokensByChainId(
+            this.mapAPINetworkToCaipChainId(wallet.network),
+          );
           const tokenDetails = this.mapSupportedTokenToCardToken(
-            this.supportedTokens.find(
+            supportedTokens.find(
               (token) =>
                 token.symbol?.toLowerCase() === wallet.currency?.toLowerCase(),
-            ) ?? this.supportedTokens[0],
+            ) ?? supportedTokens[0],
           );
+
           return {
             id: priorityWallet?.id ?? 0,
             walletAddress: wallet.address,
@@ -842,8 +859,8 @@ export class CardSDK {
             balance: wallet.balance,
             allowance: wallet.allowance,
             priority: priorityWallet?.priority ?? 0,
+            chainId: this.mapAPINetworkToAssetChainId(wallet.network),
             tokenDetails,
-            chainId: this.mapCardWalletExternalNetworkToChainId(wallet.network),
           } as CardExternalWalletDetail;
         },
       );
@@ -852,27 +869,36 @@ export class CardSDK {
       return combinedDetails.sort((a, b) => a.priority - b.priority);
     };
 
-  private mapCardWalletExternalNetworkToChainId(
-    network: 'linea' | 'solana',
-  ): string {
+  private mapAPINetworkToCaipChainId(network: 'linea' | 'solana'): CaipChainId {
     switch (network) {
-      case 'linea':
-        return LINEA_CHAIN_ID;
       case 'solana':
         return SOLANA_MAINNET.chainId;
       default:
-        throw new Error('Invalid network');
+        return this.lineaChainId;
+    }
+  }
+
+  private mapAPINetworkToAssetChainId(network: 'linea' | 'solana'): string {
+    switch (network) {
+      case 'solana':
+        return SOLANA_MAINNET.chainId;
+      default:
+        return LINEA_CHAIN_ID; // Asset only supports HEX chainId on EVM assets.
     }
   }
 
   private getFirstSupportedTokenOrNull(): CardToken | null {
-    return this.supportedTokens.length > 0
-      ? this.mapSupportedTokenToCardToken(this.supportedTokens[0])
+    const lineaSupportedTokens = this.getSupportedTokensByChainId(
+      this.lineaChainId,
+    );
+
+    return lineaSupportedTokens.length > 0
+      ? this.mapSupportedTokenToCardToken(lineaSupportedTokens[0])
       : null;
   }
 
   private findSupportedTokenByAddress(tokenAddress: string): CardToken | null {
-    const match = this.supportedTokens.find(
+    const match = this.getSupportedTokensByChainId(this.lineaChainId).find(
       (supportedToken) =>
         supportedToken.address?.toLowerCase() === tokenAddress.toLowerCase(),
     );

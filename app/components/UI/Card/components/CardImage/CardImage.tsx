@@ -102,7 +102,7 @@ const VirtualCardImage = (props: SvgProps & { address?: string }) => (
         />
       </G>
       {props.address && (
-        <Text x={40} y={500} fontSize="40px" fontWeight={800} fill="#661800">
+        <Text x={40} y={500} fontSize="40px" fontWeight={800} fill="#fff">
           {props.address}
         </Text>
       )}

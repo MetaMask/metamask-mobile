@@ -9,6 +9,7 @@ const styleSheet = () =>
     },
     assetName: {
       flexDirection: 'row',
+      marginBottom: 8,
     },
     allowanceStatusContainer: {
       flexDirection: 'row',

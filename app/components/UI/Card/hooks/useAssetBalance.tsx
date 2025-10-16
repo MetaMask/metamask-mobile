@@ -22,6 +22,12 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { selectSingleTokenPriceMarketData } from '../../../../selectors/tokenRatesController';
+import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
+import Engine from '../../../../core/Engine';
+import {
+  addCurrencySymbol,
+  balanceToFiatNumber,
+} from '../../../../util/number';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -34,10 +40,14 @@ export const useAssetBalance = (
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
 } => {
+  const { MultichainAssetsRatesController } = Engine.context;
   const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
   const chainIds = Object.entries(popularNetworks || {})
     .map((network) => network[1]?.chainId)
     .filter(Boolean);
+  if (!chainIds.includes(SOLANA_MAINNET.chainId as Hex)) {
+    chainIds.push(SOLANA_MAINNET.chainId as Hex);
+  }
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
@@ -51,20 +61,16 @@ export const useAssetBalance = (
         })
       : undefined,
   );
-  const chainId = asset?.chainId as Hex;
 
   if (!asset && token) {
-    const iconUrl = buildTokenIconUrl(chainId, token.address);
-    const filteredToken = tokensWithBalance.find((t) => {
-      if (token.chainId && isSolanaChainId(token.chainId)) {
-        return t.address === token.address && t.chainId === token.chainId;
-      }
-
-      return (
-        t.address.toLowerCase() === token.address.toLowerCase() &&
-        t.chainId === token.chainId
-      );
-    });
+    const assetAddress =
+      token.chainId && isSolanaChainId(token.chainId)
+        ? `${token.chainId}/token:${token.address}`
+        : token.address.toLowerCase();
+    const iconUrl = buildTokenIconUrl(token.chainId, token.address);
+    const filteredToken = tokensWithBalance.find(
+      (t) => t.address === assetAddress && t.chainId === token.chainId,
+    );
 
     asset = {
       ...token,
@@ -76,6 +82,7 @@ export const useAssetBalance = (
       balanceFiat: filteredToken?.balanceFiat ?? '0',
     } as TokenI;
   }
+  const chainId = asset?.chainId as Hex;
 
   const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
@@ -99,16 +106,55 @@ export const useAssetBalance = (
       }
 
       if (token.availableBalance) {
-        const tokenBalances = {
-          [token.address]: token.availableBalance.toString() as `0x${string}`,
-        };
-        const derivedBalance = deriveBalanceFromAssetMarketDetails(
-          asset,
-          exchangeRates || {},
-          tokenBalances,
-          conversionRate || 0,
-          currentCurrency || '',
-        );
+        asset.balance = token.availableBalance.toString();
+        asset.balanceFiat = undefined; // Reset balanceFiat to undefined to fetch a new balanceFiat based on the new balance
+        let derivedBalance;
+
+        if (isSolanaChainId(chainId)) {
+          const conversionRates =
+            MultichainAssetsRatesController.state.conversionRates;
+          const assetConversionRate =
+            conversionRates[
+              `${chainId}/token:${asset.address}` as `${string}:${string}/${string}:${string}`
+            ];
+
+          // If the asset conversion rate is found, use it to calculate the balance fiat based on the availableBalance prop.
+          if (assetConversionRate) {
+            const balanceFiatCalculation = Number(
+              balanceToFiatNumber(
+                token.availableBalance.toString(),
+                Number(assetConversionRate.rate),
+                1,
+              ),
+            );
+            derivedBalance = {
+              balance: token.availableBalance.toString(),
+              balanceFiat: addCurrencySymbol(balanceFiatCalculation, 'usd'),
+              balanceValueFormatted: `${token.availableBalance.toString()} ${
+                asset.symbol
+              }`,
+            };
+          } else {
+            // If the asset conversion rate is not found, use the  availableBalance prop + symbol to display the balance.
+            derivedBalance = {
+              balance: token.availableBalance.toString(),
+              balanceFiat: `${token.availableBalance.toString()} ${
+                asset.symbol
+              }`,
+              balanceValueFormatted: `${token.availableBalance.toString()} ${
+                asset.symbol
+              }`,
+            };
+          }
+        } else {
+          derivedBalance = deriveBalanceFromAssetMarketDetails(
+            asset,
+            exchangeRates || {},
+            {},
+            conversionRate || 0,
+            currentCurrency || '',
+          );
+        }
 
         return {
           ...derivedBalance,
@@ -127,7 +173,15 @@ export const useAssetBalance = (
           : undefined,
         rawTokenBalance: asset.balance ? parseFloat(asset.balance) : undefined,
       };
-    }, [asset, token, exchangeRates, conversionRate, currentCurrency]);
+    }, [
+      asset,
+      token,
+      chainId,
+      MultichainAssetsRatesController.state.conversionRates,
+      currentCurrency,
+      exchangeRates,
+      conversionRate,
+    ]);
 
   let mainBalance;
   let secondaryBalance;

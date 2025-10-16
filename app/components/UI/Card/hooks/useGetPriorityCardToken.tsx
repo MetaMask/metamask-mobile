@@ -35,6 +35,7 @@ import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { ethers } from 'ethers';
 import { createSelector } from 'reselect';
 import { isZero } from '../../../../util/lodash';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -57,7 +58,7 @@ const fetchAllowances = async (
       selectedAddress,
     );
 
-    const supportedTokens = sdk.supportedTokens;
+    const supportedTokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
 
     const mappedAllowances = supportedTokensAllowances.map((token) => {
       const tokenInfo = supportedTokens.find(
@@ -263,7 +264,9 @@ export const useGetPriorityCardToken = () => {
         });
 
         if (!cardTokenAllowances || cardTokenAllowances.length === 0) {
-          const supportedTokens = sdk.supportedTokens;
+          const supportedTokens = sdk.getSupportedTokensByChainId(
+            sdk.lineaChainId,
+          );
 
           if (supportedTokens[0]) {
             const fallbackToken = {
@@ -527,13 +530,18 @@ export const useGetPriorityCardToken = () => {
 
   useEffect(() => {
     const run = async () => {
+      Logger.log('run');
       if (!selectedAddress || isLoadingSDK) {
         return;
       }
 
+      Logger.log('cacheIsValid', cacheIsValid);
+
       if (cacheIsValid) {
         return;
       }
+
+      Logger.log('isAuthenticated', isAuthenticated);
 
       if (isAuthenticated) {
         await fetchPriorityTokenAPI();
@@ -560,6 +568,11 @@ export const useGetPriorityCardToken = () => {
     const addToken = async () => {
       try {
         if (priorityToken && !isCancelled) {
+          if (priorityToken.chainId && isSolanaChainId(priorityToken.chainId)) {
+            // Solana tokens are not supported in the TokenListController
+            return;
+          }
+
           const { allTokens } = TokensController.state;
           const allTokensPerChain =
             allTokens[priorityToken.chainId as Hex] || {};
@@ -615,6 +628,11 @@ export const useGetPriorityCardToken = () => {
             warning: null,
           }));
         }
+      } finally {
+        setState((prevState) => ({
+          ...prevState,
+          isLoadingAddToken: false,
+        }));
       }
     };
 

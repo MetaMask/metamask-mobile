@@ -95,14 +95,8 @@ const CardHome = () => {
     error: priorityTokenError,
     warning: priorityTokenWarning,
   } = useGetPriorityCardToken();
-  const {
-    balanceFiat,
-    mainBalance,
-    secondaryBalance,
-    rawFiatNumber,
-    rawTokenBalance,
-    asset,
-  } = useAssetBalance(priorityToken);
+  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance, asset } =
+    useAssetBalance(priorityToken);
   const {
     cardDetails,
     fetchCardDetails,
@@ -480,12 +474,7 @@ const CardHome = () => {
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
-            <CardAssetItem
-              asset={asset}
-              mainBalance={mainBalance}
-              secondaryBalance={secondaryBalance}
-              privacyMode={privacyMode}
-            />
+            <CardAssetItem asset={asset} privacyMode={privacyMode} />
           )}
         </View>
 
