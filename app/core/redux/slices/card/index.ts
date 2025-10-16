@@ -20,6 +20,7 @@ export interface CardSliceState {
   isLoaded: boolean;
   alwaysShowCardButton: boolean;
   geoLocation: string;
+  isAuthenticated: boolean;
 }
 
 export const initialState: CardSliceState = {
@@ -30,6 +31,7 @@ export const initialState: CardSliceState = {
   isLoaded: false,
   alwaysShowCardButton: false,
   geoLocation: 'UNKNOWN',
+  isAuthenticated: false,
 };
 
 // Async thunk for loading cardholder accounts
@@ -70,6 +72,9 @@ const slice = createSlice({
     },
     setAlwaysShowCardButton: (state, action: PayloadAction<boolean>) => {
       state.alwaysShowCardButton = action.payload;
+    },
+    setIsAuthenticatedCard: (state, action: PayloadAction<boolean>) => {
+      state.isAuthenticated = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -167,22 +172,30 @@ export const selectHasViewedCardButton = createSelector(
   (card) => card.hasViewedCardButton,
 );
 
+export const selectIsAuthenticatedCard = createSelector(
+  selectCardState,
+  (card) => card.isAuthenticated,
+);
+
 export const selectDisplayCardButton = createSelector(
   selectIsCardholder,
   selectAlwaysShowCardButton,
   selectCardGeoLocation,
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
+  selectIsAuthenticatedCard,
   (
     isCardholder,
     alwaysShowCardButton,
     geoLocation,
     cardSupportedCountries,
     displayCardButtonFeatureFlag,
+    isAuthenticated,
   ) => {
     if (
       alwaysShowCardButton ||
       isCardholder ||
+      isAuthenticated ||
       ((cardSupportedCountries as Record<string, boolean>)?.[geoLocation] ===
         true &&
         displayCardButtonFeatureFlag)
@@ -199,6 +212,7 @@ export const {
   resetCardState,
   setAlwaysShowCardButton,
   setHasViewedCardButton,
+  setIsAuthenticatedCard,
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
 } = actions;
