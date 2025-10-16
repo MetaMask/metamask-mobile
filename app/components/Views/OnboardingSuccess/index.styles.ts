@@ -1,28 +1,25 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     root: {
       flex: 1,
+      backgroundColor: colors.background.default,
     },
-    contentContainer: {
-      flexDirection: 'column',
-      flexGrow: 1,
-      justifyContent: 'space-between',
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    animationSection: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    buttonSection: {
+      paddingBottom: 4,
+      alignItems: 'center',
       rowGap: 16,
-    },
-    contentWrapper: {
-      flex: 1,
-      paddingHorizontal: 16,
-    },
-    buttonWrapper: {
-      paddingHorizontal: 16,
-      marginTop: 'auto',
-      flex: 1,
-      justifyContent: 'flex-end',
-      height: '100%',
-      marginBottom: 16,
     },
     emoji: {
       textAlign: 'center',
@@ -56,7 +53,16 @@ const createStyles = (colors: ThemeColors) =>
       padding: 16,
     },
     textTitle: {
-      marginBottom: 24,
+      marginTop: 25,
+      marginBottom: 16,
+      marginHorizontal: 16,
+      textAlign: 'center',
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
+    },
+    footerLink: {
+      paddingVertical: 8,
+      alignItems: 'center',
     },
     imageWrapper: {
       display: 'flex',
