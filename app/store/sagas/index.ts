@@ -179,7 +179,7 @@ export function* handleDeeplinkSaga() {
     if (AppStateEventProcessor.pendingDeeplink) {
       const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
-      if (!existingUser && url.pathname.startsWith('/onboarding')) {
+      if (!existingUser && url.pathname === '/onboarding') {
         setTimeout(() => {
           SharedDeeplinkManager.parse(url.href, {
             origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
