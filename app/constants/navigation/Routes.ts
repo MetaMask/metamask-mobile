@@ -264,6 +264,7 @@ const Routes = {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
+    ACTIVITY_DETAIL: 'PredictActivityDetail',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',
