@@ -59,7 +59,7 @@ export const useBridgeQuoteEvents = ({
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.QuotesReceived,
         {
-          can_submit: isSubmitDisabled,
+          can_submit: !isSubmitDisabled,
           gas_included: Boolean(activeQuote?.quote?.gasIncluded),
           gas_included_7702: Boolean(activeQuote?.quote?.gasIncluded7702),
           quoted_time_minutes: activeQuote?.estimatedProcessingTimeInSeconds

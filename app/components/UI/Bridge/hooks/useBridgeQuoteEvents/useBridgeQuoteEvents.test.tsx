@@ -98,7 +98,7 @@ describe('useBridgeQuoteEvents', () => {
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
       ).toHaveBeenCalledWith('Unified SwapBridge Quotes Received', {
         best_quote_provider: 'lifi_jupiter',
-        can_submit: false,
+        can_submit: true,
         gas_included: false,
         gas_included_7702: false,
         price_impact: -0.001991570073761955,
