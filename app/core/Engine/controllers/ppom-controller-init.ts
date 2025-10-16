@@ -8,6 +8,7 @@ import { getGlobalChainId } from '../../../util/networks/global-network';
 import { PPOM, ppomInit } from '../../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../../lib/ppom/ppom-storage-backend';
 import { assert } from '@metamask/utils';
+import Crypto from 'react-native-quick-crypto';
 
 /**
  * Initialize the PPOM controller.
