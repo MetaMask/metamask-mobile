@@ -52,7 +52,7 @@ export const ppomControllerInit: ControllerInitFunction<
     },
 
     storageBackend: new RNFSStorageBackend('PPOMDB'),
-    securityAlertsEnabled: preferencesState.securityAlertsEnabled,
+    securityAlertsEnabled: preferencesState.securityAlertsEnabled ?? false,
 
     // @ts-expect-error: Type of `Crypto` does not match.
     nativeCrypto: Crypto,
