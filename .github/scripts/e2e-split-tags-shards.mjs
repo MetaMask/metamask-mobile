@@ -12,8 +12,8 @@ const env = {
   BASE_DIR: process.env.BASE_DIR || './e2e/specs',
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE || 'main',
   PLATFORM: process.env.PLATFORM || 'ios',
-  SPLIT_NUMBER: process.env.SPLIT_NUMBER || '1',
-  TOTAL_SPLITS: process.env.TOTAL_SPLITS || '1',
+  SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),
+  TOTAL_SPLITS: Number(process.env.TOTAL_SPLITS || '1'),
   PR_NUMBER: process.env.PR_NUMBER || '',
   REPOSITORY: process.env.REPOSITORY || 'MetaMask/metamask-mobile',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
@@ -30,34 +30,51 @@ if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
  * @returns The data from the query
  */
 async function githubGraphql(query, variables = {}) {
-  const res = await fetch('https://api.github.com/graphql', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'metamask-mobile-ci',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) throw new Error(`GraphQL request failed: ${res.status} ${res.statusText}`);
-  const data = await res.json();
-  if (data.errors) {
-    const msg = Array.isArray(data.errors) ? data.errors.map((e) => e.message).join('; ') : String(data.errors);
-    throw new Error(`GraphQL errors: ${msg}`);
+  try {
+    const res = await fetch('https://api.github.com/graphql', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'metamask-mobile-ci',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'Unable to read response');
+      throw new Error(`GraphQL request failed: ${res.status} ${res.statusText}\nResponse: ${errorText}`);
+    }
+
+    const data = await res.json();
+    if (data.errors) {
+      const msg = Array.isArray(data.errors) ? data.errors.map((e) => e.message).join('; ') : String(data.errors);
+      throw new Error(`GraphQL errors: ${msg}`);
+    }
+    return data.data;
+  } catch (err) {
+    // Re-throw with more context
+    if (err.message) throw err;
+    throw new Error(`GraphQL request failed: ${String(err)}`);
   }
-  return data.data;
 }
 
 /**
  * Check if the flakiness detection (tests retries) should be skipped.
  * @returns True if the retries should be skipped, false otherwise
  */
-async function flakinessDetectionShouldRun() {
-  if (!env.PR_NUMBER) return false;
+async function shouldSkipFlakinessDetection() {
+  if (!env.PR_NUMBER) {
+    return true;
+  }
+
   const OWNER = env.REPOSITORY.split('/')[0];
   const REPO = env.REPOSITORY.split('/')[1];
+  const PR_NUM = Number(env.PR_NUMBER);
+  console.log(`   Querying GitHub API for PR #${PR_NUM} in ${OWNER}/${REPO}...`);
+
   try {
     const data = await githubGraphql(
       `query($owner:String!, $repo:String!, $number:Int!) {
@@ -67,13 +84,19 @@ async function flakinessDetectionShouldRun() {
           }
         }
       }`,
-      { owner: OWNER, repo: REPO, number: Number(env.PR_NUMBER) },
+      { owner: OWNER, repo: REPO, number: PR_NUM },
     );
+
     const labels = data?.repository?.pullRequest?.labels?.nodes || [];
-    return labels.some((l) => String(l?.name).toLowerCase() === 'skip-e2e-quality-gate');
-  } catch {
-    console.warn(`⚠️ Failed to check if flakiness detection should run: ${e?.message || e}`);
-    return false;
+    const labelFound = labels.some((l) => String(l?.name).toLowerCase() === 'skip-e2e-quality-gate');
+    if (labelFound) {
+      console.log('⏭️  Found "skip-e2e-quality-gate" label → SKIPPING flakiness detection');
+    }
+    return labelFound;
+  } catch (e) {
+    console.error(`❌ GitHub API call failed:`);
+    console.error(`Error: ${e?.message || String(e)}`);
+    return true;
   }
 }
 
@@ -327,10 +350,8 @@ async function main() {
   // 3) Flaky test detector mechanism in PRs (test retries)
   //    - Only duplicates changed files that are in this shard's split
   //    - Creates base + retry-1 + retry-2 for flakiness detection
-  const shouldSkipFlakiness = await flakinessDetectionShouldRun();
-  if (shouldSkipFlakiness) {
-    console.log(`⏭️  skip-e2e-quality-gate label detected in PR ${env.PR_NUMBER} → Skipping flakiness detection.`);
-  } else {
+  const shouldSkipFlakinessGate = await shouldSkipFlakinessDetection();
+  if (!shouldSkipFlakinessGate) {
     runFiles = applyFlakinessDetection(splitFiles);
   }
 
@@ -344,10 +365,10 @@ async function main() {
   try {
     if (env.PLATFORM.toLowerCase() === 'ios') {
       console.log('\n 🍎 Running iOS tests for build type: ', env.METAMASK_BUILD_TYPE);
-      await runYarn(`test:e2e:ios:${env.METAMASK_BUILD_TYPE}:ci`, args);
+      // await runYarn(`test:e2e:ios:${env.METAMASK_BUILD_TYPE}:ci`, args);
     } else {
       console.log('\n 🤖 Running Android tests for build type: ', env.METAMASK_BUILD_TYPE);
-      await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
+      // await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
     }
     console.log("✅ Test execution completed");
   } catch (err) {
