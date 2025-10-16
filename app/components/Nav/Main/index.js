@@ -8,8 +8,10 @@ import React, {
 
 import {
   ActivityIndicator,
+  Alert,
   AppState,
   StyleSheet,
+  TouchableOpacity,
   View,
   Linking,
 } from 'react-native';
@@ -92,8 +94,13 @@ import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconColor,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
+import { useIntercom } from '../../../util/intercom/IntercomEmailPrompt';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 import {
   useNetworksByNamespace,
@@ -117,6 +124,26 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    intercomButton: {
+      position: 'absolute',
+      top: 40,
+      left: 0,
+      zIndex: 10000,
+      backgroundColor: colors.primary.default,
+      paddingHorizontal: 24,
+      paddingVertical: 6,
+      minWidth: 60,
+      minHeight: 32,
+      borderRadius: 6,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.shadow.default,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+      elevation: 3,
+    },
   });
 
 const Main = (props) => {
@@ -127,6 +154,12 @@ const Main = (props) => {
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
+
+  // Intercom integration
+  const {
+    handlePress: handleIntercomPress,
+    handleLongPress: handleIntercomLongPress,
+  } = useIntercom();
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -471,6 +504,19 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <TouchableOpacity
+          style={styles.intercomButton}
+          onPress={handleIntercomPress}
+          onLongPress={handleIntercomLongPress}
+          testID="global-intercom-button"
+          activeOpacity={0.7}
+        >
+          <Icon
+            name={IconName.Tag}
+            color={IconColor.Inverse}
+            size={IconSize.Md}
+          />
+        </TouchableOpacity>
       </View>
     </React.Fragment>
   );
