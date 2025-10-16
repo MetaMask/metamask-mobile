@@ -54,15 +54,13 @@ export function usePredictPlaceOrder(
         const orderResult = await controllerPlaceOrder(orderParams);
 
         if (!orderResult.success) {
-          const failureReason = orderResult.error || 'Unknown error';
-
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
             iconName: IconName.Loading,
             labelOptions: [{ label: 'Order failed' }],
             hasNoTimeout: false,
           });
-          throw new Error(failureReason);
+          throw new Error(orderResult.error);
         }
 
         // Clear any previous error state
