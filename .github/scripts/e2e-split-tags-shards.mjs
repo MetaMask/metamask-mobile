@@ -17,6 +17,7 @@ const env = {
   PR_NUMBER: process.env.PR_NUMBER || '',
   REPOSITORY: process.env.REPOSITORY || 'MetaMask/metamask-mobile',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
+  CHANGED_FILES: process.env.CHANGED_FILES || '',
 };
 
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
@@ -214,7 +215,7 @@ function duplicateSpecFile(originalPath) {
       }
     }
   } catch (e) {
-    console.warn(`Failed duplicating ${originalPath}: ${e?.message || e}`);
+    console.warn(`⚠️ Failed duplicating ${originalPath}: ${e?.message || e}`);
   }
 }
 
@@ -229,6 +230,80 @@ function normalizePathForCompare(p) {
   return path.normalize(rel);
 }
 
+/**
+ * Parse CHANGED_FILES env var to extract changed spec files
+ * @returns Set of normalized spec file paths
+ */
+function getChangedSpecFiles() {
+  console.log('🔍 CHANGED_FILES:', env.CHANGED_FILES);
+  const raw = (env.CHANGED_FILES || '').trim();
+  if (!raw) return new Set();
+
+  // Handle "changed_files=path1 path2" format
+  let cleaned = raw;
+  const eqIdx = raw.indexOf('=');
+  if (eqIdx > -1 && /changed_files/i.test(raw.slice(0, eqIdx))) {
+    cleaned = raw.slice(eqIdx + 1).trim();
+  }
+
+  const parts = cleaned.split(/\s+/g).map((p) => p.trim()).filter(Boolean);
+  const specFiles = new Set();
+  for (const p of parts) {
+    if (p.endsWith('.spec.ts') || p.endsWith('.spec.js')) {
+      specFiles.add(path.normalize(p));
+    }
+  }
+  return specFiles;
+}
+
+/**
+ * Apply flakiness detection: duplicate changed spec files assigned to this shard
+ * @param {string[]} splitFiles - The test files assigned to this shard
+ * @returns {string[]} Expanded list with base + retry files for changed tests
+ */
+function applyFlakinessDetection(splitFiles) {
+  const changedSpecs = getChangedSpecFiles();
+  if (changedSpecs.size === 0) {
+    return splitFiles;
+  }
+
+  // Find which changed files are in this shard's split
+  const selectedSet = new Set(splitFiles.map(normalizePathForCompare));
+  const duplicatedSet = new Set();
+  for (const changed of changedSpecs) {
+    const normalized = normalizePathForCompare(changed);
+    if (selectedSet.has(normalized)) {
+      duplicateSpecFile(normalized);
+      duplicatedSet.add(normalized);
+    }
+  }
+  if (duplicatedSet.size === 0) {
+    console.log('ℹ️  No changed spec files found for this shard split -> skipping flakiness detection (test retries).');
+    return splitFiles;
+  }
+
+  // Build expanded list: base + retry-1 + retry-2 for duplicated files
+  const expanded = [];
+  for (const file of splitFiles) {
+    const normalized = normalizePathForCompare(file);
+    if (duplicatedSet.has(normalized)) {
+      // Add base file
+      expanded.push(file);
+      // Add retry files
+      const retry1 = computeRetryFilePath(normalized, 1);
+      const retry2 = computeRetryFilePath(normalized, 2);
+      if (retry1) expanded.push(retry1);
+      if (retry2) expanded.push(retry2);
+    } else {
+      // Not changed, add as-is
+      expanded.push(file);
+    }
+  }
+
+  console.log(`🧪 Duplicated ${duplicatedSet.size} changed file(s) for flakiness detection.`);
+  return expanded;
+}
+
 async function main() {
 
   console.log("🚀 Starting E2E tests...");
@@ -237,7 +312,7 @@ async function main() {
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
   let allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
-  console.log(`\n 📋 found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
+  console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
 
   // 2) Compute sharding split (evenly across runners)
@@ -249,60 +324,15 @@ async function main() {
     process.exit(0);
   }
 
-
   // 3) Flaky test detector mechanism in PRs (test retries)
-  // const skipFlakynessDetection = await flakinessDetectionShouldRun();
-  // if (!skipFlakynessDetection) {
-  //   const changedSpecs = (() => {
-  //     const candidates = [process.env.CHANGED_FILES];
-  //     let raw = candidates.find((v) => typeof v === 'string' && v.trim().length > 0) || '';
-  //     raw = raw.trim();
-  //     const eqIdx = raw.indexOf('=');
-  //     if (eqIdx > -1 && /changed_files/i.test(raw.slice(0, eqIdx))) {
-  //       raw = raw.slice(eqIdx + 1).trim();
-  //     }
-  //     if (!raw) return new Set();
-  //     const parts = raw.split(/\s+/g).map((p) => p.trim()).filter(Boolean);
-  //     const s = new Set();
-  //     for (const p of parts) {
-  //       if (p.endsWith('.spec.ts') || p.endsWith('.spec.js')) s.add(path.normalize(p));
-  //     }
-  //     return s;
-  //   })();
-  //   if (changedSpecs.size > 0) {
-  //     const selectedSet = new Set(splitFiles.map(normalizePathForCompare));
-  //     const duplicatedSet = new Set();
-  //     for (const changed of changedSpecs) {
-  //       const normalized = normalizePathForCompare(changed);
-  //       if (selectedSet.has(normalized)) {
-  //         duplicateSpecFile(normalized);
-  //         duplicatedSet.add(normalized);
-  //       }
-  //     }
-  //     if (duplicatedSet.size > 0) {
-  //       // Build final ordered run list: base, retry-1, retry-2 for duplicated files
-  //       const expanded = [];
-  //       for (const f of splitFiles) {
-  //         const nf = normalizePathForCompare(f);
-  //         if (duplicatedSet.has(nf)) {
-  //           expanded.push(f);
-  //           const r1 = computeRetryFilePath(nf, 1);
-  //           const r2 = computeRetryFilePath(nf, 2);
-  //           if (r1) expanded.push(r1);
-  //           if (r2) expanded.push(r2);
-  //         } else {
-  //           expanded.push(f);
-  //         }
-  //       }
-  //       runFiles = expanded;
-  //       console.log(`\n🧪 After duplication (per split), total selected files: ${runFiles.length}`);
-  //     }
-  //   }
-  // } else {
-  //   console.log(`⏭️  skip-e2e-quality-gate label present in PR: ${env.PR_NUMBER}; -> skipping flakiness detection (test retries)`);
-  // }
-
-  
+  //    - Only duplicates changed files that are in this shard's split
+  //    - Creates base + retry-1 + retry-2 for flakiness detection
+  const shouldSkipFlakiness = await flakinessDetectionShouldRun();
+  if (shouldSkipFlakiness) {
+    console.log(`⏭️  skip-e2e-quality-gate label detected in PR ${env.PR_NUMBER} → Skipping flakiness detection.`);
+  } else {
+    runFiles = applyFlakinessDetection(splitFiles);
+  }
 
   // 4) Log and run the selected specs for the given shard split
   console.log(`\n🧪 Running ${runFiles.length} spec files for this given shard split (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`);
@@ -313,10 +343,10 @@ async function main() {
   const args = [...runFiles];
   try {
     if (env.PLATFORM.toLowerCase() === 'ios') {
-      console.log('🍎 Running iOS tests for build type: ', env.METAMASK_BUILD_TYPE);
+      console.log('\n 🍎 Running iOS tests for build type: ', env.METAMASK_BUILD_TYPE);
       await runYarn(`test:e2e:ios:${env.METAMASK_BUILD_TYPE}:ci`, args);
     } else {
-      console.log('🤖 Running Android tests for build type: ', env.METAMASK_BUILD_TYPE);
+      console.log('\n 🤖 Running Android tests for build type: ', env.METAMASK_BUILD_TYPE);
       await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
     }
     console.log("✅ Test execution completed");
