@@ -267,9 +267,9 @@ const Routes = {
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     MODALS: {
       ROOT: 'PredictModals',
-      CASH_OUT: 'PredictCashOut',
+      BUY_PREVIEW: 'PredictBuyPreview',
+      SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
-      PLACE_BET: 'PredictPlaceBet',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
