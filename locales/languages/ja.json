@@ -221,9 +221,11 @@
     "remind_later_description2": "ウォレットのバックアップやシークレットリカバリーフレーズの確認は、",
     "setting_security_privacy": "「設定」>「セキュリティとプライバシー」"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
@@ -1523,7 +1525,7 @@
         "history_will_appear": "ここに取引履歴が表示されます"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "続行",
       "skip": "スキップ",
@@ -1553,7 +1555,7 @@
       "ready_to_trade": {
         "title": "取引の準備はできましたか？",
         "description": "任意のトークンでパーペチュアルアカウントに入金すれば、数秒で最初の取引ができます。",
-        "footer_text": "MetaMaskはArbitrum上で資金をUSDCに交換し、これを追加手数料なしでHyperEVMに入金します。"
+        "footer_text": "MetaMaskはArbitrum上で資金をUSDCに交換し、これを追加手数料なしでHyperCoreに入金します。"
       },
       "got_it": "了解",
       "card": {
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "{{count}}件の市場で的中",
     "claim_amount_text": "請求額 ${{amount}}",
     "unrealized_pnl_label": "含み損益",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "受取"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "貸付金のデポジット",
     "tx_review_lending_withdraw": "貸付金の引き出し",
     "tx_review_perps_deposit": "パーペチュアルアカウントに入金しました",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "送信されたイーサ",
     "self_sent_ether": "自分に送信されたイーサ",
     "received_ether": "受け取ったイーサ",
@@ -5288,7 +5297,8 @@
       "transfer": "送金リクエスト",
       "switch_account_type": "アカウントのアップデート",
       "approve": "要求の承認",
-      "perps_deposit": "資金を追加"
+      "perps_deposit": "資金を追加",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -5305,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Metamaskは、HyperEVM (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCに交換します。スワッププロバイダーは手数料を請求することがありますが、MetaMaskなら無料です。"
+        "transaction_fee": "Metamaskは、HyperCore (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCに交換します。スワッププロバイダーは手数料を請求することがありますが、MetaMaskなら無料です。"
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "手数料"
@@ -5524,7 +5537,9 @@
     "account_not_found": "ウォレットが見つかりません",
     "account_not_found_description": "「{{accountName}}」のウォレットが見つかりません。このログイン情報で新しいウォレットを作成しますか？",
     "create_new_wallet": "新規ウォレットを作成",
-    "use_different_login_method": "別のログイン方法を使用"
+    "use_different_login_method": "別のログイン方法を使用",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "まだご利用になりますか？",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "未対応の地域です",
@@ -5938,9 +5961,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6078,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "パーペチュアルアカウントに入金しました",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "トランザクションの詳細"
     },
     "label": {
@@ -6094,6 +6116,7 @@
       "bridge_loading": "ブリッジ",
       "default": "トランザクション",
       "perps_deposit": "資金を追加",
+      "predict_deposit": "Add funds",
       "swap": "トークンをスワップ",
       "swap_approval": "トークンを承認"
     }
