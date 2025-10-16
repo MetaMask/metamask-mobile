@@ -50,6 +50,7 @@ import { toAssetId } from '../../hooks/useAssetMetadata/utils';
 // Bridge specific hooks
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import { setDestTokenExchangeRate } from '../../../../../core/redux/slices/bridge';
+import { useTokenVerification } from '../../hooks/useTokenVerification';
 
 // Types
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -138,6 +139,9 @@ const TokenInsightsSheet: React.FC = () => {
   const { token } = route.params || {};
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  // Check if token is verified
+  const isVerified = useTokenVerification(token);
 
   // Get current currency
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -338,21 +342,23 @@ const TokenInsightsSheet: React.FC = () => {
         </Box>
 
         {/* Verified Token Badge */}
-        <Box
-          style={styles.verifiedBadge}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.center}
-          justifyContent={BoxJustifyContent.center}
-        >
-          <Icon
-            name={IconName.Verified}
-            size={IconSize.Sm}
-            color={IconColor.Success}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-            {strings('bridge.verified_token')}
-          </Text>
-        </Box>
+        {isVerified && (
+          <Box
+            style={styles.verifiedBadge}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.center}
+            justifyContent={BoxJustifyContent.center}
+          >
+            <Icon
+              name={IconName.Verified}
+              size={IconSize.Sm}
+              color={IconColor.Success}
+            />
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
+              {strings('bridge.verified_token')}
+            </Text>
+          </Box>
+        )}
 
         {/* Token Details */}
         <Box

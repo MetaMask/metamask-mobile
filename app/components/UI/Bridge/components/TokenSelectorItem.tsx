@@ -18,6 +18,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconColor,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
@@ -42,6 +47,7 @@ import TagBase, {
   TagSeverity,
 } from '../../../../component-library/base-components/TagBase';
 import { RootState } from '../../../../reducers';
+import { useTokenVerification } from '../hooks/useTokenVerification';
 
 const createStyles = ({
   theme,
@@ -95,6 +101,9 @@ const createStyles = ({
       marginLeft: 8,
       paddingHorizontal: 6,
     },
+    verifiedIcon: {
+      marginLeft: 4,
+    },
   });
 
 interface TokenSelectorItemProps {
@@ -122,6 +131,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   );
 
   const isNoFeeAsset = noFeeAssets?.includes(token.address);
+  const isVerified = useTokenVerification(token);
 
   const fiatValue = token.balanceFiat;
 
@@ -206,6 +216,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               alignItems={AlignItems.center}
             >
               <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+              {isVerified && (
+                <Icon
+                  name={IconName.Verified}
+                  size={IconSize.Sm}
+                  color={IconColor.Alternative}
+                  style={styles.verifiedIcon}
+                />
+              )}
               {isNoFeeAsset && (
                 <TagBase
                   shape={TagShape.Rectangle}
