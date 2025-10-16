@@ -22,7 +22,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
 import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
-import bankTransferImage from '../../../images/bank.transfer.png';
+import bankTransferImage from '../../../images/bank-transfer.png';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
