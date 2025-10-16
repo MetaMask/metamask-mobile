@@ -41,7 +41,7 @@ module.exports = {
     jsEngine: 'hermes',
   },
   expo: {
-    runtimeVersion: '7.58.99',
+    runtimeVersion: 'appVersion',
     updates: {
       url: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
       channel: 'preview',
