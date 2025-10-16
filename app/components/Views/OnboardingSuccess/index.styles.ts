@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../styles/common';
 import { EdgeInsets } from 'react-native-safe-area-context';
@@ -80,6 +80,8 @@ const createStyles = (
       marginBottom: 16,
       marginHorizontal: 16,
       textAlign: 'center',
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
     },
     imageWrapper: {
       display: 'flex',
