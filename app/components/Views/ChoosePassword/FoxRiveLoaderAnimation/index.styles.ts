@@ -1,8 +1,11 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
-import { ScreenDimensions } from '../../../../hooks/useScreenDimensions';
+import { getScreenDimensions } from '../../../../util/onboarding';
 
-const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
+const createStyles = (
+  colors: Theme['colors'],
+  dimensions: ReturnType<typeof getScreenDimensions>,
+) =>
   StyleSheet.create({
     animationContainer: {
       flex: 1,
