@@ -1,6 +1,5 @@
 import {
   MultichainAccountService,
-  MultichainAccountServiceMessenger,
   AccountProviderWrapper,
   BtcAccountProvider,
 } from '@metamask/multichain-account-service';
@@ -9,8 +8,13 @@ import { ControllerInitRequest } from '../../types';
 import { multichainAccountServiceInit } from './multichain-account-service-init';
 import {
   MultichainAccountServiceInitMessenger,
+  MultichainAccountServiceMessenger,
+  getMultichainAccountServiceMessenger,
+  getMultichainAccountServiceInitMessenger,
 } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 import { isBitcoinAccountsFeatureEnabled } from '../../../../multichain-bitcoin/remote-feature-flag';
+import { Messenger } from '@metamask/base-controller';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('@metamask/multichain-account-service');
 jest.mock('../../../../multichain-bitcoin/remote-feature-flag');
@@ -21,19 +25,24 @@ function getInitRequestMock(): jest.Mocked<
     MultichainAccountServiceInitMessenger
   >
 > {
-  const controllerMessengerMock = jest.mocked(
-    {} as MultichainAccountServiceMessenger,
-  );
-  const initMessengerMock = jest.mocked({
-    call: jest.fn().mockReturnValue({
-      remoteFeatureFlags: { bitcoinAccounts: { enabled: false, minimumVersion: '13.6.0' } },
-    }),
-    subscribe: jest.fn(),
-  } as any);
+  // Create a base messenger and get the restricted messengers from it
+  const baseMessenger = new Messenger();
+  const controllerMessenger =
+    getMultichainAccountServiceMessenger(baseMessenger);
+  const initMessenger = getMultichainAccountServiceInitMessenger(baseMessenger);
 
-  const requestMock = buildControllerInitRequestMock(controllerMessengerMock, initMessengerMock);
+  // Create extended messenger for the base mock
+  const extendedControllerMessenger = new ExtendedControllerMessenger();
 
-  return requestMock;
+  // Build the base mock with extended messenger
+  const baseMock = buildControllerInitRequestMock(extendedControllerMessenger);
+
+  // Return merged mock with proper messengers
+  return {
+    ...baseMock,
+    controllerMessenger,
+    initMessenger,
+  };
 }
 
 describe('MultichainAccountServiceInit', () => {

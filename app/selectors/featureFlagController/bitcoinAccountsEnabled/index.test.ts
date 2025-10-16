@@ -18,65 +18,39 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-const mockedStateWithBitcoinAccountsEnabled = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        cacheTimestamp: 0,
-        remoteFeatureFlags: {
-          bitcoinAccounts: {
-            enabled: true,
-            minimumVersion: '1.0.0',
+// Helper function to create mock state with bitcoinAccounts flag
+function mockStateWith(bitcoinAccounts: unknown) {
+  return {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          cacheTimestamp: 0,
+          remoteFeatureFlags: {
+            bitcoinAccounts,
           },
         },
       },
     },
-  },
-};
-
-const mockedStateWithBitcoinAccountsDisabled = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        cacheTimestamp: 0,
-        remoteFeatureFlags: {
-          bitcoinAccounts: {
-            enabled: false,
-            minimumVersion: '1.0.0',
-          },
-        },
-      },
-    },
-  },
-};
-
-const mockedStateWithVersionTooHigh = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        cacheTimestamp: 0,
-        remoteFeatureFlags: {
-          bitcoinAccounts: {
-            enabled: true,
-            minimumVersion: '999.999.999',
-          },
-        },
-      },
-    },
-  },
-};
+  };
+}
 
 describe('selectIsBitcoinAccountsEnabled', () => {
   it('returns true when bitcoinAccounts flag is enabled and version meets minimum', () => {
-    expect(
-      selectIsBitcoinAccountsEnabled(mockedStateWithBitcoinAccountsEnabled),
-    ).toBe(true);
+    const mockedState = mockStateWith({
+      enabled: true,
+      minimumVersion: '1.0.0',
+    });
+
+    expect(selectIsBitcoinAccountsEnabled(mockedState)).toBe(true);
   });
 
   it('returns false when bitcoinAccounts flag is disabled', () => {
-    expect(
-      selectIsBitcoinAccountsEnabled(mockedStateWithBitcoinAccountsDisabled),
-    ).toBe(false);
+    const mockedState = mockStateWith({
+      enabled: false,
+      minimumVersion: '1.0.0',
+    });
+
+    expect(selectIsBitcoinAccountsEnabled(mockedState)).toBe(false);
   });
 
   it('returns false when bitcoinAccounts flag is undefined', () => {
@@ -90,53 +64,30 @@ describe('selectIsBitcoinAccountsEnabled', () => {
   });
 
   it('returns false when app version is below minimum version', () => {
-    expect(selectIsBitcoinAccountsEnabled(mockedStateWithVersionTooHigh)).toBe(
-      false,
-    );
+    const mockedState = mockStateWith({
+      enabled: true,
+      minimumVersion: '999.999.999',
+    });
+
+    expect(selectIsBitcoinAccountsEnabled(mockedState)).toBe(false);
   });
 
   it('returns true when app version equals minimum version', () => {
     const currentVersion = packageJson.version;
-    const mockedStateWithCurrentVersion = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            cacheTimestamp: 0,
-            remoteFeatureFlags: {
-              bitcoinAccounts: {
-                enabled: true,
-                minimumVersion: currentVersion,
-              },
-            },
-          },
-        },
-      },
-    };
+    const mockedState = mockStateWith({
+      enabled: true,
+      minimumVersion: currentVersion,
+    });
 
-    expect(selectIsBitcoinAccountsEnabled(mockedStateWithCurrentVersion)).toBe(
-      true,
-    );
+    expect(selectIsBitcoinAccountsEnabled(mockedState)).toBe(true);
   });
 
   it('returns false when flag structure is invalid', () => {
-    const mockedStateWithInvalidFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            cacheTimestamp: 0,
-            remoteFeatureFlags: {
-              bitcoinAccounts: {
-                enabled: true,
-                // Missing minimumVersion - should return false for safety
-              },
-            },
-          },
-        },
-      },
-    };
+    const mockedState = mockStateWith({
+      enabled: true,
+      // Missing minimumVersion - should return false for safety
+    });
 
-    expect(selectIsBitcoinAccountsEnabled(mockedStateWithInvalidFlag)).toBe(
-      false,
-    );
+    expect(selectIsBitcoinAccountsEnabled(mockedState)).toBe(false);
   });
 });
