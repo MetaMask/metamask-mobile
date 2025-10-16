@@ -212,6 +212,33 @@ describe('OnboardingSuccessComponent', () => {
       screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
     });
   });
+
+  it('shows done button and manage default settings button for IMPORT_FROM_SEED_PHRASE flow', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+
+    expect(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeTruthy();
+    expect(
+      getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON),
+    ).toBeTruthy();
+  });
+
+  it('displays wallet ready title for IMPORT_FROM_SEED_PHRASE flow', () => {
+    const { getByText } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+
+    expect(
+      getByText(strings('onboarding_success.wallet_ready')),
+    ).toBeOnTheScreen();
+  });
 });
 
 describe('OnboardingSuccess', () => {
@@ -293,22 +320,17 @@ describe('OnboardingSuccess', () => {
       );
     });
 
-    it('shows done button and footer link when showButtons is true', () => {
-      const { getByTestId } = renderWithProvider(
+    it('displays wallet_ready title for NO_BACKED_UP_SRP flow', () => {
+      const { getByText } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
         />,
       );
 
       expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeTruthy();
-      expect(
-        getByTestId(
-          OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
-        ),
-      ).toBeTruthy();
+        getByText(strings('onboarding_success.wallet_ready')),
+      ).toBeOnTheScreen();
     });
 
     it('shows done button and footer link for NO_BACKED_UP_SRP', () => {
@@ -364,6 +386,59 @@ describe('OnboardingSuccess', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP true', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('displays wallet ready title for BACKED_UP_SRP flow', () => {
+      const { getByText } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+        />,
+      );
+
+      expect(
+        getByText(strings('onboarding_success.wallet_ready')),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('route params successFlow is SETTINGS_BACKUP', () => {
+    mockRoute.mockReturnValue({
+      params: {
+        successFlow: ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+      },
+    });
+
+    it('displays correct message title for SETTINGS_BACKUP flow', () => {
+      const { getByText } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+        />,
+      );
+
+      expect(getByText(strings('onboarding_success.title'))).toBeOnTheScreen();
+    });
+  });
+
+  describe('route params successFlow is REMINDER_BACKUP', () => {
+    mockRoute.mockReturnValue({
+      params: {
+        successFlow: ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP,
+      },
+    });
+
+    it('displays wallet ready title for REMINDER_BACKUP flow (default case)', () => {
+      const { getByText } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP}
+        />,
+      );
+
+      expect(
+        getByText(strings('onboarding_success.wallet_ready')),
+      ).toBeOnTheScreen();
     });
   });
 
