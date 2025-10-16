@@ -14,7 +14,6 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
-  Text,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -34,7 +33,6 @@ import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
-import * as Updates from 'expo-updates';
 
 import {
   NavigationProp,
@@ -507,12 +505,6 @@ const Wallet = ({
   const { colors } = theme;
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
-  const { currentlyRunning, isUpdateAvailable, isUpdatePending, checkError } =
-    Updates.useUpdates();
-  const runTypeMessage = currentlyRunning.isEmbeddedLaunch
-    ? 'This app is running from built-in code'
-    : 'This app is running an update';
-  const error = checkError?.message;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -796,14 +788,6 @@ const Wallet = ({
     networks: allNetworks,
   });
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
-
-  useEffect(() => {
-    // do not prompt for social login flow
-    if (isUpdatePending) {
-      // Update has successfully downloaded; apply it now
-      Updates.reloadAsync();
-    }
-  }, [isUpdatePending]);
 
   useEffect(() => {
     if (
@@ -1309,70 +1293,63 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-      >
-        <AssetPollingProvider />
-        {!basicFunctionalityEnabled ? (
-          <View style={styles.banner}>
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('wallet.banner.title')}
-              description={
-                <CustomText
-                  color={TextColor.Info}
-                  onPress={turnOnBasicFunctionality}
-                >
-                  {strings('wallet.banner.link')}
-                </CustomText>
-              }
-            />
-          </View>
-        ) : null}
-        <NetworkConnectionBanner />
-        <>
-          {isMultichainAccountsState2Enabled ? (
-            <AccountGroupBalance />
-          ) : (
-            <PortfolioBalance />
-          )}
-          <View style={styles.assetsActionsContainer}>
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton}
-              displaySwapsButton={displaySwapsButton}
-              goToSwaps={goToSwaps}
-              onReceive={onReceive}
-              onSend={onSend}
-              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-              receiveButtonActionID={
-                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-              }
-            />
-          </View>
+      <>
+        <View
+          style={styles.wrapper}
+          testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+        >
+          <AssetPollingProvider />
+          {!basicFunctionalityEnabled ? (
+            <View style={styles.banner}>
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                title={strings('wallet.banner.title')}
+                description={
+                  <CustomText
+                    color={TextColor.Info}
+                    onPress={turnOnBasicFunctionality}
+                  >
+                    {strings('wallet.banner.link')}
+                  </CustomText>
+                }
+              />
+            </View>
+          ) : null}
+          <NetworkConnectionBanner />
+          <>
+            {isMultichainAccountsState2Enabled ? (
+              <AccountGroupBalance />
+            ) : (
+              <PortfolioBalance />
+            )}
+            <View style={styles.assetsActionsContainer}>
+              <AssetDetailsActions
+                displayBuyButton={displayBuyButton}
+                displaySwapsButton={displaySwapsButton}
+                goToSwaps={goToSwaps}
+                onReceive={onReceive}
+                onSend={onSend}
+                buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+                swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+                sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+                receiveButtonActionID={
+                  WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
+                }
+              />
+            </View>
 
-          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+            {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
-          {/* <Text>EAS UPDATED TEST 1</Text> */}
-          <Text>{runTypeMessage}</Text>
-          {error && <Text>{error}</Text>}
-          {isUpdateAvailable && <Text>Update available</Text>}
-          {isUpdatePending && <Text>Update pending</Text>}
-          <Text>Updates Channel:{Updates.channel}</Text>
-          <Text>Updates Update ID:{Updates.updateId}</Text>
-          <PortfolioBalance />
-          <Carousel style={styles.carousel} />
-          <WalletTokensTabView
-            navigation={navigation}
-            onChangeTab={onChangeTab}
-            defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
-            navigationParams={route.params}
-          />
-        </>
-      </View>
+            <WalletTokensTabView
+              navigation={navigation}
+              onChangeTab={onChangeTab}
+              defiEnabled={defiEnabled}
+              collectiblesEnabled={collectiblesEnabled}
+              navigationParams={route.params}
+            />
+          </>
+        </View>
+      </>
     ),
     [
       styles.banner,

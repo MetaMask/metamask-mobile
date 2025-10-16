@@ -41,9 +41,9 @@ module.exports = {
     jsEngine: 'hermes',
   },
   expo: {
-    runtimeVersion: '1.0.0',
+    runtimeVersion: '7.58.0',
     updates: {
-      url: 'https://u.expo.dev/f6be4653-8750-4688-8a44-c809d13b40ef',
+      url: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
       channel: 'preview',
       requestHeaders: {
         'expo-channel-name': 'preview',
@@ -51,7 +51,7 @@ module.exports = {
     },
     extra: {
       eas: {
-        projectId: 'f6be4653-8750-4688-8a44-c809d13b40ef',
+        projectId: 'fddf3e54-a014-4ba7-a695-d116a9ef9620',
       },
     },
     android: {
