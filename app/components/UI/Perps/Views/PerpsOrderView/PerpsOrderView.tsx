@@ -248,27 +248,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
-  // Calculate estimated fees using the new hook
-  const feeResults = usePerpsOrderFees({
-    orderType: orderForm.type,
-    amount: orderForm.amount,
-    isMaker: false, // Conservative estimate for UI display
-    coin: orderForm.asset,
-    isClosing: false, // For now, we're always opening positions in this view
-  });
-  const estimatedFees = feeResults.totalFee;
-
-  // Simple boolean calculation - no need for expensive memoization
-  const hasValidAmount = parseFloat(orderForm.amount) > 0;
-
-  // Get rewards state using the new hook
-  const rewardsState = usePerpsRewards({
-    feeResults,
-    hasValidAmount,
-    isFeesLoading: feeResults.isLoadingMetamaskFee,
-    orderAmount: orderForm.amount,
-  });
-
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
     if (!isOrderTypeVisible && shouldOpenLimitPrice) {
@@ -317,6 +296,41 @@ const PerpsOrderViewContentBase: React.FC = () => {
       change: isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
+
+  // eslint-disable-next-line no-console
+  console.log('[PerpsOrderView] currentPrice: ', currentPrice);
+
+  // Calculate estimated fees using the new hook
+  const feeResults = usePerpsOrderFees({
+    orderType: orderForm.type,
+    amount: orderForm.amount,
+    coin: orderForm.asset,
+    isClosing: false,
+    limitPrice: orderForm.limitPrice,
+    currentPrice: assetData.price,
+    direction: orderForm.direction,
+    // TODO: We're passing in several sub-properties of currentPrice. Consider passing in the entire currentPrice object instead.
+    currentAskPrice: currentPrice?.bestAsk
+      ? parseFloat(currentPrice.bestAsk)
+      : undefined,
+    currentBidPrice: currentPrice?.bestBid
+      ? parseFloat(currentPrice.bestBid)
+      : undefined,
+    cachedSpread: currentPrice?.spread,
+    priceTimestamp: currentPrice?.timestamp,
+  });
+  const estimatedFees = feeResults.totalFee;
+
+  // Simple boolean calculation - no need for expensive memoization
+  const hasValidAmount = parseFloat(orderForm.amount) > 0;
+
+  // Get rewards state using the new hook
+  const rewardsState = usePerpsRewards({
+    feeResults,
+    hasValidAmount,
+    isFeesLoading: feeResults.isLoadingMetamaskFee,
+    orderAmount: orderForm.amount,
+  });
 
   // Track order type viewed event using unified declarative API (main's event structure)
   usePerpsEventTracking({
