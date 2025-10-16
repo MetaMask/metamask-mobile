@@ -19,7 +19,6 @@ exports[`OnboardingSuccessAnimation displays Rive animation and ActivityIndicato
     <RiveView
       alignment="Center"
       autoplay={true}
-      fit="FitWidth"
       source="fox_loading.riv"
       style={
         {
@@ -62,7 +61,6 @@ exports[`OnboardingSuccessAnimation renders animation and ActivityIndicator in c
     <RiveView
       alignment="Center"
       autoplay={true}
-      fit="FitWidth"
       source="fox_loading.riv"
       style={
         {

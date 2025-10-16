@@ -25,7 +25,7 @@ const OnboardingSuccessAnimation: React.FC<
 
   const { riveRef, clearRiveTimer } = useRiveAnimation(isDarkMode, {
     stateMachineName: 'FoxRaiseUp',
-    darkModeInputName: '', // fox_loading.riv doesn't have Dark mode input
+    darkModeInputName: '',
     startTriggerName: 'Loader2',
   });
 
@@ -51,7 +51,7 @@ const OnboardingSuccessAnimation: React.FC<
           source={onboardingRiveFile}
           style={styles.riveAnimation}
           autoplay
-          fit={Fit.FitWidth}
+          fit={Fit.Contain}
           alignment={Alignment.Center}
         />
       </View>

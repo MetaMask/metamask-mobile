@@ -6,9 +6,10 @@ const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
   StyleSheet.create({
     animationContainer: {
       flex: 1,
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'center',
       backgroundColor: colors.background.default,
+      paddingTop: 30,
     },
     animationWrapper: {
       width: dimensions.screenWidth,
@@ -19,14 +20,14 @@ const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
     },
     textWrapper: {
       justifyContent: 'flex-end',
-      marginTop: 40,
       width: dimensions.screenWidth,
       paddingHorizontal: 20,
     },
     riveAnimation: {
-      width: dimensions.screenWidth,
+      width: dimensions.screenWidth * 0.6,
       height: dimensions.animationHeight,
       alignSelf: 'center',
+      justifyContent: 'center',
       backgroundColor: colors.background.default,
     },
     textOverlay: {
