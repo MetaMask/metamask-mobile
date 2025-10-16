@@ -1,5 +1,5 @@
 // importSRP.js
-// Page Object for Import Secret Recovery Phrase screen
+// Page Object for adding wallet on Import Secret Recovery Phrase screen
 
 /* global output */
 
@@ -25,7 +25,7 @@ output.importSRP = {
   continueBtn: 'Continue',
 
   // Helper to get word input by index (1-12)
-  getWordInput (index) {
+  getWordInput(index) {
     return `srp-input-word-${index}`;
   },
 };

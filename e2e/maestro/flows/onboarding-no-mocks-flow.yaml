@@ -38,4 +38,4 @@ tags:
 - assertVisible: ${output.onboarding.perps.title}
 - tapOn:
     id: ${output.onboarding.perps.notNowBtn}
-- assertVisible: ${output.wallet.accountName}
+- assertVisible: ${output.home.accountName}

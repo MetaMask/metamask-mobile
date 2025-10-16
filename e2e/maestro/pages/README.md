@@ -7,8 +7,8 @@ This directory contains Page Object Model (POM) files following [Maestro's Page 
 ```
 pages/
 ├── onboarding.js      # Onboarding and wallet creation screens
-├── wallet.js          # Wallet and account management screens
-├── importSRP.js       # Import Secret Recovery Phrase screens
+├── home.js            # Home/wallet screen and account management
+├── add-wallet.js      # Add wallet and Import Secret Recovery Phrase screens
 ├── loadElements.yaml  # Loads all page objects (use this in your flows)
 └── README.md          # This file
 ```
@@ -30,7 +30,7 @@ Use the `${output.screenName.elementName}` syntax to reference elements:
 ```yaml
 # Example: Tap on account picker
 - tapOn:
-    id: ${output.wallet.accountPicker}
+    id: ${output.home.accountPicker}
 
 # Example: Assert text is visible
 - assertVisible: ${output.onboarding.welcome.text}
@@ -49,9 +49,9 @@ Elements for the onboarding flow organized by screen:
 
 - **`welcome`** - Welcome screen elements
 - **`createPassword`** - Password creation screen elements
-- **`backup`** - Backup/security screen elements
-- **`metrics`** - Metrics opt-in screen elements
-- **`success`** - Success screen elements
+- **`backup`** - Backup/security modal elements
+- **`metrics`** - MetaMetrics opt-in screen elements
+- **`default_settings`** - Default settings screen elements (includes "remind later" message and done button)
 - **`perps`** - Perps modal elements
 
 **Example:**
@@ -70,11 +70,16 @@ Elements for the onboarding flow organized by screen:
 # Backup screen
 - tapOn:
     id: ${output.onboarding.backup.remindMeLaterBtn}
+
+# Default settings screen
+- assertVisible: ${output.onboarding.default_settings.remindLaterMessage}
+- tapOn:
+    id: ${output.onboarding.default_settings.doneBtn}
 ```
 
-### wallet.js
+### home.js
 
-Elements for wallet and account management:
+Elements for the home/wallet screen and account management:
 
 - Account picker
 - Account list
@@ -84,12 +89,12 @@ Elements for wallet and account management:
 
 ```yaml
 - tapOn:
-    id: ${output.wallet.accountPicker}
+    id: ${output.home.accountPicker}
 - tapOn:
-    id: ${output.wallet.addAccountBtn}
+    id: ${output.home.addAccountBtn}
 ```
 
-### importSRP.js
+### add-wallet.js
 
 Elements for importing a Secret Recovery Phrase:
 
@@ -119,16 +124,26 @@ Elements for importing a Secret Recovery Phrase:
 
 1. Create a new `.js` file in this directory
 2. Follow the pattern:
+
    ```javascript
    // screenName.js
+   // Page Object for [screen description]
+
+   /* global output */
+
    output.screenName = {
      elementName: 'element-id',
      anotherElement: 'another-id',
    };
    ```
+
 3. Add the file to `loadElements.yaml`:
    ```yaml
-   - runScript: screenName.js
+   # Current structure:
+   - runScript: onboarding.js
+   - runScript: home.js
+   - runScript: add-wallet.js
+   - runScript: screenName.js # Add your new file here
    ```
 
 ## Cross-Platform Support
@@ -141,11 +156,11 @@ To support different element IDs for Android and iOS, use conditional flows:
       platform: Android
     commands:
       - runScript:
-          file: android/wallet.js
+          file: android/home.js
 - runFlow:
     when:
       platform: iOS
     commands:
       - runScript:
-          file: iOS/wallet.js
+          file: iOS/home.js
 ```

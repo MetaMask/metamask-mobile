@@ -3,7 +3,7 @@
 
 /* global output */
 
-output.wallet = {
+output.home = {
   // Account Picker
   accountPicker: 'account-picker',
   accountName: 'Account 1',
