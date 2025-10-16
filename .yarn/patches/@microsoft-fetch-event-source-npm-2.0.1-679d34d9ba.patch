@@ -1,8 +1,57 @@
+diff --git a/lib/cjs/fetch.js b/lib/cjs/fetch.js
+index ab40f1eeff0ec0a30043e45478f81cd1dc845adb..f31a235d56b18cc69b4c2338ac63240d4ec809ee 100644
+--- a/lib/cjs/fetch.js
++++ b/lib/cjs/fetch.js
+@@ -24,25 +24,16 @@ function fetchEventSource(input, _a) {
+             headers.accept = exports.EventStreamContentType;
+         }
+         let curRequestController;
+-        function onVisibilityChange() {
+-            curRequestController.abort();
+-            if (!document.hidden) {
+-                create();
+-            }
+-        }
+-        if (!openWhenHidden) {
+-            document.addEventListener('visibilitychange', onVisibilityChange);
+-        }
+         let retryInterval = DefaultRetryInterval;
+         let retryTimer = 0;
+         function dispose() {
+-            document.removeEventListener('visibilitychange', onVisibilityChange);
+             window.clearTimeout(retryTimer);
+             curRequestController.abort();
+         }
+-        inputSignal === null || inputSignal === void 0 ? void 0 : inputSignal.addEventListener('abort', () => {
++        inputSignal === null || inputSignal === void 0 ? void 0 : inputSignal.addEventListener('abort', (error) => {
+             dispose();
+-            resolve();
++            // This line is a workaround to fix the issue with the abort error not being properly propagated
++            reject(Object.assign(new Error('Aborted'), { name: 'AbortError', message: error.target.reason }));
+         });
+         const fetch = inputFetch !== null && inputFetch !== void 0 ? inputFetch : window.fetch;
+         const onopen = inputOnOpen !== null && inputOnOpen !== void 0 ? inputOnOpen : defaultOnOpen;
 diff --git a/lib/esm/fetch.js b/lib/esm/fetch.js
-index 31eb2278da53ba79d9fc78ea32d69f2d15f325ff..b00341245454c8301d4cf2edb6a6397679cc5cb2 100644
+index 31eb2278da53ba79d9fc78ea32d69f2d15f325ff..fb4a3bc7aed0eeaaadaa0d4c717fefc6537bde0e 100644
 --- a/lib/esm/fetch.js
 +++ b/lib/esm/fetch.js
-@@ -37,9 +37,10 @@ export function fetchEventSource(input, _a) {
+@@ -21,25 +21,16 @@ export function fetchEventSource(input, _a) {
+             headers.accept = EventStreamContentType;
+         }
+         let curRequestController;
+-        function onVisibilityChange() {
+-            curRequestController.abort();
+-            if (!document.hidden) {
+-                create();
+-            }
+-        }
+-        if (!openWhenHidden) {
+-            document.addEventListener('visibilitychange', onVisibilityChange);
+-        }
+         let retryInterval = DefaultRetryInterval;
+         let retryTimer = 0;
+         function dispose() {
+-            document.removeEventListener('visibilitychange', onVisibilityChange);
              window.clearTimeout(retryTimer);
              curRequestController.abort();
          }

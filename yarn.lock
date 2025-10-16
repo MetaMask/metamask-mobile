@@ -3637,23 +3637,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/browser-polyfill@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@expo/browser-polyfill@npm:1.0.1"
-  dependencies:
-    expo-2d-context: ^0.0.3
-    fbemitter: ^2.1.1
-    text-encoding: ^0.7.0
-    uuid: ^8.3.2
-    xmldom-qsa: ^1.0.3
-  peerDependencies:
-    expo-file-system: ^13.2.0
-    react: ^17.0.1
-    react-native: ^0.64.3
-  checksum: 33d21ba2899ac157953a3b08aa29f2122b2bf7d613cf23ace583ba7eeec658bb5af9b9bcf479e5d0412810e3452d79647e038c94e5ced72689fcba50ac89110a
-  languageName: node
-  linkType: hard
-
 "@expo/bunyan@npm:^4.0.0":
   version: 4.0.1
   resolution: "@expo/bunyan@npm:4.0.1"
@@ -8925,8 +8908,8 @@ __metadata:
 
 "@microsoft/fetch-event-source@patch:@microsoft/fetch-event-source@npm%3A2.0.1#./.yarn/patches/@microsoft-fetch-event-source-npm-2.0.1-679d34d9ba.patch::locator=metamask%40workspace%3A.":
   version: 2.0.1
-  resolution: "@microsoft/fetch-event-source@patch:@microsoft/fetch-event-source@npm%3A2.0.1#./.yarn/patches/@microsoft-fetch-event-source-npm-2.0.1-679d34d9ba.patch::version=2.0.1&hash=7389c8&locator=metamask%40workspace%3A."
-  checksum: 257f03ca168abb7ca0ec24630eb97f8c875977068979d71d1c86697483d259302deb46fc170f003c855555d7d9471a9d00face153cd436ce29334f81be310812
+  resolution: "@microsoft/fetch-event-source@patch:@microsoft/fetch-event-source@npm%3A2.0.1#./.yarn/patches/@microsoft-fetch-event-source-npm-2.0.1-679d34d9ba.patch::version=2.0.1&hash=e545e4&locator=metamask%40workspace%3A."
+  checksum: 2eb6db8a3c60c7c05b0e9930ad051d8a4c3948799989944548f72953484856f4db08f5e898f19ed5f13fbdec50a1811f500a6f67ba962f30d7ad488ba19e40cd
   languageName: node
   linkType: hard
 
@@ -19751,20 +19734,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"adaptive-bezier-curve@npm:1.0.3":
-  version: 1.0.3
-  resolution: "adaptive-bezier-curve@npm:1.0.3"
-  checksum: a4a8caf059bb0d2bb0ae457ba448e3dca64f470f68ef00ee8c59c92b72caab2802c542d52ad2c08ea984b3a521ea8bc4fb4a291899ec84f97a1601d216a08446
-  languageName: node
-  linkType: hard
-
-"adaptive-quadratic-curve@npm:1.0.2":
-  version: 1.0.2
-  resolution: "adaptive-quadratic-curve@npm:1.0.2"
-  checksum: ea0c20c81423e99f64cdacc7fddb2a5a7b0acc6ad9bb5b947620ca86c7eade4c3b4a72b63f1e679c2850fb6ab11dba2cb16ba173811ea6c7a0927701434cf622
-  languageName: node
-  linkType: hard
-
 "adbkit-apkreader@npm:^3.1.2":
   version: 3.2.0
   resolution: "adbkit-apkreader@npm:3.2.0"
@@ -23357,7 +23326,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-convert@npm:^1.9.0, color-convert@npm:^1.9.1, color-convert@npm:^1.9.3":
+"color-convert@npm:^1.9.0, color-convert@npm:^1.9.1":
   version: 1.9.3
   resolution: "color-convert@npm:1.9.3"
   dependencies:
@@ -23892,13 +23861,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^1.0.0":
-  version: 1.2.7
-  resolution: "core-js@npm:1.2.7"
-  checksum: 0b76371bfa98708351cde580f9287e2360d2209920e738ae950ae74ad08639a2e063541020bf666c28778956fc356ed9fe56d962129c88a87a6a4a0612526c75
-  languageName: node
-  linkType: hard
-
 "core-js@npm:^3.0.1, core-js@npm:^3.6.5, core-js@npm:^3.8.2":
   version: 3.32.2
   resolution: "core-js@npm:3.32.2"
@@ -24215,13 +24177,6 @@ __metadata:
   version: 1.0.0
   resolution: "css-color-keywords@npm:1.0.0"
   checksum: 10/8f125e3ad477bd03c77b533044bd9e8a6f7c0da52d49bbc0bbe38327b3829d6ba04d368ca49dd9ff3b667d2fc8f1698d891c198bbf8feade1a5501bf5a296408
-  languageName: node
-  linkType: hard
-
-"css-font-parser@npm:0.2.3":
-  version: 0.2.3
-  resolution: "css-font-parser@npm:0.2.3"
-  checksum: a59f5739a5556adf9d422d0260cffd1171c524a6d0f83ccbad06ce2a0e0369f18c292ee061b418370b78aa232c137e122c572c138bc80472085c78353556d498
   languageName: node
   linkType: hard
 
@@ -25401,15 +25356,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"domexception@npm:1.0.1":
-  version: 1.0.1
-  resolution: "domexception@npm:1.0.1"
-  dependencies:
-    webidl-conversions: ^4.0.2
-  checksum: f564a9c0915dcb83ceefea49df14aaed106b1468fbe505119e8bcb0b77e242534f3aba861978537c0fc9dc6f35b176d0ffc77b3e342820fb27a8f215e7ae4d52
-  languageName: node
-  linkType: hard
-
 "domhandler@npm:^4.0.0, domhandler@npm:^4.2.0, domhandler@npm:^4.2.2":
   version: 4.3.1
   resolution: "domhandler@npm:4.3.1"
@@ -25599,13 +25545,6 @@ __metadata:
   version: 3.4.2
   resolution: "durations@npm:3.4.2"
   checksum: 10/cfb55e454de01f248a272a04302af949312dd2849729a63eb588b59d4c400db32da06a18da3cdf4673f952322ed15648253192d247e0f1c54bf1494df709a329
-  languageName: node
-  linkType: hard
-
-"earcut@npm:2.1.1":
-  version: 2.1.1
-  resolution: "earcut@npm:2.1.1"
-  checksum: 7b85cc8ccdd6ca5de8591f850963be4c985111d44744f1068b1279d6f79ae3b97239a7185bcb19a58a00245211d7b922cebed34a227ac01bf012e60577a9d922
   languageName: node
   linkType: hard
 
@@ -27582,26 +27521,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-2d-context@npm:^0.0.3":
-  version: 0.0.3
-  resolution: "expo-2d-context@npm:0.0.3"
-  dependencies:
-    adaptive-bezier-curve: 1.0.3
-    adaptive-quadratic-curve: 1.0.2
-    color-convert: ^1.9.3
-    css-font-parser: 0.2.3
-    domexception: 1.0.1
-    earcut: 2.1.1
-    gl-matrix: ^2.4.0
-    parse-bmfont-ascii: 1.0.6
-    string-format: 0.5.0
-    tess2: ^1.0.0
-  peerDependencies:
-    expo-asset: "*"
-  checksum: 132b0f8cec613b2cb053d32cc482966406c42b76cdb6067a2871dff29e7990162f3d2511be209c11cfbf0b479409cec2820f43c4ffef4ede68063fb83e0208e6
-  languageName: node
-  linkType: hard
-
 "expo-apple-authentication@npm:~7.1.3":
   version: 7.1.3
   resolution: "expo-apple-authentication@npm:7.1.3"
@@ -28226,15 +28145,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fbemitter@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "fbemitter@npm:2.1.1"
-  dependencies:
-    fbjs: ^0.8.4
-  checksum: 28b3024456e320275d759d594f0b2099964f5c6289c768d856481e795db557c425bae9845ff382922eb32ec331da77fc3f6be3832a7e9fcdfa0f4fb1fc7f703c
-  languageName: node
-  linkType: hard
-
 "fbemitter@npm:^3.0.0":
   version: 3.0.0
   resolution: "fbemitter@npm:3.0.0"
@@ -28248,21 +28158,6 @@ __metadata:
   version: 1.0.2
   resolution: "fbjs-css-vars@npm:1.0.2"
   checksum: 10/72baf6d22c45b75109118b4daecb6c8016d4c83c8c0f23f683f22e9d7c21f32fff6201d288df46eb561e3c7d4bb4489b8ad140b7f56444c453ba407e8bd28511
-  languageName: node
-  linkType: hard
-
-"fbjs@npm:^0.8.4":
-  version: 0.8.18
-  resolution: "fbjs@npm:0.8.18"
-  dependencies:
-    core-js: ^1.0.0
-    isomorphic-fetch: ^2.1.1
-    loose-envify: ^1.0.0
-    object-assign: ^4.1.0
-    promise: ^7.1.1
-    setimmediate: ^1.0.5
-    ua-parser-js: ^0.7.30
-  checksum: 668731b946a765908c9cbe51d5160f973abb78004b3d122587c3e930e3e1ddcc0ce2b17f2a8637dc9d733e149aa580f8d3035a35cc2d3bc78b78f1b19aab90e2
   languageName: node
   linkType: hard
 
@@ -29432,13 +29327,6 @@ __metadata:
   version: 0.0.0
   resolution: "github-from-package@npm:0.0.0"
   checksum: 10/2a091ba07fbce22205642543b4ea8aaf068397e1433c00ae0f9de36a3607baf5bcc14da97fbb798cfca6393b3c402031fca06d8b491a44206d6efef391c58537
-  languageName: node
-  linkType: hard
-
-"gl-matrix@npm:^2.4.0":
-  version: 2.8.1
-  resolution: "gl-matrix@npm:2.8.1"
-  checksum: 20d13fd428ea3021d625781e025132ff8ec264f4c05310bda9ad859535ab32fb505323486d2d5c51b5f715c2a9d059da588b66e8e2afdafdf1acc4f45629b7ff
   languageName: node
   linkType: hard
 
@@ -31448,16 +31336,6 @@ __metadata:
   version: 4.0.0
   resolution: "isobject@npm:4.0.0"
   checksum: 10/bbcb522e46d54fb22418ba49fb9a82057ffa201c8401fb6e018c042e2c98cf7d9c7b185aff88e035ec8adea0814506dc2aeff2d08891bbc158e1671a49e99c06
-  languageName: node
-  linkType: hard
-
-"isomorphic-fetch@npm:^2.1.1":
-  version: 2.2.1
-  resolution: "isomorphic-fetch@npm:2.2.1"
-  dependencies:
-    node-fetch: ^1.0.1
-    whatwg-fetch: ">=0.10.0"
-  checksum: bb5daa7c3785d6742f4379a81e55b549a469503f7c9bf9411b48592e86632cf5e8fe8ea878dba185c0f33eb7c510c23abdeb55aebfdf5d3c70f031ced68c5424
   languageName: node
   linkType: hard
 
@@ -34162,192 +34040,191 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "metamask@workspace:."
   dependencies:
-    "@anthropic-ai/sdk": "npm:^0.63.1"
-    "@babel/core": "npm:^7.25.2"
-    "@babel/eslint-parser": "npm:^7.25.1"
-    "@babel/preset-env": "npm:^7.25.3"
-    "@babel/register": "npm:^7.24.6"
-    "@babel/runtime": "npm:^7.25.0"
-    "@config-plugins/detox": "npm:^9.0.0"
-    "@consensys/native-ramps-sdk": "npm:2.1.5"
-    "@consensys/on-ramp-sdk": "npm:2.1.11"
-    "@craftzdog/react-native-buffer": "npm:^6.1.0"
-    "@cucumber/message-streams": "npm:^4.0.1"
-    "@cucumber/messages": "npm:^22.0.0"
-    "@ethersproject/abi": "npm:^5.7.0"
-    "@ethersproject/contracts": "npm:^5.7.0"
-    "@ethersproject/providers": "npm:^5.7.2"
-    "@expo/fingerprint": "npm:^0.15.0"
-    "@expo/repack-app": "npm:^0.2.9"
-    "@img/sharp-darwin-arm64": "npm:^0.34.3"
-    "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
-    "@img/sharp-libvips-linux-x64": "npm:^1.2.1"
-    "@img/sharp-linux-x64": "npm:^0.34.3"
-    "@keystonehq/bc-ur-registry-eth": "npm:^0.21.0"
-    "@keystonehq/ur-decoder": "npm:^0.12.2"
-    "@lavamoat/allow-scripts": "npm:^3.0.4"
-    "@lavamoat/git-safe-dependencies": "npm:^0.2.1"
-    "@lavamoat/react-native-lockdown": "npm:^0.0.2"
-    "@ledgerhq/react-native-hw-transport-ble": "npm:^6.34.1"
-    "@metamask/abi-utils": "npm:^3.0.0"
-    "@metamask/account-api": "npm:^0.12.0"
-    "@metamask/account-tree-controller": "npm:^1.5.0"
-    "@metamask/accounts-controller": "npm:^33.1.0"
-    "@metamask/address-book-controller": "npm:^6.1.0"
-    "@metamask/app-metadata-controller": "npm:^1.0.0"
-    "@metamask/approval-controller": "npm:^7.1.3"
-    "@metamask/assets-controllers": "npm:^81.0.1"
-    "@metamask/base-controller": "npm:^8.3.0"
-    "@metamask/bitcoin-wallet-snap": "npm:^1.3.0"
-    "@metamask/bridge-controller": "npm:^53.1.0"
-    "@metamask/bridge-status-controller": "npm:^53.0.0"
-    "@metamask/browser-passworder": "npm:^5.0.0"
-    "@metamask/build-utils": "npm:^3.0.0"
-    "@metamask/chain-agnostic-permission": "npm:^1.1.0"
-    "@metamask/composable-controller": "npm:^11.0.0"
-    "@metamask/controller-utils": "npm:^11.11.0"
-    "@metamask/core-backend": "npm:^2.1.0"
-    "@metamask/delegation-controller": "npm:^0.7.0"
-    "@metamask/delegation-deployments": "npm:^0.12.0"
-    "@metamask/design-system-react-native": "npm:^0.4.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.2.1"
-    "@metamask/design-tokens": "npm:^8.1.1"
-    "@metamask/earn-controller": "npm:^8.0.0"
-    "@metamask/eip-5792-middleware": "npm:^1.2.3"
-    "@metamask/eip1193-permission-middleware": "npm:^1.0.0"
-    "@metamask/ens-resolver-snap": "npm:^1.0.0"
-    "@metamask/error-reporting-service": "npm:^2.2.1"
-    "@metamask/eslint-config-typescript": "npm:^9.0.0"
-    "@metamask/eslint-plugin-design-tokens": "npm:^1.0.0"
-    "@metamask/eth-hd-keyring": "npm:^13.0.0"
-    "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
-    "@metamask/eth-json-rpc-middleware": "npm:^21.0.0"
-    "@metamask/eth-ledger-bridge-keyring": "npm:11.1.0"
-    "@metamask/eth-qr-keyring": "npm:^1.1.0"
-    "@metamask/eth-query": "npm:^4.0.0"
-    "@metamask/eth-sig-util": "npm:^8.0.0"
-    "@metamask/eth-snap-keyring": "npm:^17.3.0"
-    "@metamask/etherscan-link": "npm:^2.0.0"
-    "@metamask/ethjs-contract": "npm:^0.4.1"
-    "@metamask/ethjs-query": "npm:^0.7.1"
-    "@metamask/ethjs-unit": "npm:^0.3.0"
-    "@metamask/foundryup": "npm:1.0.0"
-    "@metamask/gas-fee-controller": "npm:^24.0.0"
-    "@metamask/gator-permissions-controller": "npm:^0.2.0"
-    "@metamask/json-rpc-engine": "npm:^10.0.3"
-    "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
-    "@metamask/key-tree": "npm:^10.1.1"
-    "@metamask/keyring-api": "npm:^21.1.0"
-    "@metamask/keyring-controller": "npm:^23.1.0"
-    "@metamask/keyring-internal-api": "npm:^9.1.0"
-    "@metamask/keyring-snap-client": "npm:^8.1.0"
-    "@metamask/logging-controller": "npm:^6.0.4"
-    "@metamask/message-signing-snap": "npm:^1.1.2"
-    "@metamask/metamask-eth-abis": "npm:3.1.1"
-    "@metamask/mobile-provider": "npm:^3.0.0"
-    "@metamask/mobile-wallet-protocol-core": "npm:^0.3.1"
-    "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.2.1"
-    "@metamask/multichain-account-service": "npm:^1.6.0"
-    "@metamask/multichain-api-client": "npm:^0.7.0"
-    "@metamask/multichain-api-middleware": "npm:1.2.0"
-    "@metamask/multichain-network-controller": "npm:^1.0.0"
-    "@metamask/multichain-transactions-controller": "npm:^5.0.0"
-    "@metamask/native-utils": "npm:^0.5.0"
-    "@metamask/network-controller": "npm:^24.3.0"
-    "@metamask/network-enablement-controller": "npm:^2.1.0"
-    "@metamask/notification-services-controller": "npm:^18.2.0"
-    "@metamask/object-multiplex": "npm:^1.1.0"
-    "@metamask/permission-controller": "npm:^11.0.6"
-    "@metamask/phishing-controller": "npm:^13.1.0"
-    "@metamask/post-message-stream": "npm:^10.0.0"
-    "@metamask/ppom-validator": "npm:^0.38.0"
-    "@metamask/preferences-controller": "npm:^20.0.1"
-    "@metamask/preinstalled-example-snap": "npm:^0.7.1"
-    "@metamask/profile-sync-controller": "npm:^25.1.0"
-    "@metamask/providers": "npm:^18.3.1"
-    "@metamask/react-native-acm": "npm:^1.0.1"
-    "@metamask/react-native-actionsheet": "npm:2.4.2"
-    "@metamask/react-native-button": "npm:^3.0.0"
-    "@metamask/react-native-payments": "npm:^2.0.0"
-    "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "npm:^14.5.0"
-    "@metamask/remote-feature-flag-controller": "npm:^1.9.0"
-    "@metamask/rpc-errors": "npm:^7.0.2"
-    "@metamask/scure-bip39": "npm:^2.1.0"
-    "@metamask/sdk-analytics": "npm:0.0.5"
-    "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:^4.0.0"
-    "@metamask/selected-network-controller": "npm:^24.0.0"
-    "@metamask/signature-controller": "npm:^33.0.0"
-    "@metamask/slip44": "npm:^4.2.0"
-    "@metamask/smart-transactions-controller": "npm:^19.2.1"
-    "@metamask/snaps-controllers": "npm:^15.0.2"
-    "@metamask/snaps-execution-environments": "npm:^10.2.2"
-    "@metamask/snaps-rpc-methods": "npm:^13.5.3"
-    "@metamask/snaps-sdk": "npm:^10.0.0"
-    "@metamask/snaps-utils": "npm:^11.6.0"
-    "@metamask/solana-wallet-snap": "npm:^2.4.6"
-    "@metamask/solana-wallet-standard": "npm:^0.6.0"
-    "@metamask/stake-sdk": "npm:^3.2.0"
-    "@metamask/swappable-obj-proxy": "npm:^2.1.0"
-    "@metamask/swaps-controller": "npm:^14.0.0"
-    "@metamask/test-dapp": "npm:9.5.0"
-    "@metamask/test-dapp-multichain": "npm:^0.17.1"
-    "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/token-search-discovery-controller": "npm:^3.1.0"
-    "@metamask/transaction-controller": "npm:^60.9.0"
-    "@metamask/tron-wallet-snap": "npm:^1.5.0"
-    "@metamask/utils": "npm:^11.8.1"
-    "@ngraveio/bc-ur": "npm:^1.1.6"
-    "@nktkas/hyperliquid": "npm:^0.25.1"
-    "@noble/curves": "npm:1.9.6"
-    "@notifee/react-native": "npm:^9.0.0"
-    "@octokit/rest": "npm:^21.0.0"
-    "@open-rpc/mock-server": "npm:^1.7.5"
-    "@open-rpc/schema-utils-js": "npm:^1.16.2"
-    "@open-rpc/test-coverage": "npm:^2.2.2"
-    "@react-native-async-storage/async-storage": "npm:^1.23.1"
-    "@react-native-clipboard/clipboard": "npm:^1.16.1"
-    "@react-native-community/checkbox": "npm:^0.5.20"
-    "@react-native-community/cli": "npm:15.0.1"
-    "@react-native-community/cli-platform-android": "npm:15.0.1"
-    "@react-native-community/cli-platform-ios": "npm:15.0.1"
-    "@react-native-community/cli-server-api": "npm:^17.0.0"
-    "@react-native-community/datetimepicker": "npm:^8.3.0"
-    "@react-native-community/netinfo": "npm:^11.4.1"
-    "@react-native-community/slider": "npm:^4.4.3"
-    "@react-native-cookies/cookies": "npm:^6.2.1"
-    "@react-native-firebase/app": "npm:^20.5.0"
-    "@react-native-firebase/messaging": "npm:^20.5.0"
-    "@react-native-masked-view/masked-view": "npm:^0.3.1"
-    "@react-native/babel-preset": "npm:0.76.9"
-    "@react-native/eslint-config": "npm:0.76.9"
-    "@react-native/metro-config": "npm:0.76.9"
-    "@react-native/typescript-config": "npm:0.76.9"
-    "@react-navigation/bottom-tabs": "npm:^5.11.11"
-    "@react-navigation/compat": "npm:^5.3.20"
-    "@react-navigation/native": "npm:^5.9.4"
-    "@react-navigation/stack": "npm:^5.14.5"
-    "@reduxjs/toolkit": "npm:^1.9.7"
-    "@reown/walletkit": "npm:^1.2.3"
-    "@rpii/wdio-html-reporter": "npm:^7.7.1"
-    "@segment/analytics-react-native": "npm:^2.20.3"
-    "@segment/sovran-react-native": "npm:^1.0.4"
-    "@sentry/browser": "npm:~8.54.0"
-    "@sentry/core": "npm:~8.54.0"
-    "@sentry/react": "npm:~8.54.0"
-    "@sentry/react-native": "npm:~6.15.0"
-    "@shopify/flash-list": "npm:2.0.3"
-    "@solana/addresses": "npm:2.0.0"
-    "@storybook/addon-controls": "npm:^7.5.1"
-    "@storybook/addon-ondevice-controls": "npm:^6.5.6"
-    "@storybook/builder-webpack5": "npm:^7.5.1"
-    "@storybook/react-native": "npm:^6.5.6"
-    "@testing-library/react": "npm:14.0.0"
-    "@testing-library/react-hooks": "npm:^8.0.1"
-    "@testing-library/react-native": "npm:^13.2.0"
-    "@tommasini/react-native-scrollable-tab-view": "npm:^1.1.1"
-    "@tradle/react-native-http": "npm:2.0.1"
+    "@anthropic-ai/sdk": ^0.63.1
+    "@babel/core": ^7.25.2
+    "@babel/eslint-parser": ^7.25.1
+    "@babel/preset-env": ^7.25.3
+    "@babel/register": ^7.24.6
+    "@babel/runtime": ^7.25.0
+    "@config-plugins/detox": ^9.0.0
+    "@consensys/native-ramps-sdk": ^2.1.2
+    "@consensys/on-ramp-sdk": 2.1.11
+    "@craftzdog/react-native-buffer": ^6.1.0
+    "@cucumber/message-streams": ^4.0.1
+    "@cucumber/messages": ^22.0.0
+    "@deeeed/hyperliquid-node20": ^0.23.1-node20.1
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/contracts": ^5.7.0
+    "@ethersproject/providers": ^5.7.2
+    "@expo/fingerprint": ^0.15.0
+    "@expo/repack-app": ^0.2.9
+    "@img/sharp-darwin-arm64": ^0.34.3
+    "@img/sharp-libvips-darwin-arm64": ^1.2.1
+    "@img/sharp-libvips-linux-x64": ^1.2.1
+    "@img/sharp-linux-x64": ^0.34.3
+    "@keystonehq/bc-ur-registry-eth": ^0.21.0
+    "@keystonehq/ur-decoder": ^0.12.2
+    "@lavamoat/allow-scripts": ^3.0.4
+    "@lavamoat/git-safe-dependencies": ^0.2.1
+    "@lavamoat/react-native-lockdown": ^0.0.2
+    "@ledgerhq/react-native-hw-transport-ble": ^6.34.1
+    "@metamask/abi-utils": ^3.0.0
+    "@metamask/account-api": ^0.12.0
+    "@metamask/account-tree-controller": ^1.5.0
+    "@metamask/accounts-controller": ^33.1.0
+    "@metamask/address-book-controller": ^6.1.0
+    "@metamask/app-metadata-controller": ^1.0.0
+    "@metamask/approval-controller": ^7.1.3
+    "@metamask/assets-controllers": ^79.0.0
+    "@metamask/base-controller": ^8.3.0
+    "@metamask/bitcoin-wallet-snap": ^1.3.0
+    "@metamask/bridge-controller": ^51.0.0
+    "@metamask/bridge-status-controller": ^50.0.0
+    "@metamask/browser-passworder": ^5.0.0
+    "@metamask/build-utils": ^1.0.0
+    "@metamask/chain-agnostic-permission": ^1.1.0
+    "@metamask/composable-controller": ^11.0.0
+    "@metamask/controller-utils": ^11.11.0
+    "@metamask/delegation-controller": ^0.7.0
+    "@metamask/delegation-deployments": ^0.12.0
+    "@metamask/design-system-react-native": ^0.4.0
+    "@metamask/design-system-twrnc-preset": ^0.2.1
+    "@metamask/design-tokens": ^8.1.1
+    "@metamask/earn-controller": ^8.0.0
+    "@metamask/eip-5792-middleware": ^1.2.3
+    "@metamask/eip1193-permission-middleware": ^1.0.0
+    "@metamask/ens-resolver-snap": ^1.0.0
+    "@metamask/error-reporting-service": ^2.0.0
+    "@metamask/eslint-config-typescript": ^9.0.0
+    "@metamask/eslint-plugin-design-tokens": ^1.0.0
+    "@metamask/eth-hd-keyring": ^13.0.0
+    "@metamask/eth-json-rpc-filters": ^9.0.0
+    "@metamask/eth-json-rpc-middleware": ^19.0.1
+    "@metamask/eth-ledger-bridge-keyring": 11.1.0
+    "@metamask/eth-qr-keyring": ^1.1.0
+    "@metamask/eth-query": ^4.0.0
+    "@metamask/eth-sig-util": ^8.0.0
+    "@metamask/eth-snap-keyring": ^17.3.0
+    "@metamask/etherscan-link": ^2.0.0
+    "@metamask/ethjs-contract": ^0.4.1
+    "@metamask/ethjs-query": ^0.7.1
+    "@metamask/ethjs-unit": ^0.3.0
+    "@metamask/foundryup": 1.0.0
+    "@metamask/gas-fee-controller": ^24.0.0
+    "@metamask/gator-permissions-controller": ^0.2.0
+    "@metamask/json-rpc-engine": ^10.0.3
+    "@metamask/json-rpc-middleware-stream": ^8.0.7
+    "@metamask/key-tree": ^10.1.1
+    "@metamask/keyring-api": ^21.1.0
+    "@metamask/keyring-controller": ^23.1.0
+    "@metamask/keyring-internal-api": ^9.1.0
+    "@metamask/keyring-snap-client": ^8.1.0
+    "@metamask/logging-controller": ^6.0.4
+    "@metamask/message-signing-snap": ^1.1.2
+    "@metamask/metamask-eth-abis": 3.1.1
+    "@metamask/mobile-provider": ^3.0.0
+    "@metamask/mobile-wallet-protocol-core": ^0.3.1
+    "@metamask/mobile-wallet-protocol-wallet-client": ^0.2.1
+    "@metamask/multichain-account-service": ^1.6.0
+    "@metamask/multichain-api-client": ^0.7.0
+    "@metamask/multichain-api-middleware": 1.2.0
+    "@metamask/multichain-network-controller": ^1.0.0
+    "@metamask/multichain-transactions-controller": ^5.0.0
+    "@metamask/native-utils": ^0.5.0
+    "@metamask/network-controller": ^24.2.2
+    "@metamask/network-enablement-controller": ^2.1.0
+    "@metamask/notification-services-controller": ^18.2.0
+    "@metamask/object-multiplex": ^1.1.0
+    "@metamask/permission-controller": ^11.0.6
+    "@metamask/phishing-controller": ^13.1.0
+    "@metamask/post-message-stream": ^10.0.0
+    "@metamask/ppom-validator": ^0.38.0
+    "@metamask/preferences-controller": ^20.0.1
+    "@metamask/preinstalled-example-snap": ^0.7.1
+    "@metamask/profile-sync-controller": ^25.1.0
+    "@metamask/providers": ^18.3.1
+    "@metamask/react-native-acm": ^1.0.1
+    "@metamask/react-native-actionsheet": 2.4.2
+    "@metamask/react-native-button": ^3.0.0
+    "@metamask/react-native-payments": ^2.0.0
+    "@metamask/react-native-search-api": 1.0.1
+    "@metamask/react-native-webview": ^14.5.0
+    "@metamask/remote-feature-flag-controller": ^1.9.0
+    "@metamask/rpc-errors": ^7.0.2
+    "@metamask/scure-bip39": ^2.1.0
+    "@metamask/sdk-analytics": 0.0.5
+    "@metamask/sdk-communication-layer": 0.33.1
+    "@metamask/seedless-onboarding-controller": ^4.0.0
+    "@metamask/selected-network-controller": ^24.0.0
+    "@metamask/signature-controller": ^33.0.0
+    "@metamask/slip44": ^4.2.0
+    "@metamask/smart-transactions-controller": ^19.2.1
+    "@metamask/snaps-controllers": ^15.0.1
+    "@metamask/snaps-execution-environments": ^10.2.2
+    "@metamask/snaps-rpc-methods": ^13.5.2
+    "@metamask/snaps-sdk": ^10.0.0
+    "@metamask/snaps-utils": ^11.6.0
+    "@metamask/solana-wallet-snap": ^2.4.6
+    "@metamask/solana-wallet-standard": ^0.6.0
+    "@metamask/stake-sdk": ^3.2.0
+    "@metamask/swappable-obj-proxy": ^2.1.0
+    "@metamask/swaps-controller": ^14.0.0
+    "@metamask/test-dapp": 9.5.0
+    "@metamask/test-dapp-multichain": ^0.17.1
+    "@metamask/test-dapp-solana": ^0.3.0
+    "@metamask/token-search-discovery-controller": ^3.1.0
+    "@metamask/transaction-controller": ^60.6.0
+    "@metamask/tron-wallet-snap": ^1.4.0
+    "@metamask/utils": ^11.8.1
+    "@ngraveio/bc-ur": ^1.1.6
+    "@noble/curves": 1.9.6
+    "@notifee/react-native": ^9.0.0
+    "@octokit/rest": ^21.0.0
+    "@open-rpc/mock-server": ^1.7.5
+    "@open-rpc/schema-utils-js": ^1.16.2
+    "@open-rpc/test-coverage": ^2.2.2
+    "@react-native-async-storage/async-storage": ^1.23.1
+    "@react-native-clipboard/clipboard": ^1.16.1
+    "@react-native-community/checkbox": ^0.5.20
+    "@react-native-community/cli": 15.0.1
+    "@react-native-community/cli-platform-android": 15.0.1
+    "@react-native-community/cli-platform-ios": 15.0.1
+    "@react-native-community/cli-server-api": ^17.0.0
+    "@react-native-community/datetimepicker": ^8.3.0
+    "@react-native-community/netinfo": ^11.4.1
+    "@react-native-community/slider": ^4.4.3
+    "@react-native-cookies/cookies": ^6.2.1
+    "@react-native-firebase/app": ^20.5.0
+    "@react-native-firebase/messaging": ^20.5.0
+    "@react-native-masked-view/masked-view": ^0.3.1
+    "@react-native/babel-preset": 0.76.9
+    "@react-native/eslint-config": 0.76.9
+    "@react-native/metro-config": 0.76.9
+    "@react-native/typescript-config": 0.76.9
+    "@react-navigation/bottom-tabs": ^5.11.11
+    "@react-navigation/compat": ^5.3.20
+    "@react-navigation/native": ^5.9.4
+    "@react-navigation/stack": ^5.14.5
+    "@reduxjs/toolkit": ^1.9.7
+    "@reown/walletkit": ^1.2.3
+    "@rpii/wdio-html-reporter": ^7.7.1
+    "@segment/analytics-react-native": ^2.20.3
+    "@segment/sovran-react-native": ^1.0.4
+    "@sentry/browser": ~8.54.0
+    "@sentry/core": ~8.54.0
+    "@sentry/react": ~8.54.0
+    "@sentry/react-native": ~6.15.0
+    "@shopify/flash-list": 2.0.3
+    "@solana/addresses": 2.0.0
+    "@storybook/addon-controls": ^7.5.1
+    "@storybook/addon-ondevice-controls": ^6.5.6
+    "@storybook/builder-webpack5": ^7.5.1
+    "@storybook/react-native": ^6.5.6
+    "@testing-library/react": 14.0.0
+    "@testing-library/react-hooks": ^8.0.1
+    "@testing-library/react-native": ^13.2.0
+    "@tommasini/react-native-scrollable-tab-view": ^1.1.1
+    "@tradle/react-native-http": 2.0.1
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6"
     "@types/bnjs5": "npm:@types/bn.js@^5.1.6"
     "@types/crypto-js": "npm:^4.1.1"
@@ -37028,13 +36905,6 @@ __metadata:
     pbkdf2: "npm:^3.1.2"
     safe-buffer: "npm:^5.2.1"
   checksum: 10/f82c079f4d9a4d33159c7682f9c516680f4d659fde8060697a6b3c1be4795976e826d53a1e5751a81ddc800e9c6d6fa4629b59f6d1f3241ac8447a00c89a67d3
-  languageName: node
-  linkType: hard
-
-"parse-bmfont-ascii@npm:1.0.6":
-  version: 1.0.6
-  resolution: "parse-bmfont-ascii@npm:1.0.6"
-  checksum: de3f6671f183c3e9d64bb4812b0407693b5fd0d24e9d16b2e106bb9eef809d64a6cc061f39ca29bb10c5c2e47e241e91b7aeefa587391fff7ccb27ab9db5012e
   languageName: node
   linkType: hard
 
@@ -42427,13 +42297,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string-format@npm:0.5.0":
-  version: 0.5.0
-  resolution: "string-format@npm:0.5.0"
-  checksum: 2cd2cd3d8fe5a8851e6e06acba06484c66f46009adcf2f09fab7eaa1217914de6ee8e7127c55b0a2f5f0f6b393cd8ffc38a57ea84c3eaea658ff5ac8920f2739
-  languageName: node
-  linkType: hard
-
 "string-length@npm:^4.0.1":
   version: 4.0.2
   resolution: "string-length@npm:4.0.2"
@@ -43239,13 +43102,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tess2@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "tess2@npm:1.0.0"
-  checksum: eb4a98058241a646ff103873ee57d11c0aaaa0d08f197fb532081aada8d8d64a4ad3c6206adc7f681480e3684a1a2a305b2913b877f279bd397a8e2d2db2d9e5
-  languageName: node
-  linkType: hard
-
 "test-exclude@npm:^6.0.0":
   version: 6.0.0
   resolution: "test-exclude@npm:6.0.0"
@@ -43261,13 +43117,6 @@ __metadata:
   version: 1.0.2
   resolution: "text-encoding-utf-8@npm:1.0.2"
   checksum: 10/845bb4bd058d6ec7bb9e1f00be7dab394cd7facd270e2bc266912e975ffe29bc3953cce369da70b92bec964ddc48961c3a5146402d094e11a7a4654e4a365204
-  languageName: node
-  linkType: hard
-
-"text-encoding@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "text-encoding@npm:0.7.0"
-  checksum: b6109a843fb1b8748b32e1ecd6df74d370f46c13ac136bcb6ca15db70209bb0b8ec1f296ebb4b0dd9961150e205dcc044b89f8cf7657f6faef78c7569a2a81bc
   languageName: node
   linkType: hard
 
@@ -44019,15 +43868,6 @@ __metadata:
   version: 0.1.2
   resolution: "ua-is-frozen@npm:0.1.2"
   checksum: 10/0113bed77d437a3752323175f01057dd01911506225e9d33799799188a89a230ab63d2445b096d4399ea8eb94e3163608f7ac2425fb8edd0844d891490607e14
-  languageName: node
-  linkType: hard
-
-"ua-parser-js@npm:^0.7.30":
-  version: 0.7.41
-  resolution: "ua-parser-js@npm:0.7.41"
-  bin:
-    ua-parser-js: script/cli.js
-  checksum: c14ea0ba52585f0c363375b30d511d972bf1842855b6d6f4a411e6a27c936c7eb1f96e53e2d321fe3c587f0420677dcabd8977622be71da51edc8521e595b9b9
   languageName: node
   linkType: hard
 
@@ -45258,13 +45098,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webidl-conversions@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "webidl-conversions@npm:4.0.2"
-  checksum: c93d8dfe908a0140a4ae9c0ebc87a33805b416a33ee638a605b551523eec94a9632165e54632f6d57a39c5f948c4bab10e0e066525e9a4b87a79f0d04fbca374
-  languageName: node
-  linkType: hard
-
 "webidl-conversions@npm:^5.0.0":
   version: 5.0.0
   resolution: "webidl-conversions@npm:5.0.0"
@@ -45422,7 +45255,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"whatwg-fetch@npm:>=0.10.0, whatwg-fetch@npm:^3.0.0, whatwg-fetch@npm:^3.4.1":
+"whatwg-fetch@npm:^3.0.0, whatwg-fetch@npm:^3.4.1":
   version: 3.6.20
   resolution: "whatwg-fetch@npm:3.6.20"
   checksum: 10/2b4ed92acd6a7ad4f626a6cb18b14ec982bbcaf1093e6fe903b131a9c6decd14d7f9c9ca3532663c2759d1bdf01d004c77a0adfb2716a5105465c20755a8c57c
@@ -45915,13 +45748,6 @@ __metadata:
   version: 11.0.1
   resolution: "xmlbuilder@npm:11.0.1"
   checksum: 10/c8c3d208783718db5b285101a736cd8e6b69a5c265199a0739abaa93d1a1b7de5489fd16df4e776e18b2c98cb91f421a7349e99fd8c1ebeb44ecfed72a25091a
-  languageName: node
-  linkType: hard
-
-"xmldom-qsa@npm:^1.0.3":
-  version: 1.1.3
-  resolution: "xmldom-qsa@npm:1.1.3"
-  checksum: 50e77abd9e240e400cbbe97a9a9c6b9b6162f7d18cfcb8f31b58bc6092ca8b51f6d8435894c638051f3c3cfd6c6d1176b42715a0dd9e38b837c806159560d49a
   languageName: node
   linkType: hard
 
