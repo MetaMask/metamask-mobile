@@ -1,4 +1,4 @@
-import { SolScope, BtcScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
@@ -44,6 +44,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [NETWORK_CHAIN_ID.SEI_MAINNET]: 'Sei',
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'Bitcoin',
+  [TrxScope.Mainnet]: 'Tron',
 };
 
 export const BRIDGE_API_BASE_URL =
