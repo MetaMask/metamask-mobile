@@ -1,13 +1,9 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
-
-interface WithdrawalRequest {
-  status: string;
-  amount?: string;
-}
+import { TransactionRecord } from '../types/transactionTypes';
 
 interface UsePerpsTransactionStateProps {
-  withdrawalRequests: WithdrawalRequest[];
+  withdrawalRequests: TransactionRecord[];
   isDepositInProgress: boolean;
 }
 

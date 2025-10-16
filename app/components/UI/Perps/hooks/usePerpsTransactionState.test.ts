@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePerpsTransactionState } from './usePerpsTransactionState';
+import { TransactionRecord } from '../types/transactionTypes';
 
 // Mock the strings function
 jest.mock('../../../../locales/i18n', () => ({
@@ -15,14 +16,9 @@ jest.mock('../../../../locales/i18n', () => ({
   }),
 }));
 
-interface WithdrawalRequest {
-  status: string;
-  amount?: string;
-}
-
 describe('usePerpsTransactionState', () => {
   const defaultProps = {
-    withdrawalRequests: [] as WithdrawalRequest[],
+    withdrawalRequests: [] as TransactionRecord[],
     isDepositInProgress: false,
   };
 
@@ -53,8 +49,22 @@ describe('usePerpsTransactionState', () => {
     const props = {
       ...defaultProps,
       withdrawalRequests: [
-        { status: 'pending', amount: '100' },
-        { status: 'completed', amount: '50' },
+        {
+          id: '1',
+          status: 'pending' as const,
+          amount: '100',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: false,
+        },
+        {
+          id: '2',
+          status: 'completed' as const,
+          amount: '50',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: true,
+        },
       ],
     };
 
@@ -69,7 +79,16 @@ describe('usePerpsTransactionState', () => {
   it('handles bridging withdrawals correctly', () => {
     const props = {
       ...defaultProps,
-      withdrawalRequests: [{ status: 'bridging', amount: '250' }],
+      withdrawalRequests: [
+        {
+          id: '1',
+          status: 'bridging',
+          amount: '250',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: true,
+        },
+      ],
     };
 
     const { result } = renderHook(() => usePerpsTransactionState(props));
@@ -82,7 +101,16 @@ describe('usePerpsTransactionState', () => {
 
   it('handles multiple transactions in progress correctly', () => {
     const props = {
-      withdrawalRequests: [{ status: 'pending', amount: '100' }],
+      withdrawalRequests: [
+        {
+          id: '1',
+          status: 'pending',
+          amount: '100',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: false,
+        },
+      ],
       isDepositInProgress: true,
     };
 
@@ -98,7 +126,14 @@ describe('usePerpsTransactionState', () => {
     const props = {
       ...defaultProps,
       withdrawalRequests: [
-        { status: 'pending' }, // No amount property
+        {
+          id: '1',
+          status: 'pending' as const,
+          amount: '0',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: false,
+        },
       ],
     };
 
@@ -114,8 +149,22 @@ describe('usePerpsTransactionState', () => {
     const props = {
       ...defaultProps,
       withdrawalRequests: [
-        { status: 'pending', amount: '100' },
-        { status: 'bridging', amount: '500' },
+        {
+          id: '1',
+          status: 'pending' as const,
+          amount: '100',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: false,
+        },
+        {
+          id: '2',
+          status: 'bridging' as const,
+          amount: '500',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: true,
+        },
       ],
     };
 
@@ -142,7 +191,16 @@ describe('usePerpsTransactionState', () => {
 
     // Add withdrawal
     rerender({
-      withdrawalRequests: [{ status: 'pending', amount: '200' }],
+      withdrawalRequests: [
+        {
+          id: '1',
+          status: 'pending',
+          amount: '200',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: false,
+        },
+      ],
       isDepositInProgress: true,
     });
     expect(result.current.statusText).toBe('Multiple transactions in progress');
@@ -153,9 +211,30 @@ describe('usePerpsTransactionState', () => {
     const props = {
       ...defaultProps,
       withdrawalRequests: [
-        { status: 'completed', amount: '100' },
-        { status: 'failed', amount: '50' },
-        { status: 'cancelled', amount: '25' },
+        {
+          id: '1',
+          status: 'completed' as const,
+          amount: '100',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: true,
+        },
+        {
+          id: '2',
+          status: 'failed' as const,
+          amount: '50',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: false,
+        },
+        {
+          id: '3',
+          status: 'failed' as const,
+          amount: '25',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          success: false,
+        },
       ],
     };
 
