@@ -5,15 +5,15 @@ import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { SmokeConfirmations } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { RegressionConfirmations } from '../../../tags';
 
-describe(SmokeConfirmations('Typed Sign'), () => {
+describe(RegressionConfirmations('Typed Sign'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,

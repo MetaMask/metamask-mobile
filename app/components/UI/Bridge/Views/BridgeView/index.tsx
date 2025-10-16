@@ -81,6 +81,7 @@ import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE, RequestStatus } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
+import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -177,6 +178,7 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
     blockaidError,
+    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -205,6 +207,22 @@ const BridgeView = () => {
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
     !hasSufficientGas;
+
+  const isSubmitDisabled =
+    hasInsufficientBalance ||
+    isSubmittingTx ||
+    (isHardwareAddress && isSolanaSourced) ||
+    !!blockaidError ||
+    !hasSufficientGas;
+
+  useBridgeQuoteEvents({
+    hasInsufficientBalance,
+    hasNoQuotesAvailable: isNoQuotesAvailable,
+    hasInsufficientGas: !hasSufficientGas,
+    hasTxAlert: Boolean(blockaidError),
+    isSubmitDisabled,
+    isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+  });
 
   // Compute error state directly from dependencies
   const isError =

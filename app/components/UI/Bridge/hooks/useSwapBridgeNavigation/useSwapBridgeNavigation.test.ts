@@ -6,6 +6,12 @@ import { Hex } from '@metamask/utils';
 import { EthScope, SolScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
+import {
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../../util/analytics/actionButtonTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -13,6 +19,23 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
+
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+
+jest.mock('../../../../hooks/useMetrics', () => {
+  const actualMetrics = jest.requireActual('../../../../hooks/useMetrics');
+  return {
+    ...actualMetrics,
+    useMetrics: jest.fn(() => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    })),
+  };
+});
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -89,6 +112,12 @@ describe('useSwapBridgeNavigation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Setup event builder chain
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
 
     // Setup default mocks for Ethereum
     mockUseCurrentNetworkInfo.mockReturnValue({
@@ -459,6 +488,144 @@ describe('useSwapBridgeNavigation', () => {
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
         },
+      });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks action button click with correct properties when location is TabBar', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TabBar,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.HOME,
+      });
+      expect(mockBuild).toHaveBeenCalled();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
+    });
+
+    it('tracks action button click with correct properties when location is TokenDetails', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenDetails,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
+      });
+    });
+
+    it('tracks action button click when location is Swaps', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.Swaps,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
+      });
+    });
+
+    it('tracks action button click when location is Rewards', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.Rewards,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
+      });
+    });
+
+    it('tracks action button click event is fired exactly once per navigation', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TabBar,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      // The hook tracks two events: ACTION_BUTTON_CLICKED and SWAP_BUTTON_CLICKED
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+      expect(mockAddProperties).toHaveBeenCalledTimes(2);
+      expect(mockBuild).toHaveBeenCalledTimes(2);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('tracks action button click with provided source token', () => {
+      const mockToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000001',
+        symbol: 'TOKEN',
+        name: 'Test Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenDetails,
+            sourcePage: mockSourcePage,
+            sourceToken: mockToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
       });
     });
   });

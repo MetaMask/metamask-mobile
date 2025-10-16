@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import { PredictDepositStatus } from '../types';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -14,10 +15,27 @@ jest.mock('../../../../core/Engine', () => ({
 
 // Mock useConfirmNavigation
 const mockNavigateToConfirmation = jest.fn();
+const mockConfirmNavigationResult = {
+  navigateToConfirmation: mockNavigateToConfirmation,
+};
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
-  useConfirmNavigation: () => ({
-    navigateToConfirmation: mockNavigateToConfirmation,
-  }),
+  useConfirmNavigation: () => mockConfirmNavigationResult,
+}));
+
+// Mock usePredictEligibility
+const mockEligibilityResult = { isEligible: true };
+jest.mock('./usePredictEligibility', () => ({
+  usePredictEligibility: () => mockEligibilityResult,
+}));
+
+// Mock useNavigation
+const mockNavigate = jest.fn();
+const mockNavigationResult = {
+  navigate: mockNavigate,
+};
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigationResult,
 }));
 
 // Mock react-redux
@@ -74,6 +92,8 @@ describe('usePredictDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigateToConfirmation.mockClear();
+    mockNavigate.mockClear();
+    mockEligibilityResult.isEligible = true;
     (
       Engine.context.PredictController.depositWithConfirmation as jest.Mock
     ).mockClear();
@@ -83,9 +103,7 @@ describe('usePredictDeposit', () => {
     it('returns correct initial state when no deposit transaction exists', () => {
       const { result } = setupUsePredictDepositTest();
 
-      expect(result.current.loading).toBe(false);
-      expect(result.current.completed).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.status).toBeUndefined();
       expect(typeof result.current.deposit).toBe('function');
     });
 
@@ -97,41 +115,35 @@ describe('usePredictDeposit', () => {
     });
   });
 
-  describe('state computation from depositTransaction', () => {
-    it('computes completed state when transaction is confirmed', () => {
+  describe('status from depositTransaction', () => {
+    it('returns confirmed status when transaction is confirmed', () => {
       const depositTransaction = createMockDepositTransaction({
         status: PredictDepositStatus.CONFIRMED,
       });
 
       const { result } = setupUsePredictDepositTest({ depositTransaction });
 
-      expect(result.current.completed).toBe(true);
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.status).toBe(PredictDepositStatus.CONFIRMED);
     });
 
-    it('computes pending state when transaction is pending', () => {
+    it('returns pending status when transaction is pending', () => {
       const depositTransaction = createMockDepositTransaction({
         status: PredictDepositStatus.PENDING,
       });
 
       const { result } = setupUsePredictDepositTest({ depositTransaction });
 
-      expect(result.current.loading).toBe(true);
-      expect(result.current.completed).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.status).toBe(PredictDepositStatus.PENDING);
     });
 
-    it('computes error state when transaction has error status', () => {
+    it('returns error status when transaction has error status', () => {
       const depositTransaction = createMockDepositTransaction({
         status: PredictDepositStatus.ERROR,
       });
 
       const { result } = setupUsePredictDepositTest({ depositTransaction });
 
-      expect(result.current.error).toBe(true);
-      expect(result.current.completed).toBe(false);
-      expect(result.current.loading).toBe(false);
+      expect(result.current.status).toBe(PredictDepositStatus.ERROR);
     });
 
     it('handles null transaction correctly', () => {
@@ -139,26 +151,38 @@ describe('usePredictDeposit', () => {
         depositTransaction: null,
       });
 
-      expect(result.current.completed).toBe(false);
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.status).toBeUndefined();
     });
 
-    it('handles cancelled transaction', () => {
+    it('returns cancelled status when transaction is cancelled', () => {
       const depositTransaction = createMockDepositTransaction({
         status: PredictDepositStatus.CANCELLED,
       });
 
       const { result } = setupUsePredictDepositTest({ depositTransaction });
 
-      expect(result.current.completed).toBe(false);
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.status).toBe(PredictDepositStatus.CANCELLED);
     });
   });
 
   describe('deposit function', () => {
-    it('calls navigateToConfirmation with correct params', async () => {
+    it('navigates to unavailable modal when user is not eligible', async () => {
+      mockEligibilityResult.isEligible = false;
+
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+        screen: 'PredictUnavailable',
+      });
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(
+        Engine.context.PredictController.depositWithConfirmation,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('calls navigateToConfirmation with correct params when eligible', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
@@ -171,8 +195,7 @@ describe('usePredictDeposit', () => {
       await result.current.deposit();
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        loader: 'customAmount',
-        stack: 'Predict',
+        loader: ConfirmationLoader.CustomAmount,
       });
     });
 
@@ -274,10 +297,10 @@ describe('usePredictDeposit', () => {
       expect(result.current.deposit).toBe(initialDeposit);
     });
 
-    it('recomputes states when depositTransaction changes', () => {
+    it('updates status when depositTransaction changes', () => {
       const { result, rerender } = setupUsePredictDepositTest();
 
-      expect(result.current.loading).toBe(false);
+      expect(result.current.status).toBeUndefined();
 
       // Update state with pending transaction
       mockState = {
@@ -294,15 +317,15 @@ describe('usePredictDeposit', () => {
 
       rerender({});
 
-      expect(result.current.loading).toBe(true);
+      expect(result.current.status).toBe(PredictDepositStatus.PENDING);
     });
   });
 
   describe('state transitions', () => {
-    it('updates completed state when depositTransaction changes to confirmed', () => {
+    it('updates status when depositTransaction changes to confirmed', () => {
       const { result, rerender } = setupUsePredictDepositTest();
 
-      expect(result.current.completed).toBe(false);
+      expect(result.current.status).toBeUndefined();
 
       // Update state with confirmed transaction
       mockState = {
@@ -319,13 +342,13 @@ describe('usePredictDeposit', () => {
 
       rerender({});
 
-      expect(result.current.completed).toBe(true);
+      expect(result.current.status).toBe(PredictDepositStatus.CONFIRMED);
     });
 
-    it('updates loading state when depositTransaction changes to pending', () => {
+    it('updates status when depositTransaction changes to pending', () => {
       const { result, rerender } = setupUsePredictDepositTest();
 
-      expect(result.current.loading).toBe(false);
+      expect(result.current.status).toBeUndefined();
 
       // Add pending transaction
       mockState = {
@@ -342,13 +365,13 @@ describe('usePredictDeposit', () => {
 
       rerender({});
 
-      expect(result.current.loading).toBe(true);
+      expect(result.current.status).toBe(PredictDepositStatus.PENDING);
     });
 
-    it('updates error state when depositTransaction changes to error', () => {
+    it('updates status when depositTransaction changes to error', () => {
       const { result, rerender } = setupUsePredictDepositTest();
 
-      expect(result.current.error).toBe(false);
+      expect(result.current.status).toBeUndefined();
 
       // Add error transaction
       mockState = {
@@ -365,7 +388,7 @@ describe('usePredictDeposit', () => {
 
       rerender({});
 
-      expect(result.current.error).toBe(true);
+      expect(result.current.status).toBe(PredictDepositStatus.ERROR);
     });
   });
 

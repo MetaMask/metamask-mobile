@@ -18,6 +18,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock usePredictBalance hook
+const mockUsePredictBalance = jest.fn();
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => mockUsePredictBalance(),
+}));
+
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
   marketId: 'test-market-1',
@@ -64,6 +70,14 @@ const initialState = {
 };
 
 describe('PredictMarketOutcome', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Default mock implementation - user has balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: false,
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
@@ -166,5 +180,80 @@ describe('PredictMarketOutcome', () => {
     );
 
     expect(getByText('Crypto Markets')).toBeOnTheScreen();
+  });
+
+  it('navigates to add funds sheet when user has no balance - Yes button', () => {
+    // Mock user has no balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes • 65.00¢');
+    fireEvent.press(yesButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('navigates to add funds sheet when user has no balance - No button', () => {
+    // Mock user has no balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButton = getByText('No • 35.00¢');
+    fireEvent.press(noButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('displays 0% when tokens have price 0', () => {
+    const outcomeWithZeroPriceTokens: PredictOutcome = {
+      ...mockOutcome,
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 0 },
+        { id: 'token-no', title: 'No', price: 0 },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome
+        outcome={outcomeWithZeroPriceTokens}
+        market={mockMarket}
+      />,
+      { state: initialState },
+    );
+
+    expect(getByText('0%')).toBeOnTheScreen();
+    // Should show buttons with 0.00¢ prices
+    expect(getByText('Yes • 0.00¢')).toBeOnTheScreen();
+    expect(getByText('No • 0.00¢')).toBeOnTheScreen();
+  });
+
+  it('displays Unknown Market when groupItemTitle is missing', () => {
+    const outcomeWithNoTitle: PredictOutcome = {
+      ...mockOutcome,
+      groupItemTitle: undefined as unknown as string,
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={outcomeWithNoTitle} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Unknown Market')).toBeOnTheScreen();
   });
 });

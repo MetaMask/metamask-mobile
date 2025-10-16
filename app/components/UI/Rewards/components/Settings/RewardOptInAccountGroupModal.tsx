@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
   Text,
@@ -9,14 +10,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import MultichainAddressRow from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import { Icon as IconType } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.types';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useSelector } from 'react-redux';
@@ -29,7 +27,7 @@ import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selec
 import { CaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isTestNet } from '../../../../../util/networks';
-import ClipboardManager from '../../../../../core/ClipboardManager';
+import { MultichainAddressRow } from '../../../../../component-library/components-temp/MultichainAccounts';
 
 interface RouteParams {
   accountGroupId: AccountGroupId;
@@ -55,6 +53,13 @@ const RewardOptInAccountGroupModal: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { accountGroupId, addressData } = route.params as RouteParams;
+  const { height: screenHeight } = useWindowDimensions();
+
+  const listStyle = useMemo(
+    () => ({ maxHeight: screenHeight * 0.65 }),
+    [screenHeight],
+  );
+
   const accountGroupContext = useSelector((state: RootState) =>
     selectAccountGroupById(state, accountGroupId),
   );
@@ -198,33 +203,31 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     }
   }, [linkAccountGroup, accountGroupId]);
 
-  const renderAddressItem = useCallback(
-    ({ item }: { item: FlattenedAddressItem }) => {
-      if (!item?.address || !item?.scope) {
-        return null;
+  const renderItem = useCallback(
+    ({
+      item,
+    }: {
+      item:
+        | { type: 'header'; title: string }
+        | ({ type: 'item' } & FlattenedAddressItem);
+    }) => {
+      if (item.type === 'header') {
+        return (
+          <Box twClassName="px-4 py-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="text-alternative"
+            >
+              {item.title}
+            </Text>
+          </Box>
+        );
       }
 
-      const isUnsupported = item.isSupported === false;
-
-      // Determine status icon based on account state:
-      // - Check icon (✓) if the address has opted in
-      // - Close icon (✗) if the address has NOT opted in yet
-      // - Warning icon (⚠) if the address type is unsupported
-      const statusIcon: IconType = {
-        name: isUnsupported
-          ? IconName.Warning
-          : item.hasOptedIn
-          ? IconName.Check
-          : IconName.Close,
-        callback: () => {
-          // Status indicator - non-interactive
-        },
-        testId: `status-icon-${item.address}-${item.scope}`,
-      };
-
-      const copyAddressToClipboard = async () => {
-        await ClipboardManager.setString(item.address);
-      };
+      if (!item.address || !item.scope) {
+        return null;
+      }
 
       return (
         <MultichainAddressRow
@@ -232,11 +235,6 @@ const RewardOptInAccountGroupModal: React.FC = () => {
           chainId={item.scope}
           networkName={item.networkName}
           address={item.address}
-          copyParams={{
-            successMessage: strings('multichain_accounts.address_list.copied'),
-            callback: copyAddressToClipboard,
-          }}
-          icons={[statusIcon]}
         />
       );
     },
@@ -257,6 +255,55 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     [flattenedAddressData],
   );
 
+  // Flatten addresses with section headers for FlatList
+  const flatListData = useMemo(() => {
+    const supportedAddresses = flattenedAddressData.filter(
+      (item) => item.isSupported !== false,
+    );
+
+    const trackedAddresses = supportedAddresses.filter(
+      (item) => item.hasOptedIn,
+    );
+    const untrackedAddresses = supportedAddresses.filter(
+      (item) => !item.hasOptedIn,
+    );
+
+    const data: (
+      | { type: 'header'; title: string }
+      | ({ type: 'item' } & FlattenedAddressItem)
+    )[] = [];
+
+    // Only show headers if there are both tracked and untracked addresses
+    const showHeaders =
+      trackedAddresses.length > 0 && untrackedAddresses.length > 0;
+
+    if (trackedAddresses.length > 0) {
+      if (showHeaders) {
+        data.push({
+          type: 'header',
+          title: strings('rewards.link_account_group.tracked'),
+        });
+      }
+      trackedAddresses.forEach((item) => {
+        data.push({ type: 'item', ...item });
+      });
+    }
+
+    if (untrackedAddresses.length > 0) {
+      if (showHeaders) {
+        data.push({
+          type: 'header',
+          title: strings('rewards.link_account_group.untracked'),
+        });
+      }
+      untrackedAddresses.forEach((item) => {
+        data.push({ type: 'item', ...item });
+      });
+    }
+
+    return data;
+  }, [flattenedAddressData]);
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -265,10 +312,8 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
         <BottomSheetHeader>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {`${accountGroupContext?.metadata?.name} / ${strings(
-              'rewards.link_account_group.linked_accounts',
-            )}`}
+          <Text variant={TextVariant.HeadingSm}>
+            {accountGroupContext?.metadata?.name}
           </Text>
         </BottomSheetHeader>
       )}
@@ -287,18 +332,20 @@ const RewardOptInAccountGroupModal: React.FC = () => {
         </Box>
       )}
 
-      <Box twClassName="gap-2">
-        {flattenedAddressData.length > 0 && (
-          <FlatList
-            testID="reward-opt-in-address-list"
-            data={flattenedAddressData}
-            keyExtractor={(item) => `${item.address}-${item.scope}`}
-            renderItem={renderAddressItem}
-            showsVerticalScrollIndicator={false}
-            removeClippedSubviews
-          />
-        )}
-      </Box>
+      {flatListData.length > 0 && (
+        <FlatList
+          testID="reward-opt-in-address-list"
+          style={listStyle}
+          data={flatListData}
+          keyExtractor={(item, index) =>
+            item.type === 'header'
+              ? `header-${item.title}-${index}`
+              : `${item.address}-${item.scope}-${index}`
+          }
+          renderItem={renderItem}
+          showsVerticalScrollIndicator
+        />
+      )}
 
       {canOptInAddresses.length > 0 && (
         <Box twClassName="px-4 gap-2 pt-2">

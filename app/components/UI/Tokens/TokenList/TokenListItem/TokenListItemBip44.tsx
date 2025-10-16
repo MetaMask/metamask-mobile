@@ -42,7 +42,7 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
-const accountTypeLabel: Partial<Record<KeyringAccountType, string>> = {
+export const accountTypeLabel: Partial<Record<KeyringAccountType, string>> = {
   [BtcAccountType.P2pkh]: 'Legacy',
   [BtcAccountType.P2sh]: 'Nested SegWit',
   [BtcAccountType.P2wpkh]: 'Native SegWit',

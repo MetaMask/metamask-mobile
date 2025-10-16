@@ -3,12 +3,13 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selec
 import { useMemo } from 'react';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  * Hook to get account IDs for non-EVM accounts
  * @returns {string[]} Array of account IDs for accounts that have non-EVM scopes
  */
-export const useNonEvmAccountIds = (): string[] => {
+export const useNonEvmAccounts = (): InternalAccount[] => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const enabledSourceChainIds = useMemo(
     () =>
@@ -20,15 +21,13 @@ export const useNonEvmAccountIds = (): string[] => {
     selectSelectedAccountGroupInternalAccounts,
   );
 
-  const nonEvmAccountIds = useMemo(
+  const nonEvmAccounts = useMemo(
     () =>
-      selectedAccountGroupInternalAccounts
-        .filter((account) =>
-          account.scopes.some((scope) => enabledSourceChainIds.includes(scope)),
-        )
-        .map((account) => account.id),
+      selectedAccountGroupInternalAccounts.filter((account) =>
+        account.scopes.some((scope) => enabledSourceChainIds.includes(scope)),
+      ),
     [selectedAccountGroupInternalAccounts, enabledSourceChainIds],
   );
 
-  return nonEvmAccountIds;
+  return nonEvmAccounts;
 };

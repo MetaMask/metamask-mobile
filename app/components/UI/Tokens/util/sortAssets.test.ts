@@ -149,6 +149,43 @@ describe('sortAssets function - nested value handling with dates and numeric sor
       sortedByCategory[sortedByCategory.length - 1].profile.info?.category,
     ).toBeUndefined();
   });
+
+  test('handles null values when sorting with alphaNumeric', () => {
+    const assetWithNull = {
+      name: null as unknown as string,
+      balance: '700',
+      createdAt: new Date('2024-06-01'),
+      profile: { id: '5', info: { category: 'platinum' } },
+    };
+
+    const sortedByName = sortAssets([...mockAssets, assetWithNull], {
+      key: 'name',
+      sortCallback: 'alphaNumeric',
+      order: 'asc',
+    });
+
+    expect(sortedByName[sortedByName.length - 1].name).toBeNull();
+    expect(sortedByName[0].name).toBe('Asset A');
+    expect(sortedByName[1].name).toBe('Asset B');
+  });
+
+  test('handles null values in descending order', () => {
+    const assetWithNull = {
+      name: null as unknown as string,
+      balance: '700',
+      createdAt: new Date('2024-06-01'),
+      profile: { id: '5', info: { category: 'platinum' } },
+    };
+
+    const sortedByName = sortAssets([...mockAssets, assetWithNull], {
+      key: 'name',
+      sortCallback: 'alphaNumeric',
+      order: 'dsc',
+    });
+
+    expect(sortedByName[sortedByName.length - 1].name).toBeNull();
+    expect(sortedByName[0].name).toBe('Asset Z');
+  });
 });
 
 // Utility function to generate large mock data

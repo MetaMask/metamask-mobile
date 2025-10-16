@@ -31,6 +31,8 @@ jest.mock('../../../hooks/gas/useIsGaslessSupported', () => ({
 }));
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
+jest.mock('../../../hooks/useAutomaticGasFeeTokenSelect');
+
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
 }));

@@ -228,11 +228,9 @@ import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerState,
-} from '@metamask/remote-feature-flag-controller';
-import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
-} from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+} from '@metamask/remote-feature-flag-controller';
 import {
   RestrictedMessenger,
   ActionConstraint,
@@ -722,6 +720,7 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'NftController'
   | 'NftDetectionController'
+  | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
@@ -741,6 +740,7 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
+  | 'PPOMController'
   | 'RewardsController'
   | 'RewardsDataService'
   | 'GatorPermissionsController'
@@ -814,6 +814,11 @@ export type ControllerInitRequest<
    */
   getState: () => RootState;
 
+  /**
+   * The MetaMetrics ID to use for tracking.
+   */
+  metaMetricsId?: string;
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * Remove an account from all controllers that manage accounts.
@@ -877,6 +882,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
+  metaMetricsId?: string;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;

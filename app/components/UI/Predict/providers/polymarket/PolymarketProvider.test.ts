@@ -1737,12 +1737,17 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
       const mockUnrealizedPnL = [
         {
-          user: '0x1234567890123456789012345678901234567890',
+          user: '0x9999999999999999999999999999999999999999',
           cashUpnl: -7.337110036077004,
           percentUpnl: -31.32290842628039,
         },
       ];
 
+      (computeSafeAddress as jest.Mock).mockResolvedValue(
+        '0x9999999999999999999999999999999999999999',
+      );
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
       (globalThis.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue(mockUnrealizedPnL),
@@ -1754,7 +1759,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual(mockUnrealizedPnL[0]);
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://data-api.polymarket.com/upnl?user=0x1234567890123456789012345678901234567890',
+        'https://data-api.polymarket.com/upnl?user=0x9999999999999999999999999999999999999999',
         {
           method: 'GET',
           headers: {
@@ -1842,12 +1847,17 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
       const mockUnrealizedPnL = [
         {
-          user: '0x0000000000000000000000000000000000000000',
+          user: '0x9999999999999999999999999999999999999999',
           cashUpnl: 0,
           percentUpnl: 0,
         },
       ];
 
+      (computeSafeAddress as jest.Mock).mockResolvedValue(
+        '0x9999999999999999999999999999999999999999',
+      );
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
       (globalThis.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue(mockUnrealizedPnL),
@@ -1858,7 +1868,7 @@ describe('PolymarketProvider', () => {
       });
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://data-api.polymarket.com/upnl?user=0x0000000000000000000000000000000000000000',
+        'https://data-api.polymarket.com/upnl?user=0x9999999999999999999999999999999999999999',
         {
           method: 'GET',
           headers: {
@@ -2343,7 +2353,6 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
       (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
       (hasAllowances as jest.Mock).mockResolvedValue(false);
-      (getBalance as jest.Mock).mockResolvedValue(0);
 
       // When getting account state
       const result = await provider.getAccountState({
@@ -2355,7 +2364,6 @@ describe('PolymarketProvider', () => {
         address: '0xSafeAddress',
         isDeployed: false,
         hasAllowances: false,
-        balance: 0,
       });
     });
 
@@ -2364,7 +2372,6 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
       (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
       (hasAllowances as jest.Mock).mockResolvedValue(true);
-      (getBalance as jest.Mock).mockResolvedValue(150.5);
 
       // When getting account state
       const result = await provider.getAccountState({
@@ -2376,7 +2383,6 @@ describe('PolymarketProvider', () => {
         address: '0xSafeAddress',
         isDeployed: true,
         hasAllowances: true,
-        balance: 150.5,
       });
     });
 
@@ -2385,7 +2391,6 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
       (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
       (hasAllowances as jest.Mock).mockResolvedValue(true);
-      (getBalance as jest.Mock).mockResolvedValue(100);
 
       // When getting account state twice
       await provider.getAccountState({ ownerAddress: '0x123' });
@@ -2400,7 +2405,6 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
       (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
       (hasAllowances as jest.Mock).mockResolvedValue(true);
-      (getBalance as jest.Mock).mockResolvedValue(100);
 
       // When getting account state for different owners
       await provider.getAccountState({ ownerAddress: '0x123' });
@@ -2417,11 +2421,9 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
       const isDeployedPromise = Promise.resolve(true);
       const hasAllowancesPromise = Promise.resolve(true);
-      const balancePromise = Promise.resolve(100);
 
       (isSmartContractAddress as jest.Mock).mockReturnValue(isDeployedPromise);
       (hasAllowances as jest.Mock).mockReturnValue(hasAllowancesPromise);
-      (getBalance as jest.Mock).mockReturnValue(balancePromise);
 
       // When getting account state
       await provider.getAccountState({ ownerAddress: '0x123' });
@@ -2434,20 +2436,25 @@ describe('PolymarketProvider', () => {
       expect(hasAllowances).toHaveBeenCalledWith({
         address: '0xSafeAddress',
       });
-      expect(getBalance).toHaveBeenCalledWith({ address: '0xSafeAddress' });
     });
   });
 
   describe('getBalance', () => {
-    it('returns 0 as balance is not yet implemented', async () => {
+    it('returns balance for the given address', async () => {
       // Given a provider
       const provider = createProvider();
+      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (getBalance as jest.Mock).mockResolvedValue(123.45);
 
       // When getting balance
-      const result = await provider.getBalance();
+      const result = await provider.getBalance({
+        address: '0x1234567890123456789012345678901234567890',
+        providerId: 'polymarket',
+      });
 
-      // Then 0 is returned
-      expect(result).toBe(0);
+      // Then balance is returned
+      expect(result).toBe(123.45);
+      expect(getBalance).toHaveBeenCalledWith({ address: '0xSafeAddress' });
     });
   });
 

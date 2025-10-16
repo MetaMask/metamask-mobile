@@ -894,6 +894,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               data={
                                 [
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000002",
                                     "balance": "2.0",
                                     "balanceFiat": "$200000",
@@ -905,6 +906,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 200000,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000003",
                                     "balance": "5.0",
                                     "balanceFiat": "$80000",
@@ -916,6 +918,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 80000,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000000",
                                     "balance": "20.0",
                                     "balanceFiat": "$40000",
@@ -927,6 +930,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 40000,
                                   },
                                   {
+                                    "accountType": "solana:data-account",
                                     "address": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
                                     "balance": "20000.456",
                                     "balanceFiat": "20000.456 USD",
@@ -938,6 +942,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 20000.456,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000001",
                                     "balance": "1.0",
                                     "balanceFiat": "$20000",
@@ -949,6 +954,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 20000,
                                   },
                                   {
+                                    "accountType": "solana:data-account",
                                     "address": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
                                     "balance": "100.123",
                                     "balanceFiat": "10012.3 USD",
@@ -960,6 +966,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 10012.3,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000000",
                                     "balance": "3.0",
                                     "balanceFiat": "$6000",
@@ -971,6 +978,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 6000,
                                   },
                                   {
+                                    "accountType": "bip122:p2wpkh",
                                     "address": "bip122:000000000019d6689c085ae165831e93/slip44:0",
                                     "balance": "0.015",
                                     "balanceFiat": "1500 USD",
@@ -1205,11 +1213,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -1480,11 +1490,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -1785,11 +1797,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -2060,11 +2074,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -2335,11 +2351,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -2610,11 +2628,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -2915,11 +2935,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -3190,11 +3212,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -3214,6 +3238,32 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               BTC
                                             </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 4,
+                                                  "height": 24,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 8,
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#686e7d",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 12,
+                                                    "letterSpacing": 0.25,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Native SegWit
+                                              </Text>
+                                            </View>
                                           </View>
                                           <Text
                                             accessibilityRole="text"

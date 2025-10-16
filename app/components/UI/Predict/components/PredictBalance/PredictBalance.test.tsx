@@ -1,18 +1,42 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
+
+// Mock React Navigation
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    setOptions: jest.fn(),
+  }),
+  useFocusEffect: jest.fn(),
+}));
+
+// Mock usePredictBalance hook
+const mockUsePredictBalance = jest.fn();
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: (options?: unknown) => mockUsePredictBalance(options),
+}));
+
+// Mock usePredictDeposit hook
+const mockUsePredictDeposit = jest.fn();
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => mockUsePredictDeposit(),
+  PredictDepositStatus: {
+    IDLE: 'IDLE',
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    FAILED: 'FAILED',
+  },
+}));
 
 // Mock Clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
-
-import Clipboard from '@react-native-clipboard/clipboard';
-
-const mockClipboard = Clipboard as jest.Mocked<typeof Clipboard>;
 
 const initialState = {
   engine: {
@@ -23,6 +47,21 @@ const initialState = {
 describe('PredictBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Default mock implementations
+    mockUsePredictBalance.mockReturnValue({
+      balance: 100,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      loadBalance: jest.fn(),
+      hasNoBalance: false,
+    });
+
+    mockUsePredictDeposit.mockReturnValue({
+      deposit: jest.fn(),
+      status: 'IDLE',
+    });
   });
 
   afterEach(() => {
@@ -31,348 +70,285 @@ describe('PredictBalance', () => {
 
   describe('when loading', () => {
     it('displays loading indicator when isLoading is true', () => {
-      // Arrange
-      const props = {
-        balance: 100,
+      // Arrange - override mock to return loading state
+      mockUsePredictBalance.mockReturnValue({
+        balance: 0,
         isLoading: true,
-        address: '0x1234567890abcdef1234567890abcdef12345678',
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: true,
+      });
 
       // Act
-      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
+      const { getByTestId } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
 
       // Assert
-      expect(getByTestId('predict-onboarding-card')).toBeOnTheScreen();
-      const activityIndicator = UNSAFE_getByType(ActivityIndicator);
-      expect(activityIndicator).toBeDefined();
+      expect(getByTestId('predict-balance-card-skeleton')).toBeOnTheScreen();
     });
 
     it('does not display balance when isLoading is true', () => {
-      // Arrange
-      const props = {
+      // Arrange - override mock to return loading state
+      mockUsePredictBalance.mockReturnValue({
         balance: 100,
         isLoading: true,
-        address: '0x1234567890abcdef1234567890abcdef12345678',
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { queryByText } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
+      const { queryByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
 
       // Assert
-      expect(queryByText(/Balance:/)).not.toBeOnTheScreen();
+      expect(queryByText(/\$/)).not.toBeOnTheScreen();
     });
 
-    it('does not display address when isLoading is true', () => {
-      // Arrange
-      const props = {
+    it('does not display buttons when isLoading is true', () => {
+      // Arrange - override mock to return loading state
+      mockUsePredictBalance.mockReturnValue({
         balance: 100,
         isLoading: true,
-        address: '0x1234567890abcdef1234567890abcdef12345678',
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { queryByText } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
+      const { queryByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
 
       // Assert
-      expect(queryByText(/0x1234/)).not.toBeOnTheScreen();
+      expect(queryByText(/Add funds/i)).not.toBeOnTheScreen();
+      expect(queryByText(/Withdraw/i)).not.toBeOnTheScreen();
     });
   });
 
   describe('when loaded', () => {
-    it('displays formatted balance with up to 4 decimals for values under $1000', () => {
+    it('displays formatted balance', () => {
       // Arrange
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 123.456,
         isLoading: false,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { getByText } = renderWithProvider(<PredictBalance {...props} />, {
+      const { getByText } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
       // Assert
-      expect(getByText(/Balance: \$123\.456/)).toBeOnTheScreen();
+      expect(getByText(/\$123\.46/)).toBeOnTheScreen();
     });
 
     it('displays zero balance', () => {
       // Arrange
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 0,
         isLoading: false,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: true,
+      });
 
       // Act
-      const { getByText } = renderWithProvider(<PredictBalance {...props} />, {
+      const { getByText } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
       // Assert
-      expect(getByText(/Balance: \$0\.00/)).toBeOnTheScreen();
+      expect(getByText(/\$0\.00/)).toBeOnTheScreen();
     });
 
     it('displays large balance correctly', () => {
       // Arrange
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 1234567.89,
         isLoading: false,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { getByText } = renderWithProvider(<PredictBalance {...props} />, {
+      const { getByText } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
       // Assert
-      expect(getByText(/Balance: \$1,234,567\.89/)).toBeOnTheScreen();
+      expect(getByText(/\$1,234,567\.89/)).toBeOnTheScreen();
     });
 
     it('renders container with correct test ID', () => {
       // Arrange
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 100,
         isLoading: false,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { getByTestId } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
-
-      // Assert
-      expect(getByTestId('predict-onboarding-card')).toBeOnTheScreen();
-    });
-  });
-
-  describe('address display', () => {
-    it('displays truncated address when address is provided', () => {
-      // Arrange
-      const address = '0x1234567890abcdef1234567890abcdef12345678';
-      const props = {
-        balance: 100,
-        isLoading: false,
-        address,
-      };
-
-      // Act
-      const { getByText } = renderWithProvider(<PredictBalance {...props} />, {
+      const { getByTestId } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
       // Assert
-      expect(getByText('0x1234...5678')).toBeOnTheScreen();
-    });
-
-    it('does not display address when address is not provided', () => {
-      // Arrange
-      const props = {
-        balance: 100,
-        isLoading: false,
-        address: undefined,
-      };
-
-      // Act
-      const { queryByText } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
-
-      // Assert
-      expect(queryByText(/0x/)).not.toBeOnTheScreen();
-    });
-
-    it('displays copy button when address is provided', () => {
-      // Arrange
-      const address = '0x1234567890abcdef1234567890abcdef12345678';
-      const props = {
-        balance: 100,
-        isLoading: false,
-        address,
-      };
-
-      // Act
-      const { UNSAFE_getAllByType } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
-
-      // Assert - Find TouchableOpacity which is the copy button
-      const touchables = UNSAFE_getAllByType(TouchableOpacity);
-      expect(touchables.length).toBeGreaterThan(0);
-    });
-
-    it('does not display copy button when address is not provided', () => {
-      // Arrange
-      const props = {
-        balance: 100,
-        isLoading: false,
-        address: undefined,
-      };
-
-      // Act
-      const { UNSAFE_queryAllByType } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
-
-      // Assert - No TouchableOpacity should be present when address is not provided
-      const touchables = UNSAFE_queryAllByType(TouchableOpacity);
-      expect(touchables.length).toBe(0);
+      expect(getByTestId('predict-balance-card')).toBeOnTheScreen();
     });
   });
 
-  describe('copy to clipboard functionality', () => {
-    it('copies address to clipboard when copy button is pressed', () => {
+  describe('button display', () => {
+    it('displays Add Funds button', () => {
       // Arrange
-      const address = '0x1234567890abcdef1234567890abcdef12345678';
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 100,
         isLoading: false,
-        address,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { UNSAFE_getAllByType } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
-
-      const touchables = UNSAFE_getAllByType(TouchableOpacity);
-      const copyButton = touchables[0];
-      fireEvent.press(copyButton);
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
 
       // Assert
-      expect(mockClipboard.setString).toHaveBeenCalledTimes(1);
-      expect(mockClipboard.setString).toHaveBeenCalledWith(address);
+      expect(getByText(/Add funds/i)).toBeOnTheScreen();
     });
 
-    it('copies full address including checksum', () => {
+    it('displays Withdraw button when has balance', () => {
       // Arrange
-      const address = '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12';
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 100,
         isLoading: false,
-        address,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { UNSAFE_getAllByType } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
-
-      const touchables = UNSAFE_getAllByType(TouchableOpacity);
-      const copyButton = touchables[0];
-      fireEvent.press(copyButton);
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
 
       // Assert
-      expect(mockClipboard.setString).toHaveBeenCalledWith(address);
+      expect(getByText(/Withdraw/i)).toBeOnTheScreen();
     });
 
-    it('can copy address multiple times', () => {
+    it('does not display Withdraw button when balance is zero', () => {
       // Arrange
-      const address = '0x1234567890abcdef1234567890abcdef12345678';
-      const props = {
-        balance: 100,
+      mockUsePredictBalance.mockReturnValue({
+        balance: 0,
         isLoading: false,
-        address,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: true,
+      });
 
       // Act
-      const { UNSAFE_getAllByType } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
-      );
-
-      const touchables = UNSAFE_getAllByType(TouchableOpacity);
-      const copyButton = touchables[0];
-      fireEvent.press(copyButton);
-      fireEvent.press(copyButton);
-      fireEvent.press(copyButton);
+      const { queryByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
 
       // Assert
-      expect(mockClipboard.setString).toHaveBeenCalledTimes(3);
+      expect(queryByText(/Withdraw/i)).not.toBeOnTheScreen();
+    });
+
+    it('calls deposit function when Add Funds button is pressed', () => {
+      // Arrange
+      const mockDeposit = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        balance: 100,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+      mockUsePredictDeposit.mockReturnValue({
+        deposit: mockDeposit,
+        status: 'IDLE',
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+      const addFundsButton = getByText(/Add funds/i);
+      fireEvent.press(addFundsButton);
+
+      // Assert
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('edge cases', () => {
-    it('handles negative balance by showing threshold message', () => {
-      // Arrange
-      const props = {
-        balance: -50.25,
-        isLoading: false,
-      };
-
-      // Act
-      const { getByText } = renderWithProvider(<PredictBalance {...props} />, {
-        state: initialState,
-      });
-
-      // Assert - negative values below threshold show "<$0.0001"
-      expect(getByText(/Balance: <\$0\.0001/)).toBeOnTheScreen();
-    });
-
     it('handles very small balance', () => {
       // Arrange
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 0.01,
         isLoading: false,
-      };
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
 
       // Act
-      const { getByText } = renderWithProvider(<PredictBalance {...props} />, {
+      const { getByText } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
       // Assert
-      expect(getByText(/Balance: \$0\.01/)).toBeOnTheScreen();
+      expect(getByText(/\$0\.01/)).toBeOnTheScreen();
     });
 
-    it('handles short address', () => {
+    it('handles adding funds state', () => {
       // Arrange
-      const address = '0x1234';
-      const props = {
+      mockUsePredictBalance.mockReturnValue({
         balance: 100,
         isLoading: false,
-        address,
-      };
-
-      // Act
-      const { getByText } = renderWithProvider(<PredictBalance {...props} />, {
-        state: initialState,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+      mockUsePredictDeposit.mockReturnValue({
+        deposit: jest.fn(),
+        status: 'PENDING',
       });
 
-      // Assert - short address shows first 6 chars (0x1234) + ... + last 4 chars (1234)
-      expect(getByText('0x1234...1234')).toBeOnTheScreen();
-    });
-
-    it('handles empty string address', () => {
-      // Arrange
-      const props = {
-        balance: 100,
-        isLoading: false,
-        address: '',
-      };
-
       // Act
-      const { UNSAFE_queryAllByType } = renderWithProvider(
-        <PredictBalance {...props} />,
-        { state: initialState },
+      const { getByTestId, getByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: initialState,
+        },
       );
 
-      // Assert - empty string is falsy, so copy button should not appear
-      const touchables = UNSAFE_queryAllByType(TouchableOpacity);
-      expect(touchables.length).toBe(0);
+      // Assert - Should still render the balance card and buttons
+      expect(getByTestId('predict-balance-card')).toBeOnTheScreen();
+      expect(getByText(/Add funds/i)).toBeOnTheScreen();
     });
   });
 });
