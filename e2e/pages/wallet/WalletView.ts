@@ -200,7 +200,7 @@ class WalletView {
 
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
-      elemDescription: 'Top Account Icon',
+      elemDescription: 'Tap Account Icon',
       checkStability: true,
     });
   }
