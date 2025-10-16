@@ -33,7 +33,6 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
       await deleteAccount();
       // Go back to account list
       await WalletView.tapIdenticon();
-      await AccountListBottomSheet.scrollToBottomOfAccountList();
 
       const importedAccountsSection =
         Matchers.getElementByText('Imported Accounts');
