@@ -7,3 +7,5 @@ appId: io.metamask
 - runScript: onboarding.js
 - runScript: home.js
 - runScript: add-wallet.js
+- runScript: browser.js
+- runScript: multichain-test-dapp.js

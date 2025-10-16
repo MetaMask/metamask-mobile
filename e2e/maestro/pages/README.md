@@ -6,11 +6,13 @@ This directory contains Page Object Model (POM) files following [Maestro's Page 
 
 ```
 pages/
-├── onboarding.js      # Onboarding and wallet creation screens
-├── home.js            # Home/wallet screen and account management
-├── add-wallet.js      # Add wallet and Import Secret Recovery Phrase screens
-├── loadElements.yaml  # Loads all page objects (use this in your flows)
-└── README.md          # This file
+├── onboarding.js            # Onboarding and wallet creation screens
+├── home.js                  # Home/wallet screen and account management
+├── add-wallet.js            # Add wallet and Import Secret Recovery Phrase screens
+├── browser.js               # Browser tab and connection modal elements
+├── multichain-test-dapp.js  # Multichain test dApp elements
+├── loadElements.yaml        # Loads all page objects (use this in your flows)
+└── README.md                # This file
 ```
 
 ## Usage
@@ -39,6 +41,10 @@ Use the `${output.screenName.elementName}` syntax to reference elements:
 - tapOn:
     id: ${output.importSRP.word1}
 - inputText: club
+
+# Example: Browser tab navigation
+- tapOn:
+    id: ${output.browser.tabBar.browserTab}
 ```
 
 ## Page Objects
@@ -112,6 +118,58 @@ Elements for importing a Secret Recovery Phrase:
 - inputText: club
 ```
 
+### browser.js
+
+Elements for browser tab and MetaMask connection modal:
+
+- **`tabBar`** - Tab bar elements for navigation
+- **`screen`** - Browser screen elements (default URL)
+- **`connectionModal`** - MetaMask connection modal elements
+
+**Example:**
+
+```yaml
+# Navigate to browser tab
+- tapOn:
+    id: ${output.browser.tabBar.browserTab}
+
+# Use connection modal
+- assertVisible: ${output.browser.connectionModal.title}
+- tapOn:
+    id: ${output.browser.connectionModal.connectBtn}
+```
+
+### multichain-test-dapp.js
+
+Elements for MetaMask Multichain Test dApp:
+
+- **`url`** - Test dApp URL
+- **`autoConnectBtn`** - Auto-connect button
+- **`createSessionBtn`** - Create session button
+- **`networks`** - Network checkbox elements
+  - `ethereum` - Ethereum network checkbox
+  - `linea` - Linea network checkbox
+  - `solana` - Solana network checkbox
+
+**Example:**
+
+```yaml
+# Navigate to test dApp
+- inputText: ${output.testDapp.url}
+
+# Select networks
+- tapOn:
+    id: ${output.testDapp.networks.ethereum}
+- tapOn:
+    id: ${output.testDapp.networks.solana}
+
+# Connect dApp
+- tapOn:
+    id: ${output.testDapp.autoConnectBtn}
+- tapOn:
+    id: ${output.testDapp.createSessionBtn}
+```
+
 ## Benefits
 
 ✅ **Single source of truth** - Update an element ID in one place  
@@ -143,6 +201,8 @@ Elements for importing a Secret Recovery Phrase:
    - runScript: onboarding.js
    - runScript: home.js
    - runScript: add-wallet.js
+   - runScript: browser.js
+   - runScript: multichain-test-dapp.js
    - runScript: screenName.js # Add your new file here
    ```
 
