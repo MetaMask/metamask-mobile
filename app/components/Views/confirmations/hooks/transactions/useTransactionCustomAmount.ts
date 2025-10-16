@@ -18,10 +18,7 @@ export function useTransactionCustomAmount() {
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
-
-  const [amountHumanDebounced, setAmountHumanDebounced] = useState(
-    defaultAmount ?? '0',
-  );
+  const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
 
   const debounceSetAmountDelayed = useMemo(
     () =>
