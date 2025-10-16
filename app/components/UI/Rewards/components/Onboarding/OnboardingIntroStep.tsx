@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, ImageBackground, Text as RNText } from 'react-native';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -56,6 +56,7 @@ const OnboardingIntroStep: React.FC<{
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   const setHasSeenRewardsIntroModal = useCallback(async () => {
     await storageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true');
@@ -77,7 +78,9 @@ const OnboardingIntroStep: React.FC<{
 
   // Computed state
   const candidateSubscriptionIdLoading =
-    !subscriptionId && candidateSubscriptionId === 'pending';
+    !subscriptionId &&
+    (candidateSubscriptionId === 'pending' ||
+      candidateSubscriptionId === 'retry');
   const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
 
   // If we don't know of a subscription id, we need to fetch the geo rewards metadata
@@ -269,9 +272,11 @@ const OnboardingIntroStep: React.FC<{
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12 leading-1'),
+            tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '500' },
+            {
+              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+            },
           ]}
         >
           {title}
@@ -343,11 +348,11 @@ const OnboardingIntroStep: React.FC<{
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-grow px-4 py-8')}
+        style={tw.style(`flex-1 px-4 pt-8 ${isLargeDevice ? 'pb-8' : ''}`)}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[10%]" />
+        {isLargeDevice && <Box twClassName="flex-basis-[10%]" />}
 
         {/* Title Section */}
         {renderTitle()}

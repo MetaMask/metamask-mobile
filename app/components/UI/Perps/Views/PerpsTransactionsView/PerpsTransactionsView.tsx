@@ -10,7 +10,6 @@ import React, {
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -41,8 +40,8 @@ import {
   transformOrdersToTransactions,
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 import Button, {
   ButtonSize,
@@ -60,12 +59,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
-
-  // Track screen load performance with new unified hook
-  usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
-    conditions: [flatListData.length > 0],
-  });
 
   const { isConnected, isConnecting } = usePerpsConnection();
 
@@ -303,7 +296,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const renderRightContent = (item: PerpsTransaction) => {
     if (item.fill) {
       return (
-        <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodySM}
+          style={item.fill.isPositive ? styles.profitAmount : styles.lossAmount}
+        >
           {item.fill.amount}
         </Text>
       );
@@ -401,6 +397,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       isConnecting || fillsLoading || ordersLoading || fundingLoading,
     [isConnecting, fillsLoading, ordersLoading, fundingLoading],
   );
+
+  // Track screen load performance - measures time until all data is loaded and UI is interactive
+  // Only measures once per session (no reset on refresh/tab switch)
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsTransactionsView,
+    conditions: [!isInitialLoading],
+    resetConditions: [], // Prevent automatic reset on subsequent loads
+  });
 
   // Determine if we should show empty state (only after loading is complete and no data)
   const shouldShowEmptyState = useMemo(() => {

@@ -53,7 +53,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
@@ -66,8 +65,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock hooks
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: jest.fn(() => ({
-    availableBalance: '$1000.00',
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '$1000.00',
+    },
+    isInitialLoading: false,
   })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {

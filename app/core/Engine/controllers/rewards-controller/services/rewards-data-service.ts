@@ -39,6 +39,16 @@ export class InvalidTimestampError extends Error {
   }
 }
 
+/**
+ * Custom error for authorization failures
+ */
+export class AuthorizationFailedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthorizationFailedError';
+  }
+}
+
 const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
@@ -567,6 +577,13 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData?.message?.includes('Rewards authorization failed')) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+
       throw new Error(`Get season status failed: ${response.status}`);
     }
 

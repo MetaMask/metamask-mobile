@@ -26,7 +26,6 @@ interface MockComponentProps {
     | ((state: { pressed: boolean }) => StyleProp<ViewStyle>);
 }
 
-// Mock dependencies
 const mockNavigate = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();

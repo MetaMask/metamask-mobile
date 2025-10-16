@@ -12,7 +12,6 @@ import Logger from '../../../../util/Logger';
 import type { PriceUpdate, PerpsMarketData } from '../controllers/types';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
-// Mock dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');

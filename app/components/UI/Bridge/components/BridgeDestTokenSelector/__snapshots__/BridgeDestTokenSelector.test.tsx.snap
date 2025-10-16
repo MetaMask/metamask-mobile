@@ -763,7 +763,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="bridge-token-search-input"

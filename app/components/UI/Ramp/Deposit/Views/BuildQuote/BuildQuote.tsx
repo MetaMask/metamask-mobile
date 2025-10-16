@@ -62,7 +62,7 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -121,7 +121,9 @@ const BuildQuote = () => {
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
 
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -184,14 +186,21 @@ const BuildQuote = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedRegion && !selectedRegion.supported) {
+      if (
+        !isFetchingRegions &&
+        selectedRegion &&
+        !selectedRegion.supported &&
+        regions
+      ) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails(),
+            ...createUnsupportedRegionModalNavigationDetails({
+              regions,
+            }),
           );
         });
       }
-    }, [selectedRegion, navigation]),
+    }, [isFetchingRegions, selectedRegion, regions, navigation]),
   );
 
   const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
@@ -378,6 +387,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
     );
@@ -388,6 +398,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
@@ -395,8 +406,9 @@ const BuildQuote = () => {
     );
   }, [navigation, paymentMethods, paymentMethodsError]);
 
-  const networkName =
-    allNetworkConfigurations[selectedCryptoCurrency?.chainId ?? '']?.name;
+  const networkName = selectedCryptoCurrency
+    ? networkConfigurationsByCaipChainId[selectedCryptoCurrency.chainId]?.name
+    : undefined;
 
   const networkImageSource = selectedCryptoCurrency?.chainId
     ? getNetworkImageSource({
@@ -609,15 +621,7 @@ const BuildQuote = () => {
             </ListItem>
           </TouchableOpacity>
 
-          <Keypad
-            value={amount}
-            onChange={handleKeypadChange}
-            currency={selectedRegion?.currency}
-            decimals={0}
-            periodButtonProps={{
-              isDisabled: true,
-            }}
-          />
+          <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>

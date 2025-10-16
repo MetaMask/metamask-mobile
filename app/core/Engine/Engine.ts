@@ -223,6 +223,7 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -490,6 +491,7 @@ export class Engine {
       }),
       state: initialState.LoggingController,
     });
+
     const tokenListController = new TokenListController({
       chainId: getGlobalChainId(networkController),
       onNetworkStateChange: (listener) =>
@@ -503,6 +505,17 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
+
+    // TODO: Move this to `network-controller`
+    const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
+      if (isRpcFailoverEnabled) {
+        Logger.log('Enabling RPC failover');
+        networkController.enableRpcFailover();
+      } else {
+        Logger.log('Disabling RPC failover');
+        networkController.disableRpcFailover();
+      }
+    };
     const remoteFeatureFlagControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
@@ -511,30 +524,19 @@ export class Engine {
       });
     remoteFeatureFlagControllerMessenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      (isRpcFailoverEnabled) => {
-        if (isRpcFailoverEnabled) {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', enabling RPC failover',
-          );
-          networkController.enableRpcFailover();
-        } else {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', disabling RPC failover',
-          );
-          networkController.disableRpcFailover();
-        }
-      },
+      toggleRpcFailover,
       (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
     );
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      state: initialState.RemoteFeatureFlagController,
       messenger: remoteFeatureFlagControllerMessenger,
       disabled: !isBasicFunctionalityToggleEnabled(),
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
+    toggleRpcFailover(
+      remoteFeatureFlagController.state.remoteFeatureFlags
+        .walletFrameworkRpcFailoverEnabled,
+    );
 
     const tokenSearchDiscoveryController = createTokenSearchDiscoveryController(
       {
@@ -660,9 +662,10 @@ export class Engine {
           assetsContractController,
         ),
       includeStakedAssets: true,
-      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: initialState },
-      }) as `0x${string}`[],
+      accountsApiChainIds: () =>
+        selectAssetsAccountApiBalancesEnabled({
+          engine: { backgroundState: initialState },
+        }) as `0x${string}`[],
       allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
 
@@ -1140,6 +1143,7 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:getState',
             'AccountTrackerController:updateNativeBalances',
             'AccountTrackerController:updateStakedBalances',
           ],
@@ -1156,9 +1160,10 @@ export class Engine {
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
           preferencesController.state.isMultiAccountBalancesEnabled,
-        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-          engine: { backgroundState: initialState },
-        }) as `0x${string}`[],
+        accountsApiChainIds: () =>
+          selectAssetsAccountApiBalancesEnabled({
+            engine: { backgroundState: initialState },
+          }) as `0x${string}`[],
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1725,7 +1730,7 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async () => {
+  getSnapKeyring = async (): Promise<SnapKeyring> => {
     // TODO: Replace `getKeyringsByType` with `withKeyring`
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
@@ -1737,7 +1742,7 @@ export class Engine {
         KeyringTypes.snap,
       );
     }
-    return snapKeyring;
+    return snapKeyring as SnapKeyring;
   };
 
   /**

@@ -7,7 +7,6 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { ScrollView } from 'react-native';
-import { useSeasonStatus } from '../hooks/useSeasonStatus';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 const ReferralRewardsView: React.FC = () => {
@@ -16,8 +15,6 @@ const ReferralRewardsView: React.FC = () => {
   const { colors } = useTheme();
   const hasTrackedReferralsViewed = useRef(false);
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
 
   useEffect(() => {
     if (!hasTrackedReferralsViewed.current) {
