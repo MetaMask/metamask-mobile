@@ -8,7 +8,10 @@ import { act } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   TransactionToken,
@@ -329,6 +332,20 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('1234.56');
+    });
+
+    it('to percentage of predict balance', async () => {
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictSell,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(43);
+      });
+
+      expect(result.current.amountFiat).toBe('529.92');
     });
   });
 });

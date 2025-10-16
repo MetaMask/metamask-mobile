@@ -3,7 +3,10 @@ import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenTransferData } from '../../utils/transaction-pay';
@@ -13,6 +16,9 @@ import { useSelector } from 'react-redux';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { selectPredictBalanceByAddress } from '../../components/predict-confirmations/predict-temp';
+import { RootState } from '../../../../../reducers';
+import { hasTransactionType } from '../../utils/transaction';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -38,8 +44,7 @@ export function useTransactionCustomAmount() {
 
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
-  const { payToken } = useTransactionPayToken();
-  const { tokenFiatAmount } = payToken || {};
+  const tokenBalanceFiat = useTokenBalance();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -82,7 +87,7 @@ export function useTransactionCustomAmount() {
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number) => {
-      if (!tokenFiatAmount) {
+      if (!tokenBalanceFiat) {
         return;
       }
 
@@ -90,13 +95,13 @@ export function useTransactionCustomAmount() {
 
       const newAmount = new BigNumber(finalPercentage)
         .dividedBy(100)
-        .multipliedBy(tokenFiatAmount)
+        .multipliedBy(tokenBalanceFiat)
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
         .toString(10);
 
       updatePendingAmount(newAmount);
     },
-    [maxPercentage, tokenFiatAmount, updatePendingAmount],
+    [maxPercentage, tokenBalanceFiat, updatePendingAmount],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -164,4 +169,20 @@ function getTokenAddress(transactionMeta: TransactionMeta | undefined): Hex {
   }
 
   return transactionMeta?.txParams?.to as Hex;
+}
+
+function useTokenBalance() {
+  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const from = transactionMeta?.txParams?.from as Hex;
+
+  const { payToken } = useTransactionPayToken();
+  const payTokenBalance = payToken?.tokenFiatAmount ?? 0;
+
+  const predictBalance = useSelector((state: RootState) =>
+    selectPredictBalanceByAddress(state, from),
+  );
+
+  return hasTransactionType(transactionMeta, [TransactionType.predictSell])
+    ? predictBalance
+    : payTokenBalance;
 }
