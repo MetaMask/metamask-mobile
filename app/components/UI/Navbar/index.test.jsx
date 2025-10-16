@@ -850,3 +850,79 @@ describe('getSettingsNavigationOptions', () => {
     });
   });
 });
+
+describe('getBridgeNavbar', () => {
+  const mockNavigation = {
+    dangerouslyGetParent: jest.fn(() => ({
+      pop: jest.fn(),
+    })),
+  };
+  const mockThemeColors = {
+    background: {
+      default: '#FFFFFF',
+    },
+    primary: {
+      default: '#037DD6',
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Device.isAndroid.mockReset();
+  });
+
+  describe('Platform-specific headerLeft behavior', () => {
+    it('should render headerLeft with hidden icon on Android', () => {
+      Device.isAndroid.mockReturnValue(true);
+      const { getBridgeNavbar } = require('.');
+      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+
+      expect(options.headerLeft).toBeDefined();
+      expect(typeof options.headerLeft).toBe('function');
+
+      const HeaderLeftComponent = options.headerLeft();
+      expect(HeaderLeftComponent).toBeDefined();
+      expect(HeaderLeftComponent.type).toBe(View);
+    });
+
+    it('should have zero opacity on Android headerLeft', () => {
+      Device.isAndroid.mockReturnValue(true);
+      const { getBridgeNavbar } = require('.');
+      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+      const HeaderLeftComponent = options.headerLeft();
+      renderWithProvider(HeaderLeftComponent, {
+        state: { engine: { backgroundState } },
+      });
+
+      const styles = HeaderLeftComponent.props.style;
+
+      const hasHiddenOpacity = Array.isArray(styles)
+        ? styles.some((style) => style.opacity === 0)
+        : styles?.opacity === 0;
+
+      expect(hasHiddenOpacity).toBe(true);
+    });
+
+    it('should not be clickable on Android headerLeft', () => {
+      Device.isAndroid.mockReturnValue(true);
+      const { getBridgeNavbar } = require('.');
+      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+
+      const HeaderLeftComponent = options.headerLeft();
+      renderWithProvider(HeaderLeftComponent, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(HeaderLeftComponent.type).toBe(View);
+      expect(HeaderLeftComponent.props.onPress).toBeUndefined();
+    });
+
+    it('should not render headerLeft on iOS', () => {
+      Device.isAndroid.mockReturnValue(false);
+      const { getBridgeNavbar } = require('.');
+      const options = getBridgeNavbar(mockNavigation, 'Swap', mockThemeColors);
+
+      expect(options.headerLeft).toBeNull();
+    });
+  });
+});
