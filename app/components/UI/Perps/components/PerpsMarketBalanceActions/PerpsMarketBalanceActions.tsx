@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, Animated, View } from 'react-native';
-import BN from 'bnjs4';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -45,6 +44,7 @@ import {
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
+import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
 import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -136,39 +136,6 @@ const PerpsMarketBalanceActions: React.FC<
     withdrawalRequests,
     isDepositInProgress,
   });
-
-  // Convert amount to USD display (handles both USD strings and wei)
-  const convertToUSD = (amount: string): string => {
-    try {
-      // If it's already a USD string (e.g., "$10.32"), return it without decimals
-      if (amount.startsWith('$')) {
-        const numericValue = parseFloat(amount.replace('$', ''));
-        return `$${Math.floor(numericValue)}`;
-      }
-
-      // Check if it's a hex value (starts with 0x)
-      if (amount.startsWith('0x')) {
-        // Treat as wei and convert
-        const weiBN = new BN(amount, 16);
-        const ethBN = weiBN.div(new BN(10).pow(new BN(18)));
-        const ethValue = ethBN.toNumber();
-        const ethPriceUSD = 2000; // Replace with actual ETH price
-        const usdValue = ethValue * ethPriceUSD;
-        return `$${Math.floor(usdValue)}`;
-      }
-
-      // Otherwise, treat as a direct USD amount (e.g., "1" = $1)
-      const numericValue = parseFloat(amount);
-      if (!isNaN(numericValue)) {
-        return `$${Math.floor(numericValue)}`;
-      }
-
-      return '$0.00';
-    } catch (error) {
-      console.error('Error converting amount:', error);
-      return '';
-    }
-  };
 
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
@@ -313,9 +280,9 @@ const PerpsMarketBalanceActions: React.FC<
                   color={TextColor.Default}
                 >
                   {isDepositInProgress && transactionAmountWei
-                    ? convertToUSD(transactionAmountWei)
+                    ? convertPerpsAmountToUSD(transactionAmountWei)
                     : hasActiveWithdrawals && withdrawalAmount
-                    ? convertToUSD(withdrawalAmount)
+                    ? convertPerpsAmountToUSD(withdrawalAmount)
                     : 'Processing...'}
                 </Text>
               )}
