@@ -174,7 +174,7 @@
 		android:resource="@mipmap/ic_notification_small"/>
 
 		<!-- EAS Update configuration -->
-		<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620'" />
+		<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620" />
 		<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="1.0.0" />
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="preview" />
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="true" />
