@@ -6,7 +6,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictMarketList from '../views/PredictMarketList';
-import PredictTabView from '../views/PredictTabView';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
@@ -60,15 +59,7 @@ const PredictModalStack = () => (
 );
 
 const PredictScreenStack = () => (
-  <Stack.Navigator initialRouteName={Routes.PREDICT.ROOT}>
-    <Stack.Screen
-      name={Routes.PREDICT.ROOT}
-      component={PredictTabView}
-      options={{
-        headerShown: false,
-      }}
-    />
-
+  <Stack.Navigator initialRouteName={Routes.PREDICT.MARKET_LIST}>
     <Stack.Screen
       name={Routes.PREDICT.MARKET_LIST}
       component={PredictMarketList}
