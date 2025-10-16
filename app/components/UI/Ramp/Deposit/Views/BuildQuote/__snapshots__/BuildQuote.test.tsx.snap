@@ -1666,7 +1666,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -1700,9 +1699,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -3542,7 +3539,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -3576,9 +3572,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -5418,7 +5412,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -5452,9 +5445,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -7233,7 +7224,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -7267,9 +7257,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -9048,7 +9036,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -9082,9 +9069,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -10863,7 +10848,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -10897,9 +10881,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -12772,7 +12754,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -12806,9 +12787,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -14587,7 +14566,6 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -14621,9 +14599,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      ,
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -16402,7 +16378,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -16436,9 +16411,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -18217,7 +18190,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -18251,9 +18223,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -20126,7 +20096,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -20160,9 +20129,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -21939,7 +21906,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -21973,9 +21939,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -23846,7 +23810,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -23880,9 +23843,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -25661,7 +25622,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -25695,9 +25655,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View

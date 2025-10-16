@@ -14,7 +14,7 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { usePerpsConnection } from '../../providers/PerpsConnectionProvider';
+import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 
 interface PerpsLoadingSkeletonProps {
   testID?: string;
@@ -51,7 +51,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
     setShowTimeout(false);
 
     try {
-      await reconnectWithNewContext();
+      await reconnectWithNewContext({ force: true });
     } catch (error) {
       // Error is handled by connection manager
       // The loading skeleton will either disappear (on success) or timeout will restart

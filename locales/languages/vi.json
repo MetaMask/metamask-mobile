@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Sẵn sàng giao dịch?",
         "description": "Nạp tiền vào tài khoản hợp đồng vĩnh cửu bằng bất kỳ token nào và thực hiện giao dịch đầu tiên trong vài giây.",
-        "footer_text": "MetaMask sẽ hoán đổi tiền của bạn sang USDC trên Arbitrum và nạp vào HyperEVM mà không tính thêm phí."
+        "footer_text": "MetaMask sẽ hoán đổi tiền của bạn sang USDC trên Arbitrum và nạp vào HyperCore mà không tính thêm phí."
       },
       "got_it": "Đã hiểu",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang USDC trên HyperEVM, mạng được Hợp đồng vĩnh cửu sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
+        "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang USDC trên HyperCore, mạng được Hợp đồng vĩnh cửu sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
       },
       "title": {
         "transaction_fee": "Phí"
@@ -5926,9 +5926,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",

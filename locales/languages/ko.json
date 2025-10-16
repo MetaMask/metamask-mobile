@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "거래할 준비가 되셨나요?",
         "description": "원하는 토큰으로 무기한 선물 계정에 입금하고, 바로 첫 거래를 시작하세요.",
-        "footer_text": "MetaMask가 자금을 Arbitrum의 USDC로 스왑하고 추가 수수료 없이 HyperEVM에 입금합니다."
+        "footer_text": "MetaMask가 자금을 Arbitrum의 USDC로 스왑하고 추가 수수료 없이 HyperCore에 입금합니다."
       },
       "got_it": "확인",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "무기한 선물에서 사용하는 네트워크인 HyperEVM에서 토큰을 USDC로 스왑합니다. 스왑 제공업체가 수수료를 부과할 수 있지만 MetaMask에서 부과하는 수수료는 없습니다."
+        "transaction_fee": "무기한 선물에서 사용하는 네트워크인 HyperCore에서 토큰을 USDC로 스왑합니다. 스왑 제공업체가 수수료를 부과할 수 있지만 MetaMask에서 부과하는 수수료는 없습니다."
       },
       "title": {
         "transaction_fee": "수수료"
@@ -5926,9 +5926,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",

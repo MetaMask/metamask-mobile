@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Prêt à trader ?",
         "description": "Approvisionnez votre compte de trading de contrats à terme perpétuels avec n’importe quel jeton, puis ouvrez votre première position en quelques secondes.",
-        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperEVM sans frais supplémentaires."
+        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperCore sans frais supplémentaires."
       },
       "got_it": "J’ai compris",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperEVM, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
+        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperCore, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
       },
       "title": {
         "transaction_fee": "Frais"
@@ -5926,9 +5926,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",

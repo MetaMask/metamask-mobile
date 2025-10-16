@@ -394,6 +394,7 @@
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can't reset it.",
     "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
@@ -1276,6 +1277,7 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
         "title": "Perps is temporarily offline",
         "description": "We're working to get it back online soon.",
@@ -1554,7 +1556,7 @@
       "ready_to_trade": {
         "title": "Ready to trade?",
         "description": "Fund your perps account with any token and make your first trade in seconds.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
       "card": {
@@ -5305,7 +5307,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -5966,9 +5968,9 @@
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
 
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",

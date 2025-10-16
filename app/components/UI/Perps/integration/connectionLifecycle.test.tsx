@@ -3,10 +3,7 @@ import { render, act, waitFor } from '@testing-library/react-native';
 import { Text, AppState } from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import Device from '../../../../util/device';
-import {
-  PerpsConnectionProvider,
-  usePerpsConnection,
-} from '../providers/PerpsConnectionProvider';
+import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsTabViewWithProvider from '../Views/PerpsTabView';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';

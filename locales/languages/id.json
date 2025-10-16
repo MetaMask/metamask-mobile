@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Siap untuk berdagang?",
         "description": "Danai akun perp Anda dengan token apa pun dan lakukan perdagangan pertama dalam hitungan detik.",
-        "footer_text": "MetaMask akan menukar dana Anda ke USDC di Arbitrum, dan mendepositkan ke HyperEVM tanpa biaya tambahan."
+        "footer_text": "MetaMask akan menukar dana Anda ke USDC di Arbitrum, dan mendepositkan ke HyperCore tanpa biaya tambahan."
       },
       "got_it": "Mengerti",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Kami akan menukar token Anda dengan USDC di HyperEVM, jaringan yang digunakan oleh Perp. Penyedia swap mungkin akan mengenakan biaya, tetapi MetaMask tidak."
+        "transaction_fee": "Kami akan menukar token Anda dengan USDC di HyperCore, jaringan yang digunakan oleh Perp. Penyedia swap mungkin akan mengenakan biaya, tetapi MetaMask tidak."
       },
       "title": {
         "transaction_fee": "Biaya"
@@ -5926,9 +5926,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
