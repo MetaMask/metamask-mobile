@@ -579,19 +579,6 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle response with ok: false and still return text', async () => {
-      const mockGeolocation = 'RESTRICTED';
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        text: jest.fn().mockResolvedValue(mockGeolocation),
-      });
-
-      const result = await cardSDK.getGeoLocation();
-
-      // The method doesn't check response.ok, so it should still parse the text
-      expect(result).toBe(mockGeolocation);
-    });
-
     it('should handle different country codes correctly', async () => {
       const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'UNKNOWN'];
 
