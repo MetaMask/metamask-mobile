@@ -89,14 +89,6 @@ describe('FoxRiveLoaderAnimation', () => {
     jest.useRealTimers();
   });
 
-  it('renders correctly without props', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
-
-    // Assert
-    expect(toJSON()).not.toBeNull();
-  });
-
   it('displays Rive animation and ActivityIndicator', () => {
     // Arrange & Act
     const { toJSON } = render(<FoxRiveLoaderAnimation />);
@@ -104,22 +96,6 @@ describe('FoxRiveLoaderAnimation', () => {
     // Assert
     const tree = toJSON();
     expect(tree).toMatchSnapshot();
-  });
-
-  it('displays ActivityIndicator with theme colors', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
-
-    // Assert - Component renders without crashing
-    expect(toJSON()).not.toBeNull();
-  });
-
-  it('initializes Rive animation on component mount', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
-
-    // Assert - Component renders successfully
-    expect(toJSON()).not.toBeNull();
   });
 
   it('cleans up timers on unmount', () => {
@@ -175,50 +151,6 @@ describe('FoxRiveLoaderAnimation', () => {
     // Test unmount
     unmount();
     jest.runAllTimers();
-  });
-
-  it('uses themed colors from useTheme', () => {
-    // Arrange
-    const customColors = {
-      background: { default: '#FF0000' },
-      text: { default: '#00FF00' },
-    };
-
-    mockUseTheme.mockReturnValueOnce({
-      colors: customColors,
-      themeAppearance: 'light',
-    });
-
-    // Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
-
-    // Assert - Component renders with themed colors
-    expect(toJSON()).not.toBeNull();
-  });
-
-  it('renders animation and ActivityIndicator in correct layout structure', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
-
-    // Assert
-    const tree = toJSON();
-    expect(tree).toMatchSnapshot();
-  });
-
-  it('calculates responsive dimensions correctly', () => {
-    // Arrange
-    mockUseScreenDimensions.mockReturnValue({
-      screenWidth: 400,
-      screenHeight: 800,
-      animationHeight: 400,
-    });
-
-    // Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
-
-    // Assert
-    expect(toJSON()).not.toBeNull();
-    expect(mockUseScreenDimensions).toHaveBeenCalled();
   });
 
   it('uses 40% animation height for small devices', () => {
