@@ -10,7 +10,7 @@ export default function FastOnboarding(props: {
   const { params } =
     useRoute<
       RouteProp<
-        { params: { onboardingType?: string; existingUser?: string } },
+        { params: { onboardingType?: string; existing?: string } },
         'params'
       >
     >();
@@ -22,16 +22,16 @@ export default function FastOnboarding(props: {
   } = props;
 
   const handleFastOnboarding = useCallback(
-    (onboardingType: string, existingUser: boolean) => {
+    (onboardingType: string, existing: boolean) => {
       switch (onboardingType) {
         case 'google':
-          onPressContinueWithGoogle(!existingUser);
+          onPressContinueWithGoogle(!existing);
           break;
         case 'apple':
-          onPressContinueWithApple(!existingUser);
+          onPressContinueWithApple(!existing);
           break;
         case 'srp':
-          if (existingUser) onPressImport();
+          if (existing) onPressImport();
           else onPressCreate();
           break;
       }
@@ -46,10 +46,10 @@ export default function FastOnboarding(props: {
 
   useEffect(() => {
     const onboardingType = params?.onboardingType;
-    const existingUser = params?.existingUser;
+    const existing = params?.existing;
 
     if (onboardingType) {
-      handleFastOnboarding(onboardingType, existingUser === 'true');
+      handleFastOnboarding(onboardingType, existing === 'true');
     }
   }, [params, handleFastOnboarding]);
 

@@ -9,7 +9,7 @@ function handleFastOnboarding(params: { onboardingPath: string }): boolean {
   const { onboardingPath } = params;
   const [, pathParams] = getRedirectPathsAndParams(onboardingPath);
   const onboardingType = pathParams?.type || '';
-  const paramExistingUser = pathParams?.existingUser || '';
+  const existing = pathParams?.existing || '';
 
   const navigation = NavigationService.navigation;
   if (!ALLOWED_ONBOARDING_TYPES.includes(onboardingType) || !navigation) {
@@ -30,7 +30,7 @@ function handleFastOnboarding(params: { onboardingPath: string }): boolean {
               screen: Routes.ONBOARDING.ONBOARDING,
               params: {
                 onboardingType,
-                existingUser: paramExistingUser,
+                existing,
               },
             },
           },

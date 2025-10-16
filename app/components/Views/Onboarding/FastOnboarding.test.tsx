@@ -99,7 +99,7 @@ describe('FastOnboarding Component', () => {
       'handles %s onboarding type correctly with existingUser false',
       (onboardingType) => {
         // Arrange
-        mockRoute.params = { onboardingType, existingUser: 'false' };
+        mockRoute.params = { onboardingType, existing: 'false' };
         const expectedHandlerMap = {
           google: mockProps.onPressContinueWithGoogle,
           apple: mockProps.onPressContinueWithApple,
@@ -109,16 +109,16 @@ describe('FastOnboarding Component', () => {
         renderWithNavigation(<FastOnboarding {...mockProps} />);
 
         // Assert
-        expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledWith(true); // createWallet = !existingUser = true
+        expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledWith(true); // createWallet = !existing = true
         expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledTimes(1);
       },
     );
 
     it.each(['google', 'apple'] as const)(
-      'handles %s onboarding type correctly with existingUser true',
+      'handles %s onboarding type correctly with existing true',
       (onboardingType) => {
         // Arrange
-        mockRoute.params = { onboardingType, existingUser: 'true' };
+        mockRoute.params = { onboardingType, existing: 'true' };
         const expectedHandlerMap = {
           google: mockProps.onPressContinueWithGoogle,
           apple: mockProps.onPressContinueWithApple,
@@ -128,14 +128,14 @@ describe('FastOnboarding Component', () => {
         renderWithNavigation(<FastOnboarding {...mockProps} />);
 
         // Assert
-        expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledWith(false); // createWallet = !existingUser = false
+        expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledWith(false); // createWallet = !existing= false
         expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledTimes(1);
       },
     );
 
-    it('handles srp onboarding type with existingUser true (calls onPressImport)', () => {
+    it('handles srp onboarding type with existing true (calls onPressImport)', () => {
       // Arrange
-      mockRoute.params = { onboardingType: 'srp', existingUser: 'true' };
+      mockRoute.params = { onboardingType: 'srp', existing: 'true' };
 
       // Act
       renderWithNavigation(<FastOnboarding {...mockProps} />);
@@ -147,9 +147,9 @@ describe('FastOnboarding Component', () => {
       expect(mockProps.onPressContinueWithApple).not.toHaveBeenCalled();
     });
 
-    it('handles srp onboarding type with existingUser false (calls onPressCreate)', () => {
+    it('handles srp onboarding type with existing false (calls onPressCreate)', () => {
       // Arrange
-      mockRoute.params = { onboardingType: 'srp', existingUser: 'false' };
+      mockRoute.params = { onboardingType: 'srp', existing: 'false' };
 
       // Act
       renderWithNavigation(<FastOnboarding {...mockProps} />);
@@ -163,7 +163,7 @@ describe('FastOnboarding Component', () => {
 
     it('handles srp onboarding type with existingUser undefined (calls onPressCreate)', () => {
       // Arrange
-      mockRoute.params = { onboardingType: 'srp' }; // existingUser undefined
+      mockRoute.params = { onboardingType: 'srp' }; // existing undefined
 
       // Act
       renderWithNavigation(<FastOnboarding {...mockProps} />);
