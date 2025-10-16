@@ -1,36 +1,25 @@
 // Third party dependencies.
 import React from 'react';
-import { View, Text } from 'react-native';
 
 // Internal dependencies.
 import OnboardingSuccess, {
   OnboardingSuccessComponent,
   ResetNavigationToHome,
 } from '.';
-import createStyles from './index.styles';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { Linking } from 'react-native';
+import AppConstants from '../../../core/AppConstants';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { capitalize } from 'lodash';
 import { strings } from '../../../../locales/i18n';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { useSelector } from 'react-redux';
-import { useTheme } from '../../../util/theme';
-import {
-  selectSeedlessOnboardingAuthConnection,
-  selectSeedlessOnboardingLoginFlow,
-} from '../../../selectors/seedlessOnboardingController';
-
-// Mock the OnboardingSuccessEndAnimation component
-jest.mock('./OnboardingSuccessEndAnimation/index', () => {
-  const MockReact = jest.requireActual('react');
-  return MockReact.forwardRef(() =>
-    MockReact.createElement('View', {
-      testID: 'onboarding-success-end-animation',
-    }),
-  );
-});
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -170,7 +159,6 @@ describe('OnboardingSuccessComponent', () => {
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
-
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
@@ -179,7 +167,7 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', async () => {
+  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
@@ -188,7 +176,6 @@ describe('OnboardingSuccessComponent', () => {
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
-
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
@@ -196,14 +183,13 @@ describe('OnboardingSuccessComponent', () => {
     expect(mockDiscoverAccounts).toHaveBeenCalled();
   });
 
-  it('navigate to the default settings screen when the manage default settings button is pressed', async () => {
+  it('navigate to the default settings screen when the manage default settings button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
-
     const button = getByTestId(
       OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
     );
@@ -213,31 +199,16 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('shows done button and manage default settings button for IMPORT_FROM_SEED_PHRASE flow', () => {
+  it('navigate to the learn more screen when the learn more link is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
-
-    expect(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeTruthy();
-    expect(
-      getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON),
-    ).toBeTruthy();
-  });
-
-  it('displays wallet ready title for IMPORT_FROM_SEED_PHRASE flow', () => {
-    const { getByText } = renderWithProvider(
-      <OnboardingSuccessComponent
-        onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
-      />,
-    );
-
-    expect(
-      getByText(strings('onboarding_success.wallet_ready')),
-    ).toBeOnTheScreen();
+    const button = getByTestId(OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID);
+    fireEvent.press(button);
+    expect(Linking.openURL).toHaveBeenCalledWith(AppConstants.URLS.WHAT_IS_SRP);
   });
 });
 
@@ -245,6 +216,7 @@ describe('OnboardingSuccess', () => {
   mockImportAdditionalAccounts.mockResolvedValue(true);
 
   beforeEach(() => {
+    // Reset mocks before each test
     (useSelector as jest.Mock).mockReset();
   });
 
@@ -319,62 +291,6 @@ describe('OnboardingSuccess', () => {
         ResetNavigationToHome,
       );
     });
-
-    it('displays wallet_ready title for NO_BACKED_UP_SRP flow', () => {
-      const { getByText } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
-        />,
-      );
-
-      expect(
-        getByText(strings('onboarding_success.wallet_ready')),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows done button and footer link for NO_BACKED_UP_SRP', () => {
-      const { getByTestId } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
-        />,
-      );
-
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(
-          OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders OnboardingSuccessEndAnimation with correct properties', () => {
-      const { getByTestId } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
-        />,
-      );
-
-      const animation = getByTestId('onboarding-success-end-animation');
-      expect(animation).toBeOnTheScreen();
-    });
-
-    it('displays wallet ready message with correct text', () => {
-      const { getByText } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
-        />,
-      );
-
-      expect(
-        getByText(strings('onboarding_success.wallet_ready')),
-      ).toBeOnTheScreen();
-    });
   });
 
   describe('route params successFlow is BACKED_UP_SRP', () => {
@@ -387,161 +303,86 @@ describe('OnboardingSuccess', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
-
-    it('displays wallet ready title for BACKED_UP_SRP flow', () => {
-      const { getByText } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
-        />,
-      );
-
-      expect(
-        getByText(strings('onboarding_success.wallet_ready')),
-      ).toBeOnTheScreen();
-    });
   });
 
-  describe('route params successFlow is SETTINGS_BACKUP', () => {
+  // write a test for the social login flow check authconnection is google or apple
+  it('renders social login description when authConnection is Apple', () => {
     mockRoute.mockReturnValue({
       params: {
-        successFlow: ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       },
     });
 
-    it('displays correct message title for SETTINGS_BACKUP flow', () => {
-      const { getByText } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
-        />,
-      );
-
-      expect(getByText(strings('onboarding_success.title'))).toBeOnTheScreen();
+    // Mock the useSelector to return the Apple auth connection
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSeedlessOnboardingAuthConnection) {
+        return AuthConnection.Apple;
+      }
+      return undefined;
     });
+
+    const initialState = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Apple,
+            socialBackupsMetadata: [],
+          },
+        },
+      },
+      settings: {},
+    };
+
+    const { getByText } = renderWithProvider(<OnboardingSuccess />, {
+      state: initialState,
+    });
+
+    const description = getByText(
+      strings('onboarding_success.import_description_social_login', {
+        authConnection: capitalize(AuthConnection.Apple) || '',
+      }),
+    );
+    expect(description).toBeOnTheScreen();
   });
 
-  describe('route params successFlow is REMINDER_BACKUP', () => {
+  it('renders social login description when authConnection is Google', () => {
     mockRoute.mockReturnValue({
       params: {
-        successFlow: ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP,
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       },
     });
 
-    it('displays wallet ready title for REMINDER_BACKUP flow (default case)', () => {
-      const { getByText } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP}
-        />,
-      );
-
-      expect(
-        getByText(strings('onboarding_success.wallet_ready')),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Edge Case Branch Coverage', () => {
-    it('should cover all conditional branch combinations in startRiveAnimation', () => {
-      jest.useFakeTimers();
-
-      const TestBranchCoverage = () => {
-        const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-
-        const testAllBranches = () => {
-          hasAnimationStarted.current = true;
-          (riveRef as unknown as { current: null }).current = null;
-          animationId.current = setTimeout(() => {
-            /* test timer */
-          }, 100);
-
-          const shouldReturn =
-            hasAnimationStarted.current ||
-            !riveRef.current ||
-            animationId.current;
-          expect(shouldReturn).toBe(true);
-        };
-
-        React.useEffect(() => {
-          testAllBranches();
-        }, []);
-
-        return <View testID="branch-coverage-test" />;
-      };
-
-      renderWithProvider(<TestBranchCoverage />, { state: {} });
-      jest.useRealTimers();
+    // Mock the useSelector to return the Google auth connection
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSeedlessOnboardingAuthConnection) {
+        return AuthConnection.Google;
+      }
+      return undefined;
     });
 
-    it('should cover null authConnection branch in social login logic', () => {
-      jest.useFakeTimers();
+    const initialState = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+            socialBackupsMetadata: [],
+          },
+        },
+      },
+      settings: {},
+    };
 
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectSeedlessOnboardingAuthConnection) {
-          return null;
-        }
-        if (selector === selectSeedlessOnboardingLoginFlow) {
-          return false;
-        }
-        return undefined;
-      });
-
-      const TestNullAuthConnection = () => {
-        const testSocialLoginBranch = () => {
-          const currentIsSocialLogin = false;
-          expect(currentIsSocialLogin).toBe(false);
-        };
-
-        React.useEffect(() => {
-          testSocialLoginBranch();
-        }, []);
-
-        return <View testID="null-auth-test" />;
-      };
-
-      renderWithProvider(<TestNullAuthConnection />, { state: {} });
-      jest.useRealTimers();
-    });
-  });
-
-  describe('Styles tests', () => {
-    it('should create styles with light mode', () => {
-      const TestLightModeStyles = () => {
-        const { colors } = useTheme();
-        const styles = createStyles(colors, false);
-
-        return (
-          <View testID="light-mode-styles" style={styles.root}>
-            <Text>Light mode test</Text>
-          </View>
-        );
-      };
-
-      const { getByTestId } = renderWithProvider(<TestLightModeStyles />, {
-        state: {},
-      });
-      expect(getByTestId('light-mode-styles')).toBeTruthy();
+    const { getByText } = renderWithProvider(<OnboardingSuccess />, {
+      state: initialState,
     });
 
-    it('should create styles with dark mode', () => {
-      const TestDarkModeStyles = () => {
-        const { colors } = useTheme();
-        const styles = createStyles(colors, true);
-
-        return (
-          <View testID="dark-mode-styles" style={styles.root}>
-            <Text>Dark mode test</Text>
-          </View>
-        );
-      };
-
-      const { getByTestId } = renderWithProvider(<TestDarkModeStyles />, {
-        state: {},
-      });
-      expect(getByTestId('dark-mode-styles')).toBeTruthy();
-    });
+    const description = getByText(
+      strings('onboarding_success.import_description_social_login', {
+        authConnection: capitalize(AuthConnection.Google) || '',
+      }),
+    );
+    expect(description).toBeOnTheScreen();
   });
 });
