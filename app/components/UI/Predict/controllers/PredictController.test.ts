@@ -109,6 +109,7 @@ describe('PredictController', () => {
       isEligible: jest.fn(),
       providerId: 'polymarket',
       getUnrealizedPnL: jest.fn(),
+      previewOrder: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Mock the PolymarketProvider constructor
@@ -2258,6 +2259,74 @@ describe('PredictController', () => {
             providerId: 'polymarket',
           }),
         ).rejects.toThrow('Balance fetch failed');
+      });
+    });
+  });
+
+  describe('previewOrder', () => {
+    it('should preview order successfully', async () => {
+      const mockOrderPreview = createMockOrderPreview({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+      });
+
+      mockPolymarketProvider.previewOrder.mockResolvedValue(mockOrderPreview);
+
+      await withController(async ({ controller }) => {
+        const result = await controller.previewOrder({
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 100,
+        });
+
+        expect(result).toEqual(mockOrderPreview);
+        expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 100,
+        });
+      });
+    });
+
+    it('should throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewOrder({
+            providerId: 'invalid-provider',
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('should handle preview errors', async () => {
+      mockPolymarketProvider.previewOrder.mockRejectedValue(
+        new Error('Preview failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewOrder({
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          }),
+        ).rejects.toThrow('Preview failed');
       });
     });
   });

@@ -58,6 +58,13 @@ import {
   parsePolymarketActivity,
   priceValid,
   submitClobOrder,
+  decimalPlaces,
+  roundNormal,
+  roundDown,
+  roundUp,
+  roundOrderAmounts,
+  previewOrder,
+  getAllowanceCalls,
 } from './utils';
 
 // Mock external dependencies
@@ -2006,6 +2013,402 @@ describe('polymarket utils', () => {
       const result = parsePolymarketActivity(input);
       expect(result[0].id).toBeDefined();
       expect(typeof result[0].entry.timestamp).toBe('number');
+    });
+  });
+
+  describe('decimalPlaces', () => {
+    it('should return 0 for integers', () => {
+      expect(decimalPlaces(5)).toBe(0);
+      expect(decimalPlaces(100)).toBe(0);
+      expect(decimalPlaces(0)).toBe(0);
+    });
+
+    it('should return correct decimal places for decimals', () => {
+      expect(decimalPlaces(1.5)).toBe(1);
+      expect(decimalPlaces(0.123)).toBe(3);
+      expect(decimalPlaces(3.14159)).toBe(5);
+    });
+
+    it('should return 0 for numbers without decimal part', () => {
+      expect(decimalPlaces(10.0)).toBe(0);
+    });
+  });
+
+  describe('roundNormal', () => {
+    it('should round numbers to specified decimals', () => {
+      expect(roundNormal(1.235, 2)).toBe(1.24);
+      expect(roundNormal(1.234, 2)).toBe(1.23);
+      expect(roundNormal(1.5, 0)).toBe(2);
+    });
+
+    it('should return same number if already at or below target decimals', () => {
+      expect(roundNormal(1.5, 2)).toBe(1.5);
+      expect(roundNormal(1, 2)).toBe(1);
+    });
+
+    it('should handle zero decimals', () => {
+      expect(roundNormal(1.6, 0)).toBe(2);
+      expect(roundNormal(1.4, 0)).toBe(1);
+    });
+  });
+
+  describe('roundDown', () => {
+    it('should round down to specified decimals', () => {
+      expect(roundDown(1.239, 2)).toBe(1.23);
+      expect(roundDown(1.999, 2)).toBe(1.99);
+      expect(roundDown(1.5, 0)).toBe(1);
+    });
+
+    it('should return same number if already at or below target decimals', () => {
+      expect(roundDown(1.5, 2)).toBe(1.5);
+      expect(roundDown(1, 2)).toBe(1);
+    });
+
+    it('should handle edge cases', () => {
+      expect(roundDown(0.999, 2)).toBe(0.99);
+      expect(roundDown(100.123456, 3)).toBe(100.123);
+    });
+  });
+
+  describe('roundUp', () => {
+    it('should round up to specified decimals', () => {
+      expect(roundUp(1.231, 2)).toBe(1.24);
+      expect(roundUp(1.001, 2)).toBe(1.01);
+      expect(roundUp(1.5, 0)).toBe(2);
+    });
+
+    it('should return same number if already at or below target decimals', () => {
+      expect(roundUp(1.5, 2)).toBe(1.5);
+      expect(roundUp(1, 2)).toBe(1);
+    });
+
+    it('should handle edge cases', () => {
+      expect(roundUp(0.001, 2)).toBe(0.01);
+      expect(roundUp(100.123456, 3)).toBe(100.124);
+    });
+  });
+
+  describe('roundOrderAmounts', () => {
+    const mockRoundConfig = {
+      price: 4,
+      size: 2,
+      amount: 2,
+    };
+
+    it('should round BUY order amounts correctly', () => {
+      const result = roundOrderAmounts({
+        roundConfig: mockRoundConfig,
+        side: Side.BUY,
+        size: 10.556,
+        price: 0.55555,
+      });
+
+      expect(result.makerAmount).toBe(10.55);
+      expect(result.takerAmount).toBeGreaterThan(0);
+    });
+
+    it('should round SELL order amounts correctly', () => {
+      const result = roundOrderAmounts({
+        roundConfig: mockRoundConfig,
+        side: Side.SELL,
+        size: 10.556,
+        price: 0.55555,
+      });
+
+      expect(result.makerAmount).toBe(10.55);
+      expect(result.takerAmount).toBeGreaterThan(0);
+    });
+
+    it('should handle price rounding down', () => {
+      const result = roundOrderAmounts({
+        roundConfig: mockRoundConfig,
+        side: Side.BUY,
+        size: 100,
+        price: 0.456789,
+      });
+
+      expect(result.makerAmount).toBe(100);
+      expect(result.takerAmount).toBeGreaterThan(0);
+    });
+
+    it('should apply additional rounding when necessary', () => {
+      const result = roundOrderAmounts({
+        roundConfig: mockRoundConfig,
+        side: Side.BUY,
+        size: 123.456789,
+        price: 0.123456789,
+      });
+
+      expect(result.makerAmount).toBeLessThanOrEqual(123.46);
+      expect(result.takerAmount).toBeGreaterThan(0);
+    });
+  });
+
+  describe('previewOrder', () => {
+    beforeEach(() => {
+      mockFetch.mockReset();
+    });
+
+    it('should preview BUY order successfully', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [
+          { price: '0.50', size: '100' },
+          { price: '0.51', size: '50' },
+        ],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ tags: [] }),
+      });
+
+      const result = await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+        size: 50,
+      });
+
+      expect(result.side).toBe(Side.BUY);
+      expect(result.marketId).toBe('market-1');
+      expect(result.sharePrice).toBeGreaterThan(0);
+      expect(result.maxAmountSpent).toBeGreaterThan(0);
+      expect(result.slippage).toBeDefined();
+    });
+
+    it('should preview SELL order successfully', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [],
+        bids: [
+          { price: '0.50', size: '100' },
+          { price: '0.49', size: '50' },
+        ],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ tags: [] }),
+      });
+
+      const result = await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.SELL,
+        size: 50,
+      });
+
+      expect(result.side).toBe(Side.SELL);
+      expect(result.marketId).toBe('market-1');
+      expect(result.sharePrice).toBeGreaterThan(0);
+      expect(result.fees).toBeUndefined();
+    });
+
+    it('should throw error when orderbook is not available', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => null,
+      });
+
+      await expect(
+        previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 50,
+        }),
+      ).rejects.toThrow('no orderbook');
+    });
+
+    it('should throw error for BUY when no asks available', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      await expect(
+        previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 50,
+        }),
+      ).rejects.toThrow('no order match (buy)');
+    });
+
+    it('should throw error for SELL when no bids available', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      await expect(
+        previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.SELL,
+          size: 50,
+        }),
+      ).rejects.toThrow('no order match (sell)');
+    });
+
+    it('should include fees for BUY orders', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [{ price: '0.50', size: '200' }],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ tags: [] }),
+      });
+
+      const result = await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+        size: 100,
+      });
+
+      expect(result.fees).toBeDefined();
+      expect(result.fees?.totalFee).toBeGreaterThanOrEqual(0);
+      expect(result.fees?.metamaskFee).toBeGreaterThanOrEqual(0);
+      expect(result.fees?.providerFee).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should not include fees for SELL orders', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: false,
+        asks: [],
+        bids: [{ price: '0.50', size: '200' }],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ tags: [] }),
+      });
+
+      const result = await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.SELL,
+        size: 100,
+      });
+
+      expect(result.fees).toBeUndefined();
+    });
+
+    it('should handle negRisk markets', async () => {
+      const mockOrderBook = {
+        timestamp: '2024-01-01T00:00:00Z',
+        tick_size: '0.01',
+        min_order_size: '1',
+        neg_risk: true,
+        asks: [{ price: '0.50', size: '200' }],
+        bids: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderBook,
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ tags: [] }),
+      });
+
+      const result = await previewOrder({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+        size: 100,
+      });
+
+      expect(result.negRisk).toBe(true);
+    });
+  });
+
+  describe('getAllowanceCalls', () => {
+    it('should return array of allowance transaction calls', () => {
+      const calls = getAllowanceCalls({ address: mockAddress });
+
+      expect(Array.isArray(calls)).toBe(true);
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call).toHaveProperty('data');
+        expect(call).toHaveProperty('to');
+        expect(call).toHaveProperty('chainId');
+        expect(call).toHaveProperty('from');
+        expect(call).toHaveProperty('value');
+        expect(call.from).toBe(mockAddress);
+      });
+    });
+
+    it('should include all necessary approval calls', () => {
+      const calls = getAllowanceCalls({ address: mockAddress });
+      expect(calls.length).toBe(6);
     });
   });
 });
