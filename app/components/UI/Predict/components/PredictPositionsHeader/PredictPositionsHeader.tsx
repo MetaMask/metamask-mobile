@@ -132,7 +132,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
     const handleClaim = async () => {
-      await claim({ positions, providerId: POLYMARKET_PROVIDER_ID });
+      await claim();
     };
 
     if (

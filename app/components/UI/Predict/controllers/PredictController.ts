@@ -88,7 +88,7 @@ export type PredictControllerState = {
   lastUpdateTimestamp: number;
 
   // Claim management
-  claimablePositions: PredictPosition[] | null;
+  claimablePositions: PredictPosition[];
   claimTransaction: PredictClaim | null;
 
   // Deposit management
@@ -107,7 +107,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
-  claimablePositions: null,
+  claimablePositions: [],
   claimTransaction: null,
   depositTransaction: null,
   isOnboarded: {},

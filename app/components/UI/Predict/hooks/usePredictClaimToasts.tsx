@@ -38,9 +38,9 @@ export const usePredictClaimToasts = () => {
   const claimablePositions = useSelector(selectPredictClaimablePositions);
   const wonPositions = useMemo(
     () =>
-      claimablePositions?.filter(
+      claimablePositions.filter(
         (position) => position.status === PredictPositionStatus.WON,
-      ) ?? [],
+      ),
     [claimablePositions],
   );
 
