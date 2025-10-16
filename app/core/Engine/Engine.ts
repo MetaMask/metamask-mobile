@@ -994,7 +994,7 @@ export class Engine {
         ],
       }),
       state: initialState.NftController,
-      displayNftMedia: initialState.PreferencesController,
+      displayNftMedia: initialState.PreferencesController?.displayNftMedia,
     });
 
     const tokensController = new TokensController({
