@@ -6858,9 +6858,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^1.4.2":
-  version: 1.4.2
-  resolution: "@metamask/account-tree-controller@npm:1.4.2"
+"@metamask/account-tree-controller@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@metamask/account-tree-controller@npm:1.5.0"
   dependencies:
     "@metamask/base-controller": "npm:^8.4.1"
     "@metamask/snaps-sdk": "npm:^9.0.0"
@@ -6878,7 +6878,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/b1340ed8345a618565f63db3e5c93f5a8313f00cec10ab75136483bdebc10f5a7506c63cda3ae06573133ab2479af2ccf59ea7a456cf71cf2e466ba151ff5dee
+  checksum: 10/3d5147d7bf6cf85ac0d340b9d6481386bd8f1c60fcc53cfd925c45a14c280662db6d6ef959660cf21ced044507b121cdde60d1e2d1ccff675e9ac6ed8d0f8107
   languageName: node
   linkType: hard
 
@@ -8433,15 +8433,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "@metamask/remote-feature-flag-controller@npm:1.7.0"
+"@metamask/remote-feature-flag-controller@npm:^1.9.0":
+  version: 1.9.0
+  resolution: "@metamask/remote-feature-flag-controller@npm:1.9.0"
   dependencies:
-    "@metamask/base-controller": "npm:^8.0.1"
-    "@metamask/controller-utils": "npm:^11.11.0"
-    "@metamask/utils": "npm:^11.4.2"
+    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/utils": "npm:^11.8.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/41875f1520147db6e054ee973e1e0ee8cc75f6b4550f755a1d1bcad18c0385690f34001c0146265e1f7182bb9759bfe69db58a91a310374dca554aebbfa95522
+  checksum: 10/f691d9e3932245cc6cb5665fd75ee9b68879c813c02c36d360ebec32c423bf8707ffd364939d0d87b9940727d46aabedadf5e34c7d64799b7ad29201b137dafa
   languageName: node
   linkType: hard
 
@@ -8891,10 +8891,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/tron-wallet-snap@npm:1.1.0"
-  checksum: 10/4462e60ee97534442fd7f0236073d1e691469b1479f98f54203cfafc5df7fcc78717af3cc0c6184d7a3fb12c6b5e3eff28439c8d4f97bdae6b172baa152353c5
+"@metamask/tron-wallet-snap@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.4.0"
+  checksum: 10/99f31d7bb94979e4757f43cc2afc444bcce2efdd5b4df2474e2fb64a6c124ca00803a02b85e3096a3afbee58231ed27e0ae6c548da2d5021f7aa0d8012acfe3c
   languageName: node
   linkType: hard
 
@@ -34110,7 +34110,7 @@ __metadata:
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.34.1"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^0.12.0"
-    "@metamask/account-tree-controller": "npm:^1.4.2"
+    "@metamask/account-tree-controller": "npm:^1.5.0"
     "@metamask/accounts-controller": "npm:^33.1.0"
     "@metamask/address-book-controller": "npm:^6.1.0"
     "@metamask/app-metadata-controller": "npm:^1.0.0"
@@ -34189,7 +34189,7 @@ __metadata:
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "npm:^14.5.0"
-    "@metamask/remote-feature-flag-controller": "npm:^1.7.0"
+    "@metamask/remote-feature-flag-controller": "npm:^1.9.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/scure-bip39": "npm:^2.1.0"
     "@metamask/sdk-analytics": "npm:0.0.5"
@@ -34214,7 +34214,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/token-search-discovery-controller": "npm:^3.1.0"
     "@metamask/transaction-controller": "npm:^60.6.0"
-    "@metamask/tron-wallet-snap": "npm:^1.1.0"
+    "@metamask/tron-wallet-snap": "npm:^1.4.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@noble/curves": "npm:1.9.6"
