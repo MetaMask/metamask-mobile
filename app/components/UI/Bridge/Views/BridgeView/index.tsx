@@ -23,11 +23,12 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
-import { limitToMaximumDecimalPlaces } from '../../../../../util/number';
 import {
   selectSourceAmount,
   selectSelectedDestChainId,
   setSourceAmount,
+  setSourceAmountAsMax,
+  selectIsMaxSourceAmount,
   resetBridgeState,
   selectDestToken,
   selectSourceToken,
@@ -108,6 +109,7 @@ const BridgeView = () => {
   useGasFeeEstimates(selectedNetworkClientId);
 
   const sourceAmount = useSelector(selectSourceAmount);
+  const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
@@ -454,6 +456,7 @@ const BridgeView = () => {
           <TokenInputArea
             ref={inputRef}
             amount={sourceAmount}
+            isMaxAmount={isMaxSourceAmount}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
             networkImageSource={
@@ -471,11 +474,9 @@ const BridgeView = () => {
             onInputPress={() => setIsInputFocused(true)}
             onMaxPress={() => {
               if (latestSourceBalance?.displayBalance) {
-                const truncatedAmount = limitToMaximumDecimalPlaces(
-                  parseFloat(latestSourceBalance.displayBalance),
-                  5,
+                dispatch(
+                  setSourceAmountAsMax(latestSourceBalance.displayBalance),
                 );
-                dispatch(setSourceAmount(truncatedAmount));
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}

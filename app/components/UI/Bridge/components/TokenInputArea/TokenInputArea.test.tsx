@@ -276,20 +276,31 @@ describe('getDisplayAmount', () => {
     expect(getDisplayAmount(undefined)).toBeUndefined();
   });
 
-  it('returns full amount for source type when under max length', () => {
-    const amount = '123456789012345678';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
-  });
-
-  it('returns full amount for source type when over max length', () => {
-    const amount = '1234567890123456789';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
-  });
-
-  it('parses amount for destination type', () => {
-    const amount = '1234567890123456789.12345';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe(
-      '1234567890123456789.12345',
+  it('preserves full source amount when not from Max button', () => {
+    const amount = '1.123456789012345678';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source, false)).toBe(
+      amount,
     );
+  });
+
+  it('truncates source amount when from Max button', () => {
+    const amount = '1.123456789012345678';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source, true)).toBe(
+      '1.12346',
+    );
+  });
+
+  it('truncates max amount with many decimals', () => {
+    const amount = '1234.567890123456789';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source, true)).toBe(
+      '1234.56789',
+    );
+  });
+
+  it('always truncates destination amount regardless of Max flag', () => {
+    const amount = '1234567890123456789.12345';
+    expect(
+      getDisplayAmount(amount, TokenInputAreaType.Destination, false),
+    ).toBe('1234567890123456789.12345');
   });
 });
