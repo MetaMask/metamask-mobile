@@ -69,14 +69,13 @@ export const TouchableOpacity = ({
     return () => subscription?.remove();
   }, []);
 
-  // Gesture detection for ScrollView compatibility on Android
+  // Gesture detection for ScrollView and BottomSheet compatibility on Android
   const tap = Gesture.Tap()
     .runOnJS(true)
     .shouldCancelWhenOutside(false)
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
-    .requireExternalGestureToFail() // Wait for other gestures to fail before activating
-    .maxDuration(300) // Tight constraint: must complete within 300ms
+    .maxDuration(200) // Shorter duration for better responsiveness
     .minPointers(1)
     .onEnd(
       (
