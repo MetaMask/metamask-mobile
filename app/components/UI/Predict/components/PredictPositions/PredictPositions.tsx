@@ -19,6 +19,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
+import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
 
 export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
@@ -69,6 +70,23 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     [navigation],
   );
 
+  const renderResolvedPosition = useCallback(
+    ({ item }: { item: PredictPositionType }) => (
+      <PredictPositionResolved
+        position={item}
+        onPress={() => {
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+            screen: Routes.PREDICT.MARKET_DETAILS,
+            params: {
+              marketId: item.marketId,
+            },
+          });
+        }}
+      />
+    ),
+    [navigation],
+  );
+
   if (isLoading || (isRefreshing && positions.length === 0)) {
     return (
       <View style={tw.style('flex-1 bg-default')}>
@@ -98,21 +116,28 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
         ListEmptyComponent={<PredictPositionEmpty />}
         ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
       />
-      <Box>
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative mb-4">
-          {strings('predict.tab.resolved_markets')}
-        </Text>
-      </Box>
-      <FlashList
-        testID="claimable-positions-list"
-        data={claimablePositions.sort(
-          (a, b) =>
-            new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
-        )}
-        renderItem={renderPosition}
-        scrollEnabled={false}
-        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-      />
+      {claimablePositions.length > 0 && (
+        <>
+          <Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-alternative mb-4"
+            >
+              {strings('predict.tab.resolved_markets')}
+            </Text>
+          </Box>
+          <FlashList
+            testID="claimable-positions-list"
+            data={claimablePositions.sort(
+              (a, b) =>
+                new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+            )}
+            renderItem={renderResolvedPosition}
+            scrollEnabled={false}
+            keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
+          />
+        </>
+      )}
     </>
   );
 });
