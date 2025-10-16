@@ -28,7 +28,6 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectBridgeFeatureFlags,
   selectDestAddress,
   selectIsSwap,
 } from '../../../../../core/redux/slices/bridge';
@@ -63,11 +62,11 @@ const QuoteDetailsCard: React.FC = () => {
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
+    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destAddress = useSelector(selectDestAddress);
   const isSwap = useSelector(selectIsSwap);
   const internalAccounts = useSelector(selectInternalAccounts);
@@ -133,18 +132,7 @@ const QuoteDetailsCard: React.FC = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
-  // Check if price impact warning should be shown
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
-  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
-  const shouldShowPriceImpactWarning =
-    rawPriceImpact !== undefined &&
-    bridgeFeatureFlags?.priceImpactThreshold &&
-    ((gasIncluded &&
-      Number(rawPriceImpact) >=
-        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-      (!gasIncluded &&
-        Number(rawPriceImpact) >=
-          bridgeFeatureFlags.priceImpactThreshold.normal));
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),

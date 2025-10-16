@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import Crypto from 'react-native-quick-crypto';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   AppState,
@@ -34,7 +33,6 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import { PPOMController } from '@metamask/ppom-validator';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { isTestNet } from '../../util/networks';
@@ -61,8 +59,6 @@ import { backupVault } from '../BackupVault';
 import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
@@ -169,6 +165,7 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
+import { ppomControllerInit } from './controllers/ppom-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -348,6 +345,7 @@ export class Engine {
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PredictController: predictControllerInit,
+        PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -373,6 +371,7 @@ export class Engine {
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
     const predictController = controllersByName.PredictController;
+    const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -529,38 +528,7 @@ export class Engine {
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
-      PPOMController: new PPOMController({
-        chainId: getGlobalChainId(networkController),
-        blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
-        cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'PPOMController',
-          allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: [`${networkController.name}:networkDidChange`],
-        }),
-        onPreferencesChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `${preferencesController.name}:stateChange`,
-            listener,
-          ),
-        // TODO: Replace "any" with type
-        provider:
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          networkController.getProviderAndBlockTracker().provider as any,
-        ppomProvider: {
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          PPOM: PPOM as any,
-          ppomInit,
-        },
-        storageBackend: new RNFSStorageBackend('PPOMDB'),
-        securityAlertsEnabled:
-          initialState.PreferencesController?.securityAlertsEnabled ?? false,
-        state: initialState.PPOMController,
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        nativeCrypto: Crypto as any,
-      }),
+      PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
       RatesController: ratesController,
