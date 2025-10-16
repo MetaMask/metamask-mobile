@@ -17,6 +17,7 @@ export const nftControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: persistedState.NftController,
     useIpfsSubdomains: false,
+    displayNftMedia: persistedState.PreferencesController?.displayNftMedia,
   });
 
   return {
