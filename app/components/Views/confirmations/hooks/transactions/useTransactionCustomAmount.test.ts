@@ -315,5 +315,20 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe('1234.56');
     });
+
+    it('minus no buffer if 100 but all required tokens have sufficient balance and skipIfBalance', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        { skipIfBalance: true, amountRaw: '1', balanceRaw: '1' },
+        { skipIfBalance: true, amountRaw: '1', balanceRaw: '1' },
+      ] as TransactionToken[]);
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1234.56');
+    });
   });
 });
