@@ -50,7 +50,15 @@ export const TouchableOpacity = ({
 
   useEffect(() => {
     // Check initial accessibility state
-    AccessibilityInfo.isScreenReaderEnabled().then(setIsAccessibilityEnabled);
+    AccessibilityInfo.isScreenReaderEnabled()
+      .then(setIsAccessibilityEnabled)
+      .catch((error) => {
+        // Log the error for debugging
+        console.warn('AccessibilityInfo.isScreenReaderEnabled failed:', error);
+        // Fallback to false - assume accessibility is OFF
+        // This ensures gesture handler will work in ScrollViews
+        setIsAccessibilityEnabled(false);
+      });
 
     // Listen for accessibility changes
     const subscription = AccessibilityInfo.addEventListener(
