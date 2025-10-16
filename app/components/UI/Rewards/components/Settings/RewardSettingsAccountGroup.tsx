@@ -5,23 +5,18 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
-  Button,
-  ButtonVariant,
+  ButtonIcon,
+  ButtonIconSize,
   TextVariant as DsTextVariant,
-  ButtonSize,
+  IconName as IconNameDS,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import I18n from '../../../../../../locales/i18n';
 import { isEmpty } from 'lodash';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import Icon, {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useLinkAccountGroup } from '../../hooks/useLinkAccountGroup';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -39,13 +34,13 @@ import {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { formatWithThreshold } from '../../../../../util/assets';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import { useTheme } from '../../../../../util/theme';
 
 // Enhanced props interface with pre-computed data for performance
 interface RewardSettingsAccountGroupProps {
   item: RewardSettingsAccountGroupListFlatListItem;
   avatarAccountType: AvatarAccountType;
-  isSelected?: boolean;
   testID?: string;
 }
 
@@ -55,12 +50,11 @@ interface RewardSettingsAccountGroupProps {
 const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
   item,
   avatarAccountType,
-  isSelected = false,
   testID,
 }) => {
   const { accountGroup } = item;
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const theme = useTheme();
 
   // Determine EVM address internally using the account group ID
   const evmAddress = useSelector((state: RootState) => {
@@ -156,21 +150,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
   }
 
   return (
-    <View
-      style={tw.style(
-        'w-full flex-row items-center px-4',
-        isSelected ? 'bg-info-muted' : 'bg-default',
-      )}
-    >
-      {/* Selected indicator - 4px bar on the left */}
-      {isSelected && (
-        <View
-          style={tw.style('w-1 h-14 rounded-lg', 'mr-2 -ml-3', {
-            backgroundColor: colors.primary.default,
-          })}
-        />
-      )}
-
+    <View style={tw.style('w-full flex-row items-center px-4 bg-default')}>
       <Box
         twClassName="flex-1 flex-row items-center py-3 rounded-lg gap-3"
         flexDirection={BoxFlexDirection.Row}
@@ -203,51 +183,61 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
           </Text>
 
           {/* Account Balance */}
-          {displayBalance && (
-            <SensitiveText
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Long}
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
-              testID={`rewards-account-group-balance-${accountGroup.id}`}
-            >
-              {displayBalance}
-            </SensitiveText>
-          )}
+          {displayBalance &&
+            groupBalance?.totalBalanceInUserCurrency !== undefined &&
+            groupBalance.totalBalanceInUserCurrency > 0 && (
+              <SensitiveText
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Long}
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Alternative}
+                testID={`rewards-account-group-balance-${accountGroup.id}`}
+              >
+                {displayBalance}
+              </SensitiveText>
+            )}
         </Box>
 
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          twClassName="gap-4"
           testID={`rewards-account-group-actions-${accountGroup.id}`}
         >
           {/* QR Code button to show account addresses */}
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
+          <ButtonIcon
+            iconName={IconNameDS.QrCode}
+            size={ButtonIconSize.Lg}
             onPress={handleShowAddresses}
             isDisabled={isLoading}
-            twClassName="px-1"
             testID={`rewards-account-addresses-${accountGroup.id}`}
-          >
-            <Icon name={IconName.QrCode} color={IconColor.Default} />
-          </Button>
+            twClassName="bg-subsection rounded-xl"
+          />
 
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isDisabled={accountGroup.optedOutAccounts.length === 0}
-            isLoading={isLoading}
-            onPress={handleLinkAccountGroup}
-            testID={`rewards-account-group-link-button-${accountGroup.id}`}
-          >
-            {accountGroup.optedOutAccounts.length === 0 ? (
-              <Icon name={IconName.Check} color={IconColor.Success} />
-            ) : (
-              strings('rewards.link_account_group.link_account')
-            )}
-          </Button>
+          {isLoading ? (
+            <Box
+              twClassName="bg-subsection rounded-xl h-10 w-10 items-center justify-center"
+              testID={`rewards-account-group-link-button-loading-${accountGroup.id}`}
+            >
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.icon.default}
+              />
+            </Box>
+          ) : (
+            <ButtonIcon
+              iconName={
+                accountGroup.optedOutAccounts.length === 0
+                  ? IconNameDS.Check
+                  : IconNameDS.Add
+              }
+              size={ButtonIconSize.Lg}
+              isDisabled={accountGroup.optedOutAccounts.length === 0}
+              onPress={handleLinkAccountGroup}
+              testID={`rewards-account-group-link-button-${accountGroup.id}`}
+              twClassName="bg-subsection rounded-xl"
+            />
+          )}
         </Box>
       </Box>
     </View>
