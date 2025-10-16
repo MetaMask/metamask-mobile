@@ -32,6 +32,7 @@ import {
   CalculateCashOutAmountsParams,
   CalculateCashOutAmountsResponse,
   GetAccountStateParams,
+  GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
   PlaceOrderParams,
@@ -289,16 +290,6 @@ export class PredictController extends BaseController<
       });
       return;
     }
-
-    // Check deposit transaction (batch)
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.CONFIRMED;
-      });
-      return;
-    }
   }
 
   /**
@@ -324,16 +315,6 @@ export class PredictController extends BaseController<
       });
       return;
     }
-
-    // Check deposit transaction
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.ERROR;
-      });
-      return;
-    }
   }
 
   /**
@@ -356,16 +337,6 @@ export class PredictController extends BaseController<
       this.update((state) => {
         if (!state.claimTransaction) return;
         state.claimTransaction.status = PredictClaimStatus.CANCELLED;
-      });
-      return;
-    }
-
-    // Check deposit transaction
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.CANCELLED;
       });
       return;
     }
@@ -964,6 +935,19 @@ export class PredictController extends BaseController<
     return provider.getAccountState({
       ...params,
       ownerAddress: selectedAddress,
+    });
+  }
+
+  public async getBalance(params: GetBalanceParams): Promise<number> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+    const { AccountsController } = Engine.context;
+    const selectedAddress = AccountsController.getSelectedAccount().address;
+    return provider.getBalance({
+      ...params,
+      address: params.address ?? selectedAddress,
     });
   }
 }

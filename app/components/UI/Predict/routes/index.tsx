@@ -11,6 +11,7 @@ import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import PredictPlaceBet from '../views/PredictPlaceBet/PredictPlaceBet';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
+import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
@@ -32,6 +33,10 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.UNAVAILABLE}
       component={PredictUnavailableModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
+      component={PredictAddFundsModal}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MARKET_DETAILS}

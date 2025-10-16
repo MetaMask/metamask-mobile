@@ -113,7 +113,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@211837de0fe5589cb88bd78bd2fd3237e1e97f48
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -226,36 +226,10 @@ jobs:
           path: e2e/reports/
           retention-days: 7
 
-      - name: Prepare screenshots
-        if: failure()
-        run: |
-          echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
-
-          case "${{ inputs.platform }}" in
-            android)
-              KEEP_PREFIX="android"
-              ;;
-            ios)
-              KEEP_PREFIX="ios"
-              ;;
-            *)
-              echo "⚠️ Unknown platform '${{ inputs.platform }}'; skipping pruning to avoid accidental deletion."
-              exit 0
-              ;;
-          esac
-
-          # Remove all artifacts except the ones that match the keep prefix. We should later on improve this to avoid having rm -rf references.
-          find artifacts -mindepth 1 -prune \
-            ! -name "${KEEP_PREFIX}*" \
-            ! -name 'coverage-*' \
-            -exec echo "Removing:" {} \; \
-            -exec rm -rf {} + 2>/dev/null || true
-        continue-on-error: true
-
       - name: Upload screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.test-suite-name }}-screenshots
-          path: artifacts/
+          path: e2e/artifacts/
           retention-days: 7

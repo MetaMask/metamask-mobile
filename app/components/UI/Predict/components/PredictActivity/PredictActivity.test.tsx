@@ -83,9 +83,8 @@ const renderComponent = (overrides?: Partial<PredictActivityItem>) => {
       ...(overrides?.entry ?? {}),
     },
   };
-  const onPress = jest.fn();
-  render(<PredictActivity item={item} onPress={onPress} />);
-  return { item, onPress };
+  render(<PredictActivity item={item} />);
+  return { item };
 };
 
 describe('PredictActivity', () => {
