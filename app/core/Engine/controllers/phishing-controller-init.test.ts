@@ -21,6 +21,17 @@ function getInitRequestMock(): jest.Mocked<
     initMessenger: undefined,
   };
 
+  // @ts-expect-error: Partial mock.
+  requestMock.getState.mockImplementation(() => ({
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+        },
+      },
+    },
+  }));
+
   return requestMock;
 }
 

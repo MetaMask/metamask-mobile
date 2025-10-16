@@ -13,12 +13,12 @@ import { isProductSafetyDappScanningEnabled } from '../../../util/phishingDetect
 export const phishingControllerInit: ControllerInitFunction<
   PhishingController,
   PhishingControllerMessenger
-> = ({ controllerMessenger }) => {
+> = ({ controllerMessenger, getState }) => {
   const controller = new PhishingController({
     messenger: controllerMessenger,
   });
 
-  if (!isProductSafetyDappScanningEnabled()) {
+  if (!isProductSafetyDappScanningEnabled(getState())) {
     controller.maybeUpdateState();
   }
 
