@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,6 +38,8 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
+import storageWrapper from '../../../../../store/storage-wrapper';
 import Device from '../../../../../util/device';
 
 /**
@@ -56,6 +58,14 @@ const OnboardingIntroStep: React.FC<{
   const dispatch = useDispatch();
   const tw = useTailwind();
   const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
+
+  const setHasSeenRewardsIntroModal = useCallback(async () => {
+    await storageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true');
+  }, []);
+
+  useEffect(() => {
+    setHasSeenRewardsIntroModal();
+  }, [setHasSeenRewardsIntroModal]);
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
