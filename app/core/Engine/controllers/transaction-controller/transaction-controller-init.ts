@@ -174,7 +174,11 @@ async function publishHook({
     messenger: initMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
-  if (!shouldUseSmartTransaction || !sendBundleSupport) {
+  if (
+    !shouldUseSmartTransaction ||
+    !sendBundleSupport ||
+    transactionMeta.isGasFeeSponsored
+  ) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,
