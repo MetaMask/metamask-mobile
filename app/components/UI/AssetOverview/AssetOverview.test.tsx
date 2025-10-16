@@ -192,7 +192,9 @@ const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
 jest.mock('../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual('../../../components/hooks/useMetrics');
+  const actualMetrics = jest.requireActual(
+    '../../../components/hooks/useMetrics',
+  );
   return {
     ...actualMetrics,
     useMetrics: jest.fn(() => ({
