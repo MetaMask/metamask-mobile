@@ -228,11 +228,9 @@ import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerState,
-} from '@metamask/remote-feature-flag-controller';
-import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
-} from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+} from '@metamask/remote-feature-flag-controller';
 import {
   RestrictedMessenger,
   ActionConstraint,
@@ -707,8 +705,10 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'EarnController'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
@@ -723,6 +723,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
+  | 'SwapsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
@@ -739,6 +740,7 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
+  | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController';

@@ -27,6 +27,7 @@ import {
   CalculateCashOutAmountsResponse,
   ClaimOrderParams,
   ClaimOrderResponse,
+  GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
   PlaceOrderParams,
@@ -39,6 +40,7 @@ import {
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
 } from './constants';
 import {
@@ -55,6 +57,7 @@ import {
   OrderData,
   OrderType,
   PolymarketPosition,
+  PolymarketApiActivity,
   SignatureType,
   TickSize,
 } from './types';
@@ -76,6 +79,7 @@ import {
   getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  parsePolymarketActivity,
   priceValid,
   submitClobOrder,
 } from './utils';
@@ -86,7 +90,7 @@ export type SignTypedMessageFn = (
 ) => Promise<string>;
 
 export class PolymarketProvider implements PredictProvider {
-  readonly providerId = 'polymarket';
+  readonly providerId = POLYMARKET_PROVIDER_ID;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
@@ -124,7 +128,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
-    throw new Error('Method not implemented.');
+    return this.fetchActivity(_params);
   }
 
   public claimWinnings(): Promise<void> {
@@ -342,6 +346,50 @@ export class PolymarketProvider implements PredictProvider {
     return parsedPositions;
   }
 
+  private async fetchActivity({
+    address,
+  }: {
+    address: string;
+  }): Promise<PredictActivity[]> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+
+    if (!address) {
+      throw new Error('Address is required');
+    }
+
+    try {
+      const predictAddress =
+        this.#accountStateByAddress.get(address)?.address ??
+        (await this.getAccountState({ ownerAddress: address })).address;
+
+      const queryParams = new URLSearchParams({
+        // user: '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00',
+        user: predictAddress,
+      });
+
+      const response = await fetch(
+        `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get activity');
+      }
+
+      const activityRaw = (await response.json()) as PolymarketApiActivity[];
+      const parsedActivity = parsePolymarketActivity(activityRaw);
+      return Array.isArray(parsedActivity) ? parsedActivity : [];
+    } catch (error) {
+      DevLogger.log('Error getting activity via Polymarket API:', error);
+      return [];
+    }
+  }
+
   public async getUnrealizedPnL({
     address,
   }: {
@@ -349,12 +397,19 @@ export class PolymarketProvider implements PredictProvider {
   }): Promise<UnrealizedPnL> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
-    const response = await fetch(`${DATA_API_ENDPOINT}/upnl?user=${address}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const predictAddress =
+      this.#accountStateByAddress.get(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
+
+    const response = await fetch(
+      `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error('Failed to fetch unrealized P&L');
@@ -626,17 +681,15 @@ export class PolymarketProvider implements PredictProvider {
     const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
     const address =
       cachedAddress?.address ?? (await computeSafeAddress(ownerAddress));
-    const [isDeployed, hasAllowancesResult, balance] = await Promise.all([
+    const [isDeployed, hasAllowancesResult] = await Promise.all([
       isSmartContractAddress(address, numberToHex(POLYGON_MAINNET_CHAIN_ID)),
       hasAllowances({ address }),
-      getBalance({ address }),
     ]);
 
     const accountState = {
       address,
       isDeployed,
       hasAllowances: hasAllowancesResult,
-      balance,
     };
 
     this.#accountStateByAddress.set(ownerAddress, accountState);
@@ -644,8 +697,14 @@ export class PolymarketProvider implements PredictProvider {
     return accountState;
   }
 
-  public async getBalance(): Promise<number> {
-    // TODO: Implement this
-    return 0;
+  public async getBalance({ address }: GetBalanceParams): Promise<number> {
+    if (!address) {
+      throw new Error('address is required');
+    }
+    const cachedAddress = this.#accountStateByAddress.get(address);
+    const predictAddress =
+      cachedAddress?.address ?? (await computeSafeAddress(address));
+    const balance = await getBalance({ address: predictAddress });
+    return balance;
   }
 }

@@ -1,52 +1,36 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import RewardOptInAccountGroupModal from './RewardOptInAccountGroupModal';
-import { AccountGroupId } from '@metamask/account-api';
 import { useLinkAccountGroup } from '../../hooks/useLinkAccountGroup';
-import { FlatListProps } from 'react-native';
+import ClipboardManager from '../../../../../core/ClipboardManager';
+import { CaipChainId } from '@metamask/utils';
+import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selectors/multichainNetworkController';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 // Mock dependencies
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
+  useRoute: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Create a mutable route params object that can be changed per test
-let mockRouteParams: {
-  accountGroupId: string;
-  addressData: {
-    address: string;
-    hasOptedIn: boolean;
-    scopes: string[];
-    isSupported?: boolean;
-  }[];
-} = {
-  accountGroupId: 'test-account-group-id',
-  addressData: [
-    {
-      address: '0x1234567890123456789012345678901234567890',
-      hasOptedIn: false,
-      scopes: ['scope1', 'scope2'],
-      isSupported: true,
-    },
-    {
-      address: '0x0987654321098765432109876543210987654321',
-      hasOptedIn: true,
-      scopes: ['scope3'],
-      isSupported: true,
-    },
-  ],
-};
+jest.mock('../../hooks/useLinkAccountGroup', () => ({
+  useLinkAccountGroup: jest.fn(),
+}));
 
-const mockGoBack = jest.fn();
+jest.mock('../../../../../core/ClipboardManager', () => ({
+  setString: jest.fn(),
+}));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    goBack: mockGoBack,
-  }),
-  useRoute: () => ({
-    params: mockRouteParams,
-  }),
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -55,203 +39,21 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useLinkAccountGroup', () => ({
-  useLinkAccountGroup: jest.fn(),
+jest.mock('../../../../../util/networks', () => ({
+  isTestNet: jest.fn((chainId: string) => chainId === '0x5'),
 }));
 
-jest.mock(
-  '../../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectAccountGroupById: jest.fn(),
-  }),
-);
-
-jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectIconSeedAddressByAccountGroupId: jest.fn(),
+// Mock the selectors directly
+jest.mock('../../../../../selectors/multichainAccounts/accountTreeController');
+jest.mock('../../../../../selectors/networkController');
+jest.mock('../../../../../selectors/multichainNetworkController');
+jest.mock('@metamask/multichain-network-controller', () => ({
+  toEvmCaipChainId: jest.fn(
+    (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
+  ),
 }));
 
-jest.mock('../../../../../selectors/settings', () => ({
-  selectAvatarAccountType: jest.fn(),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
-}));
-
-// Mock component library components
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: ({ name, ...props }: { name: string; [key: string]: unknown }) => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(View, {
-      testID: `icon-${name}`,
-      ...props,
-    });
-  },
-  IconName: {
-    Check: 'check',
-    Close: 'close',
-    Warning: 'warning',
-  },
-  IconColor: {
-    IconDefault: 'icon-default',
-    IconMuted: 'icon-muted',
-    Success: 'success',
-    Error: 'error',
-    Warning: 'warning',
-  },
-}));
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: ReactActual.forwardRef(
-        (
-          props: { children?: React.ReactNode; onClose?: () => void },
-          ref: React.Ref<unknown>,
-        ) => {
-          ReactActual.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: (callback: () => void) => {
-              callback();
-            },
-          }));
-
-          return ReactActual.createElement(
-            View,
-            { testID: 'bottom-sheet' },
-            props.children,
-          );
-        },
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-
-    return ReactActual.forwardRef(
-      (
-        props: {
-          children?: React.ReactNode;
-          onClose?: () => void;
-          startAccessory?: React.ReactNode;
-        },
-        ref: React.Ref<unknown>,
-      ) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'bottom-sheet-header', ref },
-          props.startAccessory,
-          props.children,
-          ReactActual.createElement(
-            View,
-            { testID: 'close-button', onPress: props.onClose },
-            ReactActual.createElement(Text, {}, 'Close'),
-          ),
-        ),
-    );
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-
-    return ReactActual.forwardRef(
-      (
-        props: { accountAddress?: string; type?: string; size?: string },
-        ref: React.Ref<unknown>,
-      ) =>
-        ReactActual.createElement(
-          View,
-          {
-            testID: 'avatar-account',
-            accountAddress: props.accountAddress,
-            type: props.type,
-            size: props.size,
-            ref,
-          },
-          ReactActual.createElement(View, { testID: 'avatar-content' }),
-        ),
-    );
-  },
-);
-
-jest.mock('./NetworkAvatars', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return ReactActual.forwardRef(
-    (props: { accountGroupId?: string }, ref: React.Ref<unknown>) =>
-      ReactActual.createElement(View, {
-        testID: `network-avatars-${props.accountGroupId || 'default'}`,
-        accountGroupId: props.accountGroupId,
-        ref,
-      }),
-  );
-});
-
-jest.mock('../RewardsInfoBanner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      description,
-      testID,
-    }: {
-      title: string;
-      description: string;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: testID || 'rewards-info-banner' },
-        ReactActual.createElement(Text, {}, title),
-        ReactActual.createElement(Text, {}, description),
-      ),
-  };
-});
-
-// Mock component library constants
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/Avatar.constants',
-  () => ({
-    IconSize: {
-      Xs: 'xs',
-      Sm: 'sm',
-      Md: 'md',
-      Lg: 'lg',
-    },
-    AvatarSize: {
-      Xs: 'xs',
-      Sm: 'sm',
-      Md: 'md',
-      Lg: 'lg',
-    },
-    ICONSIZE_BY_AVATARSIZE: {
-      xs: 'xs',
-      sm: 'sm',
-      md: 'md',
-      lg: 'lg',
-    },
-  }),
-);
-
+// Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const {
@@ -263,11 +65,13 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     Box: ({
       children,
+      testID,
       ...props
     }: {
       children?: React.ReactNode;
+      testID?: string;
       [key: string]: unknown;
-    }) => ReactActual.createElement(View, props, children),
+    }) => ReactActual.createElement(View, { testID, ...props }, children),
     Text: ({
       children,
       ...props
@@ -278,49 +82,29 @@ jest.mock('@metamask/design-system-react-native', () => {
     Button: ({
       children,
       onPress,
-      isLoading,
-      disabled,
       testID,
+      isLoading,
       ...props
     }: {
       children?: React.ReactNode;
       onPress?: () => void;
-      isLoading?: boolean;
-      disabled?: boolean;
       testID?: string;
+      isLoading?: boolean;
       [key: string]: unknown;
     }) =>
       ReactActual.createElement(
         TouchableOpacity,
         {
           onPress,
-          testID: testID || 'button',
-          disabled,
+          testID,
+          disabled: isLoading,
           ...props,
         },
-        ReactActual.createElement(
-          RNText,
-          {
-            isLoading,
-            disabled,
-            accessibilityState: disabled ? { disabled: true } : undefined,
-          },
-          children,
-        ),
+        ReactActual.createElement(RNText, {}, children),
       ),
     TextVariant: {
       BodyMd: 'BodyMd',
-      BodySm: 'BodySm',
-    },
-    BoxFlexDirection: {
-      Column: 'column',
-      Row: 'row',
-    },
-    BoxAlignItems: {
-      Center: 'center',
-    },
-    BoxJustifyContent: {
-      Between: 'space-between',
+      HeadingMd: 'HeadingMd',
     },
     FontWeight: {
       Medium: 'medium',
@@ -331,699 +115,828 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonSize: {
       Lg: 'lg',
     },
-    IconSize: {
-      Xs: 'xs',
-      Sm: 'sm',
-      Md: 'md',
-      Lg: 'lg',
-    },
-    AvatarSize: {
-      Xs: 'xs',
-      Sm: 'sm',
-      Md: 'md',
-      Lg: 'lg',
+    IconName: {
+      Check: 'check',
+      Close: 'close',
+      Warning: 'warning',
     },
   };
 });
 
-// Mock FlatList
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
+// Mock BottomSheet components
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+
+    const MockBottomSheet = ReactActual.forwardRef(
+      (
+        {
+          children,
+          onClose,
+          ...props
+        }: {
+          children?: React.ReactNode;
+          onClose?: () => void;
+          [key: string]: unknown;
+        },
+        ref: React.Ref<unknown>,
+      ) =>
+        ReactActual.createElement(
+          View,
+          {
+            testID: 'bottom-sheet',
+            ref,
+            ...props,
+          },
+          children,
+        ),
+    );
+
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: ({
+        children,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) =>
+        ReactActual.createElement(
+          View,
+          {
+            testID: 'bottom-sheet-header',
+            ...props,
+          },
+          children,
+        ),
+    };
+  },
+);
+
+// Mock MultichainAddressRow
+jest.mock(
+  '../../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, TouchableOpacity } = jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: ({
+        testID,
+        address,
+        chainId,
+        networkName,
+        copyParams,
+        icons,
+        ...props
+      }: {
+        testID?: string;
+        address: string;
+        chainId: string;
+        networkName: string;
+        copyParams?: {
+          successMessage: string;
+          callback: () => void;
+        };
+        icons?: {
+          name: string;
+          callback: () => void;
+          testId: string;
+        }[];
+        [key: string]: unknown;
+      }) =>
+        ReactActual.createElement(
+          View,
+          { testID, ...props },
+          ReactActual.createElement(View, { testID: `address-${address}` }),
+          ReactActual.createElement(View, {
+            testID: `network-${networkName}`,
+          }),
+          icons?.map((icon, index) =>
+            ReactActual.createElement(View, {
+              key: index,
+              testID: icon.testId,
+            }),
+          ),
+          copyParams &&
+            ReactActual.createElement(
+              TouchableOpacity,
+              {
+                testID: `copy-button-${address}`,
+                onPress: copyParams.callback,
+              },
+              null,
+            ),
+        ),
+    };
+  },
+);
+
+// Mock RewardsInfoBanner
+jest.mock('../RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
   return {
-    ...RN,
-    FlatList: ({
-      data,
-      renderItem,
-      keyExtractor,
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      testID,
       ...props
-    }: FlatListProps<unknown>) => {
-      const ReactActual = jest.requireActual('react');
-      const { View } = jest.requireActual('react-native');
-
-      return ReactActual.createElement(
+    }: {
+      title: string;
+      description: string;
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(
         View,
-        { testID: 'reward-opt-in-address-list', ...props },
-        data && Array.isArray(data)
-          ? data.map((item: unknown, index: number) => {
-              const key = keyExtractor ? keyExtractor(item, index) : index;
-              return ReactActual.createElement(
-                View,
-                { key, testID: `flat-list-item-${key}` },
-                renderItem?.({
-                  item,
-                  index,
-                  separators: {
-                    highlight: jest.fn(),
-                    unhighlight: jest.fn(),
-                    updateProps: jest.fn(),
-                  },
-                }),
-              );
-            })
-          : null,
-      );
-    },
+        { testID, ...props },
+        ReactActual.createElement(Text, {}, title),
+        ReactActual.createElement(Text, {}, description),
+      ),
   };
 });
 
-// Mock utility functions
-jest.mock('../../../../../util/address', () => ({
-  renderSlightlyLongAddress: jest.fn((address: string) => address),
-}));
-
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseLinkAccountGroup = useLinkAccountGroup as jest.MockedFunction<
   typeof useLinkAccountGroup
 >;
+const mockSelectAccountGroupById =
+  selectAccountGroupById as jest.MockedFunction<typeof selectAccountGroupById>;
+const mockSelectEvmNetworkConfigurationsByChainId =
+  selectEvmNetworkConfigurationsByChainId as jest.MockedFunction<
+    typeof selectEvmNetworkConfigurationsByChainId
+  >;
+const mockSelectNonEvmNetworkConfigurationsByChainId =
+  selectNonEvmNetworkConfigurationsByChainId as jest.MockedFunction<
+    typeof selectNonEvmNetworkConfigurationsByChainId
+  >;
+const mockToEvmCaipChainId = toEvmCaipChainId as jest.MockedFunction<
+  typeof toEvmCaipChainId
+>;
 
 describe('RewardOptInAccountGroupModal', () => {
-  const mockAccountGroupId = 'test-account-group-id' as AccountGroupId;
-  const mockAddressData: {
-    address: string;
-    hasOptedIn: boolean;
-    scopes: string[];
-    isSupported?: boolean;
-  }[] = [
-    {
-      address: '0x1234567890123456789012345678901234567890',
-      hasOptedIn: false,
-      scopes: ['scope1', 'scope2'],
-      isSupported: true,
-    },
-    {
-      address: '0x0987654321098765432109876543210987654321',
-      hasOptedIn: true,
-      scopes: ['scope3'],
-      isSupported: true,
-    },
-  ];
+  const mockGoBack = jest.fn();
+  const mockLinkAccountGroup = jest.fn();
+
+  const defaultRouteParams = {
+    accountGroupId: 'keyring:wallet-1/ethereum' as const,
+    addressData: [
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        hasOptedIn: true,
+        scopes: ['eip155:1' as CaipChainId],
+        isSupported: true,
+      },
+      {
+        address: '0x0987654321098765432109876543210987654321',
+        hasOptedIn: false,
+        scopes: ['eip155:1' as CaipChainId],
+        isSupported: true,
+      },
+    ],
+  };
 
   const mockAccountGroupContext = {
-    id: mockAccountGroupId,
+    id: 'keyring:wallet-1/ethereum',
+    scopes: [],
+    keyringType: 'HD Key Tree',
     metadata: {
       name: 'Test Account Group',
     },
-    optedInAccounts: [],
-    optedOutAccounts: [],
   };
 
-  const mockLinkAccountGroup = jest.fn();
+  const mockEvmNetworks = {
+    '0x1': {
+      name: 'Ethereum Mainnet',
+      chainId: '0x1',
+    },
+    '0x5': {
+      name: 'Goerli Testnet',
+      chainId: '0x5',
+    },
+  };
+
+  const mockNonEvmNetworks = {
+    'bip122:000000000019d6689c085ae165831e93': {
+      name: 'Bitcoin',
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
+    },
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+      name: 'Solana',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    },
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Reset route params to default values
-    mockRouteParams = {
-      accountGroupId: mockAccountGroupId,
-      addressData: mockAddressData,
-    };
+    // Mock useNavigation
+    mockUseNavigation.mockReturnValue({
+      goBack: mockGoBack,
+      navigate: jest.fn(),
+      reset: jest.fn(),
+      setParams: jest.fn(),
+      dispatch: jest.fn(),
+      canGoBack: jest.fn(),
+      isFocused: jest.fn(),
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    } as never);
 
-    // Mock useSelector calls
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectAccountGroupById')) {
-        return mockAccountGroupContext;
-      }
-      if (
-        selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-      ) {
-        return '0x1234567890123456789012345678901234567890';
-      }
-      if (selector.toString().includes('selectAvatarAccountType')) {
-        return 'default';
-      }
-      return null;
-    });
+    // Mock useRoute
+    mockUseRoute.mockReturnValue({
+      params: defaultRouteParams,
+      key: 'test-route',
+      name: 'RewardOptInAccountGroupModal',
+    } as never);
 
-    // Mock useLinkAccountGroup hook
+    // Mock useLinkAccountGroup
     mockUseLinkAccountGroup.mockReturnValue({
       linkAccountGroup: mockLinkAccountGroup,
       isLoading: false,
       isError: false,
     });
-  });
 
-  it('should render correctly with account group data', () => {
-    const { getByTestId, getByText } = render(<RewardOptInAccountGroupModal />);
-
-    expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
-    expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
-    expect(getByText('Test Account Group')).toBeOnTheScreen();
-    expect(
-      getByText('rewards.link_account_group.linked_accounts'),
-    ).toBeOnTheScreen();
-  });
-
-  it('should render address list with correct data', () => {
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
-    expect(
-      getByTestId('flat-list-item-0x1234567890123456789012345678901234567890'),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId('flat-list-item-0x0987654321098765432109876543210987654321'),
-    ).toBeOnTheScreen();
-  });
-
-  it('should render link account button when there are opted out addresses', () => {
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
-  });
-
-  it('should call linkAccountGroup when link button is pressed', async () => {
-    const mockResult = {
-      success: true,
-      byAddress: {
-        '0x1234567890123456789012345678901234567890': true,
-      },
-    };
-
-    mockLinkAccountGroup.mockResolvedValue(mockResult);
-
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const linkButton = getByTestId('link-account-group-button');
-    fireEvent.press(linkButton);
-
-    await waitFor(() => {
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
-    });
-  });
-
-  it('should update local state after successful link operation', async () => {
-    const mockResult = {
-      success: true,
-      byAddress: {
-        '0x1234567890123456789012345678901234567890': true,
-      },
-    };
-
-    mockLinkAccountGroup.mockResolvedValue(mockResult);
-
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const linkButton = getByTestId('link-account-group-button');
-    fireEvent.press(linkButton);
-
-    await waitFor(() => {
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
-    });
-  });
-
-  it('should handle linkAccountGroup errors gracefully', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {
-      // do nothing
-    });
-
-    mockLinkAccountGroup.mockRejectedValue(new Error('Link failed'));
-
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const linkButton = getByTestId('link-account-group-button');
-    fireEvent.press(linkButton);
-
-    await waitFor(() => {
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
-    });
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Failed to link account group:',
-      expect.any(Error),
+    // Mock selectors directly
+    mockSelectAccountGroupById.mockReturnValue(
+      mockAccountGroupContext as never,
+    );
+    mockSelectEvmNetworkConfigurationsByChainId.mockReturnValue(
+      mockEvmNetworks as never,
+    );
+    mockSelectNonEvmNetworkConfigurationsByChainId.mockReturnValue(
+      mockNonEvmNetworks as never,
     );
 
-    consoleSpy.mockRestore();
-  });
-
-  it('should handle missing account group context gracefully', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectAccountGroupById')) {
-        return null;
-      }
-      if (
-        selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-      ) {
-        return '0x1234567890123456789012345678901234567890';
-      }
-      if (selector.toString().includes('selectAvatarAccountType')) {
-        return 'default';
-      }
-      return null;
+    // Mock toEvmCaipChainId
+    mockToEvmCaipChainId.mockImplementation((chainId: `0x${string}`) => {
+      const decimalChainId = parseInt(chainId, 16);
+      return `eip155:${decimalChainId}` as CaipChainId;
     });
 
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+    // Mock useSelector to pass through to actual selectors
+    mockUseSelector.mockImplementation((selector) => selector({} as never));
 
-    expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
-    // Should not render header when account group context is missing
-    expect(() => getByTestId('bottom-sheet-header')).toThrow();
+    // Mock ClipboardManager
+    (ClipboardManager.setString as jest.Mock).mockResolvedValue(undefined);
   });
 
-  it('should handle missing account group metadata name', () => {
-    const accountGroupWithoutName = {
-      ...mockAccountGroupContext,
-      metadata: {},
-    };
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectAccountGroupById')) {
-        return accountGroupWithoutName;
-      }
-      if (
-        selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-      ) {
-        return '0x1234567890123456789012345678901234567890';
-      }
-      if (selector.toString().includes('selectAvatarAccountType')) {
-        return 'default';
-      }
-      return null;
-    });
-
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
-    // Should not render header when metadata name is missing
-    expect(() => getByTestId('bottom-sheet-header')).toThrow();
-  });
-
-  it('should handle missing EVM address gracefully', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectAccountGroupById')) {
-        return mockAccountGroupContext;
-      }
-      if (
-        selector.toString().includes('selectIconSeedAddressByAccountGroupId')
-      ) {
-        return null;
-      }
-      if (selector.toString().includes('selectAvatarAccountType')) {
-        return 'default';
-      }
-      return null;
-    });
-
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const avatar = getByTestId('avatar-account');
-    expect(avatar.props.accountAddress).toBe(
-      '0x0000000000000000000000000000000000000000',
-    );
-  });
-
-  it('should render address items with correct props', () => {
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const flatList = getByTestId('reward-opt-in-address-list');
-    expect(flatList.props.data).toEqual(mockAddressData);
-    expect(flatList.props.keyExtractor).toBeDefined();
-    expect(flatList.props.renderItem).toBeDefined();
-  });
-
-  it('should handle computed address data correctly', () => {
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const flatList = getByTestId('reward-opt-in-address-list');
-    // Should render the original address data
-    expect(flatList.props.data).toEqual(mockAddressData);
-  });
-
-  it('should update computed address data after link operation', async () => {
-    const mockResult = {
-      success: true,
-      byAddress: {
-        '0x1234567890123456789012345678901234567890': true,
-      },
-    };
-
-    mockLinkAccountGroup.mockResolvedValue(mockResult);
-
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const linkButton = getByTestId('link-account-group-button');
-    fireEvent.press(linkButton);
-
-    await waitFor(() => {
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
-    });
-
-    // The component should update its local state and re-render
-    // This is tested indirectly through the successful call to linkAccountGroup
-  });
-
-  it('should handle multiple address updates correctly', async () => {
-    const mockResult = {
-      success: true,
-      byAddress: {
-        '0x1234567890123456789012345678901234567890': true,
-        '0x0987654321098765432109876543210987654321': false,
-      },
-    };
-
-    mockLinkAccountGroup.mockResolvedValue(mockResult);
-
-    const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-    const linkButton = getByTestId('link-account-group-button');
-    fireEvent.press(linkButton);
-
-    await waitFor(() => {
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
-    });
-
-    // Verify that the hook was called with the correct account group ID
-    expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
-  });
-
-  describe('Unsupported Addresses', () => {
-    it('should render warning icon for unsupported addresses', () => {
-      // Given an address with isSupported: false
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: false,
-            scopes: ['scope1'],
-            isSupported: false,
-          },
-        ],
-      };
-
+  describe('Basic Rendering', () => {
+    it('should render bottom sheet container', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Then the warning icon should be rendered
-      expect(getByTestId('icon-warning')).toBeOnTheScreen();
+      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
 
-    it('should display unsupported accounts banner when unsupported addresses exist', () => {
-      // Given an address with isSupported: false
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: false,
-            scopes: ['scope1'],
-            isSupported: false,
-          },
-        ],
-      };
-
+    it('should render header with account group name', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Then the unsupported accounts banner should be displayed
+      expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+    });
+
+    it('should render address list', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
+    });
+
+    it('should render address items for each address', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Check that the MultichainAddressRow components are rendered
+      expect(
+        getByTestId('address-0x1234567890123456789012345678901234567890'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('address-0x0987654321098765432109876543210987654321'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Address Status Icons', () => {
+    it('should show check icon for opted-in address', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(
+        getByTestId(
+          'status-icon-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('should show close icon for opted-out address', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(
+        getByTestId(
+          'status-icon-0x0987654321098765432109876543210987654321-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('should show warning icon for unsupported address', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: false,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert
+      expect(
+        getByTestId(
+          'status-icon-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Unsupported Accounts Banner', () => {
+    it('should show banner when there are unsupported accounts', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            ...defaultRouteParams.addressData,
+            {
+              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: false,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert
       expect(getByTestId('unsupported-accounts-banner')).toBeOnTheScreen();
     });
 
-    it('should not display unsupported accounts banner when all addresses are supported', () => {
+    it('should not show banner when all accounts are supported', () => {
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // When all addresses are supported (default mockAddressData)
-      // Then the unsupported accounts banner should not be displayed
       expect(queryByTestId('unsupported-accounts-banner')).toBeNull();
     });
+  });
 
-    it('should not show link button when all addresses are unsupported', () => {
-      // Given all addresses are unsupported
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: false,
-            scopes: ['scope1'],
-            isSupported: false,
-          },
-          {
-            address: '0x0987654321098765432109876543210987654321',
-            hasOptedIn: false,
-            scopes: ['scope2'],
-            isSupported: false,
-          },
-        ],
-      };
-
-      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      // Then the link button should not be shown
-      expect(queryByTestId('link-account-group-button')).toBeNull();
-    });
-
-    it('should show link button when there are supported addresses that have not opted in', () => {
-      // Given mixed supported/unsupported addresses
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: false,
-            scopes: ['scope1'],
-            isSupported: true,
-          },
-          {
-            address: '0x0987654321098765432109876543210987654321',
-            hasOptedIn: false,
-            scopes: ['scope2'],
-            isSupported: false,
-          },
-        ],
-      };
-
+  describe('Link Account Group Button', () => {
+    it('should render link button when there are accounts that can opt in', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Then the link button should be shown
       expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
     });
 
-    it('should not show link button when all supported addresses have already opted in', () => {
-      // Given all supported addresses have opted in
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: true,
-            scopes: ['scope1'],
-            isSupported: true,
-          },
-          {
-            address: '0x0987654321098765432109876543210987654321',
-            hasOptedIn: false,
-            scopes: ['scope2'],
-            isSupported: false,
-          },
-        ],
-      };
+    it('should not render link button when all accounts are opted in', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: true,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
 
+      // Act
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Then the link button should not be shown
+      // Assert
       expect(queryByTestId('link-account-group-button')).toBeNull();
     });
-  });
 
-  describe('Icon States', () => {
-    it('should render check icon for opted-in addresses', () => {
-      // Given an address with hasOptedIn: true
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: true,
-            scopes: ['scope1'],
-            isSupported: true,
-          },
-        ],
-      };
-
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      // Then the check icon should be rendered
-      expect(getByTestId('icon-check')).toBeOnTheScreen();
-    });
-
-    it('should render close icon for opted-out supported addresses', () => {
-      // Given an address with hasOptedIn: false and isSupported: true (or undefined)
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: false,
-            scopes: ['scope1'],
-            isSupported: true,
-          },
-        ],
-      };
-
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      // Then the close icon should be rendered
-      expect(getByTestId('icon-close')).toBeOnTheScreen();
-    });
-
-    it('should render warning icon for unsupported addresses regardless of opt-in status', () => {
-      // Given an address with isSupported: false
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: true,
-            scopes: ['scope1'],
-            isSupported: false,
-          },
-        ],
-      };
-
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      // Then the warning icon should be rendered (takes precedence over check)
-      expect(getByTestId('icon-warning')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Local State Management', () => {
-    it('should update local state and merge with address data after successful link', async () => {
-      // Given an address that has not opted in
-      const mockResult = {
+    it('should call linkAccountGroup when button is pressed', async () => {
+      // Arrange
+      mockLinkAccountGroup.mockResolvedValue({
         success: true,
         byAddress: {
-          '0x1234567890123456789012345678901234567890': true,
+          '0x0987654321098765432109876543210987654321': true,
         },
-      };
-
-      mockLinkAccountGroup.mockResolvedValue(mockResult);
+      });
 
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
+      // Act
       const linkButton = getByTestId('link-account-group-button');
-
-      // When the link button is pressed
       fireEvent.press(linkButton);
 
+      // Assert
       await waitFor(() => {
-        expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
+        expect(mockLinkAccountGroup).toHaveBeenCalledWith(
+          'keyring:wallet-1/ethereum',
+        );
       });
-
-      // Then the local state should be updated with the result
-      // (This is tested indirectly through the successful call and component re-render)
-      expect(mockLinkAccountGroup).toHaveBeenCalledTimes(1);
     });
 
-    it('should filter out addresses without an address field', () => {
-      // Given addressData with an empty address field
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            hasOptedIn: false,
-            scopes: ['scope1'],
-            isSupported: true,
-          },
-          {
-            address: '',
-            hasOptedIn: false,
-            scopes: ['scope2'],
-            isSupported: true,
-          },
-        ],
-      };
+    it('should show loading state when linking', () => {
+      // Arrange
+      mockUseLinkAccountGroup.mockReturnValue({
+        linkAccountGroup: mockLinkAccountGroup,
+        isLoading: true,
+        isError: false,
+      });
 
-      const { getByTestId, queryByTestId } = render(
-        <RewardOptInAccountGroupModal />,
-      );
+      // Act
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Then the address with empty string should be filtered out
-      expect(
-        getByTestId(
-          'flat-list-item-0x1234567890123456789012345678901234567890',
-        ),
-      ).toBeOnTheScreen();
-      expect(queryByTestId('flat-list-item-')).toBeNull();
+      // Assert
+      const linkButton = getByTestId('link-account-group-button');
+      expect(linkButton).toHaveProp('disabled', true);
+    });
+
+    it('should update local state after successful link', async () => {
+      // Arrange
+      mockLinkAccountGroup.mockResolvedValue({
+        success: true,
+        byAddress: {
+          '0x0987654321098765432109876543210987654321': true,
+        },
+      });
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Act
+      const linkButton = getByTestId('link-account-group-button');
+      fireEvent.press(linkButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(mockLinkAccountGroup).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle link failure gracefully', async () => {
+      // Arrange
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {
+          // Suppress error output in test
+        });
+      mockLinkAccountGroup.mockRejectedValue(new Error('Link failed'));
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Act
+      const linkButton = getByTestId('link-account-group-button');
+      fireEvent.press(linkButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Failed to link account group:',
+          expect.any(Error),
+        );
+      });
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
-  describe('Complex Scenarios', () => {
-    it('should handle mixed addresses with different states correctly', () => {
-      // Given addresses with various states
-      mockRouteParams = {
-        accountGroupId: mockAccountGroupId,
-        addressData: [
-          {
-            address: '0x1111111111111111111111111111111111111111',
-            hasOptedIn: true,
-            scopes: ['scope1'],
-            isSupported: true,
-          },
-          {
-            address: '0x2222222222222222222222222222222222222222',
-            hasOptedIn: false,
-            scopes: ['scope2'],
-            isSupported: true,
-          },
-          {
-            address: '0x3333333333333333333333333333333333333333',
-            hasOptedIn: false,
-            scopes: ['scope3'],
-            isSupported: false,
-          },
-        ],
-      };
+  describe('Network Resolution', () => {
+    it('should resolve non-EVM network names correctly', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+              hasOptedIn: false,
+              scopes: [
+                'bip122:000000000019d6689c085ae165831e93' as CaipChainId,
+              ],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
 
+      // Act
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Then all addresses should be rendered
-      expect(
-        getByTestId(
-          'flat-list-item-0x1111111111111111111111111111111111111111',
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(
-          'flat-list-item-0x2222222222222222222222222222222222222222',
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(
-          'flat-list-item-0x3333333333333333333333333333333333333333',
-        ),
-      ).toBeOnTheScreen();
-
-      // And the link button should be shown (because address 2 can opt in)
-      expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
-
-      // And the unsupported banner should be shown
-      expect(getByTestId('unsupported-accounts-banner')).toBeOnTheScreen();
+      // Assert
+      expect(getByTestId('network-Bitcoin')).toBeOnTheScreen();
     });
 
-    it('should handle partial success in link operations', async () => {
-      // Given a link operation with partial success
-      const mockResult = {
-        success: false,
-        byAddress: {
-          '0x1234567890123456789012345678901234567890': true,
-          '0x0987654321098765432109876543210987654321': false,
+    it('should handle unknown network scopes', () => {
+      // Arrange
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {
+          // Suppress warning output in test
+        });
+
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['unknown:network' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      render(<RewardOptInAccountGroupModal />);
+
+      // Assert
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Unknown network for scope:',
+        'unknown:network',
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+  });
+
+  describe('Wildcard Scope Handling', () => {
+    it('should expand eip155:* wildcard to all EVM networks', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['eip155:*' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert - Should render Ethereum Mainnet, but not Goerli testnet
+      expect(getByTestId('network-Ethereum Mainnet')).toBeOnTheScreen();
+    });
+
+    it('should expand bip122:0 wildcard to all Bitcoin networks', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+              hasOptedIn: false,
+              scopes: ['bip122:0' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert
+      expect(getByTestId('network-Bitcoin')).toBeOnTheScreen();
+    });
+
+    it('should filter out testnets when expanding EVM wildcards', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['eip155:*' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert - Goerli testnet should not be rendered
+      expect(queryByTestId('network-Goerli Testnet')).toBeNull();
+    });
+
+    it('should handle invalid CAIP scope format', () => {
+      // Arrange
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {
+          // Suppress warning output in test
+        });
+
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['invalid' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      render(<RewardOptInAccountGroupModal />);
+
+      // Assert
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Unknown network for scope:',
+        'invalid',
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+  });
+
+  describe('Copy Address Functionality', () => {
+    it('should copy address to clipboard when copy button is pressed', async () => {
+      // Arrange
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Act
+      const copyButton = getByTestId(
+        'copy-button-0x1234567890123456789012345678901234567890',
+      );
+      fireEvent.press(copyButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(ClipboardManager.setString).toHaveBeenCalledWith(
+          '0x1234567890123456789012345678901234567890',
+        );
+      });
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle missing account group context', () => {
+      // Arrange
+      mockSelectAccountGroupById.mockReturnValue(undefined);
+
+      // Act
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert - Header should not render without account group name
+      expect(queryByTestId('bottom-sheet-header')).toBeNull();
+    });
+
+    it('should handle EVM chain ID conversion errors', () => {
+      // Arrange
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {
+          // Suppress warning output in test
+        });
+
+      const invalidEvmNetworks = {
+        'invalid-chain-id': {
+          name: 'Invalid Network',
+          chainId: 'invalid-chain-id',
         },
       };
 
-      mockLinkAccountGroup.mockResolvedValue(mockResult);
-
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      const linkButton = getByTestId('link-account-group-button');
-
-      // When the link button is pressed
-      fireEvent.press(linkButton);
-
-      await waitFor(() => {
-        expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroupId);
+      mockSelectEvmNetworkConfigurationsByChainId.mockReturnValue(
+        invalidEvmNetworks as never,
+      );
+      mockToEvmCaipChainId.mockImplementation(() => {
+        throw new Error('Invalid chain ID');
       });
 
-      // Then the local state should be updated with both results
-      expect(mockLinkAccountGroup).toHaveBeenCalledTimes(1);
+      // Act
+      render(<RewardOptInAccountGroupModal />);
+
+      // Assert
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Invalid EVM chain ID:',
+        'invalid-chain-id',
+        expect.any(Error),
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should handle address items with valid scope', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert - Should render the address
+      expect(
+        getByTestId('address-0x1234567890123456789012345678901234567890'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('FlatList Configuration', () => {
+    it('should render FlatList with correct testID', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      // Verify the FlatList is rendered
+      expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
+    });
+
+    it('should have correct FlatList props', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const flatList = getByTestId('reward-opt-in-address-list');
+      expect(flatList).toHaveProp('removeClippedSubviews', true);
+      expect(flatList).toHaveProp('showsVerticalScrollIndicator', false);
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have proper testIDs for all interactive elements', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
+      expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
     });
   });
 });
