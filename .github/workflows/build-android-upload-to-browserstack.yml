@@ -71,7 +71,7 @@ jobs:
 
   build-android-dual:
     name: Build Android Dual Versions
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
     needs: [check-builds-needed]
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
@@ -86,6 +86,12 @@ jobs:
       - name: Checkout repo
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         uses: actions/checkout@v4
+
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images for AVD..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
 
       - name: Setup Android Build Environment
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
