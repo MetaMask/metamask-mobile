@@ -790,6 +790,7 @@ const Wallet = ({
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
+    // do not prompt for social login flow
     if (
       !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
@@ -1293,63 +1294,61 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <>
-        <View
-          style={styles.wrapper}
-          testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-        >
-          <AssetPollingProvider />
-          {!basicFunctionalityEnabled ? (
-            <View style={styles.banner}>
-              <BannerAlert
-                severity={BannerAlertSeverity.Error}
-                title={strings('wallet.banner.title')}
-                description={
-                  <CustomText
-                    color={TextColor.Info}
-                    onPress={turnOnBasicFunctionality}
-                  >
-                    {strings('wallet.banner.link')}
-                  </CustomText>
-                }
-              />
-            </View>
-          ) : null}
-          <NetworkConnectionBanner />
-          <>
-            {isMultichainAccountsState2Enabled ? (
-              <AccountGroupBalance />
-            ) : (
-              <PortfolioBalance />
-            )}
-            <View style={styles.assetsActionsContainer}>
-              <AssetDetailsActions
-                displayBuyButton={displayBuyButton}
-                displaySwapsButton={displaySwapsButton}
-                goToSwaps={goToSwaps}
-                onReceive={onReceive}
-                onSend={onSend}
-                buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-                swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-                sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-                receiveButtonActionID={
-                  WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-                }
-              />
-            </View>
-
-            {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-            <WalletTokensTabView
-              navigation={navigation}
-              onChangeTab={onChangeTab}
-              defiEnabled={defiEnabled}
-              collectiblesEnabled={collectiblesEnabled}
-              navigationParams={route.params}
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+      >
+        <AssetPollingProvider />
+        {!basicFunctionalityEnabled ? (
+          <View style={styles.banner}>
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              title={strings('wallet.banner.title')}
+              description={
+                <CustomText
+                  color={TextColor.Info}
+                  onPress={turnOnBasicFunctionality}
+                >
+                  {strings('wallet.banner.link')}
+                </CustomText>
+              }
             />
-          </>
-        </View>
-      </>
+          </View>
+        ) : null}
+        <NetworkConnectionBanner />
+        <>
+          {isMultichainAccountsState2Enabled ? (
+            <AccountGroupBalance />
+          ) : (
+            <PortfolioBalance />
+          )}
+          <View style={styles.assetsActionsContainer}>
+            <AssetDetailsActions
+              displayBuyButton={displayBuyButton}
+              displaySwapsButton={displaySwapsButton}
+              goToSwaps={goToSwaps}
+              onReceive={onReceive}
+              onSend={onSend}
+              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+              receiveButtonActionID={
+                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
+              }
+            />
+          </View>
+
+          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
+          <WalletTokensTabView
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={collectiblesEnabled}
+            navigationParams={route.params}
+          />
+        </>
+      </View>
     ),
     [
       styles.banner,
