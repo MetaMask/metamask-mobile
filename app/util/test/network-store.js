@@ -75,7 +75,7 @@ class ReadOnlyNetworkStore {
 
   async multiGet(keys) {
     await this._initIfRequired();
-    return keys.map((key) => [key, this._asyncState?.[key] || null]);
+    return keys.map((key) => [key, this._asyncState?.[key] ?? null]);
   }
 
   async _initIfRequired() {
