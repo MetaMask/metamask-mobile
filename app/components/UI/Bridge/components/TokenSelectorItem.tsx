@@ -41,6 +41,8 @@ import TagBase, {
   TagShape,
   TagSeverity,
 } from '../../../../component-library/base-components/TagBase';
+import Tag from '../../../../component-library/components/Tags/Tag';
+import { accountTypeLabel } from '../../Tokens/TokenList/TokenListItem/TokenListItemBip44';
 import { RootState } from '../../../../reducers';
 
 const createStyles = ({
@@ -145,6 +147,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const balance = shouldShowBalance ? fiatValue : undefined;
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
 
+  const label = token.accountType
+    ? accountTypeLabel[token.accountType]
+    : undefined;
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -204,8 +210,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
+              gap={4}
             >
               <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+              {label && <Tag label={label} />}
               {isNoFeeAsset && (
                 <TagBase
                   shape={TagShape.Rectangle}

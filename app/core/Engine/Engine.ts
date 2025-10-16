@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import Crypto from 'react-native-quick-crypto';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   AppState,
@@ -34,7 +33,6 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import { PPOMController } from '@metamask/ppom-validator';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { isTestNet } from '../../util/networks';
@@ -57,19 +55,20 @@ import { isZero } from '../../util/lodash';
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
 ///: END:ONLY_INCLUDE_IF
+import {
+  backendWebSocketServiceInit,
+  accountActivityServiceInit,
+} from './controllers/core-backend';
+import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
-import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
-import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -170,6 +169,8 @@ import { ratesControllerInit } from './controllers/rates-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
+import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
+import { ppomControllerInit } from './controllers/ppom-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -215,6 +216,12 @@ export class Engine {
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
+  /**
+   * The app state WebSocket manager.
+   * This is used to handle WebSocket lifecycle based on app state.
+   */
+  appStateWebSocketManager: AppStateWebSocketManager;
+
   accountsController: AccountsController;
   gasFeeController: GasFeeController;
   gatorPermissionsController: GatorPermissionsController;
@@ -254,9 +261,6 @@ export class Engine {
 
     this.controllerMessenger = new ExtendedControllerMessenger();
 
-    const isBasicFunctionalityToggleEnabled = () =>
-      selectBasicFunctionalityEnabled(store.getState());
-
     const errorReportingServiceMessenger =
       this.controllerMessenger.getRestricted({
         name: 'ErrorReportingService',
@@ -279,6 +283,7 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
+      metaMetricsId,
       initialKeyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
@@ -287,6 +292,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         PreferencesController: preferencesControllerInit,
+        RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -338,6 +344,8 @@ export class Engine {
         AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        BackendWebSocketService: backendWebSocketServiceInit,
+        AccountActivityService: accountActivityServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
@@ -350,6 +358,7 @@ export class Engine {
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PredictController: predictControllerInit,
+        PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -359,6 +368,8 @@ export class Engine {
       ...initRequest,
     });
 
+    const remoteFeatureFlagController =
+      controllersByName.RemoteFeatureFlagController;
     const accountsController = controllersByName.AccountsController;
     const accountTreeController = controllersByName.AccountTreeController;
     const approvalController = controllersByName.ApprovalController;
@@ -373,6 +384,7 @@ export class Engine {
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
     const predictController = controllersByName.PredictController;
+    const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -427,6 +439,13 @@ export class Engine {
     const userStorageController = controllersByName.UserStorageController;
     ///: END:ONLY_INCLUDE_IF
 
+    // Initialize BackendWebSocketService lifecycle management
+    const backendWebSocketService = controllersByName.BackendWebSocketService;
+    this.appStateWebSocketManager = new AppStateWebSocketManager(
+      backendWebSocketService,
+    );
+    const accountActivityService = controllersByName.AccountActivityService;
+
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsController =
       controllersByName.MultichainAssetsController;
@@ -456,38 +475,6 @@ export class Engine {
       }),
       state: initialState.LoggingController,
     });
-
-    // TODO: Move this to `network-controller`
-    const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
-      if (isRpcFailoverEnabled) {
-        Logger.log('Enabling RPC failover');
-        networkController.enableRpcFailover();
-      } else {
-        Logger.log('Disabling RPC failover');
-        networkController.disableRpcFailover();
-      }
-    };
-    const remoteFeatureFlagControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'RemoteFeatureFlagController',
-        allowedActions: [],
-        allowedEvents: [],
-      });
-    remoteFeatureFlagControllerMessenger.subscribe(
-      'RemoteFeatureFlagController:stateChange',
-      toggleRpcFailover,
-      (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
-    );
-    const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      state: initialState.RemoteFeatureFlagController,
-      messenger: remoteFeatureFlagControllerMessenger,
-      disabled: !isBasicFunctionalityToggleEnabled(),
-      getMetaMetricsId: () => metaMetricsId ?? '',
-    });
-    toggleRpcFailover(
-      remoteFeatureFlagController.state.remoteFeatureFlags
-        .walletFrameworkRpcFailoverEnabled,
-    );
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
@@ -560,39 +547,10 @@ export class Engine {
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
+      BackendWebSocketService: backendWebSocketService,
+      AccountActivityService: accountActivityService,
       AccountsController: accountsController,
-      PPOMController: new PPOMController({
-        chainId: getGlobalChainId(networkController),
-        blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
-        cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'PPOMController',
-          allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: [`${networkController.name}:networkDidChange`],
-        }),
-        onPreferencesChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `${preferencesController.name}:stateChange`,
-            listener,
-          ),
-        // TODO: Replace "any" with type
-        provider:
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          networkController.getProviderAndBlockTracker().provider as any,
-        ppomProvider: {
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          PPOM: PPOM as any,
-          ppomInit,
-        },
-        storageBackend: new RNFSStorageBackend('PPOMDB'),
-        securityAlertsEnabled:
-          initialState.PreferencesController?.securityAlertsEnabled ?? false,
-        state: initialState.PPOMController,
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        nativeCrypto: Crypto as any,
-      }),
+      PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
       RatesController: ratesController,
@@ -1180,6 +1138,9 @@ export class Engine {
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.appStateListener?.remove();
     ///: END:ONLY_INCLUDE_IF
+
+    // Cleanup AppStateWebSocketManager
+    this.appStateWebSocketManager.cleanup();
   }
 
   async destroyEngineInstance() {

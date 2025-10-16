@@ -2,10 +2,8 @@ import React, { useMemo } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import PredictActivity, {
-  PredictActivityType,
-  type PredictActivityItem,
-} from '../../components/PredictActivity/PredictActivity';
+import PredictActivity from '../../components/PredictActivity/PredictActivity';
+import { PredictActivityType, type PredictActivityItem } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
 import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
@@ -21,62 +19,74 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = () => {
 
   const items: PredictActivityItem[] = useMemo(
     () =>
-      activity.map((entry) => {
-        const e = entry.entry;
+      activity.map((activityEntry) => {
+        const e = activityEntry.entry;
 
         switch (e.type) {
           case 'buy': {
             const amountUsd = e.amount;
             const priceCents = formatCents(e.price ?? 0);
-            const outcome = entry.outcome;
+            const outcome = activityEntry.outcome;
 
             return {
-              id: entry.id,
+              id: activityEntry.id,
               type: PredictActivityType.BUY,
-              marketTitle: entry.title,
+              marketTitle: activityEntry.title ?? '',
               detail: strings('predict.transactions.buy_detail', {
                 amountUsd,
                 outcome,
                 priceCents,
               }),
               amountUsd,
-              icon: entry.icon,
-            } as PredictActivityItem;
+              icon: activityEntry.icon,
+              outcome,
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
           }
           case 'sell': {
             const amountUsd = e.amount;
             const priceCents = formatCents(e.price ?? 0);
             return {
-              id: entry.id,
+              id: activityEntry.id,
               type: PredictActivityType.SELL,
-              marketTitle: entry.title,
+              marketTitle: activityEntry.title ?? '',
               detail: strings('predict.transactions.sell_detail', {
                 priceCents,
               }),
               amountUsd,
-              icon: entry.icon,
-            } as PredictActivityItem;
+              icon: activityEntry.icon,
+              outcome: activityEntry.outcome,
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
           }
           case 'claimWinnings': {
             const amountUsd = e.amount;
             return {
-              id: entry.id,
+              id: activityEntry.id,
               type: PredictActivityType.CLAIM,
-              marketTitle: entry.title,
+              marketTitle: activityEntry.title ?? '',
               detail: strings('predict.transactions.claim_detail'),
               amountUsd,
-              icon: entry.icon,
-            } as PredictActivityItem;
+              icon: activityEntry.icon,
+              outcome: activityEntry.outcome,
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
           }
           default: {
             return {
-              id: entry.id,
+              id: activityEntry.id,
               type: PredictActivityType.CLAIM,
-              marketTitle: entry.title,
+              marketTitle: activityEntry.title ?? '',
               detail: strings('predict.transactions.claim_detail'),
               amountUsd: 0,
-              icon: entry.icon,
-            } as PredictActivityItem;
+              icon: activityEntry.icon,
+              outcome: activityEntry.outcome,
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
           }
         }
       }),
