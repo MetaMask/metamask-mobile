@@ -707,8 +707,10 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'EarnController'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
@@ -723,6 +725,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
+  | 'SwapsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
@@ -739,6 +742,7 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
+  | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController';

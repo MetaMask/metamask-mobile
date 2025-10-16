@@ -24,7 +24,7 @@ jest.mock('../../../../SnapKeyring/SolanaWalletSnap', () => ({
 const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 
 describe('solana-snap', () => {
-  const mockAddress = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
+  const mockAccountId = '550e8400-e29b-41d4-a716-446655440000';
   const mockMessage = 'Test message for signing';
   const mockSignatureResult: SignRewardsMessageResult = {
     signature: 'mockSignature123',
@@ -50,7 +50,7 @@ describe('solana-snap', () => {
       );
 
       // Act
-      const result = await signSolanaRewardsMessage(mockAddress, mockMessage);
+      const result = await signSolanaRewardsMessage(mockAccountId, mockMessage);
 
       // Assert
       expect(result).toEqual(mockSignatureResult);
@@ -66,9 +66,7 @@ describe('solana-snap', () => {
             id: expect.any(Number),
             method: 'signRewardsMessage',
             params: {
-              account: {
-                address: mockAddress,
-              },
+              accountId: mockAccountId,
               message: mockMessage,
             },
           },
@@ -85,7 +83,7 @@ describe('solana-snap', () => {
       );
 
       // Act
-      await signSolanaRewardsMessage(mockAddress, mockMessage);
+      await signSolanaRewardsMessage(mockAccountId, mockMessage);
 
       // Assert
       expect(handleSnapRequest).toHaveBeenCalledWith(
@@ -99,9 +97,7 @@ describe('solana-snap', () => {
             id: expectedTimestamp,
             method: 'signRewardsMessage',
             params: {
-              account: {
-                address: mockAddress,
-              },
+              accountId: mockAccountId,
               message: mockMessage,
             },
           }),
@@ -116,7 +112,7 @@ describe('solana-snap', () => {
 
       // Act & Assert
       await expect(
-        signSolanaRewardsMessage(mockAddress, mockMessage),
+        signSolanaRewardsMessage(mockAccountId, mockMessage),
       ).rejects.toThrow('Network timeout');
     });
 
@@ -127,7 +123,7 @@ describe('solana-snap', () => {
 
       // Act & Assert
       await expect(
-        signSolanaRewardsMessage(mockAddress, mockMessage),
+        signSolanaRewardsMessage(mockAccountId, mockMessage),
       ).rejects.toThrow('Snap not found');
     });
 
@@ -146,8 +142,8 @@ describe('solana-snap', () => {
 
       // Act
       const [result1, result2] = await Promise.all([
-        signSolanaRewardsMessage(mockAddress, mockMessage),
-        signSolanaRewardsMessage(mockAddress, 'Different message'),
+        signSolanaRewardsMessage(mockAccountId, mockMessage),
+        signSolanaRewardsMessage(mockAccountId, 'Different message'),
       ]);
 
       // Assert
@@ -162,7 +158,7 @@ describe('solana-snap', () => {
       expect(secondCall[1].request.id).toBe(secondTimestamp);
     });
 
-    it('handles empty address parameter', async () => {
+    it('handles empty accountId parameter', async () => {
       // Arrange
       (handleSnapRequest as jest.Mock).mockResolvedValueOnce(
         mockSignatureResult,
@@ -178,9 +174,7 @@ describe('solana-snap', () => {
         expect.objectContaining({
           request: expect.objectContaining({
             params: {
-              account: {
-                address: '',
-              },
+              accountId: '',
               message: mockMessage,
             },
           }),
@@ -195,7 +189,7 @@ describe('solana-snap', () => {
       );
 
       // Act
-      const result = await signSolanaRewardsMessage(mockAddress, '');
+      const result = await signSolanaRewardsMessage(mockAccountId, '');
 
       // Assert
       expect(result).toEqual(mockSignatureResult);
@@ -204,9 +198,7 @@ describe('solana-snap', () => {
         expect.objectContaining({
           request: expect.objectContaining({
             params: {
-              account: {
-                address: mockAddress,
-              },
+              accountId: mockAccountId,
               message: '',
             },
           }),

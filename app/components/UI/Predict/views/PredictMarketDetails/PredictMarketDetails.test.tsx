@@ -132,6 +132,17 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: jest.fn(() => ({
+    balance: 100,
+    hasNoBalance: false,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadBalance: jest.fn(),
+  })),
+}));
+
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictDetailsChart() {
