@@ -183,8 +183,6 @@ const BridgeView = () => {
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const hasQuoteDetails = activeQuote;
-
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
@@ -202,8 +200,6 @@ const BridgeView = () => {
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
-
-  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   const isSubmitDisabled =
     hasInsufficientBalance ||
@@ -230,6 +226,8 @@ const BridgeView = () => {
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
     isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
+  // Hide quote whenever the keypad is displayed
+  const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -250,7 +248,7 @@ const BridgeView = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, quotesLastFetched]);
+  }, [isLoading, activeQuote?.quote.requestId]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -428,15 +426,17 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            label={getButtonLabel()}
-            onPress={handleContinue}
-            style={styles.button}
-            testID="bridge-confirm-button"
-            isDisabled={submitDisabled}
-          />
+          {!shouldDisplayKeypad && (
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              label={getButtonLabel()}
+              onPress={handleContinue}
+              style={styles.button}
+              testID="bridge-confirm-button"
+              isDisabled={submitDisabled}
+            />
+          )}
           {hasFee ? (
             <Text
               variant={TextVariant.BodyMD}
