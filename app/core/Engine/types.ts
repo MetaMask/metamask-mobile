@@ -740,6 +740,7 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
+  | 'PPOMController'
   | 'RewardsController'
   | 'RewardsDataService'
   | 'GatorPermissionsController'
