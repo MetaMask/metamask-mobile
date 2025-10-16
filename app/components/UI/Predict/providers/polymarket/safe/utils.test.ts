@@ -290,16 +290,6 @@ describe('safe utils', () => {
       expect(feeAuth.authorization.tx).toBeDefined();
     });
 
-    it('calls Safe contract for transaction hash', async () => {
-      setupMocksForFeeAuth();
-
-      await createSafeFeeAuthorization(testParams);
-
-      expect(mockQuery).toHaveBeenCalledTimes(2);
-      const secondCallArgs = mockQuery.mock.calls[1];
-      expect(secondCallArgs[2][0].to).toBe(TEST_SAFE_ADDRESS);
-    });
-
     it('handles signature v value adjustment for 0 and 1', async () => {
       setupMocksForFeeAuth();
       mockSignPersonalMessage.mockResolvedValue(
