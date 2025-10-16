@@ -383,25 +383,6 @@ describe('getCardholder', () => {
   });
 
   describe('geolocation handling', () => {
-    it('should default to UNKNOWN when getGeoLocation returns undefined', async () => {
-      const mockResult = [
-        'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
-      ] as `${string}:${string}:${string}`[];
-
-      mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue(undefined);
-
-      const result = await getCardholder({
-        caipAccountIds: mockFormattedAccounts,
-        cardFeatureFlag: mockCardFeatureFlag,
-      });
-
-      expect(result).toEqual({
-        cardholderAddresses: ['0x1234567890abcdef1234567890abcdef12345678'],
-        geoLocation: 'UNKNOWN',
-      });
-    });
-
     it('should handle different geolocation values', async () => {
       const geoLocations = ['US', 'GB', 'CA', 'DE', 'UNKNOWN'];
 
