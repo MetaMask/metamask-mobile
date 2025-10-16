@@ -7,6 +7,7 @@ import {
   BackHandler,
   TouchableOpacity,
   TextInput,
+  Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -109,7 +110,10 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
-import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import {
+  selectIsSeedlessPasswordOutdated,
+  selectSeedlessOnboardingLoginFlow,
+} from '../../../selectors/seedlessOnboardingController';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -175,6 +179,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
   );
+
+  const isSocialLoginUser = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const track = (
     event: IMetaMetricsEvent,
@@ -801,7 +807,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               </Label>
               <TextField
                 size={TextFieldSize.Lg}
-                placeholder={strings('login.password_placeholder')}
+                placeholder={strings(
+                  Platform.OS === 'ios' && isSocialLoginUser
+                    ? 'login.pin_placeholder'
+                    : 'login.password_placeholder',
+                )}
                 placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
@@ -857,7 +867,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   variant={ButtonVariants.Link}
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
+                  label={strings(
+                    Platform.OS === 'ios' && isSocialLoginUser
+                      ? 'login.forgot_pin'
+                      : 'login.forgot_password',
+                  )}
                   isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
