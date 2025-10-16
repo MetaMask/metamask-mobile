@@ -1,7 +1,8 @@
-import { AccountActivityService } from '@metamask/core-backend';
-import { TraceCallback } from '@metamask/controller-utils';
+import {
+  AccountActivityService,
+  AccountActivityServiceMessenger,
+} from '@metamask/core-backend';
 import { ControllerInitFunction } from '../../types';
-import { AccountActivityServiceMessenger } from '../../messengers/core-backend';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
@@ -20,7 +21,8 @@ export const accountActivityServiceInit: ControllerInitFunction<
 
   const controller = new AccountActivityService({
     messenger: controllerMessenger,
-    traceFn: trace as TraceCallback,
+    // @ts-expect-error: Types of `TraceRequest` are not the same.
+    traceFn: trace,
   });
 
   Logger.log('AccountActivityService initialized');

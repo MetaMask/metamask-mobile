@@ -1,5 +1,4 @@
 import { BackendWebSocketService } from '@metamask/core-backend';
-import type { TraceCallback } from '@metamask/controller-utils';
 import { ControllerInitFunction } from '../../types';
 import {
   BackendWebSocketServiceMessenger,
@@ -42,7 +41,8 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
     maxReconnectDelay: 30000, // Allow longer delays for backend stability
     requestTimeout: 20000, // Reasonable timeout for backend requests
     // Inject the Sentry-backed trace function from mobile platform
-    traceFn: trace as TraceCallback,
+    // @ts-expect-error: Types of `TraceRequest` are not the same.
+    traceFn: trace,
     // Feature flag AND app lifecycle integration
     // Service will check this callback before connecting/reconnecting
     isEnabled: () => {
