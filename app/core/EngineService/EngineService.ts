@@ -28,18 +28,94 @@ import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../../util/device';
+
+/**
+ * Storage key for pre-installed snaps kept outside the normal persistence system
+ */
+const PREINSTALLED_SNAPS_STORAGE_KEY = 'preinstalledSnaps';
+
+/**
+ * Saves pre-installed snaps to FileSystem Storage under a separate key,
+ * outside of the normal persistence system (not part of ControllerStorage or redux-persist).
+ */
+const savePreinstalledSnapsToStorage = async (snaps: Record<string, unknown>) => {
+  try {
+    if (Object.keys(snaps).length === 0) {
+      console.log('📦 [SNAP STORAGE] No snaps to save');
+      return;
+    }
+
+    const snapsData = {
+      timestamp: new Date().toISOString(),
+      snapCount: Object.keys(snaps).length,
+      snaps,
+    };
+
+    await FilesystemStorage.setItem(
+      PREINSTALLED_SNAPS_STORAGE_KEY,
+      JSON.stringify(snapsData),
+      Device.isIos(),
+    );
+
+    console.log(`📦 [SNAP STORAGE] Saved ${Object.keys(snaps).length} pre-installed snaps to FileSystem Storage`);
+    console.log('📦 [SNAP STORAGE] Snap IDs:', Object.keys(snaps));
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to save pre-installed snaps to FileSystem Storage',
+    );
+  }
+};
+
+/**
+ * Retrieves pre-installed snaps from FileSystem Storage.
+ * This is a utility function for debugging or future restoration needs.
+ * 
+ * @returns The stored snaps data or null if not found
+ */
+export const loadPreinstalledSnapsFromStorage = async (): Promise<{
+  timestamp: string;
+  snapCount: number;
+  snaps: Record<string, unknown>;
+} | null> => {
+  try {
+    const data = await FilesystemStorage.getItem(PREINSTALLED_SNAPS_STORAGE_KEY);
+    
+    if (!data) {
+      console.log('📦 [SNAP STORAGE] No pre-installed snaps found in storage');
+      return null;
+    }
+
+    const snapsData = JSON.parse(data);
+    console.log(`📦 [SNAP STORAGE] Loaded ${snapsData.snapCount} pre-installed snaps from FileSystem Storage`);
+    console.log('📦 [SNAP STORAGE] Saved at:', snapsData.timestamp);
+    
+    return snapsData;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to load pre-installed snaps from FileSystem Storage',
+    );
+    return null;
+  }
+};
 
 /**
  * Removes all snaps from SnapController state to test performance impact.
- * Since all snaps in the snaps object appear to be preinstalled, we replace it with an empty object.
- * This removes all snap data from BOTH Redux and filesystem persistence while maintaining the expected structure.
+ * Before filtering, saves the snaps to a separate FileSystem Storage location outside the persistence system.
+ * This removes snap data from Redux and normal persistence while preserving it separately for future use.
  */
-const filterPreinstalledSnapsFromState = (controllerState: any) => {
+const filterPreinstalledSnapsFromState = async (controllerState: any) => {
   if (!controllerState?.snaps) {
     return controllerState;
   }
 
   const originalSnapCount = Object.keys(controllerState.snaps).length;
+  
+  // Save snaps to separate FileSystem Storage before filtering (outside persistence system)
+  await savePreinstalledSnapsToStorage(controllerState.snaps);
   
   // Replace snaps with empty object (all appear to be preinstalled)
   const filteredState = {
@@ -48,7 +124,7 @@ const filterPreinstalledSnapsFromState = (controllerState: any) => {
   };
 
   // Debug: Log the filtering action
-  console.log(`🧪 [SNAP FILTER] Omitted ${originalSnapCount} snaps from SnapController persistence`);
+  console.log(`🧪 [SNAP FILTER] Filtered ${originalSnapCount} snaps from SnapController persistence`);
   console.log('🧪 [SNAP FILTER] Original snap IDs:', Object.keys(controllerState.snaps));
   
   return filteredState;
@@ -115,7 +191,7 @@ export class EngineService {
       console.log('🔧 [INIT FILTER] Applying snap filter to initial engine state');
       state = {
         ...state,
-        SnapController: filterPreinstalledSnapsFromState((state as any).SnapController),
+        SnapController: await filterPreinstalledSnapsFromState((state as any).SnapController),
       };
       console.log('🔧 [INIT FILTER] Initial state filtered - snaps count:', Object.keys(((state as any).SnapController?.snaps) || {}).length);
     }
@@ -214,7 +290,7 @@ export class EngineService {
         // 🧪 EXPERIMENTAL: Omit all snaps from SnapController (performance test)
         if (controllerName === 'SnapController') {
           console.log('🔧 [DEBUG] SnapController state change detected - applying filter');
-          processedState = filterPreinstalledSnapsFromState(controllerState);
+          processedState = await filterPreinstalledSnapsFromState(controllerState);
           console.log('🔧 [DEBUG] After filtering - snaps count:', Object.keys(processedState.snaps || {}).length);
         }
 
@@ -268,7 +344,7 @@ export class EngineService {
       console.log('🔧 [BACKUP FILTER] Applying snap filter to vault backup state');
       state = {
         ...state,
-        SnapController: filterPreinstalledSnapsFromState((state as any).SnapController),
+        SnapController: await filterPreinstalledSnapsFromState((state as any).SnapController),
       };
       console.log('🔧 [BACKUP FILTER] Backup state filtered - snaps count:', Object.keys(((state as any).SnapController?.snaps) || {}).length);
     }
