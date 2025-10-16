@@ -1,18 +1,18 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import Rive, { Fit, Alignment } from 'rive-react-native';
+import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
 import createStyles from './index.styles';
-import { useRiveAnimation } from '../../../../hooks/useRiveAnimation';
 
 import onboardingRiveFile from '../../../../animations/fox_loading.riv';
 import { getScreenDimensions } from '../../../../util/onboarding';
+import { isE2E } from '../../../../util/test/utils';
 
 interface FoxRiveLoaderAnimationProps {}
 
 const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
-  const { colors, themeAppearance } = useTheme();
-  const isDarkMode = themeAppearance === 'dark';
+  const riveRef = useRef<RiveRef>(null);
+  const { colors } = useTheme();
 
   const screenDimensions = getScreenDimensions();
 
@@ -21,22 +21,14 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
     [colors, screenDimensions],
   );
 
-  const { riveRef, clearRiveTimer } = useRiveAnimation(isDarkMode, {
-    stateMachineName: 'FoxRaiseUp',
-    darkModeInputName: '',
-    startTriggerName: 'Loader2',
-  });
-
-  const clearTimers = useCallback(() => {
-    clearRiveTimer();
-  }, [clearRiveTimer]);
-
-  useEffect(
-    () => () => {
-      clearTimers();
-    },
-    [clearTimers],
-  );
+  useEffect(() => {
+    if (isE2E) return;
+    setTimeout(() => {
+      if (riveRef.current) {
+        riveRef.current.fireState('FoxRaiseUp', 'Loader2');
+      }
+    }, 100);
+  }, []);
 
   return (
     <View testID="fox-rive-loader-animation" style={styles.animationContainer}>
