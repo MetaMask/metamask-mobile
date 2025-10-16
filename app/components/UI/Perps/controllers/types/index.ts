@@ -289,6 +289,18 @@ export interface WithdrawResult {
   estimatedArrivalTime?: number; // Provider-specific arrival time
 }
 
+export interface TransferBetweenDexsParams {
+  sourceDex: string; // Source DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
+  destinationDex: string; // Destination DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
+  amount: string; // USDC amount to transfer
+}
+
+export interface TransferBetweenDexsResult {
+  success: boolean;
+  txHash?: string;
+  error?: string;
+}
+
 export interface GetHistoricalPortfolioParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }

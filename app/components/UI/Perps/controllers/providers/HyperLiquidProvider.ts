@@ -89,6 +89,8 @@ import type {
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  TransferBetweenDexsParams,
+  TransferBetweenDexsResult,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../PerpsController';
 
@@ -132,14 +134,37 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Fee discount context for MetaMask reward discounts (in basis points)
   private userFeeDiscountBips?: number;
 
+  // Feature flag configuration for HIP-3 DEX support
+  private equityEnabled: boolean;
+  private enabledDexs: string[];
+
+  // Track feature flags used in last asset map build to detect changes
+  private lastBuildFlags: {
+    equityEnabled: boolean;
+    enabledDexs: string[];
+  } | null = null;
+
+  // Cache for USDC token ID from spot metadata
+  private cachedUsdcTokenId?: string;
+
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
       PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
   };
 
-  constructor(options: { isTestnet?: boolean } = {}) {
+  constructor(
+    options: {
+      isTestnet?: boolean;
+      equityEnabled?: boolean;
+      enabledDexs?: string[];
+    } = {},
+  ) {
     const isTestnet = options.isTestnet || false;
+
+    // Dev-friendly defaults: Enable all DEXs by default for easier testing
+    this.equityEnabled = options.equityEnabled ?? true;
+    this.enabledDexs = options.enabledDexs ?? [];
 
     // Initialize services
     this.clientService = new HyperLiquidClientService({ isTestnet });
@@ -167,24 +192,234 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private async ensureReady(): Promise<void> {
     this.clientService.ensureInitialized();
 
-    if (this.coinToAssetId.size === 0) {
+    // Check if feature flags changed since last build
+    const flagsChanged =
+      !this.lastBuildFlags ||
+      this.lastBuildFlags.equityEnabled !== this.equityEnabled ||
+      this.lastBuildFlags.enabledDexs.length !== this.enabledDexs.length ||
+      !this.lastBuildFlags.enabledDexs.every(
+        (dex, i) => dex === this.enabledDexs[i],
+      );
+
+    const willRebuild = this.coinToAssetId.size === 0 || flagsChanged;
+
+    DevLogger.log('HyperLiquidProvider: ensureReady() called', {
+      currentMapSize: this.coinToAssetId.size,
+      willRebuild,
+      flagsChanged,
+      equityEnabled: this.equityEnabled,
+      enabledDexs: this.enabledDexs,
+      lastBuildFlags: this.lastBuildFlags,
+    });
+
+    if (willRebuild) {
       await this.buildAssetMapping();
+      // Store current flags for next comparison
+      this.lastBuildFlags = {
+        equityEnabled: this.equityEnabled,
+        enabledDexs: [...this.enabledDexs],
+      };
     }
   }
 
   /**
+   * Get validated list of DEXs to use based on feature flags
+   * Implements Step 3b from HIP-3-IMPLEMENTATION.md (lines 108-134)
+   *
+   * Logic Flow:
+   * 1. If equityEnabled === false → Return [null] (main DEX only)
+   * 2. Fetch available DEXs via SDK: infoClient.perpDexs()
+   * 3. If enabledDexs is empty [] → Return [null, ...allDiscoveredDexs] (auto-discover)
+   * 4. Else filter enabledDexs against available DEXs → Return [null, ...validatedDexs] (whitelist)
+   *
+   * Invalid DEX names are silently filtered with DevLogger warning.
+   *
+   * @returns Array of DEX names to use (null = main DEX, strings = HIP-3 DEXs)
+   */
+  private async getValidatedDexs(): Promise<(string | null)[]> {
+    // Kill switch: HIP-3 disabled, return main DEX only
+    if (!this.equityEnabled) {
+      DevLogger.log(
+        'HyperLiquidProvider: HIP-3 disabled via equityEnabled flag',
+      );
+      return [null];
+    }
+
+    // Fetch all available DEXs from HyperLiquid
+    const infoClient = this.clientService.getInfoClient();
+    const allDexs = await infoClient.perpDexs();
+
+    // Validate API response
+    if (!allDexs || !Array.isArray(allDexs)) {
+      DevLogger.log(
+        'HyperLiquidProvider: Failed to fetch DEX list (invalid response), falling back to main DEX only',
+        { allDexs },
+      );
+      return [null];
+    }
+
+    // Extract HIP-3 DEX names (filter out null which represents main DEX)
+    const availableHip3Dexs: string[] = [];
+    allDexs.forEach((dex) => {
+      if (dex !== null) {
+        availableHip3Dexs.push(dex.name);
+      }
+    });
+
+    DevLogger.log('HyperLiquidProvider: Available HIP-3 DEXs', {
+      count: availableHip3Dexs.length,
+      dexNames: availableHip3Dexs,
+    });
+
+    // Auto-discovery mode: Show all available DEXs
+    if (this.enabledDexs.length === 0) {
+      DevLogger.log(
+        'HyperLiquidProvider: Auto-discovery mode - all DEXs enabled',
+        {
+          mainDex: true,
+          hip3Dexs: availableHip3Dexs,
+          totalDexCount: availableHip3Dexs.length + 1,
+        },
+      );
+      return [null, ...availableHip3Dexs];
+    }
+
+    // Whitelist mode: Filter to only specified DEXs
+    const validatedDexs = this.enabledDexs.filter((dex) => {
+      const isValid = availableHip3Dexs.includes(dex);
+      if (!isValid) {
+        DevLogger.log(
+          `HyperLiquidProvider: Invalid DEX name '${dex}' in whitelist - skipping`,
+        );
+      }
+      return isValid;
+    });
+
+    DevLogger.log('HyperLiquidProvider: Whitelist mode', {
+      requested: this.enabledDexs,
+      validated: validatedDexs,
+    });
+
+    return [null, ...validatedDexs];
+  }
+
+  /**
+   * Get USDC token ID from spot metadata
+   * Returns format: "USDC:{hex_token_id}"
+   * Caches result to avoid repeated API calls
+   */
+  private async getUsdcTokenId(): Promise<string> {
+    if (this.cachedUsdcTokenId) {
+      return this.cachedUsdcTokenId;
+    }
+
+    const infoClient = this.clientService.getInfoClient();
+    const spotMeta = await infoClient.spotMeta();
+
+    const usdcToken = spotMeta.tokens.find((t) => t.name === 'USDC');
+    if (!usdcToken) {
+      throw new Error('USDC token not found in spot metadata');
+    }
+
+    this.cachedUsdcTokenId = `USDC:${usdcToken.tokenId}`;
+    DevLogger.log('HyperLiquidProvider: USDC token ID cached', {
+      tokenId: this.cachedUsdcTokenId,
+    });
+
+    return this.cachedUsdcTokenId;
+  }
+
+  /**
    * Build asset ID mapping from market metadata
+   * Fetches metadata for feature-flag-enabled DEXs and builds a unified mapping
+   * with DEX-prefixed keys for HIP-3 assets (e.g., "xyz:XYZ100" → 0 within xyz DEX)
+   *
+   * Per HIP-3-IMPLEMENTATION.md Step 3d (lines 166-191):
+   * - Main DEX assets: "BTC" → 0, "ETH" → 1, ...
+   * - HIP-3 DEX assets: "xyz:XYZ100" → 0, "xyz:XYZ200" → 1, ... (within xyz namespace)
+   *
+   * This enables proper order routing - when placeOrder({ coin: "xyz:XYZ100" }) is called,
+   * the asset ID lookup succeeds and the order routes to the correct DEX.
    */
   private async buildAssetMapping(): Promise<void> {
     const infoClient = this.clientService.getInfoClient();
-    const meta = await infoClient.meta();
-    const { coinToAssetId } = buildAssetMapping(meta.universe);
 
-    this.coinToAssetId = coinToAssetId;
+    // Get feature-flag-validated DEXs to map (respects equityEnabled and enabledDexs)
+    const dexsToMap = await this.getValidatedDexs();
 
-    DevLogger.log('Asset mapping built', {
-      assetCount: meta.universe.length,
-      coins: Array.from(this.coinToAssetId.keys()),
+    DevLogger.log('HyperLiquidProvider: Starting asset mapping rebuild', {
+      dexs: dexsToMap,
+      previousMapSize: this.coinToAssetId.size,
+      equityEnabled: this.equityEnabled,
+      enabledDexs: this.enabledDexs,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Fetch metadata for each DEX in parallel
+    const allMetas = await Promise.allSettled(
+      dexsToMap.map((dex) =>
+        infoClient
+          .meta({ dex: dex ?? '' })
+          .then((meta) => ({ dex, meta, success: true as const }))
+          .catch((error) => {
+            DevLogger.log(
+              `HyperLiquidProvider: Failed to fetch meta for DEX ${
+                dex || 'main'
+              }`,
+              { error },
+            );
+            return { dex, meta: null, success: false as const };
+          }),
+      ),
+    );
+
+    // Build mapping with DEX prefixes for HIP-3 DEXs using the utility function
+    this.coinToAssetId.clear();
+
+    allMetas.forEach((result) => {
+      if (
+        result.status === 'fulfilled' &&
+        result.value.success &&
+        result.value.meta
+      ) {
+        const { dex, meta } = result.value;
+
+        // Validate that meta.universe exists and is an array
+        if (!meta.universe || !Array.isArray(meta.universe)) {
+          DevLogger.log(
+            `HyperLiquidProvider: Skipping DEX ${
+              dex || 'main'
+            } - invalid or missing universe data`,
+            {
+              hasUniverse: !!meta.universe,
+              isArray: Array.isArray(meta.universe),
+            },
+          );
+          return;
+        }
+
+        // Use the utility function to build mapping for this DEX
+        const { coinToAssetId } = buildAssetMapping({
+          metaUniverse: meta.universe,
+          dex,
+        });
+
+        // Merge into provider's map
+        coinToAssetId.forEach((assetId, coin) => {
+          this.coinToAssetId.set(coin, assetId);
+        });
+      }
+    });
+
+    const allKeys = Array.from(this.coinToAssetId.keys());
+    const mainDexKeys = allKeys.filter((k) => !k.includes(':')).slice(0, 5);
+    const hip3Keys = allKeys.filter((k) => k.includes(':')).slice(0, 10);
+
+    DevLogger.log('HyperLiquidProvider: Asset mapping built', {
+      totalAssets: this.coinToAssetId.size,
+      dexCount: dexsToMap.length,
+      mainDexSample: mainDexKeys,
+      hip3Sample: hip3Keys,
     });
   }
 
@@ -373,21 +608,51 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
+      // Debug: Log asset map state before order placement
+      const allMapKeys = Array.from(this.coinToAssetId.keys());
+      const hip3Keys = allMapKeys.filter((k) => k.includes(':'));
+      const assetExists = this.coinToAssetId.has(params.coin);
+      DevLogger.log('HyperLiquidProvider: Asset map state at order time', {
+        requestedCoin: params.coin,
+        assetExistsInMap: assetExists,
+        totalAssetsInMap: this.coinToAssetId.size,
+        hip3AssetsCount: hip3Keys.length,
+        hip3AssetsSample: hip3Keys.slice(0, 10),
+        equityEnabled: this.equityEnabled,
+        enabledDexs: this.enabledDexs,
+      });
+
       // Ensure builder fee approval and referral code are set before placing any order
       await Promise.all([
         this.ensureBuilderFeeApproval(),
         this.ensureReferralSet(),
       ]);
 
-      // Get asset info - use provided current price to avoid extra API call
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
+      // Extract DEX name for API calls (null = main DEX)
+      const dexName = params.coin.includes(':')
+        ? params.coin.split(':')[0]
+        : null;
 
+      // Get asset info from the correct DEX
+      const infoClient = this.clientService.getInfoClient();
+      const meta = await infoClient.meta({ dex: dexName ?? '' });
+
+      if (!meta.universe || !Array.isArray(meta.universe)) {
+        throw new Error(
+          `Invalid universe data for DEX ${
+            dexName || 'main'
+          } when placing order for ${params.coin}`,
+        );
+      }
+
+      // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
         (asset) => asset.name === params.coin,
       );
       if (!assetInfo) {
-        throw new Error(`Asset ${params.coin} not found`);
+        throw new Error(
+          `Asset ${params.coin} not found in ${dexName || 'main'} DEX universe`,
+        );
       }
 
       // Use provided current price or fetch if not provided
@@ -401,7 +666,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       } else {
         DevLogger.log('Fetching current price via API (fallback)');
-        const mids = await infoClient.allMids();
+        const mids = await infoClient.allMids({ dex: dexName ?? '' });
+        // allMids returns prices keyed by asset name ("BTC" or "xyz:XYZ100")
         currentPrice = parseFloat(mids[params.coin] || '0');
         if (currentPrice === 0) {
           throw new Error(`No price available for ${params.coin}`);
@@ -436,10 +702,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: orderPrice,
         szDecimals: assetInfo.szDecimals,
       });
+
+      // Get the asset ID for this DEX
+      // Each DEX has its own universe with indices starting from 0
+      // e.g., xyz:XYZ100 is at index 0 in xyz DEX, BTC is at index 0 in main DEX
       const assetId = this.coinToAssetId.get(params.coin);
       if (assetId === undefined) {
+        DevLogger.log('HyperLiquidProvider: Asset ID lookup failed', {
+          requestedCoin: params.coin,
+          dexName: dexName || 'main',
+          mapSize: this.coinToAssetId.size,
+          mapContainsAsset: this.coinToAssetId.has(params.coin),
+          allKeys: Array.from(this.coinToAssetId.keys()).slice(0, 20),
+        });
         throw new Error(`Asset ID not found for ${params.coin}`);
       }
+
+      DevLogger.log('HyperLiquidProvider: Resolved DEX-specific asset ID', {
+        coin: params.coin,
+        dex: dexName || 'main',
+        assetId,
+        note: `Asset ID ${assetId} is correct for ${params.coin} in ${
+          dexName || 'main'
+        } DEX`,
+      });
 
       // Update leverage if specified
       if (params.leverage) {
@@ -488,8 +774,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
          * - 'LiquidationMarket': Similar to IoC, used for liquidation orders
          *
          * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
-         * Using 'Ioc' causes market orders to be treated as limit orders by HyperLiquid,
-         * leading to incorrect order type display in transaction history (TAT-1475)
+         * HyperLiquid treats 'Ioc' as limit orders, causing incorrect order type display
          */
         t:
           params.orderType === 'limit'
@@ -567,8 +852,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       }
 
-      // 6. Submit via SDK exchange client instead of direct fetch
+      // 6. Submit via single SDK exchange client
+      // Asset ID determines routing (main DEX: direct index, HIP-3: 100000 + dexIndex*10000 + coinIndex)
+      // The exchange client handles all DEXs through a single instance
       const exchangeClient = this.clientService.getExchangeClient();
+
+      DevLogger.log(
+        'HyperLiquidProvider: Submitting order via asset ID routing',
+        {
+          coin: params.coin,
+          assetId: orders[0].a,
+          orderCount: orders.length,
+          mainOrder: orders[0],
+          dexName: dexName || 'main',
+          isHip3: !!dexName,
+        },
+      );
+
       const result = await exchangeClient.order({
         orders,
         grouping,
@@ -622,16 +922,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      // Get asset info for proper formatting
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
-      const mids = await infoClient.allMids(); // Default to perps data (same as subscription service)
+      // Extract DEX name for API calls (null = main DEX)
+      const dexName = params.newOrder.coin.includes(':')
+        ? params.newOrder.coin.split(':')[0]
+        : null;
 
+      // Get asset info and prices
+      const infoClient = this.clientService.getInfoClient();
+      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      const mids = await infoClient.allMids({ dex: dexName ?? '' });
+
+      if (!meta.universe || !Array.isArray(meta.universe)) {
+        throw new Error(
+          `Invalid universe data for DEX ${
+            dexName || 'main'
+          } when editing order for ${params.newOrder.coin}`,
+        );
+      }
+
+      // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
         (asset) => asset.name === params.newOrder.coin,
       );
       if (!assetInfo) {
-        throw new Error(`Asset ${params.newOrder.coin} not found`);
+        throw new Error(
+          `Asset ${params.newOrder.coin} not found in ${
+            dexName || 'main'
+          } DEX universe`,
+        );
       }
 
       const currentPrice = parseFloat(mids[params.newOrder.coin] || '0');
@@ -873,23 +1191,43 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log('Cancel result:', cancelResult);
       }
 
-      // Get asset info for proper formatting
-      const meta = await infoClient.meta();
+      // Extract DEX name for API calls (null = main DEX)
+      const dexName = params.coin.includes(':')
+        ? params.coin.split(':')[0]
+        : null;
+
+      // Get asset info
+      const meta = await infoClient.meta({ dex: dexName ?? '' });
 
       // Check if meta is an error response (string) or doesn't have universe property
-      if (!meta || typeof meta === 'string' || !meta.universe) {
-        DevLogger.log('Failed to fetch metadata for asset mapping', { meta });
-        throw new Error('Failed to fetch market metadata');
+      if (
+        !meta ||
+        typeof meta === 'string' ||
+        !meta.universe ||
+        !Array.isArray(meta.universe)
+      ) {
+        DevLogger.log('Failed to fetch metadata for asset mapping', {
+          meta,
+          dex: dexName || 'main',
+        });
+        throw new Error(
+          `Failed to fetch market metadata for DEX ${dexName || 'main'}`,
+        );
       }
 
-      const assetInfo = meta.universe.find((asset) => asset.name === coin);
+      // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
+      const assetInfo = meta.universe.find(
+        (asset) => asset.name === params.coin,
+      );
       if (!assetInfo) {
-        throw new Error(`Asset ${coin} not found`);
+        throw new Error(
+          `Asset ${params.coin} not found in ${dexName || 'main'} DEX universe`,
+        );
       }
 
-      const assetId = this.coinToAssetId.get(coin);
+      const assetId = this.coinToAssetId.get(params.coin);
       if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${coin}`);
+        throw new Error(`Asset ID not found for ${params.coin}`);
       }
 
       // Build orders array for TP/SL
@@ -1548,6 +1886,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const meta = await infoClient.meta(
         params?.dex !== undefined ? { dex: params.dex } : undefined,
       );
+
+      if (!meta.universe || !Array.isArray(meta.universe)) {
+        DevLogger.log(
+          `HyperLiquidProvider: Invalid universe data for DEX ${
+            params?.dex || 'main'
+          }`,
+          { hasUniverse: !!meta.universe },
+        );
+        return [];
+      }
+
       const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
 
       return markets;
@@ -2040,6 +2389,99 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Transfer USDC collateral between DEXs (main ↔ HIP-3)
+   *
+   * Verified working on mainnet via Phantom wallet testing (10/15/2025).
+   * See docs/perps/HIP-3-IMPLEMENTATION.md for complete transaction flow.
+   *
+   * @param params - Transfer parameters
+   * @param params.sourceDex - Source DEX name ('' = main, 'xyz' = HIP-3)
+   * @param params.destinationDex - Destination DEX name ('' = main, 'xyz' = HIP-3)
+   * @param params.amount - USDC amount to transfer
+   * @returns Transfer result with success status and transaction hash
+   *
+   * @example
+   * // Transfer 10 USDC from main DEX to xyz HIP-3 DEX
+   * await transferBetweenDexs({
+   *   sourceDex: '',
+   *   destinationDex: 'xyz',
+   *   amount: '10'
+   * });
+   */
+  async transferBetweenDexs(
+    params: TransferBetweenDexsParams,
+  ): Promise<TransferBetweenDexsResult> {
+    try {
+      DevLogger.log('HyperLiquidProvider: STARTING DEX TRANSFER', {
+        params,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Validate parameters
+      if (!params.amount || parseFloat(params.amount) <= 0) {
+        throw new Error('Transfer amount must be greater than 0');
+      }
+
+      if (params.sourceDex === params.destinationDex) {
+        throw new Error('Source and destination DEX must be different');
+      }
+
+      // Get user address
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+      DevLogger.log('HyperLiquidProvider: USER ADDRESS', { userAddress });
+
+      // Ensure client ready
+      await this.ensureReady();
+      const exchangeClient = this.clientService.getExchangeClient();
+
+      // Execute transfer using SDK sendAsset()
+      // Note: SDK docs say "testnet-only" but it works on mainnet (verified via Phantom)
+      DevLogger.log('HyperLiquidProvider: CALLING SEND_ASSET API', {
+        sourceDex: params.sourceDex || '(main)',
+        destinationDex: params.destinationDex || '(main)',
+        amount: params.amount,
+      });
+
+      const result = await exchangeClient.sendAsset({
+        destination: userAddress,
+        sourceDex: params.sourceDex,
+        destinationDex: params.destinationDex,
+        token: await this.getUsdcTokenId(), // Query correct USDC token ID dynamically
+        amount: params.amount,
+      });
+
+      DevLogger.log('HyperLiquidProvider: SEND_ASSET RESPONSE', {
+        status: result.status,
+        timestamp: new Date().toISOString(),
+      });
+
+      if (result.status === 'ok') {
+        DevLogger.log('✅ HyperLiquidProvider: TRANSFER SUCCESSFUL');
+        return {
+          success: true,
+          // Note: sendAsset doesn't return txHash in response
+          // User can verify transfer in explorer by timestamp
+        };
+      }
+
+      throw new Error(`Transfer failed: ${result.status}`);
+    } catch (error) {
+      DevLogger.log('❌ HyperLiquidProvider: TRANSFER FAILED', {
+        error: error instanceof Error ? error.message : String(error),
+        params,
+      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('transferBetweenDexs', { ...params }),
+      );
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
    * Subscribe to live price updates
    */
   subscribeToPrices(params: SubscribePricesParams): () => void {
@@ -2309,17 +2751,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
+      // Extract DEX name for API calls (null = main DEX)
+      const dexName = asset.includes(':') ? asset.split(':')[0] : null;
 
-      // Check if meta and universe exist
-      if (!meta?.universe) {
+      // Get asset info
+      const infoClient = this.clientService.getInfoClient();
+      const meta = await infoClient.meta({ dex: dexName ?? '' });
+
+      // Check if meta and universe exist and is valid
+      if (!meta?.universe || !Array.isArray(meta.universe)) {
         console.warn(
-          'Meta or universe not available, using default max leverage',
+          `Meta or universe not available for DEX ${
+            dexName || 'main'
+          }, using default max leverage`,
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
 
+      // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find((a) => a.name === asset);
       if (!assetInfo) {
         DevLogger.log(

@@ -1,375 +1,235 @@
 # HIP-3 Implementation Plan
 
-## Overview
+## Core Principles
 
-Enable support for HIP-3 (builder-deployed perpetuals) with configurable DEX filtering via feature flags.
+**Transparent UX**: Users see ONE unified balance aggregated across all DEXs. HIP-3 DEXs are an implementation detail, not a user concept.
 
-**Key Requirement**: Minimal code changes, protocol-agnostic design, feature-flag controlled rollout.
+**Protocol-Agnostic Design**: Controller layer has no knowledge of "DEX" concept. The `placeOrder(coin, size, price)` API works identically for BTC (main DEX) and xyz:XYZ100 (HIP-3).
+
+**Auto-Consolidation**: System automatically pulls funds from any DEX as needed. User never manually transfers between DEXs.
+
+**Single ExchangeClient**: One client handles all DEXs. Asset ID determines routing:
+
+- Main DEX: `assetId = index` (0, 1, 2...)
+- HIP-3 DEX: `assetId = 100000 + (perpDexIndex × 10000) + index`
+
+**Atomic Operations**: Transfer + order = one user action. If order fails, transfer reverts. On position close, collateral returns to main DEX automatically.
+
+---
+
+## Protocol-Agnostic Architecture
+
+**Controller Layer** (generic, no DEX knowledge):
+
+- API: `placeOrder({ coin: "BTC" | "xyz:XYZ100", size, orderType })`
+- NO `dex` parameter exposed
+- Delegates to provider
+
+**Provider Layer** (HyperLiquid-specific):
+
+1. Parse coin name to detect DEX internally (`"xyz:XYZ100"` → dex=xyz)
+2. Auto-consolidate funds transparently
+3. Calculate asset ID from coin name
+4. Place order via single ExchangeClient
+
+**Asset Naming**: Coin identifiers are opaque strings. Prefix is a namespace ("BTC", "xyz:XYZ100", "stocks:AAPL"), not a DEX selector.
+
+**Public vs Internal**: `PlaceOrderParams` is exported (public API). `InternalTransferParams` is private (implementation detail).
+
+---
+
+## Transparent Balance Aggregation
+
+**Problem**: User has balances across multiple DEXs (Main: $100, xyz: $50) but only sees $100.
+
+**Solution**: Aggregate across all DEXs transparently.
+
+**Key Implementation**:
+
+- Fetch `clearinghouseState()` for each DEX in parallel
+- Sum `withdrawable` and `accountValue` from all responses
+- Subscribe to `userEvents` for each DEX separately
+- Merge positions from `assetPositions` across all DEXs
+
+**Result**: User sees $150 total, all positions visible
+
+---
+
+## Auto-Consolidation Strategy
+
+**Smart Fund Routing** (when placing HIP-3 order):
+
+1. Check target DEX balance
+2. If insufficient → pull from main DEX first
+3. Still insufficient → pull from other HIP-3 DEXs
+4. Error only if total across ALL DEXs insufficient
+
+**Automatic Return on Close**:
+
+- Freed collateral auto-returns to main DEX after position close
+- Uses `sendAsset()` with `sourceDex` (HIP-3 DEX) to `destinationDex: ""` (main DEX)
+
+**User Experience**: Never manually transfer funds between DEXs
+
+---
+
+## Market Categories
+
+**Type**: `MarketCategory = 'experimental' | 'equity' | 'forex' | 'commodity'`
+
+**Provider Mapping** (hardcoded in `HyperLiquidProvider`):
+
+```typescript
+DEX_CATEGORY_MAP = {
+  xyz: 'experimental',
+  abc: 'experimental',
+  // Future: 'stocks-dex': 'equity', 'forex-dex': 'forex'
+};
+```
+
+**UI Display**: Show badge if `marketCategory` exists. Main DEX = undefined (no badge).
+
+**Result**: Main DEX: `BTC 50x` | HIP-3: `xyz:XYZ100 [EXPERIMENTAL] 5x`
+
+---
+
+## HIP-3 Trading Flow
+
+### Transaction Sequence
+
+**Opening Position**:
+
+1. Update leverage (isolated margin required)
+2. Transfer collateral: main DEX → HIP-3 DEX via `sendAsset()`
+3. Place order with calculated asset ID
+
+**Closing Position**:
+
+1. Place reduce-only order
+2. Transfer collateral: HIP-3 DEX → main DEX via `sendAsset()`
+
+### Key Findings
+
+- **Pre-funding required**: Must have balance in target DEX before order
+- **Collateral isolation**: Each DEX maintains separate pool
+- **`sendAsset()` works on mainnet**: Verified via Phantom wallet (SDK docs outdated)
+- **Single ExchangeClient**: No DEX routing parameter needed
+
+### Transfer API
+
+```typescript
+await exchangeClient.sendAsset({
+  destination: userAddress,
+  sourceDex: '', // empty string = main DEX
+  destinationDex: 'xyz',
+  token: 'USDC:0x...',
+  amount: '11',
+});
+```
 
 ---
 
 ## Feature Flag Architecture
 
-### Two-Level Control System
+**Two-Level Control**: Master switch + whitelist enable gradual rollout.
 
-1. **Master Switch**: `perpsEquityEnabled` (boolean)
+**`perpsEquityEnabled` (boolean)**: Global on/off for HIP-3. `false` = main DEX only, `true` = enable HIP-3 DEXs.
 
-   - Global kill switch for ALL HIP-3 features
-   - `false` = Only main DEX (current behavior)
-   - `true` = Enable HIP-3 DEXs (filtered by whitelist)
+**`perpsEnabledDexs` (string[])**: Whitelist specific DEXs. `[]` = auto-discover all, `["xyz"]` = only "xyz".
 
-2. **DEX Whitelist**: `perpsEnabledDexs` (string array)
-   - Controls which specific HIP-3 DEXs to show
-   - `[]` (empty) = Auto-discover all available DEXs
-   - `["xyz", "test-dex"]` = Only show specified DEXs
-   - Only applies when `perpsEquityEnabled === true`
+**Usage**:
 
-### Configuration Examples
+- Default: `perpsEquityEnabled: false` → main DEX only
+- Pilot: `perpsEquityEnabled: true, perpsEnabledDexs: ["xyz"]` → main + xyz
+- Full: `perpsEquityEnabled: true, perpsEnabledDexs: []` → main + all discovered
 
-```json
-// Phase 1: Disabled (default)
-{ "perpsEquityEnabled": false }
-→ Result: Main DEX only
+---
 
-// Phase 2: Enabled with auto-discovery
-{ "perpsEquityEnabled": true, "perpsEnabledDexs": [] }
-→ Result: Main DEX + ALL discovered HIP-3 DEXs
+## WebSocket Integration with PerpsStreamManager
 
-// Phase 3: Enabled with whitelist
-{ "perpsEquityEnabled": true, "perpsEnabledDexs": ["xyz"] }
-→ Result: Main DEX + "xyz" only
+**Current Architecture**: `PerpsStreamManager` (app/components/UI/Perps/providers/PerpsStreamManager.tsx) manages live data streams via singleton channels: prices, orders, positions, account. Each channel subscribes via `Engine.context.PerpsController.subscribeToX()`.
 
-// Emergency kill switch
-{ "perpsEquityEnabled": false }
-→ Result: Immediately disables ALL HIP-3
+**Critical Integration**: All subscription methods in the provider layer must aggregate data from multiple DEXs **before** passing to PerpsStreamManager. The channels themselves remain unchanged.
+
+### Multi-DEX Subscription Pattern
+
+**In HyperLiquidProvider/HyperLiquidSubscriptionService**:
+
+1. **Orders Channel**: `subscribeToOrders({ callback })`
+
+   - Create WebSocket subscription for **each enabled DEX**
+   - Merge order arrays from all DEXs
+   - Pass aggregated array to callback (PerpsStreamManager receives unified data)
+
+2. **Positions Channel**: `subscribeToPositions({ callback })`
+
+   - Subscribe to each DEX separately
+   - Merge position arrays (each position retains coin identifier: "BTC" vs "xyz:XYZ100")
+   - Pass aggregated array to callback
+
+3. **Account Channel**: `subscribeToAccount({ callback })`
+
+   - Fetch account state from each DEX
+   - Aggregate balances (sum `withdrawable`, `accountValue`)
+   - Pass single AccountState object with `dexBreakdown` field
+
+4. **Prices Channel**: `subscribeToPrices({ symbols, callback })`
+   - Already works! `infoClient.allMids()` returns prices for all DEXs
+   - No changes needed
+
+### Feature Flag Guards
+
+Subscriptions must respect feature flags:
+
+```typescript
+// In HyperLiquidSubscriptionService
+private getEnabledDexs(): Array<string | null> {
+  if (!this.equityEnabled) return [null]; // Main DEX only
+  return [null, ...this.enabledDexs]; // Main + HIP-3 DEXs
+}
+
+async subscribeToOrders({ callback }) {
+  const dexs = this.getEnabledDexs();
+
+  // Subscribe to each DEX
+  const unsubscribers = dexs.map(dex =>
+    this.transport.subscribe({
+      type: 'userEvents',
+      user: this.address,
+      dex: dex ?? '', // Empty string = main DEX
+    }, (update) => {
+      // Merge and callback
+    })
+  );
+
+  return () => unsubscribers.forEach(unsub => unsub());
+}
 ```
+
+### Key Principles
+
+**✅ PerpsStreamManager stays unchanged**: Channels receive aggregated data, no DEX awareness.
+
+**✅ Provider layer handles complexity**: Multi-DEX subscriptions, aggregation, feature flag filtering.
+
+**✅ Transparent to UI**: Components using `usePerpsStream()` see unified data automatically.
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Add Feature Flag Selectors
-
-**File**: `app/selectors/featureFlagController/perps/index.ts` (NEW)
-
-**Purpose**: Extract and validate feature flags from Redux state
-
-**Key Functions**:
-
-- `selectPerpsEquityEnabledFlag()` → Returns boolean for master switch
-- `selectPerpsEnabledDexs()` → Returns validated string array of DEX names
-
-**Logic**:
-
-- Read from `RemoteFeatureFlagController` state
-- Provide safe defaults (`false` and `[]`)
-- Validate types (boolean and string array)
-
----
-
-### Step 2: Extend Type Definitions
-
-**File**: `app/components/UI/Perps/controllers/types/index.ts`
-
-**Change**: Add one optional field to `PerpsMarketData` interface
-
-```typescript
-export interface PerpsMarketData {
-  // ... existing fields (symbol, name, price, etc.)
-
-  marketSource?: string | null; // NEW: DEX name or null/undefined for main
-}
-```
-
-**Design Rationale**:
-
-- Optional field = zero breaking changes
-- Protocol-agnostic naming (`marketSource` not `hip3Dex`)
-- `null`/`undefined` for main DEX = backward compatible
-
----
-
-### Step 3: Update HyperLiquidProvider
-
-**File**: `app/components/UI/Perps/controllers/providers/HyperLiquidProvider.ts`
-
-#### 3a. Add Configuration to Constructor
-
-**Change**: Accept `equityEnabled` and `enabledDexs` options
-
-```typescript
-constructor(options: {
-  isTestnet?: boolean;
-  equityEnabled?: boolean;    // NEW
-  enabledDexs?: string[];     // NEW
-} = {})
-```
-
-#### 3b. Add DEX Resolution Method
-
-**Method**: `getValidatedDexs()` (new private method)
-
-**Logic Flow**:
-
-```
-1. If equityEnabled === false
-   → Return [null]  // Main DEX only
-
-2. Fetch available DEXs via SDK: infoClient.perpDexs()
-   → Returns: Array<null | {name, full_name, deployer, ...}>
-
-3. If enabledDexs is empty []
-   → Return [null, ...allDiscoveredHip3Dexs]  // Auto-discover
-
-4. Else filter enabledDexs against available DEXs
-   → Return [null, ...validatedHip3Dexs]  // Whitelist only
-
-5. Cache result for performance
-```
-
-**Error Handling**:
-
-- Invalid DEX names: Silently ignored with DevLogger warning
-- API failures: Gracefully skip failed DEXs
-
-#### 3c. Update `getMarketDataWithPrices()`
-
-**Current Logic**: Fetches only main DEX
-
-```typescript
-const meta = await infoClient.meta(); // No dex parameter
-```
-
-**New Logic**: Fetch all validated DEXs in parallel
-
-```typescript
-const dexsToFetch = await this.getValidatedDexs(); // [null, "xyz", ...]
-
-const allMetaAndCtxs = await Promise.all(
-  dexsToFetch.map(
-    (dex) => infoClient.metaAndAssetCtxs({ dex: dex ?? '' }), // Empty string = main
-  ),
-);
-
-// For each DEX's markets, add marketSource field
-dexMarkets.forEach((market) => {
-  market.marketSource = dex; // null for main, "xyz" for HIP-3
-});
-```
-
-**Key Points**:
-
-- Reuses existing `transformMarketData()` utility
-- Parallel fetching for performance
-- Gracefully handles fetch failures per DEX
-
-#### 3d. Update `buildAssetMapping()`
-
-**Current Logic**: Maps only main DEX assets
-
-```typescript
-const meta = await infoClient.meta();
-// Builds: Map<"BTC", 0>, Map<"ETH", 1>, ...
-```
-
-**New Logic**: Map all DEX assets with prefixes
-
-```typescript
-for (const dex of validatedDexs) {
-  const meta = await infoClient.meta({ dex: dex ?? '' });
-
-  meta.universe.forEach((asset, idx) => {
-    const key = dex ? `${dex}:${asset.name}` : asset.name;
-    // Main DEX: "BTC" → 0
-    // HIP-3 DEX: "xyz:XYZ100" → 0 (within that DEX)
-    this.coinToAssetId.set(key, idx);
-  });
-}
-```
-
-**Purpose**: Enable order placement on correct DEX by symbol lookup
-
----
-
-### Step 4: Wire Feature Flags to Provider
-
-**File**: `app/components/UI/Perps/controllers/PerpsController.ts`
-
-**Change**: Pass feature flag values when creating provider
-
-**Location**: Find where `HyperLiquidProvider` is instantiated
-
-**Pseudocode**:
-
-```typescript
-// During provider initialization
-const provider = new HyperLiquidProvider({
-  isTestnet: this.state.isTestnet,
-  equityEnabled: this.getEquityEnabledFlag(), // NEW
-  enabledDexs: this.getEnabledDexs(), // NEW
-});
-
-// Helper methods to read feature flags from state
-// Implementation depends on how controller accesses Redux
-```
-
-**Note**: Exact implementation depends on controller's Redux access pattern. May need to pass flags from higher-level initialization point.
-
----
-
-### Step 5: Implement Balance Aggregation
-
-**File**: `app/components/UI/Perps/controllers/providers/HyperLiquidProvider.ts`
-
-**Add New Method**: `getAggregatedAccountState()`
-
-**Purpose**: Fetch and aggregate account state across all active DEXs
-
-```typescript
-async getAccountState(params: GetAccountStateParams): Promise<AccountState> {
-  await this.ensureReady();
-  const infoClient = this.clientService.getInfoClient();
-  const address = params.address;
-
-  // Get all active DEXs
-  const dexs = await this.getValidatedDexs(); // [null, "xyz", ...]
-
-  // Fetch clearinghouse state for each DEX in parallel
-  const allStates = await Promise.all(
-    dexs.map(async (dex) => {
-      try {
-        const state = await infoClient.clearinghouseState({
-          user: address,
-          dex: dex ?? '', // Empty string = main DEX
-        });
-        return { dex, state, success: true };
-      } catch (error) {
-        DevLogger.log(`Failed to fetch state for DEX ${dex}:`, error);
-        return { dex, state: null, success: false };
-      }
-    })
-  );
-
-  // Aggregate successful states
-  const successfulStates = allStates.filter(s => s.success && s.state);
-
-  const totalAccountValue = successfulStates.reduce(
-    (sum, { state }) => sum + parseFloat(state!.marginSummary.accountValue),
-    0
-  );
-
-  const totalWithdrawable = successfulStates.reduce(
-    (sum, { state }) => sum + parseFloat(state!.withdrawable),
-    0
-  );
-
-  // Return adapted state with aggregated totals
-  return adaptAccountStateFromSDK(
-    successfulStates[0]?.state!, // Use main DEX as base structure
-    {
-      totalAccountValue,
-      totalWithdrawable,
-      dexBreakdown: successfulStates.map(({ dex, state }) => ({
-        dex: dex ?? 'main',
-        accountValue: parseFloat(state!.marginSummary.accountValue),
-        withdrawable: parseFloat(state!.withdrawable),
-        positionCount: state!.assetPositions.length,
-      })),
-    }
-  );
-}
-```
-
-**Type Extension**: Add to `AccountState` interface
-
-```typescript
-export interface AccountState {
-  // ... existing fields
-  dexBreakdown?: Array<{
-    dex: string;
-    accountValue: number;
-    withdrawable: number;
-    positionCount: number;
-  }>;
-}
-```
-
----
-
-### Step 6: Display HIP-3 Badge in UI
-
-**File**: `app/components/UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem.tsx`
-
-**Change**: Add conditional inline badge next to symbol
-
-**Before**:
-
-```typescript
-<View style={styles.tokenHeader}>
-  <Text>{displayMarket.symbol}</Text>
-  <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
-</View>
-```
-
-**After**:
-
-```typescript
-<View style={styles.tokenHeader}>
-  <Text>{displayMarket.symbol}</Text>
-
-  {displayMarket.marketSource && (
-    <View style={styles.marketSourceBadge}>
-      <Text variant={TextVariant.BodyXS} color={TextColor.Info}>
-        {displayMarket.marketSource}
-      </Text>
-    </View>
-  )}
-
-  <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
-</View>
-```
-
-**Styling**: Add minimal badge styles to `PerpsMarketRowItem.styles.ts`
-
-```typescript
-marketSourceBadge: {
-  marginLeft: 4,
-  paddingHorizontal: 6,
-  paddingVertical: 2,
-  borderRadius: 4,
-  backgroundColor: colors.info.muted,
-}
-```
-
-**Visual Result**: `BTC [xyz] 50x` where `[xyz]` is small colored badge
-
----
-
-### Step 7: Add DEX Balance Breakdown UI
-
-**File**: `app/components/UI/Perps/Views/PerpsAccountView/*` (location TBD)
-
-**Purpose**: Show per-DEX balance breakdown to help users understand fund distribution
-
-**UI Design**:
-
-```
-┌─────────────────────────────────┐
-│ Total Balance: $10,000          │
-│ ▼ View Breakdown                │
-└─────────────────────────────────┘
-  ┌───────────────────────────────┐
-  │ Main DEX        $7,000  70%   │
-  │ xyz             $2,000  20%   │
-  │ abc             $1,000  10%   │
-  └───────────────────────────────┘
-```
-
-**Implementation Notes**:
-
-- Collapsible/expandable section (default collapsed)
-- Visual indication if balance insufficient in target DEX
-- Link to transfer guide if attempting HIP-3 order without funds
+| Step                           | File                                                                    | Changes                                                                                                                                                                                                                                                        |
+| ------------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Feature Flags** ✅        | `app/selectors/featureFlagController/perps/index.ts` (EXISTS, 66 lines) | Selectors already implemented: `selectPerpsEquityEnabledFlag()` → boolean, `selectPerpsEnabledDexs()` → string[].                                                                                                                                              |
+| **2. Type Definitions**        | `app/components/UI/Perps/controllers/types/index.ts`                    | Add optional `marketSource?: string \| null` field to `PerpsMarketData` interface. Add optional `dexBreakdown` to `AccountState`.                                                                                                                              |
+| **3. Provider Constructor** ✅ | `app/components/UI/Perps/controllers/providers/HyperLiquidProvider.ts`  | Constructor already accepts `equityEnabled?: boolean` and `enabledDexs?: string[]` (lines 156-165).                                                                                                                                                            |
+| **4. DEX Resolution** ✅       | Same file                                                               | `getValidatedDexs()` method already implemented (lines 237-303). Returns `[null]` when disabled, filters by whitelist or auto-discovers.                                                                                                                       |
+| **5. Market Data Fetching**    | Same file                                                               | Update `getMarketDataWithPrices()` (line 2061): Method exists but currently only fetches main DEX. Need to call `infoClient.metaAndAssetCtxs()` for each enabled DEX in parallel, add `marketSource` field.                                                    |
+| **6. Asset Mapping** ✅        | Same file                                                               | `buildAssetMapping()` already implements multi-DEX support with prefixes (lines 324-346).                                                                                                                                                                      |
+| **7. Balance Aggregation**     | Same file                                                               | Update `getAccountState()` (line 1978): Method exists but currently only fetches main DEX + spot. Need to fetch `clearinghouseState()` for all enabled DEXs in parallel, aggregate totals, return `dexBreakdown`.                                              |
+| **8. Multi-DEX Subscriptions** | `app/components/UI/Perps/services/HyperLiquidSubscriptionService.ts`    | Update `subscribeToOrders()`, `subscribeToPositions()`, `subscribeToAccount()` to implement multi-DEX subscription pattern (see WebSocket Integration section above). Add `getEnabledDexs()` helper. Currently uses single `webData2` subscription (line 304). |
+| **9. Wire Feature Flags** ✅   | `app/components/UI/Perps/controllers/PerpsController.ts`                | Feature flags already wired to provider constructor (lines 810-825).                                                                                                                                                                                           |
+| **10. UI Badge**               | `app/components/UI/Perps/components/PerpsMarketRowItem/*`               | Conditionally render badge if `displayMarket.marketSource` exists. Add badge styles.                                                                                                                                                                           |
 
 ---
 
@@ -408,384 +268,159 @@ infoClient.predictedFundings(); // Funding rates
 
 ## Files to Modify
 
-| File                                                                                 | Type   | Estimated Lines | Purpose                             |
-| ------------------------------------------------------------------------------------ | ------ | --------------- | ----------------------------------- |
-| `app/selectors/featureFlagController/perps/index.ts`                                 | NEW    | ~50             | Feature flag selectors              |
-| `app/components/UI/Perps/controllers/types/index.ts`                                 | MODIFY | +10             | Add `marketSource` & `dexBreakdown` |
-| `app/components/UI/Perps/controllers/providers/HyperLiquidProvider.ts`               | MODIFY | ~150            | DEX filtering + balance aggregation |
-| `app/components/UI/Perps/services/HyperLiquidSubscriptionService.ts`                 | MODIFY | ~40             | Multi-DEX subscriptions             |
-| `app/components/UI/Perps/controllers/PerpsController.ts`                             | MODIFY | ~10             | Wire feature flags                  |
-| `app/components/UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem.tsx`       | MODIFY | ~8              | Badge display                       |
-| `app/components/UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem.styles.ts` | MODIFY | +6              | Badge styles                        |
-| `app/components/UI/Perps/Views/PerpsAccountView/*`                                   | MODIFY | ~30             | DEX balance breakdown UI            |
+| File                                                                                 | Status    | Estimated Lines | Purpose                                    |
+| ------------------------------------------------------------------------------------ | --------- | --------------- | ------------------------------------------ |
+| `app/selectors/featureFlagController/perps/index.ts`                                 | ✅ EXISTS | 66              | Feature flag selectors                     |
+| `app/components/UI/Perps/controllers/types/index.ts`                                 | TODO      | +10             | Add `marketSource` & `dexBreakdown`        |
+| `app/components/UI/Perps/controllers/providers/HyperLiquidProvider.ts`               | PARTIAL   | ~100            | Balance aggregation + market data fetching |
+| `app/components/UI/Perps/services/HyperLiquidSubscriptionService.ts`                 | TODO      | ~80             | Multi-DEX subscriptions                    |
+| `app/components/UI/Perps/controllers/PerpsController.ts`                             | ✅ DONE   | 0               | Feature flags already wired                |
+| `app/components/UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem.tsx`       | TODO      | ~8              | Badge display                              |
+| `app/components/UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem.styles.ts` | TODO      | +6              | Badge styles                               |
 
-**Total**: 1 new file, 7 modified files, ~300 lines of code
-
-**Phase 1 (Display-Only)**: ~200 lines
-**Phase 3 (Full Trading)**: +~100 lines
+**Remaining Work**: ~4 files to modify, ~200 lines of code estimated
 
 ---
 
-## Testing Strategy (Manual)
+## Testing Strategy
 
-### Phase 1: Feature Disabled (Default)
-
-**Config**: `perpsEquityEnabled: false`
-
-- ✅ Verify only main DEX markets shown
-- ✅ Verify no badges displayed
-- ✅ Verify existing functionality unchanged
-
-### Phase 2: Feature Enabled - Auto Discovery
-
-**Config**: `perpsEquityEnabled: true, perpsEnabledDexs: []`
-
-- ✅ Verify main DEX + HIP-3 DEX markets both shown
-- ✅ Verify HIP-3 markets display badge with DEX name
-- ✅ Verify badge text matches DEX name from API
-
-### Phase 3: Feature Enabled - Whitelist
-
-**Config**: `perpsEquityEnabled: true, perpsEnabledDexs: ["xyz"]`
-
-- ✅ Verify only "xyz" DEX shown (plus main DEX)
-- ✅ Verify other HIP-3 DEXs filtered out
-
-### Phase 4: Invalid Configuration
-
-**Config**: `perpsEquityEnabled: true, perpsEnabledDexs: ["invalid"]`
-
-- ✅ Verify invalid DEX ignored (logs warning)
-- ✅ Verify main DEX still works
-
-### Phase 5: Trading Flow
-
-- ⚠️ **Critical**: Place test order on HIP-3 market
-- ✅ Verify order routes to correct DEX
-- ✅ Verify asset mapping resolves correctly
+| Scenario           | Config                                                    | Expected Behavior                                             |
+| ------------------ | --------------------------------------------------------- | ------------------------------------------------------------- |
+| **Default**        | `perpsEquityEnabled: false`                               | Only main DEX markets shown, no badges                        |
+| **Auto-discovery** | `perpsEquityEnabled: true, perpsEnabledDexs: []`          | Main + all HIP-3 DEXs shown with badges                       |
+| **Whitelist**      | `perpsEquityEnabled: true, perpsEnabledDexs: ["xyz"]`     | Only whitelisted DEXs shown                                   |
+| **Invalid config** | `perpsEquityEnabled: true, perpsEnabledDexs: ["invalid"]` | Invalid DEX ignored (logs warning), main DEX works            |
+| **Trading flow**   | HIP-3 order placement                                     | Order routes to correct DEX, asset mapping resolves correctly |
 
 ---
 
-## Critical Questions - ANSWERED via SDK Research
+## Asset ID Calculation
 
-### 1. ✅ Order Placement Routing
-
-**Question**: How do orders route to specific HIP-3 DEXs?
-**Answer**: Orders route via **asset ID** - no explicit `dex` parameter in order request
-
-- Each DEX has separate asset ID namespace (0, 1, 2... within that DEX)
-- Asset mapping MUST be DEX-prefixed: `"xyz:XYZ100"` → asset ID for "xyz" DEX
-- SDK order params: `{ a: assetId, b: isBuy, p: price, s: size, ... }`
-- Asset ID implicitly determines the target DEX
-
-**Implementation**: Update `buildAssetMapping()` to use `${dex}:${symbol}` keys
-
----
-
-### 2. ✅ WebSocket Subscriptions
-
-**Question**: Do subscriptions need DEX context?
-**Answer**: YES - multiple parallel subscriptions required
-
-- `allMids({ dex: "xyz" })` - Prices per DEX
-- `clearinghouseState({ user, dex: "xyz" })` - Account state per DEX
-- Each subscription filters by `dex` parameter (empty string = main DEX)
-- Must subscribe to ALL active DEXs separately
-
-**Implementation**: Extend `HyperLiquidSubscriptionService` to manage multiple DEX subscriptions
-
----
-
-### 3. ⚠️ CRITICAL: Funding Flow Between DEXs
-
-**Question**: How do users transfer collateral from main DEX to HIP-3 DEX?
-**Answer**: **NO MAINNET API EXISTS** - testnet-only limitation
-
-**SDK Evidence**:
-
-- `sendAsset()` API marked **"testnet-only"** in SDK docs
-- Supports `sourceDex` and `destinationDex` parameters
-- Only works on testnet environment
-- No mainnet equivalent documented
-
-**Hyperliquid Docs Confirmation**:
-
-- Exchange endpoint docs explicitly state: "Send Asset (testnet only)"
-- No alternative mainnet transfer API found
-- `usdClassTransfer()` only works for Spot ↔ Main Perp (not DEX-to-DEX)
-
-**BLOCKING ISSUE**: Cannot enable HIP-3 trading on mainnet without funding mechanism
-
-**Options**:
-
-1. **Display-only mode**: Show HIP-3 markets but block trading with error message
-2. **Manual transfers**: Guide users to HyperLiquid UI to transfer funds manually
-3. **Research undocumented APIs**: Check if private/undocumented mainnet API exists
-4. **Wait for SDK update**: HyperLiquid may add mainnet support later
-
-**Recommendation**: Start with display-only mode (Option 1) + manual transfer guidance (Option 2)
-
----
-
-### 4. ✅ Balance Aggregation Across DEXs
-
-**Question**: How to display total account value across all DEXs?
-**Answer**: Client-side aggregation required - no unified API
-
-**SDK Evidence**:
-
-- `clearinghouseState({ user, dex })` returns per-DEX account state
-  - `accountValue` - Total value for that DEX
-  - `withdrawable` - Available balance
-  - `assetPositions` - Open positions with PnL
-- `portfolio({ user })` returns historical data but **no `dex` parameter** (main DEX only)
-- NO API endpoint returns aggregated cross-DEX balance
-
-**Implementation Strategy**:
+### Formula
 
 ```typescript
-async getAggregatedBalance(user: string): Promise<AccountState> {
-  const dexs = await this.getValidatedDexs(); // [null, "xyz", "abc", ...]
+// Main DEX assets
+assetId = index_in_meta; // 0, 1, 2, ...
 
-  const allStates = await Promise.all(
-    dexs.map(dex =>
-      infoClient.clearinghouseState({ user, dex: dex ?? '' })
-    )
-  );
-
-  // Aggregate totals
-  const totalAccountValue = allStates.reduce(
-    (sum, state) => sum + parseFloat(state.marginSummary.accountValue),
-    0
-  );
-
-  const totalWithdrawable = allStates.reduce(
-    (sum, state) => sum + parseFloat(state.withdrawable),
-    0
-  );
-
-  // Return combined view with per-DEX breakdown
-  return {
-    totalAccountValue,
-    totalWithdrawable,
-    dexBreakdown: allStates.map((state, idx) => ({
-      dex: dexs[idx],
-      accountValue: parseFloat(state.marginSummary.accountValue),
-      positions: state.assetPositions.length,
-    })),
-  };
-}
+// HIP-3 DEX assets
+assetId = 100000 + perpDexIndex * 10000 + index_in_meta;
 ```
 
-**UX Considerations**:
+### Example: xyz DEX
 
-- Show total balance prominently: `$10,000 Total (across 3 DEXs)`
-- Expandable breakdown: Main DEX: $7,000 | xyz: $2,000 | abc: $1,000
-- Visual indicator if balance locked in specific DEX (can't cross-trade)
-- Warning if insufficient balance in target DEX for order
+**Setup**:
+
+1. Call `perpDexs()` → Returns `[null, { name: "xyz", ... }, ...]`
+2. xyz is at array index 1 → `perpDexIndex = 1`
+3. First asset "XYZ100" → `index_in_meta = 0`
+
+**Calculation**: `assetId = 100000 + (1 * 10000) + 0 = 110000`
+
+**Order Placement**:
+
+```typescript
+// Single ExchangeClient for all DEXs
+const exchangeClient = new ExchangeClient({ wallet, transport });
+
+// Main DEX: BTC (asset ID 0)
+await exchangeClient.order({ orders: [{ a: 0, ... }] });
+
+// HIP-3 DEX: xyz:XYZ100 (asset ID 110000)
+await exchangeClient.order({ orders: [{ a: 110000, ... }] });
+```
+
+### Asset Mapping Implementation
+
+```typescript
+// In buildAssetMapping()
+const allDexs = await infoClient.perpDexs(); // [null, {name: "xyz"}, ...]
+
+for (let perpDexIndex = 0; perpDexIndex < allDexs.length; perpDexIndex++) {
+  const dex = allDexs[perpDexIndex];
+  const dexName = dex?.name || '';
+  const meta = await infoClient.meta({ dex: dexName });
+
+  meta.universe.forEach((asset, index_in_meta) => {
+    const symbol = dex ? `${dex.name}:${asset.name}` : asset.name;
+    const assetId = dex
+      ? 100000 + perpDexIndex * 10000 + index_in_meta
+      : index_in_meta;
+
+    this.coinToAssetId.set(symbol, assetId);
+  });
+}
+
+// Result mapping:
+// "BTC" → 0, "ETH" → 1
+// "xyz:XYZ100" → 110000, "xyz:XYZ200" → 110001
+// "abc:ABC100" → 120000
+```
+
+### Why This Works
+
+The HyperLiquid backend decodes the asset ID to determine:
+
+1. Which DEX (from perpDexIndex)
+2. Which market within that DEX (from index_in_meta)
+
+**No other context needed** - the asset ID encodes everything.
 
 ---
 
-### 5. Redux State Access in PerpsController
+## Implementation Stages
 
-**Status**: To be determined during implementation
-**Approach**: Review controller initialization to find Redux access pattern
-
----
-
-## Phased Rollout Strategy
-
-### Phase 1: Display-Only Mode (Week 0-2)
+### Stage 1: Display + Market Discovery
 
 **Goal**: Show HIP-3 markets without enabling trading
 
-**Deployment**:
+**Implementation**:
 
-- Deploy with `perpsEquityEnabled: false` initially
-- Enable on testnet: `perpsEquityEnabled: true, perpsEnabledDexs: []`
-- Test full testnet flow including `sendAsset()` transfers
+- Fetch and display HIP-3 markets with category badges
+- Show aggregated balance across all DEXs
+- Add per-DEX balance breakdown in UI
+- Block HIP-3 order placement (display-only mode)
+
+**Testing**:
+
+- Verify HIP-3 markets display with correct badges
+- Verify aggregated balance calculation
+- Verify main DEX trading unaffected
+
+---
+
+### Stage 2: Auto-Consolidation + Trading
+
+**Goal**: Enable full HIP-3 trading with transparent fund management
 
 **Implementation**:
 
-- ✅ Fetch and display HIP-3 markets with badges
-- ✅ Show aggregated balance across all DEXs
-- ✅ Per-DEX balance breakdown in UI
-- ❌ Block order placement on HIP-3 markets with informative error:
-  ```
-  "HIP-3 market trading requires manual fund transfer.
-   Visit hyperliquid.xyz to transfer collateral to [xyz] DEX."
-  ```
+- Implement `sendAsset()` transfer functionality
+- Add auto-consolidation: pull funds from any DEX as needed
+- Enable HIP-3 order placement
+- Implement automatic collateral return on position close
 
-**Testing Checklist**:
+**Testing**:
 
-- ✅ Verify HIP-3 markets display correctly
-- ✅ Verify badges show correct DEX names
-- ✅ Verify aggregated balance calculation
-- ✅ Verify error message when attempting HIP-3 order
-- ✅ Verify main DEX trading unaffected
-
-**Success Criteria**:
-
-- Zero user complaints about broken functionality
-- Users can see HIP-3 opportunities
-- Main DEX trading works normally
-
----
-
-### Phase 2: Research Funding Flow (Week 3-4)
-
-**Goal**: Investigate mainnet transfer capabilities
-
-**Tasks**:
-
-1. **Direct HyperLiquid Outreach**:
-
-   - Contact HyperLiquid team about mainnet `sendAsset()` API
-   - Ask if undocumented private API exists
-   - Request ETA for mainnet DEX-to-DEX transfers
-
-2. **Protocol Analysis**:
-
-   - Monitor HyperLiquid UI network traffic for transfer calls
-   - Check if web app uses special API we don't have access to
-   - Review HyperLiquid Discord/community for transfer workflows
-
-3. **Alternative Solutions**:
-   - Deep link to HyperLiquid UI with pre-filled transfer params?
-   - In-app browser showing HyperLiquid transfer page?
-   - Wait for SDK update with mainnet support?
-
-**Decision Point**: Proceed to Phase 3 only if viable funding solution found
-
----
-
-### Phase 3: Full Trading Enablement (Week 5+)
-
-**Prerequisites**:
-
-- ✅ Funding flow mechanism confirmed (automated or manual)
-- ✅ Testnet validation complete with real transfers
-- ✅ Balance aggregation tested across multiple DEXs
-
-**Mainnet Rollout**:
-
-**Week 5**: Single DEX Pilot
-
-- Enable: `perpsEquityEnabled: true, perpsEnabledDexs: ["verified-dex"]`
-- Choose well-established HIP-3 DEX with high liquidity
-- Monitor for 1 week:
-  - Order success/failure rates
-  - Balance sync accuracy
-  - WebSocket subscription stability
-  - User feedback on UX
-
-**Week 6**: Expand to 2-3 DEXs
-
-- Add vetted DEXs: `perpsEnabledDexs: ["verified-dex", "dex2", "dex3"]`
-- Monitor:
-  - Performance with multiple parallel subscriptions
-  - Balance aggregation correctness
-  - Any DEX-specific issues
-
-**Week 7+**: Full Auto-Discovery
-
-- Enable: `perpsEnabledDexs: []` (show all HIP-3 DEXs)
-- Final monitoring:
-  - System performance under load
-  - Edge cases with new DEX deployments
-  - User satisfaction metrics
-
----
-
-### Rollback Plan
-
-**Emergency Kill Switch**:
-
-- Set `perpsEquityEnabled: false` → immediately disables HIP-3
-- Users see only main DEX (original behavior)
-- No code deployment required
-
-**Partial Rollback**:
-
-- Remove problematic DEX from whitelist
-- Example: `perpsEnabledDexs: ["xyz"]` (exclude "abc" due to issues)
-
-**Testing**: Validate kill switch works in staging before mainnet deployment
-
----
-
-## Risk Mitigation
-
-### Performance Impact
-
-- **Risk**: Fetching multiple DEXs slows initial load
-- **Mitigation**: Parallel `Promise.all()` for metadata fetching
-- **Mitigation**: Cache validated DEX list
-
-### Invalid DEX Names
-
-- **Risk**: Typos in feature flag config break app
-- **Mitigation**: Graceful filtering - invalid DEXs silently ignored
-- **Mitigation**: Logging for debugging
-
-### API Failures
-
-- **Risk**: Single DEX API failure blocks all markets
-- **Mitigation**: Per-DEX error handling with `.catch()`
-- **Mitigation**: Failed DEXs skipped, others continue
-
-### Kill Switch Requirement
-
-- **Risk**: Need to disable HIP-3 immediately without code deploy
-- **Mitigation**: `perpsEquityEnabled: false` immediately reverts to main DEX only
-- **Validation**: Test kill switch in staging
-
----
-
-## Success Metrics
-
-### Phase 1 (Display-Only)
-
-- ✅ Code changes ~200 lines for display features
-- ✅ Zero breaking changes to existing perps functionality
-- ✅ Feature flags control behavior without code changes
-- ✅ Invalid configurations handled gracefully
-- ✅ HIP-3 markets display with clear badges
-- ✅ Aggregated balance across DEXs displays correctly
-- ✅ Per-DEX balance breakdown shown in UI
-- ✅ Informative error when attempting HIP-3 orders
-- ✅ Main DEX trading completely unaffected
-
-### Phase 3 (Full Trading - Requires Funding Solution)
-
-- ✅ Funding flow documented and tested
-- ✅ Orders successfully route to correct HIP-3 DEX
-- ✅ WebSocket subscriptions stable across multiple DEXs
-- ✅ Balance updates accurately reflect cross-DEX positions
-- ✅ No race conditions or sync issues
-- ✅ Performance acceptable with 3+ active DEXs
+- Verify orders route to correct DEX
+- Verify auto-transfer pulls from main DEX first
+- Verify freed collateral returns to main DEX on close
 
 ---
 
 ## Summary
 
-**Current Status**: Ready to implement Phase 1 (Display-Only)
+**Status**: Ready for implementation
 
-**Blocker for Phase 3**: No mainnet API for DEX-to-DEX transfers
+**Key Resolution**: `sendAsset()` confirmed working on mainnet (SDK docs were outdated)
 
-- `sendAsset()` confirmed testnet-only
-- No alternative mainnet API discovered
-- Must resolve before enabling HIP-3 trading
+**Core Architecture**:
 
-**Recommended Approach**:
+- Single ExchangeClient for all DEXs (asset ID determines routing)
+- Transparent balance aggregation across main + HIP-3 DEXs
+- Auto-consolidation pulls funds from any DEX as needed
+- Protocol-agnostic controller design (no "DEX" concept exposed)
 
-1. ✅ Implement Phase 1 immediately (display + aggregated balance)
-2. ⏳ Parallel research on funding flow (Phase 2)
-3. ⚠️ Phase 3 contingent on funding solution
+**Implementation Stages**:
 
-**Value Delivered in Phase 1**:
-
-- Users can discover HIP-3 markets
-- Users see total portfolio value across all DEXs
-- Zero risk to existing functionality
-- Foundation ready for Phase 3 when funding solved
+1. Display + market discovery with badges
+2. Auto-consolidation + trading enablement

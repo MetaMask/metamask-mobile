@@ -87,6 +87,10 @@ import type {
 import { getEnvironment } from './utils';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.d.cts';
+import {
+  selectPerpsEquityEnabledFlag,
+  selectPerpsEnabledDexs,
+} from '../../../../selectors/featureFlagController/perps';
 
 // Simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -476,6 +480,14 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
+  // Cache RemoteFeatureFlagController state for feature flag access
+  private latestRemoteFeatureFlagState: RemoteFeatureFlagControllerState | null =
+    null;
+
+  // Track previous HIP-3 feature flag values to detect changes
+  private previousEquityEnabled: boolean | null = null;
+  private previousEnabledDexs: string[] | null = null;
+
   constructor({
     messenger,
     state = {},
@@ -532,10 +544,62 @@ export class PerpsController extends BaseController<
    * Refreshes user eligibility based on geo-blocked regions defined in remote feature flag.
    * Uses fallback configuration when remote feature flag is undefined.
    * Note: Initial eligibility is set in the constructor if fallback regions are provided.
+   *
+   * Also monitors HIP-3 feature flag changes and triggers provider reinitialization
+   * when equity perps configuration changes (enables/disables DEXs or changes whitelist).
    */
   private refreshEligibilityOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
+    // Cache the state for feature flag access (e.g., HIP-3 equity flags)
+    this.latestRemoteFeatureFlagState = remoteFeatureFlagControllerState;
+
+    // Check if HIP-3 feature flags changed and trigger provider reinitialization if needed
+    const currentEquityEnabled = this.getEquityEnabledFlag();
+    const currentEnabledDexs = this.getEnabledDexs();
+
+    const equityFlagChanged =
+      this.previousEquityEnabled !== null &&
+      this.previousEquityEnabled !== currentEquityEnabled;
+
+    const dexListChanged =
+      this.previousEnabledDexs !== null &&
+      (this.previousEnabledDexs.length !== currentEnabledDexs.length ||
+        !this.previousEnabledDexs.every(
+          (dex, i) => dex === currentEnabledDexs[i],
+        ));
+
+    // Store current values for next comparison
+    this.previousEquityEnabled = currentEquityEnabled;
+    this.previousEnabledDexs = [...currentEnabledDexs];
+
+    // If HIP-3 flags changed, reinitialize providers to rebuild asset mapping
+    if (equityFlagChanged || dexListChanged) {
+      DevLogger.log(
+        'PerpsController: HIP-3 feature flags changed, reinitializing providers',
+        {
+          equityEnabled: {
+            old: this.previousEquityEnabled,
+            new: currentEquityEnabled,
+          },
+          enabledDexs: {
+            old: this.previousEnabledDexs,
+            new: currentEnabledDexs,
+          },
+        },
+      );
+
+      this.initializeProviders().catch((error) => {
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('refreshEligibilityOnFeatureFlagChange', {
+            reason: 'HIP-3 flags changed',
+          }),
+        );
+      });
+    }
+
+    // Handle geo-blocking feature flag changes
     const perpsGeoBlockedRegionsFeatureFlag =
       // NOTE: Do not use perpsPerpTradingGeoBlockedCountries as it is deprecated.
       remoteFeatureFlagControllerState.remoteFeatureFlags
@@ -694,6 +758,32 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Get HIP-3 equity enabled flag from cached RemoteFeatureFlagController state
+   * Uses the selector to ensure consistent behavior with the rest of the app
+   * @returns boolean - true = HIP-3 enabled, false = main DEX only
+   */
+  private getEquityEnabledFlag(): boolean {
+    const remoteFeatureFlags =
+      this.latestRemoteFeatureFlagState?.remoteFeatureFlags ?? {};
+
+    // Use selector to get flag value with proper defaults (__DEV__ in dev mode)
+    return selectPerpsEquityEnabledFlag.resultFunc(remoteFeatureFlags);
+  }
+
+  /**
+   * Get HIP-3 enabled DEXs whitelist from cached RemoteFeatureFlagController state
+   * Uses the selector to ensure consistent behavior with the rest of the app
+   * @returns string[] - Empty array = auto-discover all, non-empty = whitelist
+   */
+  private getEnabledDexs(): string[] {
+    const remoteFeatureFlags =
+      this.latestRemoteFeatureFlagState?.remoteFeatureFlags ?? {};
+
+    // Use selector to get DEX list with proper validation
+    return selectPerpsEnabledDexs.resultFunc(remoteFeatureFlags);
+  }
+
+  /**
    * Actual initialization implementation
    */
   private async performInitialization(): Promise<void> {
@@ -715,9 +805,24 @@ export class PerpsController extends BaseController<
       );
     }
     this.providers.clear();
+
+    // Get feature flags for HIP-3 DEX support
+    const equityEnabled = this.getEquityEnabledFlag();
+    const enabledDexs = this.getEnabledDexs();
+
+    DevLogger.log('PerpsController: Creating provider with feature flags', {
+      equityEnabled,
+      enabledDexs,
+      isTestnet: this.state.isTestnet,
+    });
+
     this.providers.set(
       'hyperliquid',
-      new HyperLiquidProvider({ isTestnet: this.state.isTestnet }),
+      new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        equityEnabled,
+        enabledDexs,
+      }),
     );
 
     // Future providers can be added here with their own authentication patterns:
@@ -826,9 +931,17 @@ export class PerpsController extends BaseController<
       // Calculate fee discount at execution time (fresh, secure)
       const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
 
+      DevLogger.log('PerpsController: Fee discount calculated', {
+        feeDiscountBips,
+        hasDiscount: feeDiscountBips !== undefined,
+      });
+
       // Set discount context in provider for this order
       if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
         provider.setUserFeeDiscount(feeDiscountBips);
+        DevLogger.log('PerpsController: Fee discount set in provider', {
+          feeDiscountBips,
+        });
       }
 
       // Optimistic update - exclude trackingData to avoid persisting analytics data
@@ -837,13 +950,30 @@ export class PerpsController extends BaseController<
         state.pendingOrders.push(orderWithoutTracking);
       });
 
+      DevLogger.log('PerpsController: Submitting order to provider', {
+        coin: params.coin,
+        orderType: params.orderType,
+        isBuy: params.isBuy,
+        size: params.size,
+        leverage: params.leverage,
+        hasTP: !!params.takeProfitPrice,
+        hasSL: !!params.stopLossPrice,
+      });
+
       let result: OrderResult;
       try {
         result = await provider.placeOrder(params);
+
+        DevLogger.log('PerpsController: Provider response received', {
+          success: result.success,
+          orderId: result.orderId,
+          error: result.error,
+        });
       } finally {
         // Always clear discount context, even on exception
         if (provider.setUserFeeDiscount) {
           provider.setUserFeeDiscount(undefined);
+          DevLogger.log('PerpsController: Fee discount cleared from provider');
         }
       }
 
@@ -1014,6 +1144,62 @@ export class PerpsController extends BaseController<
         id: traceId,
         data: traceData,
       });
+    }
+  }
+
+  /**
+   * TEMPORARY MINIMAL POC: Test HIP-3 order placement with $10 market order
+   * Bypasses all abstraction to validate core SDK functionality
+   */
+  async placeOrderMinimalPoC(params: {
+    dex: string;
+    assetIndex: number;
+    coin: string;
+    isBuy: boolean;
+  }): Promise<{ success: boolean; error?: string; orderId?: string }> {
+    try {
+      DevLogger.log(
+        'PerpsController: Forwarding $10 market order PoC to provider',
+        {
+          ...params,
+        },
+      );
+
+      const provider = this.getActiveProvider();
+
+      // Check if provider supports the PoC method
+      if (!('placeOrderMinimalPoC' in provider)) {
+        return {
+          success: false,
+          error: 'Active provider does not support placeOrderMinimalPoC',
+        };
+      }
+
+      // Call the provider's PoC method
+      const result = await (
+        provider as unknown as {
+          placeOrderMinimalPoC: (params: {
+            dex: string;
+            assetIndex: number;
+            coin: string;
+            isBuy: boolean;
+          }) => Promise<{ success: boolean; error?: string; orderId?: string }>;
+        }
+      ).placeOrderMinimalPoC(params);
+
+      DevLogger.log('PerpsController: Minimal PoC result', result);
+
+      return result;
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('placeOrderMinimalPoC', params),
+      );
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 

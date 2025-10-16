@@ -36,7 +36,23 @@ export function adaptOrderToSDK(
 ): SDKOrderParams {
   const assetId = coinToAssetId.get(order.coin);
   if (assetId === undefined) {
-    throw new Error(`Unknown asset: ${order.coin}`);
+    // Extract available DEX names from asset map for helpful error message
+    const availableDexs = new Set<string>();
+    coinToAssetId.forEach((_, coin) => {
+      if (coin.includes(':')) {
+        const dex = coin.split(':')[0];
+        availableDexs.add(dex);
+      }
+    });
+
+    const dexHint =
+      availableDexs.size > 0
+        ? ` Available HIP-3 DEXs: ${Array.from(availableDexs).join(', ')}`
+        : ' No HIP-3 DEXs currently available.';
+
+    throw new Error(
+      `Asset ${order.coin} not found in asset mapping.${dexHint} Check console logs for "HyperLiquidProvider: Asset mapping built" to see available assets.`,
+    );
   }
 
   return {
@@ -51,7 +67,7 @@ export function adaptOrderToSDK(
             limit: { tif: 'Gtc' },
           }
         : {
-            limit: { tif: 'Ioc' },
+            limit: { tif: 'FrontendMarket' }, // Market orders use FrontendMarket
           },
     c:
       order.clientOrderId && isHexString(order.clientOrderId)
@@ -297,17 +313,38 @@ export function adaptAccountStateFromSDK(
 
 /**
  * Build asset symbol to ID mapping from HyperLiquid meta response
- * @param metaUniverse - Array of asset metadata from HyperLiquid
+ * The API returns asset names already properly formatted (prefixed for HIP-3, unprefixed for main DEX)
+ *
+ * @param params - Configuration for asset mapping
+ * @param params.metaUniverse - Array of asset metadata from HyperLiquid
+ * @param params.dex - DEX name (kept for backward compatibility, but not used in mapping)
  * @returns Maps for bidirectional symbol/ID lookup
+ *
+ * @example Main DEX
+ * buildAssetMapping({ metaUniverse: [{ name: "BTC" }, { name: "ETH" }] })
+ * // Returns: Map<"BTC", 0>, Map<"ETH", 1>
+ *
+ * @example HIP-3 DEX
+ * buildAssetMapping({ metaUniverse: [{ name: "xyz:XYZ100" }, { name: "xyz:XYZ200" }], dex: "xyz" })
+ * // Returns: Map<"xyz:XYZ100", 0>, Map<"xyz:XYZ200", 1>
+ * // Note: API returns names already prefixed with "xyz:"
  */
-export function buildAssetMapping(metaUniverse: MetaResponse['universe']): {
+export function buildAssetMapping(params: {
+  metaUniverse: MetaResponse['universe'];
+  dex?: string | null;
+}): {
   coinToAssetId: Map<string, number>;
   assetIdToCoin: Map<number, string>;
 } {
+  const { metaUniverse } = params;
   const coinToAssetId = new Map<string, number>();
   const assetIdToCoin = new Map<number, string>();
 
   metaUniverse.forEach((asset, index) => {
+    // HyperLiquid API returns asset names already correctly formatted:
+    // - Main DEX: asset.name = "BTC", "ETH", etc. (no prefix)
+    // - HIP-3 DEX: asset.name = "xyz:XYZ100", "xyz:XYZ200", etc. (already prefixed!)
+    // We use asset.name as-is - no manual prefixing needed
     coinToAssetId.set(asset.name, index);
     assetIdToCoin.set(index, asset.name);
   });
@@ -395,4 +432,96 @@ export function calculatePositionSize(params: {
 }): number {
   const { usdValue, leverage, assetPrice } = params;
   return (usdValue * leverage) / assetPrice;
+}
+
+/**
+ * Calculate HIP-3 asset ID from perpDexIndex and market index
+ * Formula: 100000 + (perpDexIndex * 10000) + index_in_meta
+ *
+ * @param perpDexIndex - DEX index from perpDexs() array (0=main, 1=xyz, 2=abc, etc.)
+ * @param indexInMeta - Market index within the DEX's meta universe
+ * @returns Global asset ID for HIP-3 order routing
+ *
+ * @example Main DEX
+ * calculateHip3AssetId(0, 5) // Returns: 5 (main DEX uses index directly)
+ *
+ * @example xyz DEX
+ * calculateHip3AssetId(1, 0) // Returns: 110000 (xyz:XYZ100)
+ */
+export function calculateHip3AssetId(
+  perpDexIndex: number,
+  indexInMeta: number,
+): number {
+  if (perpDexIndex === 0) {
+    return indexInMeta;
+  }
+  return 100000 + perpDexIndex * 10000 + indexInMeta;
+}
+
+/**
+ * Parse asset name to extract DEX and symbol
+ * HIP-3 assets are prefixed with "dex:" (e.g., "xyz:XYZ100")
+ * Main DEX assets have no prefix (e.g., "BTC")
+ *
+ * @param assetName - Asset name from HyperLiquid API
+ * @returns Object with dex (null for main DEX) and symbol
+ *
+ * @example Main DEX
+ * parseAssetName("BTC") // Returns: { dex: null, symbol: "BTC" }
+ *
+ * @example HIP-3 DEX
+ * parseAssetName("xyz:XYZ100") // Returns: { dex: "xyz", symbol: "XYZ100" }
+ */
+export function parseAssetName(assetName: string): {
+  dex: string | null;
+  symbol: string;
+} {
+  const colonIndex = assetName.indexOf(':');
+  if (colonIndex === -1) {
+    return { dex: null, symbol: assetName };
+  }
+  return {
+    dex: assetName.substring(0, colonIndex),
+    symbol: assetName.substring(colonIndex + 1),
+  };
+}
+
+/**
+ * Parameters for size/price quantization helpers
+ */
+interface QuantizeParams {
+  value: number;
+  decimals: number;
+}
+
+/**
+ * Round value DOWN to specified decimal places
+ * Used to conservatively calculate order size to avoid exceeding available capital
+ *
+ * @param params - Value and decimals
+ * @returns Value rounded down to specified decimals
+ *
+ * @example
+ * quantizeDown({ value: 0.123456, decimals: 4 }) // Returns: 0.1234
+ */
+export function quantizeDown({ value, decimals }: QuantizeParams): number {
+  const f = 10 ** decimals;
+  return Math.floor(Math.round(value * f * 1000) / 1000) / f;
+}
+
+/**
+ * Increase value by one tick at specified decimal precision
+ * Used to bump order size when notional validation fails
+ *
+ * @param params - Value and decimals
+ * @returns Value increased by one tick
+ *
+ * @example
+ * bumpByOneTick({ value: 0.1234, decimals: 4 }) // Returns: 0.1235
+ */
+export function bumpByOneTick({ value, decimals }: QuantizeParams): number {
+  const f = 10 ** decimals;
+  // Round to nearest integer to avoid floating point precision issues
+  // Then add 1 tick and divide back
+  return (Math.round(value * f) + 1) / f;
 }

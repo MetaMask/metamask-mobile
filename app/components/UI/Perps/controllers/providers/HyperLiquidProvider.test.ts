@@ -393,7 +393,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
       expect(result.orderId).toBe('123');
 
-      // Verify market orders use FrontendMarket TIF (TAT-1475 fix)
+      // Verify market orders use FrontendMarket (HyperLiquid standard for market execution)
       expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
         expect.objectContaining({
           orders: [
@@ -418,7 +418,7 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
 
-      // Verify limit orders use Gtc TIF (regression test for TAT-1475)
+      // Verify limit orders use Gtc (standard limit order behavior)
       expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
         expect.objectContaining({
           orders: [
