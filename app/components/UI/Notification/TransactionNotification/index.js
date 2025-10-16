@@ -37,7 +37,6 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -454,9 +453,7 @@ const mapStateToProps = (state, ownProps) => {
     ({ id }) => id === ownProps?.currentNotification.transaction.id,
   );
 
-  const ticker = isPerDappSelectedNetworkEnabled()
-    ? selectTickerByChainId(state, tx?.chainId)
-    : selectEvmTicker(state);
+  const ticker = selectTickerByChainId(state, tx?.chainId);
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
