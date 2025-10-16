@@ -13,19 +13,14 @@ import {
   getMultichainAccountServiceMessenger,
   MultichainAccountServiceInitMessenger,
 } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
-import { isBitcoinAccountsFeatureEnabled } from '../../../../multichain-bitcoin/remote-feature-flag';
+import { selectIsBitcoinAccountsEnabled } from '../../../../selectors/featureFlagController/bitcoinAccountsEnabled';
+import ReduxService from '../../../redux';
 
 jest.mock('@metamask/multichain-account-service');
-jest.mock('../../../../multichain-bitcoin/remote-feature-flag');
-jest.mock('../../Engine', () => ({
-  context: {
-    RemoteFeatureFlagController: {
-      state: {
-        remoteFeatureFlags: {
-          bitcoinAccounts: { enabled: false, minimumVersion: '1.0.0' },
-        },
-      },
-    },
+jest.mock('../../../../selectors/featureFlagController/bitcoinAccountsEnabled');
+jest.mock('../../../redux', () => ({
+  store: {
+    getState: jest.fn(),
   },
 }));
 
@@ -52,8 +47,8 @@ describe('MultichainAccountServiceInit', () => {
   );
   const accountProviderWrapperMock = jest.mocked(AccountProviderWrapper);
   const btcAccountProviderMock = jest.mocked(BtcAccountProvider);
-  const isBitcoinAccountsFeatureEnabledMock = jest.mocked(
-    isBitcoinAccountsFeatureEnabled,
+  const selectIsBitcoinAccountsEnabledMock = jest.mocked(
+    selectIsBitcoinAccountsEnabled,
   );
 
   let mockSetEnabled: jest.Mock;
@@ -61,6 +56,8 @@ describe('MultichainAccountServiceInit', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockSetEnabled = jest.fn();
+    selectIsBitcoinAccountsEnabledMock.mockClear();
+    (ReduxService.store.getState as jest.Mock).mockReturnValue({});
 
     // Mock AccountProviderWrapper instance with setEnabled method
     accountProviderWrapperMock.mockImplementation(
@@ -104,7 +101,7 @@ describe('MultichainAccountServiceInit', () => {
   describe('Bitcoin provider feature flag', () => {
     it('does not enable Bitcoin provider when feature flag is disabled', () => {
       // Given the feature flag is disabled
-      isBitcoinAccountsFeatureEnabledMock.mockReturnValue(false);
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(false);
 
       // When initializing the service
       multichainAccountServiceInit(getInitRequestMock());
@@ -115,7 +112,7 @@ describe('MultichainAccountServiceInit', () => {
 
     it('does not enable Bitcoin provider when app version is below minimum', () => {
       // Given the feature flag indicates version requirement not met
-      isBitcoinAccountsFeatureEnabledMock.mockReturnValue(false);
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(false);
 
       // When initializing the service
       multichainAccountServiceInit(getInitRequestMock());
@@ -126,7 +123,7 @@ describe('MultichainAccountServiceInit', () => {
 
     it('enables Bitcoin provider when feature flag is enabled and version meets minimum', () => {
       // Given the feature flag is enabled and version meets minimum
-      (isBitcoinAccountsFeatureEnabled as jest.Mock).mockReturnValue(true);
+      selectIsBitcoinAccountsEnabledMock.mockReturnValue(true);
 
       // When initializing the service
       const initRequestMock = getInitRequestMock();
