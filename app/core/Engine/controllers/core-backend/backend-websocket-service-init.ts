@@ -47,17 +47,6 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
     // Service will check this callback before connecting/reconnecting
     isEnabled: () => {
       try {
-        // Check for local environment variable override first (for development)
-        const envOverride = process.env
-          .MM_BACKEND_WEBSOCKET_CONNECTION_ENABLED as
-          | string
-          | boolean
-          | null
-          | undefined;
-        if (envOverride != null) {
-          return envOverride === true || envOverride === 'true';
-        }
-
         const remoteFeatureFlagState = initMessenger?.call(
           'RemoteFeatureFlagController:getState',
         );
