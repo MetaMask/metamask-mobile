@@ -371,7 +371,7 @@ describe('BridgeDestTokenSelector', () => {
             balanceFiat: '$200000',
             chainId: '0x1',
             decimals: 18,
-            image: 'https://token2.com/logo.png',
+            image: `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${ethToken2Address.toLowerCase()}.png`,
             name: 'Hello Token',
             symbol: 'HELLO',
             tokenFiatAmount: 200000,

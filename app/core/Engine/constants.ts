@@ -12,6 +12,8 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RewardsDataService',
   'TokenDetectionController',
   'WebSocketService',
+  'BackendWebSocketService',
+  'AccountActivityService',
   'MultichainAccountService',
 ] as const;
 

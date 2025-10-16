@@ -12,6 +12,11 @@ import {
   getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
 } from './defi-positions-controller-messenger/defi-positions-controller-messenger';
+import {
+  getBackendWebSocketServiceMessenger,
+  getBackendWebSocketServiceInitMessenger,
+  getAccountActivityServiceMessenger,
+} from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   getCronjobControllerMessenger,
@@ -355,5 +360,13 @@ export const CONTROLLER_MESSENGERS = {
   DelegationController: {
     getMessenger: getDelegationControllerMessenger,
     getInitMessenger: getDelegationControllerInitMessenger,
+  },
+  BackendWebSocketService: {
+    getMessenger: getBackendWebSocketServiceMessenger,
+    getInitMessenger: getBackendWebSocketServiceInitMessenger,
+  },
+  AccountActivityService: {
+    getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
   },
 } as const;

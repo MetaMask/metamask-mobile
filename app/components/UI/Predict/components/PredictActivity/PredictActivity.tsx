@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -14,26 +14,12 @@ import {
 import { Image } from 'expo-image';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
-
-export enum PredictActivityType {
-  BUY = 'BUY',
-  SELL = 'SELL',
-  CLAIM = 'CLAIM',
-}
-
-export interface PredictActivityItem {
-  id: string;
-  type: PredictActivityType;
-  marketTitle: string;
-  detail: string;
-  amountUsd: number;
-  percentChange?: number;
-  icon?: string;
-}
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { PredictActivityItem, PredictActivityType } from '../../types';
 
 interface PredictActivityProps {
   item: PredictActivityItem;
-  onPress?: (item: PredictActivityItem) => void;
 }
 
 const activityTitleByType: Record<PredictActivityType, string> = {
@@ -42,9 +28,9 @@ const activityTitleByType: Record<PredictActivityType, string> = {
   [PredictActivityType.CLAIM]: strings('predict.transactions.claim_title'),
 };
 
-const PredictActivity: React.FC<PredictActivityProps> = ({ item, onPress }) => {
+const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   const tw = useTailwind();
-
+  const navigation = useNavigation();
   const isDebit = item.type === PredictActivityType.BUY;
   const isCredit = !isDebit;
   const signedAmount = `${isDebit ? '-' : '+'}${formatPrice(
@@ -62,18 +48,21 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item, onPress }) => {
       : 'text-error-default';
 
   return (
-    <Pressable
-      onPress={() => onPress?.(item)}
-      style={({ pressed }) =>
-        tw.style('w-full rounded-lg px-2', pressed && 'bg-pressed')
-      }
-      accessibilityRole="button"
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.ACTIVITY_DETAIL,
+          params: {
+            activity: item,
+          },
+        });
+      }}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="w-full py-3"
+        twClassName="w-full p-2"
       >
         <Box twClassName="h-12 w-12 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden">
           {item.icon ? (
@@ -120,7 +109,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item, onPress }) => {
           ) : null}
         </Box>
       </Box>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 
