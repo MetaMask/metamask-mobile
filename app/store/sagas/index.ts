@@ -175,14 +175,13 @@ export function* handleDeeplinkSaga() {
     }
 
     const existingUser: boolean = yield select(selectExistingUser);
-    const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
 
-    if (onboardingDeeplink) {
-      const url = new UrlParser(onboardingDeeplink);
+    if (AppStateEventProcessor.pendingDeeplink) {
+      const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname.startsWith('/onboarding')) {
         setTimeout(() => {
-          SharedDeeplinkManager.parse(onboardingDeeplink, {
+          SharedDeeplinkManager.parse(url.href, {
             origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
           });
         }, 200);
