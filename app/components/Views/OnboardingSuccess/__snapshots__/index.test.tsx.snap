@@ -65,7 +65,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -237,7 +237,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -409,7 +409,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -581,7 +581,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -753,7 +753,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -925,7 +925,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -1097,7 +1097,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -1269,7 +1269,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "MMSans-Regular",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,

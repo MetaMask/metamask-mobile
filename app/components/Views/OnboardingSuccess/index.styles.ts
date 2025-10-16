@@ -35,12 +35,12 @@ const createStyles = (
     },
     buttonContainer: {
       position: 'absolute',
-      bottom: Math.max(16, insets?.bottom || 0),
+      bottom: Math.max(16, insets?.bottom || 0 + 4),
       left: 0,
       right: 0,
       paddingHorizontal: 16,
       paddingTop: 4,
-      paddingBottom: Math.max(40, (insets?.bottom || 0) + 2),
+      paddingBottom: Math.max(40, (insets?.bottom || 0) + 8),
       backgroundColor: isDarkMode
         ? colors.background.default
         : importedColors.white,
