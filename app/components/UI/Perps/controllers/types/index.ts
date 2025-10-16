@@ -11,6 +11,9 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// Import adapter types
+import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
   id: string;
@@ -605,7 +608,7 @@ export interface IPerpsProvider {
     accountId?: string;
     startTime?: number;
     endTime?: number;
-  }): Promise<unknown[]>;
+  }): Promise<RawHyperLiquidLedgerUpdate[]>;
 
   /**
    * Get user history (deposits, withdrawals, transfers)

@@ -32,6 +32,7 @@ import {
   buildAssetMapping,
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
+  type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
 import {
   createErrorResult,
@@ -1419,7 +1420,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     accountId?: string;
     startTime?: number;
     endTime?: number;
-  }): Promise<unknown[]> {
+  }): Promise<RawHyperLiquidLedgerUpdate[]> {
     try {
       await this.ensureReady();
 
