@@ -1,0 +1,17 @@
+// wallet.js
+// Page Object for MetaMask wallet and account management screens
+
+/* global output */
+
+output.wallet = {
+  // Account Picker
+  accountPicker: 'account-picker',
+  accountName: 'Account 1',
+
+  // Account List
+  addAccountBtn: 'account-list-add-account-button',
+
+  // Add Account Modal
+  addWalletTitle: 'Add wallet',
+  addSrpAccountBtn: 'add-account-srp-account',
+};

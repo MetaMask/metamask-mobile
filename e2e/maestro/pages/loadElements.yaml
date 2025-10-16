@@ -1,0 +1,9 @@
+# loadElements.yaml
+# Loads all page object files to make elements available in flows
+# Usage: - runFlow: ../pages/loadElements.yaml
+
+appId: io.metamask
+---
+- runScript: onboarding.js
+- runScript: wallet.js
+- runScript: importSRP.js
