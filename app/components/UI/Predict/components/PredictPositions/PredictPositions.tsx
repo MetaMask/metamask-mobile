@@ -79,6 +79,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              headerShown: false,
             },
           });
         }}
