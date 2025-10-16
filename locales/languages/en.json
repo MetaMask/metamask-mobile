@@ -221,6 +221,12 @@
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
     "setting_security_privacy": "Settings > Security & Privacy"
   },
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
+  },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
     "title2": "Manage your digital assets",
@@ -389,6 +395,7 @@
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
     "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
+    "description_social_login_update_ios" : "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create password",
@@ -662,7 +669,14 @@
       "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
       "bullet_3_title": "Faster than banks",
       "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
-      "button": "Get started"
+      "button": "Get started",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Verify your identity",
@@ -879,7 +893,6 @@
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Your positions",
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
@@ -1264,6 +1277,7 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
         "title": "Perps is temporarily offline",
         "description": "We're working to get it back online soon.",
@@ -1512,7 +1526,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -1542,7 +1556,7 @@
       "ready_to_trade": {
         "title": "Ready to trade?",
         "description": "Fund your perps account with any token and make your first trade in seconds.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
       "card": {
@@ -1563,10 +1577,10 @@
     "market_list": "Market List",
     "market_details": "Market Details",
     "tab": {
-      "no_predictions": "No predictions yet",
-      "no_predictions_description": "Open a prediction to get started.",
-      "explore": "Explore markets",
-      "new_prediction": "New prediction"
+      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
+      "explore": "Browse markets",
+      "new_prediction": "New prediction",
+      "resolved_markets": "Resolved markets"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
@@ -1596,11 +1610,44 @@
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
-    "won_markets_text_singular": "Won {{count}} market",
-    "won_markets_text_plural": "Won {{count}} markets",
+    "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unrealized_pnl_error": "Unable to load",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    },
+    "deposit": {
+      "in_progress": "Deposit in progress",
+      "adding_funds": "Adding funds",
+      "adding_your_funds": "Adding your funds",
+      "add_funds": "Add funds",
+      "withdraw": "Withdraw",
+      "estimated_processing_time": "Est. {{time}} seconds",
+      "account_ready": "Your account is ready",
+      "account_ready_description": "{{amount}} added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Your account wasn't funded",
+      "try_again": "Try again"
+    },
+    "add_funds_sheet": {
+      "title": "Add funds",
+      "description": "You’ll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+    },
+    "transactions": {
+      "title": "Predictions",
+      "no_transactions": "No recent activity",
+      "buy_title": "Predicted",
+      "sell_title": "Cashed out",
+      "claim_title": "Claimed winnings",
+      "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
+      "sell_detail": "Sold at {{priceCents}} per share",
+      "claim_detail": "Claimed winnings"
+    }
   },
   "receive": {
     "title": "Receive"
@@ -2784,12 +2831,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Select a token",
-    "title_pay_eth": "Pay with ETH",
     "native_toggle_wallet": "Pay for network fee using the balance in your wallet.",
     "list_balance": "Bal:",
     "insufficient_balance": "Insufficient funds",
-    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction.",
-    "title_pay_with_other_tokens": "Pay with other tokens"
+    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "Transaction ID",
@@ -3072,6 +3120,8 @@
     "tx_review_lending_deposit": "Lending Deposit",
     "tx_review_lending_withdraw": "Lending Withdrawal",
     "tx_review_perps_deposit": "Funded Perps account",
+    "tx_review_predict_deposit": "Funded Predict account",
+    "tx_review_predict_claim": "Claimed Predict winnings",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -5276,7 +5326,8 @@
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
       "approve": "Approve request",
-      "perps_deposit": "Add funds"
+      "perps_deposit": "Add funds",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -5293,7 +5344,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -5382,6 +5436,12 @@
       "save": "Save",
       "title": "Edit approval limit"
     },
+    "predict_claim": {
+      "button_label": "Claim winnings",
+      "summary": "You won",
+      "footer_bottom": "Funds will be added to your available balance",
+      "footer_top": "Winnings from {{count}} markets"
+    },
     "unlimited": "Unlimited",
     "all": "All",
     "none": "None",
@@ -5450,6 +5510,9 @@
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
+    "recipient": "Recipient",
+    "select_recipient": "Select recipient",
+    "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "insufficient_funds": "Insufficient funds",
     "insufficient_gas": "Insufficient gas",
@@ -5512,7 +5575,9 @@
     "account_not_found": "Wallet not found",
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
-    "use_different_login_method": "Use a different login method"
+    "use_different_login_method": "Use a different login method",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Still there?",
@@ -5749,6 +5814,12 @@
       "update_to_store_link": "Update to the latest version of MetaMask",
       "well_take_you_to_right_place": " and we'll take you to the right place."
     },
+    "unsupported": {
+      "title": "This page is not supported in current version",
+      "description": "Update to the latest version to use this feature",
+      "update_to_store_link": "Update to the latest version of MetaMask",
+      "well_take_you_to_right_place": " and we'll take you to the right place."
+    },
     "go_to_home_button": "Go to the home page",
     "back_button": "Back",
     "continue_button": "Continue"
@@ -5773,9 +5844,36 @@
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
+      "change_asset": "Change asset",
       "manage_card_options": {
+        "manage_spending_limit": "Manage spending limit",
+        "manage_spending_limit_description_restricted": "Restricted spending limit is on",
+        "manage_spending_limit_description_full": "Full spending access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
+        "advanced_card_management_description": "Detailed transactions, freeze card, and more"
+      }
+    },
+    "card_authentication": {
+      "title": "Log in to your Card account",
+      "location_button_text": "International",
+      "location_button_text_us": "US account",
+      "email_label": "Email",
+      "password_label": "Password",
+      "email_placeholder": "Enter your email address",
+      "password_placeholder": "Enter your password",
+      "login_button": "Log in",
+      "errors": {
+        "invalid_credentials": "Invalid login details",
+        "unknown_error": "Unknown error, please try again later",
+        "email_required": "Email is required",
+        "password_required": "Password is required",
+        "email_invalid": "Invalid email address",
+        "password_invalid": "Invalid password",
+        "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
+        "network_error": "Network error. Please check your connection and try again.",
+        "timeout_error": "Request timed out. Please check your connection and try again.",
+        "server_error": "Server error. Please try again later.",
+        "configuration_error": "Service is temporarily unavailable. Please try again later."
       }
     }
   },
@@ -5902,6 +6000,7 @@
       "type": {
         "swap": "Swap",
         "perps": "Perps",
+        "card_spend": "Card spend",
         "referral": "Referral",
         "referral_action": "Referral action",
         "sign_up_bonus": "Sign up bonus",
@@ -5909,10 +6008,18 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Take profit",
-        "stop_loss": "Stop loss",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
 
     "onboarding": {
@@ -5952,9 +6059,9 @@
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
 
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6045,7 +6152,12 @@
       },
       "referrals": {
         "title": "Refer friends",
-        "description": "10 points per 50 from friends"
+        "description": "10 points per 50 from friends",
+        "sheet": {
+          "title": "Refer a friend",
+          "points": "20 points per 100",
+          "cta_label": "Refer a friend"
+        }
       },
       "loyalty": {
         "title": "Loyalty bonus",
@@ -6055,6 +6167,16 @@
           "points": "250 points per $1250",
           "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
           "cta_label": "Add accounts"
+        }
+      },
+      "card": {
+        "title": "MetaMask Card",
+        "description": "1 point per $1 spent",
+        "sheet": {
+          "title": "MetaMask Card",
+          "points": "1 point per $1 spent",
+          "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
+          "cta_label": "Manage Card"
         }
       }
     },
@@ -6070,6 +6192,14 @@
         "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
+
+    "link_account_group": {
+      "link_account": "Add account",
+      "linked_accounts": "Tracked addresses",
+      "link_account_success": "{{accountName}} added successfully",
+      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
+    },
+
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
@@ -6098,25 +6228,30 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded perps account",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Transaction details"
     },
     "label": {
       "bridge_fee": "Bridge fee",
       "network_fee": "Network fee",
       "paid_with": "Paid with",
+      "retry_button": "Try again",
       "total": "Total"
     },
     "summary_title": {
-      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
       "bridge_loading": "Bridge",
+      "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
+      "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
       "default": "Transaction",
       "perps_deposit": "Add funds",
+      "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
-    }
+    },
+    "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
   "sdk_connect_v2": {
     "show_loading": {
@@ -6126,6 +6261,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

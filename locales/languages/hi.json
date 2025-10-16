@@ -221,6 +221,12 @@
     "remind_later_description2": "आप अपने वॉलेट का बैकअप ले सकते हैं या इसमें अपना सीक्रेट रिकवरी फ्रेज़ देख सकते हैं",
     "setting_security_privacy": "सेटिंग > सुरक्षा और गोपनीयता"
   },
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
+  },
   "onboarding_carousel": {
     "title1": "MetaMask में आपका स्वागत है",
     "title2": "अपनी डिजिटल संपत्तियों को प्रबंधित करें",
@@ -389,6 +395,7 @@
     "description": "केवल इस डिवाइस पर MetaMask को अनलॉक करता है।",
     "description_social_login": "सभी डिवाइसों पर वॉलेट रिकवरी के लिए इसका उपयोग करें।",
     "description_social_login_update": "यदि आप यह पासवर्ड खो देते हैं, तो आप अपने वॉलेट तक सभी डिवाइसों पर पहुँच खो देंगे। इसे कहीं सुरक्षित स्थान पर रखें,",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask इसे रीसेट नहीं कर सकता।",
     "subtitle": "यह पासवर्ड आपके MetaMask वॉलेट को केवल इसी डिवाइस पर अनलॉक करेगा।",
     "password": "पासवर्ड बनाएं",
@@ -662,7 +669,14 @@
       "bullet_2_description": "USDC को स्थिर रहने के लिए डिज़ाइन किया गया है, जिससे योजना बनाना, सेव करना और खर्च करना आसान हो जाता है।",
       "bullet_3_title": "बैंकों से भी तेज़",
       "bullet_3_description": "मिनटों में भेजें और प्राप्त करें — न बैंक के समय का, न ही अंतरराष्ट्रीय देरी का इंतज़ार।",
-      "button": "शुरू करें"
+      "button": "शुरू करें",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
@@ -879,7 +893,6 @@
     "refresh_balance": "बैलेंस रीफ्रेश करें",
     "add_funds": "फंड जोड़ें",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "आपकी पोज़िशन्स",
     "loading_positions": "पोजीशन्स लोड हो रही है...",
     "refreshing_positions": "पोज़िशन्स को रीफ़्रेश किया जा रहा है…",
@@ -1512,7 +1525,7 @@
         "history_will_appear": "आपका ट्रेडिंग इतिहास यहां दिखाई देगा"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "जारी रखें",
       "skip": "छोड़ें",
@@ -1542,7 +1555,7 @@
       "ready_to_trade": {
         "title": "ट्रेड करने के लिए तैयार हैं?",
         "description": "अपने पर्प्स अकाउंट को किसी भी टोकन से फंड करें और सेकंडों में अपना पहला ट्रेड करें।",
-        "footer_text": "MetaMask आपके फंड को Arbitrum पर USDC में स्वैप करेगा और बिना किसी अतिरिक्त फीस के उन्हें HyperEVM में डिपॉज़िट करेगा।"
+        "footer_text": "MetaMask आपके फंड को Arbitrum पर USDC में स्वैप करेगा और बिना किसी अतिरिक्त फीस के उन्हें HyperCore में डिपॉज़िट करेगा।"
       },
       "got_it": "समझ गए",
       "card": {
@@ -1600,7 +1613,13 @@
     "won_markets_text_plural": "{{count}} मार्केट जीते",
     "claim_amount_text": "${{amount}} क्लेम करें",
     "unrealized_pnl_label": "अनरियलाइज्ड P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "प्राप्त करें"
@@ -2784,12 +2803,13 @@
   },
   "gas_fee_token_modal": {
     "title": "कोई टोकन चुनें",
-    "title_pay_eth": "ETH के साथ भुगतान करें",
     "native_toggle_wallet": "अपने वॉलेट में बैलेंस का उपयोग करके नेटवर्क फीस के लिए भुगतान करें।",
     "list_balance": "बैलेंस:",
     "insufficient_balance": "अपर्याप्त फंड",
-    "native_toggle_metamask": "इस ट्रांसेक्शन को पूरा करने के लिए MetaMask बैलेंस को पूरा कर रहा है।",
-    "title_pay_with_other_tokens": "अन्य टोकन के साथ भुगतान करें"
+    "native_toggle_metamask": "इस ट्रांसेक्शन को पूरा करने के लिए MetaMask बैलेंस को पूरा कर रहा है।"
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ट्रांसेक्शन आईडी",
@@ -3072,6 +3092,7 @@
     "tx_review_lending_deposit": "डिपॉज़िट उधार दिया जा रहा है",
     "tx_review_lending_withdraw": "विदड्रॉवल उधार दिया जा रहा है",
     "tx_review_perps_deposit": "फंडेड पर्प्स अकाउंट",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ether भेजे गए",
     "self_sent_ether": "खुद को Ether भेजें",
     "received_ether": "Ether प्राप्त किया",
@@ -5276,7 +5297,8 @@
       "transfer": "ट्रांसफर अनुरोध",
       "switch_account_type": "अकाउंट अपडेट",
       "approve": "अनुरोध एप्रूव करें",
-      "perps_deposit": "फंड जोड़ें"
+      "perps_deposit": "फंड जोड़ें",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -5293,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "हम आपके टोकन को HyperEVM पर USDC में स्वैप करेंगे, जो पर्प्स द्वारा इस्तेमाल होने वाला नेटवर्क है। स्वैप प्रदाता फीस ले सकते हैं, लेकिन MetaMask कोई फीस नहीं लेगा।"
+        "transaction_fee": "हम आपके टोकन को HyperCore पर USDC में स्वैप करेंगे, जो पर्प्स द्वारा इस्तेमाल होने वाला नेटवर्क है। स्वैप प्रदाता फीस ले सकते हैं, लेकिन MetaMask कोई फीस नहीं लेगा।"
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "फीस"
@@ -5512,7 +5537,9 @@
     "account_not_found": "वॉलेट नहीं मिला",
     "account_not_found_description": "हमें \"{{accountName}}\" के लिए कोई वॉलेट नहीं मिला। क्या आप इस लॉगिन से एक नया वॉलेट बनाना चाहते हैं?",
     "create_new_wallet": "एक नया वॉलेट बनाएं",
-    "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें"
+    "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "अभी तक वहीं हैं?",
@@ -5889,10 +5916,18 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "टेक प्रॉफ़िट",
-        "stop_loss": "स्टॉप लॉस",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "क्षेत्र सपोर्टेड नहीं है",
@@ -5926,9 +5961,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6066,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "फंडेड पर्प्स अकाउंट",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "ट्रांसेक्शन संबंधी विवरण"
     },
     "label": {
@@ -6082,6 +6116,7 @@
       "bridge_loading": "ब्रिज करें",
       "default": "ट्रांसेक्शन",
       "perps_deposit": "फंड जोड़ें",
+      "predict_deposit": "Add funds",
       "swap": "टोकन स्वैप करें",
       "swap_approval": "टोकन एप्रूव करें"
     }
@@ -6094,6 +6129,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

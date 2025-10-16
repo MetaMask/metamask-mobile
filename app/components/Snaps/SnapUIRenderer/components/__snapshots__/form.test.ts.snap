@@ -148,7 +148,8 @@ exports[`SnapUIForm will render 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingVertical": 0,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -365,7 +366,8 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingVertical": 0,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"

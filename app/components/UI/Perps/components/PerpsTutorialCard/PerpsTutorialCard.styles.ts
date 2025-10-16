@@ -13,6 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 70,
       borderRadius: 12,
       backgroundColor: colors.background.muted,
+      justifyContent: 'space-between',
     },
   });
 };

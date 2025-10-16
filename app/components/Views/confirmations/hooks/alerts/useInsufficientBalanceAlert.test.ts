@@ -9,9 +9,9 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useConfirmActions } from '../useConfirmActions';
-import { useMaxValueMode } from '../useMaxValueMode';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
@@ -34,7 +34,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-jest.mock('../useMaxValueMode');
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayToken');
@@ -44,6 +43,7 @@ jest.mock('../../../../../selectors/networkController');
 jest.mock('../../../../../reducers/transaction', () => ({
   selectTransactionState: jest.fn(),
 }));
+jest.mock('../../context/confirmation-context');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -51,12 +51,11 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
-  const mockUseMaxValueMode = jest.mocked(useMaxValueMode);
   const mockSelectNetworkConfigurations = jest.mocked(
     selectNetworkConfigurations,
   );
   const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
-
+  const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const mockChainId = '0x1';
   const mockFromAddress = '0x123';
   const mockNativeCurrency = 'ETH';
@@ -99,13 +98,13 @@ describe('useInsufficientBalanceAlert', () => {
       }
       return key;
     });
-    mockUseMaxValueMode.mockReturnValue({
-      maxValueMode: false,
-    });
     mockUseConfirmActions.mockReturnValue({
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: false,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
   });
 
   it('return empty array when no transaction metadata is available', () => {
@@ -115,10 +114,10 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('return empty array when max value mode is enabled', () => {
-    mockUseMaxValueMode.mockReturnValue({
-      maxValueMode: true,
-    });
+  it('return empty array when isTransactionValueUpdating is true', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: true,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
     expect(result.current).toEqual([]);
@@ -219,9 +218,10 @@ describe('useInsufficientBalanceAlert', () => {
 
   describe('when ignoreGasFeeToken is true', () => {
     it('returns empty array', () => {
-      mockUseMaxValueMode.mockReturnValue({
-        maxValueMode: true,
-      });
+      mockUseAccountNativeBalance.mockReturnValue({
+        balanceWeiInHex: '0xC',
+      } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
       const { result } = renderHook(() =>
         useInsufficientBalanceAlert({ ignoreGasFeeToken: true }),
       );

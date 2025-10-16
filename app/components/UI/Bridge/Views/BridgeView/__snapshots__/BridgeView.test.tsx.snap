@@ -424,7 +424,8 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="source-token-area-input"
@@ -807,7 +808,8 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="dest-token-area-input"
@@ -904,16 +906,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     ]
                                   }
                                 >
-                                  <View
-                                    style={
-                                      [
-                                        {},
-                                        {
-                                          "paddingBottom": 12,
-                                        },
-                                      ]
-                                    }
-                                  />
                                   <View
                                     style={
                                       [
@@ -1399,7 +1391,8 @@ exports[`BridgeView renders 1`] = `
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="source-token-area-input"
@@ -1782,7 +1775,8 @@ exports[`BridgeView renders 1`] = `
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="dest-token-area-input"
@@ -1879,16 +1873,6 @@ exports[`BridgeView renders 1`] = `
                                     ]
                                   }
                                 >
-                                  <View
-                                    style={
-                                      [
-                                        {},
-                                        {
-                                          "paddingBottom": 12,
-                                        },
-                                      ]
-                                    }
-                                  />
                                   <View
                                     style={
                                       [

@@ -221,6 +221,12 @@
     "remind_later_description2": "Maaari mong i-back up ang iyong mga wallet o tingnan ang iyong Lihim na Parirala sa Pagbawi sa",
     "setting_security_privacy": "Mga Setting > Seguridad at Pagkapribado"
   },
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
+  },
   "onboarding_carousel": {
     "title1": "Welcome sa MetaMask",
     "title2": "Pamahalaan ang iyong mga digital na asset",
@@ -389,6 +395,7 @@
     "description": "I-unlock ang MetaMask sa device lang na ito.",
     "description_social_login": "Gamitin ito para sa pagbawi ng wallet mo sa lahat ng device.",
     "description_social_login_update": "Kung naiwala mo ang password na ito, mawawalan ka ng access sa wallet mo at sa lahat ng device. Itago ito sa isang ligtas na lugar.",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "Hindi ito maire-reset ng MetaMask.",
     "subtitle": "Maa-unlock ng password na ito ang iyong MetaMask wallet sa device lang na ito.",
     "password": "Gumawa ng password",
@@ -576,7 +583,7 @@
     "invisible_character_error": "May natukoy kaming hindi nakikitang character sa ENS name. Suriin ang ENS name para maiwasan ang potensyal na panloloko.",
     "could_not_resolve_name": "Hindi maresolba ang pangalan",
     "invalid_address": "Di-wastong address",
-    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
+    "contractAddressError": "Nagpapadala ka ng mga token sa address ng kontrata ng token. Maaari itong magresulta sa pagkawala ng mga token na ito."
   },
   "deposit": {
     "title": "Magdeposito",
@@ -662,7 +669,14 @@
       "bullet_2_description": "Idinisenyo ang USDC para hindi magpabago-bago, kaya pinapadali nito na magplano, mag-save, at gumastos.",
       "bullet_3_title": "Mas mabilis kaysa sa mga bangko",
       "bullet_3_description": "Magpadala at tumanggap sa ilang minuto, hindi kailangang maghintay sa pagbubukas ng bangko at wala ring internasyonal na mga pagkaantala.",
-      "button": "Magsimula"
+      "button": "Magsimula",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "I-verify ang pagkakakilanlan mo",
@@ -879,7 +893,6 @@
     "refresh_balance": "I-refresh ang Balanse",
     "add_funds": "Magdagdag ng mga pondo",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Mga position mo",
     "loading_positions": "Inilo-load ang mga posisyon...",
     "refreshing_positions": "Nire-refresh ang mga posisyon mo...",
@@ -888,7 +901,7 @@
       "title": "Halagang idedeposito",
       "get_usdc_hyperliquid": "Kumuha ng USDC • Hyperliquid",
       "insufficient_funds": "Hindi sapat ang pondo",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Walang available na mga pondo. Magdeposito muna.",
       "enter_amount": "Ilagay ang halaga",
       "fetching_quote": "Kumukuha ng quote",
       "submitting": "Isinusumite ang transaksyon",
@@ -1040,7 +1053,7 @@
         "insufficient_funds": "Hindi sapat ang mga pondo",
         "insufficient_balance": "Hindi sapat ang balanse. Kinakailangan: ${{required}}, Available: ${{available}}",
         "invalid_leverage": "Ang leverage ay dapat nasa pagitan ng {{min}}x at {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "Ang sukat ng order ay dapat na mas mababa sa ${{maxValue}}",
         "high_leverage_warning": "Pinapataas ng mataas na leverage ang panganib ng liquidation",
         "invalid_take_profit": "Ang take profit ay dapat na {{direction}} ng kasalukuyang presyo para sa {{positionType}} na mga posisyon",
         "invalid_stop_loss": "Ang stop loss ay dapat na {{direction}} ng kasalukuyang presyo para sa {{positionType}} na mga posisyon",
@@ -1463,8 +1476,8 @@
     "failed_to_load_market_data": "Hindi nakapag-load ng market data",
     "tap_to_retry": "I-tap para subukang muli",
     "search_by_token_symbol": "Maghanap ayon sa simbolo ng token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "Walang nakitang token",
+    "no_tokens_found_description": "Wala kaming nakitang anumang token na may pangalang \"{{searchQuery}}\". Subukang maghanap ng iba.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1512,7 +1525,7 @@
         "history_will_appear": "Lalabas dito ang history ng pag-trade mo"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Magpatuloy",
       "skip": "Laktawan",
@@ -1542,7 +1555,7 @@
       "ready_to_trade": {
         "title": "Handa nang mag-trade?",
         "description": "Pondohan ang perps account mo gamit ang anumang token at isagawa ang una mong trade sa ilang segundo.",
-        "footer_text": "Isu-swap ng MetaMask ang iyong mga pondo sa USDC sa Arbitrum, at idedeposito ang mga iyon sa HyperEVM nang walang dagdag na bayad."
+        "footer_text": "Isu-swap ng MetaMask ang iyong mga pondo sa USDC sa Arbitrum, at idedeposito ang mga iyon sa HyperCore nang walang dagdag na bayad."
       },
       "got_it": "Nakuha ko",
       "card": {
@@ -1550,7 +1563,7 @@
       }
     },
     "points": "Mga Point",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Tinatayang mga Point",
     "unable_to_load": "Hindi mai-load",
     "points_error": "Hindi namin mai-load ang mga point sa ngayon",
     "points_error_content": "Huwag mag-alala, nakakakuha ka parin ng mga point. Lalabas ang mga iyon sa iyong account mayamaya, o pwede mong tingnan ang tab ng mga Reward mamaya.",
@@ -1600,7 +1613,13 @@
     "won_markets_text_plural": "Nanalo ang {{count}} na market",
     "claim_amount_text": "I-claim ang ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Tumanggap"
@@ -1873,13 +1892,13 @@
     "agree": "Sang-ayon ako",
     "decline": "Huwag na lang",
     "description_title": "Tulungan kaming mapahusay ang MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Nais naming humiling ng mga pahintulot na ito. Maaari kang tumangging pumayag o tanggalin ang iyong data ng paggamit anumang oras.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
     "description_content_3": "Matuto kung paano namin pinoprotektahan ang iyong privacy habang nangongolekta ng data ng paggamit para sa iyong profile.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Mangalap ng pangunahing data ng paggamit",
+    "gather_basic_usage_description": "Mangongolekta kami ng pangunahing data ng paggamit ng produkto tulad ng pangkalahatang lokasyon, mga pag-click, at mga pagtingin. Wala ng ibang impormasyon na itatago.",
+    "gather_basic_usage_learn_more": "Matuto pa",
+    "checkbox_marketing": "Mga update sa marketing",
     "checkbox": "Gagamitin namin ang data na ito para matutunan kung paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
@@ -1889,7 +1908,7 @@
     "action_description_3_description": "Ikaw ang magpapasya kung nais mong ibahagi o tanggalin ang iyong data ng paggamit sa pamamagitan ng mga setting anumang oras.",
     "cta_no_thanks": "Salamat nalang",
     "cta_i_agree": "Sumasang-ayon ako",
-    "continue": "Continue",
+    "continue": "Magpatuloy",
     "fine_print_1_legacy": "Ang data na ito ay pinagsama-sama at dahil dito ay wala nang pagkakilanlan para sa layunin ng General Data Protection Regulation (EU) 2016/679.",
     "fine_print_2a_legacy": "*Kapag gumamit ka ng Infura bilang iyong RPC provider sa MetaMask, kokolektahin ng Infura ang iyong IP address at ang address ng wallet mo sa Ethereum kapag nagpadala ka ng transaksyon. Hindi kami mag-iimbak ng impormasyong ito sa paraan na nagpapahintulot sa aming mga system upang iugnay ang dalawang pirasong iyon ng data. Maaari mong i-configure ang iyong RPC provider",
     "fine_print_2b_legacy": "bago magpatuloy.\nPara sa higit pang impormasyon kung paano nakikipag-usap ang MetaMask at Infura mula sa perspektibo ng koleksyon ng datos, tingnan ang aming update",
@@ -2052,9 +2071,9 @@
       "solana_devnet_account_name": "Solana Devnet Account",
       "solana_testnet_account_name": "Solana Testnet Account",
       "solana_account_name": "Solana Account",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Account sa Tron",
+      "tron_nile_account_name": "Account sa Tron Nile",
+      "tron_shasta_account_name": "Account sa Tron Shasta"
     },
     "error_messages": {
       "failed_to_create_account": "Nabigo na gumawa ng {{clientType}} account"
@@ -2784,12 +2803,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Pumili ng token",
-    "title_pay_eth": "Magbayad gamit ang ETH",
     "native_toggle_wallet": "Magbayad ng bayad sa network gamit ang balanse sa wallet mo.",
     "list_balance": "Bal:",
     "insufficient_balance": "Hindi sapat ang mga pondo",
-    "native_toggle_metamask": "Dadagdagan ng MetaMask ang balanse para makumpleto ang transaksyong ito.",
-    "title_pay_with_other_tokens": "Magbayad gamit ang ibang mga token"
+    "native_toggle_metamask": "Dadagdagan ng MetaMask ang balanse para makumpleto ang transaksyong ito."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ID ng Transaksyon",
@@ -3072,6 +3092,7 @@
     "tx_review_lending_deposit": "Deposito sa Pagpapautang",
     "tx_review_lending_withdraw": "Pag-withdraw sa Pagpapautang",
     "tx_review_perps_deposit": "Pinondohang Perps account",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Nagpadala ng Ether",
     "self_sent_ether": "Nagpadala ka sa sarili mo ng Ether",
     "received_ether": "Nakatanggap ng Ether",
@@ -4896,7 +4917,7 @@
     "import_account": "Pribadong key",
     "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Account sa Tron",
     "switch_to_smart_account": "Lumipat sa Smart account",
     "rename_account": "Palitan ang pangalan ng account",
     "addresses": "Mga Address",
@@ -5276,7 +5297,8 @@
       "transfer": "Kahilingan sa paglilipat",
       "switch_account_type": "Pag-update ng account",
       "approve": "Aprubahan ang kahilingan",
-      "perps_deposit": "Magdagdag ng mga pondo"
+      "perps_deposit": "Magdagdag ng mga pondo",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
@@ -5293,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Isu-swap namin ang iyong mga token para maging USDC sa HyperEVM, ang network na ginagamit ng Perps. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
+        "transaction_fee": "Isu-swap namin ang iyong mga token para maging USDC sa HyperCore, ang network na ginagamit ng Perps. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Mga Bayarin"
@@ -5512,7 +5537,9 @@
     "account_not_found": "Hindi nahanap ang wallet",
     "account_not_found_description": "Hindi namin mahanap ang wallet para sa \"{{accountName}}\". Gusto mo bang gumawa ng bago gamit ang login na ito?",
     "create_new_wallet": "Gumawa ng bagong wallet",
-    "use_different_login_method": "Gumamit ng ibang paraan ng pag-log in"
+    "use_different_login_method": "Gumamit ng ibang paraan ng pag-log in",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Nariyan ka pa ba?",
@@ -5609,7 +5636,7 @@
       "section_1_title": "Ano ang mga account na multichain?",
       "section_1_description": "Isang account lang, may mga address sa lahat ng network na sinusuportahan ng MetaMask. Kaya ngayon, maaari mong gamitin ang Ethereum, Solana, at iba pa nang hindi kailangang magpalit ng account.",
       "section_2_title": "Parehong address, mas maraming network",
-      "section_2_description": "We’ve grouped your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged",
+      "section_2_description": "Pinaggrupo na namin ang iyong mga account, kaya magpatuloy lang gamitin ang MetaMask gaya ng dati. Ligtas at hindi nagbago ang iyong mga pondo",
       "view_accounts_button": "Tingnan ang mga account",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Sinet-set up ang iyong mga account"
@@ -5663,7 +5690,7 @@
       "balance": "Balanse",
       "create_account": "Gumawa ng account",
       "creating_account": "Ginagawa ang account...",
-      "discovering_accounts": "Discovering accounts...",
+      "discovering_accounts": "Tinutuklas ang mga account...",
       "back_up": "Mag-back up",
       "reveal_recovery_phrase_with_index": "Ipakita ang Parirala ng Pagbawi (Recovery Phrase) {{index}}"
     },
@@ -5762,9 +5789,9 @@
       "select_method": "Pumili ng paraan"
     },
     "card_onboarding": {
-      "title": "Welcome to Card",
-      "description": "To use card features, you’ll need to verify your account with our partner.",
-      "verify_account_button": "Verify account"
+      "title": "Welcome sa Card",
+      "description": "Para gamitin ang mga feature ng card, kakailanganin mong i-veify ang account mo sa aming ka-partner.",
+      "verify_account_button": "I-verify ang account"
     },
     "card_home": {
       "error_title": "Hindi makuha ang data",
@@ -5889,10 +5916,18 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Take profit",
-        "stop_loss": "Stop loss",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Hindi sinusuportahan ang rehiyon",
@@ -5907,10 +5942,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "gtm_title": "Rewards are here",
-      "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
-      "gtm_confirm": "Get started",
-      "intro_title": "Season 1 \nis Live",
+      "gtm_title": "Narito na ang mga reward",
+      "gtm_description": "Mag-ipon ng points mula sa aktibidad mo. \nMagpatuloy sa mas mataas na antas upang ma-unlock ang mga reward.",
+      "gtm_confirm": "Magsimula",
+      "intro_title": "Ang Season 1 \nay Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5926,9 +5961,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6041,7 +6074,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Naka-lock na mga reward",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6053,7 +6086,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "natitira",
       "expired": "Expired"
     },
     "animation": {
@@ -6066,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Pinondohang perps account",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Mga detalye ng transaksyon"
     },
     "label": {
@@ -6082,6 +6116,7 @@
       "bridge_loading": "Mag-bridge",
       "default": "Transaksyon",
       "perps_deposit": "Magdagdag ng pondo",
+      "predict_deposit": "Add funds",
       "swap": "Ipagpalit ang mga token",
       "swap_approval": "Aprubahan ang mga token"
     }
@@ -6094,6 +6129,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

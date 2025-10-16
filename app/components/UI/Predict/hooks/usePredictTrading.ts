@@ -1,7 +1,13 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
-import { BuyParams, ClaimParams, SellParams } from '../types';
-import { GetPositionsParams } from '../providers/types';
+import {
+  CalculateBetAmountsParams,
+  CalculateCashOutAmountsParams,
+  GetBalanceParams,
+  GetPositionsParams,
+  PlaceOrderParams,
+} from '../providers/types';
+import { ClaimParams } from '../types';
 
 export function usePredictTrading() {
   const getPositions = useCallback(async (params: GetPositionsParams) => {
@@ -9,25 +15,43 @@ export function usePredictTrading() {
     return controller.getPositions(params);
   }, []);
 
-  const buy = useCallback(async (orderParams: BuyParams) => {
-    const controller = Engine.context.PredictController;
-    return controller.buy(orderParams);
-  }, []);
-
-  const sell = useCallback(async (orderParams: SellParams) => {
-    const controller = Engine.context.PredictController;
-    return controller.sell(orderParams);
-  }, []);
-
   const claim = useCallback(async (claimParams: ClaimParams) => {
     const controller = Engine.context.PredictController;
     return controller.claim(claimParams);
   }, []);
 
+  const placeOrder = useCallback(async (params: PlaceOrderParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.placeOrder(params);
+  }, []);
+
+  const calculateBetAmounts = useCallback(
+    async (params: CalculateBetAmountsParams) => {
+      const controller = Engine.context.PredictController;
+      return controller.calculateBetAmounts(params);
+    },
+    [],
+  );
+
+  const calculateCashOutAmounts = useCallback(
+    async (params: CalculateCashOutAmountsParams) => {
+      const controller = Engine.context.PredictController;
+      return controller.calculateCashOutAmounts(params);
+    },
+    [],
+  );
+
+  const getBalance = useCallback(async (params: GetBalanceParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.getBalance(params);
+  }, []);
+
   return {
     getPositions,
-    buy,
-    sell,
+    placeOrder,
     claim,
+    calculateBetAmounts,
+    calculateCashOutAmounts,
+    getBalance,
   };
 }
