@@ -29,12 +29,10 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
         AccountListBottomSheet.accountList,
       );
 
-      await AccountListBottomSheet.scrollToBottomOfAccountList();
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list
       await WalletView.tapIdenticon();
-      await AccountListBottomSheet.scrollToBottomOfAccountList();
 
       const importedAccountsSection =
         Matchers.getElementByText('Imported Accounts');
