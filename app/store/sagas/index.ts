@@ -175,19 +175,22 @@ export function* handleDeeplinkSaga() {
     }
 
     const existingUser: boolean = yield select(selectExistingUser);
-    const onboardingDeeplink =
-      AppStateEventProcessor.pendingDeeplink || 'https://invalid.url';
+    const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
 
-    const url = new UrlParser(onboardingDeeplink);
-    // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
-    if (!existingUser && url.pathname.startsWith('/onboarding')) {
-      setTimeout(() => {
-        SharedDeeplinkManager.parse(onboardingDeeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
-      }, 200);
-      AppStateEventProcessor.clearPendingDeeplink();
+    if (onboardingDeeplink) {
+      const url = new UrlParser(onboardingDeeplink);
+      // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
+      if (!existingUser && url.pathname.startsWith('/onboarding')) {
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(onboardingDeeplink, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }, 200);
+        AppStateEventProcessor.clearPendingDeeplink();
+        continue;
+      }
     }
+
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
 
