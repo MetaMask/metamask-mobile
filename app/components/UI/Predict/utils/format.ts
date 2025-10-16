@@ -191,3 +191,31 @@ export const formatPositionSize = (size: string | number): string => {
   // For normal numbers, use 2 decimal places
   return num.toFixed(2);
 };
+
+export const formatCurrencyValue = (
+  value?: number,
+  options: { showSign?: boolean } = {},
+): string | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  const formatted = formatPrice(Math.abs(value), {
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+  });
+
+  if (!options.showSign) {
+    return formatted;
+  }
+
+  if (value > 0) {
+    return `+${formatted}`;
+  }
+
+  if (value < 0) {
+    return `-${formatted}`;
+  }
+
+  return formatted;
+};
