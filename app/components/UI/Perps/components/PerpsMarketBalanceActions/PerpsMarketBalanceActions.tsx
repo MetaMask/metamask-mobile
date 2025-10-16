@@ -340,8 +340,8 @@ const PerpsMarketBalanceActions: React.FC<
           onTransactionAmountChange={setTransactionAmountWei}
           onWithdrawalAmountChange={setWithdrawalAmount}
         />
-        {/* Deposit Progress Section */}
-        {isDepositInProgress && (
+        {/* Single Progress Section */}
+        {isAnyTransactionInProgress && (
           <Box twClassName="p-4">
             <Box twClassName="w-full flex-row justify-between">
               <Text
@@ -350,36 +350,19 @@ const PerpsMarketBalanceActions: React.FC<
               >
                 {statusText}
               </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {transactionAmountWei
-                  ? convertToUSD(transactionAmountWei)
-                  : 'Processing...'}
-              </Text>
-            </Box>
-          </Box>
-        )}
-
-        {/* Withdrawal Progress Section */}
-        {hasActiveWithdrawals && (
-          <Box twClassName="p-4">
-            <Box twClassName="w-full flex-row justify-between">
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {statusText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {withdrawalAmount
-                  ? convertToUSD(withdrawalAmount)
-                  : 'Processing...'}
-              </Text>
+              {/* Only show dollar value when there's a single transaction in progress */}
+              {!(isDepositInProgress && hasActiveWithdrawals) && (
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Default}
+                >
+                  {isDepositInProgress && transactionAmountWei
+                    ? convertToUSD(transactionAmountWei)
+                    : hasActiveWithdrawals && withdrawalAmount
+                    ? convertToUSD(withdrawalAmount)
+                    : 'Processing...'}
+                </Text>
+              )}
             </Box>
           </Box>
         )}

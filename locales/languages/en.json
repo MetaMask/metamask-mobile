@@ -1495,6 +1495,7 @@
         "funding": "Funding",
         "withdraw": "Withdraw",
         "deposit": "Deposit",
+        "deposits": "Deposits",
         "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
       },
       "not_found": "Transaction not found",
