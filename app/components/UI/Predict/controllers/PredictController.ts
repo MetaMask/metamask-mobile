@@ -799,8 +799,7 @@ export class PredictController extends BaseController<
         break;
     }
 
-    // eslint-disable-next-line no-console
-    console.log(`📊 [Analytics] ${eventLabel}`, {
+    DevLogger.log(`📊 [Analytics] ${eventLabel}`, {
       regularProperties,
       sensitiveProperties,
     });

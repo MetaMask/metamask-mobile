@@ -29,6 +29,7 @@ import Text, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictBetAmounts } from '../../hooks/usePredictBetAmounts';
 import { Side } from '../../types';
@@ -101,8 +102,7 @@ const PredictPlaceBet = () => {
       [PredictEventProperties.SHARE_PRICE]: outcomeToken?.price,
     };
 
-    // eslint-disable-next-line no-console
-    console.log('📊 [Analytics] PREDICT_ACTION_INITIATED', {
+    DevLogger.log('📊 [Analytics] PREDICT_ACTION_INITIATED', {
       regularProperties,
     });
 
