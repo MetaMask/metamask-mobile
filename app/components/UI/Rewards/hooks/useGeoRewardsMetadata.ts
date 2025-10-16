@@ -46,7 +46,7 @@ export const useGeoRewardsMetadata = ({
       );
 
       dispatch(setGeoRewardsMetadata(metadata));
-    } catch (err) {
+    } catch {
       dispatch(setGeoRewardsMetadata(null));
       dispatch(setGeoRewardsMetadataError(true));
     } finally {
