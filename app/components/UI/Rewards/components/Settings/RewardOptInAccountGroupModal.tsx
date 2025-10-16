@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList } from 'react-native';
+import { SectionList } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   Box,
@@ -9,14 +9,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import MultichainAddressRow from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import { Icon as IconType } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.types';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useSelector } from 'react-redux';
@@ -29,7 +26,7 @@ import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selec
 import { CaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isTestNet } from '../../../../../util/networks';
-import ClipboardManager from '../../../../../core/ClipboardManager';
+import { MultichainAddressRow } from '../../../../../component-library/components-temp/MultichainAccounts';
 
 interface RouteParams {
   accountGroupId: AccountGroupId;
@@ -199,32 +196,10 @@ const RewardOptInAccountGroupModal: React.FC = () => {
   }, [linkAccountGroup, accountGroupId]);
 
   const renderAddressItem = useCallback(
-    ({ item }: { item: FlattenedAddressItem }) => {
+    ({ item }: { item: FlattenedAddressItem; section: { title: string } }) => {
       if (!item?.address || !item?.scope) {
         return null;
       }
-
-      const isUnsupported = item.isSupported === false;
-
-      // Determine status icon based on account state:
-      // - Check icon (✓) if the address has opted in
-      // - Close icon (✗) if the address has NOT opted in yet
-      // - Warning icon (⚠) if the address type is unsupported
-      const statusIcon: IconType = {
-        name: isUnsupported
-          ? IconName.Warning
-          : item.hasOptedIn
-          ? IconName.Check
-          : IconName.Close,
-        callback: () => {
-          // Status indicator - non-interactive
-        },
-        testId: `status-icon-${item.address}-${item.scope}`,
-      };
-
-      const copyAddressToClipboard = async () => {
-        await ClipboardManager.setString(item.address);
-      };
 
       return (
         <MultichainAddressRow
@@ -232,12 +207,26 @@ const RewardOptInAccountGroupModal: React.FC = () => {
           chainId={item.scope}
           networkName={item.networkName}
           address={item.address}
-          copyParams={{
-            successMessage: strings('multichain_accounts.address_list.copied'),
-            callback: copyAddressToClipboard,
-          }}
-          icons={[statusIcon]}
         />
+      );
+    },
+    [],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: { title: string } }) => {
+      if (!section.title) return null;
+
+      return (
+        <Box twClassName="px-4 py-2">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-alternative"
+          >
+            {section.title}
+          </Text>
+        </Box>
       );
     },
     [],
@@ -257,6 +246,44 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     [flattenedAddressData],
   );
 
+  // Group addresses by tracked/untracked status
+  const groupedAddressData = useMemo(() => {
+    const supportedAddresses = flattenedAddressData.filter(
+      (item) => item.isSupported !== false,
+    );
+
+    const trackedAddresses = supportedAddresses.filter(
+      (item) => item.hasOptedIn,
+    );
+    const untrackedAddresses = supportedAddresses.filter(
+      (item) => !item.hasOptedIn,
+    );
+
+    const sections = [];
+
+    // Only show headers if there are both tracked and untracked addresses
+    const showHeaders =
+      trackedAddresses.length > 0 && untrackedAddresses.length > 0;
+
+    if (trackedAddresses.length > 0) {
+      sections.push({
+        title: showHeaders ? strings('rewards.link_account_group.tracked') : '',
+        data: trackedAddresses,
+      });
+    }
+
+    if (untrackedAddresses.length > 0) {
+      sections.push({
+        title: showHeaders
+          ? strings('rewards.link_account_group.untracked')
+          : '',
+        data: untrackedAddresses,
+      });
+    }
+
+    return sections;
+  }, [flattenedAddressData]);
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -265,10 +292,8 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
         <BottomSheetHeader>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {`${accountGroupContext?.metadata?.name} / ${strings(
-              'rewards.link_account_group.linked_accounts',
-            )}`}
+          <Text variant={TextVariant.HeadingSm}>
+            {accountGroupContext?.metadata?.name}
           </Text>
         </BottomSheetHeader>
       )}
@@ -288,14 +313,16 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       )}
 
       <Box twClassName="gap-2">
-        {flattenedAddressData.length > 0 && (
-          <FlatList
+        {groupedAddressData.length > 0 && (
+          <SectionList
             testID="reward-opt-in-address-list"
-            data={flattenedAddressData}
+            sections={groupedAddressData}
             keyExtractor={(item) => `${item.address}-${item.scope}`}
             renderItem={renderAddressItem}
+            renderSectionHeader={renderSectionHeader}
             showsVerticalScrollIndicator={false}
             removeClippedSubviews
+            stickySectionHeadersEnabled={false}
           />
         )}
       </Box>

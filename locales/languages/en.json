@@ -6195,7 +6195,8 @@
 
     "link_account_group": {
       "link_account": "Add account",
-      "linked_accounts": "Tracked addresses",
+      "tracked": "Tracked",
+      "untracked": "Untracked",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },
