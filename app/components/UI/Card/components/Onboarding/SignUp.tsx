@@ -16,50 +16,90 @@ import OnboardingStep from './OnboardingStep';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import SelectComponent from '../../../SelectComponent';
-import { Country } from '../../types';
+import { CountriesOutput } from '../../types';
 
 // Mock countries data following DepositRegion structure
-export const MOCK_COUNTRIES: Country[] = [
-  {
-    key: 'us',
-    name: 'United States',
-    areaCode: '+1',
+export const MOCK_COUNTRIES: CountriesOutput = {
+  countries: [
+    {
+      id: 'us-country-id-001',
+      name: 'United States',
+      iso3166alpha2: 'US',
+      callingCode: '1',
+      canSignUp: true,
+    },
+    {
+      id: 'uk-country-id-002',
+      name: 'United Kingdom',
+      iso3166alpha2: 'GB',
+      callingCode: '44',
+      canSignUp: true,
+    },
+    {
+      id: 'de-country-id-003',
+      name: 'Germany',
+      iso3166alpha2: 'DE',
+      callingCode: '49',
+      canSignUp: true,
+    },
+    {
+      id: 'fr-country-id-004',
+      name: 'France',
+      iso3166alpha2: 'FR',
+      callingCode: '33',
+      canSignUp: true,
+    },
+    {
+      id: 'au-country-id-005',
+      name: 'Australia',
+      iso3166alpha2: 'AU',
+      callingCode: '61',
+      canSignUp: true,
+    },
+    {
+      id: 'jp-country-id-006',
+      name: 'Japan',
+      iso3166alpha2: 'JP',
+      callingCode: '81',
+      canSignUp: true,
+    },
+  ],
+  usStates: [
+    {
+      id: '8c334d96-6bf6-424b-9bed-d8d140141043',
+      name: 'Alaska',
+      postalAbbreviation: 'AK',
+      canSignUp: true,
+    },
+  ],
+  links: {
+    us: {
+      termsAndConditions: '',
+      accountOpeningDisclosure: '',
+      noticeOfPrivacy: '',
+    },
+    intl: {
+      termsAndConditions: '',
+      rightToInformation: '',
+    },
   },
-  {
-    key: 'ca',
-    name: 'Canada',
-    areaCode: '+1',
+  config: {
+    us: {
+      emailSpecialCharactersDomainsException: '',
+      consentSmsNumber: '',
+      supportEmail: '',
+    },
+    intl: {
+      emailSpecialCharactersDomainsException: '',
+      consentSmsNumber: '',
+      supportEmail: '',
+    },
   },
-  {
-    key: 'uk',
-    name: 'United Kingdom',
-    areaCode: '+44',
-  },
-  {
-    key: 'de',
-    name: 'Germany',
-    areaCode: '+49',
-  },
-  {
-    key: 'fr',
-    name: 'France',
-    areaCode: '+33',
-  },
-  {
-    key: 'au',
-    name: 'Australia',
-    areaCode: '+61',
-  },
-  {
-    key: 'jp',
-    name: 'Japan',
-    areaCode: '+81',
-  },
-];
+};
 
-const selectOptions = MOCK_COUNTRIES.map((country) => ({
-  key: country.key,
-  value: country.key,
+const selectOptions = MOCK_COUNTRIES.countries.map((country) => ({
+  key: country.iso3166alpha2,
+  value: country.iso3166alpha2,
   label: country.name,
 }));
 
@@ -123,7 +163,6 @@ const SignUp = () => {
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={email}
-          returnKeyType={'next'}
           keyboardType="email-address"
           maxLength={255}
           accessibilityLabel={strings(
@@ -150,8 +189,7 @@ const SignUp = () => {
           size={TextFieldSize.Lg}
           value={password}
           maxLength={255}
-          returnKeyType={'next'}
-          //hsecureTextEntry
+          secureTextEntry
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.password_label',
           )}
@@ -172,8 +210,7 @@ const SignUp = () => {
           size={TextFieldSize.Lg}
           value={confirmPassword}
           maxLength={255}
-          returnKeyType={'next'}
-          //secureTextEntry
+          secureTextEntry
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.confirm_password_label',
           )}

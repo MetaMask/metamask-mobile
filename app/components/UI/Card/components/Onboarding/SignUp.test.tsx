@@ -396,22 +396,24 @@ describe('SignUp Component', () => {
   describe('MOCK_COUNTRIES Data', () => {
     it('should export MOCK_COUNTRIES with correct structure', () => {
       expect(MOCK_COUNTRIES).toBeDefined();
-      expect(Array.isArray(MOCK_COUNTRIES)).toBe(true);
-      expect(MOCK_COUNTRIES.length).toBeGreaterThan(0);
+      expect(Array.isArray(MOCK_COUNTRIES.countries)).toBe(true);
+      expect(MOCK_COUNTRIES.countries.length).toBeGreaterThan(0);
 
-      const firstCountry = MOCK_COUNTRIES[0];
-      expect(firstCountry).toHaveProperty('key');
+      const firstCountry = MOCK_COUNTRIES.countries[0];
+      expect(firstCountry).toHaveProperty('id');
       expect(firstCountry).toHaveProperty('name');
-      expect(firstCountry).toHaveProperty('areaCode');
+      expect(firstCountry).toHaveProperty('callingCode');
     });
 
     it('should include expected countries', () => {
-      const countryKeys = MOCK_COUNTRIES.map((country) => country.key);
+      const countryKeys = MOCK_COUNTRIES.countries.map(
+        (country) => country.iso3166alpha2,
+      );
 
-      expect(countryKeys).toContain('us');
-      expect(countryKeys).toContain('ca');
-      expect(countryKeys).toContain('uk');
-      expect(countryKeys).toContain('de');
+      expect(countryKeys).toContain('US');
+      expect(countryKeys).toContain('FR');
+      expect(countryKeys).toContain('GB');
+      expect(countryKeys).toContain('DE');
     });
   });
 

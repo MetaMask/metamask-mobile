@@ -15,11 +15,34 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
 }));
 
 jest.mock('./SignUp', () => ({
-  MOCK_COUNTRIES: [
-    { areaCode: '+1', name: 'United States' },
-    { areaCode: '+44', name: 'United Kingdom' },
-    { areaCode: '+33', name: 'France' },
-  ],
+  MOCK_COUNTRIES: {
+    countries: [
+      {
+        id: 'us-country-id-001',
+        name: 'United States',
+        iso3166alpha2: 'US',
+        callingCode: '1',
+        canSignUp: true,
+      },
+      {
+        id: 'uk-country-id-002',
+        name: 'United Kingdom',
+        iso3166alpha2: 'GB',
+        callingCode: '44',
+        canSignUp: true,
+      },
+      {
+        id: 'fr-country-id-004',
+        name: 'France',
+        iso3166alpha2: 'FR',
+        callingCode: '33',
+        canSignUp: true,
+      },
+    ],
+    usStates: [],
+    links: { us: {}, intl: {} },
+    config: { us: {}, intl: {} },
+  },
 }));
 
 // Mock OnboardingStep component

@@ -19,12 +19,12 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
 const selectOptions = Array.from(
   new Map(
-    MOCK_COUNTRIES.map((country) => [
-      country.areaCode,
+    MOCK_COUNTRIES.countries.map((country) => [
+      country.callingCode,
       {
-        key: country.areaCode,
-        value: country.areaCode,
-        label: country.areaCode,
+        key: country.iso3166alpha2,
+        value: `+${country.callingCode}`,
+        label: `+${country.callingCode}`,
       },
     ]),
   ).values(),
@@ -101,7 +101,6 @@ const SetPhoneNumber = () => {
             numberOfLines={1}
             size={TextFieldSize.Lg}
             value={phoneNumber}
-            returnKeyType={'next'}
             keyboardType="phone-pad"
             maxLength={255}
             accessibilityLabel={strings(

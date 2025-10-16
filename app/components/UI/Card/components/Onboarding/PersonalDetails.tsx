@@ -124,7 +124,6 @@ const PersonalDetails = () => {
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={firstName}
-          returnKeyType={'next'}
           keyboardType="default"
           maxLength={255}
           accessibilityLabel={strings(
@@ -147,7 +146,6 @@ const PersonalDetails = () => {
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={lastName}
-          returnKeyType={'next'}
           keyboardType="default"
           maxLength={255}
           accessibilityLabel={strings(
@@ -178,7 +176,6 @@ const PersonalDetails = () => {
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={nationality}
-          returnKeyType={'next'}
           keyboardType="default"
           maxLength={255}
           accessibilityLabel={strings(
@@ -201,7 +198,6 @@ const PersonalDetails = () => {
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={SSN}
-          returnKeyType={'next'}
           keyboardType="number-pad"
           maxLength={9}
           accessibilityLabel={strings(

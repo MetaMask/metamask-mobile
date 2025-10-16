@@ -38,7 +38,6 @@ const ConfirmEmail = () => {
         numberOfLines={1}
         size={TextFieldSize.Lg}
         value={confirmCode}
-        returnKeyType={'next'}
         keyboardType="numeric"
         maxLength={255}
         accessibilityLabel={strings(
