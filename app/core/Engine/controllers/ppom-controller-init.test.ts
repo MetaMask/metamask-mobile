@@ -9,6 +9,7 @@ import {
 import { ControllerInitRequest } from '../types';
 import { ppomControllerInit } from './ppom-controller-init';
 import { PPOMController } from '@metamask/ppom-validator';
+import Crypto from 'react-native-quick-crypto';
 
 jest.mock('@metamask/ppom-validator');
 
