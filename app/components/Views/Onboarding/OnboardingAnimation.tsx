@@ -68,13 +68,6 @@ const OnboardingAnimation = ({
   const styles = createStyles();
 
   const moveLogoUp = useCallback(() => {
-    if (isE2E) {
-      logoPosition.setValue(-180);
-      buttonsOpacity.setValue(1);
-      setStartFoxAnimation(true);
-      return;
-    }
-
     Animated.parallel([
       Animated.timing(logoPosition, {
         toValue: -180,
@@ -89,11 +82,13 @@ const OnboardingAnimation = ({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [logoPosition, buttonsOpacity, setStartFoxAnimation]);
+  }, [logoPosition, buttonsOpacity]);
 
   const startRiveAnimation = useCallback(() => {
     if (isE2E) {
-      moveLogoUp();
+      logoPosition.setValue(-180);
+      buttonsOpacity.setValue(1);
+      setStartFoxAnimation(true);
       return;
     }
 
@@ -113,7 +108,14 @@ const OnboardingAnimation = ({
     } catch (error) {
       Logger.error(error as Error, 'Error triggering Rive animation');
     }
-  }, [themeAppearance, moveLogoUp, logoRef, setStartFoxAnimation]);
+  }, [
+    themeAppearance,
+    moveLogoUp,
+    logoRef,
+    setStartFoxAnimation,
+    logoPosition,
+    buttonsOpacity,
+  ]);
 
   useEffect(() => {
     if (startOnboardingAnimation) {
