@@ -322,7 +322,7 @@ function applyFlakinessDetection(splitFiles) {
     }
   }
 
-  console.log(`🧪 Duplicated ${duplicatedSet.size} changed file(s) for flakiness detection.`);
+  console.log(`ℹ️  Duplicated ${duplicatedSet.size} changed file(s) for flakiness detection.`);
   return expanded;
 }
 
