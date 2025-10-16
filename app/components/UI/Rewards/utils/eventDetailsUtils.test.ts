@@ -20,6 +20,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const t: Record<string, string> = {
       'rewards.events.to': 'to',
       'rewards.events.type.swap': 'Swap',
+      'rewards.events.type.card_spend': 'Card spend',
       'rewards.events.type.referral_action': 'Referral action',
       'rewards.events.type.sign_up_bonus': 'Sign up bonus',
       'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
@@ -472,6 +473,12 @@ describe('eventDetailsUtils', () => {
             type: 'PERPS' as const,
             payload: payload as (PointsEventDto & { type: 'PERPS' })['payload'],
           };
+        case 'CARD':
+          return {
+            ...baseEvent,
+            type: 'CARD' as const,
+            payload: payload as (PointsEventDto & { type: 'CARD' })['payload'],
+          };
         default:
           return {
             ...baseEvent,
@@ -697,6 +704,71 @@ describe('eventDetailsUtils', () => {
           title: 'Opened position',
           details: undefined,
           icon: IconName.Candlestick,
+        });
+      });
+    });
+
+    describe('CARD events', () => {
+      it('returns correct details for CARD event with whole number amount', () => {
+        // Given a CARD event with amount
+        const event = createMockEvent('CARD', {
+          asset: {
+            amount: '43000000',
+            type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            decimals: 6,
+            name: 'USD Coin',
+            symbol: 'USDC',
+          },
+          txHash: '0x123...',
+        });
+
+        // When getting event details
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        // Then it should return card spend details
+        expect(result).toEqual({
+          title: 'Card spend',
+          details: '43 USDC',
+          icon: IconName.Card,
+        });
+      });
+
+      it('returns correct details for CARD event with decimal amount', () => {
+        // Given a CARD event with decimal amount
+        const event = createMockEvent('CARD', {
+          asset: {
+            amount: '43250000',
+            type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            decimals: 6,
+            name: 'USD Coin',
+            symbol: 'USDC',
+          },
+          txHash: '0xabc123def456789012345678901234567890abcd',
+        });
+
+        // When getting event details
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        // Then it should return card spend details with decimals
+        expect(result).toEqual({
+          title: 'Card spend',
+          details: '43.25 USDC',
+          icon: IconName.Card,
+        });
+      });
+
+      it('returns undefined details for CARD event without payload', () => {
+        // Given a CARD event without payload
+        const event = createMockEvent('CARD', null);
+
+        // When getting event details
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        // Then it should return card spend title with undefined details
+        expect(result).toEqual({
+          title: 'Card spend',
+          details: undefined,
+          icon: IconName.Card,
         });
       });
     });

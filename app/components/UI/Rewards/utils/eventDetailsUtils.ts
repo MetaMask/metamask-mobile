@@ -4,6 +4,7 @@ import {
   PointsEventDto,
   SwapEventPayload,
   PerpsEventPayload,
+  CardEventPayload,
   EventAssetDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
@@ -130,6 +131,22 @@ export const formatSwapDetails = (
 };
 
 /**
+ * Gets the details for card events
+ * @param payload - The card event payload
+ * @returns The card event details
+ */
+export const getCardEventDetails = (
+  payload: CardEventPayload,
+): string | undefined => {
+  const asset = payload?.asset;
+
+  if (!hasValidAsset(asset)) return undefined;
+
+  const formattedAmount = formatAssetAmount(asset.amount, asset.decimals);
+  return `${formattedAmount} ${asset.symbol}`;
+};
+
+/**
  * Formats an event details
  * @param event - The event
  * @param accountName - Optional account name to display for bonus events
@@ -155,6 +172,12 @@ export const getEventDetails = (
         title: getPerpsEventTitle(event.payload as PerpsEventPayload),
         details: getPerpsEventDetails(event.payload as PerpsEventPayload),
         icon: IconName.Candlestick,
+      };
+    case 'CARD':
+      return {
+        title: strings('rewards.events.type.card_spend'),
+        details: getCardEventDetails(event.payload as CardEventPayload),
+        icon: IconName.Card,
       };
     case 'REFERRAL':
       return {
