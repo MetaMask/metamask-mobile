@@ -221,9 +221,11 @@
     "remind_later_description2": "您可以备份钱包或者在下方查看您的私钥助记词：",
     "setting_security_privacy": "“设置”>“安全和隐私”"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "欢迎使用 MetaMask",
@@ -1523,7 +1525,7 @@
         "history_will_appear": "您的交易历史将在此处显示"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "继续",
       "skip": "跳过",
@@ -1553,7 +1555,7 @@
       "ready_to_trade": {
         "title": "准备好交易了吗？",
         "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。",
-        "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperEVM，无需任何额外费用。"
+        "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperCore，无需任何额外费用。"
       },
       "got_it": "知道了",
       "card": {
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "已赢取 {{count}} 个市场",
     "claim_amount_text": "领取 ${{amount}}",
     "unrealized_pnl_label": "未实现盈亏",
-    "unrealized_pnl_value": "{{amount}}（{{percent}}）"
+    "unrealized_pnl_value": "{{amount}}（{{percent}}）",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "接收"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "出借存款",
     "tx_review_lending_withdraw": "出借提款",
     "tx_review_perps_deposit": "已注资的永续合约账户",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "已发送以太币",
     "self_sent_ether": "已向自己发送以太币",
     "received_ether": "已接收以太币",
@@ -5288,7 +5297,8 @@
       "transfer": "转账请求",
       "switch_account_type": "账户更新",
       "approve": "批准请求",
-      "perps_deposit": "充值"
+      "perps_deposit": "充值",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
@@ -5305,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "我们将在永续合约所用的 HyperEVM 网络上将您的代币兑换为 USDC。兑换服务商可能收取费用，但 MetaMask 不另收费。"
+        "transaction_fee": "我们将在永续合约所用的 HyperCore 网络上将您的代币兑换为 USDC。兑换服务商可能收取费用，但 MetaMask 不另收费。"
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "费用"
@@ -5524,7 +5537,9 @@
     "account_not_found": "未找到钱包",
     "account_not_found_description": "我们未找到与 “{{accountName}}” 关联的钱包。您是否想使用当前登录信息创建一个新的钱包？",
     "create_new_wallet": "创建新钱包",
-    "use_different_login_method": "使用其他登录方式"
+    "use_different_login_method": "使用其他登录方式",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "还在线吗？",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "不支持此地区",
@@ -6053,7 +6076,7 @@
     "upcoming_rewards": {
       "title": "锁定的奖励",
       "points_needed": "{{points}} points",
-      "cta_label": "Got it",
+      "cta_label": "知道了",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
     },
     "unlocked_rewards": {
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "已注资的永续合约账户",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "交易详情"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "桥接",
       "default": "交易",
       "perps_deposit": "充值",
+      "predict_deposit": "Add funds",
       "swap": "兑换代币",
       "swap_approval": "批准代币"
     }

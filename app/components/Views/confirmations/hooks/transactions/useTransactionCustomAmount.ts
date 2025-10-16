@@ -7,11 +7,13 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenTransferData } from '../../utils/transaction-pay';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 export const MAX_LENGTH = 28;
 
 export function useTransactionCustomAmount() {
-  const [amountFiat, setAmountFiat] = useState('0');
+  const { amount: defaultAmount } = useParams<{ amount?: string }>();
+  const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
 
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;

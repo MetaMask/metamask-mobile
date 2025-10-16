@@ -221,9 +221,11 @@
     "remind_later_description2": "Puedes hacer una copia de respaldo de tus billeteras o ver tu frase secreta de recuperación en",
     "setting_security_privacy": "Configuración  > Seguridad y privacidad"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Bienvenido a MetaMask",
@@ -1523,7 +1525,7 @@
         "history_will_appear": "Tu historial de trading aparecerá aquí"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continuar",
       "skip": "Omitir",
@@ -1553,7 +1555,7 @@
       "ready_to_trade": {
         "title": "¿Estás listo para operar?",
         "description": "Financia tu cuenta de contratos perpetuos con cualquier token y realiza tu primera operación en segundos.",
-        "footer_text": "MetaMask canjeará tus fondos a USDC en Arbitrum y los depositará en HyperEVM sin cargo adicional."
+        "footer_text": "MetaMask canjeará tus fondos a USDC en Arbitrum y los depositará en HyperCore sin cargo adicional."
       },
       "got_it": "Entendido",
       "card": {
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "Ganaron {{count}} mercados",
     "claim_amount_text": "Reclamar ${{amount}}",
     "unrealized_pnl_label": "P&L no realizado",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Recibir"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Depósito de préstamo",
     "tx_review_lending_withdraw": "Retiro de préstamo",
     "tx_review_perps_deposit": "Cuenta financiada de contratos perpetuos",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ether enviado",
     "self_sent_ether": "Ether enviado a usted mismo",
     "received_ether": "Ether recibido",
@@ -5288,7 +5297,8 @@
       "transfer": "Solicitud de transferencia",
       "switch_account_type": "Actualización de la cuenta",
       "approve": "Aprobar la solicitud",
-      "perps_deposit": "Agregar fondos"
+      "perps_deposit": "Agregar fondos",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
@@ -5305,7 +5315,11 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Canjearemos tus tokens por USDC en HyperEVM, la red que usan los contratos perpetuos. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
+
+        "transaction_fee": "Canjearemos tus tokens por USDC en HyperCore, la red que usan los contratos perpetuos. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Tarifas"
@@ -5524,7 +5538,9 @@
     "account_not_found": "Billetera no encontrada",
     "account_not_found_description": "No pudimos encontrar una billetera para \"{{accountName}}\". ¿Quieres crear una nueva con este inicio de sesión?",
     "create_new_wallet": "Crear una billetera nueva",
-    "use_different_login_method": "Utiliza otro método de inicio de sesión"
+    "use_different_login_method": "Utiliza otro método de inicio de sesión",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "¿Sigues ahí?",
@@ -5904,7 +5920,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Región no admitida",
@@ -6053,7 +6077,7 @@
     "upcoming_rewards": {
       "title": "Recompensas bloqueadas",
       "points_needed": "{{points}} points",
-      "cta_label": "Got it",
+      "cta_label": "Entendido",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
     },
     "unlocked_rewards": {
@@ -6076,7 +6100,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Cuenta financiada de perps",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Detalles de la transacción"
     },
     "label": {
@@ -6092,6 +6117,7 @@
       "bridge_loading": "Puentear",
       "default": "Transacción",
       "perps_deposit": "Agregar fondos",
+      "predict_deposit": "Add funds",
       "swap": "Canjear tokens",
       "swap_approval": "Aprobar tokens"
     }

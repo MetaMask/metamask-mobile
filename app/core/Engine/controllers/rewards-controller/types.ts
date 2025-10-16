@@ -260,6 +260,22 @@ export interface PerpsEventPayload {
 }
 
 /**
+ * Card event payload
+ */
+export interface CardEventPayload {
+  /**
+   * Asset information (contains amount, symbol, decimals, etc.)
+   */
+  asset: EventAssetDto;
+
+  /**
+   * Transaction hash
+   * @example '0x.......'
+   */
+  txHash?: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -316,6 +332,10 @@ export type PointsEventDto = BasePointsEventDto &
     | {
         type: 'PERPS';
         payload: PerpsEventPayload | null;
+      }
+    | {
+        type: 'CARD';
+        payload: CardEventPayload | null;
       }
     | {
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';

@@ -47,8 +47,10 @@ import {
   PredictDepositStatus,
   PredictMarket,
   PredictPosition,
+  PredictActivity,
   PredictPriceHistoryPoint,
   Result,
+  UnrealizedPnL,
 } from '../types';
 
 /**
@@ -72,6 +74,7 @@ export const PREDICT_ERROR_CODES = {
   CLAIM_FAILED: 'CLAIM_FAILED',
   PLACE_ORDER_FAILED: 'PLACE_ORDER_FAILED',
   ENABLE_WALLET_FAILED: 'ENABLE_WALLET_FAILED',
+  ACTIVITY_NOT_AVAILABLE: 'ACTIVITY_NOT_AVAILABLE',
 } as const;
 
 export type PredictErrorCode =
@@ -619,6 +622,103 @@ export class PredictController extends BaseController<
       });
 
       // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
+  }
+
+  /**
+   * Get user activity
+   */
+  async getActivity(params: {
+    address?: string;
+    providerId?: string;
+  }): Promise<PredictActivity[]> {
+    try {
+      const { address, providerId } = params;
+      const { AccountsController } = Engine.context;
+
+      const selectedAddress =
+        address ?? AccountsController.getSelectedAccount().address;
+
+      const providerIds = providerId
+        ? [providerId]
+        : Array.from(this.providers.keys());
+
+      if (providerIds.some((id) => !this.providers.has(id))) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const allActivity = await Promise.all(
+        providerIds.map((id: string) =>
+          this.providers.get(id)?.getActivity({ address: selectedAddress }),
+        ),
+      );
+
+      const activity = allActivity
+        .flat()
+        .filter((entry): entry is PredictActivity => entry !== undefined);
+
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      });
+
+      return activity;
+    } catch (error) {
+      this.update((state) => {
+        state.lastError =
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.ACTIVITY_NOT_AVAILABLE;
+        state.lastUpdateTimestamp = Date.now();
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get unrealized P&L for a user
+   */
+  async getUnrealizedPnL({
+    address,
+    providerId = 'polymarket',
+  }: {
+    address?: string;
+    providerId?: string;
+  }): Promise<UnrealizedPnL> {
+    try {
+      const { AccountsController } = Engine.context;
+      const selectedAddress =
+        address ?? AccountsController.getSelectedAccount().address;
+
+      const provider = this.providers.get(providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const unrealizedPnL = await provider.getUnrealizedPnL({
+        address: selectedAddress,
+      });
+
+      // Update state on successful call
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      });
+
+      return unrealizedPnL;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch unrealized P&L';
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
       throw error;
     }
   }

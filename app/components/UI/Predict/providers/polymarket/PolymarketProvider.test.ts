@@ -1,3 +1,17 @@
+// Mock external dependencies
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(),
+      getNetworkClientById: jest.fn(),
+    },
+    KeyringController: {
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    },
+  },
+}));
+
 import Engine from '../../../../../core/Engine';
 import {
   PredictPositionStatus,
@@ -38,20 +52,6 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 
-// Mock external dependencies
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
-      getNetworkClientById: jest.fn(),
-    },
-    KeyringController: {
-      signTypedMessage: jest.fn(),
-      signPersonalMessage: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
   return {
@@ -65,7 +65,7 @@ jest.mock('./utils', () => {
   return {
     ...actual,
     getPolymarketEndpoints: jest.fn(() => ({
-      DATA_API_ENDPOINT: 'https://data.polymarket.com',
+      DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
       GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
@@ -1119,14 +1119,30 @@ describe('PolymarketProvider', () => {
   });
 
   describe('getActivity', () => {
-    it('throws error when method is not implemented', () => {
+    it('fetches activity and resolves without throwing', async () => {
       const provider = createProvider();
+      // Mock network and account state used internally
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (global as any).fetch = jest
+        .fn()
+        .mockResolvedValue({ ok: true, json: () => [] });
+      const getAccountStateSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(provider as any, 'getAccountState')
+        .mockResolvedValue({
+          address: '0xSAFE',
+          isDeployed: true,
+          hasAllowances: true,
+          balance: 0,
+        });
 
-      expect(() =>
+      await expect(
         provider.getActivity({
           address: '0x1234567890123456789012345678901234567890',
         }),
-      ).toThrow('Method not implemented.');
+      ).resolves.toEqual([]);
+
+      expect(getAccountStateSpy).toHaveBeenCalled();
     });
   });
 
@@ -1702,6 +1718,154 @@ describe('PolymarketProvider', () => {
       await expect(
         provider.getMarketDetails({ marketId: 'market-1' }),
       ).rejects.toThrow('Failed to parse market details');
+    });
+  });
+
+  describe('getUnrealizedPnL', () => {
+    const originalFetch = globalThis.fetch;
+
+    beforeEach(() => {
+      globalThis.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+      jest.restoreAllMocks();
+    });
+
+    it('successfully fetches unrealized P&L data', async () => {
+      const provider = createProvider();
+      const mockUnrealizedPnL = [
+        {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: -7.337110036077004,
+          percentUpnl: -31.32290842628039,
+        },
+      ];
+
+      (globalThis.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUnrealizedPnL),
+      });
+
+      const result = await provider.getUnrealizedPnL({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+
+      expect(result).toEqual(mockUnrealizedPnL[0]);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://data-api.polymarket.com/upnl?user=0x1234567890123456789012345678901234567890',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+    });
+
+    it('throws error when API response is not ok', async () => {
+      const provider = createProvider();
+
+      (globalThis.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 404,
+      });
+
+      await expect(
+        provider.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+        }),
+      ).rejects.toThrow('Failed to fetch unrealized P&L');
+    });
+
+    it('throws error when API returns empty array', async () => {
+      const provider = createProvider();
+
+      (globalThis.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      await expect(
+        provider.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+        }),
+      ).rejects.toThrow('No unrealized P&L data found');
+    });
+
+    it('throws error when API returns non-array response', async () => {
+      const provider = createProvider();
+
+      (globalThis.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        provider.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+        }),
+      ).rejects.toThrow('No unrealized P&L data found');
+    });
+
+    it('handles network errors', async () => {
+      const provider = createProvider();
+
+      (globalThis.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      await expect(
+        provider.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+        }),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('handles JSON parsing errors', async () => {
+      const provider = createProvider();
+
+      (globalThis.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      });
+
+      await expect(
+        provider.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+        }),
+      ).rejects.toThrow('Invalid JSON');
+    });
+
+    it('uses default address when not provided', async () => {
+      const provider = createProvider();
+      const mockUnrealizedPnL = [
+        {
+          user: '0x0000000000000000000000000000000000000000',
+          cashUpnl: 0,
+          percentUpnl: 0,
+        },
+      ];
+
+      (globalThis.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUnrealizedPnL),
+      });
+
+      await provider.getUnrealizedPnL({
+        address: '0x0000000000000000000000000000000000000000',
+      });
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://data-api.polymarket.com/upnl?user=0x0000000000000000000000000000000000000000',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
     });
   });
 
@@ -2284,6 +2448,85 @@ describe('PolymarketProvider', () => {
 
       // Then 0 is returned
       expect(result).toBe(0);
+    });
+  });
+
+  describe('fetchActivity', () => {
+    const provider = createProvider();
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    it('throws when address is missing', async () => {
+      await expect(provider.getActivity({ address: '' })).rejects.toThrow();
+    });
+
+    it('calls fetch with derived predictAddress and parses activity', async () => {
+      const jsonData = [{ id: 'x1' }];
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: () => jsonData,
+      });
+
+      // Mock getAccountState used to derive predict address
+      const spy = jest
+        .spyOn(
+          provider as unknown as {
+            getAccountState: (p: { ownerAddress: string }) => Promise<{
+              address: string;
+              isDeployed: boolean;
+              hasAllowances: boolean;
+              balance: number;
+            }>;
+          },
+          'getAccountState',
+        )
+        .mockResolvedValue({
+          address: '0xSAFE',
+          isDeployed: true,
+          hasAllowances: true,
+          balance: 0,
+        });
+
+      const result = await provider.getActivity({ address: '0xuser' });
+
+      expect(spy).toHaveBeenCalledWith({ ownerAddress: '0xuser' });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('user=0xSAFE'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('returns empty array on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        json: () => ({}),
+      });
+      const spy = jest
+        .spyOn(
+          provider as unknown as {
+            getAccountState: (p: { ownerAddress: string }) => Promise<{
+              address: string;
+              isDeployed: boolean;
+              hasAllowances: boolean;
+              balance: number;
+            }>;
+          },
+          'getAccountState',
+        )
+        .mockResolvedValue({
+          address: '0xSAFE',
+          isDeployed: true,
+          hasAllowances: true,
+          balance: 0,
+        });
+
+      const result = await provider.getActivity({ address: '0xuser' });
+      expect(spy).toHaveBeenCalled();
+      expect(result).toEqual([]);
     });
   });
 });
