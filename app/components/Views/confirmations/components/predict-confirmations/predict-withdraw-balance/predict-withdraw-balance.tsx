@@ -14,6 +14,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-withdraw-balance.styles';
+import { strings } from '../../../../../../../locales/i18n';
 
 export function PredictWithdrawBalance() {
   const { styles } = useStyles(styleSheet, {});
@@ -35,7 +36,7 @@ export function PredictWithdrawBalance() {
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}
-      >{`Available: ${balanceFormatted}`}</Text>
+      >{`${strings('confirm.available_balance')}${balanceFormatted}`}</Text>
     </Box>
   );
 }
