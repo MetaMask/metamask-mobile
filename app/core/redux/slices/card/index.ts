@@ -6,6 +6,11 @@ import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
 import { CardTokenAllowance } from '../../../../components/UI/Card/types';
+import {
+  selectCardExperimentalSwitch,
+  selectCardSupportedCountries,
+  selectDisplayCardButtonFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 
 export interface CardSliceState {
   cardholderAccounts: string[];
@@ -13,6 +18,8 @@ export interface CardSliceState {
   lastFetchedByAddress: Record<string, Date | string | null>;
   hasViewedCardButton: boolean;
   isLoaded: boolean;
+  alwaysShowCardButton: boolean;
+  geoLocation: string;
 }
 
 export const initialState: CardSliceState = {
@@ -21,6 +28,8 @@ export const initialState: CardSliceState = {
   lastFetchedByAddress: {},
   hasViewedCardButton: false,
   isLoaded: false,
+  alwaysShowCardButton: false,
+  geoLocation: 'UNKNOWN',
 };
 
 // Async thunk for loading cardholder accounts
@@ -59,11 +68,15 @@ const slice = createSlice({
       state.lastFetchedByAddress[action.payload.address.toLowerCase()] =
         action.payload.lastFetched;
     },
+    setAlwaysShowCardButton: (state, action: PayloadAction<boolean>) => {
+      state.alwaysShowCardButton = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(loadCardholderAccounts.fulfilled, (state, action) => {
-        state.cardholderAccounts = action.payload ?? [];
+        state.cardholderAccounts = action.payload.cardholderAddresses ?? [];
+        state.geoLocation = action.payload.geoLocation ?? 'UNKNOWN';
         state.isLoaded = true;
       })
       .addCase(loadCardholderAccounts.rejected, (state, action) => {
@@ -114,6 +127,27 @@ export const selectIsCardCacheValid = (address?: string) =>
     return lastFetchedDate > fiveMinutesAgo;
   });
 
+export const selectAlwaysShowCardButton = createSelector(
+  selectCardState,
+  selectCardExperimentalSwitch,
+  (card, cardExperimentalSwitchFlagEnabled) => {
+    // Get the stored value of alwaysShowCardButton from the card state.
+    // That's stored in a persistent storage.
+    // If the feature flag is disabled, we return false.
+    // Otherwise, we return the stored value.
+    const alwaysShowCardButtonStoredValue = card.alwaysShowCardButton;
+
+    return cardExperimentalSwitchFlagEnabled
+      ? alwaysShowCardButtonStoredValue
+      : false;
+  },
+);
+
+export const selectCardGeoLocation = createSelector(
+  selectCardState,
+  (card) => card.geoLocation,
+);
+
 export const selectIsCardholder = createSelector(
   selectCardholderAccounts,
   selectedAccount,
@@ -133,10 +167,38 @@ export const selectHasViewedCardButton = createSelector(
   (card) => card.hasViewedCardButton,
 );
 
+export const selectDisplayCardButton = createSelector(
+  selectIsCardholder,
+  selectAlwaysShowCardButton,
+  selectCardGeoLocation,
+  selectCardSupportedCountries,
+  selectDisplayCardButtonFeatureFlag,
+  (
+    isCardholder,
+    alwaysShowCardButton,
+    geoLocation,
+    cardSupportedCountries,
+    displayCardButtonFeatureFlag,
+  ) => {
+    if (
+      alwaysShowCardButton ||
+      isCardholder ||
+      ((cardSupportedCountries as Record<string, boolean>)?.[geoLocation] ===
+        true &&
+        displayCardButtonFeatureFlag)
+    ) {
+      return true;
+    }
+
+    return false;
+  },
+);
+
 // Actions
 export const {
   resetCardState,
+  setAlwaysShowCardButton,
+  setHasViewedCardButton,
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
-  setHasViewedCardButton,
 } = actions;
