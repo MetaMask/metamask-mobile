@@ -187,32 +187,15 @@ jobs:
         with:
           path: artifacts/
 
-      - name: Run E2E tests
+      - name: 🧪 Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: |
-          platform="${{ inputs.platform }}"
-          test_suite_tag="${{ inputs.test_suite_tag }}"
-
-          echo "🚀 Running ${{ inputs.test-suite-name }} tests on $platform"
-
-          # Validate required test suite tag
-          if [[ -z "$test_suite_tag" ]]; then
-            echo "❌ Error: test_suite_tag is required for non-api-specs tests"
-            exit 1
-          fi
-
-          export TEST_SUITE_TAG="$test_suite_tag"
-          echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
-
-          # Run tests (Detox/Jest handle retries internally)
-          echo "🚀 Starting E2E tests..."
+          echo "Running ${{ inputs.test-suite-name }} tests on ${{ inputs.platform }}"
+          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+          echo "Using TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}"
 
           # Always use the splitting script (handles both split and non-split cases)
-          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
-
-          node .github/scripts/run-e2e-tags-gha.mjs
-
-          echo "✅ Test execution completed"
+          node .github/scripts/e2e-split-tags-shards.mjs
         env:
           JOB_NAME: ${{ inputs.test-suite-name }}
           RUN_ID: ${{ github.run_id }}
