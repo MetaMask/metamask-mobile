@@ -11,6 +11,7 @@ import type {
 } from '../types/perps-types';
 
 // Network constants
+export const ARBITRUM_MAINNET_CHAIN_ID_HEX = '0xa4b1';
 export const ARBITRUM_MAINNET_CHAIN_ID = '42161';
 export const ARBITRUM_TESTNET_CHAIN_ID = '421614';
 export const ARBITRUM_MAINNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_MAINNET_CHAIN_ID}`;

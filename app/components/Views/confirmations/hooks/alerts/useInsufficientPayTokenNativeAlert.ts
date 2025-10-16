@@ -6,28 +6,26 @@ import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
   const { totalNetworkFeeMax, total } = useTransactionTotalFiat();
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
+  const nativeTokenAddress = getNativeTokenAddress(chainId ?? '0x0');
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, chainId ?? '0x0'),
   );
 
-  const nativeToken = useTokenWithBalance(
-    NATIVE_TOKEN_ADDRESS,
-    chainId ?? '0x0',
-  );
+  const nativeToken = useTokenWithBalance(nativeTokenAddress, chainId ?? '0x0');
 
   const { tokenFiatAmount } = nativeToken ?? {};
-  const isPayTokenNative = payToken?.address === NATIVE_TOKEN_ADDRESS;
+  const isPayTokenNative = payToken?.address === nativeTokenAddress;
   const requiredAmount = isPayTokenNative ? total : totalNetworkFeeMax;
 
   const isInsufficient =
