@@ -132,7 +132,10 @@ describe('OnboardingAnimation', () => {
 
       // Trigger animation
       rerender(
-        <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
+        <OnboardingAnimation
+          {...defaultProps}
+          startOnboardingAnimation
+        />,
       );
 
       // Component should still render correctly
@@ -145,7 +148,10 @@ describe('OnboardingAnimation', () => {
 
       expect(() => {
         rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
+          <OnboardingAnimation
+            {...defaultProps}
+            startOnboardingAnimation
+          />,
         );
       }).not.toThrow();
     });
@@ -158,7 +164,10 @@ describe('OnboardingAnimation', () => {
 
       expect(() => {
         rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
+          <OnboardingAnimation
+            {...defaultProps}
+            startOnboardingAnimation
+          />,
         );
       }).not.toThrow();
 
@@ -167,7 +176,10 @@ describe('OnboardingAnimation', () => {
 
       expect(() => {
         rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
+          <OnboardingAnimation
+            {...defaultProps}
+            startOnboardingAnimation
+          />,
         );
       }).not.toThrow();
     });
@@ -253,7 +265,10 @@ describe('OnboardingAnimation', () => {
         const { rerender } = render(<OnboardingAnimation {...defaultProps} />);
 
         rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
+          <OnboardingAnimation
+            {...defaultProps}
+            startOnboardingAnimation
+          />,
         );
       }).not.toThrow();
 
