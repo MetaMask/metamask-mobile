@@ -450,7 +450,6 @@ stages:
       - run_network_abstraction_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_redesigned_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_upgrade_android: {}
