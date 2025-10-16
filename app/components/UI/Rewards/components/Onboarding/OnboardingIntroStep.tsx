@@ -191,7 +191,7 @@ const OnboardingIntroStep: React.FC<{
           'RewardsController:isOptInSupported',
           account,
         );
-      } catch (error) {
+      } catch {
         return false;
       }
     });
