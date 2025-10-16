@@ -192,7 +192,7 @@ jobs:
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-          node .github/scripts/create-e2e-test-report.mjs
+          node .github/scripts/e2e-create-test-report.mjs
           
           # Clean up temporary node_modules
           rm -rf node_modules
