@@ -38,7 +38,7 @@ export enum WebSocketConnectionState {
 export class HyperLiquidClientService {
   private exchangeClient?: ExchangeClient;
   private infoClient?: InfoClient;
-  private subscriptionClient?: SubscriptionClient;
+  private subscriptionClient?: SubscriptionClient<WebSocketTransport>;
   private transport?: WebSocketTransport;
   private isTestnet: boolean;
   private connectionState: WebSocketConnectionState =
@@ -173,7 +173,9 @@ export class HyperLiquidClientService {
   /**
    * Get the subscription client
    */
-  public getSubscriptionClient(): SubscriptionClient | undefined {
+  public getSubscriptionClient():
+    | SubscriptionClient<WebSocketTransport>
+    | undefined {
     if (!this.subscriptionClient) {
       DevLogger.log('SubscriptionClient not initialized');
       return undefined;
