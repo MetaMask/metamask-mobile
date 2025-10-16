@@ -31,6 +31,9 @@ const pReducer = persistReducer<RootState, AnyAction>(
 let store: ReduxStore, persistor: Persistor;
 
 const createStoreAndPersistor = async () => {
+  // Capture start time for store initialization
+  const storeInitStartTime = Date.now();
+  
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
@@ -68,12 +71,22 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
+    // Calculate store init duration (includes store creation + persist rehydration)
+    const storeInitDurationMs = Date.now() - storeInitStartTime;
+    
+    // End store init trace
     endTrace({ name: TraceName.StoreInit });
     
+    Logger.log(`📊 [PERFORMANCE] Store Init + Persist completed in ${storeInitDurationMs}ms`);
+    
     // START app startup performance trace - AFTER store is stable
+    // Include store init duration as metadata for complete picture
     store.dispatch(
       startPerformanceTrace({
         eventName: PerformanceEventNames.AppStartupComplete,
+        metadata: {
+          storeInitDurationMs,
+        },
       }),
     );
     
