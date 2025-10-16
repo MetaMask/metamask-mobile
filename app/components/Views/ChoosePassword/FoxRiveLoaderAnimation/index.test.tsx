@@ -36,14 +36,14 @@ jest.mock('rive-react-native', () => ({
 jest.mock('../../../../animations/fox_loading.riv', () => 'mock-rive-file');
 
 // Mock useScreenDimensions hook
-const mockUseScreenDimensions = jest.fn().mockReturnValue({
+const mockScreenDimensions = jest.fn().mockReturnValue({
   screenWidth: 375,
   screenHeight: 812,
   animationHeight: 406, // 812 * 0.5 for default medium/large device
 });
 
-jest.mock('../../../../hooks/useScreenDimensions', () => ({
-  useScreenDimensions: () => mockUseScreenDimensions(),
+jest.mock('../../../../util/onboarding', () => ({
+  getScreenDimensions: () => mockScreenDimensions(),
 }));
 
 // Mock Device utility
@@ -74,7 +74,7 @@ describe('FoxRiveLoaderAnimation', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockUseScreenDimensions.mockReturnValue({
+    mockScreenDimensions.mockReturnValue({
       screenWidth: 375,
       screenHeight: 812,
       animationHeight: 406,
@@ -155,7 +155,7 @@ describe('FoxRiveLoaderAnimation', () => {
 
   it('uses 40% animation height for small devices', () => {
     // Arrange
-    mockUseScreenDimensions.mockReturnValue({
+    mockScreenDimensions.mockReturnValue({
       screenWidth: 320,
       screenHeight: 568,
       animationHeight: 227,
@@ -166,12 +166,12 @@ describe('FoxRiveLoaderAnimation', () => {
 
     // Assert
     expect(toJSON()).not.toBeNull();
-    expect(mockUseScreenDimensions).toHaveBeenCalled();
+    expect(mockScreenDimensions).toHaveBeenCalled();
   });
 
   it('uses 40% animation height for medium devices', () => {
     // Arrange
-    mockUseScreenDimensions.mockReturnValue({
+    mockScreenDimensions.mockReturnValue({
       screenWidth: 375,
       screenHeight: 667,
       animationHeight: 267,
@@ -182,12 +182,12 @@ describe('FoxRiveLoaderAnimation', () => {
 
     // Assert
     expect(toJSON()).not.toBeNull();
-    expect(mockUseScreenDimensions).toHaveBeenCalled();
+    expect(mockScreenDimensions).toHaveBeenCalled();
   });
 
   it('uses 50% animation height for large devices', () => {
     // Arrange
-    mockUseScreenDimensions.mockReturnValue({
+    mockScreenDimensions.mockReturnValue({
       screenWidth: 375,
       screenHeight: 812,
       animationHeight: 406,
@@ -198,6 +198,6 @@ describe('FoxRiveLoaderAnimation', () => {
 
     // Assert
     expect(toJSON()).not.toBeNull();
-    expect(mockUseScreenDimensions).toHaveBeenCalled();
+    expect(mockScreenDimensions).toHaveBeenCalled();
   });
 });

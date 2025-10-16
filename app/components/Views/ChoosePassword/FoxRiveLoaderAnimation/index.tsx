@@ -3,10 +3,10 @@ import { View, ActivityIndicator } from 'react-native';
 import Rive, { Fit, Alignment } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
 import createStyles from './index.styles';
-import { useScreenDimensions } from '../../../../hooks/useScreenDimensions';
 import { useRiveAnimation } from '../../../../hooks/useRiveAnimation';
 
 import onboardingRiveFile from '../../../../animations/fox_loading.riv';
+import { getScreenDimensions } from '../../../../util/onboarding';
 
 interface FoxRiveLoaderAnimationProps {}
 
@@ -14,7 +14,7 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
 
-  const screenDimensions = useScreenDimensions();
+  const screenDimensions = getScreenDimensions();
 
   const styles = useMemo(
     () => createStyles(colors, screenDimensions),
