@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, TouchableHighlight } from 'react-native';
+import { FlatList, TouchableHighlight, Pressable, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -8,18 +8,16 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createDepositNavigationDetails } from '../../../Deposit/routes/utils';
 import OrderListItem from '../../components/OrderListItem';
-import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
 
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../../component-library/components/Buttons/Button/Button.types';
-import Text, {
-  TextColor,
+import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
+import {
+  Box,
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import {
   FIAT_ORDER_PROVIDERS,
@@ -32,25 +30,10 @@ import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/Depo
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
-interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
-  readonly selected?: boolean;
-}
-
-function FilterButton({ selected = false, ...props }: FilterButtonProps) {
-  return (
-    <Button
-      variant={selected ? ButtonVariants.Primary : ButtonVariants.Secondary}
-      size={ButtonSize.Sm}
-      accessibilityRole="button"
-      accessible
-      {...props}
-    />
-  );
-}
-
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const tw = useTailwind();
   const navigation = useNavigation();
   const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
@@ -114,50 +97,67 @@ function OrdersList() {
     </TouchableHighlight>
   );
 
+  const renderFilterTab = (filter: filterType, label: string) => {
+    const isActive = currentFilter === filter;
+
+    return (
+      <Pressable
+        key={filter}
+        onPress={() => setCurrentFilter(filter)}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        style={({ pressed }) =>
+          tw.style(
+            'h-10 px-4 rounded-xl items-center justify-center',
+            isActive ? 'bg-icon-default' : 'bg-background-muted',
+            pressed && 'opacity-70',
+          )
+        }
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName={isActive ? 'text-icon-inverse' : 'text-default'}
+        >
+          {label}
+        </Text>
+      </Pressable>
+    );
+  };
+
   return (
     <FlatList
       ListHeaderComponent={
-        <ScrollView horizontal>
-          <Row style={styles.filters}>
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.All')}
-              onPress={() => setCurrentFilter('ALL')}
-              selected={currentFilter === 'ALL'}
-            />
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Purchased')}
-              onPress={() => setCurrentFilter('PURCHASE')}
-              selected={currentFilter === 'PURCHASE'}
-            />
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Sold')}
-              onPress={() => setCurrentFilter('SELL')}
-              selected={currentFilter === 'SELL'}
-            />
-          </Row>
-        </ScrollView>
+        <Box twClassName="py-2 bg-default">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('flex-row gap-3')}
+          >
+            {renderFilterTab('ALL', strings('fiat_on_ramp_aggregator.All'))}
+            {renderFilterTab(
+              'PURCHASE',
+              strings('fiat_on_ramp_aggregator.Purchased'),
+            )}
+            {renderFilterTab('SELL', strings('fiat_on_ramp_aggregator.Sold'))}
+          </ScrollView>
+        </Box>
       }
       data={orders}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       ListEmptyComponent={
-        <Row>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Muted}
-            style={styles.emptyMessage}
-          >
-            {currentFilter === 'ALL'
-              ? strings('fiat_on_ramp_aggregator.empty_orders_list')
-              : null}
-            {currentFilter === 'PURCHASE'
-              ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
-              : null}
-            {currentFilter === 'SELL'
-              ? strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
-              : null}
-          </Text>
-        </Row>
+        <View style={styles.emptyContainer}>
+          <TabEmptyState
+            description={
+              currentFilter === 'ALL'
+                ? strings('fiat_on_ramp_aggregator.empty_orders_list')
+                : currentFilter === 'PURCHASE'
+                ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
+                : strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
+            }
+          />
+        </View>
       }
     />
   );

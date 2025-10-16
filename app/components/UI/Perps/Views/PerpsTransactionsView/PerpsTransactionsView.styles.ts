@@ -12,15 +12,11 @@ export const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
     },
     filterContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingVertical: 8,
       backgroundColor: colors.background.default,
     },
     filterScrollView: {
       flexGrow: 0,
-    },
-    filterTabContainer: {
-      gap: 8,
     },
     filterTabActive: {
       backgroundColor: colors.background.defaultPressed,
@@ -104,7 +100,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
-      paddingVertical: 48,
+      paddingVertical: 40,
     },
     emptyText: {
       textAlign: 'center' as const,

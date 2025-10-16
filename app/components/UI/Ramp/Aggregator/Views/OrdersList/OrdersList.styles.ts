@@ -3,12 +3,37 @@ import { Colors } from '../../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    filters: {
+    container: {
+      flex: 1,
+      width: '100%',
+      backgroundColor: colors.background.default,
+    },
+    filterContainer: {
+      paddingVertical: 8,
+      backgroundColor: colors.background.default,
+    },
+    filterScrollView: {
       flexDirection: 'row',
-      columnGap: 8,
+    },
+    filterTab: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      marginRight: 8,
+      borderRadius: 20,
+      backgroundColor: colors.background.default,
       alignItems: 'center',
-      marginVertical: 16,
-      marginHorizontal: 24,
+      justifyContent: 'center',
+    },
+    filterTabActive: {
+      backgroundColor: colors.background.defaultPressed,
+    },
+    filterTabText: {
+      color: colors.text.alternative,
+    },
+    emptyContainer: {
+      width: '100%',
+      alignItems: 'center',
+      paddingVertical: 40,
     },
     emptyMessage: {
       textAlign: 'center',
