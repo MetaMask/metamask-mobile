@@ -604,12 +604,16 @@ const BuildQuote = () => {
               </ListItemColumn>
 
               <ListItemColumn>
-                <TagBase
-                  includesBorder
-                  textProps={{ variant: TextVariant.BodySM }}
-                >
-                  {strings('deposit.payment_duration.instant')}
-                </TagBase>
+                {selectedPaymentMethod ? (
+                  <TagBase
+                    includesBorder
+                    textProps={{ variant: TextVariant.BodySM }}
+                  >
+                    {strings(
+                      `deposit.payment_duration.${selectedPaymentMethod.duration}`,
+                    )}
+                  </TagBase>
+                ) : null}
               </ListItemColumn>
               <ListItemColumn>
                 <Icon
@@ -621,15 +625,7 @@ const BuildQuote = () => {
             </ListItem>
           </TouchableOpacity>
 
-          <Keypad
-            value={amount}
-            onChange={handleKeypadChange}
-            currency={selectedRegion?.currency}
-            decimals={0}
-            periodButtonProps={{
-              isDisabled: true,
-            }}
-          />
+          <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>

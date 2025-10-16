@@ -132,7 +132,11 @@ export interface AccountState {
   address: string;
   isDeployed: boolean;
   hasAllowances: boolean;
-  balance: number;
+}
+
+export interface GetBalanceParams {
+  address?: string;
+  providerId: string;
 }
 
 export interface PredictProvider {
@@ -148,6 +152,9 @@ export interface PredictProvider {
     params: Omit<GetPositionsParams, 'address'> & { address: string },
   ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
+  getUnrealizedPnL(params: {
+    address: string;
+  }): Promise<import('../types').UnrealizedPnL>;
 
   // Order management
   placeOrder<T = void>(
@@ -175,4 +182,6 @@ export interface PredictProvider {
   getAccountState(
     params: GetAccountStateParams & { ownerAddress: string },
   ): Promise<AccountState>;
+
+  getBalance(params: GetBalanceParams): Promise<number>;
 }

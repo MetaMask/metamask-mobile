@@ -12,8 +12,7 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useRewardDashboardModals } from './useRewardDashboardModals';
-import { deriveAccountMetricProps, RewardsMetricsButtons } from '../utils';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { RewardsMetricsButtons } from '../utils';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 interface UseOptoutResult {
@@ -30,8 +29,6 @@ export const useOptout = (): UseOptoutResult => {
   const {
     resetAllSessionTracking: resetAllSessionTrackingForRewardsDashboardModals,
   } = useRewardDashboardModals();
-  const account = useSelector(selectSelectedInternalAccount);
-  const accountMetricsProps = deriveAccountMetricProps(account);
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
@@ -42,9 +39,7 @@ export const useOptout = (): UseOptoutResult => {
     setIsLoading(true);
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_STARTED)
-        .addProperties(accountMetricsProps)
-        .build(),
+      createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_STARTED).build(),
     );
 
     try {
@@ -57,9 +52,9 @@ export const useOptout = (): UseOptoutResult => {
 
       if (success) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_COMPLETED)
-            .addProperties(accountMetricsProps)
-            .build(),
+          createEventBuilder(
+            MetaMetricsEvents.REWARDS_OPT_OUT_COMPLETED,
+          ).build(),
         );
         const traits = {
           [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
@@ -74,9 +69,7 @@ export const useOptout = (): UseOptoutResult => {
       }
       Logger.log('useOptout: Opt-out failed - controller returned false');
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED)
-          .addProperties(accountMetricsProps)
-          .build(),
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED).build(),
       );
 
       // Show error toast
@@ -90,9 +83,7 @@ export const useOptout = (): UseOptoutResult => {
       Logger.log('useOptout: Opt-out failed with exception:', error);
 
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED)
-          .addProperties(accountMetricsProps)
-          .build(),
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED).build(),
       );
 
       // Show error toast
@@ -111,7 +102,6 @@ export const useOptout = (): UseOptoutResult => {
     trackEvent,
     createEventBuilder,
     addTraitsToUser,
-    accountMetricsProps,
     showToast,
     RewardsToastOptions,
     dispatch,
@@ -154,6 +144,7 @@ export const useOptout = (): UseOptoutResult => {
           label: isLoading
             ? strings('rewards.optout.modal.processing')
             : strings('rewards.optout.modal.confirm'),
+          loadOnPress: true,
           onPress: handleOptoutConfirm,
           variant: ButtonVariant.Primary,
           disabled: isLoading,

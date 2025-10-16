@@ -84,8 +84,10 @@ describe('PredictController', () => {
       prepareClaim: jest.fn(),
       prepareDeposit: jest.fn(),
       getAccountState: jest.fn(),
+      getBalance: jest.fn(),
       isEligible: jest.fn(),
       providerId: 'polymarket',
+      getUnrealizedPnL: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Mock the PolymarketProvider constructor
@@ -1703,6 +1705,140 @@ describe('PredictController', () => {
     });
   });
 
+  describe('getUnrealizedPnL', () => {
+    it('successfully fetches unrealized P&L data', async () => {
+      await withController(async ({ controller }) => {
+        const mockUnrealizedPnL = {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: -7.337110036077004,
+          percentUpnl: -31.32290842628039,
+        };
+
+        mockPolymarketProvider.getUnrealizedPnL.mockResolvedValue(
+          mockUnrealizedPnL,
+        );
+
+        const result = await controller.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockUnrealizedPnL);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getUnrealizedPnL).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('uses selected account address when no address provided', async () => {
+      await withController(async ({ controller }) => {
+        const mockUnrealizedPnL = {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: 0,
+          percentUpnl: 0,
+        };
+
+        mockPolymarketProvider.getUnrealizedPnL.mockResolvedValue(
+          mockUnrealizedPnL,
+        );
+
+        await controller.getUnrealizedPnL({});
+
+        expect(mockPolymarketProvider.getUnrealizedPnL).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('throws error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles provider errors gracefully', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('Failed to fetch unrealized P&L'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('Failed to fetch unrealized P&L');
+
+        expect(controller.state.lastError).toBe(
+          'Failed to fetch unrealized P&L',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles provider returning empty data', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('No unrealized P&L data found'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('No unrealized P&L data found');
+
+        expect(controller.state.lastError).toBe('No unrealized P&L data found');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles network errors from provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('Network error'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('Network error');
+
+        expect(controller.state.lastError).toBe('Network error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles non-Error exceptions from provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          'String error',
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe(
+          'Failed to fetch unrealized P&L',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+  });
+
   describe('clearClaimTransactions', () => {
     it('clear all claim transactions from state', () => {
       withController(({ controller }) => {
@@ -2026,130 +2162,8 @@ describe('PredictController', () => {
   });
 
   describe('deposit transaction event handlers', () => {
-    it('update deposit transaction status to CONFIRMED on transactionConfirmed with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-1';
-
-        // Set up deposit transaction with matching batch ID
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          batchId,
-          id: 'tx-in-batch-1',
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xToken',
-            data: '0xapprove',
-            value: '0x0',
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to CONFIRMED
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.CONFIRMED,
-        );
-      });
-    });
-
-    it('update deposit transaction status to ERROR on transactionFailed with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-failed';
-
-        // Set up deposit transaction
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            batchId,
-            id: 'tx-failed',
-            hash: '0xabc',
-            status: 'failed',
-            error: { message: 'Transaction failed' },
-            txParams: {
-              from: '0x1',
-              to: '0xToken',
-              data: '0xapprove',
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionFailed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to ERROR
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.ERROR,
-        );
-      });
-    });
-
-    it('update deposit transaction status to CANCELLED on transactionRejected with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-rejected';
-
-        // Set up deposit transaction
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            batchId,
-            id: 'tx-rejected',
-            hash: '0xdef',
-            status: 'rejected',
-            txParams: {
-              from: '0x1',
-              to: '0xToken',
-              data: '0xapprove',
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionRejected',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to CANCELLED
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.CANCELLED,
-        );
-      });
-    });
+    // Deposit transaction status updates are now handled by usePredictDepositToasts hook
+    // rather than the controller's event handlers
 
     it('not modify deposit state when different batchId', () => {
       withController(({ controller, messenger }) => {
@@ -2314,6 +2328,82 @@ describe('PredictController', () => {
             providerId: 'invalid-provider',
           }),
         ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+  });
+
+  describe('getBalance', () => {
+    it('get balance successfully with default address', async () => {
+      // Given
+      const mockBalance = 1000;
+      mockPolymarketProvider.getBalance.mockResolvedValue(mockBalance);
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance
+        const result = await controller.getBalance({
+          providerId: 'polymarket',
+        });
+
+        // Then it should return the balance
+        expect(result).toBe(mockBalance);
+
+        // And provider should be called with default address
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('get balance successfully with custom address', async () => {
+      // Given
+      const mockBalance = 500;
+      mockPolymarketProvider.getBalance.mockResolvedValue(mockBalance);
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance with custom address
+        const result = await controller.getBalance({
+          providerId: 'polymarket',
+          address: '0x9876543210987654321098765432109876543210',
+        });
+
+        // Then it should return the balance
+        expect(result).toBe(mockBalance);
+
+        // And provider should be called with custom address
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          address: '0x9876543210987654321098765432109876543210',
+        });
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        // When calling getBalance with invalid provider
+        // Then it should throw an error
+        await expect(
+          controller.getBalance({
+            providerId: 'invalid-provider',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('handle error when getBalance throws', async () => {
+      // Given
+      mockPolymarketProvider.getBalance.mockRejectedValue(
+        new Error('Balance fetch failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance
+        // Then it should throw an error
+        await expect(
+          controller.getBalance({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Balance fetch failed');
       });
     });
   });

@@ -58,6 +58,7 @@ import {
   MultichainAssetsRatesControllerState,
   MultichainAssetsRatesControllerEvents,
   MultichainAssetsRatesControllerActions,
+  CodefiTokenPricesServiceV2,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -325,6 +326,12 @@ import {
   GatorPermissionsController,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
+import { DelegationController } from '@metamask/delegation-controller';
+import {
+  DelegationControllerActions,
+  DelegationControllerEvents,
+  DelegationControllerState,
+} from '@metamask/delegation-controller/dist/types.cjs';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 
@@ -427,7 +434,8 @@ type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
-  | ErrorReportingServiceActions;
+  | ErrorReportingServiceActions
+  | DelegationControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -487,7 +495,8 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
-  | AccountTreeControllerEvents;
+  | AccountTreeControllerEvents
+  | DelegationControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -573,6 +582,7 @@ export type Controllers = {
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
+  DelegationController: DelegationController;
 };
 
 /**
@@ -644,6 +654,7 @@ export type EngineState = {
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   GatorPermissionsController: GatorPermissionsControllerState;
+  DelegationController: DelegationControllerState;
 };
 
 /** Controller names */
@@ -674,7 +685,10 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
+  | 'AccountTrackerController'
+  | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  | 'AuthenticationController'
   | 'CronjobController'
   | 'ExecutionService'
   | 'SnapController'
@@ -685,6 +699,7 @@ export type ControllersToInitialize =
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
   | 'SubjectMetadataController'
+  | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
@@ -692,8 +707,10 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'EarnController'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
@@ -703,8 +720,19 @@ export type ControllersToInitialize =
   | 'GasFeeController'
   | 'KeyringController'
   | 'MultichainNetworkController'
+  | 'NftController'
+  | 'NftDetectionController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
+  | 'SmartTransactionsController'
+  | 'SwapsController'
+  | 'TokenBalancesController'
+  | 'TokenDetectionController'
+  | 'TokenListController'
+  | 'TokenRatesController'
+  | 'TokensController'
+  | 'TokenSearchDiscoveryController'
+  | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
   | 'PermissionController'
   | 'PerpsController'
@@ -714,7 +742,9 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
+  | 'RewardsDataService'
   | 'GatorPermissionsController'
+  | 'DelegationController'
   | 'SelectedNetworkController';
 
 /**
@@ -749,6 +779,11 @@ export type ControllerInitRequest<
   ControllerMessengerType extends BaseRestrictedControllerMessenger,
   InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
 > = {
+  /**
+   * The token API service instance.
+   */
+  codefiTokenApiV2: CodefiTokenPricesServiceV2;
+
   /**
    * Controller messenger for the client.
    * Used to generate controller for each controller.
@@ -844,6 +879,7 @@ export interface InitModularizedControllersFunctionRequest {
   getState: () => RootState;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
+  codefiTokenApiV2: CodefiTokenPricesServiceV2;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF

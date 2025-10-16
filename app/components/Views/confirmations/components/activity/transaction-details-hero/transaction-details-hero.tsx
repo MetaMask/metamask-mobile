@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { Box } from '../../../../../UI/Box/Box';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -11,7 +10,6 @@ import {
   hasTransactionType,
   parseStandardTokenTransactionData,
 } from '../../../utils/transaction';
-import { Hex } from '@metamask/utils';
 import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { Result } from '@ethersproject/abi';
 import { calcTokenAmount } from '../../../../../../util/transactions';
@@ -63,15 +61,7 @@ export function TransactionDetailsHero() {
       gap={12}
       style={styles.container}
     >
-      <Box>
-        <TokenIcon
-          chainId={chainId}
-          address={to as Hex}
-          variant={TokenIconVariant.Hero}
-          showNetwork={false}
-        />
-      </Box>
-      <Text variant={TextVariant.HeadingLG}>${amountHuman}</Text>
+      <Text variant={TextVariant.DisplayLG}>${amountHuman}</Text>
     </Box>
   );
 }
