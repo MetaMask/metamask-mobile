@@ -29,7 +29,6 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
         AccountListBottomSheet.accountList,
       );
 
-      await AccountListBottomSheet.scrollToBottomOfAccountList();
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list
