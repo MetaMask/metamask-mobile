@@ -1,27 +1,23 @@
-import React from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../../../UI/Box/Box';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from './predict-claim-footer.styles';
-import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import { strings } from '../../../../../../../locales/i18n';
-import {
-  getPredictMarketImage,
-  selectPredictClaimDataByTransactionId,
-} from '../predict-temp';
-import { RootState } from '../../../../../../reducers';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
+import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
+import Button, {
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
+import { Box } from '../../../../../UI/Box/Box';
+import { PredictPositionStatus } from '../../../../../UI/Predict';
+import { selectPredictClaimablePositions } from '../../../../../UI/Predict/selectors/predictController';
+import styleSheet from './predict-claim-footer.styles';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
@@ -29,17 +25,18 @@ export interface PredictClaimFooterProps {
 
 export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
   const { styles } = useStyles(styleSheet, {});
-  const { id: transactionId } = useTransactionMetadataRequest() ?? {};
 
-  const { marketIds } =
-    useSelector((state: RootState) =>
-      selectPredictClaimDataByTransactionId(state, transactionId ?? ''),
-    ) ?? {};
+  const claimablePositions = useSelector(selectPredictClaimablePositions);
+  const wonPositions = useMemo(
+    () =>
+      claimablePositions?.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ) ?? [],
+    [claimablePositions],
+  );
 
-  if (!marketIds) return null;
-
-  const networkAvatars = marketIds.map((marketId) => ({
-    imageSource: getPredictMarketImage(marketId),
+  const networkAvatars = wonPositions.map((position) => ({
+    imageSource: { uri: position.icon },
     variant: AvatarVariant.Token as const,
   }));
 
@@ -48,7 +45,7 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
       <Box style={styles.top}>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {strings('confirm.predict_claim.footer_top', {
-            count: marketIds.length,
+            count: wonPositions.length,
           })}
         </Text>
         <AvatarGroup

@@ -1,49 +1,44 @@
 import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { Box } from '../../../../../UI/Box/Box';
+import { PredictPositionStatus } from '../../../../../UI/Predict';
+import { selectPredictClaimablePositions } from '../../../../../UI/Predict/selectors/predictController';
+import {
+  formatPercentage,
+  formatPrice,
+} from '../../../../../UI/Predict/utils/format';
 import styleSheet from './predict-claim-amount.styles';
-import { RootState } from '../../../../../../reducers';
-import { selectPredictClaimDataByTransactionId } from '../predict-temp';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { BigNumber } from 'bignumber.js';
-import { strings } from '../../../../../../../locales/i18n';
 
 export function PredictClaimAmount() {
   const { styles } = useStyles(styleSheet, {});
-  const { id: transactionId } = useTransactionMetadataRequest() ?? {};
-  const formatFiat = useFiatFormatter();
 
-  const { winningsFiat, changeFiat } =
-    useSelector((state: RootState) =>
-      selectPredictClaimDataByTransactionId(state, transactionId ?? ''),
-    ) ?? {};
-
-  const changePercent = useMemo(
+  const claimablePositions = useSelector(selectPredictClaimablePositions);
+  const wonPositions = useMemo(
     () =>
-      new BigNumber(changeFiat ?? 1)
-        .dividedBy(winningsFiat ?? 1)
-        .multipliedBy(100)
-        .toFixed(2),
-    [winningsFiat, changeFiat],
+      claimablePositions?.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ) ?? [],
+    [claimablePositions],
   );
 
-  const changeFormatted = useMemo(
-    () => formatFiat(new BigNumber(changeFiat ?? 0)),
-    [changeFiat, formatFiat],
+  const winningsFiat = useMemo(
+    () =>
+      wonPositions.reduce((acc, position) => acc + position.currentValue, 0),
+    [wonPositions],
   );
 
-  const winningsFormatted = useMemo(
-    () => formatFiat(new BigNumber(winningsFiat ?? 0)),
-    [winningsFiat, formatFiat],
+  const winningsPnl = useMemo(
+    () => wonPositions.reduce((acc, position) => acc + position.cashPnl, 0),
+    [wonPositions],
   );
 
-  if (!(winningsFiat && changeFiat)) {
+  if (!(winningsFiat && winningsPnl)) {
     return null;
   }
 
@@ -53,14 +48,16 @@ export function PredictClaimAmount() {
         {strings('confirm.predict_claim.summary')}
       </Text>
       <Text variant={TextVariant.BodyMDMedium} style={styles.value}>
-        {winningsFormatted}
+        {formatPrice(winningsFiat, { maximumDecimals: 2 })}
       </Text>
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Success}
         style={styles.change}
       >
-        {`+${changeFormatted} (${changePercent}%)`}
+        {`+${formatPrice(winningsPnl, {
+          maximumDecimals: 2,
+        })} (${formatPercentage((winningsPnl / winningsFiat) * 100)})`}
       </Text>
     </Box>
   );

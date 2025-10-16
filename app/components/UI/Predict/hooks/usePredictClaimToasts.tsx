@@ -8,7 +8,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import React, { useCallback, useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -16,7 +16,10 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { usePredictDeposit } from './usePredictDeposit';
+import { usePredictClaim } from './usePredictClaim';
+import { useSelector } from 'react-redux';
+import { selectPredictClaimablePositions } from '../selectors/predictController';
+import { PredictPosition, PredictPositionStatus } from '../types';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -27,21 +30,41 @@ const toastStyles = StyleSheet.create({
   },
 });
 
-export const usePredictDepositToasts = () => {
+export const usePredictClaimToasts = () => {
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-  const { deposit } = usePredictDeposit();
+  const { claim } = usePredictClaim();
 
-  const showPendingToast = useCallback(
+  const claimablePositions = useSelector(selectPredictClaimablePositions);
+  const wonPositions = useMemo(
     () =>
+      claimablePositions?.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ) ?? [],
+    [claimablePositions],
+  );
+
+  const totalClaimableAmount = useMemo(
+    () =>
+      wonPositions.reduce(
+        (sum: number, position: PredictPosition) => sum + position.currentValue,
+        0,
+      ),
+    [wonPositions],
+  );
+  const showPendingToast = useCallback(
+    (amount: string) =>
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
-          { label: strings('predict.deposit.adding_funds'), isBold: true },
+          {
+            label: strings('predict.claim.toasts.pending.title', { amount }),
+            isBold: true,
+          },
           { label: '\n', isBold: false },
           {
-            label: strings('predict.deposit.estimated_processing_time', {
-              time: 30,
+            label: strings('predict.claim.toasts.pending.description', {
+              time: 5,
             }),
             isBold: false,
           },
@@ -89,10 +112,10 @@ export const usePredictDepositToasts = () => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
-          { label: strings('predict.deposit.error_title'), isBold: true },
+          { label: strings('predict.claim.toasts.error.title'), isBold: true },
           { label: '\n', isBold: false },
           {
-            label: strings('predict.deposit.error_description'),
+            label: strings('predict.claim.toasts.error.description'),
             isBold: false,
           },
         ],
@@ -101,59 +124,60 @@ export const usePredictDepositToasts = () => {
         backgroundColor: theme.colors.accent04.normal,
         hasNoTimeout: false,
         linkButtonOptions: {
-          label: strings('predict.deposit.try_again'),
+          label: strings('predict.claim.toasts.error.try_again'),
           onPress: () => {
-            deposit();
+            claim();
           },
         },
       }),
-    [
-      deposit,
-      theme.colors.accent04.normal,
-      theme.colors.error.default,
-      toastRef,
-    ],
+    [claim, theme.colors.accent04.normal, theme.colors.error.default, toastRef],
   );
 
   useEffect(() => {
-    const handlePredictDepositTransactionStatusUpdate = ({
+    const handlePredictClaimTransactionStatusUpdate = ({
       transactionMeta,
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      const isPredictDeposit = transactionMeta?.nestedTransactions?.some(
-        (tx) => tx.type === TransactionType.predictDeposit,
+      const isPredictClaim = transactionMeta?.nestedTransactions?.some(
+        (tx) => tx.type === TransactionType.predictClaim,
       );
-      if (!isPredictDeposit) {
+      if (!isPredictClaim) {
         return;
       }
 
       if (transactionMeta.status === TransactionStatus.approved) {
-        showPendingToast();
+        showPendingToast(transactionMeta.metamaskPay?.totalFiat ?? '');
       }
 
       if (transactionMeta.status === TransactionStatus.confirmed) {
-        Engine.context.PredictController.clearDepositTransaction();
-        showConfirmedToast(transactionMeta.metamaskPay?.totalFiat ?? 'Balance');
+        Engine.context.PredictController.clearClaimTransaction();
+        showConfirmedToast(totalClaimableAmount.toString());
       }
 
       // Handle PredictDeposit failed - clear deposit in progress
       if (transactionMeta.status === TransactionStatus.failed) {
-        Engine.context.PredictController.clearDepositTransaction();
+        Engine.context.PredictController.clearClaimTransaction();
         showErrorToast();
       }
     };
 
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
-      handlePredictDepositTransactionStatusUpdate,
+      handlePredictClaimTransactionStatusUpdate,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
-        handlePredictDepositTransactionStatusUpdate,
+        handlePredictClaimTransactionStatusUpdate,
       );
     };
-  }, [deposit, showConfirmedToast, showErrorToast, showPendingToast, toastRef]);
+  }, [
+    showConfirmedToast,
+    showErrorToast,
+    showPendingToast,
+    toastRef,
+    totalClaimableAmount,
+  ]);
 };
