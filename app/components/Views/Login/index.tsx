@@ -68,7 +68,6 @@ import {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -798,13 +797,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              <Label
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                style={styles.label}
-              >
-                {strings('login.password')}
-              </Label>
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings(
