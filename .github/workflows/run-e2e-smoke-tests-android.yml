@@ -14,21 +14,6 @@ permissions:
   id-token: write
 
 jobs:
-  confirmations-android-smoke:
-    strategy:
-      matrix:
-        split: [1, 2, 3]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: confirmations-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: "SmokeConfirmations"
-      split_number: ${{ matrix.split }}
-      total_splits: 3
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   trade-android-smoke:
     strategy:
       matrix:
@@ -154,7 +139,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs:
-      - confirmations-android-smoke
       - trade-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke

@@ -48,15 +48,22 @@ export const ActivityEventRow: React.FC<{
 
     try {
       let assetType: CaipAssetType | undefined;
+      let chainId: string | undefined;
+
       if (event.type === 'SWAP' && event.payload.srcAsset?.type) {
         assetType = event.payload.srcAsset.type as CaipAssetType;
+        chainId = parseCaipAssetType(assetType).chainId;
       } else if (event.type === 'PERPS' && event.payload.asset?.type) {
         assetType = event.payload.asset.type as CaipAssetType;
+        chainId = parseCaipAssetType(assetType).chainId;
+      } else if (event.type === 'CARD' && event.payload.asset?.type) {
+        assetType = event.payload.asset.type as CaipAssetType;
+        chainId = parseCaipAssetType(assetType).chainId;
       } else {
         return;
       }
 
-      const { chainId } = parseCaipAssetType(assetType);
+      if (!chainId) return;
 
       return getNetworkImageSource({ chainId });
     } catch (error) {

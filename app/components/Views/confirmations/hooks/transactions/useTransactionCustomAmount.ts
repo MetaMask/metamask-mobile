@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
@@ -7,12 +7,26 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenTransferData } from '../../utils/transaction-pay';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { debounce } from 'lodash';
 
 export const MAX_LENGTH = 28;
+const DEBOUNCE_DELAY = 500;
 
 export function useTransactionCustomAmount() {
-  const [amountFiat, setAmountFiat] = useState('0');
+  const { amount: defaultAmount } = useParams<{ amount?: string }>();
+  const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
+  const [hasInput, setHasInput] = useState(false);
+  const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
+
+  const debounceSetAmountDelayed = useMemo(
+    () =>
+      debounce((value: string) => {
+        setAmountHumanDebounced(value);
+      }, DEBOUNCE_DELAY),
+    [],
+  );
 
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { chainId } = transactionMeta;
@@ -33,6 +47,20 @@ export function useTransactionCustomAmount() {
     [amountFiat, tokenFiatRate],
   );
 
+  useEffect(() => {
+    debounceSetAmountDelayed(amountHuman);
+  }, [amountHuman, debounceSetAmountDelayed]);
+
+  useEffect(() => {
+    if (amountHumanDebounced !== '0') {
+      setInputChanged(true);
+    }
+
+    setHasInput(
+      Boolean(amountHumanDebounced?.length) && amountHumanDebounced !== '0',
+    );
+  }, [amountHumanDebounced]);
+
   const updatePendingAmount = useCallback((value: string) => {
     let newAmount = value.replace(/^0+/, '') || '0';
 
@@ -45,7 +73,6 @@ export function useTransactionCustomAmount() {
     }
 
     setAmountFiat(newAmount);
-    setInputChanged(true);
   }, []);
 
   const updatePendingAmountPercentage = useCallback(
@@ -72,6 +99,8 @@ export function useTransactionCustomAmount() {
   return {
     amountFiat,
     amountHuman,
+    amountHumanDebounced,
+    hasInput,
     isInputChanged,
     updatePendingAmount,
     updatePendingAmountPercentage,

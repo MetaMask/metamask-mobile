@@ -37,7 +37,6 @@ export const usePredictAccountState = ({
     () => !!accountState?.hasAllowances,
     [accountState],
   );
-  const balance = useMemo(() => accountState?.balance ?? 0, [accountState]);
 
   const loadAccountState = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -62,7 +61,6 @@ export const usePredictAccountState = ({
           address: accountStateResponse?.address,
           isDeployed: accountStateResponse?.isDeployed,
           hasAllowances: accountStateResponse?.hasAllowances,
-          balance: accountStateResponse?.balance,
         });
       } catch (err) {
         const errorMessage =
@@ -102,7 +100,6 @@ export const usePredictAccountState = ({
     address,
     isDeployed,
     hasAllowances,
-    balance,
     isLoading,
     isRefreshing,
     error,

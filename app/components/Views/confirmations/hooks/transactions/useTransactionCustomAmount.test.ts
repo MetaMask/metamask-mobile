@@ -9,10 +9,15 @@ import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../pay/useTransactionPayToken');
+jest.mock('../useTokenAmount');
+jest.mock('../../../../../util/navigation/navUtils');
+
+jest.useFakeTimers();
 
 const TOKEN_TRANSFER_DATA =
   '0xa9059cbb0000000000000000000000005a52e96bacdabb82fd05763e25335261b270efcb0000000000000000000000000000000000000000000000004563918244f40000';
@@ -45,6 +50,7 @@ describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useParamsMock = jest.mocked(useParams);
 
   const updateTokenAmountMock: ReturnType<
     typeof useUpdateTokenAmount
@@ -62,6 +68,8 @@ describe('useTransactionCustomAmount', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { tokenFiatAmount: 1234.56 },
     } as ReturnType<typeof useTransactionPayToken>);
+
+    useParamsMock.mockReturnValue({});
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -177,5 +185,61 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(result.current.amountFiat).toBe('530.86');
+  });
+
+  it('returns default amount from params if available', async () => {
+    useParamsMock.mockReturnValue({ amount: '43.21' });
+
+    const { result } = runHook();
+
+    expect(result.current.amountFiat).toBe('43.21');
+  });
+
+  it('returns isInputChanged as true after amount changed and debounce', async () => {
+    const { result } = runHook();
+
+    expect(result.current.isInputChanged).toBe(false);
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    expect(result.current.isInputChanged).toBe(false);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.isInputChanged).toBe(true);
+  });
+
+  it('returns hasInput as true after amount changed and debounce', async () => {
+    const { result } = runHook();
+
+    expect(result.current.hasInput).toBe(false);
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    expect(result.current.hasInput).toBe(false);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.hasInput).toBe(true);
+
+    await act(async () => {
+      result.current.updatePendingAmount('0');
+    });
+
+    expect(result.current.hasInput).toBe(true);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.hasInput).toBe(false);
   });
 });
