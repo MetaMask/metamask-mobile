@@ -181,8 +181,6 @@ const BridgeView = () => {
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const hasQuoteDetails = activeQuote;
-
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
@@ -201,7 +199,12 @@ const BridgeView = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
+  const isSubmitDisabled =
+    hasInsufficientBalance ||
+    isSubmittingTx ||
+    (isHardwareAddress && isSolanaSourced) ||
+    !!blockaidError ||
+    !hasSufficientGas;
 
   // Compute error state directly from dependencies
   const isError =
@@ -212,6 +215,8 @@ const BridgeView = () => {
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
     isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
+  // Hide quote whenever the keypad is displayed
+  const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -232,7 +237,7 @@ const BridgeView = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, quotesLastFetched]);
+  }, [isLoading, activeQuote?.quote.requestId]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -343,7 +348,7 @@ const BridgeView = () => {
     }
   }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
 
-  const renderBottomContent = () => {
+  const renderBottomContent = (submitDisabled: boolean) => {
     if (shouldDisplayKeypad && !isLoading) {
       return (
         <Box style={styles.buttonContainer}>
@@ -410,21 +415,17 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            label={getButtonLabel()}
-            onPress={handleContinue}
-            style={styles.button}
-            testID="bridge-confirm-button"
-            isDisabled={
-              hasInsufficientBalance ||
-              isSubmittingTx ||
-              (isHardwareAddress && isSolanaSourced) ||
-              !!blockaidError ||
-              !hasSufficientGas
-            }
-          />
+          {!shouldDisplayKeypad && (
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              label={getButtonLabel()}
+              onPress={handleContinue}
+              style={styles.button}
+              testID="bridge-confirm-button"
+              isDisabled={submitDisabled}
+            />
+          )}
           {hasFee ? (
             <Text
               variant={TextVariant.BodyMD}
@@ -539,7 +540,7 @@ const BridgeView = () => {
             ) : null}
           </Box>
         </ScrollView>
-        {renderBottomContent()}
+        {renderBottomContent(isSubmitDisabled)}
       </Box>
     </ScreenView>
   );
