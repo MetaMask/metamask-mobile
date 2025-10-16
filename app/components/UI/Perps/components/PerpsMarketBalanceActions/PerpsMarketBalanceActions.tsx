@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, Animated, View } from 'react-native';
 import BN from 'bnjs4';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
@@ -50,7 +44,7 @@ import {
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
-import { useWithdrawalAmount } from '../../hooks/useWithdrawalAmount';
+import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -132,8 +126,16 @@ const PerpsMarketBalanceActions: React.FC<
     string | null
   >(null);
 
-  // Extract withdrawal amount when withdrawal is in progress
-  const { withdrawalAmount } = useWithdrawalAmount(withdrawalRequests);
+  // Extract all transaction state logic
+  const {
+    withdrawalAmount,
+    hasActiveWithdrawals,
+    statusText,
+    isAnyTransactionInProgress,
+  } = usePerpsTransactionState({
+    withdrawalRequests,
+    isDepositInProgress,
+  });
 
   // Convert amount to USD display (handles both USD strings and wei)
   const convertToUSD = (amount: string): string => {
@@ -271,36 +273,6 @@ const PerpsMarketBalanceActions: React.FC<
 
   const availableBalance = perpsAccount?.availableBalance || '0';
   const isBalanceEmpty = BigNumber(availableBalance).isZero();
-
-  // Check if there are any active withdrawals (pending or bridging)
-  const hasActiveWithdrawals = useMemo(
-    () =>
-      withdrawalRequests.some(
-        (request) =>
-          request.status === 'pending' || request.status === 'bridging',
-      ),
-    [withdrawalRequests],
-  );
-
-  // Determine the status text based on transaction states
-  const statusText = useMemo(() => {
-    if (isDepositInProgress && hasActiveWithdrawals) {
-      return strings('perps.multiple_transactions_in_progress');
-    }
-    if (isDepositInProgress) {
-      return strings('perps.deposit_in_progress');
-    }
-    if (hasActiveWithdrawals) {
-      return strings('perps.withdraw_in_progress');
-    }
-    return strings('perps.available_balance');
-  }, [isDepositInProgress, hasActiveWithdrawals]);
-
-  // Determine if any transaction is in progress
-  const isAnyTransactionInProgress = useMemo(
-    () => isDepositInProgress || hasActiveWithdrawals,
-    [isDepositInProgress, hasActiveWithdrawals],
-  );
 
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
