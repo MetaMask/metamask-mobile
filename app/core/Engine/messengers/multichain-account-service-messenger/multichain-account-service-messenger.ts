@@ -19,6 +19,7 @@ import {
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
 import { MultichainAccountServiceMultichainAccountGroupUpdatedEvent } from '@metamask/multichain-account-service';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 type Actions =
   | AccountsControllerListMultichainAccountsAction
@@ -76,6 +77,8 @@ export function getMultichainAccountServiceMessenger(
 export type AllowedInitializationEvents =
   MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
 
+export type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
+
 export type MultichainAccountServiceInitMessenger = ReturnType<
   typeof getMultichainAccountServiceInitMessenger
 >;
@@ -88,11 +91,11 @@ export type MultichainAccountServiceInitMessenger = ReturnType<
  * @returns The restricted controller messenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  messenger: Messenger<never, AllowedInitializationEvents>,
+  messenger: Messenger<AllowedInitializationActions, AllowedInitializationEvents>,
 ) {
   return messenger.getRestricted({
     name: 'MultichainAccountServiceInit',
-    allowedActions: [],
+    allowedActions: ['RemoteFeatureFlagController:getState'],
     allowedEvents: ['MultichainAccountService:multichainAccountGroupUpdated'],
   });
 }

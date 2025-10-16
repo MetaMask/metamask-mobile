@@ -9,8 +9,7 @@ import { ControllerInitFunction } from '../../types';
 import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
-import { selectIsBitcoinAccountsEnabled } from '../../../../selectors/featureFlagController/bitcoinAccountsEnabled';
-import ReduxService from '../../../redux';
+import { isBitcoinAccountsFeatureEnabled } from '../../../../multichain-bitcoin/remote-feature-flag';
 
 /**
  * Initialize the multichain account service.
@@ -52,9 +51,12 @@ export const multichainAccountServiceInit: ControllerInitFunction<
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   // Handle Bitcoin provider feature flag
-  // TODO: Use initMessenger when RemoteFeatureFlagController:getState is added to permissions
-  // For now, using selector to avoid circular dependency with Engine.context during tests
-  const isBitcoinEnabled = selectIsBitcoinAccountsEnabled(ReduxService.store.getState());
+  const remoteFeatureFlagsState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+  const isBitcoinEnabled = isBitcoinAccountsFeatureEnabled(
+    remoteFeatureFlagsState?.remoteFeatureFlags?.bitcoinAccounts,
+  );
 
   if (isBitcoinEnabled) {
     btcProvider.setEnabled(true);
