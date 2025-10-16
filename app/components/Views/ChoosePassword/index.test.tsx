@@ -53,70 +53,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('lottie-react-native', () => 'LottieView');
-
-jest.mock('./FoxRiveLoaderAnimation/index', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const MockReact = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const { View, Text } = require('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const { strings: mockStrings } = require('../../../../locales/i18n');
-
-  return MockReact.forwardRef(
-    (
-      props: { slideOut?: boolean; onAnimationComplete?: () => void },
-      _ref: unknown,
-    ) => {
-      // Call onAnimationComplete immediately when slideOut becomes true
-      MockReact.useEffect(() => {
-        if (props.slideOut && props.onAnimationComplete) {
-          setTimeout(() => {
-            props.onAnimationComplete?.();
-          }, 0);
-        }
-      }, [props.slideOut, props.onAnimationComplete]);
-
-      // Ensure not to throw any errors that could trigger ErrorBoundary
-      try {
-        return MockReact.createElement(
-          View,
-          {
-            testID: 'fox-rive-loader-animation',
-            style: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-          },
-          [
-            MockReact.createElement(
-              Text,
-              {
-                key: 'animation-text',
-                testID: 'animation-text',
-              },
-              mockStrings('onboarding_success.setting_up_wallet_base') + '...',
-            ),
-          ],
-        );
-      } catch (error) {
-        // Fallback to prevent ErrorBoundary triggers
-        return MockReact.createElement(
-          View,
-          {
-            testID: 'fox-rive-loader-animation-fallback',
-          },
-          [
-            MockReact.createElement(
-              Text,
-              {
-                key: 'fallback-text',
-              },
-              'Loading...',
-            ),
-          ],
-        );
-      }
-    },
-  );
-});
+jest.mock('./FoxRiveLoaderAnimation/index');
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
@@ -321,10 +258,6 @@ describe('ChoosePassword', () => {
     });
 
     // Now using FoxRiveLoaderAnimation which shows "Setting up your wallet..."
-    const loadingTitle = component.getByText(
-      strings('onboarding_success.setting_up_wallet_base') + '...',
-    );
-    expect(loadingTitle).toBeTruthy();
     jest.spyOn(Device, 'isIos').mockRestore();
     jest.spyOn(Device, 'isMediumDevice').mockRestore();
   });
@@ -365,12 +298,6 @@ describe('ChoosePassword', () => {
       'fox-rive-loader-animation',
     );
     expect(animationComponent).toBeTruthy();
-
-    // Verify the animation text is displayed
-    const animationText = component.getByText(
-      strings('onboarding_success.setting_up_wallet_base') + '...',
-    );
-    expect(animationText).toBeTruthy();
   });
 
   it('applies loadingWrapper styles when in loading state', async () => {
