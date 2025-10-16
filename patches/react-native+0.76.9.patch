@@ -1,3 +1,270 @@
+diff --git a/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js b/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js
+index 8407662..09d29e7 100644
+--- a/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js
++++ b/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js
+@@ -11,6 +11,12 @@ import flattenStyle from '../../StyleSheet/flattenStyle';
+ import Platform from '../../Utilities/Platform';
+ import * as React from 'react';
++import {useState, useEffect} from 'react';
++import {AccessibilityInfo, GestureResponderEvent} from 'react-native';
++import {
++  Gesture,
++  GestureDetector,
++  type GestureStateChangeEvent,
++  type TapGestureHandlerEventPayload,
++} from 'react-native-gesture-handler';
+ 
+ type TVProps = $ReadOnly<{|
+   hasTVPreferredFocus?: ?boolean,
+@@ -25,6 +31,7 @@ type Props = $ReadOnly<{|
+   activeOpacity?: ?number,
+   style?: ?ViewStyleProp,
+ 
+   hostRef?: ?React.Ref<typeof Animated.View>,
+ |}>;
+ 
+ type State = $ReadOnly<{|
+   anim: Animated.Value,
+   pressability: Pressability,
+ |}>;
++
++const EnhancedTouchableOpacity = ({
++  onPress,
++  disabled,
++  children,
++  ...props
++}: $ReadOnly<{|
++  onPress?: ?(event: PressEvent) => mixed,
++  disabled?: ?boolean,
++  children?: React.Node,
++  [key: string]: mixed,
++|}>) => {
++  const isDisabled = disabled || (props as {isDisabled?: boolean}).isDisabled;
++  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<boolean | null>(null);
++
++  useEffect(() => {
++    AccessibilityInfo.isScreenReaderEnabled()
++      .then(setIsAccessibilityEnabled)
++      .catch(() => setIsAccessibilityEnabled(false));
++
++    const subscription = AccessibilityInfo.addEventListener(
++      'screenReaderChanged',
++      setIsAccessibilityEnabled,
++    );
++
++    return () => subscription?.remove();
++  }, []);
++
++  const tap = Gesture.Tap()
++    .runOnJS(true)
++    .shouldCancelWhenOutside(false)
++    .maxDeltaX(20)
++    .maxDeltaY(20)
++    .requireExternalGestureToFail()
++    .maxDuration(300)
++    .minPointers(1)
++    .onEnd((gestureEvent: GestureStateChangeEvent<TapGestureHandlerEventPayload>) => {
++      if (onPress && !isDisabled && isAccessibilityEnabled === false) {
++        const syntheticEvent = {
++          nativeEvent: {
++            locationX: gestureEvent.x || 0,
++            locationY: gestureEvent.y || 0,
++            pageX: gestureEvent.absoluteX || 0,
++            pageY: gestureEvent.absoluteY || 0,
++            timestamp: Date.now(),
++          },
++          persist: () => {},
++          preventDefault: () => {},
++          stopPropagation: () => {},
++        } as GestureResponderEvent;
++        onPress(syntheticEvent);
++      }
++    });
++
++  if (process.env.NODE_ENV === 'test') {
++    return (
++      <TouchableOpacity
++        disabled={isDisabled}
++        onPress={isDisabled ? undefined : onPress}
++        {...props}
++      >
++        {children}
++      </TouchableOpacity>
++    );
++  }
++
++  return (
++    <GestureDetector gesture={tap}>
++      <TouchableOpacity
++        disabled={isDisabled}
++        onPress={isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined}
++        {...props}
++      >
++        {children}
++      </TouchableOpacity>
++    </GestureDetector>
++  );
++};
+ 
+ /**
+  * A wrapper for making views respond properly to touches.
+@@ -214,6 +331,15 @@ class TouchableOpacity extends React.Component<Props, State> {
+   }
+ 
+   render(): React.Node {
++    const isE2ETest =
++      process.env.IS_TEST === 'true' ||
++      process.env.METAMASK_ENVIRONMENT === 'e2e';
++    const isUnitTest = process.env.NODE_ENV === 'test';
++    
++    if (Platform.OS === 'android' && !isE2ETest && !isUnitTest) {
++      return (
++        <EnhancedTouchableOpacity
++          onPress={this.props.onPress}
++          disabled={this.props.disabled}
++          {...this.props}
++        >
++          {this.props.children}
++        </EnhancedTouchableOpacity>
++      );
++    }
++
+     // BACKWARD-COMPATIBILITY: Focus and blur events were never supported before
+     // adopting `Pressability`, so preserve that behavior.
+     const {onBlur, onFocus, ...eventHandlersWithoutBlurAndFocus} =
+diff --git a/node_modules/react-native/Libraries/Components/Pressable/Pressable.js b/node_modules/react-native/Libraries/Components/Pressable/Pressable.js
+index 8407662..09d29e7 100644
+--- a/node_modules/react-native/Libraries/Components/Pressable/Pressable.js
++++ b/node_modules/react-native/Libraries/Components/Pressable/Pressable.js
+@@ -25,6 +25,12 @@ import useAndroidRippleForView, {
+ } from './useAndroidRippleForView';
+ import * as React from 'react';
+-import {useMemo, useRef, useState} from 'react';
++import {useMemo, useRef, useState, useEffect} from 'react';
++import {AccessibilityInfo, GestureResponderEvent} from 'react-native';
++import Platform from '../../Utilities/Platform';
++import {
++  Gesture,
++  GestureDetector,
++  type GestureStateChangeEvent,
++  type TapGestureHandlerEventPayload,
++} from 'react-native-gesture-handler';
+ 
+ type ViewStyleProp = $ElementType<React.ElementConfig<typeof View>, 'style'>;
+ 
+@@ -198,6 +204,7 @@ type Props = $ReadOnly<{|
+   'aria-label'?: ?string,
+ |}>;
+ 
+ type Instance = React.ElementRef<typeof View>;
+ 
++const EnhancedPressable = ({
++  onPress,
++  disabled,
++  children,
++  ...props
++}: $ReadOnly<{|
++  onPress?: ?(event: PressEvent) => mixed,
++  disabled?: ?boolean,
++  children: React.Node | ((state: StateCallbackType) => React.Node),
++  [key: string]: mixed,
++|}>) => {
++  const isDisabled = disabled || (props as {isDisabled?: boolean}).isDisabled;
++  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<boolean | null>(null);
++
++  useEffect(() => {
++    AccessibilityInfo.isScreenReaderEnabled()
++      .then(setIsAccessibilityEnabled)
++      .catch(() => setIsAccessibilityEnabled(false));
++
++    const subscription = AccessibilityInfo.addEventListener(
++      'screenReaderChanged',
++      setIsAccessibilityEnabled,
++    );
++
++    return () => subscription?.remove();
++  }, []);
++
++  const tap = Gesture.Tap()
++    .runOnJS(true)
++    .shouldCancelWhenOutside(false)
++    .maxDeltaX(20)
++    .maxDeltaY(20)
++    .requireExternalGestureToFail()
++    .maxDuration(300)
++    .minPointers(1)
++    .onEnd((gestureEvent: GestureStateChangeEvent<TapGestureHandlerEventPayload>) => {
++      if (onPress && !isDisabled && isAccessibilityEnabled === false) {
++        const syntheticEvent = {
++          nativeEvent: {
++            locationX: gestureEvent.x || 0,
++            locationY: gestureEvent.y || 0,
++            pageX: gestureEvent.absoluteX || 0,
++            pageY: gestureEvent.absoluteY || 0,
++            timestamp: Date.now(),
++          },
++          persist: () => {},
++          preventDefault: () => {},
++          stopPropagation: () => {},
++        } as GestureResponderEvent;
++        onPress(syntheticEvent);
++      }
++    });
++
++  if (process.env.NODE_ENV === 'test') {
++    return (
++      <Pressable
++        disabled={isDisabled}
++        onPress={isDisabled ? undefined : onPress}
++        {...props}
++      >
++        {children}
++      </Pressable>
++    );
++  }
++
++  return (
++    <GestureDetector gesture={tap}>
++      <Pressable
++        disabled={isDisabled}
++        onPress={isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined}
++        {...props}
++      >
++        {children}
++      </Pressable>
++    </GestureDetector>
++  );
++};
++
+ /**
+  * Component used to build display components that should respond to whether the
+  * component is currently pressed or not.
+  */
+ function Pressable(
+   props: Props,
+   forwardedRef: React.RefSetter<Instance>,
+ ): React.Node {
++  const isE2ETest =
++    process.env.IS_TEST === 'true' ||
++    process.env.METAMASK_ENVIRONMENT === 'e2e';
++  const isUnitTest = process.env.NODE_ENV === 'test';
++  
++  if (Platform.OS === 'android' && !isE2ETest && !isUnitTest) {
++    return (
++      <EnhancedPressable
++        onPress={props.onPress}
++        disabled={props.disabled}
++        {...props}
++      >
++        {props.children}
++      </EnhancedPressable>
++    );
++  }
++
+   const {
+     accessible,
+     accessibilityState,
+     'aria-live': ariaLive,
 diff --git a/node_modules/react-native/React/Views/RCTModalHostViewManager.m b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
 index 8407662..09d29e7 100644
 --- a/node_modules/react-native/React/Views/RCTModalHostViewManager.m
@@ -32,7 +299,7 @@ index 8407662..09d29e7 100644
 -    topController = navigationController.visibleViewController;
 -    return [self _topMostViewControllerFrom:topController];
 -  } else if ([topController isKindOfClass:[UITabBarController class]]) {
--    UITabBarController *tabBarController = (UITabBarController *)topController;
+-    UITabBarController *tabBarController = (UITabBarController *)topBarController;
 -    topController = tabBarController.selectedViewController;
 -    return [self _topMostViewControllerFrom:topController];
 -  }
