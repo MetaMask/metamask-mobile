@@ -657,8 +657,7 @@ export class PredictController extends BaseController<
     });
 
     const { transactions, chainId } = await provider.prepareClaim({
-      // TODO: For testing purposes, we're only claiming one position at a time
-      positions: [...claimablePositions].splice(0, 1),
+      positions: claimablePositions,
       signer,
     });
     const networkClientId = NetworkController.findNetworkClientIdByChainId(

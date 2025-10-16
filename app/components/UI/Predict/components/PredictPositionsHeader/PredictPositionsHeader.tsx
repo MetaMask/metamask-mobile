@@ -61,11 +61,14 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
       refreshOnFocus: true,
     });
     const { status } = usePredictDeposit();
-    const { positions, isLoading: isClaimablePositionsLoading } =
-      usePredictPositions({
-        claimable: true,
-        loadOnMount: true,
-      });
+    const {
+      positions,
+      isLoading: isClaimablePositionsLoading,
+      loadPositions: loadClaimablePositions,
+    } = usePredictPositions({
+      claimable: true,
+      loadOnMount: true,
+    });
     const {
       unrealizedPnL,
       isLoading: isUnrealizedPnLLoading,
@@ -91,6 +94,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
         await Promise.all([
           loadUnrealizedPnL({ isRefresh: true }),
           loadBalance({ isRefresh: true }),
+          loadClaimablePositions({ isRefresh: true }),
         ]);
       },
     }));
