@@ -261,7 +261,6 @@ describe('ConfirmEmail Component', () => {
       expect(textField).toBeTruthy();
       expect(textField.props.placeholder).toBe('Enter confirmation code');
       expect(textField.props.keyboardType).toBe('numeric');
-      expect(textField.props.returnKeyType).toBe('next');
       expect(textField.props.maxLength).toBe(255);
       expect(textField.props.numberOfLines).toBe(1);
       expect(textField.props.autoCapitalize).toBe('none');

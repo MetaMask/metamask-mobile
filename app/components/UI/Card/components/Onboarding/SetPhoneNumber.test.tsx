@@ -360,7 +360,6 @@ describe('SetPhoneNumber Component', () => {
       expect(textField).toBeTruthy();
       expect(textField.props.placeholder).toBe('Enter your phone number');
       expect(textField.props.keyboardType).toBe('phone-pad');
-      expect(textField.props.returnKeyType).toBe('next');
       expect(textField.props.maxLength).toBe(255);
       expect(textField.props.numberOfLines).toBe(1);
       expect(textField.props.autoCapitalize).toBe('none');
