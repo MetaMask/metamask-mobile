@@ -21,6 +21,7 @@ export const MOCK_US_REGION: DepositRegion = {
     template: '(###) ###-####',
   },
   supported: true,
+  transakSupported: true,
 };
 
 export const MOCK_EUR_REGION: DepositRegion = {
@@ -34,6 +35,7 @@ export const MOCK_EUR_REGION: DepositRegion = {
     template: '## ########',
   },
   supported: true,
+  transakSupported: true,
 };
 
 export const MOCK_CA_REGION: DepositRegion = {
@@ -47,6 +49,7 @@ export const MOCK_CA_REGION: DepositRegion = {
     template: '(###) ###-####',
   },
   supported: true,
+  transakSupported: true,
 };
 
 export const MOCK_UNSUPPORTED_REGION: DepositRegion = {
@@ -60,6 +63,7 @@ export const MOCK_UNSUPPORTED_REGION: DepositRegion = {
     placeholder: '(555) 123-4567',
     template: '(###) ###-####',
   },
+  transakSupported: false,
 };
 
 export const MOCK_FR_REGION: DepositRegion = {
@@ -73,6 +77,7 @@ export const MOCK_FR_REGION: DepositRegion = {
   },
   currency: 'EUR',
   supported: true,
+  transakSupported: true,
 };
 
 export const MOCK_REGIONS: DepositRegion[] = [MOCK_US_REGION, MOCK_EUR_REGION];

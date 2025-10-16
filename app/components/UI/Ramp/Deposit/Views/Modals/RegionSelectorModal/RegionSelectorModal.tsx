@@ -33,6 +33,16 @@ const MAX_REGION_RESULTS = 20;
 
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
+  onRegionSelect?: (region: DepositRegion) => void;
+  behavior?: {
+    /**
+     * Custom filter function to determine if a region is selectable.
+     * If not provided, defaults to checking region.supported
+     */
+    isRegionSelectable?: (region: DepositRegion) => boolean;
+    updateGlobalRegion?: boolean;
+    trackSelection?: boolean;
+  };
 }
 
 export const createRegionSelectorModalNavigationDetails =
@@ -47,7 +57,18 @@ function RegionSelectorModal() {
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
-  const { regions } = useParams<RegionSelectorModalParams>();
+  const { regions, onRegionSelect, behavior } =
+    useParams<RegionSelectorModalParams>();
+
+  const behaviorConfig = useMemo(
+    () => ({
+      isRegionSelectable: (region: DepositRegion) => region.supported,
+      updateGlobalRegion: true,
+      trackSelection: true,
+      ...behavior,
+    }),
+    [behavior],
+  );
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -95,20 +116,41 @@ function RegionSelectorModal() {
     }
   }, []);
 
+  const isSelectable = useCallback(
+    (region: DepositRegion) => behaviorConfig.isRegionSelectable(region),
+    [behaviorConfig],
+  );
+
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (region.supported && setSelectedRegion) {
-        trackEvent('RAMPS_REGION_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: region.isoCode,
-          is_authenticated: isAuthenticated,
-        });
+      if (isSelectable(region)) {
+        if (onRegionSelect) {
+          onRegionSelect(region);
+        }
 
-        setSelectedRegion(region);
+        if (behaviorConfig.updateGlobalRegion) {
+          setSelectedRegion(region);
+        }
+
+        if (behaviorConfig.trackSelection) {
+          trackEvent('RAMPS_REGION_SELECTED', {
+            ramp_type: 'DEPOSIT',
+            region: region.isoCode,
+            is_authenticated: isAuthenticated,
+          });
+        }
+
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [setSelectedRegion, isAuthenticated, trackEvent],
+    [
+      onRegionSelect,
+      behaviorConfig,
+      trackEvent,
+      isAuthenticated,
+      setSelectedRegion,
+      isSelectable,
+    ],
   );
 
   const renderRegionItem = useCallback(
@@ -116,13 +158,11 @@ function RegionSelectorModal() {
       <ListItemSelect
         isSelected={selectedRegion?.isoCode === region.isoCode}
         onPress={() => {
-          if (region.supported) {
-            handleOnRegionPressCallback(region);
-          }
+          handleOnRegionPressCallback(region);
         }}
         accessibilityRole="button"
         accessible
-        disabled={!region.supported}
+        disabled={!isSelectable(region)}
       >
         <ListItemColumn widthType={WidthType.Fill}>
           <View style={styles.region}>
@@ -130,7 +170,9 @@ function RegionSelectorModal() {
               <Text
                 variant={TextVariant.BodyLGMedium}
                 color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
+                  isSelectable(region)
+                    ? TextColor.Default
+                    : TextColor.Alternative
                 }
               >
                 {region.flag}
@@ -140,7 +182,9 @@ function RegionSelectorModal() {
               <Text
                 variant={TextVariant.BodyLGMedium}
                 color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
+                  isSelectable(region)
+                    ? TextColor.Default
+                    : TextColor.Alternative
                 }
               >
                 {region.name}
@@ -150,7 +194,13 @@ function RegionSelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
+    [
+      handleOnRegionPressCallback,
+      selectedRegion,
+      isSelectable,
+      styles.region,
+      styles.emoji,
+    ],
   );
 
   const renderEmptyList = useCallback(

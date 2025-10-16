@@ -444,6 +444,7 @@ describe('fiatOrderReducer', () => {
       currency: 'USD',
       supported: true,
       recommended: true,
+      transakSupported: true,
     };
     const stateWithSelectedDepositRegion = fiatOrderReducer(
       initialState,
