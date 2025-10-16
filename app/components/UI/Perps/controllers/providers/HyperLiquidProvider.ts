@@ -25,6 +25,7 @@ import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscr
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
   adaptAccountStateFromSDK,
+  adaptHyperLiquidLedgerUpdateToUserHistoryItem,
   adaptMarketFromSDK,
   adaptOrderFromSDK,
   adaptPositionFromSDK,
@@ -1462,42 +1463,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
 
       // Transform the raw ledger updates to UserHistoryItem format
-      return (rawLedgerUpdates || [])
-        .filter(
-          (update) =>
-            // Only include deposits and withdrawals, skip other types
-            update.delta.type === 'deposit' || update.delta.type === 'withdraw',
-        )
-        .map((update) => {
-          // Extract amount and asset based on delta type
-          let amount = '0';
-          let asset = 'USDC';
-
-          if ('usdc' in update.delta) {
-            amount = Math.abs(parseFloat(update.delta.usdc)).toString();
-          }
-          if ('coin' in update.delta && typeof update.delta.coin === 'string') {
-            asset = update.delta.coin;
-          }
-
-          return {
-            id: `history-${update.hash}`,
-            timestamp: update.time,
-            amount,
-            asset,
-            txHash: update.hash,
-            status: 'completed' as const,
-            type: update.delta.type === 'withdraw' ? 'withdrawal' : 'deposit',
-            details: {
-              source: '',
-              bridgeContract: undefined,
-              recipient: undefined,
-              blockNumber: undefined,
-              chainId: undefined,
-              synthetic: undefined,
-            },
-          };
-        });
+      return adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
     } catch (error) {
       Logger.error(ensureError(error), this.getErrorContext('getUserHistory'));
       return [];

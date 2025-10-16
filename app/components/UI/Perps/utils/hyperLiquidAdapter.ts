@@ -391,3 +391,64 @@ export function calculatePositionSize(params: {
   const { usdValue, leverage, assetPrice } = params;
   return (usdValue * leverage) / assetPrice;
 }
+
+/**
+ * Raw HyperLiquid ledger update structure from SDK
+ * This matches the actual SDK types for userNonFundingLedgerUpdates
+ */
+export interface RawHyperLiquidLedgerUpdate {
+  hash: string;
+  time: number;
+  delta: {
+    type: string;
+    usdc?: string;
+    coin?: string;
+  };
+}
+
+/**
+ * Transform raw HyperLiquid ledger updates to UserHistoryItem format
+ * Filters for deposits and withdrawals only, extracting amount and asset information
+ * @param rawLedgerUpdates - Array of raw ledger updates from HyperLiquid SDK
+ * @returns Array of UserHistoryItem objects
+ */
+export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
+  rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
+): import('../controllers/types').UserHistoryItem[] {
+  return (rawLedgerUpdates || [])
+    .filter(
+      (update) =>
+        // Only include deposits and withdrawals, skip other types
+        update.delta.type === 'deposit' || update.delta.type === 'withdraw',
+    )
+    .map((update) => {
+      // Extract amount and asset based on delta type
+      let amount = '0';
+      let asset = 'USDC';
+
+      if ('usdc' in update.delta) {
+        amount = Math.abs(parseFloat(update.delta.usdc)).toString();
+      }
+      if ('coin' in update.delta && typeof update.delta.coin === 'string') {
+        asset = update.delta.coin;
+      }
+
+      return {
+        id: `history-${update.hash}`,
+        timestamp: update.time,
+        amount,
+        asset,
+        txHash: update.hash,
+        status: 'completed' as const,
+        type: update.delta.type === 'withdraw' ? 'withdrawal' : 'deposit',
+        details: {
+          source: '',
+          bridgeContract: undefined,
+          recipient: undefined,
+          blockNumber: undefined,
+          chainId: undefined,
+          synthetic: undefined,
+        },
+      };
+    });
+}
