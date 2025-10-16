@@ -32,7 +32,7 @@ const createMultichainAccountsStateSelector = (
  * Selector to check if multichain accounts state 1 is enabled.
  * Returns true if the feature is enabled for state 1 or state 2.
  */
-export const selectMultichainAccountsState1Enabled = true;
+export const selectMultichainAccountsState1Enabled = () => true;
 // createMultichainAccountsStateSelector([
 //   {
 //     version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
@@ -48,7 +48,7 @@ export const selectMultichainAccountsState1Enabled = true;
  * Selector to check if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
-export const selectMultichainAccountsState2Enabled = true;
+export const selectMultichainAccountsState2Enabled = () => true;
 // createMultichainAccountsStateSelector([
 //   {
 //     version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
