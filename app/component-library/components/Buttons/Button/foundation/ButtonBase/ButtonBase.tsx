@@ -43,10 +43,10 @@ export const TouchableOpacity = ({
   // Handle both 'disabled' and 'isDisabled' props for compatibility
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Track accessibility state - start with null to indicate "unknown"
+  // Track accessibility state - start with false as default to ensure gesture handler works
   const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<
     boolean | null
-  >(null);
+  >(false);
 
   useEffect(() => {
     // Check initial accessibility state
@@ -128,8 +128,8 @@ export const TouchableOpacity = ({
       <RNTouchableOpacity
         disabled={isDisabled}
         onPress={
-          isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined
-        } // Use TouchableOpacity onPress when accessibility is ON or UNKNOWN (safer for accessibility users)
+          isAccessibilityEnabled === true && !isDisabled ? onPress : undefined
+        } // Use TouchableOpacity onPress only when accessibility is explicitly ON (safer for accessibility users)
         {...props}
       >
         {children}
