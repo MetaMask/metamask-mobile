@@ -38,6 +38,7 @@ import {
   MOCK_USER_DETAILS_FR,
   MOCK_USE_DEPOSIT_USER_RETURN,
   MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
+  MOCK_USE_DEPOSIT_USER_ERROR,
 } from '../../testUtils';
 
 const createMockInteractionManager = () => ({
@@ -417,6 +418,16 @@ describe('BuildQuote Component', () => {
       mockUseDepositTokenExchange.mockReturnValue({
         tokenAmount: '1.5',
       });
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('User Details Error', () => {
+    it('displays user details error alert when fetching fails', () => {
+      jest.mocked(useDepositUser).mockReturnValue(MOCK_USE_DEPOSIT_USER_ERROR);
 
       render(BuildQuote);
 

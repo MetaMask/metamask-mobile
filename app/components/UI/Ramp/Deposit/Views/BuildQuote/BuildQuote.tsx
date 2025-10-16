@@ -93,7 +93,12 @@ const BuildQuote = () => {
     userRegionLocked,
   } = useRegions();
 
-  const { userDetails, isFetching: isFetchingUserDetails } = useDepositUser();
+  const {
+    userDetails,
+    isFetching: isFetchingUserDetails,
+    error: userDetailsError,
+    fetchUserDetails,
+  } = useDepositUser();
 
   const {
     cryptoCurrencies,
@@ -120,7 +125,7 @@ const BuildQuote = () => {
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const [error, setError] = useState<string | null>();
+  const [quoteError, setError] = useState<string | null>();
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
@@ -506,7 +511,7 @@ const BuildQuote = () => {
                 )}
               </Text>
 
-              {!error && (
+              {!quoteError && (
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
@@ -601,9 +606,15 @@ const BuildQuote = () => {
               isRetrying={isFetchingPaymentMethods}
               errorType="paymentMethods"
             />
-            {error && (
+            <SdkErrorAlert
+              error={userDetailsError}
+              onRetry={fetchUserDetails}
+              isRetrying={isFetchingUserDetails}
+              errorType="userDetails"
+            />
+            {quoteError && (
               <View style={styles.errorContainer}>
-                <TruncatedError error={error} />
+                <TruncatedError error={quoteError} />
               </View>
             )}
           </View>
@@ -669,6 +680,7 @@ const BuildQuote = () => {
               !!regionsError ||
               !!cryptosError ||
               !!paymentMethodsError ||
+              !!userDetailsError ||
               !selectedRegion ||
               !selectedCryptoCurrency ||
               !selectedPaymentMethod

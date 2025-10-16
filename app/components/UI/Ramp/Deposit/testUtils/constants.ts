@@ -467,3 +467,10 @@ export const MOCK_USE_DEPOSIT_USER_RETURN = {
   isFetching: false,
   fetchUserDetails: jest.fn(),
 };
+
+export const MOCK_USE_DEPOSIT_USER_ERROR = {
+  userDetails: null,
+  error: 'Failed to fetch user details',
+  isFetching: false,
+  fetchUserDetails: jest.fn(),
+};

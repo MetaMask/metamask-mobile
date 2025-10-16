@@ -867,6 +867,7 @@
       "fetch_regions": "There was an issue fetching the regions.",
       "fetch_tokens": "There was an issue fetching the tokens.",
       "fetch_payment_methods": "There was an issue fetching the payment methods.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Try Again",
       "error_details_title": "Error Details",
       "see_more": "See more"
