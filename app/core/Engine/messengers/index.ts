@@ -107,6 +107,10 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
+import {
+  getPPOMControllerInitMessenger,
+  getPPOMControllerMessenger,
+} from './ppom-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -307,6 +311,10 @@ export const CONTROLLER_MESSENGERS = {
   MultichainAccountService: {
     getMessenger: getMultichainAccountServiceMessenger,
     getInitMessenger: getMultichainAccountServiceInitMessenger,
+  },
+  PPOMController: {
+    getMessenger: getPPOMControllerMessenger,
+    getInitMessenger: getPPOMControllerInitMessenger,
   },
   RemoteFeatureFlagController: {
     getMessenger: getRemoteFeatureFlagControllerMessenger,
