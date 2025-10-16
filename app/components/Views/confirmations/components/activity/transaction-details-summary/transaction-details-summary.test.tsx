@@ -102,11 +102,11 @@ describe('TransactionDetailsSummary', () => {
           destAsset: {
             symbol: SYMBOL_2_MOCK,
           },
+          destChainId: Number(TARGET_CHAIN_ID_MOCK),
         },
         status: {
           status: StatusTypes.COMPLETE,
           destChain: {
-            chainId: Number(TARGET_CHAIN_ID_MOCK),
             txHash: RECEIVE_HASH_MOCK,
           },
         },

@@ -102,7 +102,7 @@ function TransactionSummary({
     bridgeHistory?.bridgeTxHistoryItem?.completionTime ?? time;
 
   const receiveChainIdNumber =
-    bridgeHistory?.bridgeTxHistoryItem?.status?.destChain?.chainId;
+    bridgeHistory?.bridgeTxHistoryItem?.quote?.destChainId;
 
   const receiveChainId = receiveChainIdNumber
     ? toHex(receiveChainIdNumber)
