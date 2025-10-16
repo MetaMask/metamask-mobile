@@ -26,54 +26,6 @@ jest.mock('../CollectibleDetectionModal', () => {
   );
 });
 
-// Mock BaseControlBar
-jest.mock('../shared/BaseControlBar', () => {
-  const { View } = jest.requireActual('react-native');
-  return ({ additionalButtons }: { additionalButtons?: React.ReactNode }) => (
-    <View testID="base-control-bar">{additionalButtons}</View>
-  );
-});
-
-// Mock useStyles hook
-jest.mock('../../hooks/useStyles', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      controlIconButton: {},
-    },
-  })),
-}));
-
-// Mock ButtonIcon and its enums
-jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
-  const { TouchableOpacity } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      onPress,
-      testID,
-      disabled,
-    }: {
-      onPress: () => void;
-      testID?: string;
-      disabled?: boolean;
-    }) => (
-      <TouchableOpacity testID={testID} onPress={onPress} disabled={disabled} />
-    ),
-    ButtonIconSizes: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
-  };
-});
-
-// Mock Icon and IconName
-jest.mock('../../../component-library/components/Icons/Icon', () => ({
-  IconName: {
-    Add: 'Add',
-  },
-}));
-
 // Import the mocked selectors to control their return values
 import { selectProviderType } from '../../../selectors/networkController';
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
@@ -87,7 +39,6 @@ const mockSelectUseNftDetection = selectUseNftDetection as jest.MockedFunction<
 
 describe('NftGridHeader', () => {
   const createInitialState = () => ({});
-  const mockGoToAddCollectible = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -100,10 +51,7 @@ describe('NftGridHeader', () => {
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridHeader
-          isAddNFTEnabled
-          goToAddCollectible={mockGoToAddCollectible}
-        />
+        <NftGridHeader />
       </Provider>,
     );
 
@@ -117,10 +65,7 @@ describe('NftGridHeader', () => {
 
     const { queryByTestId } = render(
       <Provider store={store}>
-        <NftGridHeader
-          isAddNFTEnabled
-          goToAddCollectible={mockGoToAddCollectible}
-        />
+        <NftGridHeader />
       </Provider>,
     );
 
@@ -134,57 +79,10 @@ describe('NftGridHeader', () => {
 
     const { queryByTestId } = render(
       <Provider store={store}>
-        <NftGridHeader
-          isAddNFTEnabled
-          goToAddCollectible={mockGoToAddCollectible}
-        />
+        <NftGridHeader />
       </Provider>,
     );
 
     expect(queryByTestId('collectible-detection-modal')).toBeNull();
-  });
-
-  it('disables add NFT button when isAddNFTEnabled is false', () => {
-    // Arrange
-    mockSelectProviderType.mockReturnValue(MAINNET);
-    mockSelectUseNftDetection.mockReturnValue(false);
-    const store = mockStore(createInitialState());
-
-    // Act
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <NftGridHeader
-          isAddNFTEnabled={false}
-          goToAddCollectible={mockGoToAddCollectible}
-        />
-      </Provider>,
-    );
-
-    // Assert
-    const addButton = getByTestId('import-token-button');
-    expect(addButton.props.disabled).toBe(true);
-  });
-
-  it('calls goToAddCollectible when add NFT button is pressed', () => {
-    // Arrange
-    mockSelectProviderType.mockReturnValue(MAINNET);
-    mockSelectUseNftDetection.mockReturnValue(false);
-    const store = mockStore(createInitialState());
-
-    // Act
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <NftGridHeader
-          isAddNFTEnabled
-          goToAddCollectible={mockGoToAddCollectible}
-        />
-      </Provider>,
-    );
-
-    const addButton = getByTestId('import-token-button');
-    addButton.props.onPress();
-
-    // Assert
-    expect(mockGoToAddCollectible).toHaveBeenCalledTimes(1);
   });
 });

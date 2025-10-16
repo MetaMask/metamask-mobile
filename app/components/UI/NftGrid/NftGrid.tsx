@@ -24,6 +24,13 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import BaseControlBar from '../shared/BaseControlBar';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../hooks/useStyles';
+import createControlBarStyles from '../shared/ControlBarStyles';
 
 const style = StyleSheet.create({
   container: {
@@ -37,6 +44,7 @@ const NftGrid = () => {
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [longPressedCollectible, setLongPressedCollectible] =
     useState<Nft | null>(null);
+  const { styles } = useStyles(createControlBarStyles, undefined);
 
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
@@ -71,15 +79,29 @@ const NftGrid = () => {
     setIsAddNFTEnabled(true);
   }, [navigation, trackEvent, createEventBuilder]);
 
+  const additionalButtons = (
+    <ButtonIcon
+      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+      size={ButtonIconSizes.Lg}
+      onPress={goToAddCollectible}
+      iconName={IconName.Add}
+      disabled={!isAddNFTEnabled}
+      isDisabled={!isAddNFTEnabled}
+      style={styles.controlIconButton}
+    />
+  );
+
   return (
     <View style={style.container}>
+      <BaseControlBar
+        networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+        useEvmSelectionLogic={false}
+        customWrapper="none"
+        additionalButtons={additionalButtons}
+        hideSort
+      />
       <FlashList
-        ListHeaderComponent={
-          <NftGridHeader
-            isAddNFTEnabled={isAddNFTEnabled}
-            goToAddCollectible={goToAddCollectible}
-          />
-        }
+        ListHeaderComponent={<NftGridHeader />}
         data={allFilteredCollectibles}
         renderItem={({ item }) => (
           <NftGridItem item={item} onLongPress={setLongPressedCollectible} />

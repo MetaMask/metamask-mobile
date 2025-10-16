@@ -121,6 +121,14 @@ jest.mock('../CollectiblesEmptyState', () => ({
   },
 }));
 
+// Mock BaseControlBar - renders additionalButtons
+jest.mock('../shared/BaseControlBar', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ additionalButtons }: { additionalButtons?: React.ReactNode }) => (
+    <View testID="base-control-bar">{additionalButtons}</View>
+  );
+});
+
 // Mock dependencies for real NftGridItem and NftGridFooter
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -145,6 +153,46 @@ jest.mock('../CollectibleMedia', () => () => null);
 jest.mock('@metamask/design-system-react-native', () => ({
   Text: ({ children }: { children: React.ReactNode }) => children,
   TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
+}));
+
+// Mock ButtonIcon and its enums
+jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onPress,
+      testID,
+      disabled,
+    }: {
+      onPress: () => void;
+      testID?: string;
+      disabled?: boolean;
+    }) => (
+      <TouchableOpacity testID={testID} onPress={onPress} disabled={disabled} />
+    ),
+    ButtonIconSizes: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+  };
+});
+
+// Mock Icon and IconName
+jest.mock('../../../component-library/components/Icons/Icon', () => ({
+  IconName: {
+    Add: 'Add',
+  },
+}));
+
+// Mock useStyles hook
+jest.mock('../../hooks/useStyles', () => ({
+  useStyles: jest.fn(() => ({
+    styles: {
+      controlIconButton: {},
+    },
+  })),
 }));
 
 jest.mock('../../../component-library/components/Texts/Text', () => {
@@ -422,5 +470,66 @@ describe('NftGrid', () => {
     await waitFor(() => {
       expect(queryByTestId('collectibles-empty-state')).toBeNull();
     });
+  });
+
+  it('disables add NFT button when isAddNFTEnabled is false', async () => {
+    // Given a user with no collectibles
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce({}); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    // When the component renders
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    // When the add button is pressed
+    await waitFor(() => {
+      const addButton = getByTestId('import-token-button');
+      fireEvent.press(addButton);
+    });
+
+    // Then it should be temporarily disabled during navigation
+    const addButton = getByTestId('import-token-button');
+    expect(addButton.props.disabled).toBe(false);
+  });
+
+  it('calls navigation when add collectible button in control bar is pressed', async () => {
+    // Given a user with collectibles
+    const mockCollectibles = { '0x1': [mockNft] };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    // When the component renders
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    // When the add button in control bar is pressed
+    await waitFor(() => {
+      const addButton = getByTestId('import-token-button');
+      fireEvent.press(addButton);
+    });
+
+    // Then it should navigate to AddAsset screen
+    expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
+      assetType: 'collectible',
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 });
