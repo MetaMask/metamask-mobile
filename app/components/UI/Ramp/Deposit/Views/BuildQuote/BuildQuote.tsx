@@ -62,7 +62,7 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -121,7 +121,9 @@ const BuildQuote = () => {
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
 
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -404,8 +406,9 @@ const BuildQuote = () => {
     );
   }, [navigation, paymentMethods, paymentMethodsError]);
 
-  const networkName =
-    allNetworkConfigurations[selectedCryptoCurrency?.chainId ?? '']?.name;
+  const networkName = selectedCryptoCurrency
+    ? networkConfigurationsByCaipChainId[selectedCryptoCurrency.chainId]?.name
+    : undefined;
 
   const networkImageSource = selectedCryptoCurrency?.chainId
     ? getNetworkImageSource({
@@ -601,12 +604,16 @@ const BuildQuote = () => {
               </ListItemColumn>
 
               <ListItemColumn>
-                <TagBase
-                  includesBorder
-                  textProps={{ variant: TextVariant.BodySM }}
-                >
-                  {strings('deposit.payment_duration.instant')}
-                </TagBase>
+                {selectedPaymentMethod ? (
+                  <TagBase
+                    includesBorder
+                    textProps={{ variant: TextVariant.BodySM }}
+                  >
+                    {strings(
+                      `deposit.payment_duration.${selectedPaymentMethod.duration}`,
+                    )}
+                  </TagBase>
+                ) : null}
               </ListItemColumn>
               <ListItemColumn>
                 <Icon
@@ -618,15 +625,7 @@ const BuildQuote = () => {
             </ListItem>
           </TouchableOpacity>
 
-          <Keypad
-            value={amount}
-            onChange={handleKeypadChange}
-            currency={selectedRegion?.currency}
-            decimals={0}
-            periodButtonProps={{
-              isDisabled: true,
-            }}
-          />
+          <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>

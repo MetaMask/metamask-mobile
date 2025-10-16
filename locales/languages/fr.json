@@ -221,6 +221,12 @@
     "remind_later_description2": "Vous pouvez sauvegarder vos portefeuilles ou voir votre phrase secrète de récupération dans",
     "setting_security_privacy": "Paramètres > Sécurité et confidentialité"
   },
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
+  },
   "onboarding_carousel": {
     "title1": "Bienvenue sur MetaMask",
     "title2": "Gérez vos actifs numériques",
@@ -389,6 +395,7 @@
     "description": "Déverrouille MetaMask sur cet appareil uniquement.",
     "description_social_login": "Utilisez-la pour restaurer votre portefeuille sur tous vos appareils.",
     "description_social_login_update": "Si vous perdez ce mot de passe, vous perdrez l’accès à votre portefeuille sur tous vos appareils. Conservez-le en lieu sûr, car",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask ne peut pas le réinitialiser.",
     "subtitle": "Ce mot de passe permettra de déverrouiller votre portefeuille MetaMask uniquement sur cet appareil.",
     "password": "Créer un mot de passe",
@@ -662,7 +669,14 @@
       "bullet_2_description": "L’USDC est conçu pour rester stable, ce qui facilite la gestion de l’épargne, des dépenses et des investissements.",
       "bullet_3_title": "Plus rapide que les banques",
       "bullet_3_description": "Envoyez et recevez des fonds en quelques minutes, sans attendre les heures d’ouverture des banques ou les délais de traitement des virements internationaux.",
-      "button": "Commencer"
+      "button": "Commencer",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Vérifier votre identité",
@@ -879,7 +893,6 @@
     "refresh_balance": "Actualiser le solde",
     "add_funds": "Ajouter des fonds",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Vos positions",
     "loading_positions": "Chargement des positions…",
     "refreshing_positions": "En train d’actualiser les positions…",
@@ -1512,7 +1525,7 @@
         "history_will_appear": "Votre historique de trading apparaîtra ici"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continuer",
       "skip": "Ignorer",
@@ -1542,7 +1555,7 @@
       "ready_to_trade": {
         "title": "Prêt à trader ?",
         "description": "Approvisionnez votre compte de trading de contrats à terme perpétuels avec n’importe quel jeton, puis ouvrez votre première position en quelques secondes.",
-        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperEVM sans frais supplémentaires."
+        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperCore sans frais supplémentaires."
       },
       "got_it": "J’ai compris",
       "card": {
@@ -1600,7 +1613,13 @@
     "won_markets_text_plural": "{{count}} marchés gagnés",
     "claim_amount_text": "Réclamer {{amount}} $",
     "unrealized_pnl_label": "Profits et pertes non réalisés",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Recevoir"
@@ -2784,12 +2803,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Sélectionnez un jeton",
-    "title_pay_eth": "Payer avec des ETH",
     "native_toggle_wallet": "Payez les frais de réseau à l’aide du solde de votre portefeuille.",
     "list_balance": "Solde :",
     "insufficient_balance": "Fonds insuffisants",
-    "native_toggle_metamask": "MetaMask complète le solde pour finaliser cette transaction.",
-    "title_pay_with_other_tokens": "Payer avec d’autres jetons"
+    "native_toggle_metamask": "MetaMask complète le solde pour finaliser cette transaction."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ID de transaction",
@@ -3072,6 +3092,7 @@
     "tx_review_lending_deposit": "Dépôt de prêt",
     "tx_review_lending_withdraw": "Retrait de prêt",
     "tx_review_perps_deposit": "Compte approvisionné par des contrats à terme perpétuels (perps)",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ether envoyé(s)",
     "self_sent_ether": "Ether envoyé(s) à vous-même",
     "received_ether": "Ether reçu(s)",
@@ -5276,7 +5297,8 @@
       "transfer": "Demande de transfert",
       "switch_account_type": "Mise à jour du compte",
       "approve": "Approuver la demande",
-      "perps_deposit": "Ajouter des fonds"
+      "perps_deposit": "Ajouter des fonds",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
@@ -5293,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperEVM, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
+        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperCore, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Frais"
@@ -5512,7 +5537,9 @@
     "account_not_found": "Portefeuille introuvable",
     "account_not_found_description": "Nous n’avons pas trouvé de portefeuille pour « {{accountName}} ». Voulez-vous en créer un nouveau avec cet identifiant ?",
     "create_new_wallet": "Créer un nouveau portefeuille",
-    "use_different_login_method": "Utilisez une autre méthode de connexion"
+    "use_different_login_method": "Utilisez une autre méthode de connexion",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Êtes-vous toujours là ?",
@@ -5892,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Région non prise en charge",
@@ -5926,9 +5961,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
@@ -6043,7 +6076,7 @@
     "upcoming_rewards": {
       "title": "Récompenses verrouillées",
       "points_needed": "{{points}} points",
-      "cta_label": "Got it",
+      "cta_label": "D’accord",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
     },
     "unlocked_rewards": {
@@ -6066,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Compte/contrat à terme financé",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Détails de la transaction"
     },
     "label": {
@@ -6082,6 +6116,7 @@
       "bridge_loading": "Établir une passerelle",
       "default": "Transaction",
       "perps_deposit": "Ajouter des fonds",
+      "predict_deposit": "Add funds",
       "swap": "Échanger des jetons",
       "swap_approval": "Approuver les jetons"
     }
@@ -6094,6 +6129,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

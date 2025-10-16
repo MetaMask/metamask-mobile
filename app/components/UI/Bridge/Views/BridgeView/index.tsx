@@ -40,6 +40,7 @@ import {
   setBridgeViewMode,
   selectNoFeeAssets,
   selectIsNonEvmNonEvmBridge,
+  selectIsSelectingRecipient,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -58,7 +59,6 @@ import ButtonIcon, {
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -76,6 +76,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
+import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
@@ -93,6 +94,7 @@ const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -140,6 +142,10 @@ const BridgeView = () => {
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
 
+  // Initialize recipient account
+  const hasInitializedRecipient = useRef(false);
+  useRecipientInitialization(hasInitializedRecipient);
+
   useEffect(() => {
     if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
       dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
@@ -178,8 +184,6 @@ const BridgeView = () => {
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
-
-  const isSwap = sourceToken?.chainId === destToken?.chainId;
 
   const hasValidBridgeInputs =
     isValidSourceAmount &&
@@ -321,20 +325,18 @@ const BridgeView = () => {
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    return isSwap
-      ? strings('bridge.confirm_swap')
-      : strings('bridge.confirm_bridge');
+    return strings('bridge.confirm_swap');
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh) {
+    if (isExpired && !willRefresh && !isSelectingRecipient) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation]);
+  }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
 
   const renderBottomContent = () => {
     if (shouldDisplayKeypad && !isLoading) {
@@ -515,22 +517,12 @@ const BridgeView = () => {
           showsVerticalScrollIndicator={false}
         >
           <Box style={styles.dynamicContent}>
-            <Box style={styles.destinationAccountSelectorContainer}>
-              {hasDestinationPicker && <DestinationAccountSelector />}
-            </Box>
-
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
             ) : shouldDisplayKeypad ? (
-              <Box
-                style={[
-                  styles.keypadContainer,
-                  hasDestinationPicker &&
-                    styles.keypadContainerWithDestinationPicker,
-                ]}
-              >
+              <Box style={styles.keypadContainer}>
                 <Keypad
                   style={styles.keypad}
                   value={sourceAmount || '0'}

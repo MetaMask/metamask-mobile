@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
-import { PredictCategory, PredictPositionStatus, Side } from '../../types';
+import {
+  PredictCategory,
+  PredictPositionStatus,
+  Side,
+  PredictActivityBuy,
+  PredictActivitySell,
+  PredictActivityEntry,
+} from '../../types';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -58,6 +65,7 @@ import {
   getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  parsePolymarketActivity,
   priceValid,
   roundDown,
   roundNormal,
@@ -120,6 +128,7 @@ describe('polymarket utils', () => {
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+        CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       });
     });
   });
@@ -1012,19 +1021,23 @@ describe('polymarket utils', () => {
     };
 
     const mockClobOrder: ClobOrderObject = {
-      maker: mockAddress,
-      signer: mockAddress,
-      taker: '0x0000000000000000000000000000000000000000',
-      tokenId: 'test-token',
-      makerAmount: '100000000',
-      takerAmount: '50000000',
-      expiration: '0',
-      nonce: '0',
-      feeRateBps: '0',
-      side: Side.BUY,
-      signatureType: SignatureType.EOA,
-      signature: 'mock-signature',
-      salt: 12345,
+      order: {
+        maker: mockAddress,
+        signer: mockAddress,
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: 'test-token',
+        makerAmount: '100000000',
+        takerAmount: '50000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: Side.BUY,
+        signatureType: SignatureType.EOA,
+        signature: 'mock-signature',
+        salt: 12345,
+      },
+      owner: mockAddress,
+      orderType: OrderType.FOK,
     };
 
     const mockOrderResponse: OrderResponse = {
@@ -1050,7 +1063,10 @@ describe('polymarket utils', () => {
         clobOrder: mockClobOrder,
       });
 
-      expect(result).toEqual(mockOrderResponse);
+      expect(result).toEqual({
+        success: true,
+        response: mockOrderResponse,
+      });
       expect(mockFetch).toHaveBeenCalledWith(
         'https://clob.polymarket.com/order',
         {
@@ -1094,10 +1110,21 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({ ...mockClobOrder, feeAuthorization }),
         },
       );
@@ -1107,7 +1134,6 @@ describe('polymarket utils', () => {
       await submitClobOrder({
         headers: mockHeaders,
         clobOrder: mockClobOrder,
-        feeAuthorization: undefined,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1117,7 +1143,6 @@ describe('polymarket utils', () => {
           headers: mockHeaders,
           body: JSON.stringify({
             ...mockClobOrder,
-            feeAuthorization: undefined,
           }),
         },
       );
@@ -1149,6 +1174,64 @@ describe('polymarket utils', () => {
 
       expect(parsedBody).toHaveProperty('feeAuthorization');
       expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
+    });
+
+    it('uses CLOB endpoint when feeAuthorization is not provided for BUY orders', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({
+            ...mockClobOrder,
+          }),
+        },
+      );
+    });
+
+    it('uses CLOB endpoint for SELL orders even with feeAuthorization', async () => {
+      const sellClobOrder: ClobOrderObject = {
+        ...mockClobOrder,
+        order: {
+          ...mockClobOrder.order,
+          side: Side.SELL,
+        },
+      };
+
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: sellClobOrder,
+        feeAuthorization,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({
+            ...sellClobOrder,
+          }),
+        },
+      );
     });
   });
 
@@ -1203,6 +1286,7 @@ describe('polymarket utils', () => {
         outcomes: [
           {
             id: 'market-1',
+            providerId: 'polymarket',
             marketId: 'event-1',
             title: 'Will it rain?',
             description: 'Weather prediction',
@@ -1521,6 +1605,7 @@ describe('polymarket utils', () => {
       title: `Position ${id}`,
       slug: `position-${id}`,
       size: 100,
+      eventId: 'event-1',
       outcome: 'Yes',
       outcomeIndex: index,
       cashPnl: 10,
@@ -1588,11 +1673,6 @@ describe('polymarket utils', () => {
       const result = await parsePolymarketPositions({
         positions: mockPositions,
       });
-
-      expect(result).toHaveLength(3);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/markets?condition_ids=condition-1&condition_ids=condition-1&condition_ids=condition-1',
-      );
 
       expect(result[0]).toEqual({
         id: 'position-1',
@@ -1674,37 +1754,6 @@ describe('polymarket utils', () => {
       const result = await parsePolymarketPositions({ positions: [] });
       expect(result).toEqual([]);
       expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('handle positions without a matching market', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue([]), // No markets found
-      });
-
-      const result = await parsePolymarketPositions({
-        positions: mockPositions,
-      });
-
-      expect(result[0].marketId).toBe('');
-      expect(result[1].marketId).toBe('');
-    });
-
-    it('handle market data fetch failure gracefully', async () => {
-      mockFetch.mockRejectedValue(new Error('Network error'));
-
-      const result = await parsePolymarketPositions({
-        positions: mockPositions,
-      });
-
-      // Should still return positions with empty marketId when API fails
-      expect(result).toHaveLength(3);
-      expect(result[0].marketId).toBe('');
-      expect(result[1].marketId).toBe('');
-      expect(result[2].marketId).toBe('');
-      expect(result[0].id).toBe('position-1');
-      expect(result[1].id).toBe('position-2');
-      expect(result[2].id).toBe('position-3');
     });
   });
 
@@ -2150,19 +2199,23 @@ describe('polymarket utils', () => {
     };
 
     const mockClobOrder: ClobOrderObject = {
-      maker: mockAddress,
-      signer: mockAddress,
-      taker: '0x0000000000000000000000000000000000000000',
-      tokenId: 'test-token',
-      makerAmount: '100000000',
-      takerAmount: '50000000',
-      expiration: '0',
-      nonce: '0',
-      feeRateBps: '0',
-      side: Side.BUY,
-      signatureType: SignatureType.EOA,
-      signature: 'mock-signature',
-      salt: 12345,
+      order: {
+        maker: mockAddress,
+        signer: mockAddress,
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: 'test-token',
+        makerAmount: '100000000',
+        takerAmount: '50000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: Side.BUY,
+        signatureType: SignatureType.EOA,
+        signature: 'mock-signature',
+        salt: 12345,
+      },
+      owner: mockAddress,
+      orderType: OrderType.FOK,
     };
 
     it('handle 403 geoblock response with specific error message', async () => {
@@ -2222,6 +2275,123 @@ describe('polymarket utils', () => {
         success: false,
         error: 'Internal Server Error',
       });
+    });
+  });
+
+  describe('parsePolymarketActivity', () => {
+    // Type guard helpers for better type safety
+    const isBuyEntry = (
+      entry: PredictActivityEntry,
+    ): entry is PredictActivityBuy => entry.type === 'buy';
+
+    const isSellEntry = (
+      entry: PredictActivityEntry,
+    ): entry is PredictActivitySell => entry.type === 'sell';
+
+    it('returns empty array for non-array input', () => {
+      // @ts-expect-error testing invalid input
+      expect(parsePolymarketActivity(null)).toEqual([]);
+      // @ts-expect-error testing invalid input
+      expect(parsePolymarketActivity(undefined)).toEqual([]);
+    });
+
+    it('maps TRADE BUY to buy entries', () => {
+      const input = [
+        {
+          type: 'TRADE' as const,
+          side: 'BUY' as const,
+          timestamp: 1000,
+          usdcSize: 12.34,
+          price: 0.56,
+          conditionId: 'cid-1',
+          outcomeIndex: 0,
+          title: 'Market A',
+          outcome: 'Yes' as const,
+          icon: 'https://a.png',
+          transactionHash: '0xhash1',
+        },
+      ];
+      const result = parsePolymarketActivity(input);
+      const entry = result[0].entry;
+      expect(entry.type).toBe('buy');
+      expect(isBuyEntry(entry)).toBe(true);
+      if (isBuyEntry(entry)) {
+        expect(entry.price).toBe(0.56);
+        expect(entry.amount).toBe(12.34);
+      }
+      expect(result[0].outcome).toBe('Yes');
+      expect(result[0].title).toBe('Market A');
+      expect(result[0].icon).toBe('https://a.png');
+    });
+
+    it('maps TRADE SELL to sell entries', () => {
+      const input = [
+        {
+          type: 'TRADE' as const,
+          side: 'SELL' as const,
+          timestamp: 2000,
+          usdcSize: 9.99,
+          price: 0.12,
+          conditionId: 'cid-2',
+          outcomeIndex: 1,
+          title: 'Market B',
+          outcome: 'No' as const,
+          icon: 'https://b.png',
+          transactionHash: '0xhash2',
+        },
+      ];
+      const result = parsePolymarketActivity(input);
+      const entry = result[0].entry;
+      expect(entry.type).toBe('sell');
+      expect(isSellEntry(entry)).toBe(true);
+      if (isSellEntry(entry)) {
+        expect(entry.price).toBe(0.12);
+        expect(entry.amount).toBe(9.99);
+        expect(entry.outcomeId).toBe('cid-2');
+      }
+    });
+
+    it('maps non-TRADE to claimWinnings entries and handles defaults', () => {
+      const input = [
+        {
+          type: 'REDEEM' as const,
+          side: '' as const,
+          timestamp: 3000,
+          usdcSize: 1.23,
+          price: 0,
+          conditionId: '',
+          outcomeIndex: 0,
+          title: 'Market C',
+          outcome: '' as const,
+          icon: '',
+          transactionHash: '0xhash3',
+        },
+      ];
+      const result = parsePolymarketActivity(input);
+      expect(result[0].entry.type).toBe('claimWinnings');
+      expect(result[0].entry.amount).toBe(1.23);
+      expect(result[0].id).toBe('0xhash3');
+    });
+
+    it('generates fallback id and timestamp when missing', () => {
+      const input = [
+        {
+          type: 'TRADE' as const,
+          side: 'BUY' as const,
+          timestamp: 0,
+          usdcSize: 0,
+          price: 0,
+          conditionId: '',
+          outcomeIndex: 0,
+          title: '',
+          outcome: '' as const,
+          icon: '',
+          transactionHash: '',
+        },
+      ];
+      const result = parsePolymarketActivity(input);
+      expect(result[0].id).toBeDefined();
+      expect(typeof result[0].entry.timestamp).toBe('number');
     });
   });
 });

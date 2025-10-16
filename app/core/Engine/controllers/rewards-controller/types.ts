@@ -260,6 +260,22 @@ export interface PerpsEventPayload {
 }
 
 /**
+ * Card event payload
+ */
+export interface CardEventPayload {
+  /**
+   * Asset information (contains amount, symbol, decimals, etc.)
+   */
+  asset: EventAssetDto;
+
+  /**
+   * Transaction hash
+   * @example '0x.......'
+   */
+  txHash?: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -287,6 +303,7 @@ interface BasePointsEventDto {
    */
   bonus: {
     bips?: number | null;
+    bonusPoints?: number | null;
     bonuses?: string[] | null;
   } | null;
 
@@ -315,6 +332,10 @@ export type PointsEventDto = BasePointsEventDto &
     | {
         type: 'PERPS';
         payload: PerpsEventPayload | null;
+      }
+    | {
+        type: 'CARD';
+        payload: CardEventPayload | null;
       }
     | {
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
@@ -689,10 +710,7 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (
-    account: InternalAccount,
-    referralCode?: string,
-  ) => Promise<string | null>;
+  handler: (referralCode?: string) => Promise<string | null>;
 }
 
 /**
@@ -861,6 +879,16 @@ export interface RewardsControllerLinkAccountToSubscriptionAction {
 }
 
 /**
+ * Action for linking multiple accounts to a subscription candidate
+ */
+export interface RewardsControllerLinkAccountsToSubscriptionCandidateAction {
+  type: 'RewardsController:linkAccountsToSubscriptionCandidate';
+  handler: (
+    accounts: InternalAccount[],
+  ) => Promise<{ account: InternalAccount; success: boolean }[]>;
+}
+
+/**
  * Action for getting candidate subscription ID
  */
 export interface RewardsControllerGetCandidateSubscriptionIdAction {
@@ -936,6 +964,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetActualSubscriptionIdAction
   | RewardsControllerGetFirstSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionAction
+  | RewardsControllerLinkAccountsToSubscriptionCandidateAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction

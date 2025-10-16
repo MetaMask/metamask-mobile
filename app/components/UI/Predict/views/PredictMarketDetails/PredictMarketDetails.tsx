@@ -45,6 +45,8 @@ import { PredictPosition, PredictPriceHistoryInterval } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import TabBar from '../../../../Base/TabBar';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -81,19 +83,22 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const insets = useSafeAreaInsets();
+  const { hasNoBalance } = usePredictBalance();
 
   const { marketId } = route.params || {};
-
-  const position: PredictPosition[] = [];
-  const currentPosition = position[0];
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
+
+  const { positions } = usePredictPositions({ marketId: resolvedMarketId });
 
   const { market, isFetching: isMarketFetching } = usePredictMarket({
     id: resolvedMarketId,
     providerId,
     enabled: Boolean(resolvedMarketId),
   });
+
+  const position: PredictPosition[] = positions;
+  const currentPosition = position[0];
 
   const outcomeSlices = useMemo(
     () => (market?.outcomes ?? []).slice(0, 3),
@@ -169,9 +174,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const onCashOut = () => {
+    const outcome = market?.outcomes.find(
+      (o) => o.id === currentPosition?.outcomeId,
+    );
     navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.CASH_OUT,
-      params: { position: currentPosition },
+      params: { position: currentPosition, outcome },
     });
   };
 
@@ -190,6 +198,40 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       return Math.round(firstOutcomePrice * 100);
     }
     return 0;
+  };
+
+  const handleYesPress = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome: market?.outcomes?.[0],
+        outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
+      },
+    });
+  };
+
+  const handleNoPress = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome: market?.outcomes?.[0],
+        outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
+      },
+    });
   };
 
   const renderHeader = () => (
@@ -258,8 +300,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     </Box>
   );
 
-  const renderPositionsSection = () =>
-    position.length > 0 ? (
+  const renderPositionsSection = () => {
+    const outcome = market?.outcomes.find(
+      (o) => o.id === currentPosition?.outcomeId,
+    );
+
+    const outcomeTitle = outcome?.groupItemTitle
+      ? outcome?.groupItemTitle
+      : currentPosition?.outcome;
+
+    return position.length > 0 ? (
       <Box twClassName="space-y-4">
         {/* Cash Out Section */}
         <Box
@@ -285,15 +335,28 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             <Box twClassName="flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                justifyContent={BoxJustifyContent.Between}
+                justifyContent={BoxJustifyContent.Start}
                 alignItems={BoxAlignItems.Center}
-                twClassName="mb-1"
+                twClassName="mb-1 gap-2"
               >
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  ${currentPosition?.amount} on {currentPosition?.outcome}
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={tw.style('flex-1')}
+                >
+                  {formatPrice(currentPosition?.initialValue ?? 0, {
+                    maximumDecimals: 2,
+                  })}{' '}
+                  on {outcomeTitle}
                 </Text>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {formatPrice(currentPosition?.currentValue || 0, {
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  style={tw.style('shrink-0')}
+                >
+                  {formatPrice(currentPosition?.currentValue ?? 0, {
                     maximumDecimals: 2,
                   })}
                 </Text>
@@ -308,7 +371,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   color={TextColor.Alternative}
                 >
                   {currentPosition?.outcome} at{' '}
-                  {formatPrice(currentPosition?.price || 0, {
+                  {formatPrice(currentPosition?.avgPrice ?? 0, {
                     maximumDecimals: 2,
                   })}{' '}
                   • 30 seconds ago
@@ -344,6 +407,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Text>
       </Box>
     );
+  };
 
   const renderAboutSection = () => (
     <Box twClassName="space-y-6">
@@ -492,9 +556,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             Yes • {getYesPercentage()}¢
           </Text>
         }
-        onPress={() => {
-          // Navigate to buy flow
-        }}
+        onPress={handleYesPress}
       />
       <Button
         variant={ButtonVariants.Secondary}
@@ -506,9 +568,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             No • {100 - getYesPercentage()}¢
           </Text>
         }
-        onPress={() => {
-          // Navigate to buy flow
-        }}
+        onPress={handleNoPress}
       />
     </Box>
   );
@@ -519,24 +579,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       edges={['left', 'right', 'bottom']}
       testID="predict-market-details-screen"
     >
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={[
-          tw.style('px-3 pb-8 gap-4'),
-          { paddingTop: insets.top + 12 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {renderHeader()}
-        {singleOutcomeMarket && renderCurrentPrediction()}
-        <PredictDetailsChart
-          data={chartData}
-          timeframes={PRICE_HISTORY_TIMEFRAMES}
-          selectedTimeframe={selectedTimeframe}
-          onTimeframeChange={handleTimeframeChange}
-          isLoading={isFetching}
-          emptyLabel={chartEmptyLabel}
-        />
+      <Box twClassName="flex-1">
+        <Box twClassName="px-3 gap-4" style={{ paddingTop: insets.top + 12 }}>
+          {renderHeader()}
+          {singleOutcomeMarket && renderCurrentPrediction()}
+          <PredictDetailsChart
+            data={chartData}
+            timeframes={PRICE_HISTORY_TIMEFRAMES}
+            selectedTimeframe={selectedTimeframe}
+            onTimeframeChange={handleTimeframeChange}
+            isLoading={isFetching}
+            emptyLabel={chartEmptyLabel}
+          />
+        </Box>
         <ScrollableTabView
           renderTabBar={() => (
             <TabBar
@@ -544,30 +599,36 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
             />
           )}
-          style={tw.style('mt-2')}
+          style={tw.style('flex-1 mt-2')}
           initialPage={0}
         >
-          <Box
+          <ScrollView
             key="about"
             {...{ tabLabel: 'About' }}
-            twClassName="pt-4"
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+            showsVerticalScrollIndicator={false}
             testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
           >
             {renderAboutSection()}
-          </Box>
-          <Box
+          </ScrollView>
+          <ScrollView
             key="positions"
             {...{ tabLabel: 'Positions' }}
-            twClassName="pt-4"
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+            showsVerticalScrollIndicator={false}
             testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
           >
             {renderPositionsSection()}
-          </Box>
+          </ScrollView>
           {multipleOutcomes && (
-            <Box
+            <ScrollView
               key="outcomes"
               {...{ tabLabel: 'Outcomes' }}
-              twClassName="pt-4"
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+              showsVerticalScrollIndicator={false}
               testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
             >
               <Box>
@@ -579,14 +640,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                       outcome?.title ??
                       `outcome-${index}`
                     }
+                    market={market}
                     outcome={outcome}
                   />
                 ))}
               </Box>
-            </Box>
+            </ScrollView>
           )}
         </ScrollableTabView>
-      </ScrollView>
+      </Box>
       <Box twClassName="px-3 bg-default border-t border-muted">
         {singleOutcomeMarket && renderActionButtons()}
       </Box>

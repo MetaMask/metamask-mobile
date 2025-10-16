@@ -7,7 +7,10 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictMarketList from '../views/PredictMarketList';
 import PredictTabView from '../views/PredictTabView';
+import PredictUnavailableModal from '../views/PredictUnavailableModal';
+import PredictPlaceBet from '../views/PredictPlaceBet/PredictPlaceBet';
 import { PredictNavigationParamList } from '../types/navigation';
+import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
@@ -27,11 +30,24 @@ const PredictModalStack = () => (
       component={PredictCashOut}
     />
     <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.UNAVAILABLE}
+      component={PredictUnavailableModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
+      component={PredictAddFundsModal}
+    />
+    <ModalStack.Screen
       name={Routes.PREDICT.MARKET_DETAILS}
       component={PredictMarketDetails}
       options={{
         headerShown: false,
       }}
+    />
+
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.PLACE_BET}
+      component={PredictPlaceBet}
     />
   </ModalStack.Navigator>
 );
@@ -59,6 +75,19 @@ const PredictScreenStack = () => (
     <Stack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
+      options={{
+        headerLeft: () => null,
+        headerShown: true,
+        title: '',
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
+      component={Confirm}
+      options={{
+        headerShown: false,
+      }}
     />
   </Stack.Navigator>
 );

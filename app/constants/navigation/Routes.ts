@@ -104,6 +104,8 @@ const Routes = {
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
+    REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
+    REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -117,7 +119,7 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
-    SOCIAL_LOGIN_SUCCESS: 'SocialLoginSuccessNewUser',
+    SOCIAL_LOGIN_SUCCESS_NEW_USER: 'SocialLoginSuccessNewUser',
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
@@ -126,6 +128,7 @@ const Routes = {
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
+    SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -234,6 +237,7 @@ const Routes = {
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
+      RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -250,7 +254,6 @@ const Routes = {
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
-      BALANCE_MODAL: 'PerpsBalanceModal',
       GTM_MODAL: 'PerpsGTMModal',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
@@ -264,6 +267,9 @@ const Routes = {
     MODALS: {
       ROOT: 'PredictModals',
       CASH_OUT: 'PredictCashOut',
+      UNAVAILABLE: 'PredictUnavailable',
+      PLACE_BET: 'PredictPlaceBet',
+      ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
   LOCK_SCREEN: 'LockScreen',
@@ -304,6 +310,7 @@ const Routes = {
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+    NO_HEADER: 'NoHeaderConfirmations',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
@@ -339,6 +346,7 @@ const Routes = {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
+    AUTHENTICATION: 'CardAuthentication',
   },
   SEND: {
     RECIPIENT: 'Recipient',
