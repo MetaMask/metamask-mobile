@@ -38,6 +38,20 @@ jest.mock('../../../../../util/networks', () => ({
   isTestNet: jest.fn((chainId: string) => chainId === '0x5'),
 }));
 
+// Mock useWindowDimensions
+jest.mock('react-native', () => {
+  const actualRN = jest.requireActual('react-native');
+  return {
+    ...actualRN,
+    useWindowDimensions: jest.fn(() => ({
+      width: 375,
+      height: 800,
+      scale: 2,
+      fontScale: 1,
+    })),
+  };
+});
+
 // Mock the selectors directly
 jest.mock('../../../../../selectors/multichainAccounts/accountTreeController');
 jest.mock('../../../../../selectors/networkController');
@@ -47,6 +61,15 @@ jest.mock('@metamask/multichain-network-controller', () => ({
     (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
   ),
 }));
+
+// Mock react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    FlatList: actual.FlatList,
+    ScrollView: actual.ScrollView,
+  };
+});
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
@@ -804,12 +827,19 @@ describe('RewardOptInAccountGroupModal', () => {
     });
   });
 
-  describe('SectionList Configuration', () => {
-    it('should render SectionList with correct testID', () => {
+  describe('FlatList Configuration', () => {
+    it('should render FlatList with correct testID', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Verify the SectionList is rendered
+      // Verify the FlatList is rendered
       expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
+    });
+
+    it('should have correct FlatList props for scrolling', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const flatList = getByTestId('reward-opt-in-address-list');
+      expect(flatList).toHaveProp('showsVerticalScrollIndicator', true);
     });
   });
 
@@ -898,7 +928,7 @@ describe('RewardOptInAccountGroupModal', () => {
       // Act
       const { queryByText } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert - Unsupported addresses should not be shown in sections
+      // Assert - Unsupported addresses should not be shown in the list
       expect(queryByText('rewards.link_account_group.tracked')).toBeNull();
       expect(queryByText('rewards.link_account_group.untracked')).toBeNull();
     });

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { SectionList } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
   Text,
@@ -52,6 +53,13 @@ const RewardOptInAccountGroupModal: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { accountGroupId, addressData } = route.params as RouteParams;
+  const { height: screenHeight } = useWindowDimensions();
+
+  const listStyle = useMemo(
+    () => ({ maxHeight: screenHeight * 0.65 }),
+    [screenHeight],
+  );
+
   const accountGroupContext = useSelector((state: RootState) =>
     selectAccountGroupById(state, accountGroupId),
   );
@@ -195,9 +203,29 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     }
   }, [linkAccountGroup, accountGroupId]);
 
-  const renderAddressItem = useCallback(
-    ({ item }: { item: FlattenedAddressItem; section: { title: string } }) => {
-      if (!item?.address || !item?.scope) {
+  const renderItem = useCallback(
+    ({
+      item,
+    }: {
+      item:
+        | { type: 'header'; title: string }
+        | ({ type: 'item' } & FlattenedAddressItem);
+    }) => {
+      if (item.type === 'header') {
+        return (
+          <Box twClassName="px-4 py-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="text-alternative"
+            >
+              {item.title}
+            </Text>
+          </Box>
+        );
+      }
+
+      if (!item.address || !item.scope) {
         return null;
       }
 
@@ -208,25 +236,6 @@ const RewardOptInAccountGroupModal: React.FC = () => {
           networkName={item.networkName}
           address={item.address}
         />
-      );
-    },
-    [],
-  );
-
-  const renderSectionHeader = useCallback(
-    ({ section }: { section: { title: string } }) => {
-      if (!section.title) return null;
-
-      return (
-        <Box twClassName="px-4 py-2">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-alternative"
-          >
-            {section.title}
-          </Text>
-        </Box>
       );
     },
     [],
@@ -246,8 +255,8 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     [flattenedAddressData],
   );
 
-  // Group addresses by tracked/untracked status
-  const groupedAddressData = useMemo(() => {
+  // Flatten addresses with section headers for FlatList
+  const flatListData = useMemo(() => {
     const supportedAddresses = flattenedAddressData.filter(
       (item) => item.isSupported !== false,
     );
@@ -259,29 +268,40 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       (item) => !item.hasOptedIn,
     );
 
-    const sections = [];
+    const data: (
+      | { type: 'header'; title: string }
+      | ({ type: 'item' } & FlattenedAddressItem)
+    )[] = [];
 
     // Only show headers if there are both tracked and untracked addresses
     const showHeaders =
       trackedAddresses.length > 0 && untrackedAddresses.length > 0;
 
     if (trackedAddresses.length > 0) {
-      sections.push({
-        title: showHeaders ? strings('rewards.link_account_group.tracked') : '',
-        data: trackedAddresses,
+      if (showHeaders) {
+        data.push({
+          type: 'header',
+          title: strings('rewards.link_account_group.tracked'),
+        });
+      }
+      trackedAddresses.forEach((item) => {
+        data.push({ type: 'item', ...item });
       });
     }
 
     if (untrackedAddresses.length > 0) {
-      sections.push({
-        title: showHeaders
-          ? strings('rewards.link_account_group.untracked')
-          : '',
-        data: untrackedAddresses,
+      if (showHeaders) {
+        data.push({
+          type: 'header',
+          title: strings('rewards.link_account_group.untracked'),
+        });
+      }
+      untrackedAddresses.forEach((item) => {
+        data.push({ type: 'item', ...item });
       });
     }
 
-    return sections;
+    return data;
   }, [flattenedAddressData]);
 
   return (
@@ -312,20 +332,20 @@ const RewardOptInAccountGroupModal: React.FC = () => {
         </Box>
       )}
 
-      <Box twClassName="gap-2">
-        {groupedAddressData.length > 0 && (
-          <SectionList
-            testID="reward-opt-in-address-list"
-            sections={groupedAddressData}
-            keyExtractor={(item) => `${item.address}-${item.scope}`}
-            renderItem={renderAddressItem}
-            renderSectionHeader={renderSectionHeader}
-            showsVerticalScrollIndicator={false}
-            removeClippedSubviews
-            stickySectionHeadersEnabled={false}
-          />
-        )}
-      </Box>
+      {flatListData.length > 0 && (
+        <FlatList
+          testID="reward-opt-in-address-list"
+          style={listStyle}
+          data={flatListData}
+          keyExtractor={(item, index) =>
+            item.type === 'header'
+              ? `header-${item.title}-${index}`
+              : `${item.address}-${item.scope}-${index}`
+          }
+          renderItem={renderItem}
+          showsVerticalScrollIndicator
+        />
+      )}
 
       {canOptInAddresses.length > 0 && (
         <Box twClassName="px-4 gap-2 pt-2">
