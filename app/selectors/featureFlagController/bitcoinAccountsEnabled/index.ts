@@ -1,9 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
-import {
-  isBitcoinAccountsFeatureEnabled,
-  isBitcoinAccountsFeatureFlagType,
-} from '../../../multichain-bitcoin/remote-feature-flag';
+import { isBitcoinAccountsFeatureEnabled } from '../../../multichain-bitcoin/remote-feature-flag';
 
 /**
  * Selector to check if the bitcoinAccounts feature flag is enabled.
@@ -13,11 +10,6 @@ export const selectIsBitcoinAccountsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
     const bitcoinAccountsFlag = remoteFeatureFlags.bitcoinAccounts;
-
-    if (!isBitcoinAccountsFeatureFlagType(bitcoinAccountsFlag)) {
-      return false;
-    }
-
     return isBitcoinAccountsFeatureEnabled(bitcoinAccountsFlag);
   },
 );

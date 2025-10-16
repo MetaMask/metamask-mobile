@@ -1,5 +1,4 @@
 import { selectIsBitcoinAccountsEnabled } from '.';
-import { isBitcoinAccountsFeatureFlagType } from '../../../multichain-bitcoin/remote-feature-flag';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 import packageJson from '../../../../package.json';
@@ -128,7 +127,7 @@ describe('selectIsBitcoinAccountsEnabled', () => {
             remoteFeatureFlags: {
               bitcoinAccounts: {
                 enabled: true,
-                // Missing minimumVersion
+                // Missing minimumVersion - should return false for safety
               },
             },
           },

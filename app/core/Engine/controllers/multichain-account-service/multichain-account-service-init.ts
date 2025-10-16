@@ -9,7 +9,8 @@ import { ControllerInitFunction } from '../../types';
 import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
-import { isBitcoinAccountsFeatureEnabled } from '../../../../multichain-bitcoin/remote-feature-flag';
+import { selectIsBitcoinAccountsEnabled } from '../../../../selectors/featureFlagController/bitcoinAccountsEnabled';
+import ReduxService from '../../../redux';
 
 /**
  * Initialize the multichain account service.
@@ -51,16 +52,10 @@ export const multichainAccountServiceInit: ControllerInitFunction<
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   // Handle Bitcoin provider feature flag
-  const initialRemoteFeatureFlagsState = initMessenger.call(
-    'RemoteFeatureFlagController:getState',
-  );
+  // Note: Using selector until initMessenger gets RemoteFeatureFlagController access
+  const isBitcoinEnabled = selectIsBitcoinAccountsEnabled(ReduxService.store.getState());
 
-  // Set initial state based on bitcoinAccounts feature flag
-  const initialBitcoinEnabled = isBitcoinAccountsFeatureEnabled(
-    initialRemoteFeatureFlagsState?.remoteFeatureFlags?.bitcoinAccounts,
-  );
-
-  if (initialBitcoinEnabled) {
+  if (isBitcoinEnabled) {
     btcProvider.setEnabled(true);
 
     // Trigger wallet alignment when Bitcoin accounts are enabled
