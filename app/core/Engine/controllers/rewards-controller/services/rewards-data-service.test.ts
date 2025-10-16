@@ -1608,7 +1608,7 @@ describe('RewardsDataService', () => {
       jest.clearAllMocks();
     });
 
-    it('should successfully fetch geolocation in DEV environment', async () => {
+    it('should successfully fetch geolocation using PROD URL', async () => {
       // Arrange
       const mockLocation = 'US';
       const mockResponse = {
@@ -1616,9 +1616,6 @@ describe('RewardsDataService', () => {
         text: jest.fn().mockResolvedValue(mockLocation),
       };
 
-      // Mock AppConstants to use DEV environment
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (AppConstants as any).IS_DEV = true;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
@@ -1628,21 +1625,18 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toBe(mockLocation);
       expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+        'https://on-ramp.api.cx.metamask.io/geolocation',
       );
     });
 
-    it('should successfully fetch geolocation in PROD environment', async () => {
+    it('should always use PROD geolocation URL regardless of environment', async () => {
       // Arrange
-      const mockLocation = 'US';
+      const mockLocation = 'UK';
       const mockResponse = {
         ok: true,
         text: jest.fn().mockResolvedValue(mockLocation),
       };
 
-      // Mock AppConstants to use PROD environment
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (AppConstants as any).IS_DEV = false;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
@@ -1651,6 +1645,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(result).toBe(mockLocation);
+      // Always uses PROD URL, not DEV
       expect(mockSuccessfulFetch).toHaveBeenCalledWith(
         'https://on-ramp.api.cx.metamask.io/geolocation',
       );
