@@ -52,10 +52,12 @@ describe('MultichainAccountServiceInit', () => {
   );
 
   let mockSetEnabled: jest.Mock;
+  let mockAlignWallets: jest.Mock;
 
   beforeEach(() => {
     jest.resetAllMocks();
     mockSetEnabled = jest.fn();
+    mockAlignWallets = jest.fn().mockResolvedValue(undefined);
     selectIsBitcoinAccountsEnabledMock.mockClear();
     (ReduxService.store.getState as jest.Mock).mockReturnValue({});
 
@@ -70,6 +72,14 @@ describe('MultichainAccountServiceInit', () => {
     // Mock BtcAccountProvider instance
     btcAccountProviderMock.mockImplementation(
       () => ({} as unknown as BtcAccountProvider),
+    );
+
+    // Mock MultichainAccountService instance with alignWallets method
+    multichainAccountServiceClassMock.mockImplementation(
+      () =>
+        ({
+          alignWallets: mockAlignWallets,
+        } as unknown as MultichainAccountService),
     );
 
     // Default: feature flag disabled
@@ -132,6 +142,7 @@ describe('MultichainAccountServiceInit', () => {
       // Then Bitcoin provider should be enabled and alignment triggered
       expect(mockSetEnabled).toHaveBeenCalledTimes(1);
       expect(mockSetEnabled).toHaveBeenCalledWith(true);
+      expect(mockAlignWallets).toHaveBeenCalledTimes(1);
     });
   });
 });
