@@ -84,7 +84,7 @@ interface MockController {
 
 interface MockEngineContext {
   [controllerName: string]: MockController;
-  KeyringController: MockController & { 
+  KeyringController: MockController & {
     state: Record<string, unknown>;
     metadata?: Record<string, unknown>;
   };
@@ -394,7 +394,7 @@ describe('EngineService', () => {
     it('should return false when metadata is undefined', () => {
       // Act
       const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(undefined);
-      
+
       // Assert
       expect(result).toBe(false);
     });
@@ -402,7 +402,7 @@ describe('EngineService', () => {
     it('should return false when metadata is empty', () => {
       // Act
       const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState({});
-      
+
       // Assert
       expect(result).toBe(false);
     });
@@ -413,10 +413,10 @@ describe('EngineService', () => {
         field1: { persist: true, anonymous: false },
         field2: { persist: false, anonymous: true },
       };
-      
+
       // Act
       const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
-      
+
       // Assert
       expect(result).toBe(true);
     });
@@ -426,10 +426,10 @@ describe('EngineService', () => {
       const metadata = {
         field1: { persist: jest.fn(), anonymous: false },
       };
-      
+
       // Act
       const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
-      
+
       // Assert
       expect(result).toBe(true);
     });
@@ -440,10 +440,10 @@ describe('EngineService', () => {
         field1: { persist: false, anonymous: false },
         field2: { persist: false, anonymous: true },
       };
-      
+
       // Act
       const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
-      
+
       // Assert
       expect(result).toBe(false);
     });
@@ -486,10 +486,10 @@ describe('EngineService', () => {
 
       // Arrange
       await engineService.start();
-      
+
       const mockEngine = Engine as unknown as MockEngineType;
       const mockSubscribeOnceIf = mockEngine.controllerMessenger.subscribeOnceIf;
-      
+
       // Mock missing vault metadata
       const originalContext = mockEngine.context;
       mockEngine.context = {
@@ -506,7 +506,7 @@ describe('EngineService', () => {
         call[0] === 'ComposableController:stateChange'
       ) as SubscribeCall;
       expect(subscribeCall).toBeDefined();
-      
+
       const callback = subscribeCall[1];
       callback();
 
@@ -529,10 +529,10 @@ describe('EngineService', () => {
 
       // Arrange
       await engineService.start();
-      
+
       const mockEngine = Engine as unknown as MockEngineType;
       const mockSubscribe = mockEngine.controllerMessenger.subscribe;
-      
+
       // Mock missing vault metadata
       const originalContext = mockEngine.context;
       mockEngine.context = {
@@ -549,7 +549,7 @@ describe('EngineService', () => {
         call[0] === 'KeyringController:stateChange' && call.length === 2 // Redux update has 2 args, persistence has 3
       ) as SubscribeCall;
       expect(reduxUpdateCall).toBeDefined();
-      
+
       // Act - trigger the callback
       const callback = reduxUpdateCall[1];
       callback();
@@ -567,11 +567,9 @@ describe('EngineService', () => {
       }
 
       // Arrange - mock BACKGROUND_STATE_CHANGE_EVENT_NAMES to include CronjobController
-      const originalEventNames = [...BACKGROUND_STATE_CHANGE_EVENT_NAMES];
-      
       // Temporarily mock the event names array to include CronjobController
       const mockEventNames = [...BACKGROUND_STATE_CHANGE_EVENT_NAMES, 'CronjobController:stateChange'] as const;
-      
+
       // Mock the module to return our modified event names
       jest.doMock('../Engine/constants', () => ({
         BACKGROUND_STATE_CHANGE_EVENT_NAMES: mockEventNames,
@@ -579,7 +577,7 @@ describe('EngineService', () => {
 
       // Act
       await engineService.start();
-      
+
       const mockEngine = Engine as unknown as MockEngineType;
       const mockSubscribe = mockEngine.controllerMessenger.subscribe;
 
@@ -667,7 +665,7 @@ describe('EngineService', () => {
       // Assert
       // Should not call the vault check log for new users
       const vaultCheckLogs = (Logger.log as jest.MockedFunction<typeof Logger.log>).mock.calls
-        .filter(call => call[0] && call[0].includes && call[0].includes('Is vault defined at KeyringController'));
+        .filter(call => call[0]?.includes?.('Is vault defined at KeyringController'));
       expect(vaultCheckLogs).toHaveLength(0);
     });
   });
@@ -787,7 +785,11 @@ describe('EngineService', () => {
       const persistenceSubscription = keyringControllerCalls.find(call => call.length === 3);
       expect(persistenceSubscription).toBeDefined();
 
-      const [eventName, handler, selector] = persistenceSubscription as [string, Function, Function];
+      const [, handler, selector] = persistenceSubscription as [
+        string,
+        (state: unknown) => Promise<void>,
+        (state: unknown) => unknown
+      ];
 
       // Verify the selector function works correctly
       const controllerState = { field1: 'value1', field2: 'value2' };
