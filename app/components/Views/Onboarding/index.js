@@ -19,7 +19,6 @@ import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -36,7 +35,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import LottieView from 'lottie-react-native';
 import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
@@ -54,7 +52,6 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import fox from '../../../animations/Searching_Fox.json';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
@@ -65,7 +62,10 @@ import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const createStyles = () =>
+import FoxAnimation from './FoxAnimation';
+import OnboardingAnimation from './OnboardingAnimation';
+
+const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
       flex: 1,
@@ -83,6 +83,16 @@ const createStyles = () =>
       rowGap: 32,
       marginBottom: 160,
     },
+    loaderOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1000,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     image: {
       alignSelf: 'center',
       width: Device.isMediumDevice() ? 180 : 240,
@@ -96,7 +106,11 @@ const createStyles = () =>
       justifyContent: 'center',
       marginHorizontal: 'auto',
       padding: Device.isMediumDevice() ? 30 : 40,
-      marginTop: 16,
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
+      marginTop: -(Device.isMediumDevice() ? 90 : 120),
     },
     foxImage: {
       width: Device.isMediumDevice() ? 110 : 145,
@@ -138,6 +152,18 @@ const createStyles = () =>
     createWrapper: {
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
+      marginBottom: 16,
+      position: 'absolute',
+      top: '50%',
+      left: Device.isMediumDevice() ? 26 : 36,
+      right: Device.isMediumDevice() ? 26 : 36,
+      marginTop: 180,
+      alignItems: 'stretch',
+    },
+    buttonWrapper: {
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      gap: Device.isMediumDevice() ? 12 : 16,
       width: '100%',
     },
     buttonLabel: {
@@ -152,6 +178,7 @@ const createStyles = () =>
     loadingText: {
       marginTop: 30,
       textAlign: 'center',
+      color: colors.text.default,
     },
     modalTypeView: {
       position: 'absolute',
@@ -167,10 +194,10 @@ const createStyles = () =>
       alignItems: 'flex-end',
     },
     blackButton: {
-      backgroundColor: importedColors.btnBlack,
+      backgroundColor: importedColors.white,
     },
     inverseBlackButton: {
-      backgroundColor: importedColors.btnBlackInverse,
+      backgroundColor: importedColors.applePayBlack,
     },
   });
 
@@ -246,6 +273,8 @@ class Onboarding extends PureComponent {
     existingWallet: false,
     errorSheetVisible: false,
     errorToThrow: null,
+    startOnboardingAnimation: false,
+    startFoxAnimation: false,
   };
 
   seedwords = null;
@@ -275,15 +304,9 @@ class Onboarding extends PureComponent {
 
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getTransparentOnboardingNavbarOptions(
-        colors,
-        importedColors.gettingStartedPageBackgroundColor,
-        true,
-        importedColors.btnBlack,
-      ),
-    );
+    navigation.setOptions({
+      headerShown: false,
+    });
   };
 
   componentDidMount() {
@@ -302,12 +325,9 @@ class Onboarding extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
-        this.props.setLoading(strings('onboarding.delete_current'));
-        setTimeout(() => {
-          this.showNotification();
-          this.props.unsetLoading();
-        }, 2000);
+        this.showNotification();
       }
+      this.setState({ startOnboardingAnimation: true });
     });
   }
 
@@ -694,56 +714,34 @@ class Onboarding extends PureComponent {
     }
   };
 
+  setStartFoxAnimation = () => {
+    this.setState({ startFoxAnimation: 'Start' });
+  };
+
   renderLoader = () => {
-    const styles = createStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <View style={styles.loaderWrapper}>
-        <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
-          />
-        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText} color={importedColors.btnBlack}>
-            {this.props.loadingMsg}
-          </Text>
+          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
         </View>
       </View>
     );
   };
 
   renderContent() {
-    const styles = createStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <View style={styles.ctas}>
-        <View style={styles.titleWrapper}>
-          <View style={styles.largeFoxWrapper}>
-            <LottieView
-              style={styles.image}
-              autoPlay
-              loop
-              source={fox}
-              resizeMode="contain"
-            />
-          </View>
-
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.title}
-            testID={OnboardingSelectorIDs.SCREEN_TITLE}
-          >
-            {strings('onboarding.title')}
-          </Text>
-        </View>
-
-        <View style={styles.createWrapper}>
+        <OnboardingAnimation
+          startOnboardingAnimation={this.state.startOnboardingAnimation}
+          setStartFoxAnimation={this.setStartFoxAnimation}
+        >
           <Button
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
@@ -751,7 +749,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlackText}
+                color={importedColors.applePayBlack}
               >
                 {strings('onboarding.start_exploring_now')}
               </Text>
@@ -769,7 +767,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlack}
+                color={importedColors.white}
               >
                 {SEEDLESS_ONBOARDING_ENABLED
                   ? strings('onboarding.import_using_srp_social_login')
@@ -778,13 +776,14 @@ class Onboarding extends PureComponent {
             }
             style={styles.inverseBlackButton}
           />
-        </View>
+        </OnboardingAnimation>
       </View>
     );
   }
 
   handleSimpleNotification = () => {
-    const styles = createStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     if (!this.props.route.params?.delete) return;
     return (
@@ -810,8 +809,10 @@ class Onboarding extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { existingUser, errorToThrow } = this.state;
-    const styles = createStyles();
+    const { existingUser, errorToThrow, startFoxAnimation } = this.state;
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+    const hasFooter = existingUser && !loading;
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
@@ -834,7 +835,10 @@ class Onboarding extends PureComponent {
           style={[
             baseStyles.flexGrow,
             {
-              backgroundColor: importedColors.gettingStartedPageBackgroundColor,
+              backgroundColor:
+                this.context.themeAppearance === 'dark'
+                  ? importedColors.gettingStartedTextColor
+                  : importedColors.gettingStartedPageBackgroundColorLightMode,
             },
           ]}
           testID={OnboardingSelectorIDs.CONTAINER_ID}
@@ -844,7 +848,23 @@ class Onboarding extends PureComponent {
             contentContainerStyle={styles.scroll}
           >
             <View style={styles.wrapper}>
-              {loading ? this.renderLoader() : this.renderContent()}
+              {this.renderContent()}
+
+              {loading && (
+                <View
+                  style={[
+                    styles.loaderOverlay,
+                    {
+                      backgroundColor:
+                        this.context.themeAppearance === 'dark'
+                          ? importedColors.gettingStartedTextColor
+                          : importedColors.gettingStartedPageBackgroundColorLightMode,
+                    },
+                  ]}
+                >
+                  {this.renderLoader()}
+                </View>
+              )}
             </View>
 
             {existingUser && !loading && (
@@ -861,6 +881,8 @@ class Onboarding extends PureComponent {
           </ScrollView>
 
           <FadeOutOverlay />
+
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
 
           <View>{this.handleSimpleNotification()}</View>
 
