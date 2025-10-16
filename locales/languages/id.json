@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Siap untuk berdagang?",
         "description": "Danai akun perp Anda dengan token apa pun dan lakukan perdagangan pertama dalam hitungan detik.",
-        "footer_text": "MetaMask akan menukar dana Anda ke USDC di Arbitrum, dan mendepositkan ke HyperEVM tanpa biaya tambahan."
+        "footer_text": "MetaMask akan menukar dana Anda ke USDC di Arbitrum, dan mendepositkan ke HyperCore tanpa biaya tambahan."
       },
       "got_it": "Mengerti",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Kami akan menukar token Anda dengan USDC di HyperEVM, jaringan yang digunakan oleh Perp. Penyedia swap mungkin akan mengenakan biaya, tetapi MetaMask tidak."
+        "transaction_fee": "Kami akan menukar token Anda dengan USDC di HyperCore, jaringan yang digunakan oleh Perp. Penyedia swap mungkin akan mengenakan biaya, tetapi MetaMask tidak."
       },
       "title": {
         "transaction_fee": "Biaya"
