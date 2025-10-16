@@ -596,6 +596,7 @@ export class PredictController extends BaseController<
       throw error;
     }
   }
+
   /**
    * Get user activity
    */

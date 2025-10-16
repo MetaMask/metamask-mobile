@@ -9,6 +9,7 @@ import PredictMarketList from '../views/PredictMarketList';
 import PredictTabView from '../views/PredictTabView';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import PredictPlaceBet from '../views/PredictPlaceBet/PredictPlaceBet';
+import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 
@@ -48,6 +49,13 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.PLACE_BET}
       component={PredictPlaceBet}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.ACTIVITY_DETAIL}
+      component={PredictActivityDetail}
+      options={{
+        headerShown: false,
+      }}
     />
   </ModalStack.Navigator>
 );
