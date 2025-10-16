@@ -29,6 +29,7 @@ import { PredictMarket, PredictOutcome } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
@@ -46,6 +47,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   const { isEligible } = usePredictEligibility({
     providerId: market.providerId,
   });
+  const { hasNoBalance } = usePredictBalance();
 
   const getFirstOutcomePrice = (
     outcomePrices?: number[],
@@ -76,6 +78,13 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   }, 0);
 
   const handleYes = (outcome: PredictOutcome) => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
     if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -94,6 +103,13 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   };
 
   const handleNo = (outcome: PredictOutcome) => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
     if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
