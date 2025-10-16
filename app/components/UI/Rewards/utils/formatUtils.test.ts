@@ -209,13 +209,13 @@ describe('formatUtils', () => {
         });
       });
 
-      it('returns correct details for perps CLOSE_POSITION event with zero pnl', () => {
+      it('returns correct details for perps CLOSE_POSITION event with zero amount', () => {
         // Given a PERPS CLOSE_POSITION event
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.CLOSE_POSITION,
           asset: {
             symbol: 'ETH',
-            amount: '1000000000000000000', // 1 ETH with 18 decimals
+            amount: '0',
             decimals: 18,
             type: 'eip155:1/slip44:60',
           },
@@ -228,7 +228,7 @@ describe('formatUtils', () => {
         // Then it should return perps details
         expect(result).toEqual({
           title: 'Closed position',
-          details: 'ETH $0',
+          details: '0 ETH',
           icon: IconName.Candlestick,
         });
       });
@@ -252,7 +252,7 @@ describe('formatUtils', () => {
         // Then it should return perps details
         expect(result).toEqual({
           title: 'Take profit',
-          details: 'BTC +$100',
+          details: '0.25 BTC',
           icon: IconName.Candlestick,
         });
       });
@@ -267,7 +267,7 @@ describe('formatUtils', () => {
             decimals: 18,
             type: 'eip155:1/slip44:60',
           },
-          pnl: '1.234',
+          pnl: '100',
         });
 
         // When getting event details
@@ -276,22 +276,22 @@ describe('formatUtils', () => {
         // Then it should return perps details
         expect(result).toEqual({
           title: 'Stop loss',
-          details: 'ETH +$1.23',
+          details: '0.5 ETH',
           icon: IconName.Candlestick,
         });
       });
 
-      it('returns correct details for PERPS STOP_LOSS event with negative pnl', () => {
+      it('returns correct details for PERPS STOP_LOSS event with low amount', () => {
         // Given a PERPS STOP_LOSS event
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.STOP_LOSS,
           asset: {
             symbol: 'ETH',
-            amount: '500000000000000000', // 0.5 ETH with 18 decimals
+            amount: '4006000000000000', // 0.5 ETH with 18 decimals
             decimals: 18,
             type: 'eip155:1/slip44:60',
           },
-          pnl: '-1.20',
+          pnl: '100',
         });
 
         // When getting event details
@@ -300,7 +300,7 @@ describe('formatUtils', () => {
         // Then it should return perps details
         expect(result).toEqual({
           title: 'Stop loss',
-          details: 'ETH -$1.2',
+          details: '0.00401 ETH',
           icon: IconName.Candlestick,
         });
       });
@@ -496,13 +496,13 @@ describe('formatUtils', () => {
         });
       });
 
-      it('formats PERPS event amounts to at most 3 decimal places (1.23456 should display as 1.235)', () => {
+      it('formats PERPS event amounts to at most 5 decimal places (0.012345 should display as 0.01235)', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
           asset: {
             symbol: 'ETH',
-            amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
+            amount: '0012345600000000000', // 1.23456 ETH with 18 decimals
             decimals: 18,
             type: 'eip155:1/slip44:60',
           },
@@ -512,7 +512,7 @@ describe('formatUtils', () => {
 
         expect(result).toEqual({
           title: 'Opened position',
-          details: 'Long 1.235 ETH',
+          details: 'Long 0.01235 ETH',
           icon: IconName.Candlestick,
         });
       });

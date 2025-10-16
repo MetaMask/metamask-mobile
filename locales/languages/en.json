@@ -5966,9 +5966,9 @@
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
 
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
