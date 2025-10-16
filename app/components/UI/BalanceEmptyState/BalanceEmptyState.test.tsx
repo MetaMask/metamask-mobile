@@ -2,8 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import BalanceEmptyState from './BalanceEmptyState';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
-import { TraceName } from '../../../../util/trace';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { TraceName } from '../../../util/trace';
 
 // Mock navigation
 const mockNavigate = jest.fn();
