@@ -93,7 +93,7 @@ const BuildQuote = () => {
     userRegionLocked,
   } = useRegions();
 
-  const { userDetails } = useDepositUser();
+  const { userDetails, isFetching: isFetchingUserDetails } = useDepositUser();
 
   const {
     cryptoCurrencies,
@@ -422,6 +422,10 @@ const BuildQuote = () => {
 
   useEffect(() => {
     if (shouldRouteImmediately) {
+      if (isAuthenticated && (isFetchingUserDetails || !userDetails)) {
+        return;
+      }
+
       navigation.setParams({
         shouldRouteImmediately: false,
       });
@@ -443,6 +447,9 @@ const BuildQuote = () => {
     navigation,
     selectedRegion?.isoCode,
     userDetails?.address?.countryCode,
+    isAuthenticated,
+    isFetchingUserDetails,
+    userDetails,
   ]);
 
   return (
