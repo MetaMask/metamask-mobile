@@ -7,6 +7,7 @@ import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsTabViewWithProvider from '../Views/PerpsTabView';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { usePerpsConnection } from '../hooks';
 
 // Type definitions for hook parameters
 interface PerpsConnectionLifecycleParams {
