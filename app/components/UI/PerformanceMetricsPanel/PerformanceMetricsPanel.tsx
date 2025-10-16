@@ -53,12 +53,25 @@ const mockSession = {
   startTime: Date.now() - 10000,
 };
 
+interface PerformanceMetric {
+  eventName: string;
+  timestamp: number;
+  duration?: number;
+  metadata?: Record<string, unknown>;
+}
+
+interface PerformanceSession {
+  sessionId?: string;
+  startTime?: number;
+}
+
 const PerformanceMetricsPanel: React.FC = () => {
   const tw = useTailwind();
   const [open, setOpen] = useState(false);
   
   // Try to get real performance data from Redux
-  let metrics, session;
+  let metrics: PerformanceMetric[] = [];
+  let session: PerformanceSession = { sessionId: 'none' };
   let dataSource = 'none';
   
   try {
@@ -68,12 +81,12 @@ const PerformanceMetricsPanel: React.FC = () => {
       selectPerformanceSession 
     } = require('../../../core/redux/slices/performance');
     
-    const reduxMetrics = useSelector(selectPerformanceMetrics);
-    const reduxSession = useSelector(selectPerformanceSession);
+    const reduxMetrics = useSelector(selectPerformanceMetrics) as PerformanceMetric[] | undefined;
+    const reduxSession = useSelector(selectPerformanceSession) as PerformanceSession | undefined;
     
     if (reduxMetrics && reduxMetrics.length > 0) {
       metrics = reduxMetrics;
-      session = reduxSession;
+      session = reduxSession || { sessionId: 'no-session' };
       dataSource = 'redux';
     } else {
       metrics = [];
@@ -91,24 +104,59 @@ const PerformanceMetricsPanel: React.FC = () => {
 
   const rows = useMemo(
     () => {
-      const rowsData = [...metricsNormalized].reverse().slice(0, 50).map((m, idx) => (
-        <Box
-          key={`${m.eventName}-${m.timestamp}-${idx}`}
-          twClassName="flex-row items-center justify-between px-3 py-2 border-b border-muted"
-        >
+      const rowsData = [...metricsNormalized].reverse().slice(0, 50).map((m, idx) => {
+        const isAppStartup = m.eventName === 'App Startup Complete';
+        const metadata = m.metadata as Record<string, unknown> | undefined;
+        const totalAppStartup = metadata?.totalAppStartupMs as number | undefined;
+        const storeInitDuration = metadata?.storeInitDurationMs as number | undefined;
+        const appServicesDuration = metadata?.appServicesDurationMs as number | undefined;
+        
+        return (
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            key={`${m.eventName}-${m.timestamp}-${idx}`}
+            twClassName="px-3 py-2 border-b border-muted"
           >
-            <Text variant={TextVariant.BodySm}>{formatTime(m.timestamp)}</Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="mb-1"
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-2"
+              >
+                <Text variant={TextVariant.BodySm}>{formatTime(m.timestamp)}</Text>
+              </Box>
+              <Box twClassName="flex-1 px-3">
+                <Text variant={TextVariant.BodySm}>{m.eventName}</Text>
+              </Box>
+              <Text variant={TextVariant.BodySm}>
+                {isAppStartup && totalAppStartup 
+                  ? formatDuration(totalAppStartup) 
+                  : formatDuration(m.duration)}
+              </Text>
+            </Box>
+            
+            {/* Show breakdown for App Startup Complete */}
+            {isAppStartup && (storeInitDuration || appServicesDuration) && (
+              <Box twClassName="ml-6 mt-1 pl-3 border-l-2 border-muted">
+                {storeInitDuration !== undefined && (
+                  <Text variant={TextVariant.BodyXs} twClassName="text-muted">
+                    └ Store Init: {formatDuration(storeInitDuration)}
+                  </Text>
+                )}
+                {appServicesDuration !== undefined && (
+                  <Text variant={TextVariant.BodyXs} twClassName="text-muted">
+                    └ App Services: {formatDuration(appServicesDuration)}
+                  </Text>
+                )}
+              </Box>
+            )}
           </Box>
-          <Box twClassName="flex-1 px-3">
-            <Text variant={TextVariant.BodySm}>{m.eventName}</Text>
-          </Box>
-          <Text variant={TextVariant.BodySm}>{formatDuration(m.duration)}</Text>
-        </Box>
-      ));
+        );
+      });
       
       return rowsData;
     },
