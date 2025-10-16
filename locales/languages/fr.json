@@ -221,9 +221,11 @@
     "remind_later_description2": "Vous pouvez sauvegarder vos portefeuilles ou voir votre phrase secrète de récupération dans",
     "setting_security_privacy": "Paramètres > Sécurité et confidentialité"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Bienvenue sur MetaMask",
@@ -1553,7 +1555,7 @@
       "ready_to_trade": {
         "title": "Prêt à trader ?",
         "description": "Approvisionnez votre compte de trading de contrats à terme perpétuels avec n’importe quel jeton, puis ouvrez votre première position en quelques secondes.",
-        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperEVM sans frais supplémentaires."
+        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperCore sans frais supplémentaires."
       },
       "got_it": "J’ai compris",
       "card": {
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "{{count}} marchés gagnés",
     "claim_amount_text": "Réclamer {{amount}} $",
     "unrealized_pnl_label": "Profits et pertes non réalisés",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Recevoir"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Dépôt de prêt",
     "tx_review_lending_withdraw": "Retrait de prêt",
     "tx_review_perps_deposit": "Compte approvisionné par des contrats à terme perpétuels (perps)",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ether envoyé(s)",
     "self_sent_ether": "Ether envoyé(s) à vous-même",
     "received_ether": "Ether reçu(s)",
@@ -5288,7 +5297,8 @@
       "transfer": "Demande de transfert",
       "switch_account_type": "Mise à jour du compte",
       "approve": "Approuver la demande",
-      "perps_deposit": "Ajouter des fonds"
+      "perps_deposit": "Ajouter des fonds",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
@@ -5305,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperEVM, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
+        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperCore, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Frais"
@@ -5524,7 +5537,9 @@
     "account_not_found": "Portefeuille introuvable",
     "account_not_found_description": "Nous n’avons pas trouvé de portefeuille pour « {{accountName}} ». Voulez-vous en créer un nouveau avec cet identifiant ?",
     "create_new_wallet": "Créer un nouveau portefeuille",
-    "use_different_login_method": "Utilisez une autre méthode de connexion"
+    "use_different_login_method": "Utilisez une autre méthode de connexion",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Êtes-vous toujours là ?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Région non prise en charge",
@@ -6053,7 +6076,7 @@
     "upcoming_rewards": {
       "title": "Récompenses verrouillées",
       "points_needed": "{{points}} points",
-      "cta_label": "Got it",
+      "cta_label": "D’accord",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
     },
     "unlocked_rewards": {
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Compte/contrat à terme financé",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Détails de la transaction"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "Établir une passerelle",
       "default": "Transaction",
       "perps_deposit": "Ajouter des fonds",
+      "predict_deposit": "Add funds",
       "swap": "Échanger des jetons",
       "swap_approval": "Approuver les jetons"
     }

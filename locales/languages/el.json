@@ -221,9 +221,11 @@
     "remind_later_description2": "Μπορείτε να δημιουργήσετε αντίγραφα ασφαλείας των πορτοφολιών σας ή να δείτε τη Μυστική Φράση Ανάκτησης στις",
     "setting_security_privacy": "Ρυθμίσεις > Ασφάλεια και Απόρρητο"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Καλώς ορίσατε στο MetaMask",
@@ -1553,7 +1555,7 @@
       "ready_to_trade": {
         "title": "Έτοιμοι να ξεκινήσετε τις συναλλαγές;",
         "description": "Χρηματοδοτήστε τον λογαριασμό σας για συμβόλαια αορίστου διάρκειας με οποιοδήποτε token και ξεκινήστε τις πρώτες σας συναλλαγές μέσα σε δευτερόλεπτα.",
-        "footer_text": "Το MetaMask θα μετατρέψει τα κεφάλαιά σας σε USDC στο δίκτυο Arbitrum και θα τα καταθέσει στο HyperEVM χωρίς επιπλέον χρέωση."
+        "footer_text": "Το MetaMask θα μετατρέψει τα κεφάλαιά σας σε USDC στο δίκτυο Arbitrum και θα τα καταθέσει στο HyperCore χωρίς επιπλέον χρέωση."
       },
       "got_it": "Κατανοητό",
       "card": {
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "Κερδίσατε {{count}} αγορές",
     "claim_amount_text": "Εξαργυρώστε ${{amount}}",
     "unrealized_pnl_label": "Μη οριστικοποιημένα κέρδη & ζημίες",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Λήψη"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Κατάθεση Δανεισμού",
     "tx_review_lending_withdraw": "Ανάληψη Δανεισμού",
     "tx_review_perps_deposit": "Χρηματοδοτημένος λογαριασμός με συμβόλαια αορίστου διάρκειας",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Αποστολή Ether",
     "self_sent_ether": "Στείλτε Ether στον εαυτό σας",
     "received_ether": "Ληφθέντα Ether",
@@ -5288,7 +5297,8 @@
       "transfer": "Αίτημα μεταφοράς",
       "switch_account_type": "Ενημέρωση λογαριασμού",
       "approve": "Έγκριση αιτήματος",
-      "perps_deposit": "Προσθήκη κεφαλαίων"
+      "perps_deposit": "Προσθήκη κεφαλαίων",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
@@ -5305,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Θα μετατρέψουμε τα tokens σας σε USDC στο HyperEVM, το δίκτυο που χρησιμοποιούμε για συμβόλαια αορίστου διάρκειας (perps). Οι πάροχοι ανταλλαγών ενδέχεται να χρεώνουν προμήθεια, αλλά το MetaMask δεν χρεώνει."
+        "transaction_fee": "Θα μετατρέψουμε τα tokens σας σε USDC στο HyperCore, το δίκτυο που χρησιμοποιούμε για συμβόλαια αορίστου διάρκειας (perps). Οι πάροχοι ανταλλαγών ενδέχεται να χρεώνουν προμήθεια, αλλά το MetaMask δεν χρεώνει."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Τέλη"
@@ -5524,7 +5537,9 @@
     "account_not_found": "Το πορτοφόλι δεν βρέθηκε",
     "account_not_found_description": "Δεν βρήκαμε πορτοφόλι για τον/την '{{accountName}}'. Θέλετε να φτιάξετε νέο με αυτά τα στοιχεία σύνδεσης;",
     "create_new_wallet": "Δημιουργήστε ένα καινούργιο πορτοφόλι",
-    "use_different_login_method": "Χρησιμοποιήστε διαφορετική μέθοδο σύνδεσης"
+    "use_different_login_method": "Χρησιμοποιήστε διαφορετική μέθοδο σύνδεσης",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Είστε ακόμα εδώ;",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Η περιοχή δεν υποστηρίζεται",
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Χρηματοδότηση για perps",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Λεπτομέρειες συναλλαγής"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "Μεταφορά",
       "default": "Συναλλαγή",
       "perps_deposit": "Προσθήκη κεφαλαίων",
+      "predict_deposit": "Add funds",
       "swap": "Ανταλλαγή tokens",
       "swap_approval": "Έγκριση token"
     }

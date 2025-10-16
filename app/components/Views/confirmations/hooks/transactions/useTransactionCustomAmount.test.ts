@@ -9,10 +9,13 @@ import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../pay/useTransactionPayToken');
+jest.mock('../useTokenAmount');
+jest.mock('../../../../../util/navigation/navUtils');
 
 const TOKEN_TRANSFER_DATA =
   '0xa9059cbb0000000000000000000000005a52e96bacdabb82fd05763e25335261b270efcb0000000000000000000000000000000000000000000000004563918244f40000';
@@ -45,6 +48,7 @@ describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useParamsMock = jest.mocked(useParams);
 
   const updateTokenAmountMock: ReturnType<
     typeof useUpdateTokenAmount
@@ -62,6 +66,8 @@ describe('useTransactionCustomAmount', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { tokenFiatAmount: 1234.56 },
     } as ReturnType<typeof useTransactionPayToken>);
+
+    useParamsMock.mockReturnValue({ amount: '43.21' });
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -177,5 +183,11 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(result.current.amountFiat).toBe('530.86');
+  });
+
+  it('returns default amount from params if available', async () => {
+    const { result } = runHook();
+
+    expect(result.current.amountFiat).toBe('43.21');
   });
 });

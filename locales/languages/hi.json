@@ -221,9 +221,11 @@
     "remind_later_description2": "आप अपने वॉलेट का बैकअप ले सकते हैं या इसमें अपना सीक्रेट रिकवरी फ्रेज़ देख सकते हैं",
     "setting_security_privacy": "सेटिंग > सुरक्षा और गोपनीयता"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "MetaMask में आपका स्वागत है",
@@ -1553,7 +1555,7 @@
       "ready_to_trade": {
         "title": "ट्रेड करने के लिए तैयार हैं?",
         "description": "अपने पर्प्स अकाउंट को किसी भी टोकन से फंड करें और सेकंडों में अपना पहला ट्रेड करें।",
-        "footer_text": "MetaMask आपके फंड को Arbitrum पर USDC में स्वैप करेगा और बिना किसी अतिरिक्त फीस के उन्हें HyperEVM में डिपॉज़िट करेगा।"
+        "footer_text": "MetaMask आपके फंड को Arbitrum पर USDC में स्वैप करेगा और बिना किसी अतिरिक्त फीस के उन्हें HyperCore में डिपॉज़िट करेगा।"
       },
       "got_it": "समझ गए",
       "card": {
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "{{count}} मार्केट जीते",
     "claim_amount_text": "${{amount}} क्लेम करें",
     "unrealized_pnl_label": "अनरियलाइज्ड P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "प्राप्त करें"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "डिपॉज़िट उधार दिया जा रहा है",
     "tx_review_lending_withdraw": "विदड्रॉवल उधार दिया जा रहा है",
     "tx_review_perps_deposit": "फंडेड पर्प्स अकाउंट",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ether भेजे गए",
     "self_sent_ether": "खुद को Ether भेजें",
     "received_ether": "Ether प्राप्त किया",
@@ -5288,7 +5297,8 @@
       "transfer": "ट्रांसफर अनुरोध",
       "switch_account_type": "अकाउंट अपडेट",
       "approve": "अनुरोध एप्रूव करें",
-      "perps_deposit": "फंड जोड़ें"
+      "perps_deposit": "फंड जोड़ें",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -5305,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "हम आपके टोकन को HyperEVM पर USDC में स्वैप करेंगे, जो पर्प्स द्वारा इस्तेमाल होने वाला नेटवर्क है। स्वैप प्रदाता फीस ले सकते हैं, लेकिन MetaMask कोई फीस नहीं लेगा।"
+        "transaction_fee": "हम आपके टोकन को HyperCore पर USDC में स्वैप करेंगे, जो पर्प्स द्वारा इस्तेमाल होने वाला नेटवर्क है। स्वैप प्रदाता फीस ले सकते हैं, लेकिन MetaMask कोई फीस नहीं लेगा।"
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "फीस"
@@ -5524,7 +5537,9 @@
     "account_not_found": "वॉलेट नहीं मिला",
     "account_not_found_description": "हमें \"{{accountName}}\" के लिए कोई वॉलेट नहीं मिला। क्या आप इस लॉगिन से एक नया वॉलेट बनाना चाहते हैं?",
     "create_new_wallet": "एक नया वॉलेट बनाएं",
-    "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें"
+    "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "अभी तक वहीं हैं?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "क्षेत्र सपोर्टेड नहीं है",
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "फंडेड पर्प्स अकाउंट",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "ट्रांसेक्शन संबंधी विवरण"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "ब्रिज करें",
       "default": "ट्रांसेक्शन",
       "perps_deposit": "फंड जोड़ें",
+      "predict_deposit": "Add funds",
       "swap": "टोकन स्वैप करें",
       "swap_approval": "टोकन एप्रूव करें"
     }

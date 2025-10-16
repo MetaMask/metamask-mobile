@@ -22,7 +22,9 @@ import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 import { memoize } from 'lodash';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 import { TokenListToken } from '@metamask/assets-controllers';
+import packageJSON from '../../../../../../package.json';
 
+const { version: clientVersion } = packageJSON;
 const MAX_TOP_TOKENS = 30;
 export const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
 
@@ -155,6 +157,7 @@ export const useTopTokens = ({
       BridgeClientId.MOBILE,
       handleFetch,
       BRIDGE_API_BASE_URL,
+      clientVersion,
     );
 
     // Convert from BridgeAsset type to BridgeToken type
