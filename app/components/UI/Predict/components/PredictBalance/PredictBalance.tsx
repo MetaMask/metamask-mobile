@@ -3,103 +3,168 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
-import React, { useCallback } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import images from 'images/image-icons';
+import React, { useCallback, useEffect } from 'react';
+import { strings } from '../../../../../../locales/i18n';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import Text, {
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+  USDC_SYMBOL,
+  USDC_TOKEN_ICON_URL,
+} from '../../../Perps/constants/hyperLiquidConfig';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { PredictDepositStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-
-interface PredictBalanceProps {
-  balance: number;
-  isLoading: boolean;
-  address?: string;
-}
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
-const PredictBalance: React.FC<PredictBalanceProps> = ({
-  balance,
-  isLoading,
-  address,
-}) => {
-  const handleCopyToClipboard = useCallback(
-    (_text: string) => () => {
-      Clipboard.setString(_text);
-    },
-    [],
-  );
+const PredictBalance: React.FC = () => {
+  const tw = useTailwind();
+
+  const { balance, isLoading, loadBalance } = usePredictBalance({
+    loadOnMount: true,
+    refreshOnFocus: true,
+  });
+  const { deposit, status } = usePredictDeposit();
+
+  const isAddingFunds = status === PredictDepositStatus.PENDING;
+  const hasBalance = balance > 0;
+
+  useEffect(() => {
+    if (status === PredictDepositStatus.CONFIRMED) {
+      loadBalance({ isRefresh: true });
+    }
+  }, [status, loadBalance]);
+
+  const handleWithdraw = useCallback(() => {
+    // TODO: implement withdraw
+  }, []);
+
   if (isLoading) {
     return (
       <Box
-        twClassName="bg-muted rounded-xl py-4"
-        testID="predict-onboarding-card"
+        twClassName="bg-muted rounded-xl p-4 gap-3"
+        testID="predict-balance-card-skeleton"
       >
         <Box
-          twClassName="px-4"
           flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
+          alignItems={BoxAlignItems.Center}
         >
-          <ActivityIndicator size="small" color={IconColor.Alternative} />
+          <Box twClassName="gap-2">
+            <Skeleton width={120} height={24} style={tw.style('rounded')} />
+            <Skeleton width={100} height={16} style={tw.style('rounded')} />
+          </Box>
+          <Skeleton width={48} height={48} style={tw.style('rounded-full')} />
+        </Box>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+          <Skeleton
+            width="50%"
+            height={40}
+            style={tw.style('rounded-full flex-1')}
+          />
+          <Skeleton
+            width="50%"
+            height={40}
+            style={tw.style('rounded-full flex-1')}
+          />
         </Box>
       </Box>
     );
   }
 
   return (
-    <Box
-      twClassName="bg-muted rounded-xl py-4"
-      testID="predict-onboarding-card"
-    >
+    <>
+      {isAddingFunds && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="bg-muted rounded-t-xl p-4 border-b border-muted"
+        >
+          <Text style={tw.style('text-body-sm')}>
+            {strings('predict.deposit.adding_your_funds')}
+          </Text>
+          <Spinner />
+        </Box>
+      )}
       <Box
-        twClassName="px-4"
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+        style={tw.style(
+          'bg-muted p-4 gap-3 rounded-xl',
+          isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
+        )}
+        testID="predict-balance-card"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
           alignItems={BoxAlignItems.Center}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-alternative"
-            testID="markets-won-count"
-          >
-            Balance: {formatPrice(balance)}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-row items-center justify-between"
-        >
-          {address && (
-            <Box twClassName="flex-row items-center">
-              <Text>
-                {address.slice(0, 6)}...{address.slice(-4)}
-              </Text>
-              <ButtonIcon
-                iconName={IconName.Copy}
-                size={ButtonIconSizes.Md}
-                onPress={handleCopyToClipboard(address)}
+          <Box>
+            <Text style={tw.style('text-heading-md font-bold')}>
+              {formatPrice(balance, { maximumDecimals: 2 })}
+            </Text>
+            <Text
+              style={tw.style('color-alternative')}
+              color={TextColor.Alternative}
+            >
+              {strings('predict.available_balance')}
+            </Text>
+          </Box>
+          <BadgeWrapper
+            style={tw.style('self-center')}
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={images.POL}
+                name="Polygon"
+                style={tw.style('rounded-2xl')}
               />
-            </Box>
-          )}
-          {isLoading && (
-            <ActivityIndicator size="small" color={IconColor.Alternative} />
+            }
+          >
+            <AvatarToken
+              name={USDC_SYMBOL}
+              imageSource={{ uri: USDC_TOKEN_ICON_URL }}
+              size={AvatarSize.Md}
+            />
+          </BadgeWrapper>
+        </Box>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+          <Button
+            variant={
+              hasBalance ? ButtonVariants.Secondary : ButtonVariants.Primary
+            }
+            style={tw.style('flex-1')}
+            label={strings('predict.deposit.add_funds')}
+            onPress={deposit}
+          />
+          {hasBalance && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              style={tw.style('flex-1')}
+              label={strings('predict.deposit.withdraw')}
+              onPress={handleWithdraw}
+            />
           )}
         </Box>
       </Box>
-    </Box>
+    </>
   );
 };
 

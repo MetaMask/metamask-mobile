@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import Crypto from 'react-native-quick-crypto';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   AppState,
@@ -34,15 +33,10 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController from '@metamask/swaps-controller';
-import { PPOMController } from '@metamask/ppom-validator';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { isTestNet } from '../../util/networks';
-import {
-  fetchEstimatedMultiLayerL1Fee,
-  deprecatedGetNetworkId,
-} from '../../util/networks/engineNetworkUtils';
+import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import {
@@ -65,15 +59,11 @@ import { backupVault } from '../BackupVault';
 import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
-import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
-import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -84,12 +74,12 @@ import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
-import { createMultichainRatesController } from './controllers/RatesController/utils';
-import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
+import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
@@ -110,7 +100,6 @@ import {
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
-  swapsSupportedChainIds,
 } from './constants';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
@@ -122,12 +111,10 @@ import { bridgeControllerInit } from './controllers/bridge-controller/bridge-con
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
-import I18n from '../../../locales/i18n';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -148,7 +135,6 @@ import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
-import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
@@ -158,9 +144,6 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
@@ -177,7 +160,12 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
-///: END:ONLY_INCLUDE_IF
+import { ratesControllerInit } from './controllers/rates-controller-init';
+import { earnControllerInit } from './controllers/earn-controller-init';
+import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
+import { swapsControllerInit } from './controllers/swaps-controller-init';
+import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
+import { ppomControllerInit } from './controllers/ppom-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -244,8 +232,6 @@ export class Engine {
     },
   });
 
-  rewardsDataService: RewardsDataService;
-
   permissionController: PermissionController<
     PermissionSpecificationConstraint,
     CaveatSpecificationConstraint
@@ -263,9 +249,6 @@ export class Engine {
     logEngineCreation(initialState, initialKeyringState);
 
     this.controllerMessenger = new ExtendedControllerMessenger();
-
-    const isBasicFunctionalityToggleEnabled = () =>
-      selectBasicFunctionalityEnabled(store.getState());
 
     const errorReportingServiceMessenger =
       this.controllerMessenger.getRestricted({
@@ -289,6 +272,7 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
+      metaMetricsId,
       initialKeyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
@@ -297,6 +281,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         PreferencesController: preferencesControllerInit,
+        RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -319,6 +304,7 @@ export class Engine {
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        EarnController: earnControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
         TokenRatesController: tokenRatesControllerInit,
@@ -333,6 +319,7 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
+        SwapsController: swapsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -352,12 +339,15 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
+        RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PredictController: predictControllerInit,
+        PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
+        RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -365,6 +355,8 @@ export class Engine {
       ...initRequest,
     });
 
+    const remoteFeatureFlagController =
+      controllersByName.RemoteFeatureFlagController;
     const accountsController = controllersByName.AccountsController;
     const accountTreeController = controllersByName.AccountTreeController;
     const approvalController = controllersByName.ApprovalController;
@@ -379,6 +371,7 @@ export class Engine {
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
     const predictController = controllersByName.PredictController;
+    const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -386,17 +379,6 @@ export class Engine {
       controllersByName.SelectedNetworkController;
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
-
-    // Initialize and store RewardsDataService
-    this.rewardsDataService = new RewardsDataService({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'RewardsDataService',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      fetch,
-      locale: I18n.locale,
-    });
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -411,6 +393,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const earnController = controllersByName.EarnController;
     const tokensController = controllersByName.TokensController;
     const tokenBalancesController = controllersByName.TokenBalancesController;
     const tokenRatesController = controllersByName.TokenRatesController;
@@ -423,6 +406,7 @@ export class Engine {
     const bridgeController = controllersByName.BridgeController;
     const nftController = controllersByName.NftController;
     const nftDetectionController = controllersByName.NftDetectionController;
+    const swapsController = controllersByName.SwapsController;
     const networkController = controllersByName.NetworkController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -452,6 +436,7 @@ export class Engine {
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
     const multichainAccountService = controllersByName.MultichainAccountService;
+    const ratesController = controllersByName.RatesController;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -470,38 +455,6 @@ export class Engine {
       }),
       state: initialState.LoggingController,
     });
-    const remoteFeatureFlagControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'RemoteFeatureFlagController',
-        allowedActions: [],
-        allowedEvents: [],
-      });
-    remoteFeatureFlagControllerMessenger.subscribe(
-      'RemoteFeatureFlagController:stateChange',
-      (isRpcFailoverEnabled) => {
-        if (isRpcFailoverEnabled) {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', enabling RPC failover',
-          );
-          networkController.enableRpcFailover();
-        } else {
-          Logger.log(
-            'isRpcFailoverEnabled = ',
-            isRpcFailoverEnabled,
-            ', disabling RPC failover',
-          );
-          networkController.disableRpcFailover();
-        }
-      },
-      (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
-    );
-    const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      messenger: remoteFeatureFlagControllerMessenger,
-      disabled: !isBasicFunctionalityToggleEnabled(),
-      getMetaMetricsId: () => metaMetricsId ?? '',
-    });
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
@@ -515,26 +468,6 @@ export class Engine {
       phishingController.maybeUpdateState();
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainRatesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'RatesController',
-        allowedActions: [],
-        allowedEvents: ['CurrencyRateController:stateChange'],
-      });
-
-    const multichainRatesController = createMultichainRatesController({
-      messenger: multichainRatesControllerMessenger,
-      initialState: initialState.RatesController,
-    });
-
-    // Set up currency rate sync
-    setupCurrencyRateSync(
-      multichainRatesControllerMessenger,
-      multichainRatesController,
-    );
-    ///: END:ONLY_INCLUDE_IF
-
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     snapController.init();
     cronjobController.init();
@@ -543,25 +476,6 @@ export class Engine {
     // Notify Snaps that the app is active when the Engine is initialized.
     this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
-
-    const earnController = new EarnController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'EarnController',
-        allowedEvents: [
-          'AccountTreeController:selectedAccountGroupChange',
-          'TransactionController:transactionConfirmed',
-          'NetworkController:networkDidChange',
-        ],
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ],
-      }),
-      addTransactionFn: transactionController.addTransaction.bind(
-        transactionController,
-      ),
-      selectedNetworkClientId: networkController.state.selectedNetworkClientId,
-    });
 
     this.context = {
       KeyringController: this.keyringController,
@@ -590,29 +504,7 @@ export class Engine {
       TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
       SmartTransactionsController: this.smartTransactionsController,
-      SwapsController: new SwapsController({
-        clientId: AppConstants.SWAPS.CLIENT_ID,
-        fetchAggregatorMetadataThreshold:
-          AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-        fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-        fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-        supportedChainIds: swapsSupportedChainIds,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'SwapsController',
-          // TODO: allow these internal calls once GasFeeController
-          // export these action types and register its action handlers
-          // allowedActions: [
-          //   'GasFeeController:getEIP1559GasFeeEstimates',
-          // ],
-          allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: ['NetworkController:networkDidChange'],
-        }),
-        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-        // TODO: Remove once GasFeeController exports this action type
-        fetchGasFeeEstimates: () =>
-          this.gasFeeController.fetchGasFeeEstimates(),
-        fetchEstimatedMultiLayerL1Fee,
-      }),
+      SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -636,41 +528,10 @@ export class Engine {
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
-      PPOMController: new PPOMController({
-        chainId: getGlobalChainId(networkController),
-        blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
-        cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'PPOMController',
-          allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: [`${networkController.name}:networkDidChange`],
-        }),
-        onPreferencesChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `${preferencesController.name}:stateChange`,
-            listener,
-          ),
-        // TODO: Replace "any" with type
-        provider:
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          networkController.getProviderAndBlockTracker().provider as any,
-        ppomProvider: {
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          PPOM: PPOM as any,
-          ppomInit,
-        },
-        storageBackend: new RNFSStorageBackend('PPOMDB'),
-        securityAlertsEnabled:
-          initialState.PreferencesController?.securityAlertsEnabled ?? false,
-        state: initialState.PPOMController,
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        nativeCrypto: Crypto as any,
-      }),
+      PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
-      RatesController: multichainRatesController,
+      RatesController: ratesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,

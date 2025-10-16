@@ -1,13 +1,6 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapControllerStateChangeEvent } from './controllers/snaps';
-///: END:ONLY_INCLUDE_IF
-
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { RatesControllerStateChangeEvent } from './controllers/RatesController/constants';
-///: END:ONLY_INCLUDE_IF
-
 import { swapsUtils } from '@metamask/swaps-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
  * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
@@ -53,7 +46,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TransactionController:stateChange',
   'MultichainNetworkController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  SnapControllerStateChangeEvent,
+  'SnapController:stateChange',
   'SnapsRegistry:stateChange',
   'SubjectMetadataController:stateChange',
   'AuthenticationController:stateChange',
@@ -65,7 +58,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'MultichainBalancesController:stateChange',
-  RatesControllerStateChangeEvent,
+  'RatesController:stateChange',
   'MultichainAssetsRatesController:stateChange',
   // TODO: Export this from the assets controller
   'MultichainAssetsController:stateChange',

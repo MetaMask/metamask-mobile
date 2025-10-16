@@ -645,15 +645,7 @@ const BuildQuote = () => {
             </ListItem>
           </TouchableOpacity>
 
-          <Keypad
-            value={amount}
-            onChange={handleKeypadChange}
-            currency={selectedRegion?.currency}
-            decimals={0}
-            periodButtonProps={{
-              isDisabled: true,
-            }}
-          />
+          <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
