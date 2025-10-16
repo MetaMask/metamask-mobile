@@ -911,7 +911,9 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       [
                                         {},
                                         {
-                                          "paddingHorizontal": 24,
+                                          "flex": 1,
+                                          "justifyContent": "flex-end",
+                                          "paddingBottom": 8,
                                         },
                                       ]
                                     }
@@ -2572,7 +2574,9 @@ exports[`BridgeView renders 1`] = `
                                       [
                                         {},
                                         {
-                                          "paddingHorizontal": 24,
+                                          "flex": 1,
+                                          "justifyContent": "flex-end",
+                                          "paddingBottom": 8,
                                         },
                                       ]
                                     }
