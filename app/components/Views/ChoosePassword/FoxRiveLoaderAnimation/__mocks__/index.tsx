@@ -3,36 +3,26 @@ import { View } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 
 interface FoxRiveLoaderAnimationProps {
-  onAnimationComplete: () => void;
-  slideOut?: boolean;
+  onAnimationComplete?: () => void;
 }
 
 const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = ({
   onAnimationComplete,
-  slideOut = false,
 }) => {
   const completedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (slideOut && !completedRef.current) {
-      // Simulate immediate completion for slideOut
-      completedRef.current = true;
-      onAnimationComplete();
-    }
-  }, [slideOut, onAnimationComplete]);
-
-  React.useEffect(() => {
-    if (!slideOut && !completedRef.current) {
+    if (!completedRef.current) {
       const timer = setTimeout(() => {
         if (!completedRef.current) {
           completedRef.current = true;
-          onAnimationComplete();
+          onAnimationComplete?.();
         }
       }, 100);
 
       return () => clearTimeout(timer);
     }
-  }, [slideOut, onAnimationComplete]);
+  }, [onAnimationComplete]);
 
   React.useEffect(
     () => () => {
