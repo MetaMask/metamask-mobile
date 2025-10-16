@@ -252,9 +252,7 @@ export class CardSDK {
     return batches;
   }
 
-  getGeoLocation = async (): Promise<string | undefined> => {
-    let location = 'UNKNOWN';
-
+  getGeoLocation = async (): Promise<string> => {
     try {
       const env = process.env.NODE_ENV ?? 'production';
       const environment = env === 'production' ? 'PROD' : 'DEV';
@@ -265,13 +263,16 @@ export class CardSDK {
       };
       const url = GEOLOCATION_URLS[environment];
       const response = await fetch(url);
-      location = await response.text();
+
+      if (!response.ok) {
+        throw new Error(`Failed to get geolocation: ${response.statusText}`);
+      }
+
+      return await response.text();
     } catch (error) {
       Logger.log(error as Error, 'CardSDK: Failed to get geolocation');
-      return location;
+      return 'UNKNOWN';
     }
-
-    return location;
   };
 
   getSupportedTokensAllowances = async (

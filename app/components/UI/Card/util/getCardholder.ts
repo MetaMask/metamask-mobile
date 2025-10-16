@@ -41,7 +41,7 @@ export const getCardholder = async ({
 
     return {
       cardholderAddresses: cardholderAddresses.filter(Boolean) as string[],
-      geoLocation: geoLocation ?? 'UNKNOWN',
+      geoLocation,
     };
   } catch (error) {
     Logger.error(
