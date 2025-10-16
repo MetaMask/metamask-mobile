@@ -87,7 +87,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }
@@ -259,7 +259,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }
@@ -431,7 +431,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }
@@ -603,7 +603,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }
@@ -775,7 +775,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }
@@ -947,7 +947,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }
@@ -1119,7 +1119,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }
@@ -1291,7 +1291,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             "left": 0,
             "paddingBottom": 40,
             "paddingHorizontal": 16,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "absolute",
             "right": 0,
           }

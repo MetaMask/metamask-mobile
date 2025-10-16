@@ -11,7 +11,7 @@ const createStyles = (
   StyleSheet.create({
     root: {
       flexGrow: 1,
-      paddingBottom: Math.max(16, (insets?.bottom || 0) + 8),
+      paddingBottom: Math.max(16, (insets?.bottom || 0) + 4),
       backgroundColor: isDarkMode
         ? colors.background.default
         : importedColors.white,
@@ -35,12 +35,12 @@ const createStyles = (
     },
     buttonContainer: {
       position: 'absolute',
-      bottom: Math.max(16, (insets?.bottom || 0) + 4),
+      bottom: Math.max(16, insets?.bottom || 0),
       left: 0,
       right: 0,
       paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: Math.max(40, (insets?.bottom || 0) + 8),
+      paddingTop: 4,
+      paddingBottom: Math.max(40, (insets?.bottom || 0) + 2),
       backgroundColor: isDarkMode
         ? colors.background.default
         : importedColors.white,
