@@ -98,22 +98,17 @@ const PredictPlaceBet = () => {
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
-    };
-
-    const sensitiveProperties = {
       [PredictEventProperties.SHARE_PRICE]: outcomeToken?.price,
     };
 
     // eslint-disable-next-line no-console
     console.log('📊 [Analytics] PREDICT_ACTION_INITIATED', {
       regularProperties,
-      sensitiveProperties,
     });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PREDICT_ACTION_INITIATED)
         .addProperties(regularProperties)
-        .addSensitiveProperties(sensitiveProperties)
         .build(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

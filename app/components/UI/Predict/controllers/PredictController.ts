@@ -715,6 +715,7 @@ export class PredictController extends BaseController<
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+      [PredictEventProperties.SHARE_PRICE]: analyticsProperties.sharePrice,
       // Add completion duration for COMPLETED and FAILED events
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
@@ -728,7 +729,6 @@ export class PredictController extends BaseController<
     // Build sensitive properties
     const sensitiveProperties = {
       [PredictEventProperties.AMOUNT]: params.size,
-      [PredictEventProperties.SHARE_PRICE]: analyticsProperties.sharePrice,
       [PredictEventProperties.USER_ADDRESS]: analyticsProperties.userAddress,
       // Add order ID for COMPLETED events
       ...(orderId && {
