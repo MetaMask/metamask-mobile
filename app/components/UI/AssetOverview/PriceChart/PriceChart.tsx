@@ -255,8 +255,12 @@ const PriceChart = ({
     );
   };
 
-  // When we were returning the loading overlay, there was a bug on android where some charts did not load until we touched the screen
-  // This is why we check for "isLoading" inside the actual return statement and treat its an an overlay
+  /**
+   * Loading overlay component.
+   * Note: We render this conditionally in the return statement rather than early-returning
+   * to work around an Android bug where charts wouldn't render until screen interaction.
+   * @see https://github.com/MetaMask/metamask-mobile/issues/20854
+   */
   const LoadingOverlay = () => (
     <View style={styles.noDataOverlay}>
       <SkeletonPlaceholder
@@ -278,6 +282,7 @@ const PriceChart = ({
     <View style={styles.chart}>
       <View style={styles.chartArea} {...panResponder.current.panHandlers}>
         {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
+        {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
