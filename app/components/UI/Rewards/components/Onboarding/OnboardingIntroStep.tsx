@@ -127,7 +127,6 @@ const OnboardingIntroStep: React.FC<{
           label: strings('rewards.onboarding.not_supported_confirm_retry'),
           onPress: () => {
             onRetry();
-            navigation.goBack();
           },
           variant: ButtonVariant.Primary,
         },

@@ -5592,13 +5592,37 @@ describe('RewardsController', () => {
       });
     });
 
-    it('should handle geo location service errors with fallback', async () => {
+    it('should throw error when geo location returns UNKNOWN', async () => {
+      // Arrange
+      mockMessenger.call.mockResolvedValueOnce('UNKNOWN');
+
+      // Act & Assert
+      await expect(controller.getGeoRewardsMetadata()).rejects.toThrow(
+        'Failed to fetch geo location, got default UNKNOWN',
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get geo rewards metadata:',
+        'Failed to fetch geo location, got default UNKNOWN',
+      );
+    });
+
+    it('should log and throw error when geo location service fails', async () => {
       // Arrange
       const geoServiceError = new Error('Geo service unavailable');
       mockMessenger.call.mockRejectedValueOnce(geoServiceError);
 
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
+      // Act & Assert
+      await expect(controller.getGeoRewardsMetadata()).rejects.toThrow(
+        'Geo service unavailable',
+      );
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -5611,19 +5635,17 @@ describe('RewardsController', () => {
         'RewardsController: Failed to get geo rewards metadata:',
         geoServiceError.message,
       );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
     });
 
-    it('should handle non-Error objects in catch block', async () => {
+    it('should handle non-Error objects in catch block and rethrow', async () => {
       // Arrange
       const nonErrorObject = 'String error';
       mockMessenger.call.mockRejectedValueOnce(nonErrorObject);
 
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
+      // Act & Assert
+      await expect(controller.getGeoRewardsMetadata()).rejects.toBe(
+        nonErrorObject,
+      );
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -5633,10 +5655,6 @@ describe('RewardsController', () => {
         'RewardsController: Failed to get geo rewards metadata:',
         String(nonErrorObject),
       );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
     });
   });
 

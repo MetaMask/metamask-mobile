@@ -2000,6 +2000,10 @@ export class RewardsController extends BaseController<
         'RewardsDataService:fetchGeoLocation',
       );
 
+      if (geoLocation === 'UNKNOWN') {
+        throw new Error('Failed to fetch geo location, got default UNKNOWN');
+      }
+
       // Check if the location is supported (not in blocked regions)
       const optinAllowedForGeo = !DEFAULT_BLOCKED_REGIONS.some(
         (blockedRegion) => geoLocation.startsWith(blockedRegion),
@@ -2018,12 +2022,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get geo rewards metadata:',
         error instanceof Error ? error.message : String(error),
       );
-
-      // Return fallback metadata on error
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      };
+      throw error;
     }
   }
 
