@@ -428,7 +428,8 @@ const BuildQuote = () => {
 
       if (
         userDetails?.address?.countryCode &&
-        selectedRegion?.isoCode !== userDetails?.address?.countryCode
+        selectedRegion?.isoCode?.toLowerCase() !==
+          userDetails?.address?.countryCode?.toLowerCase()
       ) {
         setIsLoading(false);
         return;

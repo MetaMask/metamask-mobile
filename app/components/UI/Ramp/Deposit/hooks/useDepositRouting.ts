@@ -37,8 +37,8 @@ export const useDepositRouting = () => {
   const {
     selectedRegion,
     selectedPaymentMethod,
-    selectedWalletAddress,
     logoutFromProvider,
+    selectedWalletAddress,
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -478,6 +478,7 @@ export const useDepositRouting = () => {
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
       submitPurposeOfUsage,
+      logoutFromProvider,
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
@@ -487,7 +488,6 @@ export const useDepositRouting = () => {
       selectedWalletAddress,
       themeAppearance,
       colors,
-      logoutFromProvider,
     ],
   );
 

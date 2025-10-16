@@ -14,12 +14,6 @@ export function useDepositUser() {
       throws: true,
     });
 
-  useEffect(() => {
-    if (isAuthenticated && !userDetails && !isFetching && !error) {
-      fetchUserDetails();
-    }
-  }, [isAuthenticated, userDetails, fetchUserDetails, isFetching, error]);
-
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
       const result = await fetchUserDetails();
@@ -32,6 +26,18 @@ export function useDepositUser() {
       throw error;
     }
   }, [fetchUserDetails, logoutFromProvider]);
+
+  useEffect(() => {
+    if (isAuthenticated && !userDetails && !isFetching && !error) {
+      fetchUserDetailsCallback();
+    }
+  }, [
+    isAuthenticated,
+    userDetails,
+    fetchUserDetailsCallback,
+    isFetching,
+    error,
+  ]);
 
   return {
     userDetails: isAuthenticated ? userDetails : null,
