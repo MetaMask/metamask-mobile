@@ -895,7 +895,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "balanceFiat": "$200000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token2.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                     "name": "Hello Token",
                                     "symbol": "HELLO",
                                     "tokenFiatAmount": 200000,
@@ -907,7 +907,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "balanceFiat": "$20000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token1.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                     "name": "Token One",
                                     "symbol": "TOKEN1",
                                     "tokenFiatAmount": 20000,
@@ -919,7 +919,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "balanceFiat": "$6000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png",
                                     "name": "Ethereum",
                                     "symbol": "ETH",
                                     "tokenFiatAmount": 6000,
@@ -1036,7 +1036,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token2.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                                   }
                                                 }
                                                 style={
@@ -1347,7 +1347,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token1.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                                   }
                                                 }
                                                 style={
