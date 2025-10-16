@@ -8,8 +8,7 @@ import { isBitcoinAccountsFeatureEnabled } from '../../../multichain-bitcoin/rem
  */
 export const selectIsBitcoinAccountsEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const bitcoinAccountsFlag = remoteFeatureFlags.bitcoinAccounts;
-    return isBitcoinAccountsFeatureEnabled(bitcoinAccountsFlag);
+  ({ bitcoinAccounts }): boolean => {
+    return isBitcoinAccountsFeatureEnabled(bitcoinAccounts);
   },
 );
