@@ -221,9 +221,11 @@
     "remind_later_description2": "Şurada cüzdanlarınızı yedekleyebilir veya Gizli Kurtarma İfadenizi görebilirsiniz:",
     "setting_security_privacy": "Ayarlar > Güvenlik ve Gizlilik"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "MetaMask'e Hoş Geldiniz",
@@ -1220,7 +1222,7 @@
       "stop_loss_order_view_warning": "Zararda durdur emri {{direction}} yönünde likidasyon fiyatında",
       "above": "üzerinde",
       "below": "altında",
-      "done": "Done"
+      "done": "Bitti"
     },
     "token_selector": {
       "no_tokens": "Token yok"
@@ -1553,7 +1555,7 @@
       "ready_to_trade": {
         "title": "İşlem yapmaya hazır mısınız?",
         "description": "Sürekli vadeli işlem sözleşmeleri hesabınıza herhangi bir token ile fonlama gerçekleştirin ve saniyeler içinde ilk işleminizi yapın.",
-        "footer_text": "MetaMask, fonlarınızı Arbitrum üzerinde USDC'ye takas eder ve ek ücret olmadan HyperEVM'e yatırır."
+        "footer_text": "MetaMask, fonlarınızı Arbitrum üzerinde USDC'ye takas eder ve ek ücret olmadan HyperCore'e yatırır."
       },
       "got_it": "Anladım",
       "card": {
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "{{count}} piyasada kazanıldı",
     "claim_amount_text": "{{amount}}$ al",
     "unrealized_pnl_label": "Gerçekleşmemiş K&Z",
-    "unrealized_pnl_value": "({{percent}}) {{amount}}"
+    "unrealized_pnl_value": "({{percent}}) {{amount}}",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Al"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Borç Verme Para Yatırma İşlemi",
     "tx_review_lending_withdraw": "Borç Verme Para Çekme İşlemi",
     "tx_review_perps_deposit": "Fonlanmış Sürekli Vadeli İşlem Sözleşmeleri hesabı",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ether Gönderdi",
     "self_sent_ether": "Sana Ether Gönderdi",
     "received_ether": "Ether Aldı",
@@ -5288,7 +5297,8 @@
       "transfer": "Transfer talebi",
       "switch_account_type": "Hesap güncellemesi",
       "approve": "Talebi onayla",
-      "perps_deposit": "Fon ekle"
+      "perps_deposit": "Fon ekle",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
@@ -5305,7 +5315,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "HyperEVM, Sürekli Vadeli İşlem Sözleşmeleri için kullanılan ağdır ve token’larınızı burada USDC’ye çevireceğiz. Takas sağlayıcıları ücret alabilir, fakat MetaMask ek ücret talep etmez."
+        "transaction_fee": "HyperCore, Sürekli Vadeli İşlem Sözleşmeleri için kullanılan ağdır ve token’larınızı burada USDC’ye çevireceğiz. Takas sağlayıcıları ücret alabilir, fakat MetaMask ek ücret talep etmez."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Ücretler"
@@ -5455,7 +5468,7 @@
     "network_fee_info_content": "Ağ ücretleri, ağın yoğunluğuna ve işlemin karmaşıklığına bağlıdır.",
     "points": "Tah. puanlar",
     "points_tooltip": "Puan",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_1": "Takas, köprü ve sürekli vadeli işlem sözleşmeleri gibi işlemleri tamamladığınızda puan toplar ve MetaMask Ödülleri kazanırsınız.",
     "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Yüklenemiyor",
     "points_error": "Şu anda puanları yükleyemiyoruz",
@@ -5524,7 +5537,9 @@
     "account_not_found": "Cüzdan bulunamadı",
     "account_not_found_description": "\"{{accountName}}\" için bir cüzdan bulamadık. Bu oturumla yeni bir cüzdan oluşturmak ister misiniz?",
     "create_new_wallet": "Yeni bir cüzdan oluştur",
-    "use_different_login_method": "Farklı bir oturum açma yöntemi kullanın"
+    "use_different_login_method": "Farklı bir oturum açma yöntemi kullanın",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Halen orada mısınız?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Bölge desteklenmiyor",
@@ -6076,7 +6099,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Sürekli vadeli işlem fonlandı",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "İşlem bilgileri"
     },
     "label": {
@@ -6092,6 +6116,7 @@
       "bridge_loading": "Köprü",
       "default": "İşlem",
       "perps_deposit": "Fon ekle",
+      "predict_deposit": "Add funds",
       "swap": "Token swap işlemi yapın",
       "swap_approval": "Token'leri onayla"
     }

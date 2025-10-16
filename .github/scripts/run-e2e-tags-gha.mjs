@@ -80,12 +80,7 @@ async function prHasSkipE2EQualityGateLabel() {
   }
 }
 
-/**
- * Read an environment variable
- * @param {*} name - The name of the environment variable
- * @param {*} defaultValue - The default value to return if the environment variable is not set
- * @returns The value of the environment variable, or the default value if the environment variable is not set
- */
+
 function readEnv(name, defaultValue = undefined) {
   const value = process.env[name];
   return value === undefined || value === '' ? defaultValue : value;
@@ -302,10 +297,6 @@ function normalizePathForCompare(p) {
   return path.normalize(rel);
 }
 
-/**
- * Main function
- * @returns A promise that resolves when the main function exits
- */
 async function main() {
   // 1) Read inputs
   const testSuiteTag = readEnv('TEST_SUITE_TAG');
@@ -412,11 +403,11 @@ async function main() {
 
   try {
     if (IS_IOS) {
-      console.log('🍎 Running iOS tests on GitHub Actions for build type: ', METAMASK_BUILD_TYPE);
-      await runYarn(`test:e2e:ios:github:${METAMASK_BUILD_TYPE}:release`, args, extraEnv);
+      console.log('🍎 Running iOS tests for build type: ', METAMASK_BUILD_TYPE);
+      await runYarn(`test:e2e:ios:${METAMASK_BUILD_TYPE}:ci`, args, extraEnv);
     } else {
-      console.log('🤖 Running Android tests on GitHub Actions for build type: ', METAMASK_BUILD_TYPE);
-      await runYarn(`test:e2e:android:github:${METAMASK_BUILD_TYPE}:release`, args, extraEnv);
+      console.log('🤖 Running Android tests for build type: ', METAMASK_BUILD_TYPE);
+      await runYarn(`test:e2e:android:${METAMASK_BUILD_TYPE}:ci`, args, extraEnv);
     }
   } catch (err) {
     console.error(err.message || String(err));

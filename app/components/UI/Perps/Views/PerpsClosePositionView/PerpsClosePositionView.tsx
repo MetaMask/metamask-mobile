@@ -51,7 +51,12 @@ import {
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
+import {
+  formatPositionSize,
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
@@ -428,8 +433,8 @@ const PerpsClosePositionView: React.FC = () => {
 
   const realizedPnl = useMemo(() => {
     const price = Math.abs(effectivePnL * (closePercentage / 100));
-    const formattedPrice = formatPrice(price, {
-      maximumDecimals: 2,
+    const formattedPrice = formatPerpsFiat(price, {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
     });
 
     return { formattedPrice, price, isNegative: effectivePnL < 0 };
@@ -465,11 +470,11 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
-            {formatPrice(
+            {formatPerpsFiat(
               (closePercentage / 100) * initialMargin +
                 effectivePnL * (closePercentage / 100),
               {
-                maximumDecimals: 2,
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
               },
             )}
           </Text>
@@ -510,8 +515,8 @@ const PerpsClosePositionView: React.FC = () => {
         <View style={styles.summaryValue}>
           <PerpsFeesDisplay
             feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-            formatFeeText={`-${formatPrice(feeResults.totalFee, {
-              maximumDecimals: 2,
+            formatFeeText={`-${formatPerpsFiat(feeResults.totalFee, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}`}
             variant={TextVariant.BodyMD}
           />
@@ -539,7 +544,9 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {formatPrice(receiveAmount, { maximumDecimals: 2 })}
+            {formatPerpsFiat(receiveAmount, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
+            })}
           </Text>
         </View>
       </View>
@@ -669,7 +676,9 @@ const PerpsClosePositionView: React.FC = () => {
                       color={TextColor.Default}
                     >
                       {limitPrice
-                        ? `${formatPrice(limitPrice, { maximumDecimals: 2 })}`
+                        ? `${formatPerpsFiat(limitPrice, {
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })}`
                         : 'Set price'}
                     </Text>
                   </ListItemColumn>

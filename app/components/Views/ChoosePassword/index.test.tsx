@@ -17,7 +17,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager, Alert } from 'react-native';
+import { InteractionManager, Alert, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -1784,6 +1784,82 @@ describe('ChoosePassword', () => {
         });
 
         expect(submitButton.props.disabled).toBe(true);
+      });
+    });
+  });
+
+  describe('OAuth Login Description Text', () => {
+    it('should show iOS-specific description when Platform.OS is ios and OAuth login is successful', async () => {
+      // Mock Platform.OS to be 'ios'
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: 'ios',
+      });
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Check that iOS-specific text is rendered
+      expect(() =>
+        component.getByText(/Use this for wallet recovery/),
+      ).not.toThrow();
+
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: originalPlatform,
+      });
+    });
+
+    it('should show different text when Platform.OS is android and OAuth login is successful', async () => {
+      // Mock Platform.OS to be 'android'
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: 'android',
+      });
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Check that non-iOS text is rendered
+      expect(() =>
+        component.getByText(/If you lose this password/),
+      ).not.toThrow();
+
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: originalPlatform,
       });
     });
   });

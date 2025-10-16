@@ -766,7 +766,7 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {Platform.OS === 'ios'
+                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
                           ? strings(
                               'choose_password.description_social_login_update_ios',
                             )
