@@ -84,8 +84,8 @@ const createStyles = (colors: Colors) =>
       padding: 24,
     },
     header: {
-      gap: 16,
-      marginBottom: 24,
+      gap: 2,
+      marginBottom: 16,
     },
     iconContainer: {
       width: 64,
@@ -97,12 +97,12 @@ const createStyles = (colors: Colors) =>
     verifiedBadge: {
       backgroundColor: colors.success.muted,
       borderRadius: 8,
-      padding: 12,
+      padding: 8,
       marginBottom: 24,
       gap: 8,
     },
     detailsContainer: {
-      gap: 16,
+      gap: 12,
     },
     row: {
       flexDirection: 'row',
@@ -333,11 +333,6 @@ const TokenInsightsSheet: React.FC = () => {
             alignItems={BoxAlignItems.center}
             style={styles.titleContainer}
           >
-            <Icon
-              name={IconName.SecurityTick}
-              size={IconSize.Sm}
-              color={IconColor.Success}
-            />
             <Text variant={TextVariant.HeadingLG}>{token.symbol} Insights</Text>
           </Box>
         </Box>
@@ -350,7 +345,7 @@ const TokenInsightsSheet: React.FC = () => {
           justifyContent={BoxJustifyContent.center}
         >
           <Icon
-            name={IconName.SecurityTick}
+            name={IconName.Verified}
             size={IconSize.Sm}
             color={IconColor.Success}
           />
@@ -367,33 +362,27 @@ const TokenInsightsSheet: React.FC = () => {
           {/* Price */}
           <View style={styles.row}>
             <View style={styles.labelContainer}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.price')}
               </Text>
               <Icon
                 name={IconName.Info}
-                size={IconSize.Xs}
+                size={IconSize.Sm}
                 color={IconColor.Alternative}
               />
             </View>
-            <Text variant={TextVariant.BodyLGMedium}>{formatPrice(price)}</Text>
+            <Text variant={TextVariant.HeadingSM}>{formatPrice(price)}</Text>
           </View>
 
           {/* Percent Change */}
           <View style={styles.row}>
             <View style={styles.labelContainer}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.percent_change')}
               </Text>
               <Icon
                 name={IconName.Info}
-                size={IconSize.Xs}
+                size={IconSize.Sm}
                 color={IconColor.Alternative}
               />
             </View>
@@ -403,14 +392,14 @@ const TokenInsightsSheet: React.FC = () => {
                   name={
                     priceChange24h > 0 ? IconName.ArrowUp : IconName.ArrowDown
                   }
-                  size={IconSize.Xs}
+                  size={IconSize.Sm}
                   color={
                     priceChange24h > 0 ? IconColor.Success : IconColor.Error
                   }
                 />
               )}
               <Text
-                variant={TextVariant.BodyLGMedium}
+                variant={TextVariant.HeadingSM}
                 color={
                   priceChange24h > 0
                     ? TextColor.Success
@@ -426,73 +415,35 @@ const TokenInsightsSheet: React.FC = () => {
 
           {/* Volume */}
           <View style={styles.row}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('bridge.volume')}
             </Text>
-            <Text variant={TextVariant.BodyLGMedium}>
+            <Text variant={TextVariant.HeadingSM}>
               {formatVolume(volume24h)}
             </Text>
           </View>
 
           {/* Market Cap */}
           <View style={styles.row}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('bridge.market_cap_fdv')}
             </Text>
-            <Text variant={TextVariant.BodyLGMedium}>
+            <Text variant={TextVariant.HeadingSM}>
               {dilutedMarketCap
                 ? formatVolume(dilutedMarketCap)
                 : formatVolume(marketCap)}
             </Text>
           </View>
 
-          {/* Listed on */}
-          <View style={styles.row}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {strings('bridge.listed_on')}
-            </Text>
-            <View style={styles.exchangeLogos}>
-              {/* Exchange info from token metadata if available */}
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {/* Exchange data not currently available in token metadata */}—
-              </Text>
-            </View>
-          </View>
-
-          {/* Centralised exchanges */}
-          <View style={styles.row}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {strings('bridge.centralised_exchanges')}
-            </Text>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {/* Exchange data not currently available */}—
-            </Text>
-          </View>
-
           {/* Contract Address */}
           <View style={styles.row}>
             <View style={styles.labelContainer}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.contract_address')}
               </Text>
               <Icon
                 name={IconName.Info}
-                size={IconSize.Xs}
+                size={IconSize.Sm}
                 color={IconColor.Alternative}
               />
             </View>
@@ -500,10 +451,10 @@ const TokenInsightsSheet: React.FC = () => {
               <View style={styles.valueContainer}>
                 <Icon
                   name={IconName.Copy}
-                  size={IconSize.Xs}
+                  size={IconSize.Sm}
                   color={IconColor.Alternative}
                 />
-                <Text variant={TextVariant.BodyMDMedium}>
+                <Text variant={TextVariant.BodyMD}>
                   {formatAddress(token.address)}
                 </Text>
               </View>
