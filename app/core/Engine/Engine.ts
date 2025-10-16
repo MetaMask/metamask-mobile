@@ -63,13 +63,11 @@ import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
-import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
-import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -170,6 +168,7 @@ import { ratesControllerInit } from './controllers/rates-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
+import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -254,9 +253,6 @@ export class Engine {
 
     this.controllerMessenger = new ExtendedControllerMessenger();
 
-    const isBasicFunctionalityToggleEnabled = () =>
-      selectBasicFunctionalityEnabled(store.getState());
-
     const errorReportingServiceMessenger =
       this.controllerMessenger.getRestricted({
         name: 'ErrorReportingService',
@@ -279,6 +275,7 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
+      metaMetricsId,
       initialKeyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
@@ -287,6 +284,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         PreferencesController: preferencesControllerInit,
+        RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -359,6 +357,8 @@ export class Engine {
       ...initRequest,
     });
 
+    const remoteFeatureFlagController =
+      controllersByName.RemoteFeatureFlagController;
     const accountsController = controllersByName.AccountsController;
     const accountTreeController = controllersByName.AccountTreeController;
     const approvalController = controllersByName.ApprovalController;
@@ -456,38 +456,6 @@ export class Engine {
       }),
       state: initialState.LoggingController,
     });
-
-    // TODO: Move this to `network-controller`
-    const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
-      if (isRpcFailoverEnabled) {
-        Logger.log('Enabling RPC failover');
-        networkController.enableRpcFailover();
-      } else {
-        Logger.log('Disabling RPC failover');
-        networkController.disableRpcFailover();
-      }
-    };
-    const remoteFeatureFlagControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'RemoteFeatureFlagController',
-        allowedActions: [],
-        allowedEvents: [],
-      });
-    remoteFeatureFlagControllerMessenger.subscribe(
-      'RemoteFeatureFlagController:stateChange',
-      toggleRpcFailover,
-      (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
-    );
-    const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      state: initialState.RemoteFeatureFlagController,
-      messenger: remoteFeatureFlagControllerMessenger,
-      disabled: !isBasicFunctionalityToggleEnabled(),
-      getMetaMetricsId: () => metaMetricsId ?? '',
-    });
-    toggleRpcFailover(
-      remoteFeatureFlagController.state.remoteFeatureFlags
-        .walletFrameworkRpcFailoverEnabled,
-    );
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
