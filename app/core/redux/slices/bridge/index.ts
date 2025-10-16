@@ -55,7 +55,7 @@ export interface BridgeState {
   slippage: string | undefined;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
-  isMaxSourceAmount: boolean;
+  isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
 }
 
@@ -196,7 +196,7 @@ export const selectDestAmount = createSelector(
 
 export const selectIsMaxSourceAmount = createSelector(
   selectBridgeState,
-  (bridgeState) => bridgeState.isMaxSourceAmount,
+  (bridgeState) => bridgeState.isMaxSourceAmount ?? false,
 );
 
 export const selectBridgeViewMode = createSelector(
