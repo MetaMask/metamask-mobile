@@ -62,7 +62,7 @@ jobs:
   accounts-android-smoke:
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -70,7 +70,7 @@ jobs:
       platform: android
       test_suite_tag: "SmokeAccounts"
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 1
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -107,7 +107,7 @@ jobs:
   confirmations-redesigned-android-smoke:
    strategy:
      matrix:
-       split: [1, 2]
+       split: [1, 2, 3]
      fail-fast: false
    uses: ./.github/workflows/run-e2e-workflow.yml
    with:
@@ -115,7 +115,7 @@ jobs:
      platform: android
      test_suite_tag: "SmokeConfirmationsRedesigned"
      split_number: ${{ matrix.split }}
-     total_splits: 2
+     total_splits: 3
      changed_files: ${{ inputs.changed_files }}
    secrets: inherit
 

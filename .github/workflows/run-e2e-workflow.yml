@@ -187,7 +187,7 @@ jobs:
         with:
           path: artifacts/
 
-      - name: Run E2E tests
+      - name: 🧪 Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: |
           echo "Running ${{ inputs.test-suite-name }} tests on ${{ inputs.platform }}"

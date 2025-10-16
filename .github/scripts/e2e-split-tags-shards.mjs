@@ -19,8 +19,7 @@ const env = {
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
   CHANGED_FILES: process.env.CHANGED_FILES || '',
 };
-
-// CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs .github/scripts/e2e-create-test-report.mjs
+// Example of format of CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs
 
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
@@ -301,7 +300,7 @@ function applyFlakinessDetection(splitFiles) {
     }
   }
   if (duplicatedSet.size === 0) {
-    console.log('ℹ️  No changed spec files found for this shard split -> skipping flakiness detection (test retries).');
+    console.log('ℹ️  No changed spec files found for this shard split -> No test retries.');
     return splitFiles;
   }
 
@@ -365,10 +364,10 @@ async function main() {
   try {
     if (env.PLATFORM.toLowerCase() === 'ios') {
       console.log('\n 🍎 Running iOS tests for build type: ', env.METAMASK_BUILD_TYPE);
-      // await runYarn(`test:e2e:ios:${env.METAMASK_BUILD_TYPE}:ci`, args);
+      await runYarn(`test:e2e:ios:${env.METAMASK_BUILD_TYPE}:ci`, args);
     } else {
       console.log('\n 🤖 Running Android tests for build type: ', env.METAMASK_BUILD_TYPE);
-      // await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
+      await runYarn(`test:e2e:android:${env.METAMASK_BUILD_TYPE}:ci`, args);
     }
     console.log("✅ Test execution completed");
   } catch (err) {
