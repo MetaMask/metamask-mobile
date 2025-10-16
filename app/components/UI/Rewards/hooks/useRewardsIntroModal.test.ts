@@ -33,7 +33,6 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 }));
 
 import StorageWrapper from '../../../../store/storage-wrapper';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { REWARDS_GTM_MODAL_SHOWN } from '../../../../constants/storage';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
