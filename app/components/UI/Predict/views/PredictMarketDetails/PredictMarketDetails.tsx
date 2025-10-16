@@ -47,6 +47,7 @@ import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import TabBar from '../../../../Base/TabBar';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -83,6 +84,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const insets = useSafeAreaInsets();
+  const { hasNoBalance } = usePredictBalance();
 
   const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
@@ -197,6 +199,42 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       return Math.round(firstOutcomePrice * 100);
     }
     return 0;
+  };
+
+  const handleYesPress = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome: market?.outcomes?.[0],
+        outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+      },
+    });
+  };
+
+  const handleNoPress = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome: market?.outcomes?.[0],
+        outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+      },
+    });
   };
 
   const renderHeader = () => (
@@ -521,18 +559,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             Yes • {getYesPercentage()}¢
           </Text>
         }
-        onPress={() => {
-          // Navigate to buy flow
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.MODALS.PLACE_BET,
-            params: {
-              market,
-              outcome: market?.outcomes?.[0],
-              outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
-              entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-            },
-          });
-        }}
+        onPress={handleYesPress}
       />
       <Button
         variant={ButtonVariants.Secondary}
@@ -544,18 +571,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             No • {100 - getYesPercentage()}¢
           </Text>
         }
-        onPress={() => {
-          // Navigate to buy flow
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.MODALS.PLACE_BET,
-            params: {
-              market,
-              outcome: market?.outcomes?.[0],
-              outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
-              entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-            },
-          });
-        }}
+        onPress={handleNoPress}
       />
     </Box>
   );

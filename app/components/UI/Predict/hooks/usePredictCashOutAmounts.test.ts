@@ -66,6 +66,7 @@ describe('usePredictCashOutAmounts', () => {
       claim: jest.fn(),
       calculateBetAmounts: jest.fn(),
       calculateCashOutAmounts: mockCalculateCashOutAmounts,
+      getBalance: jest.fn(),
     });
 
     mockUseSelector.mockImplementation((selector) => {

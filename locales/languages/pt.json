@@ -1555,7 +1555,7 @@
       "ready_to_trade": {
         "title": "Pronto para negociar?",
         "description": "Deposite fundos em sua conta perps com qualquer token e faça sua primeira negociação em segundos.",
-        "footer_text": "A MetaMask trocará seus fundos para USDC na Arbitrum e os depositará na HyperEVM sem nenhuma taxa adicional."
+        "footer_text": "A MetaMask trocará seus fundos para USDC na Arbitrum e os depositará na HyperCore sem nenhuma taxa adicional."
       },
       "got_it": "Entendi",
       "card": {
@@ -5315,7 +5315,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Trocaremos seus tokens por USDC na HyperEVM, a rede usada pelos perps. Os provedores de troca podem cobrar uma taxa, mas a MetaMask não cobra."
+        "transaction_fee": "Trocaremos seus tokens por USDC na HyperCore, a rede usada pelos perps. Os provedores de troca podem cobrar uma taxa, mas a MetaMask não cobra."
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."

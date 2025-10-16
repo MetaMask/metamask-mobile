@@ -29,6 +29,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
@@ -49,6 +50,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const { isEligible } = usePredictEligibility({
     providerId: market.providerId,
   });
+  const { hasNoBalance } = usePredictBalance();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -70,6 +72,13 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleYes = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
     if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -89,6 +98,13 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   };
 
   const handleNo = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
     if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,

@@ -142,7 +142,11 @@ export interface AccountState {
   address: string;
   isDeployed: boolean;
   hasAllowances: boolean;
-  balance: number;
+}
+
+export interface GetBalanceParams {
+  address?: string;
+  providerId: string;
 }
 
 export interface PredictProvider {
@@ -188,4 +192,6 @@ export interface PredictProvider {
   getAccountState(
     params: GetAccountStateParams & { ownerAddress: string },
   ): Promise<AccountState>;
+
+  getBalance(params: GetBalanceParams): Promise<number>;
 }
