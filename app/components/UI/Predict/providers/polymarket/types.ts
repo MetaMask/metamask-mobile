@@ -179,6 +179,20 @@ export interface PolymarketApiEvent {
   markets: PolymarketApiMarket[];
 }
 
+export interface PolymarketApiActivity {
+  type: 'TRADE' | 'REDEEM';
+  side: 'BUY' | 'SELL' | '';
+  price: number;
+  usdcSize: number;
+  timestamp: number;
+  transactionHash: string;
+  conditionId: string;
+  outcomeIndex: number;
+  title: string;
+  outcome?: 'Yes' | 'No' | '';
+  icon: string;
+}
+
 export interface PolymarketApiEventsResponse {
   data: PolymarketApiEvent[];
   pagination: {

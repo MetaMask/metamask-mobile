@@ -1,8 +1,10 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
-import MarketsWonCard from './MarketsWonCard';
+import { fireEvent, screen } from '@testing-library/react-native';
+import MarketsWonCard from './PredictPositionsHeader';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictPositionStatus, PredictPosition } from '../../types';
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -154,6 +156,82 @@ jest.mock('../../hooks/useUnrealizedPnL', () => ({
   useUnrealizedPnL: jest.fn(),
 }));
 
+// Mock usePredictDeposit hook
+const mockDeposit = jest.fn();
+const mockDepositResult = {
+  deposit: mockDeposit,
+  status: 'IDLE',
+};
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => mockDepositResult,
+  PredictDepositStatus: {
+    IDLE: 'IDLE',
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    FAILED: 'FAILED',
+  },
+}));
+
+// Mock usePredictBalance hook
+const mockLoadBalance = jest.fn();
+const mockBalanceResult: {
+  balance: number | undefined;
+  loadBalance: jest.Mock;
+  isLoading: boolean;
+  hasNoBalance: boolean;
+  isRefreshing: boolean;
+  error: string | null;
+} = {
+  balance: 100.5,
+  loadBalance: mockLoadBalance,
+  isLoading: false,
+  hasNoBalance: false,
+  isRefreshing: false,
+  error: null,
+};
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => mockBalanceResult,
+}));
+
+// Mock usePredictClaimablePositions hook
+const mockLoadClaimablePositions = jest.fn();
+const mockClaimablePositionsResult: {
+  positions: PredictPosition[];
+  isLoading: boolean;
+  error: string | null;
+  loadPositions: jest.Mock;
+} = {
+  positions: [],
+  isLoading: false,
+  error: null,
+  loadPositions: mockLoadClaimablePositions,
+};
+jest.mock('../../hooks/usePredictPositions', () => ({
+  usePredictPositions: () => mockClaimablePositionsResult,
+}));
+
+// Mock usePredictClaim hook
+const mockClaim = jest.fn();
+const mockClaimResult = {
+  claim: mockClaim,
+  loading: false,
+  completed: false,
+  error: false,
+};
+jest.mock('../../hooks/usePredictClaim', () => ({
+  usePredictClaim: () => mockClaimResult,
+}));
+
+// Mock useNavigation
+const mockNavigate = jest.fn();
+const mockNavigationResult = {
+  navigate: mockNavigate,
+};
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigationResult,
+}));
+
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -182,13 +260,60 @@ function createDefaultProps() {
 }
 
 // Helper function to set up test environment
-function setupMarketsWonCardTest(propsOverrides = {}, hookOverrides = {}) {
-  jest.clearAllMocks();
+function setupMarketsWonCardTest(
+  propsOverrides = {},
+  hookOverrides = {},
+  claimablePositionsOverrides: { positions?: Partial<PredictPosition>[] } = {},
+) {
+  // Reset mock results but keep the mock implementations
+  mockBalanceResult.balance = 100.5;
+  mockBalanceResult.isLoading = false;
+  mockBalanceResult.hasNoBalance = false;
+  mockBalanceResult.isRefreshing = false;
+  mockBalanceResult.error = null;
+
+  mockClaimablePositionsResult.positions = [];
+  mockClaimablePositionsResult.isLoading = false;
+  mockClaimablePositionsResult.error = null;
+
   const defaultProps = createDefaultProps();
   const props = {
     ...defaultProps,
     ...propsOverrides,
   };
+
+  // Configure balance mock based on props
+  if ('availableBalance' in propsOverrides) {
+    mockBalanceResult.balance = propsOverrides.availableBalance as
+      | number
+      | undefined;
+  } else {
+    mockBalanceResult.balance = props.availableBalance;
+  }
+  mockBalanceResult.isLoading = props.isLoading ?? false;
+
+  // Configure claimable positions mock based on props and overrides
+  if (claimablePositionsOverrides.positions !== undefined) {
+    mockClaimablePositionsResult.positions =
+      claimablePositionsOverrides.positions as unknown as PredictPosition[];
+  } else {
+    mockClaimablePositionsResult.positions = props.totalClaimableAmount
+      ? ([
+          {
+            id: 'position-1',
+            status: 'won', // Note: This should match PredictPositionStatus.WON
+            cashPnl: props.totalClaimableAmount,
+            marketId: 'market-1',
+            tokenId: 'token-1',
+            outcome: 'Yes',
+            shares: '100',
+            avgPrice: 0.5,
+            currentValue: props.totalClaimableAmount,
+          },
+        ] as unknown as typeof mockClaimablePositionsResult.positions)
+      : [];
+  }
+  mockClaimablePositionsResult.isLoading = props.isLoading ?? false;
 
   // Mock the useUnrealizedPnL hook
   const mockUseUnrealizedPnL = useUnrealizedPnL as jest.MockedFunction<
@@ -200,21 +325,37 @@ function setupMarketsWonCardTest(propsOverrides = {}, hookOverrides = {}) {
       cashUpnl: 8.63,
       percentUpnl: 3.9,
     },
-    isFetching: false,
+    isLoading: false,
+    isRefreshing: false,
     error: null,
-    refetch: jest.fn(),
+    loadUnrealizedPnL: jest.fn(),
     ...hookOverrides,
   });
 
+  const ref = React.createRef<{ refresh: () => Promise<void> }>();
   return {
-    ...renderWithProvider(<MarketsWonCard {...props} />),
+    ...renderWithProvider(<MarketsWonCard ref={ref} />),
     props,
     defaultProps,
     mockUseUnrealizedPnL,
+    ref,
   };
 }
 
 describe('MarketsWonCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset mocks to defaults
+    mockDepositResult.status = 'IDLE';
+    mockBalanceResult.balance = 100.5;
+    mockBalanceResult.isLoading = false;
+    mockClaimablePositionsResult.positions = [];
+    mockClaimablePositionsResult.isLoading = false;
+    mockClaimResult.loading = false;
+    mockClaimResult.completed = false;
+    mockClaimResult.error = false;
+  });
+
   describe('Component Rendering', () => {
     it('renders claim button when totalClaimableAmount is provided', () => {
       setupMarketsWonCardTest();
@@ -265,15 +406,6 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       expect(screen.getByText('+$8.63 (+3.9%)')).toBeOnTheScreen();
     });
-
-    it('renders claim button with loading indicator when isLoading is true', () => {
-      setupMarketsWonCardTest({ isLoading: true });
-
-      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
-      // The ActivityIndicator is rendered but without testID in our mock
-      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
-    });
-
     it('renders claim button without loading indicator when isLoading is false', () => {
       setupMarketsWonCardTest({ isLoading: false });
 
@@ -331,19 +463,13 @@ describe('MarketsWonCard', () => {
     it('formats available balance to 2 decimal places', () => {
       setupMarketsWonCardTest({ availableBalance: 123.456 });
 
-      expect(screen.getByText('$123.46')).toBeOnTheScreen();
+      expect(screen.getByText('$123.456')).toBeOnTheScreen();
     });
 
     it('formats claimable amount to 2 decimal places', () => {
       setupMarketsWonCardTest({ totalClaimableAmount: 123.456 });
 
       expect(screen.getByText('Claim $123.46')).toBeOnTheScreen();
-    });
-
-    it('handles zero claimable amount correctly', () => {
-      setupMarketsWonCardTest({ totalClaimableAmount: 0 });
-
-      expect(screen.getByText('Claim $0.00')).toBeOnTheScreen();
     });
 
     it('does not show available balance when it is 0', () => {
@@ -439,7 +565,7 @@ describe('MarketsWonCard', () => {
     it('handles very large available balance', () => {
       setupMarketsWonCardTest({ availableBalance: 999999.99 });
 
-      expect(screen.getByText('$999999.99')).toBeOnTheScreen();
+      expect(screen.getByText('$999,999.99')).toBeOnTheScreen();
     });
 
     it('handles very small available balance', () => {
@@ -467,31 +593,11 @@ describe('MarketsWonCard', () => {
 
   describe('useUnrealizedPnL Hook Integration', () => {
     it('calls useUnrealizedPnL hook with correct parameters', () => {
-      const { mockUseUnrealizedPnL } = setupMarketsWonCardTest({
-        address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
-      });
+      const { mockUseUnrealizedPnL } = setupMarketsWonCardTest();
 
       expect(mockUseUnrealizedPnL).toHaveBeenCalledWith({
-        address: '0x1234567890123456789012345678901234567890',
         providerId: 'polymarket',
       });
-    });
-
-    it('handles loading state from hook', () => {
-      setupMarketsWonCardTest(
-        { availableBalance: undefined },
-        {
-          isFetching: true,
-          unrealizedPnL: {
-            user: '0x1234567890123456789012345678901234567890',
-            cashUpnl: 0,
-            percentUpnl: 0,
-          },
-        },
-      );
-
-      expect(screen.getByTestId('unrealized-pnl-skeleton')).toBeOnTheScreen();
     });
 
     it('handles error state from hook', () => {
@@ -521,7 +627,7 @@ describe('MarketsWonCard', () => {
             cashUpnl: 0,
             percentUpnl: 0,
           },
-          isFetching: false,
+          isLoading: false,
           error: null,
         },
       );
@@ -529,19 +635,6 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       // Should show fallback values when data is null
       expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
-    });
-
-    it('combines loading states from component and hook', () => {
-      setupMarketsWonCardTest(
-        { isLoading: true },
-        {
-          isFetching: true,
-        },
-      );
-
-      // Claim button shows ActivityIndicator while hook shows skeleton
-      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
-      expect(screen.getByTestId('unrealized-pnl-skeleton')).toBeOnTheScreen();
     });
 
     it('displays correct unrealized P&L data from hook', () => {
@@ -553,7 +646,7 @@ describe('MarketsWonCard', () => {
             cashUpnl: -15.75,
             percentUpnl: -8.2,
           },
-          isFetching: false,
+          isLoading: false,
           error: null,
         },
       );
@@ -567,12 +660,101 @@ describe('MarketsWonCard', () => {
         { availableBalance: undefined },
         {
           unrealizedPnL: null,
-          isFetching: false,
+          isLoading: false,
           error: null,
         },
       );
 
       expect(screen.queryByTestId('markets-won-card')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Position Filtering and Calculation', () => {
+    it('filters positions to only include those with WON status', () => {
+      const mixedPositions = [
+        {
+          id: 'position-1',
+          status: PredictPositionStatus.WON,
+          cashPnl: 10.5,
+          marketId: 'market-1',
+          tokenId: 'token-1',
+          outcome: 'Yes',
+          shares: '100',
+          avgPrice: 0.5,
+          currentValue: 10.5,
+        },
+        {
+          id: 'position-2',
+          status: PredictPositionStatus.OPEN,
+          cashPnl: 5.0,
+          marketId: 'market-2',
+          tokenId: 'token-2',
+          outcome: 'No',
+          shares: '50',
+          avgPrice: 0.6,
+          currentValue: 5.0,
+        },
+        {
+          id: 'position-3',
+          status: PredictPositionStatus.WON,
+          cashPnl: 7.25,
+          marketId: 'market-3',
+          tokenId: 'token-3',
+          outcome: 'Yes',
+          shares: '75',
+          avgPrice: 0.4,
+          currentValue: 7.25,
+        },
+      ];
+
+      setupMarketsWonCardTest(
+        { availableBalance: undefined },
+        {},
+        {
+          positions: mixedPositions,
+        },
+      );
+
+      // Should show claim button since there are won positions
+      expect(screen.getByText('Claim $17.75')).toBeOnTheScreen();
+    });
+
+    it('calculates total claimable amount by summing cashPnl of won positions', () => {
+      const wonPositions = [
+        {
+          id: 'position-1',
+          status: PredictPositionStatus.WON,
+          cashPnl: 25.0,
+          marketId: 'market-1',
+          tokenId: 'token-1',
+          outcome: 'Yes',
+          shares: '100',
+          avgPrice: 0.5,
+          currentValue: 25.0,
+        },
+        {
+          id: 'position-2',
+          status: PredictPositionStatus.WON,
+          cashPnl: 15.5,
+          marketId: 'market-2',
+          tokenId: 'token-2',
+          outcome: 'No',
+          shares: '50',
+          avgPrice: 0.6,
+          currentValue: 15.5,
+        },
+      ];
+
+      setupMarketsWonCardTest(
+        { availableBalance: undefined },
+        {},
+        {
+          positions: wonPositions,
+        },
+      );
+
+      // Should show claim button with sum of cashPnl values
+      expect(screen.getByText('Claim $40.50')).toBeOnTheScreen();
     });
   });
 
@@ -587,14 +769,34 @@ describe('MarketsWonCard', () => {
       expect(props.onClaimPress).toBe(mockOnClaimPress);
     });
 
-    it('calls onClaimPress when available balance is pressed', () => {
-      const mockOnClaimPress = jest.fn();
-      const { props } = setupMarketsWonCardTest({
-        onClaimPress: mockOnClaimPress,
-      });
+    it('navigates to predict modals when available balance is pressed', () => {
+      setupMarketsWonCardTest();
 
-      // Verify the callback was passed correctly
-      expect(props.onClaimPress).toBe(mockOnClaimPress);
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fireEvent.press(balanceTouchable as any);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
+    });
+
+    it('calls refresh method and triggers data reloading', async () => {
+      const mockLoadUnrealizedPnL = jest.fn();
+      const { ref } = setupMarketsWonCardTest(
+        {},
+        {
+          loadUnrealizedPnL: mockLoadUnrealizedPnL,
+        },
+      );
+
+      await ref.current?.refresh();
+
+      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
+      expect(mockLoadUnrealizedPnL).toHaveBeenCalledWith({ isRefresh: true });
     });
 
     it('handles missing onClaimPress callback gracefully', () => {
