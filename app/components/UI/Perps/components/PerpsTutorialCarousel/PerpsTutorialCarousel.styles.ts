@@ -43,8 +43,8 @@ const createStyles = (params: {
       flex: 1,
     },
     animation: {
-      flex: 1,
-      minHeight: 400,
+      maxHeight: 300, // needed for center alignment
+      height: 400, // needed for android
     },
     title: {
       textAlign: 'left',
