@@ -765,7 +765,7 @@ describe('EngineService', () => {
       expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
     });
 
-    it('should handle controller state changes correctly with selector optimization', async () => {
+    it('should handle controller state changes correctly', async () => {
       // Arrange
       await engineService.start();
 
@@ -781,31 +781,26 @@ describe('EngineService', () => {
 
       expect(keyringControllerCalls.length).toBeGreaterThan(0);
 
-      // Get the persistence subscription (the one with 3 arguments: event, handler, selector)
-      const persistenceSubscription = keyringControllerCalls.find(call => call.length === 3);
+      // Get the LAST subscription (from setupEnginePersistence, not initializeControllers)
+      const persistenceSubscription = keyringControllerCalls[keyringControllerCalls.length - 1];
       expect(persistenceSubscription).toBeDefined();
 
-      const [, handler, selector] = persistenceSubscription as [
+      const [, handler] = persistenceSubscription as [
         string,
         (state: unknown) => Promise<void>,
-        (state: unknown) => unknown
       ];
 
-      // Verify the selector function works correctly
+      // Act - call the handler with the controller state
       const controllerState = { field1: 'value1', field2: 'value2' };
-      const selectedState = selector(controllerState);
-      expect(selectedState).toEqual({ filtered: 'state' });
+      await handler(controllerState);
 
-      // Verify getPersistentState was called by the selector
+      // Assert - verify getPersistentState was called inside the handler
       expect(mockGetPersistentState).toHaveBeenCalledWith(
         controllerState,
         Engine.context.KeyringController?.metadata,
       );
 
-      // Act - call the handler with the selected (filtered) state
-      await handler(selectedState);
-
-      // Assert - verify persistence was called with the filtered state
+      // Verify persistence was called with the filtered state
       expect(mockPersistController).toHaveBeenCalledWith(
         { filtered: 'state' },
         'KeyringController',

@@ -222,9 +222,16 @@ export class EngineService {
 
           UntypedEngine.controllerMessenger.subscribe(
             eventName,
-            async (persistentState: Record<string, Json>) => {
+            async (controllerState: StateConstraint) => {
               try {
-                await persistController(persistentState, controllerName);
+                // Filter out non-persistent fields based on controller metadata
+                const filteredState = getPersistentState(
+                  controllerState,
+                  // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
+                  UntypedEngine.context[controllerName]?.metadata,
+                );
+
+                await persistController(filteredState, controllerName);
               } catch (error) {
                 Logger.error(
                   error as Error,
@@ -236,12 +243,6 @@ export class EngineService {
                   `Critical: Failed to persist ${controllerName} state. User data at risk. ${(error as Error).message}`,
                 );
               }
-            },
-            // Selector: only trigger handler when persistent state changes, preventin unnecessary writes
-            // Controller state change events have varying formats, first arg is always the state
-            (...args: unknown[]) => {
-              const controllerState = args[0] as StateConstraint;
-              return getPersistentState(controllerState, controllerMetadata);
             },
           );
         });
