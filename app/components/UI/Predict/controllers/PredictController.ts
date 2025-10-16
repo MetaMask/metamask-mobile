@@ -18,13 +18,21 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
+import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   addTransaction,
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import {
+  PredictEventProperties,
+  PredictEventType,
+  PredictEventTypeValue,
+} from '../constants/eventNames';
 import {
   AccountState,
   CalculateBetAmountsParams,
@@ -671,7 +679,105 @@ export class PredictController extends BaseController<
     }
   }
 
+  /**
+   * Track Predict order analytics events
+   * @private
+   */
+  private trackPredictOrderEvent({
+    eventType,
+    params,
+    analyticsProperties,
+    completionDuration,
+    orderId,
+    failureReason,
+  }: {
+    eventType: PredictEventTypeValue;
+    params: PlaceOrderParams;
+    analyticsProperties?:
+      | (PlaceOrderParams['analyticsProperties'] & { userAddress?: string })
+      | undefined;
+    completionDuration?: number;
+    orderId?: string;
+    failureReason?: string;
+  }): void {
+    if (!analyticsProperties) {
+      return;
+    }
+
+    // Build regular properties (common to all events)
+    const regularProperties = {
+      [PredictEventProperties.TIMESTAMP]: Date.now(),
+      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]:
+        analyticsProperties.marketCategory,
+      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      [PredictEventProperties.TRANSACTION_TYPE]:
+        analyticsProperties.transactionType,
+      [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+      // Add completion duration for COMPLETED and FAILED events
+      ...(completionDuration !== undefined && {
+        [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
+      }),
+      // Add failure reason for FAILED events
+      ...(failureReason && {
+        [PredictEventProperties.FAILURE_REASON]: failureReason,
+      }),
+    };
+
+    // Build sensitive properties
+    const sensitiveProperties = {
+      [PredictEventProperties.AMOUNT]: params.size,
+      [PredictEventProperties.SHARE_PRICE]: analyticsProperties.sharePrice,
+      [PredictEventProperties.USER_ADDRESS]: analyticsProperties.userAddress,
+      // Add order ID for COMPLETED events
+      ...(orderId && {
+        [PredictEventProperties.ORDER_ID]: orderId,
+      }),
+    };
+
+    // Determine event name based on type
+    let metaMetricsEvent: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
+    let eventLabel: string;
+
+    switch (eventType) {
+      case PredictEventType.SUBMITTED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_SUBMITTED;
+        eventLabel = 'PREDICT_ACTION_SUBMITTED';
+        break;
+      case PredictEventType.COMPLETED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_COMPLETED;
+        eventLabel = 'PREDICT_ACTION_COMPLETED';
+        break;
+      case PredictEventType.FAILED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_FAILED;
+        eventLabel = 'PREDICT_ACTION_FAILED';
+        break;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`📊 [Analytics] ${eventLabel}`, {
+      regularProperties,
+      sensitiveProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(metaMetricsEvent)
+        .addProperties(regularProperties)
+        .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
+  }
+
   async placeOrder<T>(params: PlaceOrderParams): Promise<Result<T>> {
+    const startTime = performance.now();
+    const { analyticsProperties } = params;
+
+    // Declare enrichedAnalyticsProperties outside try block so it's accessible in catch
+    let enrichedAnalyticsProperties:
+      | (PlaceOrderParams['analyticsProperties'] & { userAddress?: string })
+      | undefined;
+
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
@@ -680,6 +786,20 @@ export class PredictController extends BaseController<
 
       const { AccountsController, KeyringController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      // Get safe address from account state
+      const { address: safeAddress } = await provider.getAccountState({
+        ...params,
+        ownerAddress: selectedAddress,
+      });
+
+      // Enrich analytics properties with safe address
+      enrichedAnalyticsProperties = analyticsProperties
+        ? {
+            ...analyticsProperties,
+            userAddress: safeAddress,
+          }
+        : undefined;
 
       const signer = {
         address: selectedAddress,
@@ -691,8 +811,57 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(_params),
       };
 
-      return await provider.placeOrder({ ...params, signer });
+      // Track Predict Action Submitted
+      this.trackPredictOrderEvent({
+        eventType: PredictEventType.SUBMITTED,
+        params,
+        analyticsProperties: enrichedAnalyticsProperties,
+      });
+
+      const result = await provider.placeOrder({ ...params, signer });
+
+      // Track Predict Action Completed or Failed
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success) {
+        // Extract order ID from response if available
+        const orderId =
+          result.response &&
+          typeof result.response === 'object' &&
+          'orderID' in result.response
+            ? (result.response as { orderID?: string }).orderID
+            : undefined;
+
+        this.trackPredictOrderEvent({
+          eventType: PredictEventType.COMPLETED,
+          params,
+          analyticsProperties: enrichedAnalyticsProperties,
+          completionDuration,
+          orderId,
+        });
+      } else {
+        this.trackPredictOrderEvent({
+          eventType: PredictEventType.FAILED,
+          params,
+          analyticsProperties: enrichedAnalyticsProperties,
+          completionDuration,
+          failureReason: result.error || 'Unknown error',
+        });
+      }
+
+      return result as Result<T>;
     } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track Predict Action Failed (catch block)
+      this.trackPredictOrderEvent({
+        eventType: PredictEventType.FAILED,
+        params,
+        analyticsProperties: enrichedAnalyticsProperties,
+        completionDuration,
+        failureReason: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       return {
         success: false,
         error:

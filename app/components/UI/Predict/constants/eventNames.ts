@@ -21,6 +21,10 @@ export const PredictEventProperties = {
   AMOUNT: 'amount',
   SHARE_PRICE: 'share_price',
   ORDER_ID: 'order_id',
+  USER_ADDRESS: 'user_address',
+
+  // Performance metrics
+  COMPLETION_DURATION: 'completion_duration',
 } as const;
 
 /**
@@ -37,3 +41,15 @@ export const PredictEventValues = {
     MM_PREDICT_SELL: 'mm_predict_sell',
   },
 } as const;
+
+/**
+ * Event type constants for analytics tracking
+ */
+export const PredictEventType = {
+  SUBMITTED: 'SUBMITTED',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+export type PredictEventTypeValue =
+  (typeof PredictEventType)[keyof typeof PredictEventType];

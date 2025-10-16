@@ -56,7 +56,7 @@ const PredictPlaceBet = () => {
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
-  // Prepare analytics properties
+  // Prepare analytics properties (userAddress will be added by PredictController)
   const analyticsProperties = useMemo(
     () => ({
       marketId: market?.id,
@@ -73,9 +73,7 @@ const PredictPlaceBet = () => {
     [market, outcome, outcomeToken, entryPoint],
   );
 
-  const { placeOrder, isLoading } = usePredictPlaceOrder({
-    analyticsProperties,
-  });
+  const { placeOrder, isLoading } = usePredictPlaceOrder();
 
   const [currentValue, setCurrentValue] = useState(1);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('1');
@@ -136,6 +134,7 @@ const PredictPlaceBet = () => {
       side: Side.BUY,
       size: currentValue,
       providerId: outcome.providerId,
+      analyticsProperties,
     });
     try {
       dispatch(StackActions.pop());

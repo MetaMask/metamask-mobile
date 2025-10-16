@@ -56,6 +56,16 @@ export interface PlaceOrderParams {
   side: Side;
   size: number;
   providerId: string;
+  analyticsProperties?: {
+    marketId?: string;
+    marketTitle?: string;
+    marketCategory?: string;
+    entryPoint?: string;
+    transactionType?: string;
+    liquidity?: number;
+    sharePrice?: number;
+    // userAddress is added by PredictController.placeOrder() via getAccountState()
+  };
 }
 
 export interface CalculateBetAmountsParams {
