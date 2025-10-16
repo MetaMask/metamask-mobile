@@ -84,6 +84,7 @@ describe('PredictController', () => {
       prepareClaim: jest.fn(),
       prepareDeposit: jest.fn(),
       getAccountState: jest.fn(),
+      getBalance: jest.fn(),
       isEligible: jest.fn(),
       providerId: 'polymarket',
       getUnrealizedPnL: jest.fn(),
@@ -2161,130 +2162,8 @@ describe('PredictController', () => {
   });
 
   describe('deposit transaction event handlers', () => {
-    it('update deposit transaction status to CONFIRMED on transactionConfirmed with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-1';
-
-        // Set up deposit transaction with matching batch ID
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          batchId,
-          id: 'tx-in-batch-1',
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xToken',
-            data: '0xapprove',
-            value: '0x0',
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to CONFIRMED
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.CONFIRMED,
-        );
-      });
-    });
-
-    it('update deposit transaction status to ERROR on transactionFailed with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-failed';
-
-        // Set up deposit transaction
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            batchId,
-            id: 'tx-failed',
-            hash: '0xabc',
-            status: 'failed',
-            error: { message: 'Transaction failed' },
-            txParams: {
-              from: '0x1',
-              to: '0xToken',
-              data: '0xapprove',
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionFailed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to ERROR
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.ERROR,
-        );
-      });
-    });
-
-    it('update deposit transaction status to CANCELLED on transactionRejected with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-rejected';
-
-        // Set up deposit transaction
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            batchId,
-            id: 'tx-rejected',
-            hash: '0xdef',
-            status: 'rejected',
-            txParams: {
-              from: '0x1',
-              to: '0xToken',
-              data: '0xapprove',
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionRejected',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to CANCELLED
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.CANCELLED,
-        );
-      });
-    });
+    // Deposit transaction status updates are now handled by usePredictDepositToasts hook
+    // rather than the controller's event handlers
 
     it('not modify deposit state when different batchId', () => {
       withController(({ controller, messenger }) => {
@@ -2449,6 +2328,82 @@ describe('PredictController', () => {
             providerId: 'invalid-provider',
           }),
         ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+  });
+
+  describe('getBalance', () => {
+    it('get balance successfully with default address', async () => {
+      // Given
+      const mockBalance = 1000;
+      mockPolymarketProvider.getBalance.mockResolvedValue(mockBalance);
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance
+        const result = await controller.getBalance({
+          providerId: 'polymarket',
+        });
+
+        // Then it should return the balance
+        expect(result).toBe(mockBalance);
+
+        // And provider should be called with default address
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('get balance successfully with custom address', async () => {
+      // Given
+      const mockBalance = 500;
+      mockPolymarketProvider.getBalance.mockResolvedValue(mockBalance);
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance with custom address
+        const result = await controller.getBalance({
+          providerId: 'polymarket',
+          address: '0x9876543210987654321098765432109876543210',
+        });
+
+        // Then it should return the balance
+        expect(result).toBe(mockBalance);
+
+        // And provider should be called with custom address
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          address: '0x9876543210987654321098765432109876543210',
+        });
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        // When calling getBalance with invalid provider
+        // Then it should throw an error
+        await expect(
+          controller.getBalance({
+            providerId: 'invalid-provider',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('handle error when getBalance throws', async () => {
+      // Given
+      mockPolymarketProvider.getBalance.mockRejectedValue(
+        new Error('Balance fetch failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance
+        // Then it should throw an error
+        await expect(
+          controller.getBalance({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Balance fetch failed');
       });
     });
   });
