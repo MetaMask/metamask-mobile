@@ -50,6 +50,7 @@ import {
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
+import { useWithdrawalAmount } from '../../hooks/useWithdrawalAmount';
 import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -131,24 +132,8 @@ const PerpsMarketBalanceActions: React.FC<
     string | null
   >(null);
 
-  // State for withdrawal amount
-  const [withdrawalAmount, setWithdrawalAmount] = useState<string | null>(null);
-
   // Extract withdrawal amount when withdrawal is in progress
-  useEffect(() => {
-    // Check if there are any active withdrawals (pending or bridging)
-    const activeWithdrawal = withdrawalRequests.find(
-      (request: { status: string; amount?: string }) =>
-        request.status === 'pending' || request.status === 'bridging',
-    );
-
-    if (activeWithdrawal?.amount) {
-      setWithdrawalAmount(activeWithdrawal.amount);
-    } else {
-      // Clear withdrawal amount when no active withdrawals
-      setWithdrawalAmount(null);
-    }
-  }, [withdrawalRequests]);
+  const { withdrawalAmount } = useWithdrawalAmount(withdrawalRequests);
 
   // Convert amount to USD display (handles both USD strings and wei)
   const convertToUSD = (amount: string): string => {
@@ -338,7 +323,6 @@ const PerpsMarketBalanceActions: React.FC<
           progressAmount={10}
           height={4}
           onTransactionAmountChange={setTransactionAmountWei}
-          onWithdrawalAmountChange={setWithdrawalAmount}
         />
         {/* Single Progress Section */}
         {isAnyTransactionInProgress && (
