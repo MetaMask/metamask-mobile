@@ -31,11 +31,6 @@ const createStyles = (params: {
       paddingTop: 12,
       flex: 1,
     },
-    headerSection: {
-      paddingHorizontal: 8,
-      justifyContent: 'flex-start',
-      alignItems: 'stretch',
-    },
     contentSection: {
       flex: 1,
     },
@@ -43,7 +38,7 @@ const createStyles = (params: {
       flex: 1,
     },
     animation: {
-      maxHeight: 300, // needed for center alignment
+      maxHeight: 400, // needed for center alignment
       height: 400, // needed for android
     },
     title: {

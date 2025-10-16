@@ -441,7 +441,7 @@ const PerpsTutorialCarousel: React.FC = () => {
               >
                 <View style={styles.screenContainer}>
                   {/* Header Section - Now flexible height */}
-                  <View style={styles.headerSection}>
+                  <View>
                     <Text
                       variant={TextVariant.HeadingLG}
                       color={TextColor.Default}
