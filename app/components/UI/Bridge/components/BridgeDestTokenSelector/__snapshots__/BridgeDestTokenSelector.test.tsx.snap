@@ -889,6 +889,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               data={
                                 [
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000002",
                                     "balance": "2.0",
                                     "balanceFiat": "$200000",
@@ -900,6 +901,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "tokenFiatAmount": 200000,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000001",
                                     "balance": "1.0",
                                     "balanceFiat": "$20000",
@@ -911,6 +913,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "tokenFiatAmount": 20000,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000000",
                                     "balance": "3.0",
                                     "balanceFiat": "$6000",
@@ -1145,11 +1148,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -1454,11 +1459,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -1793,11 +1800,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
