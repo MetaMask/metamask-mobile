@@ -145,4 +145,4 @@ jobs:
           SHARED="$SHARED" \
           IGNORE_FILES="$IGNORE_FILES" \
           CATCH_ALL_FILES="$CATCH_ALL_FILES" \
-          node .github/scripts/needs-e2e-builds.mjs
+          node .github/scripts/e2e-check-build-needed.mjs
