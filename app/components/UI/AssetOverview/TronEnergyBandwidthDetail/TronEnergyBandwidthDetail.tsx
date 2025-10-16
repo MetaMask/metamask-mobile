@@ -17,21 +17,41 @@ const TronEnergyBandwidthDetail = () => {
   // const tw = useTailwind();
 
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
-  const energy = tronResources.find((a) => a.name === 'Energy');
-  const bandwidth = tronResources.find((a) => a.name === 'Bandwidth');
+
+  const energy = tronResources.find((a) => a.name.toLowerCase() === 'energy');
+  const bandwidth = tronResources.find(
+    (a) => a.name.toLowerCase() === 'bandwidth',
+  );
+  const maxEnergy = tronResources.find(
+    (a) => a.name.toLowerCase() === 'max-energy',
+  );
+  const maxBandwidth = tronResources.find(
+    (a) => a.name.toLowerCase() === 'max-bandwidth',
+  );
+  const strxEnergy = tronResources.find(
+    (a) => a.name.toLowerCase() === 'strx-energy',
+  );
+  const strxBandwidth = tronResources.find(
+    (a) => a.name.toLowerCase() === 'strx-bandwidth',
+  );
 
   const parseNum = (v?: string | number) =>
     typeof v === 'number' ? v : parseFloat(String(v ?? '0').replace(/,/g, ''));
 
   const energyValue = parseNum(energy?.balance);
   const bandwidthValue = parseNum(bandwidth?.balance);
+  const maxBandwidthValue = parseNum(maxBandwidth?.balance);
+  const maxEnergyValue = parseNum(maxEnergy?.balance);
+  const strxEnergyValue = parseNum(strxEnergy?.balance);
+  const strxBandwidthValue = parseNum(strxBandwidth?.balance);
 
-  const BANDWIDTH_MAX = 600;
+  const BANDWIDTH_MAX = maxBandwidthValue + strxBandwidthValue;
   const bandwidthProgress = Math.min(1, (bandwidthValue || 0) / BANDWIDTH_MAX);
 
-  const ENERGY_MAX = 130000;
+  const ENERGY_MAX = maxEnergyValue + strxEnergyValue;
   const energyProgress = Math.min(1, (energyValue || 0) / ENERGY_MAX);
 
+  // Info about how much energy and bandwidth is needed for a TRC20 transfer and a TRX transfer
   const ENERGY_PER_TRC20_TRANSFER_BASELINE = 65000;
   const BANDWIDTH_PER_TRX_TRANSFER_BASELINE = 280;
 
