@@ -20,6 +20,8 @@ const env = {
   CHANGED_FILES: process.env.CHANGED_FILES || '',
 };
 
+// CHANGED_FILES: .github/scripts/e2e-check-build-needed.mjs .github/scripts/needs-e2e-builds.mjs .github/scripts/e2e-create-test-report.mjs
+
 if (!fs.existsSync(env.BASE_DIR)) throw new Error(`❌ Base directory not found: ${env.BASE_DIR}`);
 if (!env.TEST_SUITE_TAG) throw new Error('❌ Missing TEST_SUITE_TAG env var');
 
@@ -73,7 +75,6 @@ async function shouldSkipFlakinessDetection() {
   const OWNER = env.REPOSITORY.split('/')[0];
   const REPO = env.REPOSITORY.split('/')[1];
   const PR_NUM = Number(env.PR_NUMBER);
-  console.log(`   Querying GitHub API for PR #${PR_NUM} in ${OWNER}/${REPO}...`);
 
   try {
     const data = await githubGraphql(
@@ -258,7 +259,6 @@ function normalizePathForCompare(p) {
  * @returns Set of normalized spec file paths
  */
 function getChangedSpecFiles() {
-  console.log('🔍 CHANGED_FILES:', env.CHANGED_FILES);
   const raw = (env.CHANGED_FILES || '').trim();
   if (!raw) return new Set();
 

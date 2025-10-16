@@ -23,7 +23,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 };
 
 describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
-  it('should import account with SRP', async () => {
+  it('should import account with SRPP', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
