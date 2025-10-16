@@ -41,10 +41,10 @@ const createStyles = (params: {
     },
     animationContainer: {
       flex: 1,
-      paddingBottom: 32,
     },
     animation: {
-      height: 350,
+      flex: 1,
+      minHeight: 400,
     },
     title: {
       textAlign: 'left',
@@ -81,6 +81,7 @@ const createStyles = (params: {
     },
     footerTextContainer: {
       paddingHorizontal: 16,
+      paddingBottom: 32,
     },
     footerText: {
       textAlign: 'center',

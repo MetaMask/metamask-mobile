@@ -468,25 +468,26 @@ const PerpsTutorialCarousel: React.FC = () => {
                   </View>
 
                   {/* Content Section */}
-                  <View style={styles.contentSection}>
-                    {screen?.content && screen.content}
-                    {screen?.riveArtboardName && (
-                      <View style={styles.animationContainer}>
-                        <Rive
-                          key={screen.id}
-                          style={styles.animation}
-                          artboardName={screen.riveArtboardName}
-                          source={PerpsOnboardingAnimation}
-                          fit={Fit.FitWidth}
-                          alignment={Alignment.Center}
-                          autoplay
-                        />
-                      </View>
-                    )}
-                  </View>
+                  {screen?.content && (
+                    <View style={styles.contentSection}>{screen.content}</View>
+                  )}
+
+                  {screen?.riveArtboardName && (
+                    <View style={styles.animationContainer}>
+                      <Rive
+                        key={screen.id}
+                        style={styles.animation}
+                        artboardName={screen.riveArtboardName}
+                        source={PerpsOnboardingAnimation}
+                        fit={Fit.FitWidth}
+                        alignment={Alignment.Center}
+                        autoplay
+                      />
+                    </View>
+                  )}
                 </View>
-                <View style={styles.footerTextContainer}>
-                  {screen.footerText && (
+                {screen.footerText && (
+                  <View style={styles.footerTextContainer}>
                     <Text
                       variant={TextVariant.BodySM}
                       color={TextColor.Alternative}
@@ -494,8 +495,8 @@ const PerpsTutorialCarousel: React.FC = () => {
                     >
                       {screen.footerText}
                     </Text>
-                  )}
-                </View>
+                  </View>
+                )}
               </ScrollView>
             </View>
           ))}
