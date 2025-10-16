@@ -2,12 +2,12 @@ import React from 'react';
 import { View } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 
-interface OnboardingSuccessAnimationProps {
+interface FoxRiveLoaderAnimationProps {
   onAnimationComplete: () => void;
   slideOut?: boolean;
 }
 
-const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
+const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = ({
   onAnimationComplete,
   slideOut = false,
 }) => {
@@ -48,4 +48,4 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   );
 };
 
-export default OnboardingSuccessAnimation;
+export default FoxRiveLoaderAnimation;

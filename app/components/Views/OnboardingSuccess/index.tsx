@@ -24,7 +24,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation';
+import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -141,7 +141,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
       >
-        <Text color={TextColor.Primary} variant={TextVariant.BodyMDBold}>
+        <Text color={TextColor.Primary} variant={TextVariant.BodyMDMedium}>
           {strings('onboarding_success.manage_default_settings')}
         </Text>
       </TouchableOpacity>

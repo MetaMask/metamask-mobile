@@ -67,7 +67,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import OnboardingSuccessAnimation from './OnboardingSuccessAnimation';
+import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/index';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -726,7 +726,7 @@ class ChoosePassword extends PureComponent {
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <OnboardingSuccessAnimation />
+            <FoxRiveLoaderAnimation />
           </View>
         ) : (
           <KeyboardAwareScrollView

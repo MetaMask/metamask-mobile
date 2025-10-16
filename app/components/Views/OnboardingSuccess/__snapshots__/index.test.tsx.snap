@@ -156,7 +156,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -328,7 +328,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -500,7 +500,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -672,7 +672,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -844,7 +844,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1016,7 +1016,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1188,7 +1188,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1360,7 +1360,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,

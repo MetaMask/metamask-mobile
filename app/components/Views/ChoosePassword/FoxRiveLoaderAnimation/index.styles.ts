@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import { ScreenDimensions } from '../../../hooks/useScreenDimensions';
+import { Theme } from '../../../../util/theme/models';
+import { ScreenDimensions } from '../../../../hooks/useScreenDimensions';
 
 const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
   StyleSheet.create({
@@ -24,7 +24,7 @@ const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
       paddingHorizontal: 20,
     },
     riveAnimation: {
-      width: dimensions.screenWidth * 0.6,
+      width: dimensions.screenWidth * 0.4,
       height: dimensions.animationHeight,
       alignSelf: 'center',
       justifyContent: 'center',

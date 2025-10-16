@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OnboardingSuccessAnimation displays Rive animation and ActivityIndicator 1`] = `
+exports[`FoxRiveLoaderAnimation displays Rive animation and ActivityIndicator 1`] = `
 <View
   style={
     {
       "testID": "animation-container",
     }
   }
-  testID="onboarding-success-animation"
+  testID="fox-rive-loader-animation"
 >
   <View
     style={
@@ -19,7 +19,7 @@ exports[`OnboardingSuccessAnimation displays Rive animation and ActivityIndicato
     <RiveView
       alignment="Center"
       autoplay={true}
-      source="fox_loading.riv"
+      source="mock-rive-file"
       style={
         {
           "testID": "rive-animation",
@@ -42,14 +42,14 @@ exports[`OnboardingSuccessAnimation displays Rive animation and ActivityIndicato
 </View>
 `;
 
-exports[`OnboardingSuccessAnimation renders animation and ActivityIndicator in correct layout structure 1`] = `
+exports[`FoxRiveLoaderAnimation renders animation and ActivityIndicator in correct layout structure 1`] = `
 <View
   style={
     {
       "testID": "animation-container",
     }
   }
-  testID="onboarding-success-animation"
+  testID="fox-rive-loader-animation"
 >
   <View
     style={
@@ -61,7 +61,7 @@ exports[`OnboardingSuccessAnimation renders animation and ActivityIndicator in c
     <RiveView
       alignment="Center"
       autoplay={true}
-      source="fox_loading.riv"
+      source="mock-rive-file"
       style={
         {
           "testID": "rive-animation",

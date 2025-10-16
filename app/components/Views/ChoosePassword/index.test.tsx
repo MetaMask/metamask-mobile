@@ -55,7 +55,7 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('lottie-react-native', () => 'LottieView');
 
-jest.mock('./OnboardingSuccessAnimation', () => {
+jest.mock('./FoxRiveLoaderAnimation/index', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const MockReact = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -82,7 +82,7 @@ jest.mock('./OnboardingSuccessAnimation', () => {
         return MockReact.createElement(
           View,
           {
-            testID: 'onboarding-success-animation',
+            testID: 'fox-rive-loader-animation',
             style: { flex: 1, justifyContent: 'center', alignItems: 'center' },
           },
           [
@@ -101,7 +101,7 @@ jest.mock('./OnboardingSuccessAnimation', () => {
         return MockReact.createElement(
           View,
           {
-            testID: 'onboarding-success-animation-fallback',
+            testID: 'fox-rive-loader-animation-fallback',
           },
           [
             MockReact.createElement(
@@ -320,7 +320,7 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Now using OnboardingSuccessAnimation which shows "Setting up your wallet..."
+    // Now using FoxRiveLoaderAnimation which shows "Setting up your wallet..."
     const loadingTitle = component.getByText(
       strings('onboarding_success.setting_up_wallet_base') + '...',
     );
@@ -329,7 +329,7 @@ describe('ChoosePassword', () => {
     jest.spyOn(Device, 'isMediumDevice').mockRestore();
   });
 
-  it('renders OnboardingSuccessAnimation component with correct props in loading state', async () => {
+  it('renders FoxRiveLoaderAnimation component with correct props in loading state', async () => {
     const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
@@ -360,9 +360,9 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Verify OnboardingSuccessAnimation component is rendered
+    // Verify FoxRiveLoaderAnimation component is rendered
     const animationComponent = component.getByTestId(
-      'onboarding-success-animation',
+      'fox-rive-loader-animation',
     );
     expect(animationComponent).toBeTruthy();
 
@@ -406,7 +406,7 @@ describe('ChoosePassword', () => {
 
     // Verify loading wrapper is present (contains the animation)
     const animationComponent = component.getByTestId(
-      'onboarding-success-animation',
+      'fox-rive-loader-animation',
     );
     expect(animationComponent.parent).toBeTruthy();
 
@@ -439,9 +439,7 @@ describe('ChoosePassword', () => {
     expect(
       component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
     ).toBeTruthy();
-    expect(() =>
-      component.getByTestId('onboarding-success-animation'),
-    ).toThrow();
+    expect(() => component.getByTestId('fox-rive-loader-animation')).toThrow();
 
     const passwordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -467,7 +465,7 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    expect(component.getByTestId('onboarding-success-animation')).toBeTruthy();
+    expect(component.getByTestId('fox-rive-loader-animation')).toBeTruthy();
     expect(() =>
       component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
     ).toThrow();

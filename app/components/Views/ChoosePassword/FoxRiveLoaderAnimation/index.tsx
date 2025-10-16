@@ -1,18 +1,16 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import Rive, { Fit, Alignment } from 'rive-react-native';
-import { useTheme } from '../../../util/theme';
-import createStyles from './OnboardingSuccessAnimation.styles.ts';
-import { useScreenDimensions } from '../../../hooks/useScreenDimensions';
-import { useRiveAnimation } from '../../../hooks/useRiveAnimation';
+import { useTheme } from '../../../../util/theme';
+import createStyles from './index.styles';
+import { useScreenDimensions } from '../../../../hooks/useScreenDimensions';
+import { useRiveAnimation } from '../../../../hooks/useRiveAnimation';
 
-import onboardingRiveFile from '../../../animations/fox_loading.riv';
+import onboardingRiveFile from '../../../../animations/fox_loading.riv';
 
-interface OnboardingSuccessAnimationProps {}
+interface FoxRiveLoaderAnimationProps {}
 
-const OnboardingSuccessAnimation: React.FC<
-  OnboardingSuccessAnimationProps
-> = () => {
+const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
 
@@ -41,10 +39,7 @@ const OnboardingSuccessAnimation: React.FC<
   );
 
   return (
-    <View
-      testID="onboarding-success-animation"
-      style={styles.animationContainer}
-    >
+    <View testID="fox-rive-loader-animation" style={styles.animationContainer}>
       <View style={styles.animationWrapper}>
         <Rive
           ref={riveRef}
@@ -62,4 +57,4 @@ const OnboardingSuccessAnimation: React.FC<
   );
 };
 
-export default OnboardingSuccessAnimation;
+export default FoxRiveLoaderAnimation;

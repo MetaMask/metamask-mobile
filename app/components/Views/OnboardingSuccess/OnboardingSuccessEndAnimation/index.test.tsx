@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { ReactTestInstance } from 'react-test-renderer';
-import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation';
+import OnboardingSuccessEndAnimation from './index';
 
 // Mock Rive
 let mockRiveRef: unknown = null;
@@ -38,7 +38,7 @@ jest.mock('react-native', () => {
     },
   };
 });
-jest.mock('../../../util/theme', () => ({
+jest.mock('../../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
       text: { default: '#000000' },
@@ -50,7 +50,7 @@ jest.mock('../../../util/theme', () => ({
 
 // Mock E2E utils
 let mockIsE2EValue = false;
-jest.mock('../../../util/test/utils', () => ({
+jest.mock('../../../../util/test/utils', () => ({
   get isE2E() {
     return mockIsE2EValue;
   },
@@ -58,7 +58,7 @@ jest.mock('../../../util/test/utils', () => ({
 
 // Mock Rive file
 jest.mock(
-  '../../../animations/onboarding_loader.riv',
+  '../../../../animations/onboarding_loader.riv',
   () => 'mocked-rive-file',
 );
 

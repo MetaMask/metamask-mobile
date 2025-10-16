@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Rive, { Fit, Alignment } from 'rive-react-native';
-import { useTheme } from '../../../util/theme';
-import createStyles from './OnboardingSuccessEndAnimation.styles.ts';
-import { useScreenDimensions } from '../../../hooks/useScreenDimensions';
-import { useRiveAnimation } from '../../../hooks/useRiveAnimation';
+import { useTheme } from '../../../../util/theme';
+import createStyles from './index.styles';
+import { useScreenDimensions } from '../../../../hooks/useScreenDimensions';
+import { useRiveAnimation } from '../../../../hooks/useRiveAnimation';
 
-import onboardingLoaderEndAnimation from '../../../animations/onboarding_loader.riv';
+import onboardingLoaderEndAnimation from '../../../../animations/onboarding_loader.riv';
 
 interface OnboardingSuccessEndAnimationProps {
   onAnimationComplete: () => void;

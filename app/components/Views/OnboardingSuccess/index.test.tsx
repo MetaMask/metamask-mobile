@@ -23,7 +23,7 @@ import {
 } from '../../../selectors/seedlessOnboardingController';
 
 // Mock the OnboardingSuccessEndAnimation component
-jest.mock('./OnboardingSuccessEndAnimation', () => {
+jest.mock('./OnboardingSuccessEndAnimation/index', () => {
   const MockReact = jest.requireActual('react');
   return MockReact.forwardRef(() =>
     MockReact.createElement('View', {

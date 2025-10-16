@@ -11,7 +11,7 @@ const mockUseTheme = jest.fn().mockReturnValue({
 });
 
 // Mock dependencies
-jest.mock('../../../util/theme', () => ({
+jest.mock('../../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
 }));
 
@@ -33,7 +33,7 @@ jest.mock('rive-react-native', () => ({
   },
 }));
 
-jest.mock('../../../animations/onboarding_loader.riv', () => 'mock-rive-file');
+jest.mock('../../../../animations/fox_loading.riv', () => 'mock-rive-file');
 
 // Mock useScreenDimensions hook
 const mockUseScreenDimensions = jest.fn().mockReturnValue({
@@ -42,7 +42,7 @@ const mockUseScreenDimensions = jest.fn().mockReturnValue({
   animationHeight: 406, // 812 * 0.5 for default medium/large device
 });
 
-jest.mock('../../../hooks/useScreenDimensions', () => ({
+jest.mock('../../../../hooks/useScreenDimensions', () => ({
   useScreenDimensions: () => mockUseScreenDimensions(),
 }));
 
@@ -52,13 +52,13 @@ const mockDevice = {
   isMediumDevice: jest.fn(),
 };
 
-jest.mock('../../../util/device', () => ({
+jest.mock('../../../../util/device', () => ({
   __esModule: true,
   default: mockDevice,
 }));
 
 // Mock styles
-jest.mock('./OnboardingSuccessAnimation.styles', () =>
+jest.mock('./index.styles', () =>
   jest.fn(() => ({
     animationContainer: { testID: 'animation-container' },
     animationWrapper: { testID: 'animation-wrapper' },
@@ -67,9 +67,9 @@ jest.mock('./OnboardingSuccessAnimation.styles', () =>
   })),
 );
 
-import OnboardingSuccessAnimation from './OnboardingSuccessAnimation';
+import FoxRiveLoaderAnimation from './index';
 
-describe('OnboardingSuccessAnimation', () => {
+describe('FoxRiveLoaderAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -91,7 +91,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('renders correctly without props', () => {
     // Arrange & Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert
     expect(toJSON()).not.toBeNull();
@@ -99,7 +99,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('displays Rive animation and ActivityIndicator', () => {
     // Arrange & Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert
     const tree = toJSON();
@@ -108,7 +108,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('displays ActivityIndicator with theme colors', () => {
     // Arrange & Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert - Component renders without crashing
     expect(toJSON()).not.toBeNull();
@@ -116,7 +116,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('initializes Rive animation on component mount', () => {
     // Arrange & Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert - Component renders successfully
     expect(toJSON()).not.toBeNull();
@@ -124,7 +124,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('cleans up timers on unmount', () => {
     // Arrange
-    const { unmount } = render(<OnboardingSuccessAnimation />);
+    const { unmount } = render(<FoxRiveLoaderAnimation />);
 
     // Act
     unmount();
@@ -136,7 +136,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('starts Rive animation with correct state machine', () => {
     // Arrange & Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Advance timer to trigger Rive animation setup
     jest.advanceTimersByTime(100);
@@ -156,7 +156,7 @@ describe('OnboardingSuccessAnimation', () => {
     });
 
     // Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert - Component should render with dark theme
     expect(toJSON()).not.toBeNull();
@@ -164,7 +164,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('handles component lifecycle correctly', () => {
     // Arrange & Act
-    const { toJSON, unmount } = render(<OnboardingSuccessAnimation />);
+    const { toJSON, unmount } = render(<FoxRiveLoaderAnimation />);
 
     // Advance timers to test lifecycle
     jest.advanceTimersByTime(100);
@@ -190,7 +190,7 @@ describe('OnboardingSuccessAnimation', () => {
     });
 
     // Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert - Component renders with themed colors
     expect(toJSON()).not.toBeNull();
@@ -198,7 +198,7 @@ describe('OnboardingSuccessAnimation', () => {
 
   it('renders animation and ActivityIndicator in correct layout structure', () => {
     // Arrange & Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert
     const tree = toJSON();
@@ -214,7 +214,7 @@ describe('OnboardingSuccessAnimation', () => {
     });
 
     // Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert
     expect(toJSON()).not.toBeNull();
@@ -230,7 +230,7 @@ describe('OnboardingSuccessAnimation', () => {
     });
 
     // Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert
     expect(toJSON()).not.toBeNull();
@@ -246,7 +246,7 @@ describe('OnboardingSuccessAnimation', () => {
     });
 
     // Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert
     expect(toJSON()).not.toBeNull();
@@ -262,7 +262,7 @@ describe('OnboardingSuccessAnimation', () => {
     });
 
     // Act
-    const { toJSON } = render(<OnboardingSuccessAnimation />);
+    const { toJSON } = render(<FoxRiveLoaderAnimation />);
 
     // Assert
     expect(toJSON()).not.toBeNull();
