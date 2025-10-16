@@ -74,11 +74,10 @@ describe('OnboardingSuccessAnimation', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    // Reset to default large device behavior (height >= 736px)
     mockUseScreenDimensions.mockReturnValue({
       screenWidth: 375,
       screenHeight: 812,
-      animationHeight: 406, // 812 * 0.5
+      animationHeight: 406,
     });
 
     mockDevice.isMediumDevice.mockReturnValue(false);
@@ -222,8 +221,24 @@ describe('OnboardingSuccessAnimation', () => {
     expect(mockUseScreenDimensions).toHaveBeenCalled();
   });
 
+  it('uses 40% animation height for small devices', () => {
+    // Arrange
+    mockUseScreenDimensions.mockReturnValue({
+      screenWidth: 320,
+      screenHeight: 568,
+      animationHeight: 227,
+    });
+
+    // Act
+    const { toJSON } = render(<OnboardingSuccessAnimation />);
+
+    // Assert
+    expect(toJSON()).not.toBeNull();
+    expect(mockUseScreenDimensions).toHaveBeenCalled();
+  });
+
   it('uses 40% animation height for medium devices', () => {
-    // Arrange - Medium device
+    // Arrange
     mockUseScreenDimensions.mockReturnValue({
       screenWidth: 375,
       screenHeight: 667,

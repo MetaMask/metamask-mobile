@@ -12,7 +12,8 @@ export const useScreenDimensions = (): ScreenDimensions =>
   useMemo(() => {
     const { width, height } = Dimensions.get('window');
 
-    const animationHeightRatio = Device.isMediumDevice() ? 0.4 : 0.5;
+    const animationHeightRatio =
+      Device.isSmallDevice() || Device.isMediumDevice() ? 0.4 : 0.5;
 
     return {
       screenWidth: width,
