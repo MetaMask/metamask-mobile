@@ -72,7 +72,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const routeParams = useMemo(() => route?.params, [route?.params]);
   const {
     onSelectAccount,
-    checkBalanceError,
     disablePrivacyMode,
     navigateToAddAccountActions,
     isEvmOnly,
@@ -114,10 +113,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
     () => ({
-      checkBalanceError,
       isLoading: reloadAccounts,
     }),
-    [checkBalanceError, reloadAccounts],
+    [reloadAccounts],
   );
 
   const {
@@ -131,6 +129,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
+  const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
+    useState(false);
+
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
@@ -265,6 +266,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             onSelectAccount={_onSelectMultichainAccount}
             selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+            setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
           />
         ) : (
           <EvmAccountSelectorList
@@ -331,7 +333,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       style={styles.bottomSheetContent}
       ref={sheetRef}
       onOpen={onOpen}
-      keyboardAvoidingViewEnabled={false}
+      keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
     >
       {renderAccountScreens()}
     </BottomSheet>

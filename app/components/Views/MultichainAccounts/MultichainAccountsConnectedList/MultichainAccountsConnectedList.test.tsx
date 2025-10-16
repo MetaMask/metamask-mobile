@@ -5,7 +5,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {
@@ -14,6 +13,9 @@ import {
   createMockState,
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockSetSelectedAccountGroup = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -27,32 +29,146 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/assets/balances', () => {
-  const actual = jest.requireActual('../../../../selectors/assets/balances');
-  return {
-    ...actual,
-    selectBalanceByAccountGroup: (groupId: string) => () => ({
-      walletId: groupId.split('/')[0],
-      groupId,
-      totalBalanceInUserCurrency: 0,
-      userCurrency: 'usd',
-    }),
-  };
-});
+jest.mock('../../../../selectors/assets/balances', () => ({
+  selectBalanceByAccountGroup: (groupId: string) => () => ({
+    walletId: groupId.split('/')[0],
+    groupId,
+    totalBalanceInUserCurrency: 0,
+    userCurrency: 'usd',
+  }),
+}));
+
+jest.mock('../../../../selectors/multichain/multichain', () => ({
+  selectMultichainIsMainnet: () => true,
+  selectIsEvmNetworkSelected: () => true,
+  selectShowFiatInTestnets: () => false,
+  selectMultichainShouldShowFiat: () => true,
+}));
+
+jest.mock('../../../../selectors/tokenBalancesController', () => ({
+  selectAllTokenBalances: () => ({}),
+  selectSelectedInternalAccountAddress: () => '0x123',
+  selectAddressHasTokenBalances: () => false,
+}));
+
+jest.mock('../../../../reducers/swaps', () => ({
+  default: {},
+}));
+
+jest.mock('../../../../selectors/smartTransactionsController', () => ({
+  selectSmartTransactionsEnabled: () => false,
+}));
+
+jest.mock('../../../../selectors/multichain/evm', () => ({
+  selectHideZeroBalanceTokens: () => false,
+  selectAccountTokensAcrossChains: () => [],
+  selectTokensBalances: () => ({}),
+  selectEvmTokensWithZeroBalanceFilter: () => [],
+}));
+
+jest.mock('../../../../core/SDKConnectV2', () => ({
+  default: {
+    initialize: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+  default: {
+    init: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectNonReplacedTransactions: () => [],
+  selectPendingSmartTransactionsBySender: () => [],
+  selectSortedTransactions: () => [],
+}));
+
+jest.mock('../../../../selectors/gasFeeController', () => ({
+  selectGasFeeEstimates: () => ({}),
+}));
+
+jest.mock('../../../../core/redux/slices/bridge', () => ({
+  default: {},
+}));
+
+jest.mock('../../../../util/test/initial-root-state', () => ({
+  backgroundState: {
+    AccountsController: {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
+    },
+    AccountTreeController: {
+      accountTree: {
+        selectedAccountGroup: '',
+        wallets: {},
+      },
+    },
+    RemoteFeatureFlagController: {
+      remoteFeatureFlags: {
+        enableMultichainAccounts: {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '1.0.0',
+        },
+      },
+    },
+  },
+}));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
+  selectIconSeedAddressesByAccountGroupIds: () => ({
+    'keyring:test-group/group-1': 'mock-address',
+    'keyring:test-group/group-2': 'mock-address',
+    'keyring:test-group/group-3': 'mock-address',
+  }),
   selectSelectedInternalAccountByScope: () => () => ({
     address: '0x1234567890123456789012345678901234567890',
     id: 'mock-account-id',
   }),
 }));
 
+jest.mock('../../../../selectors/settings', () => ({
+  selectAvatarAccountType: () => 'MaskIcon',
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountGroups: () => [
+      {
+        id: 'keyring:test-group/group-1',
+        metadata: { name: 'Account 1' },
+      },
+      {
+        id: 'keyring:test-group/group-2',
+        metadata: { name: 'Account 2' },
+      },
+    ],
+    selectSelectedAccountGroup: () => ({
+      id: 'keyring:test-group/group-1',
+      metadata: { name: 'Account 1' },
+    }),
+  }),
+);
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
+
+const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
+const mockToastRef = {
+  current: {
+    showToast: mockShowToast,
+    closeToast: mockCloseToast,
+  },
+};
 
 const MOCK_ACCOUNT_GROUP_1 = createMockAccountGroup(
   'keyring:test-group/group-1',
@@ -90,7 +206,7 @@ const DEFAULT_PROPS = {
 
 const mockStore = configureStore([]);
 const buildState = (groups: AccountGroupObject[]) => {
-  const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+  const wallet = createMockWallet('keyring:test-group', 'Test Wallet', groups);
   const internalAccounts = createMockInternalAccountsFromGroups(groups);
   return createMockState([wallet], internalAccounts);
 };
@@ -102,7 +218,9 @@ const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
   const store = mockStore(state as unknown as Record<string, unknown>);
   return render(
     <Provider store={store}>
-      <MultichainAccountsConnectedList {...props} />
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <MultichainAccountsConnectedList {...props} />
+      </ToastContext.Provider>
     </Provider>,
   );
 };
@@ -335,34 +453,46 @@ describe('MultichainAccountsConnectedList', () => {
     });
   });
 
-  describe('Selected Account Visual Indicator', () => {
-    it('displays checkmark icon for the selected account', () => {
-      // Given a list of connected accounts with the first account selected
-      const selectedAccountGroupId = MOCK_ACCOUNT_GROUP_1.id;
-      const groups = [MOCK_ACCOUNT_GROUP_1, MOCK_ACCOUNT_GROUP_2];
-      const wallet = createMockWallet('test-group', 'Test Wallet', groups);
-      const internalAccounts = createMockInternalAccountsFromGroups(groups);
+  describe('Toast Functionality', () => {
+    beforeEach(() => {
+      mockShowToast.mockClear();
+      mockNavigate.mockClear();
+      mockSetSelectedAccountGroup.mockClear();
+    });
 
-      // Create state with selected account group
-      const state = createMockState([wallet], internalAccounts);
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
-        selectedAccountGroupId;
+    it('shows toast when account is selected', () => {
+      const { getByText } = renderMultichainAccountsConnectedList();
 
-      const store = mockStore(state as unknown as Record<string, unknown>);
+      const accountCell = getByText('Account 1');
+      fireEvent.press(accountCell);
 
-      const { getByText, getByTestId } = render(
-        <Provider store={store}>
-          <MultichainAccountsConnectedList {...DEFAULT_PROPS} />
-        </Provider>,
-      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Account,
+        labelOptions: [
+          {
+            label: 'Account 1 ',
+            isBold: true,
+          },
+          { label: 'now active.' },
+        ],
+        accountAddress: 'mock-address',
+        accountAvatarType: 'MaskIcon',
+        hasNoTimeout: false,
+      });
+    });
 
-      // When rendering the list
-      // Then the selected account should display a checkmark
-      expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Account 2')).toBeTruthy();
+    it('navigates to browser home after showing toast', () => {
+      // Given a connected account
+      const { getByText } = renderMultichainAccountsConnectedList();
 
-      // Assert that the checkmark icon is present for the selected account
-      expect(getByTestId(AccountCellIds.CHECK_ICON)).toBeTruthy();
+      // When selecting an account
+      const accountCell = getByText('Account 1');
+      fireEvent.press(accountCell);
+
+      // Then should navigate to browser home
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME);
     });
   });
 });

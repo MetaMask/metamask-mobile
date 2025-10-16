@@ -60,6 +60,8 @@ const mockGetNavigationOptionsTitle =
     typeof getNavigationOptionsTitle
   >;
 
+// Import hook mocks - useSeasonStatus removed from component
+
 // Mock ErrorBoundary
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
@@ -80,6 +82,8 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
     );
   },
 }));
+
+// Mock hooks - useSeasonStatus hook removed from component
 
 // Mock ReferralDetails component
 jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
@@ -119,6 +123,8 @@ describe('RewardsReferralView', () => {
       }
       return undefined;
     });
+
+    // Setup default hook mock return values - useSeasonStatus removed
   });
 
   describe('rendering', () => {
@@ -255,5 +261,10 @@ describe('RewardsReferralView', () => {
       // Assert
       expect(getByTestId('referral-details')).toBeTruthy();
     });
+  });
+
+  describe('hook integration', () => {
+    // useSeasonStatus hook was removed from the component
+    // No hook integration tests needed for this component
   });
 });

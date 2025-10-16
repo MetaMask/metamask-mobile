@@ -35,7 +35,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
@@ -105,6 +105,7 @@ import {
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
+import { NETWORK_TO_NAME_MAP } from '../../../../../core/Engine/constants';
 
 const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
@@ -1219,8 +1220,12 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    // Get the name either from chainToMatch or networkList
-    const name = chainToMatch?.name || networkList?.name || null;
+    // Get the name either from NETWORK_TO_NAME_MAP or chainToMatch or networkList
+    const name =
+      NETWORK_TO_NAME_MAP[chainId] ||
+      chainToMatch?.name ||
+      networkList?.name ||
+      null;
 
     // Determine nameToUse based on chainId and nickname comparison
     const nameToUse = isValidNetworkName(chainId, name, nickname)
@@ -2251,7 +2256,7 @@ export class NetworkSettings extends PureComponent {
                       this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     isDisabled={!!warningRpcUrl}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
@@ -2320,7 +2325,7 @@ export class NetworkSettings extends PureComponent {
                       this.onBlockExplorerItemAdd(blockExplorerUrlForm);
                     }}
                     width={ButtonWidthTypes.Full}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     isDisabled={
                       !blockExplorerUrl ||
                       !blockExplorerUrlForm ||
@@ -2396,7 +2401,7 @@ export class NetworkSettings extends PureComponent {
                     }}
                     testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                   />
                 </View>
               </ScrollView>
@@ -2504,7 +2509,7 @@ export class NetworkSettings extends PureComponent {
                       this.closeRpcModal();
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
                 </View>

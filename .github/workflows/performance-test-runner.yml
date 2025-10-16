@@ -77,13 +77,20 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies with retry
+
+      - name: Install dependencies
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn setup
+          command: yarn --immutable
+        ## This installs dependencies and creates the node_modules state file
+      
+      - name: Setup project
+        run: yarn setup:github-ci
+        working-directory: '.'
+        ## This will apply the patches for appwright
       
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
@@ -138,12 +145,15 @@ jobs:
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+          BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
+        working-directory: '.'
         run: |
           echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Platform: ${{ inputs.platform }}"
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
+          echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
           
           # Run the appropriate test command based on build_type flag
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then

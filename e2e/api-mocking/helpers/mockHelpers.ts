@@ -11,7 +11,7 @@ const logger = createLogger({
 });
 
 interface ResponseParam {
-  requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD';
   url: string | RegExp;
   response: unknown;
   responseCode: number;
@@ -173,6 +173,10 @@ export async function setupMockRequest(
 
   if (response.requestMethod === 'DELETE') {
     requestRuleBuilder = server.forDelete('/proxy');
+  }
+
+  if (response.requestMethod === 'HEAD') {
+    requestRuleBuilder = server.forHead('/proxy');
   }
 
   await requestRuleBuilder

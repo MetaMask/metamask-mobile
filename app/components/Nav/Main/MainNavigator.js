@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -47,9 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
-import RewardsNavigator, {
-  RewardsModalStack,
-} from '../../UI/Rewards/RewardsNavigator';
+import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -73,24 +71,17 @@ import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getActiveTabUrl } from '../../../util/transactions';
-import { getPermittedCaipAccountIdsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
-import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
-import URL from 'url-parse';
-import Logger from '../../../util/Logger';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
@@ -103,8 +94,14 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
   PerpsModalStack,
+  PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -120,6 +117,8 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
+import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
@@ -194,6 +193,11 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
+      name={Routes.PREDICT.ROOT}
+      component={PredictScreenStack}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
       name="AddAsset"
       component={AddAsset}
       options={AddAsset.navigationOptions}
@@ -261,6 +265,15 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+      component={RewardOptInAccountGroupModal}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
+      component={ReferralBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -566,6 +579,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
+      unmountOnBlur: true,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -672,7 +686,6 @@ const Webview = () => (
       name="SimpleWebview"
       component={SimpleWebview}
       mode={'modal'}
-      options={SimpleWebview.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -867,6 +880,12 @@ const MainNavigator = () => {
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
+  // Get feature flag state for conditional Predict screen registration
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useMemo(
+    () => predictEnabledFlag && isEvmSelected,
+    [predictEnabledFlag, isEvmSelected],
+  );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
@@ -993,6 +1012,13 @@ const MainNavigator = () => {
             }}
           />
           <Stack.Screen
+            name={Routes.PERPS.TUTORIAL}
+            component={PerpsTutorialCarousel}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
             options={clearStackNavigatorOptions}
@@ -1023,6 +1049,26 @@ const MainNavigator = () => {
             options={{
               title: 'Funding Transaction',
               headerShown: true,
+            }}
+          />
+        </>
+      )}
+      {isPredictEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.PREDICT.ROOT}
+            component={PredictScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PREDICT.MODALS.ROOT}
+            component={PredictModalStack}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+              animationEnabled: true,
             }}
           />
         </>

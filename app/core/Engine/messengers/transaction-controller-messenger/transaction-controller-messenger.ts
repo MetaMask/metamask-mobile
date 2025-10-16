@@ -33,12 +33,14 @@ import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
 } from '@metamask/bridge-status-controller';
+import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 
 type MessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | ApprovalControllerActions
   | BridgeStatusControllerActions
+  | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignTypedMessageAction
@@ -105,7 +107,10 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:updateRequestState',
       'KeyringController:signTypedMessage',
       'BridgeStatusController:submitTx',
+      'DelegationController:signDelegation',
       'NetworkController:getEIP1559Compatibility',
+      'KeyringController:signEip7702Authorization',
+      'KeyringController:signTypedMessage',
     ],
   });
 }

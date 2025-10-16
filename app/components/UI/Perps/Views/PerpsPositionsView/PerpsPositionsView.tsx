@@ -23,7 +23,12 @@ import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import type { Position } from '../../controllers/types';
 import { usePerpsLivePositions, usePerpsTPSLUpdate } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import { formatPnl, formatPrice } from '../../utils/formatUtils';
+import {
+  formatPnl,
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -125,14 +130,7 @@ const PerpsPositionsView: React.FC = () => {
           </Text>
         </View>
         {positions.map((position, index) => {
-          const sizeValue = parseFloat(position.size);
-          const directionSegment = Number.isFinite(sizeValue)
-            ? sizeValue > 0
-              ? 'long'
-              : sizeValue < 0
-              ? 'short'
-              : 'unknown'
-            : 'unknown';
+          const directionSegment = getPositionDirection(position.size);
           return (
             <View
               key={`${position.coin}-${index}`}
@@ -174,7 +172,9 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(account?.totalBalance || '0')}
+              {formatPerpsFiat(account?.totalBalance || '0', {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
 
@@ -183,7 +183,9 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(account?.availableBalance || '0')}
+              {formatPerpsFiat(account?.availableBalance || '0', {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
 
@@ -192,7 +194,9 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(account?.marginUsed || '0')}
+              {formatPerpsFiat(account?.marginUsed || '0', {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
 

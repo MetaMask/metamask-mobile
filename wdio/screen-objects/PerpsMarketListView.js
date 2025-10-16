@@ -1,12 +1,15 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
 class PerpsMarketListView {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get backButtonMarketList() {
@@ -23,8 +26,7 @@ class PerpsMarketListView {
   }
 
   async tapBackButtonMarketList() {
-    const backButtonMarketList = await this.backButtonMarketList;
-    await backButtonMarketList.tap();
+    await AppwrightGestures.tap(this.backButtonMarketList); // Use static tap method with retry logic
   }
 }
 

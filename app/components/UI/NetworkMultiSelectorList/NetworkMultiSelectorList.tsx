@@ -53,6 +53,7 @@ import {
   SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
@@ -260,7 +261,7 @@ const NetworkMultiSelectList = ({
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
 
       return (
-        <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
+        <View>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
@@ -271,6 +272,10 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
+            testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
+              caipChainId,
+              isSelected,
+            )}
           >
             {renderRightAccessory?.(caipChainId, name)}
           </Cell>

@@ -235,7 +235,6 @@ jest.mock('../../../core/Engine', () => {
   return {
     context: {
       KeyringController: {
-        getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
         state: {
           keyrings: [
             {
@@ -283,6 +282,13 @@ jest.mock('../../../selectors/earnController', () => ({
     }),
   },
 }));
+
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
 
 describe('Asset', () => {
   it('should render correctly', () => {

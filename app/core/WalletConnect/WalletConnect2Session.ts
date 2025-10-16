@@ -235,29 +235,32 @@ class WalletConnect2Session {
 
     const navigation = this.navigation;
 
-    const showReturnModal = () => {
+    const showReturnNotification = () => {
       navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
       });
     };
 
     setTimeout(() => {
+      const redirect = this.session.peer.metadata.redirect;
+
       if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-        const redirect = this.session.peer.metadata.redirect;
         const peerLink = redirect?.native || redirect?.universal;
         if (peerLink) {
           Linking.openURL(peerLink).catch((error) => {
             DevLogger.log(
               `WC2::redirect error while opening ${peerLink} with error ${error}`,
             );
-            showReturnModal();
+            showReturnNotification();
           });
-        } else {
-          showReturnModal();
+          return;
         }
-      } else {
+      } else if (redirect) {
         Minimizer.goBack();
+        return;
       }
+
+      showReturnNotification();
     }, 100);
   };
 

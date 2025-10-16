@@ -86,8 +86,9 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
+import { isSameOrigin } from '../../util/url';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { isRelaySupported } from '../RPCMethods/transaction-relay';
+import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 
@@ -116,6 +117,7 @@ export class BackgroundBridge extends EventEmitter {
     getApprovedHosts,
     remoteConnHost,
     isMMSDK,
+    sdkVersion = 'v1',
     channelId,
   }) {
     super();
@@ -126,6 +128,7 @@ export class BackgroundBridge extends EventEmitter {
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
     this.isMMSDK = isMMSDK;
+    this.sdkVersion = sdkVersion;
     this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
@@ -203,7 +206,8 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (!this.isMMSDK && !this.isWalletConnect) {
+    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
+    if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -446,6 +450,15 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
+    if (!isSameOrigin(msg.origin, this.origin)) {
+      console.warn(
+        '[BackgroundBridge]: message blocked from unknown origin. Expects',
+        this.origin,
+        'but received',
+        msg.origin,
+      );
+      return;
+    }
     this.port.emit('message', { name: msg.name, data: msg.data });
   };
 
@@ -464,7 +477,8 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    if (!this.isMMSDK && !this.isWalletConnect) {
+    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
+    if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
       controllerMessenger.unsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
@@ -675,6 +689,10 @@ export class BackgroundBridge extends EventEmitter {
             options,
           ),
         getCaveatForOrigin: PermissionController.getCaveat.bind(
+          PermissionController,
+          origin,
+        ),
+        updateCaveat: PermissionController.updateCaveat.bind(
           PermissionController,
           origin,
         ),

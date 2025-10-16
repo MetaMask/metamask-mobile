@@ -11,7 +11,7 @@ import { defaultGanacheOptions } from '../../framework/Constants';
 describe(SmokeAccounts('Wallet details'), () => {
   const FIRST = device.getPlatform() === 'android' ? 2 : 0;
 
-  it('should got to the wallet details, create an account and export srp', async () => {
+  it('should go to the wallet details, create an account and export srp', async () => {
     await withMultichainAccountDetailsV2EnabledFixtures(async () => {
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,

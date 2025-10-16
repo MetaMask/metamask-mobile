@@ -343,7 +343,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     };
   }, [dappUrl, channelIdOrHostname]);
 
-  const faviconSource = useFavicon(
+  const { faviconURI: faviconSource } = useFavicon(
     channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
   );
 

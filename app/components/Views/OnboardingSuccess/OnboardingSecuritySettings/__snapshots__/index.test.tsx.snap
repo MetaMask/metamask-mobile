@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OnboardingSecuritySettings should render correctly 1`] = `
+exports[`OnboardingSecuritySettings Basic rendering should render correctly with no auth connection 1`] = `
 <RCTScrollView
   style={
     {

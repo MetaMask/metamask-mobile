@@ -11,7 +11,7 @@ interface RewardsOverviewProps {
 }
 
 const RewardsOverview: React.FC<RewardsOverviewProps> = () => {
-  useActivePointsBoosts();
+  const { fetchActivePointsBoosts } = useActivePointsBoosts();
   const tw = useTailwind();
 
   return (
@@ -20,7 +20,7 @@ const RewardsOverview: React.FC<RewardsOverviewProps> = () => {
       showsVerticalScrollIndicator={false}
       testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW}
     >
-      <ActiveBoosts />
+      <ActiveBoosts fetchActivePointsBoosts={fetchActivePointsBoosts} />
 
       <WaysToEarn />
     </ScrollView>

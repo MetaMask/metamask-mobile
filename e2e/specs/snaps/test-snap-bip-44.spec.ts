@@ -14,6 +14,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -29,6 +30,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('getPublicKeyBip44Button');
@@ -44,6 +46,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageBip44Input', '1234');
@@ -61,6 +64,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 1');
@@ -79,6 +83,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 2');
@@ -97,6 +102,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');

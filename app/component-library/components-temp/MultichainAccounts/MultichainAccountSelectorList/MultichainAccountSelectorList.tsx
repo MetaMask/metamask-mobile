@@ -5,8 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View, ScrollViewProps } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { View } from 'react-native';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -41,6 +40,7 @@ const MultichainAccountSelectorList = ({
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   showCheckbox = false,
+  setKeyboardAvoidingViewEnabled,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -164,7 +164,7 @@ const MultichainAccountSelectorList = ({
     const idx = flattenedData.findIndex(
       (item) => item.type === 'cell' && item.data.id === targetId,
     );
-    return idx > 0 ? idx : undefined;
+    return idx >= 0 ? idx : undefined;
   }, [flattenedData, selectedAccountGroups]);
 
   // Reset scroll to top when search text changes
@@ -201,6 +201,16 @@ const MultichainAccountSelectorList = ({
     }
   }, [lastCreatedAccountId, flattenedData, listRefToUse]);
 
+  // Enable keyboard avoiding view when list has 2 or fewer items
+  useEffect(() => {
+    if (setKeyboardAvoidingViewEnabled) {
+      const accountCellsCount = flattenedData.filter(
+        (item) => item.type === 'cell',
+      ).length;
+
+      setKeyboardAvoidingViewEnabled(accountCellsCount <= 2);
+    }
+  }, [flattenedData, setKeyboardAvoidingViewEnabled]);
   // Handle account creation callback
   const handleAccountCreated = useCallback((newAccountId: string) => {
     setLastCreatedAccountId(newAccountId);
@@ -322,9 +332,8 @@ const MultichainAccountSelectorList = ({
             getItemType={getItemType}
             keyExtractor={keyExtractor}
             initialScrollIndex={initialSelectedIndex}
-            renderScrollComponent={
-              ScrollView as React.ComponentType<ScrollViewProps>
-            }
+            // Performance optimizations
+            removeClippedSubviews
             {...props}
           />
         )}

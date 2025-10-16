@@ -10,18 +10,21 @@ import {
   UNDERSTAND_WARNING_CONTINUE,
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
 import { NETWORK_SELECTOR_TEST_IDS } from '../../app/constants/networkSelector.js';
 
 class SendScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get container() {
@@ -38,6 +41,10 @@ class SendScreen {
     } else {
       return AppwrightSelectors.getElementByID(this._device, NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER);
     }
+  }
+
+  get reviewButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'review-button-send');
   }
 
   get sendAddressInputField() {
@@ -73,6 +80,11 @@ class SendScreen {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
 
+  get searchTokenField() {
+    return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
+  }
+  
+
   async openNetworkPicker() {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkPicker);
@@ -86,9 +98,27 @@ class SendScreen {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
-      const element = await AppwrightSelectors.getElementByID(this._device, SEND_ADDRESS_INPUT_FIELD);
-      await element.fill(address);
+      console.log('Typing address in send address field');
+      const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
+      console.log('element got found', address);
+      await AppwrightGestures.typeText(element, address);
     }
+  }
+
+  async clickOnReviewButton() {
+    const reviewButton = await this.reviewButton;
+    await reviewButton.tap();
+  }
+
+  async clickOnAccountByName(accountName) {
+    const account = await AppwrightSelectors.getElementByCatchAll(this._device, accountName);
+    await AppwrightGestures.tap(account);
+  }
+
+  async clickOnAccountByAddress(accountAddress) {
+    const accountId = `recipient-name-${accountAddress}`;
+    const account = await AppwrightSelectors.getElementByID(this._device, accountId);
+    await account.tap();
   }
 
   async isSendWarningMessageVisible(message) {
@@ -104,8 +134,8 @@ class SendScreen {
   }
 
   async isVisible() {
-    const element = await this.container;
-    await appwrightExpect(element).toBeVisible();
+    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
+    await appwrightExpect(networkButton).toBeVisible();
   }
 
   async tapAddAddressButton() {
@@ -148,7 +178,7 @@ class SendScreen {
       await Gestures.tapTextByXpath(contactName);
     } else {
       const element = await AppwrightSelectors.getElementByText(this._device, contactName);
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -157,8 +187,67 @@ class SendScreen {
       await Gestures.tapTextByXpath(NEXT_BUTTON);
     } else {
       const element = await AppwrightSelectors.getElementByID(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
+  }
+
+  async typeTokenName(tokenName) {
+    if (!this._device) {
+      await Gestures.typeText(this.searchTokenField, tokenName);
+    } else {
+      const element = await this.searchTokenField;
+      await element.fill(tokenName);
+    }
+  }
+
+  async clickOnFirstTokenBadge() {
+    const firstTokenBadge = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`);
+    appwrightExpect(firstTokenBadge).toBeVisible();
+    await AppwrightGestures.tap(firstTokenBadge);
+  }
+
+  async selectNetwork(network) {
+    if (!this._device) {
+      await Gestures.tapTextByXpath(network);
+    } else {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
+        await AppwrightGestures.tap(networkButton);
+      } else {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${network}"]`);
+        await AppwrightGestures.tap(networkButton);
+      }
+    }
+  }
+
+  async selectToken(networkName = 'Ethereum', tokenSymbol) {
+
+    if (!this._device) {
+      await Gestures.tapTextByXpath(tokenName);
+    } else {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
+        const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
+        await AppwrightGestures.tap(tokenButton);
+      } else {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${networkName}"]`);
+        await AppwrightGestures.tap(networkButton);
+        const tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, tokenSymbol);
+        await AppwrightGestures.tap(tokenButton);
+      }
+
+    }
+  }
+
+  async assetsListIsDisplayed() {
+    const searchTokenField = await this.searchTokenField
+    await appwrightExpect(searchTokenField).toBeVisible();
+  }
+
+  async isSelectAddressScreenDisplayed() {
+    console.log('Checking if select address screen is displayed');
+    const selectAddressScreen = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
+    appwrightExpect(await selectAddressScreen).toBeVisible({timeout: 10000});
   }
 }
 

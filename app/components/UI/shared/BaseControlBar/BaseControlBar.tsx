@@ -62,6 +62,10 @@ export interface BaseControlBarProps {
    */
   onSortPress?: () => void;
   /**
+   * Whether to show the sort button
+   */
+  hideSort?: boolean;
+  /**
    * Additional action buttons to render (e.g., Add Token button)
    */
   additionalButtons?: ReactNode;
@@ -80,6 +84,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   isDisabled: customIsDisabled,
   onFilterPress,
   onSortPress,
+  hideSort = false,
   additionalButtons,
   useEvmSelectionLogic = false,
   customWrapper = 'outer',
@@ -114,6 +119,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
+  const currentNetworkCaipChainId = getNetworkInfo(0)?.caipChainId;
 
   useEffect(() => {
     if (
@@ -192,9 +198,10 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             variant={TextVariant.BodyMDMedium}
             style={styles.controlButtonText}
             numberOfLines={1}
+            testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
           >
             {displayAllNetworks
-              ? strings('wallet.all_networks')
+              ? strings('wallet.popular_networks')
               : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
         </View>
@@ -236,7 +243,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     />
   );
 
-  const sortButton = (
+  const sortButton = !hideSort && (
     <ButtonIcon
       testID={WalletViewSelectorsIDs.SORT_BUTTON}
       size={ButtonIconSizes.Lg}

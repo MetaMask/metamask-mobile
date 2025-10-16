@@ -79,17 +79,19 @@ const createStyles = (theme: Theme) =>
     defaultMarginTop: {
       marginTop: 16,
     },
-    addFundsButtonContainer: {
+    buttonsContainerBase: {
       width: '100%',
     },
+    buttonsContainer: {
+      width: '100%',
+      gap: 8,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    halfWidthButton: {
+      width: '50%',
+    },
   });
-
-export const headerStyle = StyleSheet.create({
-  icon: { marginHorizontal: 16 },
-  invisibleIcon: {
-    display: 'none',
-  },
-  title: { alignSelf: 'center' },
-});
 
 export default createStyles;

@@ -70,7 +70,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
-import ReturnToAppModal from '../../Views/ReturnToAppModal';
+import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
@@ -154,6 +154,8 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -173,6 +175,12 @@ const Stack = createStackNavigator();
 const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
 const AccountNotFound = () => <AccountStatus type="not_exist" />;
+
+const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
+
+const SocialLoginSuccessExistingUser = () => (
+  <SocialLoginIosUser type="existing" />
+);
 
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
@@ -204,8 +212,13 @@ const OnboardingSuccessFlow = () => (
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName="Onboarding">
+  <Stack.Navigator initialRouteName={'Onboarding'}>
     <Stack.Screen name="Onboarding" component={Onboarding} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
+      component={SocialLoginSuccessNewUser}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
     <Stack.Screen
       name="AccountBackupStep1"
@@ -241,6 +254,11 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="AccountStatus"
       component={AccountStatus}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+      component={SocialLoginSuccessExistingUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -461,11 +479,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ResetNotificationsModal}
     />
     <Stack.Screen
-      name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-      component={ReturnToAppModal}
-      initialParams={{ ...props.route.params }}
-    />
-    <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
       component={AmbiguousAddressSheet}
     />
@@ -545,6 +558,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
+      component={ReturnToAppNotification}
+      initialParams={{ ...props.route.params }}
     />
   </Stack.Navigator>
 );
@@ -660,6 +678,15 @@ const MultichainAccountGroupDetails = () => {
           animationEnabled: true,
         }}
       />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
+        initialParams={route?.params}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -735,25 +762,6 @@ const MultichainAccountDetailsActions = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
         component={RevealSRP}
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
-};
-
-const MultichainWalletDetails = () => {
-  const route = useRoute();
-
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: false,
-      }}
-    >
-      <Stack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        component={WalletDetails}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -923,6 +931,21 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
           component={MultichainAccountGroupDetails}
+          options={{
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
@@ -931,10 +954,6 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
           component={MultichainAccountDetailsActions}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-          component={MultichainWalletDetails}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
@@ -1124,6 +1143,12 @@ const App: React.FC = () => {
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         const locked =
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+
+        // Track vault corruption with enabled state checking
+        trackVaultCorruption(errorMessage, {
+          error_type: 'app_startup_authentication_failure',
+          context: 'app_initialization_unlock_failed',
+        });
 
         // Only call lockApp if there is an existing user to prevent unnecessary calls
         await Authentication.lockApp({ reset: false, locked });

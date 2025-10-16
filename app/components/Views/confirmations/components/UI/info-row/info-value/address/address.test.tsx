@@ -6,9 +6,17 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../../../../../../util/test/accountsControllerTestUtils';
-
+import Name from '../../../../../../../UI/Name';
 import Address from './address';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { NameType } from '../../../../../../../UI/Name/Name.types';
+
+jest.mock(
+  '../../../../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
 
 const mockInitialState = {
   engine: {
@@ -21,14 +29,27 @@ const mockInitialState = {
   },
 };
 
+jest.mock('../../../../../../../UI/Name', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 describe('InfoAddress', () => {
-  it('should match snapshot', async () => {
-    const container = renderWithProvider(
+  const mockName = jest.mocked(Name);
+  it('calls Name component with correct props', async () => {
+    renderWithProvider(
       <Address address={MOCK_ADDRESS_1} chainId={CHAIN_IDS.MAINNET} />,
       {
         state: mockInitialState,
       },
     );
-    expect(container).toMatchSnapshot();
+    expect(mockName).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: MOCK_ADDRESS_1,
+        variation: CHAIN_IDS.MAINNET,
+        type: NameType.EthereumAddress,
+      }),
+      expect.anything(),
+    );
   });
 });

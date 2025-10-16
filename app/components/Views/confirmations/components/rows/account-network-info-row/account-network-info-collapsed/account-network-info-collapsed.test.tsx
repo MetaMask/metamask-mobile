@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfoCollapsed from './account-network-info-collapsed';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
+import { MAINNET_DISPLAY_NAME } from '../../../../../../../core/Engine/constants';
 
 jest.mock('../../../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../../../util/address'),
@@ -13,6 +14,13 @@ jest.mock('../../../../../../../util/address', () => ({
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
 }));
+
+jest.mock(
+  '../../../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
 
 jest.mock('../../../../hooks/useAccountInfo');
 
@@ -32,7 +40,7 @@ describe('AccountNetworkInfoCollapsed', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('0x935E7...05477')).toBeOnTheScreen();
-    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByText(MAINNET_DISPLAY_NAME)).toBeOnTheScreen();
   });
 
   it('displays networkName when walletName is not available', () => {
@@ -46,7 +54,7 @@ describe('AccountNetworkInfoCollapsed', () => {
       state: personalSignatureConfirmationState,
     });
 
-    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByText(MAINNET_DISPLAY_NAME)).toBeOnTheScreen();
   });
 
   it('displays accountGroupName when available instead of accountName', () => {
