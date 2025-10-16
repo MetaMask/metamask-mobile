@@ -13,6 +13,10 @@ import cardReducer, {
   initialState,
   setHasViewedCardButton,
   selectHasViewedCardButton,
+  selectCardGeoLocation,
+  selectDisplayCardButton,
+  selectAlwaysShowCardButton,
+  setAlwaysShowCardButton,
 } from '.';
 import {
   CardTokenAllowance,
@@ -30,8 +34,20 @@ jest.mock('../../../Multichain/utils', () => ({
   isEthAccount: jest.fn(),
 }));
 
+// Mock feature flag selectors
+jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  selectCardExperimentalSwitch: jest.fn(),
+  selectCardSupportedCountries: jest.fn(),
+  selectDisplayCardButtonFeatureFlag: jest.fn(),
+}));
+
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
+import {
+  selectCardExperimentalSwitch,
+  selectCardSupportedCountries,
+  selectDisplayCardButtonFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -41,6 +57,21 @@ const mockSelectSelectedInternalAccountByScope =
 const mockIsEthAccount = isEthAccount as jest.MockedFunction<
   typeof isEthAccount
 >;
+
+const mockSelectCardExperimentalSwitch =
+  selectCardExperimentalSwitch as jest.MockedFunction<
+    typeof selectCardExperimentalSwitch
+  >;
+
+const mockSelectCardSupportedCountries =
+  selectCardSupportedCountries as jest.MockedFunction<
+    typeof selectCardSupportedCountries
+  >;
+
+const mockSelectDisplayCardButtonFeatureFlag =
+  selectDisplayCardButtonFeatureFlag as jest.MockedFunction<
+    typeof selectDisplayCardButtonFeatureFlag
+  >;
 
 const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
   '0x1234567890123456789012345678901234567890',
@@ -70,6 +101,8 @@ const CARD_STATE_MOCK: CardSliceState = {
   },
   isLoaded: true,
   hasViewedCardButton: true,
+  alwaysShowCardButton: false,
+  geoLocation: 'US',
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
@@ -78,6 +111,8 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   lastFetchedByAddress: {},
   isLoaded: false,
   hasViewedCardButton: false,
+  alwaysShowCardButton: false,
+  geoLocation: 'UNKNOWN',
 };
 
 // Mock account object that matches the expected structure
@@ -131,6 +166,35 @@ describe('Card Selectors', () => {
       };
       const mockRootState = { card: stateWithFlag } as unknown as RootState;
       expect(selectHasViewedCardButton(mockRootState)).toBe(true);
+    });
+  });
+
+  describe('selectCardGeoLocation', () => {
+    it('returns UNKNOWN by default from initial state', () => {
+      const mockRootState = { card: initialState } as unknown as RootState;
+      expect(selectCardGeoLocation(mockRootState)).toBe('UNKNOWN');
+    });
+
+    it('returns the geolocation from the card state', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+      expect(selectCardGeoLocation(mockRootState)).toBe('US');
+    });
+
+    it('returns different geolocation values correctly', () => {
+      const geoLocations = ['US', 'GB', 'CA', 'DE', 'FR', 'UNKNOWN'];
+
+      geoLocations.forEach((geoLocation) => {
+        const stateWithGeoLocation: CardSliceState = {
+          ...initialState,
+          geoLocation,
+        };
+        const mockRootState = {
+          card: stateWithGeoLocation,
+        } as unknown as RootState;
+        expect(selectCardGeoLocation(mockRootState)).toBe(geoLocation);
+      });
     });
   });
 
@@ -220,26 +284,51 @@ describe('Card Selectors', () => {
 describe('Card Reducer', () => {
   describe('extraReducers', () => {
     describe('loadCardholderAccounts', () => {
-      it('should set cardholder accounts and update state when fulfilled', () => {
-        const mockAccounts = ['0x123', '0x456'];
+      it('should set cardholder accounts, geolocation, and update state when fulfilled', () => {
+        const mockPayload = {
+          cardholderAddresses: ['0x123', '0x456'],
+          geoLocation: 'US',
+        };
         const action = {
           type: loadCardholderAccounts.fulfilled.type,
-          payload: mockAccounts,
+          payload: mockPayload,
         };
         const state = cardReducer(initialState, action);
 
-        expect(state.cardholderAccounts).toEqual(mockAccounts);
+        expect(state.cardholderAccounts).toEqual(['0x123', '0x456']);
+        expect(state.geoLocation).toBe('US');
         expect(state.isLoaded).toBe(true);
       });
 
-      it('should handle empty payload when fulfilled', () => {
+      it('should handle empty cardholderAddresses in payload when fulfilled', () => {
+        const mockPayload = {
+          cardholderAddresses: [],
+          geoLocation: 'GB',
+        };
         const action = {
           type: loadCardholderAccounts.fulfilled.type,
-          payload: null,
+          payload: mockPayload,
         };
         const state = cardReducer(initialState, action);
 
         expect(state.cardholderAccounts).toEqual([]);
+        expect(state.geoLocation).toBe('GB');
+        expect(state.isLoaded).toBe(true);
+      });
+
+      it('should handle null cardholderAddresses and fallback to UNKNOWN geolocation', () => {
+        const mockPayload = {
+          cardholderAddresses: null,
+          geoLocation: null,
+        };
+        const action = {
+          type: loadCardholderAccounts.fulfilled.type,
+          payload: mockPayload,
+        };
+        const state = cardReducer(initialState, action);
+
+        expect(state.cardholderAccounts).toEqual([]);
+        expect(state.geoLocation).toBe('UNKNOWN');
         expect(state.isLoaded).toBe(true);
       });
 
@@ -255,6 +344,25 @@ describe('Card Reducer', () => {
 
         expect(state.isLoaded).toBe(true);
         expect(state.cardholderAccounts).toEqual([]); // Should remain empty on error
+        expect(state.geoLocation).toBe('UNKNOWN'); // Should remain UNKNOWN on error
+      });
+
+      it('should handle different geolocation values', () => {
+        const geoLocations = ['US', 'GB', 'CA', 'DE', 'FR', 'UNKNOWN'];
+
+        geoLocations.forEach((geoLocation) => {
+          const mockPayload = {
+            cardholderAddresses: ['0x123'],
+            geoLocation,
+          };
+          const action = {
+            type: loadCardholderAccounts.fulfilled.type,
+            payload: mockPayload,
+          };
+          const state = cardReducer(initialState, action);
+
+          expect(state.geoLocation).toBe(geoLocation);
+        });
       });
     });
   });
@@ -271,11 +379,15 @@ describe('Card Reducer', () => {
         },
         isLoaded: true,
         hasViewedCardButton: true,
+        alwaysShowCardButton: true,
+        geoLocation: 'US',
       };
 
       const state = cardReducer(currentState, resetCardState());
 
       expect(state).toEqual(initialState);
+      expect(state.geoLocation).toBe('UNKNOWN');
+      expect(state.alwaysShowCardButton).toBe(false);
     });
 
     describe('setHasViewedCardButton', () => {
@@ -750,6 +862,308 @@ describe('Card Caching Functionality', () => {
       expect(state.lastFetchedByAddress[testAddress.toLowerCase()]).toEqual(
         newTimestamp,
       );
+    });
+  });
+});
+
+describe('Card Button Display Selectors', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('selectAlwaysShowCardButton', () => {
+    it('should return false when experimental switch is disabled', () => {
+      mockSelectCardExperimentalSwitch.mockReturnValue(false);
+
+      const stateWithAlwaysShow: CardSliceState = {
+        ...initialState,
+        alwaysShowCardButton: true,
+      };
+
+      const mockRootState = {
+        card: stateWithAlwaysShow,
+      } as unknown as RootState;
+
+      expect(selectAlwaysShowCardButton(mockRootState)).toBe(false);
+    });
+
+    it('should return stored value when experimental switch is enabled', () => {
+      mockSelectCardExperimentalSwitch.mockReturnValue(true);
+
+      const stateWithAlwaysShow: CardSliceState = {
+        ...initialState,
+        alwaysShowCardButton: true,
+      };
+
+      const mockRootState = {
+        card: stateWithAlwaysShow,
+      } as unknown as RootState;
+
+      expect(selectAlwaysShowCardButton(mockRootState)).toBe(true);
+    });
+
+    it('should return false when experimental switch is enabled but stored value is false', () => {
+      mockSelectCardExperimentalSwitch.mockReturnValue(true);
+
+      const stateWithoutAlwaysShow: CardSliceState = {
+        ...initialState,
+        alwaysShowCardButton: false,
+      };
+
+      const mockRootState = {
+        card: stateWithoutAlwaysShow,
+      } as unknown as RootState;
+
+      expect(selectAlwaysShowCardButton(mockRootState)).toBe(false);
+    });
+
+    it('should return false by default with initial state', () => {
+      mockSelectCardExperimentalSwitch.mockReturnValue(false);
+
+      const mockRootState = {
+        card: initialState,
+      } as unknown as RootState;
+
+      expect(selectAlwaysShowCardButton(mockRootState)).toBe(false);
+    });
+  });
+
+  describe('setAlwaysShowCardButton', () => {
+    it('should set alwaysShowCardButton to true', () => {
+      const state = cardReducer(initialState, setAlwaysShowCardButton(true));
+      expect(state.alwaysShowCardButton).toBe(true);
+    });
+
+    it('should set alwaysShowCardButton to false', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        alwaysShowCardButton: true,
+      };
+
+      const state = cardReducer(currentState, setAlwaysShowCardButton(false));
+      expect(state.alwaysShowCardButton).toBe(false);
+    });
+
+    it('should not affect other state properties', () => {
+      const state = cardReducer(initialState, setAlwaysShowCardButton(true));
+      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
+      expect(state.geoLocation).toEqual(initialState.geoLocation);
+      expect(state.isLoaded).toEqual(initialState.isLoaded);
+    });
+  });
+
+  describe('selectDisplayCardButton', () => {
+    const mockAccountAddress = '0x1234567890123456789012345678901234567890';
+    const mockAccount = {
+      address: mockAccountAddress.toLowerCase(),
+      id: 'mock-id',
+      metadata: {
+        name: 'Mock Account',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa' as const,
+      scopes: ['eip155:59144' as const],
+    };
+
+    beforeEach(() => {
+      // Reset all mocks to default false/empty values
+      mockSelectCardExperimentalSwitch.mockReturnValue(false);
+      mockSelectCardSupportedCountries.mockReturnValue({});
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(false);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
+      mockIsEthAccount.mockReturnValue(false);
+    });
+
+    it('should return true when alwaysShowCardButton is true', () => {
+      mockSelectCardExperimentalSwitch.mockReturnValue(true);
+
+      const stateWithAlwaysShow: CardSliceState = {
+        ...initialState,
+        alwaysShowCardButton: true,
+        geoLocation: 'XX', // Unsupported country
+        cardholderAccounts: [], // Not a cardholder
+      };
+
+      const mockRootState = {
+        card: stateWithAlwaysShow,
+      } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
+    });
+
+    it('should return true when user is a cardholder', () => {
+      const stateWithCardholder: CardSliceState = {
+        ...initialState,
+        cardholderAccounts: [mockAccountAddress.toLowerCase()],
+        alwaysShowCardButton: false,
+        geoLocation: 'XX', // Unsupported country
+      };
+
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        () => mockAccount,
+      );
+      mockIsEthAccount.mockReturnValue(true);
+      mockSelectCardExperimentalSwitch.mockReturnValue(false);
+
+      const mockRootState = {
+        card: stateWithCardholder,
+      } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
+    });
+
+    it('should return true when in supported country with feature flag enabled', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(true);
+
+      const stateWithGeoLocation: CardSliceState = {
+        ...initialState,
+        geoLocation: 'US',
+        cardholderAccounts: [],
+        alwaysShowCardButton: false,
+      };
+
+      const mockRootState = {
+        card: stateWithGeoLocation,
+      } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
+    });
+
+    it('should return false when in supported country but feature flag is disabled', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(false);
+
+      const stateWithGeoLocation: CardSliceState = {
+        ...initialState,
+        geoLocation: 'US',
+        cardholderAccounts: [],
+        alwaysShowCardButton: false,
+      };
+
+      const mockRootState = {
+        card: stateWithGeoLocation,
+      } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(false);
+    });
+
+    it('should return false when feature flag is enabled but country is not supported', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(true);
+
+      const stateWithUnsupportedGeoLocation: CardSliceState = {
+        ...initialState,
+        geoLocation: 'CN', // Not in supported countries
+        cardholderAccounts: [],
+        alwaysShowCardButton: false,
+      };
+
+      const mockRootState = {
+        card: stateWithUnsupportedGeoLocation,
+      } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(false);
+    });
+
+    it('should return false when no conditions are met', () => {
+      const mockRootState = {
+        card: initialState,
+      } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(false);
+    });
+
+    it('should handle multiple supported countries', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({
+        US: true,
+        GB: true,
+        CA: true,
+        DE: false, // Explicitly false
+      });
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(true);
+
+      // Test US
+      let state: CardSliceState = {
+        ...initialState,
+        geoLocation: 'US',
+        cardholderAccounts: [],
+        alwaysShowCardButton: false,
+      };
+      let mockRootState = { card: state } as unknown as RootState;
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
+
+      // Test GB
+      state = { ...state, geoLocation: 'GB' };
+      mockRootState = { card: state } as unknown as RootState;
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
+
+      // Test CA
+      state = { ...state, geoLocation: 'CA' };
+      mockRootState = { card: state } as unknown as RootState;
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
+
+      // Test DE (explicitly false)
+      state = { ...state, geoLocation: 'DE' };
+      mockRootState = { card: state } as unknown as RootState;
+      expect(selectDisplayCardButton(mockRootState)).toBe(false);
+    });
+
+    it('should prioritize alwaysShowCardButton over other conditions', () => {
+      mockSelectCardExperimentalSwitch.mockReturnValue(true);
+      mockSelectCardSupportedCountries.mockReturnValue({});
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(false);
+
+      const state: CardSliceState = {
+        ...initialState,
+        alwaysShowCardButton: true,
+        geoLocation: 'XX',
+        cardholderAccounts: [],
+      };
+
+      const mockRootState = { card: state } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
+    });
+
+    it('should handle UNKNOWN geolocation gracefully', () => {
+      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(true);
+
+      const state: CardSliceState = {
+        ...initialState,
+        geoLocation: 'UNKNOWN',
+        cardholderAccounts: [],
+        alwaysShowCardButton: false,
+      };
+
+      const mockRootState = { card: state } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(false);
+    });
+
+    it('should return true when all three conditions are true', () => {
+      mockSelectCardExperimentalSwitch.mockReturnValue(true);
+      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
+      mockSelectDisplayCardButtonFeatureFlag.mockReturnValue(true);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        () => mockAccount,
+      );
+      mockIsEthAccount.mockReturnValue(true);
+
+      const state: CardSliceState = {
+        ...initialState,
+        alwaysShowCardButton: true,
+        geoLocation: 'US',
+        cardholderAccounts: [mockAccountAddress.toLowerCase()],
+      };
+
+      const mockRootState = { card: state } as unknown as RootState;
+
+      expect(selectDisplayCardButton(mockRootState)).toBe(true);
     });
   });
 });

@@ -9,7 +9,10 @@ import React, {
 import { useSelector } from 'react-redux';
 
 import { CardSDK } from './CardSDK';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import {
+  CardFeatureFlag,
+  selectCardFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
 import {
   getCardBaanxToken,
@@ -57,7 +60,9 @@ export const CardSDKProvider = ({
   // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
     if (cardFeatureFlag) {
-      const cardSDK = new CardSDK({ cardFeatureFlag });
+      const cardSDK = new CardSDK({
+        cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
+      });
       setSdk(cardSDK);
     } else {
       setSdk(null);

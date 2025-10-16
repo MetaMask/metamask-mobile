@@ -525,43 +525,96 @@ describe('CardSDK', () => {
   });
 
   describe('getGeoLocation', () => {
-    it('should return geolocation on successful API call', async () => {
-      const mockGeolocation = 'US';
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockGeolocation),
-      });
+    const originalNodeEnv = process.env.NODE_ENV;
 
-      const result = await cardSDK.getGeoLocation();
-      expect(result).toBe(mockGeolocation);
-      expect(global.fetch).toHaveBeenCalledWith(
-        new URL(
-          'geolocation',
-          mockCardFeatureFlag.constants?.onRampApiUrl || '',
-        ),
-      );
+    afterEach(() => {
+      // Restore original NODE_ENV
+      if (originalNodeEnv === undefined) {
+        delete (process.env as { NODE_ENV?: string }).NODE_ENV;
+      } else {
+        (process.env as { NODE_ENV?: string }).NODE_ENV = originalNodeEnv;
+      }
+      jest.clearAllMocks();
     });
 
-    it('should handle API errors and return empty string', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-      });
-
-      const result = await cardSDK.getGeoLocation();
-      expect(result).toBe('');
-      expect(Logger.log).toHaveBeenCalled();
-    });
-
-    it('should handle network errors and return empty string', async () => {
+    it('should return UNKNOWN when API call fails', async () => {
       const error = new Error('Network error');
-      (global.fetch as jest.Mock).mockRejectedValue(error);
+      (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
       const result = await cardSDK.getGeoLocation();
-      expect(result).toBe('');
+
+      expect(result).toBe('UNKNOWN');
       expect(Logger.log).toHaveBeenCalledWith(
         error,
         'CardSDK: Failed to get geolocation',
       );
+    });
+
+    it('should return UNKNOWN when fetch throws an error', async () => {
+      const fetchError = new Error('Fetch failed');
+      (global.fetch as jest.Mock).mockRejectedValueOnce(fetchError);
+
+      const result = await cardSDK.getGeoLocation();
+
+      expect(result).toBe('UNKNOWN');
+      expect(Logger.log).toHaveBeenCalledWith(
+        fetchError,
+        'CardSDK: Failed to get geolocation',
+      );
+    });
+
+    it('should return UNKNOWN when response.text() throws an error', async () => {
+      const textError = new Error('Failed to read response text');
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        text: jest.fn().mockRejectedValue(textError),
+      });
+
+      const result = await cardSDK.getGeoLocation();
+
+      expect(result).toBe('UNKNOWN');
+      expect(Logger.log).toHaveBeenCalledWith(
+        textError,
+        'CardSDK: Failed to get geolocation',
+      );
+    });
+
+    it('should handle response with ok: false and still return text', async () => {
+      const mockGeolocation = 'RESTRICTED';
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        text: jest.fn().mockResolvedValue(mockGeolocation),
+      });
+
+      const result = await cardSDK.getGeoLocation();
+
+      // The method doesn't check response.ok, so it should still parse the text
+      expect(result).toBe(mockGeolocation);
+    });
+
+    it('should handle different country codes correctly', async () => {
+      const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'UNKNOWN'];
+
+      for (const code of countryCodes) {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          text: jest.fn().mockResolvedValue(code),
+        });
+
+        const result = await cardSDK.getGeoLocation();
+        expect(result).toBe(code);
+      }
+    });
+
+    it('should handle empty string response from API', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        text: jest.fn().mockResolvedValue(''),
+      });
+
+      const result = await cardSDK.getGeoLocation();
+
+      expect(result).toBe('');
     });
   });
 
