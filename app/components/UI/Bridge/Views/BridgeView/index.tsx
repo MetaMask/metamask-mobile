@@ -208,13 +208,6 @@ const BridgeView = () => {
     !!blockaidError ||
     !hasSufficientGas;
 
-  const isSubmitDisabled =
-    hasInsufficientBalance ||
-    isSubmittingTx ||
-    (isHardwareAddress && isSolanaSourced) ||
-    !!blockaidError ||
-    !hasSufficientGas;
-
   useBridgeQuoteEvents({
     hasInsufficientBalance,
     hasNoQuotesAvailable: isNoQuotesAvailable,
