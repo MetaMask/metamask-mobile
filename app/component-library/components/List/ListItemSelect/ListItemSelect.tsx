@@ -36,7 +36,7 @@ const TouchableOpacity = ({
 }) => {
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Track accessibility state - start with false as default to ensure gesture handler works
+  // Track accessibility state - start with null to indicate "unknown"
   const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<
     boolean | null
   >(false);
@@ -61,6 +61,9 @@ const TouchableOpacity = ({
 
     return () => subscription?.remove();
   }, []);
+
+  // Native gesture handler to prevent interruption from other gestures (BottomSheet pan, etc.)
+  const native = Gesture.Native().disallowInterruption(true);
 
   // Gesture detection for ScrollView and BottomSheet compatibility on Android
   const tap = Gesture.Tap()
@@ -116,7 +119,7 @@ const TouchableOpacity = ({
   }
 
   return (
-    <GestureDetector gesture={tap}>
+    <GestureDetector gesture={Gesture.Simultaneous(native, tap)}>
       <RNTouchableOpacity
         disabled={isDisabled}
         onPress={

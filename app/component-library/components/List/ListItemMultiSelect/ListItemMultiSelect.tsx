@@ -63,6 +63,9 @@ const TouchableOpacity = ({
     return () => subscription?.remove();
   }, []);
 
+  // Native gesture handler to prevent interruption from other gestures (BottomSheet pan, etc.)
+  const native = Gesture.Native().disallowInterruption(true);
+
   // Gesture detection for ScrollView and BottomSheet compatibility on Android
   const tap = Gesture.Tap()
     .runOnJS(true)
@@ -117,7 +120,7 @@ const TouchableOpacity = ({
   }
 
   return (
-    <GestureDetector gesture={tap}>
+    <GestureDetector gesture={Gesture.Simultaneous(native, tap)}>
       <RNTouchableOpacity
         disabled={isDisabled}
         onPress={
