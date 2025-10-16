@@ -15,7 +15,6 @@ import {
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import Routes from '../../../../constants/navigation/Routes';
 
 const mockSetSelectedAccountGroup = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -482,7 +481,7 @@ describe('MultichainAccountsConnectedList', () => {
       });
     });
 
-    it('navigates to browser home after showing toast', () => {
+    it('shows toast when account is selected without navigation', () => {
       // Given a connected account
       const { getByText } = renderMultichainAccountsConnectedList();
 
@@ -490,9 +489,9 @@ describe('MultichainAccountsConnectedList', () => {
       const accountCell = getByText('Account 1');
       fireEvent.press(accountCell);
 
-      // Then should navigate to browser home
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME);
+      // Then should show toast but not navigate
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(0);
     });
   });
 });
