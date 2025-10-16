@@ -6,7 +6,6 @@ import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
-import { sleep } from '../../framework/Utilities';
 
 /**
  * Get a test element by data-testid
@@ -85,9 +84,6 @@ class SolanaTestDApp {
 
   async reloadSolanaTestDApp(): Promise<void> {
     await Browser.reloadTab();
-
-    // We need to wait for the page to be fully reloaded
-    await sleep(2000);
   }
 
   /**
