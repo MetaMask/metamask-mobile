@@ -37,6 +37,12 @@ exports[`SrpInput should render default settings correctly 1`] = `
         isStateStylesDisabled={true}
         onBlur={[Function]}
         onFocus={[Function]}
+        selection={
+          {
+            "end": 0,
+            "start": 0,
+          }
+        }
         textVariant="sBodyMD"
       />
     </View>
