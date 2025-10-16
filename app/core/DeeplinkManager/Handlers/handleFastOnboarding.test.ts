@@ -51,7 +51,7 @@ describe('handleFastOnboarding', () => {
                   screen: Routes.ONBOARDING.ONBOARDING,
                   params: {
                     onboardingType,
-                    existingUser: '',
+                    existing: '',
                   },
                 },
               },
@@ -61,9 +61,9 @@ describe('handleFastOnboarding', () => {
       },
     );
 
-    it('handles additional query parameters and existingUser param', () => {
+    it('handles additional query parameters and existing param', () => {
       // Arrange
-      const deeplink = `?foo=bar&type=google&existingUser=true&baz=qux`;
+      const deeplink = `?foo=bar&type=google&existing=true&baz=qux`;
       mockGetState.mockReturnValue({ user: { existingUser: false } });
 
       // Act
@@ -81,7 +81,7 @@ describe('handleFastOnboarding', () => {
               screen: Routes.ONBOARDING.NAV,
               params: {
                 screen: Routes.ONBOARDING.ONBOARDING,
-                params: { onboardingType: 'google', existingUser: 'true' },
+                params: { onboardingType: 'google', existing: 'true' },
               },
             },
           },
@@ -91,9 +91,9 @@ describe('handleFastOnboarding', () => {
   });
 
   describe('existing user scenarios', () => {
-    it('navigates to WALLET.HOME when existingUser is true', () => {
+    it('navigates to WALLET.HOME when existing is true', () => {
       // Arrange
-      const deeplink = `?type=google&existingUser=true&foo=bar`;
+      const deeplink = `?type=google&existing=true&foo=bar`;
       mockGetState.mockReturnValue({ user: { existingUser: true } });
 
       // Act
