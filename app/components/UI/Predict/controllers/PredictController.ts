@@ -706,26 +706,36 @@ export class PredictController extends BaseController<
    * Track Predict order analytics events
    * @private
    */
-  private trackPredictOrderEvent({
+  private async trackPredictOrderEvent({
     eventType,
-    params,
+    amount,
     analyticsProperties,
+    provider,
+    providerId,
+    ownerAddress,
     completionDuration,
     orderId,
     failureReason,
   }: {
     eventType: PredictEventTypeValue;
-    params: PlaceOrderParams;
-    analyticsProperties?:
-      | (PlaceOrderParams['analyticsProperties'] & { userAddress?: string })
-      | undefined;
+    amount: number;
+    analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+    provider: PredictProvider;
+    providerId: string;
+    ownerAddress: string;
     completionDuration?: number;
     orderId?: string;
     failureReason?: string;
-  }): void {
+  }): Promise<void> {
     if (!analyticsProperties) {
       return;
     }
+
+    // Get safe address from account state for analytics
+    const { address: safeAddress } = await provider.getAccountState({
+      providerId,
+      ownerAddress,
+    });
 
     // Build regular properties (common to all events)
     const regularProperties = {
@@ -751,8 +761,8 @@ export class PredictController extends BaseController<
 
     // Build sensitive properties
     const sensitiveProperties = {
-      [PredictEventProperties.AMOUNT]: params.size,
-      [PredictEventProperties.USER_ADDRESS]: analyticsProperties.userAddress,
+      [PredictEventProperties.AMOUNT]: amount,
+      [PredictEventProperties.USER_ADDRESS]: safeAddress,
       // Add order ID for COMPLETED events
       ...(orderId && {
         [PredictEventProperties.ORDER_ID]: orderId,
@@ -794,36 +804,17 @@ export class PredictController extends BaseController<
 
   async placeOrder<T>(params: PlaceOrderParams): Promise<Result<T>> {
     const startTime = performance.now();
-    const { analyticsProperties } = params;
+    const { analyticsProperties, size, providerId } = params;
 
-    // Declare enrichedAnalyticsProperties outside try block so it's accessible in catch
-    let enrichedAnalyticsProperties:
-      | (PlaceOrderParams['analyticsProperties'] & { userAddress?: string })
-      | undefined;
+    const provider = this.providers.get(providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+
+    const { AccountsController, KeyringController } = Engine.context;
+    const selectedAddress = AccountsController.getSelectedAccount().address;
 
     try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-      }
-
-      const { AccountsController, KeyringController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
-
-      // Get safe address from account state
-      const { address: safeAddress } = await provider.getAccountState({
-        ...params,
-        ownerAddress: selectedAddress,
-      });
-
-      // Enrich analytics properties with safe address
-      enrichedAnalyticsProperties = analyticsProperties
-        ? {
-            ...analyticsProperties,
-            userAddress: safeAddress,
-          }
-        : undefined;
-
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
@@ -834,11 +825,14 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(_params),
       };
 
-      // Track Predict Action Submitted
+      // Track Predict Action Submitted (fire and forget)
       this.trackPredictOrderEvent({
         eventType: PredictEventType.SUBMITTED,
-        params,
-        analyticsProperties: enrichedAnalyticsProperties,
+        amount: size,
+        analyticsProperties,
+        provider,
+        providerId,
+        ownerAddress: selectedAddress,
       });
 
       const result = await provider.placeOrder({ ...params, signer });
@@ -855,18 +849,26 @@ export class PredictController extends BaseController<
             ? (result.response as { orderID?: string }).orderID
             : undefined;
 
+        // Track Predict Action Completed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.COMPLETED,
-          params,
-          analyticsProperties: enrichedAnalyticsProperties,
+          amount: params.size,
+          analyticsProperties,
+          provider,
+          providerId: params.providerId,
+          ownerAddress: selectedAddress,
           completionDuration,
           orderId,
         });
       } else {
+        // Track Predict Action Failed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.FAILED,
-          params,
-          analyticsProperties: enrichedAnalyticsProperties,
+          amount: params.size,
+          analyticsProperties,
+          provider,
+          providerId: params.providerId,
+          ownerAddress: selectedAddress,
           completionDuration,
           failureReason: result.error || 'Unknown error',
         });
@@ -876,11 +878,14 @@ export class PredictController extends BaseController<
     } catch (error) {
       const completionDuration = performance.now() - startTime;
 
-      // Track Predict Action Failed (catch block)
+      // Track Predict Action Failed (fire and forget)
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
-        params,
-        analyticsProperties: enrichedAnalyticsProperties,
+        amount: params.size,
+        analyticsProperties,
+        provider,
+        providerId: params.providerId,
+        ownerAddress: selectedAddress,
         completionDuration,
         failureReason: error instanceof Error ? error.message : 'Unknown error',
       });
