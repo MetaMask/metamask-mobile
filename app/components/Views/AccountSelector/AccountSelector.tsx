@@ -72,7 +72,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     (state: RootState) => state.accounts.reloadAccounts,
   );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
-  // const accountGroups = useSelector(selectAccountGroups);
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const {

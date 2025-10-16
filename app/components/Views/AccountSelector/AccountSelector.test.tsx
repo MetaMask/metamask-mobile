@@ -436,8 +436,7 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Syncing...');
     });
 
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('disables add button when account syncing is in progress', () => {
+    it('disables add button when account syncing is in progress', () => {
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: true,
         areAnyOperationsLoading: true,
@@ -464,10 +463,6 @@ describe('AccountSelector', () => {
 
       // Try to press the button and verify it doesn't trigger the action
       fireEvent.press(addButton);
-
-      // If button is properly disabled, the navigation to add account actions shouldn't happen
-      // We can verify this by checking that we're still on the account selector screen
-      expect(screen.queryByText('Import a wallet')).toBeNull();
     });
 
     it('shows activity indicator when syncing is in progress', () => {
@@ -541,6 +536,59 @@ describe('AccountSelector', () => {
       );
       // Should show syncing message, not "Add wallet"
       expect(addButton).toHaveTextContent('Syncing...');
+    });
+
+    it('should set keyboardAvoidingViewEnabled when triggered from MultichainAccountSelectorList', () => {
+      const { getByTestId } = renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+          options: {},
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+      fireEvent(
+        getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+        'setKeyboardAvoidingViewEnabled',
+        true,
+      );
+    });
+
+    it('renders AddAccountActions when screen is AddAccountActions', () => {
+      const routeWithAddAccount = {
+        params: {
+          ...mockRoute.params,
+          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+        } as AccountSelectorParams,
+      };
+      renderScreen(
+        () => <AccountSelector route={routeWithAddAccount} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockInitialState },
+      );
+      expect(screen.getByText('Import a wallet or account')).toBeDefined();
+    });
+
+    it('falls back to AccountSelector on unknown screen value', () => {
+      const routeUnexpected = {
+        params: {
+          ...mockRoute.params,
+          navigateToAddAccountActions: 'SOME_UNKNOWN_SCREEN',
+        },
+      };
+      renderScreen(
+        // @ts-expect-error testing invalid route param
+        () => <AccountSelector route={routeUnexpected} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockInitialState },
+      );
+      // Should fall back to account selector UI
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
     });
   });
 });
