@@ -1456,7 +1456,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
-        user: userAddress as `0x${string}`,
+        user: userAddress,
         startTime: params?.startTime || 0,
         endTime: params?.endTime,
       });
@@ -1499,7 +1499,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           };
         });
     } catch (error) {
-      DevLogger.log('Error fetching user history:', error);
+      Logger.error(ensureError(error), this.getErrorContext('getUserHistory'));
       return [];
     }
   }
