@@ -21,7 +21,7 @@ const createStyles = (params: {
       alignItems: 'stretch',
     },
     screenContainer: {
-      flex: 1,
+      minHeight: '100%',
       justifyContent: 'flex-start',
       alignItems: 'stretch',
       paddingHorizontal: 24,

@@ -1,6 +1,5 @@
 import type { RestrictedMessenger } from '@metamask/base-controller';
 import { getVersion } from 'react-native-device-info';
-import AppConstants from '../../../../AppConstants';
 import type {
   LoginResponseDto,
   EstimatePointsDto,
@@ -178,6 +177,10 @@ export type RewardsDataServiceMessenger = RestrictedMessenger<
  * Data service for rewards API endpoints
  */
 export class RewardsDataService {
+  readonly name: typeof SERVICE_NAME = SERVICE_NAME;
+
+  readonly state: null = null;
+
   readonly #messenger: RewardsDataServiceMessenger;
 
   readonly #fetch: typeof fetch;
@@ -638,8 +641,7 @@ export class RewardsDataService {
     let location = 'UNKNOWN';
 
     try {
-      const environment = AppConstants.IS_DEV ? 'DEV' : 'PROD';
-      const response = await successfulFetch(GEOLOCATION_URLS[environment]);
+      const response = await successfulFetch(GEOLOCATION_URLS.PROD);
 
       if (!response.ok) {
         return location;

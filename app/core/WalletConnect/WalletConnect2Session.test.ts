@@ -200,12 +200,20 @@ jest.mock('../../actions/sdk', () => ({
 }));
 
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
-  findExistingNetwork: jest.fn().mockImplementation((chainId) => ({
-    chainId,
-    type: 'custom',
-    nickname: 'Test Network',
-    rpcUrl: 'https://test.com',
-  })),
+  findExistingNetwork: jest.fn().mockImplementation((chainId) => {
+    const networkClientId = `network-client-id-${chainId}`;
+
+    return [
+      networkClientId,
+      {
+        chainId,
+        name: 'Test Network',
+        rpcEndpoints: [{ networkClientId, url: 'https://test.com' }],
+        defaultRpcEndpointIndex: 0,
+        nativeCurrency: 'ETH',
+      },
+    ];
+  }),
   switchToNetwork: jest.fn().mockResolvedValue(undefined),
 }));
 

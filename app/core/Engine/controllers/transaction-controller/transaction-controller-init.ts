@@ -6,6 +6,7 @@ import {
   type PublishBatchHookRequest,
   type PublishBatchHookTransaction,
   type PublishBatchHookResult,
+  TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { ApprovalController } from '@metamask/approval-controller';
@@ -42,6 +43,9 @@ import {
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
 import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
+import { trace } from '../../../../util/trace';
+import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
+import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -118,6 +122,12 @@ export const TransactionControllerInit: ControllerInitFunction<
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
+        isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
+          const { chainId } = transactionMeta;
+          const state = getState();
+
+          return !selectShouldUseSmartTransaction(state, chainId);
+        },
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
         messenger: controllerMessenger,
@@ -127,6 +137,8 @@ export const TransactionControllerInit: ControllerInitFunction<
         // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
+        // Expected type mismatch with TransactionControllerOptions['trace']
+        trace: trace as unknown as TransactionControllerOptions['trace'],
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
 
@@ -153,28 +165,57 @@ async function publishHook({
   approvalController: ApprovalController;
   initMessenger: TransactionControllerInitMessenger;
   signedTransactionInHex: Hex;
-}): Promise<{ transactionHash: string }> {
+}): Promise<{ transactionHash?: string }> {
   const state = getState();
 
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
+  const sendBundleSupport = await isSendBundleSupported(
+    transactionMeta.chainId,
+  );
 
   await new PayHook({
     messenger: initMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
-  // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
-  return submitSmartTransactionHook({
-    transactionMeta,
-    transactionController,
-    smartTransactionsController,
-    shouldUseSmartTransaction,
-    approvalController,
-    controllerMessenger:
-      initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-    featureFlags,
-    signedTransactionInHex,
-  });
+  if (!shouldUseSmartTransaction || !sendBundleSupport) {
+    const hook = new Delegation7702PublishHook({
+      isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
+        transactionController,
+      ),
+      messenger: initMessenger,
+    }).getHook();
+
+    const result = await hook(transactionMeta, signedTransactionInHex);
+    if (result?.transactionHash) {
+      return result;
+    }
+    // else, fall back to regular regular transaction submission
+  }
+
+  if (
+    shouldUseSmartTransaction &&
+    (sendBundleSupport || transactionMeta.selectedGasFeeToken === undefined)
+  ) {
+    const result = await submitSmartTransactionHook({
+      transactionMeta,
+      transactionController,
+      smartTransactionsController,
+      shouldUseSmartTransaction,
+      approvalController,
+      controllerMessenger:
+        initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
+      featureFlags,
+      signedTransactionInHex,
+    });
+
+    if (result?.transactionHash) {
+      return result;
+    }
+  }
+
+  // Default: fall back to regular transaction submission
+  return { transactionHash: undefined };
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {
