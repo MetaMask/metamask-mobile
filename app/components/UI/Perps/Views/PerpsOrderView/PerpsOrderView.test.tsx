@@ -2835,7 +2835,7 @@ describe('PerpsOrderView', () => {
 
       // Assert - Should display asset in header title and price
       expect(getByText('Long BTC')).toBeOnTheScreen();
-      expect(getByText('$3,000.00')).toBeOnTheScreen(); // Price from mock data
+      expect(getByText('$3,000')).toBeOnTheScreen(); // Price from mock data
     });
   });
 });

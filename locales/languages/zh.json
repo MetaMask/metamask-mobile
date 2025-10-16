@@ -1555,7 +1555,7 @@
       "ready_to_trade": {
         "title": "准备好交易了吗？",
         "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。",
-        "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperEVM，无需任何额外费用。"
+        "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperCore，无需任何额外费用。"
       },
       "got_it": "知道了",
       "card": {
@@ -5315,7 +5315,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "我们将在永续合约所用的 HyperEVM 网络上将您的代币兑换为 USDC。兑换服务商可能收取费用，但 MetaMask 不另收费。"
+        "transaction_fee": "我们将在永续合约所用的 HyperCore 网络上将您的代币兑换为 USDC。兑换服务商可能收取费用，但 MetaMask 不另收费。"
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
