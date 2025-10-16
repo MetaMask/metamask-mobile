@@ -286,7 +286,7 @@ describe('getDisplayAmount', () => {
   it('truncates source amount when from Max button', () => {
     const amount = '1.123456789012345678';
     expect(getDisplayAmount(amount, TokenInputAreaType.Source, true)).toBe(
-      '1.12346',
+      '1.12345',
     );
   });
 
