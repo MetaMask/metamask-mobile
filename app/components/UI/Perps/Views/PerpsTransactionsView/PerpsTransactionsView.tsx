@@ -444,7 +444,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   );
 
   const filterTabs: FilterTab[] = useMemo(
-    () => ['Trades', 'Orders', 'Funding', 'Deposits'],
+    () => [
+      strings('perps.transactions.tabs.trades'),
+      strings('perps.transactions.tabs.orders'),
+      strings('perps.transactions.tabs.funding'),
+      strings('perps.transactions.tabs.deposits'),
+    ],
     [],
   );
 
