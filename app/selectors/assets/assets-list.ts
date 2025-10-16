@@ -209,7 +209,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
 
         if (
           asset.chainId?.includes('tron:') &&
-          tronResourceNames.includes(asset.name?.toLowerCase())
+          tronResourceNames.includes(asset.symbol?.toLowerCase())
         ) {
           return false;
         }
@@ -369,10 +369,11 @@ export const selectTronResourcesBySelectedAccountGroup =
       const assets = Object.entries(bip44Assets)
         .filter(([networkId, _]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) => chainAssets)
-        .filter((asset) => (
+        .filter(
+          (asset) =>
             asset.chainId?.includes('tron:') &&
-            tronResourceNames.includes(asset.name?.toLowerCase())
-          ));
+            tronResourceNames.includes(asset.symbol?.toLowerCase()),
+        );
 
       return assets;
     },
