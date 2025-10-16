@@ -629,6 +629,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     }
                     market={market}
                     outcome={outcome}
+                    entryPoint={
+                      PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS
+                    }
                   />
                 ))}
               </Box>
