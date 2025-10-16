@@ -4,7 +4,6 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
 import type { PerpsMarketData } from '../controllers/types';
 
-// Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 
 // Mock PerpsStreamManager
@@ -21,7 +20,6 @@ jest.mock('../providers/PerpsStreamManager', () => ({
   })),
 }));
 
-// Mock data
 const mockMarketDataArray: PerpsMarketData[] = [
   {
     symbol: 'BTC',
