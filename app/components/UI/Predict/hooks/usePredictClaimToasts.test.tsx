@@ -62,7 +62,7 @@ let mockState: any = {
   engine: {
     backgroundState: {
       PredictController: {
-        positions: [],
+        claimablePositions: [],
       },
     },
   },
@@ -115,7 +115,7 @@ describe('usePredictClaimToasts', () => {
       engine: {
         backgroundState: {
           PredictController: {
-            positions: [
+            claimablePositions: [
               {
                 id: '1',
                 status: PredictPositionStatus.WON,
@@ -425,7 +425,7 @@ describe('usePredictClaimToasts', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              positions: [],
+              claimablePositions: [],
             },
           },
         },
@@ -452,7 +452,7 @@ describe('usePredictClaimToasts', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              positions: [
+              claimablePositions: [
                 {
                   id: '1',
                   status: PredictPositionStatus.WON,
@@ -465,7 +465,7 @@ describe('usePredictClaimToasts', () => {
                 },
                 {
                   id: '3',
-                  status: PredictPositionStatus.ACTIVE,
+                  status: PredictPositionStatus.LOST,
                   currentValue: 75,
                 },
               ],

@@ -20,6 +20,7 @@ import { usePredictClaim } from './usePredictClaim';
 import { useSelector } from 'react-redux';
 import { selectPredictClaimablePositions } from '../selectors/predictController';
 import { PredictPosition, PredictPositionStatus } from '../types';
+import { formatPrice } from '../utils/format';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -147,12 +148,16 @@ export const usePredictClaimToasts = () => {
       }
 
       if (transactionMeta.status === TransactionStatus.approved) {
-        showPendingToast(transactionMeta.metamaskPay?.totalFiat ?? '');
+        showPendingToast(
+          formatPrice(totalClaimableAmount, { maximumDecimals: 2 }),
+        );
       }
 
       if (transactionMeta.status === TransactionStatus.confirmed) {
         Engine.context.PredictController.clearClaimTransaction();
-        showConfirmedToast(totalClaimableAmount.toString());
+        showConfirmedToast(
+          formatPrice(totalClaimableAmount, { maximumDecimals: 2 }),
+        );
       }
 
       // Handle PredictDeposit failed - clear deposit in progress
