@@ -96,6 +96,13 @@ export interface OrderPreview {
   fees?: PredictFees;
 }
 
+export type OrderResult = Result<{
+  id: string;
+  spentAmount: string;
+  receivedAmount: string;
+  txHashes?: string[];
+}>
+
 export interface ClaimOrderParams {
   positions: PredictPosition[];
   signer: Signer;
@@ -175,7 +182,7 @@ export interface PredictProvider {
 
   // Order management
   previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
-  placeOrder(params: PlaceOrderParams & { signer: Signer }): Promise<Result>;
+  placeOrder(params: PlaceOrderParams & { signer: Signer }): Promise<OrderResult>;
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
