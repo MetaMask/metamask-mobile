@@ -4000,7 +4000,9 @@
     "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "select_provider": "Select your preferred provider",
-    "switch_network": "Please switch to mainnet or sepolia"
+    "switch_network": "Please switch to mainnet or sepolia",
+    "card_title": "Always show MetaMask Card button",
+    "card_desc": "MetaMask Card is only available to residents of select countries"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
