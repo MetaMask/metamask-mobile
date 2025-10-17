@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { Linking } from 'react-native';
+import { Linking , Platform } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
@@ -313,6 +313,10 @@ describe('OnboardingSuccess', () => {
       },
     });
 
+    Object.defineProperty(Platform, 'OS', {
+      get: jest.fn(() => 'ios'),
+    });
+
     // Mock the useSelector to return the Apple auth connection
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSeedlessOnboardingAuthConnection) {
@@ -351,6 +355,10 @@ describe('OnboardingSuccess', () => {
       params: {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       },
+    });
+
+    Object.defineProperty(Platform, 'OS', {
+      get: jest.fn(() => 'ios'),
     });
 
     // Mock the useSelector to return the Google auth connection
