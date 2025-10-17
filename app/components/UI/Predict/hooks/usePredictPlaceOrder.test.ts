@@ -15,12 +15,17 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, options?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
       'predict.prediction_placed': 'Prediction placed',
+      'predict.cashed_out': 'Cashed out',
+      'predict.cashed_out_subtitle': `You claimed $${options?.amount || '0'}`,
     };
     return translations[key] || key;
   },
+}));
+jest.mock('../utils/format', () => ({
+  formatPrice: (value: number) => value.toFixed(2),
 }));
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -133,7 +138,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.result).toEqual(mockSuccessResult);
     });
 
-    it('shows success toast when order is placed successfully', async () => {
+    it('shows success toast when BUY order is placed successfully', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
 
       const { result } = renderHook(() => usePredictPlaceOrder());
@@ -155,6 +160,60 @@ describe('usePredictPlaceOrder', () => {
           hasNoTimeout: false,
         }),
       );
+    });
+
+    it('shows cashed out toast when SELL order is placed successfully', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+
+      const sellOrderParams = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({
+          side: Side.SELL,
+          minAmountReceived: 150,
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(sellOrderParams);
+      });
+
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Check,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('Cashed out'),
+              isBold: true,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('reloads balance after successful order placement', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const mockLoadBalance = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        balance: 1000,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        hasNoBalance: false,
+        loadBalance: mockLoadBalance,
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
+      expect(mockLoadBalance).toHaveBeenCalledTimes(1);
     });
 
     it('calls onComplete callback when provided and order succeeds', async () => {
