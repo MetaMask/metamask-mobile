@@ -70,7 +70,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     }
 
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market,
         outcome,
@@ -88,7 +88,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     }
 
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market,
         outcome,
