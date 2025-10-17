@@ -24,11 +24,9 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
   useEffect(() => {
     if (isE2E) return;
     setTimeout(() => {
-      if (riveRef.current) {
-        riveRef.current.fireState('FoxRaiseUp', 'Loader2');
-      }
+      riveRef.current?.fireState('FoxRaiseUp', 'Loader2');
     }, 100);
-  }, []);
+  }, [riveRef]);
 
   return (
     <View testID="fox-rive-loader-animation" style={styles.animationContainer}>
