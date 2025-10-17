@@ -56,7 +56,8 @@ function canonicalize(url: URL): string {
       }
     }
     // CRITICAL: Include normalized sig_params in the signature to prevent tampering
-    // Only include params that actually exist in the URL (deduplicated)
+    // Only include params that actually exist in the URL (deduplicated and sorted)
+    existingParams.sort(); // Sort parameter names alphabetically for consistent canonicalization
     const rejoinedSigParams = existingParams.join(',');
     signedParams.set('sig_params', rejoinedSigParams);
 

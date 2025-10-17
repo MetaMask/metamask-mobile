@@ -285,8 +285,8 @@ describe('verifySignature', () => {
         const dataBuffer = verifyCall[3] as Uint8Array;
         const canonicalUrl = new TextDecoder().decode(dataBuffer);
 
-        // sig_params must be part of the signed data
-        expect(canonicalUrl).toContain('sig_params=token%2Camount');
+        // sig_params must be part of the signed data (sorted alphabetically)
+        expect(canonicalUrl).toContain('sig_params=amount%2Ctoken');
       });
 
       it('only includes params listed in sig_params', async () => {
@@ -309,10 +309,10 @@ describe('verifySignature', () => {
         const dataBuffer = verifyCall[3] as Uint8Array;
         const canonicalUrl = new TextDecoder().decode(dataBuffer);
 
-        // Should include listed params and sig_params
+        // Should include listed params and sig_params (sorted alphabetically)
         expect(canonicalUrl).toContain('token=ETH');
         expect(canonicalUrl).toContain('amount=100');
-        expect(canonicalUrl).toContain('sig_params=token%2Camount');
+        expect(canonicalUrl).toContain('sig_params=amount%2Ctoken');
 
         // Should NOT include marketing params
         expect(canonicalUrl).not.toContain('utm_source');
@@ -346,6 +346,9 @@ describe('verifySignature', () => {
 
         expect(alphaIndex).toBeLessThan(sigParamsIndex);
         expect(sigParamsIndex).toBeLessThan(zebraIndex);
+
+        // sig_params should also have its parameters sorted: alpha,zebra
+        expect(canonicalUrl).toContain('sig_params=alpha%2Czebra');
       });
 
       it('handles empty sig_params gracefully', async () => {
@@ -416,8 +419,8 @@ describe('verifySignature', () => {
         const dataBuffer = verifyCall[3] as Uint8Array;
         const canonicalUrl = new TextDecoder().decode(dataBuffer);
 
-        // Should contain deduplicated sig_params
-        expect(canonicalUrl).toContain('sig_params=token%2Camount');
+        // Should contain deduplicated sig_params (sorted alphabetically)
+        expect(canonicalUrl).toContain('sig_params=amount%2Ctoken');
         expect(canonicalUrl).not.toContain('sig_params=token%2Camount%2Ctoken');
 
         // Each param should appear only once
@@ -425,6 +428,46 @@ describe('verifySignature', () => {
         expect(tokenMatches).toHaveLength(1);
         const amountMatches = canonicalUrl.match(/amount=100/g);
         expect(amountMatches).toHaveLength(1);
+      });
+
+      it('sorts parameter names within sig_params alphabetically', async () => {
+        // Given sig_params with parameters in different orders
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+
+        // Test URLs with different parameter orders in sig_params
+        const url1 = new URL(
+          `https://example.com?zebra=last&alpha=first&beta=second&sig=${validSignature}&sig_params=zebra,alpha,beta`,
+        );
+        const url2 = new URL(
+          `https://example.com?zebra=last&alpha=first&beta=second&sig=${validSignature}&sig_params=beta,zebra,alpha`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying both URLs
+        const result1 = await verifyDeeplinkSignature(url1);
+        const result2 = await verifyDeeplinkSignature(url2);
+
+        // Then both should produce the same canonical sig_params
+        expect(result1).toBe(VALID);
+        expect(result2).toBe(VALID);
+
+        const verifyCall1 = mockSubtle.verify.mock.calls[0];
+        const dataBuffer1 = verifyCall1[3] as Uint8Array;
+        const canonicalUrl1 = new TextDecoder().decode(dataBuffer1);
+
+        const verifyCall2 = mockSubtle.verify.mock.calls[1];
+        const dataBuffer2 = verifyCall2[3] as Uint8Array;
+        const canonicalUrl2 = new TextDecoder().decode(dataBuffer2);
+
+        // Both should have sig_params sorted as alpha,beta,zebra
+        expect(canonicalUrl1).toContain('sig_params=alpha%2Cbeta%2Czebra');
+        expect(canonicalUrl2).toContain('sig_params=alpha%2Cbeta%2Czebra');
+
+        // The canonical URLs should be identical
+        expect(canonicalUrl1).toBe(canonicalUrl2);
       });
 
       it('maintains backward compatibility when sig_params is not present', async () => {
