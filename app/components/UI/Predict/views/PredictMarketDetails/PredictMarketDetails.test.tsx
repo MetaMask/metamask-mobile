@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -9,10 +9,20 @@ import {
 import PredictMarketDetails from './PredictMarketDetails';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: () => ({
+    Navigator: ({ children }: { children: React.ReactNode }) => children,
+    Screen: ({ children }: { children: React.ReactNode }) => children,
+  }),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -88,6 +98,7 @@ jest.mock('react-native-safe-area-context', () => {
       bottom: 0,
       left: 0,
     })),
+    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
   };
 });
 
@@ -140,6 +151,12 @@ jest.mock('../../hooks/usePredictBalance', () => ({
     isRefreshing: false,
     error: null,
     loadBalance: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePredictClaim', () => ({
+  usePredictClaim: jest.fn(() => ({
+    claim: jest.fn(),
   })),
 }));
 
@@ -283,10 +300,18 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
       Bank: 'Bank',
       Export: 'Export',
       Apps: 'Apps',
+      CheckBold: 'CheckBold',
     },
     IconSize: {
       Sm: 'Sm',
       Md: 'Md',
+    },
+    IconColor: {
+      Default: 'Default',
+      Alternative: 'Alternative',
+      Success: 'Success',
+      Error: 'Error',
+      Primary: 'Primary',
     },
   };
 });
@@ -405,7 +430,7 @@ function setupPredictMarketDetailsTest(
     ...hookOverrides.positions,
   });
 
-  const result = render(<PredictMarketDetails />);
+  const result = renderWithProvider(<PredictMarketDetails />);
 
   return {
     ...result,
@@ -641,9 +666,8 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      expect(
-        screen.getByText('Yes has a 65% chance of winning'),
-      ).toBeOnTheScreen();
+      // The component now shows the percentage in the action buttons instead of a separate text
+      expect(screen.getByText(/Yes • 65¢/)).toBeOnTheScreen();
     });
 
     it('handles missing price data gracefully', () => {
@@ -660,9 +684,8 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithoutPrice);
 
-      expect(
-        screen.getByText('Yes has a 0% chance of winning'),
-      ).toBeOnTheScreen();
+      // The component now shows 0% in the action buttons when price is undefined
+      expect(screen.getByText(/Yes • 0¢/)).toBeOnTheScreen();
     });
   });
 
@@ -925,9 +948,8 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      expect(
-        screen.getByText('Yes has a 65% chance of winning'),
-      ).toBeOnTheScreen();
+      // The component now shows the percentage in the action buttons instead of a separate text
+      expect(screen.getByText(/Yes • 65¢/)).toBeOnTheScreen();
     });
 
     it('renders action buttons only for single outcome markets', () => {
@@ -1079,9 +1101,8 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithUndefinedPrice);
 
-      expect(
-        screen.getByText('Yes has a 0% chance of winning'),
-      ).toBeOnTheScreen();
+      // The component now shows 0% in the action buttons when price is undefined
+      expect(screen.getByText(/Yes • 0¢/)).toBeOnTheScreen();
     });
   });
 
