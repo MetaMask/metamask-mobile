@@ -198,6 +198,7 @@ export interface ModalFooterBlockExplorer {
 export interface ModalFooterAnnouncementCta {
   type: ModalFooterType.ANNOUNCEMENT_CTA;
   mobileLink?: FeatureAnnouncementRawNotification['data']['mobileLink'];
+  externalLink?: FeatureAnnouncementRawNotification['data']['externalLink'];
 }
 
 export type ModalFooter = ModalFooterBlockExplorer | ModalFooterAnnouncementCta;
