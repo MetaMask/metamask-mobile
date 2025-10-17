@@ -81,6 +81,7 @@ import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
+import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -176,6 +177,7 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
     blockaidError,
+    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -201,6 +203,22 @@ const BridgeView = () => {
   });
 
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
+
+  const isSubmitDisabled =
+    hasInsufficientBalance ||
+    isSubmittingTx ||
+    (isHardwareAddress && isSolanaSourced) ||
+    !!blockaidError ||
+    !hasSufficientGas;
+
+  useBridgeQuoteEvents({
+    hasInsufficientBalance,
+    hasNoQuotesAvailable: isNoQuotesAvailable,
+    hasInsufficientGas: !hasSufficientGas,
+    hasTxAlert: Boolean(blockaidError),
+    isSubmitDisabled,
+    isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+  });
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
@@ -338,7 +356,7 @@ const BridgeView = () => {
     }
   }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
 
-  const renderBottomContent = () => {
+  const renderBottomContent = (submitDisabled: boolean) => {
     if (shouldDisplayKeypad && !isLoading) {
       return (
         <Box style={styles.buttonContainer}>
@@ -412,13 +430,7 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             testID="bridge-confirm-button"
-            isDisabled={
-              hasInsufficientBalance ||
-              isSubmittingTx ||
-              (isHardwareAddress && isSolanaSourced) ||
-              !!blockaidError ||
-              !hasSufficientGas
-            }
+            isDisabled={submitDisabled}
           />
           {hasFee ? (
             <Text
@@ -534,7 +546,7 @@ const BridgeView = () => {
             ) : null}
           </Box>
         </ScrollView>
-        {renderBottomContent()}
+        {renderBottomContent(isSubmitDisabled)}
       </Box>
     </ScreenView>
   );
