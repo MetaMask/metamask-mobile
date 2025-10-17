@@ -7,6 +7,17 @@
       "storage": {}
     }
   },
+  "best_block_number": "0x2",
+  "block": {
+    "number": "0x2",
+    "coinbase": "0x0000000000000000000000000000000000000000",
+    "timestamp": "0x67e150f4",
+    "gas_limit": "0x1c9c380",
+    "basefee": "0x2d81f0ba",
+    "difficulty": "0x0",
+    "prevrandao": "0x76d5ccfe10566cec19b4cb071969bfb3b3f7ae18b8f5e23d9c3056505c8128a2",
+    "blob_excess_gas_and_price": { "excess_blob_gas": 0, "blob_gasprice": 1 }
+  },
   "blocks": [
     {
       "header": {

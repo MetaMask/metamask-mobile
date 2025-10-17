@@ -121,26 +121,3 @@ export const SIMULATION_ENABLED_NETWORKS_MOCK = {
     },
   },
 };
-
-// export const SIMULATION_ENABLED_NETWORKS_CUSTOM_MOCK = {
-//   urlEndpoint: `${SENTINEL_URL}/networks`,
-//   responseCode: 200,
-//   response: {
-//     1337: {
-//       name: 'Localhost',
-//       group: 'ethereum',
-//       chainID: 1337,
-//       nativeCurrency: {
-//         name: 'ETH',
-//         symbol: 'ETH',
-//         decimals: 18,
-//       },
-//       network: 'localhost',
-//       explorer: 'http://localhost:8545/explorer',
-//       confirmations: true,
-//       smartTransactions: true,
-//       relayTransactions: true,
-//       hidden: false,
-//     },
-//   },
-// };

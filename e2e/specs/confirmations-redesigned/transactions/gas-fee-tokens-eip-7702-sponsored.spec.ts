@@ -4,7 +4,6 @@ import SendView from '../../../pages/Send/RedesignedSendView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import { Assertions, LocalNodeType } from '../../../framework';
-import { DappVariants } from '../../../framework/Constants';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../viewHelper';
@@ -141,11 +140,6 @@ describe(
     it('should send ETH sponsored by MetaMask', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
             .withPermissionControllerConnectedToTestDapp(
@@ -160,7 +154,7 @@ describe(
               options: {
                 hardfork: 'prague' as Hardfork,
                 loadState:
-                  'e2e/specs/confirmations-redesigned/transactions/7702/withUpgradedAccount.json',
+                  './e2e/specs/confirmations-redesigned/transactions/7702/withUpgradedAccount.json',
               },
             },
           ],
