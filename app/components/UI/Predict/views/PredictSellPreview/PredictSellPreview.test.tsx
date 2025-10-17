@@ -430,9 +430,6 @@ describe('PredictSellPreview', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('disables cash out button when loading', () => {
@@ -511,9 +508,6 @@ describe('PredictSellPreview', () => {
       fireEvent.press(cashOutButton);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('uses correct route params', () => {

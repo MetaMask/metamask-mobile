@@ -202,7 +202,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
                       twClassName="text-primary mr-1"
                       testID="claimable-amount"
                     >
-                      {formatPrice(balance)}
+                      {formatPrice(balance, { maximumDecimals: 2 })}
                     </Text>
                     <Icon
                       name={IconName.ArrowRight}

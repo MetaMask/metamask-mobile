@@ -147,7 +147,7 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
             style={tw.style('flex-1')}
           />
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariants.Primary}
             size={ButtonSize.Md}
             label="Done"
             onPress={handleDonePress}
