@@ -11,30 +11,51 @@ export const styleSheet = (params: {
     vars: { type },
   } = params;
 
-  // Badge color mapping
-  const badgeColors: Record<BadgeType, string> = {
-    experimental: theme.colors.primary.default,
-    equity: theme.colors.warning.default,
-    commodity: theme.colors.success.muted,
-    crypto: theme.colors.info.default,
-    forex: theme.colors.error.muted,
+  // Badge color mapping following design system pattern:
+  // Background uses .muted variant, text uses .default variant from same color family
+  // This ensures proper contrast while maintaining semantic color consistency
+  // Pattern inspired by AvatarIcon component (primary.muted background + primary.default icon)
+  const badgeStyles: Record<BadgeType, { background: string; text: string }> = {
+    experimental: {
+      background: theme.colors.primary.muted,
+      text: theme.colors.primary.default,
+    },
+    equity: {
+      background: theme.colors.info.muted,
+      text: theme.colors.info.default,
+    },
+    commodity: {
+      background: theme.colors.success.muted,
+      text: theme.colors.success.default,
+    },
+    crypto: {
+      background: theme.colors.primary.muted,
+      text: theme.colors.primary.default,
+    },
+    forex: {
+      background: theme.colors.error.muted,
+      text: theme.colors.error.default,
+    },
   };
 
-  const backgroundColor =
-    badgeColors[type] || theme.colors.background.alternative;
+  const style = badgeStyles[type] || {
+    background: theme.colors.background.alternative,
+    text: theme.colors.text.default,
+  };
 
   return StyleSheet.create({
     badge: {
+      marginLeft: 8,
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 4,
-      backgroundColor,
+      backgroundColor: style.background,
       alignSelf: 'flex-start',
     },
     badgeText: {
       fontSize: 10,
       fontWeight: '600',
-      color: theme.colors.text.alternative,
+      color: style.text,
       letterSpacing: 0.5,
     },
   });

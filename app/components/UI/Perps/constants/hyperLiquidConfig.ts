@@ -243,3 +243,24 @@ export const HIP3_ASSET_ID_CONFIG = {
  * Used for fee discount calculations (e.g., 6500 bps = 65%)
  */
 export const BASIS_POINTS_DIVISOR = 10000;
+
+/**
+ * HIP-3 DEX market type classifications
+ * Maps DEX identifiers to their asset category for badge display
+ *
+ * Market type determines the badge shown in the UI:
+ * - 'equity': STOCK badge (for stock markets like xyz)
+ * - 'forex': FOREX badge (for forex markets)
+ * - 'commodity': COMMODITY badge (for commodity markets)
+ * - 'crypto': CRYPTO badge (for crypto-only DEXs)
+ * - undefined: Falls back to 'experimental' badge for HIP-3 DEXs
+ *
+ * DEXs not listed here will show the 'experimental' badge by default.
+ * Main DEX (no prefix) shows no badge.
+ */
+export const HIP3_DEX_MARKET_TYPES = {
+  xyz: 'equity' as const, // xyz DEX offers stock trading
+  // Future DEX classifications:
+  // abc: 'forex' as const,
+  // commodity_dex: 'commodity' as const,
+} as const;

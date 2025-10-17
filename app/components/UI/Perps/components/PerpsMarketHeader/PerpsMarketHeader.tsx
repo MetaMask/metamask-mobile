@@ -79,12 +79,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
         <View style={styles.secondRow}>
-          {badgeType && (
-            <PerpsBadge
-              type={badgeType}
-              testID={`${PerpsMarketHeaderSelectorsIDs.CONTAINER}-badge`}
-            />
-          )}
           <LivePriceHeader
             symbol={market.symbol}
             fallbackPrice={market.price || '0'}
@@ -92,6 +86,12 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
             throttleMs={1000}
           />
+          {badgeType && (
+            <PerpsBadge
+              type={badgeType}
+              testID={`${PerpsMarketHeaderSelectorsIDs.CONTAINER}-badge`}
+            />
+          )}
         </View>
       </View>
 

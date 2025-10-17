@@ -5,14 +5,18 @@ import type {
   PredictedFunding,
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
-import type { PerpsMarketData } from '../controllers/types';
+import {
+  HYPERLIQUID_CONFIG,
+  HIP3_DEX_MARKET_TYPES,
+} from '../constants/hyperLiquidConfig';
+import type { PerpsMarketData, MarketType } from '../controllers/types';
 import {
   formatVolume,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
+import { parseAssetName } from './hyperLiquidAdapter';
 
 /**
  * HyperLiquid-specific market data structure
@@ -187,6 +191,13 @@ export function transformMarketData(
       fundingRate = fundingData.predictedFundingRate;
     }
 
+    // Extract DEX and determine market type for badge display
+    const { dex } = parseAssetName(symbol);
+    const marketSource = dex || undefined;
+    const marketType: MarketType | undefined = dex
+      ? HIP3_DEX_MARKET_TYPES[dex as keyof typeof HIP3_DEX_MARKET_TYPES]
+      : undefined;
+
     return {
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
@@ -204,6 +215,8 @@ export function transformMarketData(
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,
+      marketSource,
+      marketType,
     };
   });
 }
