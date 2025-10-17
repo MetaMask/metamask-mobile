@@ -1,17 +1,19 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
+import { useContext } from 'react';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { usePredictTrading } from './usePredictTrading';
-import { usePredictPlaceOrder } from './usePredictPlaceOrder';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { Result, Side } from '../types';
-import { useContext } from 'react';
 import type { OrderPreview } from '../providers/types';
+import { Result, Side } from '../types';
+import { usePredictPlaceOrder } from './usePredictPlaceOrder';
+import { usePredictTrading } from './usePredictTrading';
+import { usePredictBalance } from './usePredictBalance';
 
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePredictTrading');
+jest.mock('./usePredictBalance');
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -20,6 +22,9 @@ jest.mock('react', () => ({
 const mockUseContext = useContext as jest.MockedFunction<typeof useContext>;
 const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
   typeof usePredictTrading
+>;
+const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
+  typeof usePredictBalance
 >;
 const mockDevLoggerLog = DevLogger.log as jest.MockedFunction<
   typeof DevLogger.log
@@ -80,6 +85,14 @@ describe('usePredictPlaceOrder', () => {
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),
     });
+    mockUsePredictBalance.mockReturnValue({
+      balance: 1000,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      hasNoBalance: false,
+      loadBalance: jest.fn(),
+    });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
   });
 
@@ -121,12 +134,19 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Check,
-        labelOptions: [{ label: 'Order placed' }],
-        hasNoTimeout: false,
-      });
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Check,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('Prediction placed'),
+              isBold: true,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('calls onComplete callback when provided and order succeeds', async () => {
