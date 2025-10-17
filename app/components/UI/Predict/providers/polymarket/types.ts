@@ -122,13 +122,6 @@ export interface PolymarketOffchainTradeParams {
   feeAuthorization?: SafeFeeAuthorization;
 }
 
-export interface OrderArtifactsParams {
-  outcomeTokenId: string;
-  outcomeId: string;
-  side: Side;
-  size: number;
-}
-
 // Polymarket API response types
 export interface PolymarketApiMarket {
   conditionId: string;
@@ -154,7 +147,7 @@ export interface PolymarketApiSeries {
   recurrence: string;
 }
 
-export interface PolymarketTag {
+export interface PolymarketApiTag {
   id: string;
   label: string;
   slug: string;
@@ -177,6 +170,7 @@ export interface PolymarketApiEvent {
   closed: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
+  tags: PolymarketApiTag[];
 }
 
 export interface PolymarketApiActivity {
@@ -327,4 +321,16 @@ export interface ClobOrderParams {
 export interface OrderSummary {
   price: string;
   size: string;
+}
+
+export interface OrderBook {
+  market: string;
+  asset_id: string;
+  hash: string;
+  timestamp: string;
+  asks: OrderSummary[]; // descending by price
+  bids: OrderSummary[]; // ascending by price
+  min_order_size: string;
+  tick_size: string;
+  neg_risk: boolean;
 }

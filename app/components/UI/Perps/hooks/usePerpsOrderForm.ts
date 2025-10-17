@@ -1,16 +1,16 @@
+import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import type { OrderFormState } from '../types';
-import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
-import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
+import type { OrderFormState } from '../types/perps-types';
 import {
   findOptimalAmount,
   getMaxAllowedAmount as getMaxAllowedAmountUtils,
 } from '../utils/orderCalculations';
+import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { debounce } from 'lodash';
+import { usePerpsNetwork } from './usePerpsNetwork';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
