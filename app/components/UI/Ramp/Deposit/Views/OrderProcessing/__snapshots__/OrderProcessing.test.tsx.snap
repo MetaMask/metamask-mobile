@@ -182,7 +182,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
+                        "borderColor": "#f3f5f9",
                         "borderRadius": 8,
                         "borderWidth": 2,
                         "height": 32,
@@ -771,7 +771,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
+                        "borderColor": "#f3f5f9",
                         "borderRadius": 8,
                         "borderWidth": 2,
                         "height": 32,
@@ -1453,7 +1453,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
+                        "borderColor": "#f3f5f9",
                         "borderRadius": 8,
                         "borderWidth": 2,
                         "height": 32,
@@ -2042,7 +2042,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
+                        "borderColor": "#f3f5f9",
                         "borderRadius": 8,
                         "borderWidth": 2,
                         "height": 32,

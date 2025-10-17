@@ -304,7 +304,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#ffffff",
+                      "borderColor": "#f3f5f9",
                       "borderRadius": 8,
                       "borderWidth": 2,
                       "height": 32,
@@ -559,7 +559,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#ffffff",
+                      "borderColor": "#f3f5f9",
                       "borderRadius": 8,
                       "borderWidth": 2,
                       "height": 32,
