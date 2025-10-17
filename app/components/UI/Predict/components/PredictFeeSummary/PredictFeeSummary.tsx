@@ -1,35 +1,30 @@
+import React from 'react';
 import {
   Box,
   ButtonIcon,
   IconName,
 } from '@metamask/design-system-react-native';
-import React, { useMemo } from 'react';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { formatPrice } from '../../utils/format';
 
 interface PredictFeeSummaryProps {
-  isInputFocused: boolean;
-  currentValue: number;
+  disabled: boolean;
+  providerFee: number;
+  metamaskFee: number;
+  total: number;
 }
 
 const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
-  isInputFocused,
-  currentValue,
+  disabled,
+  metamaskFee,
+  providerFee,
+  total,
 }) => {
-  // TODO: change to load fee from provider
-  const providerFee = useMemo(() => currentValue * 0, [currentValue]);
-
-  // TODO: change to load fee from metamask
-  const metamaskFee = useMemo(() => currentValue * 0.04, [currentValue]);
-
-  const total = useMemo(
-    () => currentValue + providerFee + metamaskFee,
-    [currentValue, providerFee, metamaskFee],
-  );
-  if (isInputFocused) return null;
-
+  if (disabled) {
+    return null;
+  }
   return (
     <Box twClassName="p-4 flex-col gap-2">
       <Box twClassName="flex-row justify-between items-center">

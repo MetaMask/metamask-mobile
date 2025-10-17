@@ -7,8 +7,8 @@ import { fireEvent, act } from '@testing-library/react-native';
 import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictMarket, Side } from '../../types';
-import PredictPlaceBet from './PredictPlaceBet';
+import { PredictMarket } from '../../types';
+import PredictBuyPreview from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
 
 // Mock navigation hooks
@@ -34,11 +34,27 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   }),
 }));
 
-// Mock usePredictBetAmounts hook
+// Mock usePredictOrderPreview hook
 let mockExpectedAmount = 120;
-jest.mock('../../hooks/usePredictBetAmounts', () => ({
-  usePredictBetAmounts: () => ({
-    betAmounts: { toWin: mockExpectedAmount },
+jest.mock('../../hooks/usePredictOrderPreview', () => ({
+  usePredictOrderPreview: () => ({
+    preview: {
+      marketId: 'market-123',
+      outcomeId: 'outcome-456',
+      outcomeTokenId: 'outcome-token-789',
+      timestamp: Date.now(),
+      side: 'BUY',
+      sharePrice: 0.5,
+      maxAmountSpent: 100,
+      minAmountReceived: mockExpectedAmount,
+      slippage: 0.005,
+      tickSize: 0.01,
+      minOrderSize: 1,
+      negRisk: false,
+      fees: { metamaskFee: 0, providerFee: 0, totalFee: 0 },
+    },
+    isCalculating: false,
+    error: null,
   }),
 }));
 
@@ -169,9 +185,9 @@ const mockMarket: PredictMarket = {
   ],
 };
 
-const mockRoute: RouteProp<PredictNavigationParamList, 'PredictPlaceBet'> = {
-  key: 'PredictPlaceBet-key',
-  name: 'PredictPlaceBet',
+const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
+  key: 'PredictBuyPreview-key',
+  name: 'PredictBuyPreview',
   params: {
     market: mockMarket,
     outcome: mockMarket.outcomes[0],
@@ -204,7 +220,7 @@ const initialState = {
   },
 };
 
-describe('PredictPlaceBet', () => {
+describe('PredictBuyPreview', () => {
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -230,7 +246,7 @@ describe('PredictPlaceBet', () => {
   describe('initial rendering', () => {
     it('renders place bet screen with market and outcome information', () => {
       const { getByText, getByTestId } = renderWithProvider(
-        <PredictPlaceBet />,
+        <PredictBuyPreview />,
         {
           state: initialState,
         },
@@ -239,35 +255,69 @@ describe('PredictPlaceBet', () => {
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
       expect(getByText('Yes at 50¢')).toBeOnTheScreen();
       expect(getByText('To win $120.00')).toBeOnTheScreen();
-      expect(getByTestId('amount-display-inactive')).toBeOnTheScreen();
+      expect(getByTestId('amount-display-active')).toBeOnTheScreen();
+      expect(getByTestId('keypad')).toBeOnTheScreen();
     });
 
-    it('displays correct fee breakdown when not focused', () => {
-      renderWithProvider(<PredictPlaceBet />, {
+    it('displays correct fee breakdown when done button is pressed', () => {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
+
+      // Press done to show fee summary
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
 
       // Fee calculations are tested by the rendered text content
     });
 
-    it('shows "All payments are made in USDC" text', () => {
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+    it('shows "All payments are made in USDC" text after pressing done', () => {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
+
+      // Press done to show bottom content
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
 
       expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
     });
   });
 
   describe('amount input functionality', () => {
-    it('activates amount input when amount display is pressed', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <PredictPlaceBet />,
+    it('deactivates amount input when done button is pressed', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PredictBuyPreview />,
         {
           state: initialState,
         },
       );
 
+      // Initially active
+      expect(getByTestId('amount-display-active')).toBeOnTheScreen();
+      expect(getByTestId('keypad')).toBeOnTheScreen();
+
+      // Press done button
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(queryByTestId('keypad')).toBeNull();
+      expect(getByTestId('amount-display-inactive')).toBeOnTheScreen();
+    });
+
+    it('reactivates input when amount display is pressed after done', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PredictBuyPreview />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Press done to deactivate
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Now press amount display to reactivate
       const amountDisplay = getByTestId('amount-display-inactive');
       fireEvent.press(amountDisplay);
 
@@ -276,38 +326,15 @@ describe('PredictPlaceBet', () => {
       expect(queryByTestId('amount-display-inactive')).toBeNull();
     });
 
-    it('hides keypad when done button is pressed', () => {
-      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-        <PredictPlaceBet />,
-        {
-          state: initialState,
-        },
-      );
-
-      // Activate input
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // Press done button (should be the last button in the row)
-      const doneButton = getByText('Done');
-      fireEvent.press(doneButton);
-
-      expect(queryByTestId('keypad')).toBeNull();
-      expect(getByTestId('amount-display-inactive')).toBeOnTheScreen();
-    });
-
     it('updates amount when keypad quick amount buttons are pressed', () => {
       const { getByTestId, getByText } = renderWithProvider(
-        <PredictPlaceBet />,
+        <PredictBuyPreview />,
         {
           state: initialState,
         },
       );
 
-      // Activate input
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
+      // Keypad is already visible
       // Press $50 button
       const fiftyButton = getByText('$50');
       fireEvent.press(fiftyButton);
@@ -320,40 +347,11 @@ describe('PredictPlaceBet', () => {
     it('updates expected win amount when input changes', () => {
       mockExpectedAmount = 240; // Double the amount should double expected win
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
       expect(getByText('To win $240.00')).toBeOnTheScreen();
-    });
-  });
-
-  describe('fee calculations', () => {
-    it('calculates provider fee as 0% of amount', () => {
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
-        state: initialState,
-      });
-
-      // Provider fee is hardcoded to 0 in the component
-      expect(getByText('$0.00')).toBeOnTheScreen();
-    });
-
-    it('calculates MetaMask fee as 4% of amount', () => {
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
-        state: initialState,
-      });
-
-      // MetaMask fee is 4% of $1 = $0.04
-      expect(getByText('$0.04')).toBeOnTheScreen();
-    });
-
-    it('calculates total as amount plus all fees', () => {
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
-        state: initialState,
-      });
-
-      // Total = $1 + $0 (provider) + $0.04 (MetaMask) = $1.04
-      expect(getByText('$1.04')).toBeOnTheScreen();
     });
   });
 
@@ -362,19 +360,25 @@ describe('PredictPlaceBet', () => {
       const mockResult = { success: true, txMeta: { id: 'test' } };
       mockPlaceOrder.mockReturnValue(mockResult);
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
+
+      // Press done to show place bet button
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
 
       const placeBetButton = getByText('Yes • 50¢');
       fireEvent.press(placeBetButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
-        outcomeId: 'outcome-456',
-        outcomeTokenId: 'outcome-token-789',
-        side: Side.BUY,
-        size: 1,
         providerId: 'polymarket',
+        preview: expect.objectContaining({
+          marketId: 'market-123',
+          outcomeId: 'outcome-456',
+          outcomeTokenId: 'outcome-token-789',
+          side: 'BUY',
+        }),
       });
     });
 
@@ -382,9 +386,13 @@ describe('PredictPlaceBet', () => {
       const mockResult = { success: true, txMeta: { id: 'test' } };
       mockPlaceOrder.mockReturnValue(mockResult);
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
+
+      // Press done to show place bet button
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
 
       const placeBetButton = getByText('Yes • 50¢');
       fireEvent.press(placeBetButton);
@@ -403,21 +411,28 @@ describe('PredictPlaceBet', () => {
     it('disables place bet button when loading', () => {
       mockLoadingState = true;
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // When loading, the button shows "All payments are made in USDC" text
-      // but the button itself is not rendered as a TouchableOpacity with text
+      // Press done to show place bet button and bottom content
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Now the button and USDC text should be visible
       expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
     });
 
     it('shows loading state on place bet button when loading', () => {
       mockLoadingState = true;
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
+
+      // Press done to show place bet button and bottom content
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
 
       // When loading, the button area should still show the USDC text
       expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
@@ -427,7 +442,7 @@ describe('PredictPlaceBet', () => {
 
   describe('navigation', () => {
     it('navigates back when back button is pressed', () => {
-      const { getByTestId } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByTestId } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
@@ -438,7 +453,7 @@ describe('PredictPlaceBet', () => {
     });
 
     it('uses correct navigation hooks', () => {
-      renderWithProvider(<PredictPlaceBet />, {
+      renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
@@ -449,7 +464,7 @@ describe('PredictPlaceBet', () => {
 
   describe('market display variations', () => {
     it('displays single outcome correctly when market has one outcome with multiple tokens', () => {
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
@@ -490,11 +505,12 @@ describe('PredictPlaceBet', () => {
       // Set up the mock before rendering
       mockUseRoute.mockReturnValue(singleOutcomeRoute);
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      expect(getByText('Yes at 75¢')).toBeOnTheScreen();
+      // Component now uses preview.sharePrice (0.5) instead of outcome token price
+      expect(getByText('Yes at 50¢')).toBeOnTheScreen();
     });
 
     it('displays multiple outcomes correctly when market has multiple outcomes', () => {
@@ -536,7 +552,7 @@ describe('PredictPlaceBet', () => {
         },
       });
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
@@ -546,7 +562,7 @@ describe('PredictPlaceBet', () => {
 
     it('applies correct colors for Yes and No outcomes', () => {
       // Testing Yes outcome (should use success color)
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
@@ -592,11 +608,12 @@ describe('PredictPlaceBet', () => {
       // Set up the mock before rendering
       mockUseRoute.mockReturnValue(noOutcomeRoute);
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      const noText = getByText('No at 60¢');
+      // Component now uses preview.sharePrice (0.5) instead of outcome token price
+      const noText = getByText('No at 50¢');
       expect(noText).toBeOnTheScreen();
 
       // The error color styling is applied via tw.style for No outcomes
@@ -605,13 +622,12 @@ describe('PredictPlaceBet', () => {
 
   describe('input validation', () => {
     it('limits input to 9 digits', () => {
-      const { getByTestId } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByTestId } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Activate keypad input
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
+      // Keypad is already active initially
+      expect(getByTestId('amount-display-active')).toBeOnTheScreen();
 
       // Simulate entering a 10-digit number (should be ignored due to 9-digit limit)
       act(() => {
@@ -627,18 +643,11 @@ describe('PredictPlaceBet', () => {
     });
 
     it('limits decimal places to 2', () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <PredictPlaceBet />,
-        {
-          state: initialState,
-        },
-      );
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
 
-      // Activate keypad input
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // Simulate entering a number with more than 2 decimal places
+      // Keypad is already active, simulate entering a number with more than 2 decimal places
       act(() => {
         capturedOnChange?.({
           value: '123.45678',
@@ -651,18 +660,11 @@ describe('PredictPlaceBet', () => {
     });
 
     it('handles decimal point deletion correctly', () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <PredictPlaceBet />,
-        {
-          state: initialState,
-        },
-      );
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
 
-      // Activate keypad input and set initial value
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // First set a value with decimal
+      // Keypad is already active, set initial value with decimal
       act(() => {
         capturedOnChange?.({
           value: '2.5',
@@ -682,18 +684,11 @@ describe('PredictPlaceBet', () => {
     });
 
     it('handles decimal point deletion in middle of number', () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <PredictPlaceBet />,
-        {
-          state: initialState,
-        },
-      );
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
 
-      // Activate keypad input and set initial value
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // Set initial value with decimal
+      // Keypad is already active, set initial value with decimal
       act(() => {
         capturedOnChange?.({
           value: '25.5',
@@ -712,17 +707,13 @@ describe('PredictPlaceBet', () => {
       expect(getByText('25')).toBeOnTheScreen();
     });
 
-    it('sets input focus flags when keypad changes', () => {
-      const { getByTestId } = renderWithProvider(<PredictPlaceBet />, {
+    it('maintains input focus when keypad changes', () => {
+      const { getByTestId } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Initially not focused
-      expect(getByTestId('amount-display-inactive')).toBeOnTheScreen();
-
-      // Activate keypad input
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
+      // Initially focused
+      expect(getByTestId('amount-display-active')).toBeOnTheScreen();
 
       // Simulate keypad input change
       act(() => {
@@ -732,23 +723,16 @@ describe('PredictPlaceBet', () => {
         });
       });
 
-      // Should now show active display
+      // Should still show active display
       expect(getByTestId('amount-display-active')).toBeOnTheScreen();
     });
 
     it('preserves decimal point when user just types it', () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <PredictPlaceBet />,
-        {
-          state: initialState,
-        },
-      );
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
 
-      // Activate keypad input
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // Simulate typing just a decimal point
+      // Keypad is already active, simulate typing just a decimal point
       act(() => {
         capturedOnChange?.({
           value: '2.',
@@ -762,60 +746,63 @@ describe('PredictPlaceBet', () => {
   });
 
   describe('input focus behavior', () => {
-    it('hides summary when input is focused', () => {
-      const { getByTestId, queryByText } = renderWithProvider(
-        <PredictPlaceBet />,
+    it('shows summary when input is unfocused', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <PredictBuyPreview />,
         {
           state: initialState,
         },
       );
 
-      // Initially, summary should be visible
-      expect(queryByText('Provider fee')).toBeOnTheScreen();
-
-      // Activate input focus
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // Summary should now be hidden
+      // Initially focused, summary should be hidden
       expect(queryByText('Provider fee')).not.toBeOnTheScreen();
+
+      // Press done to unfocus
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Summary should now be visible
+      expect(queryByText('Provider fee')).toBeOnTheScreen();
     });
 
-    it('hides bottom content when input is focused', () => {
-      const { getByTestId, queryByText } = renderWithProvider(
-        <PredictPlaceBet />,
+    it('shows bottom content when input is unfocused', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <PredictBuyPreview />,
         {
           state: initialState,
         },
       );
 
-      // Initially, bottom content should be visible
-      expect(queryByText('All payments are made in USDC')).toBeOnTheScreen();
-
-      // Activate input focus
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // Bottom content should now be hidden
+      // Initially focused, bottom content should be hidden
       expect(
         queryByText('All payments are made in USDC'),
       ).not.toBeOnTheScreen();
+
+      // Press done to unfocus
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Bottom content should now be visible
+      expect(queryByText('All payments are made in USDC')).toBeOnTheScreen();
     });
 
-    it('shows keypad when input is focused', () => {
-      const { getByTestId } = renderWithProvider(<PredictPlaceBet />, {
-        state: initialState,
-      });
+    it('hides keypad when input is unfocused', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PredictBuyPreview />,
+        {
+          state: initialState,
+        },
+      );
 
-      // Initially, keypad should not be visible
-      expect(() => getByTestId('keypad')).toThrow();
-
-      // Activate input focus
-      const amountDisplay = getByTestId('amount-display-inactive');
-      fireEvent.press(amountDisplay);
-
-      // Keypad should now be visible
+      // Initially focused, keypad should be visible
       expect(getByTestId('keypad')).toBeOnTheScreen();
+
+      // Press done to unfocus
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Keypad should now be hidden
+      expect(queryByTestId('keypad')).toBeNull();
     });
   });
 
@@ -827,9 +814,13 @@ describe('PredictPlaceBet', () => {
         throw new Error('Navigation error');
       });
 
-      const { getByText } = renderWithProvider(<PredictPlaceBet />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
+
+      // Press done to show place bet button
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
 
       const placeBetButton = getByText('Yes • 50¢');
 
