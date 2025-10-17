@@ -8834,9 +8834,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^60.6.0, @metamask/transaction-controller@npm:^60.7.0":
-  version: 60.7.0
-  resolution: "@metamask/transaction-controller@npm:60.7.0"
+"@metamask/transaction-controller@npm:^60.7.0, @metamask/transaction-controller@npm:^60.9.0":
+  version: 60.9.0
+  resolution: "@metamask/transaction-controller@npm:60.9.0"
   dependencies:
     "@ethereumjs/common": ^4.4.0
     "@ethereumjs/tx": ^5.4.0
@@ -8866,7 +8866,7 @@ __metadata:
     "@metamask/gas-fee-controller": ^24.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.5.0
-  checksum: b68795b84ba99e46ea97a6e5e65ff1cd98b57f275f69bcc8cb419af950d434e7fe0eaa77515e5ece1fc65c9af1224fc22fe358619c85c254f75018e7b8a81c6d
+  checksum: 0cf4105e5e4fcce8518a0535c013fc4036d3709c25179b8708ba908fb9cd7998f259645e53ea80ecd5df4b0f631f8606972b652f199b79a803c2575ecdaba0c5
   languageName: node
   linkType: hard
 
@@ -34175,7 +34175,7 @@ __metadata:
     "@metamask/test-dapp-multichain": ^0.17.1
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
-    "@metamask/transaction-controller": ^60.6.0
+    "@metamask/transaction-controller": ^60.9.0
     "@metamask/tron-wallet-snap": ^1.4.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
