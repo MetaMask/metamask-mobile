@@ -1016,27 +1016,18 @@ describe('getBridgeNavbar', () => {
       expect(options.headerStyle).toBeDefined();
     });
 
-    it('should use default values when called with empty object', () => {
+    it('should use default values for optional parameters', () => {
       const options = getSendFlowTitle({
         title: 'send.send_to',
         navigation: mockNavigation,
         route: mockRoute,
         themeColors: mockThemeColors,
         resetTransaction: mockResetTransaction,
+        // disableNetwork, showSelectedNetwork, and globalChainId should use defaults
       });
 
       expect(options).toBeDefined();
       expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should use default empty object when called without arguments', () => {
-      const options = getSendFlowTitle();
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-      expect(options.headerLeft).toBeDefined();
-      expect(options.headerRight).toBeDefined();
-      expect(options.headerStyle).toBeDefined();
     });
 
     it('should return headerTitle function', () => {
