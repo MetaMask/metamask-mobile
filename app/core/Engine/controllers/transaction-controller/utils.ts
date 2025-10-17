@@ -53,6 +53,8 @@ export function getTransactionTypeValue(
       return 'predict_deposit';
     case TransactionType.predictClaim:
       return 'predict_claim';
+    case TransactionType.predictWithdraw:
+      return 'predict_withdraw';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
     case TransactionType.simpleSend:
