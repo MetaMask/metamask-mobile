@@ -161,10 +161,7 @@ export function adaptOrderFromSDK(
   let stopLossPrice: string | undefined;
 
   if (rawOrder.children && rawOrder.children.length > 0) {
-    // Note: SDK exports children field as 'any' type in FrontendOpenOrdersResponse
-    // See: node_modules/@nktkas/hyperliquid/esm/src/api/info/frontendOpenOrders.d.ts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK itself uses any for children field
-    rawOrder.children.forEach((child: any) => {
+    rawOrder.children.forEach((child: FrontendOrder) => {
       if (child.isTrigger && child.orderType) {
         if (child.orderType.includes('Take Profit')) {
           takeProfitPrice = child.triggerPx || child.limitPx;
@@ -318,35 +315,42 @@ export function adaptAccountStateFromSDK(
  * @param params - Configuration for asset mapping
  * @param params.metaUniverse - Array of asset metadata from HyperLiquid
  * @param params.dex - DEX name (kept for backward compatibility, but not used in mapping)
+ * @param params.perpDexIndex - DEX index from perpDexs() array (required for HIP-3)
  * @returns Maps for bidirectional symbol/ID lookup
  *
  * @example Main DEX
- * buildAssetMapping({ metaUniverse: [{ name: "BTC" }, { name: "ETH" }] })
+ * buildAssetMapping({ metaUniverse: [{ name: "BTC" }, { name: "ETH" }], perpDexIndex: 0 })
  * // Returns: Map<"BTC", 0>, Map<"ETH", 1>
  *
  * @example HIP-3 DEX
- * buildAssetMapping({ metaUniverse: [{ name: "xyz:XYZ100" }, { name: "xyz:XYZ200" }], dex: "xyz" })
- * // Returns: Map<"xyz:XYZ100", 0>, Map<"xyz:XYZ200", 1>
- * // Note: API returns names already prefixed with "xyz:"
+ * buildAssetMapping({ metaUniverse: [{ name: "xyz:XYZ100" }, { name: "xyz:XYZ200" }], dex: "xyz", perpDexIndex: 1 })
+ * // Returns: Map<"xyz:XYZ100", 110000>, Map<"xyz:XYZ200", 110001>
+ * // Note: Uses global HIP-3 asset IDs via calculateHip3AssetId()
  */
 export function buildAssetMapping(params: {
   metaUniverse: MetaResponse['universe'];
   dex?: string | null;
+  perpDexIndex: number;
 }): {
   coinToAssetId: Map<string, number>;
   assetIdToCoin: Map<number, string>;
 } {
-  const { metaUniverse } = params;
+  const { metaUniverse, perpDexIndex } = params;
   const coinToAssetId = new Map<string, number>();
   const assetIdToCoin = new Map<number, string>();
 
   metaUniverse.forEach((asset, index) => {
+    // Calculate global asset ID using HIP-3 formula
+    // Main DEX (perpDexIndex=0): returns index directly (0, 1, 2, ...)
+    // HIP-3 DEX (perpDexIndex>0): returns 100000 + perpDexIndex*10000 + index
+    const assetId = calculateHip3AssetId(perpDexIndex, index);
+
     // HyperLiquid API returns asset names already correctly formatted:
     // - Main DEX: asset.name = "BTC", "ETH", etc. (no prefix)
     // - HIP-3 DEX: asset.name = "xyz:XYZ100", "xyz:XYZ200", etc. (already prefixed!)
     // We use asset.name as-is - no manual prefixing needed
-    coinToAssetId.set(asset.name, index);
-    assetIdToCoin.set(index, asset.name);
+    coinToAssetId.set(asset.name, assetId);
+    assetIdToCoin.set(assetId, asset.name);
   });
 
   return { coinToAssetId, assetIdToCoin };

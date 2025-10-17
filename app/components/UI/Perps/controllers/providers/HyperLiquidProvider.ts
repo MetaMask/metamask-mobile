@@ -30,8 +30,14 @@ import {
   buildAssetMapping,
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
+  parseAssetName,
 } from '../../utils/hyperLiquidAdapter';
-import type { SDKOrderParams } from '../../types/hyperliquid-types';
+import type {
+  SDKOrderParams,
+  MetaResponse,
+  PerpsAssetCtx,
+  FrontendOrder,
+} from '../../types/hyperliquid-types';
 import {
   createErrorResult,
   getMaxOrderValue,
@@ -144,6 +150,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
     enabledDexs: string[];
   } | null = null;
 
+  // Cache for validated DEXs to avoid redundant perpDexs() API calls
+  private cachedValidatedDexs: (string | null)[] | null = null;
+  private cachedAllPerpDexs: Awaited<
+    ReturnType<ReturnType<typeof this.clientService.getInfoClient>['perpDexs']>
+  > | null = null;
+
   // Cache for USDC token ID from spot metadata
   private cachedUsdcTokenId?: string;
 
@@ -172,6 +184,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     this.subscriptionService = new HyperLiquidSubscriptionService(
       this.clientService,
       this.walletService,
+      this.equityEnabled,
+      this.enabledDexs,
     );
 
     // Initialize clients
@@ -237,17 +251,26 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @returns Array of DEX names to use (null = main DEX, strings = HIP-3 DEXs)
    */
   private async getValidatedDexs(): Promise<(string | null)[]> {
+    // Return cached result if available
+    if (this.cachedValidatedDexs !== null) {
+      return this.cachedValidatedDexs;
+    }
+
     // Kill switch: HIP-3 disabled, return main DEX only
     if (!this.equityEnabled) {
       DevLogger.log(
         'HyperLiquidProvider: HIP-3 disabled via equityEnabled flag',
       );
-      return [null];
+      this.cachedValidatedDexs = [null];
+      return this.cachedValidatedDexs;
     }
 
     // Fetch all available DEXs from HyperLiquid
     const infoClient = this.clientService.getInfoClient();
     const allDexs = await infoClient.perpDexs();
+
+    // Cache for buildAssetMapping() to avoid duplicate call
+    this.cachedAllPerpDexs = allDexs;
 
     // Validate API response
     if (!allDexs || !Array.isArray(allDexs)) {
@@ -255,7 +278,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         'HyperLiquidProvider: Failed to fetch DEX list (invalid response), falling back to main DEX only',
         { allDexs },
       );
-      return [null];
+      this.cachedValidatedDexs = [null];
+      return this.cachedValidatedDexs;
     }
 
     // Extract HIP-3 DEX names (filter out null which represents main DEX)
@@ -281,7 +305,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           totalDexCount: availableHip3Dexs.length + 1,
         },
       );
-      return [null, ...availableHip3Dexs];
+      this.cachedValidatedDexs = [null, ...availableHip3Dexs];
+      return this.cachedValidatedDexs;
     }
 
     // Whitelist mode: Filter to only specified DEXs
@@ -300,7 +325,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       validated: validatedDexs,
     });
 
-    return [null, ...validatedDexs];
+    this.cachedValidatedDexs = [null, ...validatedDexs];
+    return this.cachedValidatedDexs;
   }
 
   /**
@@ -332,11 +358,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Build asset ID mapping from market metadata
    * Fetches metadata for feature-flag-enabled DEXs and builds a unified mapping
-   * with DEX-prefixed keys for HIP-3 assets (e.g., "xyz:XYZ100" → 0 within xyz DEX)
+   * with DEX-prefixed keys for HIP-3 assets (e.g., "xyz:XYZ100" → assetId)
    *
-   * Per HIP-3-IMPLEMENTATION.md Step 3d (lines 166-191):
-   * - Main DEX assets: "BTC" → 0, "ETH" → 1, ...
-   * - HIP-3 DEX assets: "xyz:XYZ100" → 0, "xyz:XYZ200" → 1, ... (within xyz namespace)
+   * Per HIP-3-IMPLEMENTATION.md:
+   * - Main DEX: assetId = index (0, 1, 2, ...)
+   * - HIP-3 DEX: assetId = 100000 + (perpDexIndex × 10000) + index
    *
    * This enables proper order routing - when placeOrder({ coin: "xyz:XYZ100" }) is called,
    * the asset ID lookup succeeds and the order routes to the correct DEX.
@@ -347,6 +373,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Get feature-flag-validated DEXs to map (respects equityEnabled and enabledDexs)
     const dexsToMap = await this.getValidatedDexs();
 
+    // Use cached perpDexs array (populated by getValidatedDexs)
+    const allPerpDexs = this.cachedAllPerpDexs;
+    if (!allPerpDexs) {
+      throw new Error(
+        'perpDexs not cached - getValidatedDexs must be called first',
+      );
+    }
+
     DevLogger.log('HyperLiquidProvider: Starting asset mapping rebuild', {
       dexs: dexsToMap,
       previousMapSize: this.coinToAssetId.size,
@@ -354,6 +388,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       enabledDexs: this.enabledDexs,
       timestamp: new Date().toISOString(),
     });
+
+    // Notify subscription service of discovered HIP-3 DEXs for position subscriptions
+    const hip3Dexs = dexsToMap.filter((d) => d !== null) as string[];
+    if (hip3Dexs.length > 0) {
+      await this.subscriptionService.updateFeatureFlags(
+        this.equityEnabled,
+        hip3Dexs,
+      );
+    }
 
     // Fetch metadata for each DEX in parallel
     const allMetas = await Promise.allSettled(
@@ -398,10 +441,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
           return;
         }
 
+        // Find perpDexIndex for this DEX in the perpDexs array
+        // Main DEX (dex=null) is at index 0
+        // HIP-3 DEXs are at indices 1, 2, 3, etc.
+        const perpDexIndex = allPerpDexs.findIndex((entry) => {
+          if (dex === null) {
+            return entry === null; // Main DEX
+          }
+          return entry !== null && entry.name === dex;
+        });
+
+        if (perpDexIndex === -1) {
+          DevLogger.log(
+            `HyperLiquidProvider: Could not find perpDexIndex for DEX ${
+              dex || 'main'
+            }`,
+          );
+          return;
+        }
+
         // Use the utility function to build mapping for this DEX
         const { coinToAssetId } = buildAssetMapping({
           metaUniverse: meta.universe,
           dex,
+          perpDexIndex,
         });
 
         // Merge into provider's map
@@ -436,6 +499,47 @@ export class HyperLiquidProvider implements IPerpsProvider {
       discountPercentage: discountBips ? discountBips / 100 : undefined,
       isActive: discountBips !== undefined,
     });
+  }
+
+  /**
+   * Query user data across all enabled DEXs in parallel
+   *
+   * DRY helper for multi-DEX user data queries. Handles feature flag logic
+   * and DEX iteration in one place. Uses cached getValidatedDexs() to avoid
+   * redundant perpDexs() API calls.
+   *
+   * @param baseParams - Base parameters (e.g., { user: '0x...' })
+   * @param queryFn - API method to call per DEX
+   * @returns Array of results per DEX with DEX identifier
+   *
+   * @example
+   * ```typescript
+   * const results = await this.queryUserDataAcrossDexs(
+   *   { user: userAddress },
+   *   (p) => infoClient.clearinghouseState(p)
+   * );
+   * ```
+   */
+  private async queryUserDataAcrossDexs<
+    TParams extends Record<string, unknown>,
+    TResult,
+  >(
+    baseParams: TParams,
+    queryFn: (params: TParams & { dex?: string }) => Promise<TResult>,
+  ): Promise<{ dex: string | null; data: TResult }[]> {
+    const enabledDexs = await this.getValidatedDexs();
+
+    const results = await Promise.all(
+      enabledDexs.map(async (dex) => {
+        const params = dex
+          ? ({ ...baseParams, dex } as TParams & { dex: string })
+          : (baseParams as TParams & { dex?: string });
+        const data = await queryFn(params);
+        return { dex, data };
+      }),
+    );
+
+    return results;
   }
 
   /**
@@ -628,10 +732,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         this.ensureReferralSet(),
       ]);
 
-      // Extract DEX name for API calls (null = main DEX)
-      const dexName = params.coin.includes(':')
-        ? params.coin.split(':')[0]
-        : null;
+      // Extract DEX name for API calls (main DEX = null)
+      const { dex: dexName } = parseAssetName(params.coin);
 
       // Get asset info from the correct DEX
       const infoClient = this.clientService.getInfoClient();
@@ -922,10 +1024,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      // Extract DEX name for API calls (null = main DEX)
-      const dexName = params.newOrder.coin.includes(':')
-        ? params.newOrder.coin.split(':')[0]
-        : null;
+      // Extract DEX name for API calls (main DEX = null)
+      const { dex: dexName } = parseAssetName(params.newOrder.coin);
 
       // Get asset info and prices
       const infoClient = this.clientService.getInfoClient();
@@ -1149,20 +1249,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const exchangeClient = this.clientService.getExchangeClient();
       const userAddress = await this.walletService.getUserAddressWithDefault();
 
-      const mids = await infoClient.allMids();
+      // Extract DEX name for API calls (main DEX = null)
+      const { dex: dexName } = parseAssetName(coin);
+
+      // Fetch current price for this asset's DEX
+      const mids = await infoClient.allMids(
+        dexName ? { dex: dexName } : undefined,
+      );
       const currentPrice = parseFloat(mids[coin] || '0');
 
       if (currentPrice === 0) {
         throw new Error(`No price available for ${coin}`);
       }
 
-      // Cancel existing TP/SL orders for this position
+      // Cancel existing TP/SL orders for this position across all DEXs
       DevLogger.log('Fetching open orders to cancel existing TP/SL...');
-      const openOrders = await infoClient.frontendOpenOrders({
-        user: userAddress,
-      });
+      const orderResults = await this.queryUserDataAcrossDexs(
+        { user: userAddress },
+        (p) => infoClient.frontendOpenOrders(p),
+      );
 
-      const tpslOrdersToCancel = openOrders.filter(
+      // Combine orders from all DEXs
+      const allOrders = orderResults.flatMap((result) => result.data);
+
+      const tpslOrdersToCancel = allOrders.filter(
         (order) =>
           order.coin === coin &&
           order.reduceOnly === true &&
@@ -1191,12 +1301,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log('Cancel result:', cancelResult);
       }
 
-      // Extract DEX name for API calls (null = main DEX)
-      const dexName = params.coin.includes(':')
-        ? params.coin.split(':')[0]
-        : null;
-
-      // Get asset info
+      // Get asset info (dexName already extracted above)
       const meta = await infoClient.meta({ dex: dexName ?? '' });
 
       // Check if meta is an error response (string) or doesn't have universe property
@@ -1404,15 +1509,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      // Get positions and frontend orders (includes trigger info) in parallel
-      const [clearingState, frontendOrders] = await Promise.all([
-        infoClient.clearinghouseState({ user: userAddress }),
-        infoClient.frontendOpenOrders({ user: userAddress }),
+      // Query positions and orders across all enabled DEXs in parallel
+      const [stateResults, orderResults] = await Promise.all([
+        this.queryUserDataAcrossDexs({ user: userAddress }, (p) =>
+          infoClient.clearinghouseState(p),
+        ),
+        this.queryUserDataAcrossDexs({ user: userAddress }, (p) =>
+          infoClient.frontendOpenOrders(p),
+        ),
       ]);
 
-      DevLogger.log('Frontend open orders:', {
-        count: frontendOrders.length,
-        orders: frontendOrders.map((o) => ({
+      // Combine all orders from all DEXs for TP/SL lookup
+      const allOrders = orderResults.flatMap((result) => result.data);
+
+      DevLogger.log('Frontend open orders (all DEXs):', {
+        count: allOrders.length,
+        orders: allOrders.map((o) => ({
           coin: o.coin,
           oid: o.oid,
           orderType: o.orderType,
@@ -1425,102 +1537,114 @@ export class HyperLiquidProvider implements IPerpsProvider {
         })),
       });
 
-      // Process positions and attach TP/SL prices
-      return clearingState.assetPositions
-        .filter((assetPos) => assetPos.position.szi !== '0')
-        .map((assetPos) => {
-          const position = adaptPositionFromSDK(assetPos);
+      // Combine and process positions from all DEXs
+      const allPositions = stateResults.flatMap((result) =>
+        result.data.assetPositions
+          .filter((assetPos) => assetPos.position.szi !== '0')
+          .map((assetPos) => {
+            const position = adaptPositionFromSDK(assetPos);
 
-          // Find TP/SL orders for this position
-          // First check direct trigger orders
-          const positionOrders = frontendOrders.filter(
-            (order) =>
-              order.coin === position.coin &&
-              order.isTrigger &&
-              order.reduceOnly,
-          );
+            // Find TP/SL orders for this position
+            // First check direct trigger orders
+            const positionOrders = allOrders.filter(
+              (order) =>
+                order.coin === position.coin &&
+                order.isTrigger &&
+                order.reduceOnly,
+            );
 
-          // Also check for parent orders that might have TP/SL children
-          const parentOrdersWithChildren = frontendOrders.filter(
-            (order) =>
-              order.coin === position.coin &&
-              order.children &&
-              order.children.length > 0,
-          );
+            // Also check for parent orders that might have TP/SL children
+            const parentOrdersWithChildren = allOrders.filter(
+              (order) =>
+                order.coin === position.coin &&
+                order.children &&
+                order.children.length > 0,
+            );
 
-          // Look for TP and SL trigger orders
-          let takeProfitPrice: string | undefined;
-          let stopLossPrice: string | undefined;
+            // Look for TP and SL trigger orders
+            let takeProfitPrice: string | undefined;
+            let stopLossPrice: string | undefined;
 
-          // Check direct trigger orders
-          positionOrders.forEach((order) => {
-            // Frontend orders have explicit orderType field
-            if (
-              order.orderType === 'Take Profit Market' ||
-              order.orderType === 'Take Profit Limit'
-            ) {
-              takeProfitPrice = order.triggerPx;
-              DevLogger.log(`Found TP order for ${position.coin}:`, {
-                triggerPrice: order.triggerPx,
-                orderId: order.oid,
-                orderType: order.orderType,
-                isPositionTpsl: order.isPositionTpsl,
-              });
-            } else if (
-              order.orderType === 'Stop Market' ||
-              order.orderType === 'Stop Limit'
-            ) {
-              stopLossPrice = order.triggerPx;
-              DevLogger.log(`Found SL order for ${position.coin}:`, {
-                triggerPrice: order.triggerPx,
-                orderId: order.oid,
-                orderType: order.orderType,
-                isPositionTpsl: order.isPositionTpsl,
-              });
-            }
-          });
-
-          // Check child orders (for normalTpsl grouping)
-          parentOrdersWithChildren.forEach((parentOrder) => {
-            DevLogger.log(`Parent order with children for ${position.coin}:`, {
-              parentOid: parentOrder.oid,
-              childrenCount: parentOrder.children.length,
-            });
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Child order structure not exported by SDK
-            parentOrder.children.forEach((childOrder: any) => {
-              if (childOrder.isTrigger && childOrder.reduceOnly) {
-                if (
-                  childOrder.orderType === 'Take Profit Market' ||
-                  childOrder.orderType === 'Take Profit Limit'
-                ) {
-                  takeProfitPrice = childOrder.triggerPx;
-                  DevLogger.log(`Found TP child order for ${position.coin}:`, {
-                    triggerPrice: childOrder.triggerPx,
-                    orderId: childOrder.oid,
-                    orderType: childOrder.orderType,
-                  });
-                } else if (
-                  childOrder.orderType === 'Stop Market' ||
-                  childOrder.orderType === 'Stop Limit'
-                ) {
-                  stopLossPrice = childOrder.triggerPx;
-                  DevLogger.log(`Found SL child order for ${position.coin}:`, {
-                    triggerPrice: childOrder.triggerPx,
-                    orderId: childOrder.oid,
-                    orderType: childOrder.orderType,
-                  });
-                }
+            // Check direct trigger orders
+            positionOrders.forEach((order) => {
+              // Frontend orders have explicit orderType field
+              if (
+                order.orderType === 'Take Profit Market' ||
+                order.orderType === 'Take Profit Limit'
+              ) {
+                takeProfitPrice = order.triggerPx;
+                DevLogger.log(`Found TP order for ${position.coin}:`, {
+                  triggerPrice: order.triggerPx,
+                  orderId: order.oid,
+                  orderType: order.orderType,
+                  isPositionTpsl: order.isPositionTpsl,
+                });
+              } else if (
+                order.orderType === 'Stop Market' ||
+                order.orderType === 'Stop Limit'
+              ) {
+                stopLossPrice = order.triggerPx;
+                DevLogger.log(`Found SL order for ${position.coin}:`, {
+                  triggerPrice: order.triggerPx,
+                  orderId: order.oid,
+                  orderType: order.orderType,
+                  isPositionTpsl: order.isPositionTpsl,
+                });
               }
             });
-          });
 
-          return {
-            ...position,
-            takeProfitPrice,
-            stopLossPrice,
-          };
-        });
+            // Check child orders (for normalTpsl grouping)
+            parentOrdersWithChildren.forEach((parentOrder) => {
+              DevLogger.log(
+                `Parent order with children for ${position.coin}:`,
+                {
+                  parentOid: parentOrder.oid,
+                  childrenCount: parentOrder.children.length,
+                },
+              );
+
+              parentOrder.children.forEach((childOrder: FrontendOrder) => {
+                if (childOrder.isTrigger && childOrder.reduceOnly) {
+                  if (
+                    childOrder.orderType === 'Take Profit Market' ||
+                    childOrder.orderType === 'Take Profit Limit'
+                  ) {
+                    takeProfitPrice = childOrder.triggerPx;
+                    DevLogger.log(
+                      `Found TP child order for ${position.coin}:`,
+                      {
+                        triggerPrice: childOrder.triggerPx,
+                        orderId: childOrder.oid,
+                        orderType: childOrder.orderType,
+                      },
+                    );
+                  } else if (
+                    childOrder.orderType === 'Stop Market' ||
+                    childOrder.orderType === 'Stop Limit'
+                  ) {
+                    stopLossPrice = childOrder.triggerPx;
+                    DevLogger.log(
+                      `Found SL child order for ${position.coin}:`,
+                      {
+                        triggerPrice: childOrder.triggerPx,
+                        orderId: childOrder.oid,
+                        orderType: childOrder.orderType,
+                      },
+                    );
+                  }
+                }
+              });
+            });
+
+            return {
+              ...position,
+              takeProfitPrice,
+              stopLossPrice,
+            };
+          }),
+      );
+
+      return allPositions;
     } catch (error) {
       DevLogger.log('Error getting positions:', error);
       return [];
@@ -1676,6 +1800,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Get currently open orders (real-time status)
    * Uses frontendOpenOrders API to get only currently active orders
+   * Aggregates orders from all enabled DEXs (main + HIP-3)
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
@@ -1690,12 +1815,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      const rawOrders = await infoClient.frontendOpenOrders({
-        user: userAddress,
-      });
+      // Query orders across all enabled DEXs in parallel
+      const orderResults = await this.queryUserDataAcrossDexs(
+        { user: userAddress },
+        (p) => infoClient.frontendOpenOrders(p),
+      );
+
+      // Combine all orders from all DEXs
+      const rawOrders = orderResults.flatMap((result) => result.data);
+
+      // Get positions for order context (already multi-DEX aware)
       const positions = await this.getPositions();
 
-      DevLogger.log('Currently open orders received:', rawOrders);
+      DevLogger.log('Currently open orders received (all DEXs):', {
+        count: rawOrders.length,
+      });
 
       // Transform HyperLiquid open orders to abstract Order type using adapter
       const orders: Order[] = (rawOrders || []).map((order) => {
@@ -1826,6 +1960,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Get account state
+   * Aggregates balances across all enabled DEXs (main + HIP-3)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     try {
@@ -1844,19 +1979,108 @@ export class HyperLiquidProvider implements IPerpsProvider {
         this.clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET',
       );
 
-      // Get both Perps and Spot balances
-      const [perpsState, spotState] = await Promise.all([
-        infoClient.clearinghouseState({ user: userAddress }),
+      // Get Spot balance (global, not DEX-specific) and Perps states across all DEXs
+      const [spotState, perpsStateResults] = await Promise.all([
         infoClient.spotClearinghouseState({ user: userAddress }),
+        this.queryUserDataAcrossDexs({ user: userAddress }, (p) =>
+          infoClient.clearinghouseState(p),
+        ),
       ]);
 
-      DevLogger.log('Perps state:', perpsState);
       DevLogger.log('Spot state:', spotState);
+      DevLogger.log('Perps states (all DEXs):', {
+        dexCount: perpsStateResults.length,
+      });
 
-      const accountState = adaptAccountStateFromSDK(perpsState, spotState);
-      DevLogger.log('Adapted account state:', accountState);
+      // Aggregate account states from all DEXs
+      // Each DEX has independent positions and margin, we sum them
+      const aggregatedAccountState = perpsStateResults.reduce(
+        (acc, result, index) => {
+          const { dex, data: perpsState } = result;
 
-      return accountState;
+          // Adapt this DEX's state (without spot - we'll add spot once at the end)
+          const dexAccountState = adaptAccountStateFromSDK(perpsState);
+
+          // Log each DEX contribution
+          DevLogger.log(`DEX ${dex || 'main'} account state:`, {
+            totalValue: dexAccountState.totalValue,
+            availableBalance: dexAccountState.availableBalance,
+            marginUsed: dexAccountState.marginUsed,
+            unrealizedPnl: dexAccountState.unrealizedPnl,
+          });
+
+          // Sum up numeric values across all DEXs
+          if (index === 0) {
+            // First DEX - initialize with its values
+            return dexAccountState;
+          }
+
+          // Subsequent DEXs - aggregate
+          return {
+            availableBalance: (
+              parseFloat(acc.availableBalance) +
+              parseFloat(dexAccountState.availableBalance)
+            ).toString(),
+            totalBalance: (
+              parseFloat(acc.totalBalance) +
+              parseFloat(dexAccountState.totalBalance)
+            ).toString(),
+            marginUsed: (
+              parseFloat(acc.marginUsed) +
+              parseFloat(dexAccountState.marginUsed)
+            ).toString(),
+            unrealizedPnl: (
+              parseFloat(acc.unrealizedPnl) +
+              parseFloat(dexAccountState.unrealizedPnl)
+            ).toString(),
+            totalValue: (
+              parseFloat(acc.totalValue) +
+              parseFloat(dexAccountState.totalValue)
+            ).toString(),
+            // Return on equity is weighted average, but for simplicity we'll recalculate
+            // ROE = (unrealizedPnl / marginUsed) * 100
+            returnOnEquity: '0', // Will recalculate below
+          };
+        },
+        {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        } as AccountState,
+      );
+
+      // Recalculate return on equity across all DEXs
+      const totalMarginUsed = parseFloat(aggregatedAccountState.marginUsed);
+      const totalUnrealizedPnl = parseFloat(
+        aggregatedAccountState.unrealizedPnl,
+      );
+      if (totalMarginUsed > 0) {
+        aggregatedAccountState.returnOnEquity = (
+          (totalUnrealizedPnl / totalMarginUsed) *
+          100
+        ).toFixed(1);
+      } else {
+        aggregatedAccountState.returnOnEquity = '0';
+      }
+
+      // Add spot balance to totalBalance (spot is global, not per-DEX)
+      let spotBalance = 0;
+      if (spotState?.balances) {
+        spotBalance = spotState.balances.reduce(
+          (sum, balance) => sum + parseFloat(balance.total || '0'),
+          0,
+        );
+      }
+      aggregatedAccountState.totalBalance = (
+        parseFloat(aggregatedAccountState.totalBalance) + spotBalance
+      ).toString();
+
+      DevLogger.log('Aggregated account state:', aggregatedAccountState);
+
+      return aggregatedAccountState;
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -1871,18 +2095,111 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get available markets
-   * @param params - Optional parameters including HIP-3 DEX filter
+   * Get available markets with multi-DEX aggregation support (HIP-3)
+   * Handles three query patterns:
+   * 1. Symbol filtering: Groups symbols by DEX, fetches in parallel
+   * 2. Multi-DEX aggregation: Fetches from all enabled DEXs when no specific DEX requested
+   * 3. Single DEX query: Fetches from main or specific DEX
+   * @param params - Optional parameters for filtering
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
-      DevLogger.log('Getting markets via HyperLiquid SDK', {
-        dex: params?.dex,
+      await this.ensureReady();
+      const infoClient = this.clientService.getInfoClient();
+
+      // Path 1: Symbol filtering - group by DEX and fetch in parallel
+      if (params?.symbols && params.symbols.length > 0) {
+        DevLogger.log(
+          'HyperLiquidProvider: Getting markets with symbol filter',
+          {
+            symbolCount: params.symbols.length,
+          },
+        );
+
+        // Group symbols by DEX
+        const symbolsByDex = new Map<string | null, string[]>();
+        params.symbols.forEach((symbol) => {
+          const { dex } = parseAssetName(symbol);
+          const existing = symbolsByDex.get(dex);
+          if (existing) {
+            existing.push(symbol);
+          } else {
+            symbolsByDex.set(dex, [symbol]);
+          }
+        });
+
+        // Query each unique DEX in parallel
+        const marketArrays = await Promise.all(
+          Array.from(symbolsByDex.keys()).map(async (dex) => {
+            const dexParam = dex ?? ''; // Empty string for main DEX
+            const meta = await infoClient.meta(
+              dexParam ? { dex: dexParam } : undefined,
+            );
+            return (
+              meta.universe?.map((asset) => adaptMarketFromSDK(asset)) || []
+            );
+          }),
+        );
+
+        // Combine and filter by requested symbols
+        const allMarkets = marketArrays.flat();
+        return allMarkets.filter((market) =>
+          params.symbols?.some(
+            (symbol) => market.name.toLowerCase() === symbol.toLowerCase(),
+          ),
+        );
+      }
+
+      // Path 2: Multi-DEX aggregation - fetch from all enabled DEXs
+      if (!params?.dex && this.equityEnabled) {
+        const enabledDexs = await this.getValidatedDexs();
+
+        if (enabledDexs.length > 1) {
+          // More than just main DEX
+          DevLogger.log(
+            'HyperLiquidProvider: Fetching markets from all enabled DEXs',
+            {
+              dexCount: enabledDexs.length,
+            },
+          );
+
+          const marketArrays = await Promise.all(
+            enabledDexs.map(async (dex) => {
+              try {
+                const dexParam = dex ?? '';
+                const meta = await infoClient.meta(
+                  dexParam ? { dex: dexParam } : undefined,
+                );
+                if (!meta.universe || !Array.isArray(meta.universe)) {
+                  DevLogger.log(
+                    `HyperLiquidProvider: Invalid universe data for DEX ${
+                      dex || 'main'
+                    }`,
+                  );
+                  return [];
+                }
+                return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+              } catch (error) {
+                Logger.error(
+                  ensureError(error),
+                  this.getErrorContext('getMarkets.multiDex', {
+                    dex: dex ?? 'main',
+                  }),
+                );
+                return []; // Continue with other DEXs on error
+              }
+            }),
+          );
+
+          return marketArrays.flat();
+        }
+      }
+
+      // Path 3: Single DEX query (main DEX or specific DEX)
+      DevLogger.log('HyperLiquidProvider: Getting markets for single DEX', {
+        dex: params?.dex || 'main',
       });
 
-      await this.ensureReady();
-
-      const infoClient = this.clientService.getInfoClient();
       const meta = await infoClient.meta(
         params?.dex !== undefined ? { dex: params.dex } : undefined,
       );
@@ -1897,13 +2214,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         return [];
       }
 
-      const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
-
-      return markets;
+      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
     } catch (error) {
       Logger.error(
         ensureError(error),
-        this.getErrorContext('getMarkets', { dex: params?.dex }),
+        this.getErrorContext('getMarkets', {
+          dex: params?.dex,
+          symbolCount: params?.symbols?.length,
+        }),
       );
       return [];
     }
@@ -1911,6 +2229,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Get market data with prices, volumes, and 24h changes
+   * Aggregates data from all enabled DEXs (main + HIP-3) when equity is enabled
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     DevLogger.log('Getting market data with prices via HyperLiquid SDK');
@@ -1919,27 +2238,79 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     const infoClient = this.clientService.getInfoClient();
 
-    // Fetch all required data in parallel for better performance
-    const [perpsMeta, allMids, predictedFundings] = await Promise.all([
-      infoClient.meta(),
-      infoClient.allMids(),
-      infoClient.predictedFundings(),
-    ]);
+    // Get enabled DEXs respecting feature flags
+    const enabledDexs = await this.getValidatedDexs();
 
-    if (!perpsMeta?.universe || !allMids) {
-      throw new Error('Failed to fetch market data - no data received');
+    // Fetch meta, assetCtxs, and allMids for each enabled DEX in parallel
+    const dexDataResults = await Promise.all(
+      enabledDexs.map(async (dex) => {
+        const dexParam = dex ?? '';
+        try {
+          const [meta, metaAndCtxs, dexAllMids] = await Promise.all([
+            infoClient.meta(dexParam ? { dex: dexParam } : undefined),
+            infoClient.metaAndAssetCtxs(
+              dexParam ? { dex: dexParam } : undefined,
+            ),
+            infoClient.allMids(dexParam ? { dex: dexParam } : undefined),
+          ]);
+
+          return {
+            dex,
+            meta,
+            assetCtxs: metaAndCtxs?.[1] || [],
+            allMids: dexAllMids || {},
+            success: true,
+          };
+        } catch (error) {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('getMarketDataWithPrices.fetchDex', {
+              dex: dex ?? 'main',
+            }),
+          );
+          return {
+            dex,
+            meta: null,
+            assetCtxs: [],
+            allMids: {},
+            success: false,
+          };
+        }
+      }),
+    );
+
+    // Combine universe, assetCtxs, and allMids from all DEXs
+    const combinedUniverse: MetaResponse['universe'] = [];
+    const combinedAssetCtxs: PerpsAssetCtx[] = [];
+    const combinedAllMids: Record<string, string> = {};
+
+    dexDataResults.forEach((result) => {
+      if (result.success && result.meta?.universe) {
+        combinedUniverse.push(...result.meta.universe);
+        combinedAssetCtxs.push(...result.assetCtxs);
+        // Merge price data from this DEX into combined prices
+        Object.assign(combinedAllMids, result.allMids);
+      }
+    });
+
+    if (combinedUniverse.length === 0) {
+      throw new Error('Failed to fetch market data - no markets available');
     }
 
-    // Also fetch asset contexts for additional data like volume and previous day prices
-    const metaAndCtxs = await infoClient.metaAndAssetCtxs();
-    const assetCtxs = metaAndCtxs?.[1] || [];
+    DevLogger.log('HyperLiquidProvider: Aggregated market data from all DEXs', {
+      dexCount: enabledDexs.length,
+      totalMarkets: combinedUniverse.length,
+      mainDexMarkets: dexDataResults[0]?.meta?.universe?.length || 0,
+      hip3Markets:
+        combinedUniverse.length -
+        (dexDataResults[0]?.meta?.universe?.length || 0),
+    });
 
     // Transform to UI-friendly format using standalone utility
     return transformMarketData({
-      universe: perpsMeta.universe,
-      assetCtxs,
-      allMids,
-      predictedFundings,
+      universe: combinedUniverse,
+      assetCtxs: combinedAssetCtxs,
+      allMids: combinedAllMids,
     });
   }
 
@@ -2751,8 +3122,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      // Extract DEX name for API calls (null = main DEX)
-      const dexName = asset.includes(':') ? asset.split(':')[0] : null;
+      // Extract DEX name for API calls (main DEX = null)
+      const { dex: dexName } = parseAssetName(asset);
 
       // Get asset info
       const infoClient = this.clientService.getInfoClient();

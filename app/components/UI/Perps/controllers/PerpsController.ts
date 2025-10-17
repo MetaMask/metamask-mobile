@@ -2657,7 +2657,8 @@ export class PerpsController extends BaseController<
 
   /**
    * Get available markets with optional filtering
-   * @param params - Optional parameters including symbol filter and HIP-3 DEX selection
+   * Delegates to provider which handles all multi-DEX logic transparently
+   * @param params - Optional parameters for filtering (symbols, dex)
    */
   async getMarkets(params?: {
     symbols?: string[];
@@ -2674,12 +2675,13 @@ export class PerpsController extends BaseController<
         tags: {
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
+          ...(params?.symbols && { symbolCount: params.symbols.length }),
           ...(params?.dex !== undefined && { dex: params.dex }),
         },
       });
 
       const provider = this.getActiveProvider();
-      const allMarkets = await provider.getMarkets({ dex: params?.dex });
+      const markets = await provider.getMarkets(params);
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -2687,20 +2689,8 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
-      // Filter by symbols if provided
-      if (params?.symbols && params.symbols.length > 0) {
-        const filtered = allMarkets.filter((market) =>
-          params.symbols?.some(
-            (symbol) => market.name.toLowerCase() === symbol.toLowerCase(),
-          ),
-        );
-
-        traceData = { success: true };
-        return filtered;
-      }
-
       traceData = { success: true };
-      return allMarkets;
+      return markets;
     } catch (error) {
       const errorMessage =
         error instanceof Error

@@ -14,6 +14,9 @@ export * from '../../types/navigation';
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
+// Market asset type classification (reusable across components)
+export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
+
 // Input method for amount entry tracking
 export type InputMethod =
   | 'default'
@@ -99,6 +102,7 @@ export type Position = {
   stopLossCount: number; // Stop loss count, how many sls can affect the position
 };
 
+// Using 'type' instead of 'interface' for BaseController Json compatibility
 export type AccountState = {
   availableBalance: string; // Based on HyperLiquid: withdrawable
   totalBalance: string; // Based on HyperLiquid: accountValue
@@ -106,6 +110,18 @@ export type AccountState = {
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
   returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
   totalValue: string; // Based on HyperLiquid: accountValue
+  /**
+   * Per-DEX balance breakdown (HIP-3 support, optional)
+   * Key: DEX identifier ('' or 'main' = main DEX, 'xyz' = HIP-3 DEX)
+   * Value: Balance details for that DEX
+   */
+  dexBreakdown?: Record<
+    string,
+    {
+      availableBalance: string;
+      totalBalance: string;
+    }
+  >;
 };
 
 export type ClosePositionParams = {
@@ -191,6 +207,20 @@ export interface PerpsMarketData {
    * Current funding rate as decimal (optional, from predictedFundings API)
    */
   fundingRate?: number;
+  /**
+   * Market source DEX identifier (HIP-3 support)
+   * - null or undefined: Main validator DEX
+   * - "xyz", "abc", etc: HIP-3 builder-deployed DEX
+   */
+  marketSource?: string | null;
+  /**
+   * Market asset type classification (optional)
+   * - crypto: Cryptocurrency (default for most markets)
+   * - equity: Stock/equity markets (HIP-3)
+   * - commodity: Commodity markets (HIP-3)
+   * - forex: Foreign exchange pairs (HIP-3)
+   */
+  marketType?: MarketType;
 }
 
 export interface ToggleTestnetResult {
@@ -410,6 +440,7 @@ export interface GetAvailableDexsParams {
 }
 
 export interface GetMarketsParams {
+  symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
   dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
 }
 

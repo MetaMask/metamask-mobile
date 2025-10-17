@@ -641,21 +641,13 @@ const HIP3DebugView: React.FC = () => {
         'Positions:',
         xyzState.assetPositions.length > 0
           ? xyzState.assetPositions
-              .map(
-                (pos) =>
-                  `  ${pos.position.coin}: size=${pos.position.szi}, pnl=${pos.position.unrealizedPnl}`,
-              )
+              .map((pos) => JSON.stringify(pos, null, 2))
               .join('\n')
           : '  (none)',
         '',
         'Open Orders:',
         xyzOrders.length > 0
-          ? xyzOrders
-              .map(
-                (order) =>
-                  `  ${order.coin}: ${order.side} ${order.sz} @ ${order.limitPx}`,
-              )
-              .join('\n')
+          ? xyzOrders.map((order) => JSON.stringify(order, null, 2)).join('\n')
           : '  (none)',
       ].join('\n');
 

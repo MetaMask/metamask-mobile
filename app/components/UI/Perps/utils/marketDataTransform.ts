@@ -137,14 +137,13 @@ export function transformMarketData(
 ): PerpsMarketData[] {
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
-  return universe.map((asset) => {
+  return universe.map((asset, index) => {
     const symbol = asset.name;
     const currentPrice = parseFloat(allMids[symbol]);
 
     // Find matching asset context for additional data
-    // Note: assetCtxs array from metaAndAssetCtxs might have different structure
-    // The array index should correspond to the universe array index
-    const assetCtx = assetCtxs[universe.indexOf(asset)];
+    // The assetCtxs array is aligned with universe array by index
+    const assetCtx = assetCtxs[index];
 
     // Calculate 24h change
     const prevDayPrice = assetCtx ? parseFloat(assetCtx.prevDayPx) : 0;
