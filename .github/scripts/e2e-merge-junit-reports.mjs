@@ -40,15 +40,6 @@ function extractTimestamp(filename) {
 }
 
 /**
- * Generate unique key for a test case
- * @param {Object} testcase - Test case object with $ property containing classname and name
- * @returns {string} Unique key in format "classname::testname"
- */
-function getTestCaseKey(testcase) {
-  return `${testcase.$.classname}::${testcase.$.name}`;
-}
-
-/**
  * Find all junit XML files in the reports directory
  * @returns {Promise<string[]>} Sorted array of XML filenames
  */
@@ -80,7 +71,7 @@ async function parseJUnitXML(filePath) {
 }
 
 /**
- * Parse all XML files and organize test cases by their last run
+ * Parse all XML files and combine test suites (preserving duplicates for retry detection)
  * @returns {Promise<Object|null>} Merged report data or null if no files found
  */
 async function parseAndMergeReports() {
@@ -96,9 +87,9 @@ async function parseAndMergeReports() {
   console.log(`📁 Found ${xmlFiles.length} report file(s):`);
   xmlFiles.forEach(f => console.log(`   - ${f}`));
 
-  // Store test cases by their unique key, keeping track of latest version
-  const testCaseMap = new Map();
-  const testSuiteMap = new Map();
+  // Collect ALL test suites (including duplicates) for flaky test detection
+  const allTestSuites = [];
+  const suitePropertiesMap = new Map();
 
   let totalTests = 0;
   let totalFailures = 0;
@@ -109,7 +100,6 @@ async function parseAndMergeReports() {
   // Process each XML file in chronological order
   for (const xmlFile of xmlFiles) {
     const filePath = join(env.REPORTS_DIR, xmlFile);
-    const timestamp = extractTimestamp(xmlFile);
 
     console.log(`\n📄 Processing: ${xmlFile}`);
 
@@ -139,36 +129,43 @@ async function parseAndMergeReports() {
 
         console.log(`   📦 Suite: "${suiteName}" (${testcases.length} test(s))`);
 
+        // Count test statuses for logging
+        let suiteFailures = 0;
+        let suiteErrors = 0;
+        let suiteSkipped = 0;
+
         for (const testcase of testcases) {
-          const key = getTestCaseKey(testcase);
           const isFailure = !!testcase.failure;
           const isError = !!testcase.error;
           const isSkipped = !!testcase.skipped;
 
-          // Store or update test case (later timestamps override earlier ones)
-          testCaseMap.set(key, {
-            testcase,
-            suiteName,
-            timestamp,
-            isFailure,
-            isError,
-            isSkipped,
-          });
+          if (isFailure) suiteFailures++;
+          if (isError) suiteErrors++;
+          if (isSkipped) suiteSkipped++;
 
           console.log(`      ${isFailure ? '❌' : isError ? '⚠️' : isSkipped ? '⊘' : '✅'} ${testcase.$.name}`);
         }
 
-        // Store suite metadata (will be updated with latest properties)
-        if (!testSuiteMap.has(suiteName)) {
-          testSuiteMap.set(suiteName, {
-            properties: testsuite.properties,
-          });
-        } else {
-          // Update with latest properties
-          testSuiteMap.set(suiteName, {
-            properties: testsuite.properties,
-          });
+        // Add test suite to collection (preserving duplicates for retry detection)
+        allTestSuites.push(testsuite);
+
+        // Track properties (use latest)
+        if (testsuite.properties) {
+          suitePropertiesMap.set(suiteName, testsuite.properties);
         }
+
+        // Update totals
+        const suiteTests = parseInt(testsuite.$.tests || testcases.length);
+        const suiteFailed = parseInt(testsuite.$.failures || '0');
+        const suiteError = parseInt(testsuite.$.errors || '0');
+        const suiteSkip = parseInt(testsuite.$.skipped || '0');
+        const suiteTime = parseFloat(testsuite.$.time || '0');
+
+        totalTests += suiteTests;
+        totalFailures += suiteFailed;
+        totalErrors += suiteError;
+        totalSkipped += suiteSkip;
+        totalTime += suiteTime;
       }
     } catch (error) {
       console.warn(`⚠️  Failed to process ${xmlFile}: ${error.message}`);
@@ -177,57 +174,25 @@ async function parseAndMergeReports() {
   }
 
   console.log('\n🔄 Building merged report...');
+  console.log(`   Total test suites collected: ${allTestSuites.length} (including retries)`);
 
-  // Group test cases by suite name
-  const suiteGroups = new Map();
-  for (const [key, data] of testCaseMap.entries()) {
-    if (!suiteGroups.has(data.suiteName)) {
-      suiteGroups.set(data.suiteName, []);
+  // Count unique vs duplicate suites for logging
+  const suiteNames = new Set();
+  const duplicateSuites = [];
+  for (const suite of allTestSuites) {
+    const name = suite.$.name;
+    if (suiteNames.has(name)) {
+      duplicateSuites.push(name);
+    } else {
+      suiteNames.add(name);
     }
-    suiteGroups.get(data.suiteName).push(data);
   }
 
-  // Build merged test suites
-  const mergedTestSuites = [];
-
-  for (const [suiteName, testCases] of suiteGroups.entries()) {
-    const suiteFailures = testCases.filter(tc => tc.isFailure).length;
-    const suiteErrors = testCases.filter(tc => tc.isError).length;
-    const suiteSkipped = testCases.filter(tc => tc.isSkipped).length;
-    const suiteTime = testCases.reduce((sum, tc) => sum + parseFloat(tc.testcase.$.time || 0), 0);
-
-    totalTests += testCases.length;
-    totalFailures += suiteFailures;
-    totalErrors += suiteErrors;
-    totalSkipped += suiteSkipped;
-    totalTime += suiteTime;
-
-    const suite = {
-      $: {
-        name: suiteName,
-        tests: testCases.length,
-        failures: suiteFailures,
-        errors: suiteErrors,
-        skipped: suiteSkipped,
-        time: suiteTime.toFixed(3),
-        timestamp: new Date().toISOString(),
-      },
-      testcase: testCases.map(tc => tc.testcase),
-    };
-
-    // Add properties if they exist
-    const suiteMetadata = testSuiteMap.get(suiteName);
-    if (suiteMetadata?.properties) {
-      suite.properties = suiteMetadata.properties;
-    }
-
-    mergedTestSuites.push(suite);
-
-    console.log(`   📦 ${suiteName}:`);
-    console.log(`      Tests: ${testCases.length}, Failures: ${suiteFailures}, Errors: ${suiteErrors}, Skipped: ${suiteSkipped}`);
+  if (duplicateSuites.length > 0) {
+    console.log(`   ✨ Found ${duplicateSuites.length} retry suite(s) for flaky test detection`);
   }
 
-  // Build final XML structure
+  // Build final XML structure with ALL test suites (including retries)
   const mergedReport = {
     testsuites: {
       $: {
@@ -237,16 +202,21 @@ async function parseAndMergeReports() {
         errors: totalErrors,
         time: totalTime.toFixed(3),
       },
-      testsuite: mergedTestSuites,
+      testsuite: allTestSuites,
     },
   };
 
   console.log('\n📊 Final Report Summary:');
+  console.log(`   Total Test Suites: ${allTestSuites.length}`);
+  console.log(`   Unique Suites: ${suiteNames.size}`);
   console.log(`   Total Tests: ${totalTests}`);
   console.log(`   Failures: ${totalFailures}`);
   console.log(`   Errors: ${totalErrors}`);
   console.log(`   Skipped: ${totalSkipped}`);
   console.log(`   Total Time: ${totalTime.toFixed(3)}s`);
+  if (duplicateSuites.length > 0) {
+    console.log(`   🔁 Retries detected: ${duplicateSuites.length} suite(s) will be analyzed for flaky tests`);
+  }
 
   return mergedReport;
 }
