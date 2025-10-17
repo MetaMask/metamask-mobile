@@ -240,7 +240,6 @@ const BottomSheetDialog = forwardRef<
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
           shouldCancelWhenOutside={false}
-          minDist={10}
           activeOffsetY={[-10, 10]}
           activeOffsetX={[-50, 50]}
         >
