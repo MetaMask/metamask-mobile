@@ -1109,8 +1109,7 @@ export const previewOrder = async (
       asks,
       dollarAmount: size,
     });
-    // include slippage in avgPrice
-    const avgPrice = (size / shareAmount) * (1 + DEFAULT_SLIPPAGE);
+    const avgPrice = size / shareAmount;
     const { makerAmount, takerAmount } = roundOrderAmounts({
       roundConfig,
       side,
@@ -1144,8 +1143,7 @@ export const previewOrder = async (
     bids,
     shareAmount: size,
   });
-  // include slippage in avgPrice
-  const avgPrice = (dollarAmount / size) * (1 - DEFAULT_SLIPPAGE);
+  const avgPrice = dollarAmount / size;
   const { makerAmount, takerAmount } = roundOrderAmounts({
     roundConfig,
     side,
