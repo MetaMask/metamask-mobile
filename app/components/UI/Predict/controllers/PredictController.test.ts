@@ -662,7 +662,14 @@ describe('PredictController', () => {
 
   describe('placeOrder', () => {
     it('place order successfully via provider', async () => {
-      const mockResult = { success: true, response: 'order-placed' };
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
       await withController(async ({ controller }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
 

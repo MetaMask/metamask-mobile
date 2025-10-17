@@ -15,17 +15,21 @@ import {
   PredictCategory,
   PredictMarket as PredictMarketType,
 } from '../../types';
+import { PredictEntryPoint } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
 import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface MarketListContentProps {
   q?: string;
   category: PredictCategory;
+  entryPoint?: PredictEntryPoint;
 }
 
 const MarketListContent: React.FC<MarketListContentProps> = ({
   category,
   q,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
@@ -47,13 +51,14 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       <PredictMarket
         key={item.id}
         market={item}
+        entryPoint={entryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
           index + 1,
         )}
       />
     ),
-    [category],
+    [category, entryPoint],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);

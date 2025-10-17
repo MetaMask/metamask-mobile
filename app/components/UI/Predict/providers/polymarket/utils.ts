@@ -411,6 +411,8 @@ export const parsePolymarketEvents = (
             resolvedBy: market.resolvedBy,
           };
         }),
+      liquidity: event.liquidity,
+      volume: event.volume,
     }),
   );
   return parsedMarkets;

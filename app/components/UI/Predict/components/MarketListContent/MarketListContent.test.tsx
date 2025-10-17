@@ -74,6 +74,8 @@ const mockPredictMarket: PredictMarket = {
       groupItemTitle: 'Bitcoin Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockPredictMarketMultiple: PredictMarket = {
@@ -124,6 +126,8 @@ const mockPredictMarketMultiple: PredictMarket = {
       groupItemTitle: 'Ethereum Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockRefetch = jest.fn();

@@ -883,6 +883,8 @@ describe('polymarket utils', () => {
           resolvedBy: '0x0000000000000000000000000000000000000000',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     };
 
     it('parse events correctly', () => {
@@ -928,6 +930,8 @@ describe('polymarket utils', () => {
             resolvedBy: '0x0000000000000000000000000000000000000000',
           },
         ],
+        liquidity: 1000000,
+        volume: 1000000,
       });
     });
 
@@ -1275,6 +1279,8 @@ describe('polymarket utils', () => {
             tags: [],
             series: [],
             markets: [],
+            liquidity: 1000000,
+            volume: 1000000,
           },
         ],
       },
@@ -1421,6 +1427,8 @@ describe('polymarket utils', () => {
           resolvedBy: '0x0000000000000000000000000000000000000000',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     };
 
     it('fetch markets without search parameters', async () => {

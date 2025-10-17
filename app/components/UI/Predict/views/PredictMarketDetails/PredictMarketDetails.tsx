@@ -24,6 +24,7 @@ import Text, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { formatPrice, formatVolume, formatAddress } from '../../utils/format';
 import {
   Box,
@@ -213,6 +214,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         market,
         outcome: market?.outcomes?.[0],
         outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
       },
     });
   };
@@ -230,6 +232,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         market,
         outcome: market?.outcomes?.[0],
         outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
       },
     });
   };
@@ -642,6 +645,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     }
                     market={market}
                     outcome={outcome}
+                    entryPoint={
+                      PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS
+                    }
                   />
                 ))}
               </Box>
