@@ -39,11 +39,19 @@ const TouchableOpacity = ({
   // Track accessibility state - start with null to indicate "unknown"
   const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<
     boolean | null
-  >(null);
+  >(false);
 
   useEffect(() => {
     // Check initial accessibility state
-    AccessibilityInfo.isScreenReaderEnabled().then(setIsAccessibilityEnabled);
+    AccessibilityInfo.isScreenReaderEnabled()
+      .then(setIsAccessibilityEnabled)
+      .catch((error) => {
+        // Log the error for debugging
+        console.warn('AccessibilityInfo.isScreenReaderEnabled failed:', error);
+        // Fallback to false - assume accessibility is OFF
+        // This ensures gesture handler will work in ScrollViews
+        setIsAccessibilityEnabled(false);
+      });
 
     // Listen for accessibility changes
     const subscription = AccessibilityInfo.addEventListener(
@@ -54,14 +62,16 @@ const TouchableOpacity = ({
     return () => subscription?.remove();
   }, []);
 
-  // Gesture detection for ScrollView compatibility on Android
+  // Native gesture handler to prevent interruption from other gestures (BottomSheet pan, etc.)
+  const native = Gesture.Native().disallowInterruption(true);
+
+  // Gesture detection for ScrollView and BottomSheet compatibility on Android
   const tap = Gesture.Tap()
     .runOnJS(true)
     .shouldCancelWhenOutside(false)
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
-    .requireExternalGestureToFail() // Wait for other gestures to fail before activating
-    .maxDuration(300) // Tight constraint: must complete within 300ms
+    .maxDuration(200) // Shorter duration for better responsiveness
     .minPointers(1)
     .onEnd(
       (
@@ -109,12 +119,12 @@ const TouchableOpacity = ({
   }
 
   return (
-    <GestureDetector gesture={tap}>
+    <GestureDetector gesture={Gesture.Simultaneous(native, tap)}>
       <RNTouchableOpacity
         disabled={isDisabled}
         onPress={
-          isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined
-        } // Use TouchableOpacity onPress when accessibility is ON or UNKNOWN (safer for accessibility users)
+          isAccessibilityEnabled === true && !isDisabled ? onPress : undefined
+        } // Use TouchableOpacity onPress only when accessibility is explicitly ON (safer for accessibility users)
         {...props}
       >
         {children}
