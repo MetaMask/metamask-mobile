@@ -18,6 +18,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import OnboardingNavigator from './OnboardingNavigator';
 
 const Stack = createStackNavigator();
 
@@ -92,6 +93,11 @@ const CardRoutes = () => (
       name={Routes.CARD.AUTHENTICATION}
       component={CardAuthentication}
       options={cardAuthenticationNavigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.CARD.ONBOARDING.ROOT}
+      component={OnboardingNavigator}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
