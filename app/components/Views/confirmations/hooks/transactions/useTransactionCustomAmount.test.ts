@@ -337,7 +337,7 @@ describe('useTransactionCustomAmount', () => {
     it('to percentage of predict balance', async () => {
       const { result } = runHook({
         transactionMeta: {
-          type: TransactionType.predictSell,
+          type: TransactionType.predictWithdraw,
         },
       });
 

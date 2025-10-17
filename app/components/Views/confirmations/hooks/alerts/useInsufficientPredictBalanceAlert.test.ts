@@ -34,7 +34,7 @@ describe('useInsufficientPredictBalanceAlert', () => {
       txParams: {
         from: '0x0',
       },
-      type: TransactionType.predictSell,
+      type: TransactionType.predictWithdraw,
     } as unknown as TransactionMeta);
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
