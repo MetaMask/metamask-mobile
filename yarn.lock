@@ -6938,9 +6938,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^81.0.0":
-  version: 81.0.0
-  resolution: "@metamask/assets-controllers@npm:81.0.0"
+"@metamask/assets-controllers@npm:^81.0.1":
+  version: 81.0.1
+  resolution: "@metamask/assets-controllers@npm:81.0.1"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@ethersproject/abi": ^5.7.0
@@ -6985,7 +6985,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 8128572ec8772644b20f5882f68c5c8dab3838e07f3e0c50b3d68262ea41438906337093e7bb41d5d21ec0e01659c21aa0e3e0b1b1f775c73da5aa5b783dcc5d
+  checksum: 9418fb5b9878568102c7b16ea28d2da916921eeb2e693dd8f3787fd9864b8a1efb16d4a2f61869d5bd27e56db2769fd0954e3c3c55b35797b387ec53fc1da8df
   languageName: node
   linkType: hard
 
@@ -8789,9 +8789,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^60.6.0, @metamask/transaction-controller@npm:^60.7.0":
-  version: 60.7.0
-  resolution: "@metamask/transaction-controller@npm:60.7.0"
+"@metamask/transaction-controller@npm:^60.7.0, @metamask/transaction-controller@npm:^60.9.0":
+  version: 60.9.0
+  resolution: "@metamask/transaction-controller@npm:60.9.0"
   dependencies:
     "@ethereumjs/common": ^4.4.0
     "@ethereumjs/tx": ^5.4.0
@@ -8821,7 +8821,7 @@ __metadata:
     "@metamask/gas-fee-controller": ^24.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.5.0
-  checksum: b68795b84ba99e46ea97a6e5e65ff1cd98b57f275f69bcc8cb419af950d434e7fe0eaa77515e5ece1fc65c9af1224fc22fe358619c85c254f75018e7b8a81c6d
+  checksum: 0cf4105e5e4fcce8518a0535c013fc4036d3709c25179b8708ba908fb9cd7998f259645e53ea80ecd5df4b0f631f8606972b652f199b79a803c2575ecdaba0c5
   languageName: node
   linkType: hard
 
@@ -34053,7 +34053,7 @@ __metadata:
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
     "@metamask/approval-controller": ^7.1.3
-    "@metamask/assets-controllers": ^81.0.0
+    "@metamask/assets-controllers": ^81.0.1
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.3.0
     "@metamask/bridge-controller": ^50.0.0
@@ -34152,7 +34152,7 @@ __metadata:
     "@metamask/test-dapp-multichain": ^0.17.1
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
-    "@metamask/transaction-controller": ^60.6.0
+    "@metamask/transaction-controller": ^60.9.0
     "@metamask/tron-wallet-snap": ^1.4.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
