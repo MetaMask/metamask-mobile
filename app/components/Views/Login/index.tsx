@@ -800,7 +800,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings(
-                  Platform.OS === 'ios' && isSocialLoginUser
+                  Platform.OS === 'ios' &&
+                    (isSocialLoginUser || isComingFromOauthOnboarding)
                     ? 'login.pin_placeholder'
                     : 'login.password_placeholder',
                 )}
