@@ -148,6 +148,25 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     }
   });
 
+  it('should throw error if no networkConfiguration is found for the chainId', async () => {
+    try {
+      const origin = 'https://test.com';
+      otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue(
+        undefined,
+      );
+
+      await wallet_switchEthereumChain({
+        req: {
+          params: [{ chainId: '0x64' }],
+          origin,
+        },
+        ...otherOptions,
+      });
+    } catch (error) {
+      expect(error.message).toContain('Unrecognized chain ID');
+    }
+  });
+
   it('should not change network permissions and should switch without user approval when chain is already permitted', async () => {
     const origin = 'https://test.com';
     const spyOnGrantPermissionsIncremental = jest.spyOn(
@@ -178,6 +197,16 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       },
     });
     otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(false);
+    otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue({
+      nativeCurrency: 'ETH',
+      rpcEndpoints: [
+        {
+          url: 'https://rpc.test-chain.com',
+          networkClientId: 'test-network-configuration-id',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    });
 
     const spyOnSetNetworkClientIdForDomain = jest.spyOn(
       Engine.context.SelectedNetworkController,
@@ -202,10 +231,6 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 
   it('should add network permission and should switch with user approval when requested chain is not permitted', async () => {
     const origin = 'https://test.com';
-    const spyOnGrantPermissionsIncremental = jest.spyOn(
-      Engine.context.PermissionController,
-      'grantPermissionsIncremental',
-    );
 
     jest
       .spyOn(
@@ -232,6 +257,16 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         sessionProperties: {},
       },
     });
+    otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue({
+      nativeCurrency: 'ETH',
+      rpcEndpoints: [
+        {
+          url: 'https://rpc.test-chain.com',
+          networkClientId: 'test-network-configuration-id',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    });
 
     await wallet_switchEthereumChain({
       req: {
@@ -241,30 +276,13 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       ...otherOptions,
     });
 
-    expect(otherOptions.requestUserApproval).toHaveBeenCalled();
-    expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
-    expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
-      approvedPermissions: {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: {
-                isMultichainOrigin: false,
-                optionalScopes: {
-                  'eip155:100': {
-                    accounts: [],
-                  },
-                },
-                requiredScopes: {},
-                sessionProperties: {},
-              },
-            },
-          ],
-        },
-      },
-      subject: {
-        origin,
+    expect(
+      otherOptions.hooks.requestPermittedChainsPermissionIncrementalForOrigin,
+    ).toHaveBeenCalledWith({
+      chainId: '0x64',
+      autoApprove: false,
+      metadata: {
+        rpcUrl: 'https://rpc.test-chain.com',
       },
     });
     expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledWith(

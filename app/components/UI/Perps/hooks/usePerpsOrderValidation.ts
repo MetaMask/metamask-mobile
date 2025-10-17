@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import type { OrderParams } from '../controllers/types';
-import type { OrderFormState } from '../types';
+import type { OrderFormState } from '../types/perps-types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
 import {

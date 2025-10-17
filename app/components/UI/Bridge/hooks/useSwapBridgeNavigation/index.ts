@@ -13,10 +13,17 @@ import { BridgeRouteParams } from '../../Views/BridgeView';
 import { EthScope } from '@metamask/keyring-api';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../../util/analytics/actionButtonTracking';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
+import { strings } from '../../../../../../locales/i18n';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 
 export enum SwapBridgeNavigationLocation {
@@ -119,6 +126,16 @@ export const useSwapBridgeNavigation = ({
         params,
       });
 
+      // Track Swap button click with new consolidated event
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: strings('asset_overview.swap'),
+        location:
+          location === 'TabBar'
+            ? ActionLocation.HOME
+            : ActionLocation.ASSET_DETAILS,
+      });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties({
