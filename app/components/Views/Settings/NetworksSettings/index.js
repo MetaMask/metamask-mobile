@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
@@ -44,6 +43,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { MetaMetrics } from '../../../../core/Analytics';
 import { removeItemFromChainIdList } from '../../../../util/metrics/MultichainAPI/networkMetricUtils';
@@ -57,13 +57,9 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      paddingVertical: 16,
-    },
-    searchWrapper: {
-      marginHorizontal: 16,
-    },
-    scrollWrapper: {
-      padding: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      marginBottom: 24,
     },
     networkIcon: {
       width: 20,
@@ -90,10 +86,6 @@ const createStyles = (colors) =>
       fontSize: 16,
       color: colors.text.default,
       ...fontStyles.normal,
-    },
-    syncConfirm: {
-      marginTop: 16,
-      marginHorizontal: 16,
     },
     sectionLabel: {
       fontSize: 14,
@@ -564,12 +556,11 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView
+      <View
         style={styles.wrapper}
-        edges={{ bottom: 'additive' }}
         testID={NetworksViewSelectorsIDs.NETWORK_CONTAINER}
       >
-        <View style={styles.searchWrapper}>
+        {
           <NetworkSearchTextInput
             searchString={this.state.searchString}
             handleSearchTextChange={this.handleSearchTextChange}
@@ -579,12 +570,8 @@ class NetworksSettings extends PureComponent {
             }
             testIdCloseIcon={NetworksViewSelectorsIDs.CLOSE_ICON}
           />
-        </View>
-
-        <ScrollView
-          contentContainerStyle={styles.scrollWrapper}
-          style={styles.networksWrapper}
-        >
+        }
+        <ScrollView style={styles.networksWrapper}>
           {this.state.searchString.length > 0 ? (
             this.filteredResult()
           ) : (
@@ -626,7 +613,7 @@ class NetworksSettings extends PureComponent {
           onPress={this.onActionSheetPress}
           theme={themeAppearance}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 }

@@ -84,6 +84,10 @@ class SolanaTestDApp {
 
   async reloadSolanaTestDApp(): Promise<void> {
     await Browser.reloadTab();
+
+    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
+      .toBeVisible()
+      .withTimeout(10000);
   }
 
   /**

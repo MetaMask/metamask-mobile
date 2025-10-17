@@ -17,17 +17,13 @@ import {
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceOptOutAction,
 } from '../../controllers/rewards-controller/services';
-
-import type {
-  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
-  AccountTreeControllerSelectedAccountGroupChangeEvent,
-} from '@metamask/account-tree-controller';
 import {
   RewardsControllerActions,
   RewardsControllerEvents,
 } from '../../controllers/rewards-controller/types';
 import {
   AccountsControllerGetSelectedMultichainAccountAction,
+  AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
 import {
@@ -45,7 +41,6 @@ const name = 'RewardsController';
 type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | AccountsControllerListMultichainAccountsAction
-  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -67,7 +62,7 @@ type AllowedActions =
 
 // Don't reexport as per guidelines
 type AllowedEvents =
-  | AccountTreeControllerSelectedAccountGroupChangeEvent
+  | AccountsControllerSelectedAccountChangeEvent
   | KeyringControllerUnlockEvent;
 
 export type RewardsControllerMessenger = RestrictedMessenger<
@@ -88,7 +83,6 @@ export function getRewardsControllerMessenger(
     name,
     allowedActions: [
       'AccountsController:getSelectedMultichainAccount',
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
@@ -110,7 +104,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:claimReward',
     ],
     allowedEvents: [
-      'AccountTreeController:selectedAccountGroupChange',
+      'AccountsController:selectedAccountChange',
       'KeyringController:unlock',
     ],
   });

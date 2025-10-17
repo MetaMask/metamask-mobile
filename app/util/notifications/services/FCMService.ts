@@ -11,6 +11,7 @@ import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -31,19 +32,12 @@ function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    if (remoteMessage?.data?.data) {
-      const rawData = JSON.parse(remoteMessage.data.data?.toString() ?? null);
-      const kind = rawData?.kind ?? rawData?.data?.kind;
-
+    if (remoteMessage?.data) {
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
         )
-          .addProperties({
-            deeplink: remoteMessage?.data?.deeplink?.toString(),
-            kind,
-            data: rawData,
-          })
+          .addProperties({ ...(remoteMessage.data as JsonMap) })
           .build(),
       );
     }

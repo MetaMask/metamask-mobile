@@ -22,13 +22,7 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../utils';
 
-interface ReferralDetailsProps {
-  showInfoSection?: boolean;
-}
-
-const ReferralDetails: React.FC<ReferralDetailsProps> = ({
-  showInfoSection = true,
-}) => {
+const ReferralDetails: React.FC = () => {
   const referralCode = useSelector(selectReferralCode);
   const refereeCount = useSelector(selectReferralCount);
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
@@ -95,7 +89,7 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
 
   return (
     <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
-      {showInfoSection && <ReferralInfoSection />}
+      <ReferralInfoSection />
 
       {!referralDetailsLoading && referralDetailsError && !referralCode ? (
         <RewardsErrorBanner

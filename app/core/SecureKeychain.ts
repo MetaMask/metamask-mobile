@@ -98,7 +98,7 @@ const SecureKeychain = {
    * @param scopeOptions - Keychain options that define the scope to clear
    * @returns Promise that resolves when the scope is cleared
    */
-  async clearSecureScope(scopeOptions: Keychain.SetOptions) {
+  async clearSecureScope(scopeOptions: Keychain.Options) {
     return Keychain.resetGenericPassword(scopeOptions);
   },
 
@@ -112,7 +112,7 @@ const SecureKeychain = {
   async setSecureItem(
     key: string,
     value: string,
-    scopeOptions: Keychain.SetOptions,
+    scopeOptions: Keychain.Options,
   ) {
     const encryptedValue = await instance.encryptPassword(value);
     return Keychain.setGenericPassword(key, encryptedValue, scopeOptions);
@@ -123,7 +123,7 @@ const SecureKeychain = {
    * @param scopeOptions - Keychain options that define the scope to retrieve from
    * @returns Promise that resolves to an object with key and value, or null if not found
    */
-  async getSecureItem(scopeOptions: Keychain.SetOptions) {
+  async getSecureItem(scopeOptions: Keychain.Options) {
     if (instance) {
       try {
         instance.isAuthenticating = true;
@@ -182,7 +182,7 @@ const SecureKeychain = {
   },
 
   async setGenericPassword(password: string, type?: SecureKeychainTypes) {
-    const authOptions: Keychain.SetOptions = {
+    const authOptions: Keychain.Options = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
 

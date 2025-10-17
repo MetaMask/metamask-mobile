@@ -14,7 +14,6 @@ describe(FlaskBuildTests('Cronjob Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();

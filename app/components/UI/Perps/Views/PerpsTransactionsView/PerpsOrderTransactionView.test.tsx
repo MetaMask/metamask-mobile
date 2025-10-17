@@ -137,9 +137,9 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('MetaMask fee')).toBeTruthy();
     expect(getByText('Hyperliquid fee')).toBeTruthy();
     expect(getByText('Total fee')).toBeTruthy();
-    expect(getByText('$3')).toBeTruthy();
-    expect(getByText('$7.5')).toBeTruthy();
-    expect(getByText('$10.5')).toBeTruthy();
+    expect(getByText('$3.00')).toBeTruthy();
+    expect(getByText('$7.50')).toBeTruthy();
+    expect(getByText('$10.50')).toBeTruthy();
   });
 
   it('should show zero fees when order is not filled', () => {

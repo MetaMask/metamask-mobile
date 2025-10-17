@@ -47,8 +47,6 @@ import TabBar from '../../Base/TabBar';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
-import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
@@ -163,11 +161,6 @@ const ActivityView = () => {
     [perpsEnabledFlag, isEvmSelected],
   );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
-  const isPredictEnabled = useMemo(
-    () => predictEnabledFlag && isEvmSelected,
-    [predictEnabledFlag, isEvmSelected],
-  );
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -221,10 +214,7 @@ const ActivityView = () => {
   // Calculate if Perps tab is currently active
   // Perps is the last tab, so its index depends on what other tabs are shown
   const perpsTabIndex = 2;
-  const predictTabIndex = 3;
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
-  const isPredictTabActive =
-    isPredictEnabled && activeTabIndex === predictTabIndex;
   const isOrdersTabActive = activeTabIndex === 1;
 
   useFocusEffect(
@@ -268,7 +258,7 @@ const ActivityView = () => {
         </Text>
       </View>
       <View style={styles.wrapper}>
-        {!(isPerpsTabActive || isOrdersTabActive || isPredictTabActive) && (
+        {!(isPerpsTabActive || isOrdersTabActive) && (
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
@@ -357,12 +347,6 @@ const ActivityView = () => {
             >
               <PerpsTransactionsView />
             </PerpsConnectionProvider>
-          )}
-
-          {isPredictEnabled && (
-            <PredictTransactionsView
-              tabLabel={strings('predict.transactions.title')}
-            />
           )}
         </ScrollableTabView>
       </View>

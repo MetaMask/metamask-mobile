@@ -14,7 +14,7 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatVolume,
-  PRICE_RANGES_UNIVERSAL,
+  PRICE_RANGES_DETAILED_VIEW,
 } from '../../utils/formatUtils';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -41,7 +41,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     const currentPrice = parseFloat(livePrice.price);
 
     const formattedPrice = formatPerpsFiat(currentPrice, {
-      ranges: PRICE_RANGES_UNIVERSAL,
+      ranges: PRICE_RANGES_DETAILED_VIEW,
     });
     const comparisonPrice = formatPerpsFiat(currentPrice, {
       minimumDecimals: 2,

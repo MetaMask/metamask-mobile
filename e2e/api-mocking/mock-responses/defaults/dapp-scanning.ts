@@ -85,13 +85,5 @@ export const DAPP_SCANNING_MOCKS: MockEventsObject = {
         recommendedAction: 'NONE',
       },
     },
-    {
-      urlEndpoint: createDappScanningUrl('widget.solflare.com'),
-      responseCode: 200,
-      response: {
-        domainName: 'widget.solflare.com',
-        recommendedAction: 'NONE',
-      },
-    },
   ],
 };

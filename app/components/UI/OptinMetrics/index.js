@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import {
   View,
+  SafeAreaView,
   StyleSheet,
   ScrollView,
   BackHandler,
@@ -10,7 +11,6 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -424,7 +424,7 @@ class OptinMetrics extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+      <SafeAreaView style={styles.root}>
         <ScrollView
           style={styles.root}
           scrollEventThrottle={150}

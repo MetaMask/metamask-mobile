@@ -11,7 +11,7 @@ import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectEvmTicker } from '../selectors/networkController';
 import { store } from '../store';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 
 import Logger from '../util/Logger';
 import {
@@ -19,14 +19,12 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
-import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
-  TransactionType.predictDeposit,
 ];
 
-export const IN_PROGRESS_SKIP_STATUS = [
+export const PERPS_DEPOSIT_SKIP_STATUS = [
   TransactionStatus.unapproved,
   TransactionStatus.approved,
   TransactionStatus.signed,
@@ -518,19 +516,18 @@ class NotificationManager {
   #shouldSkipNotification(transactionMeta) {
     const { TransactionController } = Engine.context;
 
-    if (
-      hasTransactionType(transactionMeta, SKIP_NOTIFICATION_TRANSACTION_TYPES)
-    ) {
+    if (SKIP_NOTIFICATION_TRANSACTION_TYPES.includes(transactionMeta?.type)) {
       return true;
     }
 
-    const isSkippedInProgress = TransactionController.state.transactions.some(
-      (tx) =>
-        hasTransactionType(tx, SKIP_NOTIFICATION_TRANSACTION_TYPES) &&
-        IN_PROGRESS_SKIP_STATUS.includes(tx.status),
-    );
+    const isPerpsDepositInProgress =
+      TransactionController.state.transactions.some(
+        (tx) =>
+          tx.type === TransactionType.perpsDeposit &&
+          PERPS_DEPOSIT_SKIP_STATUS.includes(tx.status),
+      );
 
-    return isSkippedInProgress;
+    return isPerpsDepositInProgress;
   }
 }
 

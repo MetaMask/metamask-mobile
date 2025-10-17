@@ -221,12 +221,6 @@
     "remind_later_description2": "Μπορείτε να δημιουργήσετε αντίγραφα ασφαλείας των πορτοφολιών σας ή να δείτε τη Μυστική Φράση Ανάκτησης στις",
     "setting_security_privacy": "Ρυθμίσεις > Ασφάλεια και Απόρρητο"
   },
-  "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
-  },
   "onboarding_carousel": {
     "title1": "Καλώς ορίσατε στο MetaMask",
     "title2": "Διαχειριστείτε τα ψηφιακά περιουσιακά σας στοιχεία ",
@@ -395,7 +389,6 @@
     "description": "Ξεκλειδώνει το MetaMask μόνο σε αυτήν τη συσκευή.",
     "description_social_login": "Χρησιμοποιήστε την για ανάκτηση του πορτοφολιού σε όλες τις συσκευές.",
     "description_social_login_update": "Αν χάσετε τον κωδικό πρόσβασης, δεν θα έχετε πλέον πρόσβαση στο πορτοφόλι σας σε όλες τις συσκευές. Φυλάξτε τον σε ασφαλές μέρος,",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "καθώς το MetaMask δεν μπορεί να τον επαναφέρει.",
     "subtitle": "Αυτός ο κωδικός πρόσβασης θα ξεκλειδώσει το πορτοφόλι MetaMask μόνο σε αυτή τη συσκευή.",
     "password": "Δημιουργία κωδικού πρόσβασης",
@@ -669,14 +662,7 @@
       "bullet_2_description": "Το USDC έχει σχεδιαστεί ώστε να παραμένει σταθερό, διευκολύνοντας τον προγραμματισμό, την αποταμίευση και τις δαπάνες σας.",
       "bullet_3_title": "Πιο γρήγορα από τις τράπεζες",
       "bullet_3_description": "Στείλτε και λάβετε μέσα σε λίγα λεπτά, χωρίς αναμονή για τις ώρες λειτουργίας των τραπεζών ή για διεθνείς καθυστερήσεις.",
-      "button": "Ξεκινήστε",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "Ξεκινήστε"
     },
     "enter_email": {
       "navbar_title": "Επαληθεύστε την ταυτότητά σας",
@@ -893,6 +879,7 @@
     "refresh_balance": "Ανανέωση υπολοίπου",
     "add_funds": "Προσθήκη κεφαλαίων",
     "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Οι θέσεις σας",
     "loading_positions": "Φόρτωση θέσεων...",
     "refreshing_positions": "Ανανέωση θέσεων...",
@@ -1613,13 +1600,7 @@
     "won_markets_text_plural": "Κερδίσατε {{count}} αγορές",
     "claim_amount_text": "Εξαργυρώστε ${{amount}}",
     "unrealized_pnl_label": "Μη οριστικοποιημένα κέρδη & ζημίες",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unavailable": {
-      "title": "Unavailable in your region",
-      "description": "Predictions aren't available in your region due to legal restrictions.",
-      "link": "See Polymarket terms",
-      "button": "Got it"
-    }
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "Λήψη"
@@ -2803,13 +2784,12 @@
   },
   "gas_fee_token_modal": {
     "title": "Επιλέξτε ένα token",
+    "title_pay_eth": "Πληρωμή με ETH",
     "native_toggle_wallet": "Πληρώστε τα τέλη δικτύου από το υπόλοιπο στο πορτοφόλι σας.",
     "list_balance": "Υπολ.:",
     "insufficient_balance": "Ανεπαρκή κεφάλαια",
-    "native_toggle_metamask": "Το MetaMask θα συμπληρώσει το υπόλοιπο για να ολοκληρώσει αυτήν τη συναλλαγή."
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "Το MetaMask θα συμπληρώσει το υπόλοιπο για να ολοκληρώσει αυτήν τη συναλλαγή.",
+    "title_pay_with_other_tokens": "Πληρωμή με άλλα tokens"
   },
   "transaction": {
     "transaction_id": "Αναγνωριστικό συναλλαγής",
@@ -3092,7 +3072,6 @@
     "tx_review_lending_deposit": "Κατάθεση Δανεισμού",
     "tx_review_lending_withdraw": "Ανάληψη Δανεισμού",
     "tx_review_perps_deposit": "Χρηματοδοτημένος λογαριασμός με συμβόλαια αορίστου διάρκειας",
-    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Αποστολή Ether",
     "self_sent_ether": "Στείλτε Ether στον εαυτό σας",
     "received_ether": "Ληφθέντα Ether",
@@ -5297,8 +5276,7 @@
       "transfer": "Αίτημα μεταφοράς",
       "switch_account_type": "Ενημέρωση λογαριασμού",
       "approve": "Έγκριση αιτήματος",
-      "perps_deposit": "Προσθήκη κεφαλαίων",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "Προσθήκη κεφαλαίων"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
@@ -5316,9 +5294,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "Θα μετατρέψουμε τα tokens σας σε USDC στο HyperCore, το δίκτυο που χρησιμοποιούμε για συμβόλαια αορίστου διάρκειας (perps). Οι πάροχοι ανταλλαγών ενδέχεται να χρεώνουν προμήθεια, αλλά το MetaMask δεν χρεώνει."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Τέλη"
@@ -5537,9 +5512,7 @@
     "account_not_found": "Το πορτοφόλι δεν βρέθηκε",
     "account_not_found_description": "Δεν βρήκαμε πορτοφόλι για τον/την '{{accountName}}'. Θέλετε να φτιάξετε νέο με αυτά τα στοιχεία σύνδεσης;",
     "create_new_wallet": "Δημιουργήστε ένα καινούργιο πορτοφόλι",
-    "use_different_login_method": "Χρησιμοποιήστε διαφορετική μέθοδο σύνδεσης",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "use_different_login_method": "Χρησιμοποιήστε διαφορετική μέθοδο σύνδεσης"
   },
   "error_sheet": {
     "still_there_title": "Είστε ακόμα εδώ;",
@@ -5919,15 +5892,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      },
-      "date": "Date",
-      "account": "Account",
-      "bonus": "Bonus",
-      "details": "Details",
-      "points": "Points",
-      "points_base": "Base",
-      "points_boost": "Boost",
-      "points_total": "Total"
+      }
     },
     "onboarding": {
       "not_supported_region_title": "Η περιοχή δεν υποστηρίζεται",
@@ -6099,8 +6064,7 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded Perps account",
-      "predict_deposit": "Funded Predict account",
+      "perps_deposit": "Χρηματοδότηση για perps",
       "default": "Λεπτομέρειες συναλλαγής"
     },
     "label": {
@@ -6116,7 +6080,6 @@
       "bridge_loading": "Μεταφορά",
       "default": "Συναλλαγή",
       "perps_deposit": "Προσθήκη κεφαλαίων",
-      "predict_deposit": "Add funds",
       "swap": "Ανταλλαγή tokens",
       "swap_approval": "Έγκριση token"
     }
@@ -6129,10 +6092,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

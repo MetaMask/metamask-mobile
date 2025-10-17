@@ -31,9 +31,6 @@ const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
       gap: 4,
     },
-    recipientText: {
-      flexShrink: 1,
-    },
     disclaimerText: {
       textAlign: 'center',
     },

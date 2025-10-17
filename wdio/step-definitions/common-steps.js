@@ -79,6 +79,7 @@ Given(/^I create a new wallet$/, async () => {
   await TermOfUseScreen.tapScrollEndButton();
   await driver.pause();
   await TermOfUseScreen.tapAcceptButton();
+  await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
   if (SEEDLESS_ONBOARDING_ENABLED) {
     await OnboardingSheet.tapImportSeedButton();

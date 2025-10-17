@@ -1,1 +1,0 @@
-export { useNonEvmAccounts } from './useNonEvmAccounts';

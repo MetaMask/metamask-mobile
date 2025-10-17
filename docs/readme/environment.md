@@ -60,13 +60,6 @@ To install a simulator, open Xcode > Settings... (or Preferences...) and select 
 
 If you are using Xcode version 14.0 or greater than to install a simulator, open Xcode > Settings > Platforms tab, then click "+" icon and select iOS… option.
 
-You might need to install `applesimutils` as well if is not installed by default with Xcode:
-
-```bash
-brew tap wix/brew
-brew install applesimutils
-```
-
 ### Node
 
 It is recommended to install a Node version manager such as [nodenv](https://github.com/nodenv/nodenv?tab=readme-ov-file#installation), [nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating), [asdf](https://asdf-vm.com/guide/getting-started.html#_3-install-asdf)

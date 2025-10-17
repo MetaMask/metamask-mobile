@@ -2,30 +2,24 @@ import { constants } from 'ethers';
 import { getNativeSourceToken, getDefaultDestToken } from './tokenUtils';
 import {
   getNativeAssetForChainId,
-  isNonEvmChainId,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
 
 // Mock dependencies
-jest.mock('@metamask/utils', () => {
-  const actual = jest.requireActual('@metamask/utils');
-  return {
-    ...actual,
-    isCaipAssetType: jest.fn(actual.isCaipAssetType),
-    parseCaipAssetType: jest.fn(actual.parseCaipAssetType),
-    parseCaipChainId: jest.fn(actual.parseCaipChainId),
-  };
-});
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  isCaipAssetType: jest.fn(),
+  parseCaipAssetType: jest.fn(),
+  parseCaipChainId: jest.fn(),
+}));
 
-jest.mock('@metamask/bridge-controller', () => {
-  const actual = jest.requireActual('@metamask/bridge-controller');
-  return {
-    ...actual,
-    getNativeAssetForChainId: jest.fn(actual.getNativeAssetForChainId),
-    isNonEvmChainId: jest.fn(actual.isNonEvmChainId),
-  };
-});
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  getNativeAssetForChainId: jest.fn(),
+  isSolanaChainId: jest.fn(),
+}));
 
 jest.mock('../../../../util/address', () => ({
   safeToChecksumAddress: jest.fn(),
@@ -38,31 +32,60 @@ describe('tokenUtils', () => {
 
   describe('getNativeSourceToken', () => {
     it('returns formatted native token for EVM chain', () => {
+      const mockNativeAsset = {
+        address: constants.AddressZero,
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18,
+      };
+
+      (isSolanaChainId as jest.Mock).mockReturnValue(false);
+      (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
+
       const result = getNativeSourceToken('eip155:1');
 
       expect(result).toEqual({
         address: constants.AddressZero,
-        name: 'Ether',
+        name: 'Ethereum',
         symbol: 'ETH',
-        image: '',
+        image: undefined,
         decimals: 18,
-        chainId: '0x1',
+        chainId: 'eip155:1',
       });
+      expect(getNativeAssetForChainId).toHaveBeenCalledWith('eip155:1');
+      expect(isSolanaChainId).toHaveBeenCalledWith('eip155:1');
     });
 
     it('returns formatted native token for Solana chain using assetId', () => {
+      const mockNativeAsset = {
+        address: constants.AddressZero,
+        assetId: 'native-sol-asset-id',
+        name: 'Solana',
+        symbol: 'SOL',
+        decimals: 9,
+      };
+
+      (isSolanaChainId as jest.Mock).mockReturnValue(true);
+      (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
+
       const result = getNativeSourceToken(
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       );
 
       expect(result).toEqual({
-        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        address: 'native-sol-asset-id',
         name: 'Solana',
         symbol: 'SOL',
-        image: '',
+        image: undefined,
         decimals: 9,
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       });
+      expect(getNativeAssetForChainId).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      expect(isSolanaChainId).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
     });
 
     it('returns native token with icon when iconUrl present', () => {
@@ -74,7 +97,7 @@ describe('tokenUtils', () => {
         iconUrl: 'https://example.com/eth-icon.png',
       };
 
-      (isNonEvmChainId as jest.Mock).mockReturnValue(false);
+      (isSolanaChainId as jest.Mock).mockReturnValue(false);
       (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
 
       const result = getNativeSourceToken('eip155:1');
@@ -85,7 +108,7 @@ describe('tokenUtils', () => {
         symbol: 'ETH',
         image: 'https://example.com/eth-icon.png',
         decimals: 18,
-        chainId: '0x1',
+        chainId: 'eip155:1',
       });
     });
 
@@ -96,6 +119,7 @@ describe('tokenUtils', () => {
         decimals: 18,
       };
 
+      (isSolanaChainId as jest.Mock).mockReturnValue(false);
       (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
 
       const result = getNativeSourceToken('eip155:1');
@@ -104,9 +128,9 @@ describe('tokenUtils', () => {
         address: constants.AddressZero,
         name: '',
         symbol: 'ETH',
-        image: '',
+        image: undefined,
         decimals: 18,
-        chainId: '0x1',
+        chainId: 'eip155:1',
       });
     });
   });

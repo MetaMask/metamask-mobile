@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import { RedesignedSendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/RedesignedSendView.selectors';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { doENSLookup } from '../../../../../../util/ENSUtils';
 import { useSendContext } from '../../../context/send-context/send-context';
@@ -218,8 +217,6 @@ describe('Recipient', () => {
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
       isSolanaSendType: false,
-      isBitcoinSendType: false,
-      isTronSendType: false,
     });
   });
 
@@ -326,7 +323,7 @@ describe('Recipient', () => {
 
     const { getByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId('review-button-send'));
 
     expect(mockHandleSubmitPress).toHaveBeenCalledWith('some_dummy_address');
   });
@@ -610,7 +607,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId('review-button-send'));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
@@ -647,7 +644,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId('review-button-send'));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
@@ -684,7 +681,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId('review-button-send'));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();

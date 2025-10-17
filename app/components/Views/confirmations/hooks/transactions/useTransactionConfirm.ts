@@ -12,7 +12,6 @@ import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
 import {
   BatchTransaction,
-  TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
@@ -23,7 +22,6 @@ import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/use
 import { TransactionBridgeQuote } from '../../utils/bridge';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -33,7 +31,6 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMetadata = useTransactionMetadataRequest();
-  const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, id: transactionId, type } = transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
@@ -53,8 +50,7 @@ export function useTransactionConfirm() {
     selectTransactionBridgeQuotesById(state, transactionId ?? ''),
   );
 
-  const waitForResult =
-    !shouldUseSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+  const waitForResult = !shouldUseSmartTransaction && !quotes?.length;
 
   const hasSameChainQuote =
     quotes?.length &&
@@ -63,35 +59,6 @@ export function useTransactionConfirm() {
   const batchTransactions = useMemo(
     () => (hasSameChainQuote ? getQuoteBatchTransactions(quotes) : undefined),
     [hasSameChainQuote, quotes],
-  );
-
-  const handleSmartTransaction = useCallback(
-    (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
-        return;
-      }
-
-      updatedMetadata.batchTransactions = [
-        ...(updatedMetadata.batchTransactions ?? []),
-        selectedGasFeeToken.transferTransaction,
-      ];
-      updatedMetadata.txParams.gas = selectedGasFeeToken.gas;
-      updatedMetadata.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
-      updatedMetadata.txParams.maxPriorityFeePerGas =
-        selectedGasFeeToken.maxPriorityFeePerGas;
-    },
-    [selectedGasFeeToken],
-  );
-
-  const handleGasless7702 = useCallback(
-    (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
-        return;
-      }
-
-      updatedMetadata.isExternalSign = true;
-    },
-    [selectedGasFeeToken],
   );
 
   const onConfirm = useCallback(async () => {
@@ -110,12 +77,6 @@ export function useTransactionConfirm() {
     if (batchTransactions) {
       updatedMetadata.batchTransactions = batchTransactions;
       updatedMetadata.batchTransactionsOptions = {};
-    }
-
-    if (shouldUseSmartTransaction) {
-      handleSmartTransaction(updatedMetadata);
-    } else if (selectedGasFeeToken) {
-      handleGasless7702(updatedMetadata);
     }
 
     try {
@@ -154,16 +115,11 @@ export function useTransactionConfirm() {
     bridgeFeeFiat,
     chainId,
     dispatch,
-    handleGasless7702,
-    handleSmartTransaction,
     isFullScreenConfirmation,
     navigation,
     networkFeeFiat,
     onRequestConfirm,
-    payToken?.address,
-    payToken?.chainId,
-    selectedGasFeeToken,
-    shouldUseSmartTransaction,
+    payToken,
     totalFiat,
     transactionMetadata,
     tryEnableEvmNetwork,

@@ -1,34 +1,21 @@
-import { Messenger } from '@metamask/base-controller';
-import type {
-  KeyringControllerGetStateAction,
-  KeyringControllerLockEvent,
-  KeyringControllerUnlockEvent,
-} from '@metamask/keyring-controller';
-import type { HandleSnapRequest } from '@metamask/snaps-controllers';
+import type { AuthenticationControllerMessenger } from '@metamask/profile-sync-controller/auth';
+import { BaseControllerMessenger } from '../../types';
 
-type AllowedActions = HandleSnapRequest | KeyringControllerGetStateAction;
-type AllowedEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
-
-export type AuthenticationControllerMessenger = ReturnType<
-  typeof getAuthenticationControllerMessenger
->;
-
-/**
- * Get a messenger restricted to the actions and events that the
- * authentication controller is allowed to handle.
- *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
- */
 export function getAuthenticationControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
+  baseControllerMessenger: BaseControllerMessenger,
+): AuthenticationControllerMessenger {
+  return baseControllerMessenger.getRestricted({
     name: 'AuthenticationController',
     allowedActions: [
+      // Keyring Controller Requests
       'KeyringController:getState',
+      // Snap Controller Requests
       'SnapController:handleRequest',
     ],
-    allowedEvents: ['KeyringController:lock', 'KeyringController:unlock'],
+    allowedEvents: [
+      // Keyring Controller Events
+      'KeyringController:lock',
+      'KeyringController:unlock',
+    ],
   });
 }

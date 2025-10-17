@@ -58,7 +58,6 @@ const mockPredictMarket: PredictMarket = {
     {
       id: 'outcome-1',
       marketId: 'test-market-1',
-      providerId: 'test-provider',
       title: 'Yes',
       description: 'Bitcoin will reach $150,000',
       image: 'https://example.com/bitcoin.png',
@@ -90,7 +89,6 @@ const mockPredictMarketMultiple: PredictMarket = {
     {
       id: 'outcome-3',
       marketId: 'test-market-3',
-      providerId: 'test-provider',
       title: 'Bitcoin Yes',
       description: 'Bitcoin will reach $150,000',
       image: 'https://example.com/bitcoin.png',
@@ -107,7 +105,6 @@ const mockPredictMarketMultiple: PredictMarket = {
     },
     {
       id: 'outcome-4',
-      providerId: 'test-provider',
       marketId: 'test-market-3',
       title: 'Ethereum Yes',
       description: 'Ethereum will reach $10,000',

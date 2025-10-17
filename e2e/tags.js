@@ -2,6 +2,7 @@ const tags = {
   smokeAccounts: 'SmokeAccounts:',
   regressionAccounts: 'RegressionAccounts:',
   smokeCore: 'SmokeCore:',
+  smokeConfirmations: 'SmokeConfirmations:',
   regressionConfirmations: 'RegressionConfirmations:',
   smokeConfirmationsRedesigned: 'SmokeConfirmationsRedesigned:',
   regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
@@ -35,6 +36,8 @@ const RegressionAccounts = (testName) =>
   `${tags.regressionAccounts} ${testName}`;
 const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
 const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
+const SmokeConfirmations = (testName) =>
+  `${tags.smokeConfirmations} ${testName}`;
 const RegressionConfirmations = (testName) =>
   `${tags.regressionConfirmations} ${testName}`;
 const SmokeConfirmationsRedesigned = (testName) =>
@@ -83,6 +86,7 @@ export {
   RegressionAccounts,
   SmokeAccounts,
   SmokeCore,
+  SmokeConfirmations,
   RegressionConfirmations,
   SmokeConfirmationsRedesigned,
   RegressionConfirmationsRedesigned,

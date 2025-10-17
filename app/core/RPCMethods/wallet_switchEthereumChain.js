@@ -4,7 +4,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../selectors/network
 import { store } from '../../store';
 import {
   validateChainId,
-  findtoNetworkConfiguration,
+  findExistingNetwork,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
@@ -15,6 +15,7 @@ import { isSnapId } from '@metamask/snaps-utils';
  *
  * @param params.req - The JsonRpcEngine request.
  * @param params.res - The JsonRpcEngine result object.
+ * @param params.requestUserApproval - The callback to trigger user approval flow.
  * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param params.hooks - Method hooks passed to the method implementation.
  * @returns {void}.
@@ -22,6 +23,7 @@ import { isSnapId } from '@metamask/snaps-utils';
 export const wallet_switchEthereumChain = async ({
   req,
   res,
+  requestUserApproval,
   analytics,
   hooks,
 }) => {
@@ -52,10 +54,12 @@ export const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-
-  const toNetworkConfiguration =
-    hooks.getNetworkConfigurationByChainId(_chainId);
-  if (toNetworkConfiguration) {
+  // TODO: [SOLANA] - This do not support non evm networks
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
+  const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
+  if (existingNetwork) {
     const currentDomainSelectedNetworkClientId =
       SelectedNetworkController.getNetworkClientIdForDomain(origin);
     const {
@@ -75,21 +79,18 @@ export const wallet_switchEthereumChain = async ({
       currentChainIdForOrigin,
     );
 
-    const { networkClientId, url: rpcUrl } =
-      toNetworkConfiguration.rpcEndpoints[
-        toNetworkConfiguration.defaultRpcEndpointIndex
-      ];
+    const toNetworkConfiguration =
+      hooks.getNetworkConfigurationByChainId(chainId);
 
     await switchToNetwork({
-      networkClientId,
-      nativeCurrency: toNetworkConfiguration.nativeCurrency,
-      rpcUrl,
+      network: existingNetwork,
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
         MultichainNetworkController,
         SelectedNetworkController,
       },
+      requestUserApproval,
       analytics,
       origin,
       autoApprove: isSnapId(origin),
@@ -116,11 +117,12 @@ export const switchEthereumChainHandler = {
   hookNames: {
     getNetworkConfigurationByChainId: true,
     setActiveNetwork: true,
+    requestUserApproval: true,
     getCaveat: true,
     getCurrentChainIdForDomain: true,
     requestPermittedChainsPermissionIncrementalForOrigin: true,
     setTokenNetworkFilter: true,
-    hasApprovalRequestsForOrigin: true, // not needed here, but is needed by wallet_addEthereumChain
+    hasApprovalRequestsForOrigin: true,
     rejectApprovalRequestsForOrigin: true,
   },
 };

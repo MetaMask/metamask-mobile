@@ -1,7 +1,7 @@
 import {
   formatChainIdToHex,
   formatChainIdToCaip,
-  isNonEvmChainId,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
@@ -43,18 +43,18 @@ export const useMultichainBlockExplorerTxUrl = ({
     selectNonEvmNetworkConfigurationsByChainId,
   );
 
-  // Format chainId based on whether it's EVM or not
-  const isNonEvm = chainId ? isNonEvmChainId(chainId) : false;
+  // Format chainId based on whether it's Solana or not
+  const isSolana = chainId ? isSolanaChainId(chainId) : false;
   let formattedChainId: string | undefined;
   if (chainId) {
-    formattedChainId = isNonEvm
+    formattedChainId = isSolana
       ? formatChainIdToCaip(chainId)
       : formatChainIdToHex(chainId);
   }
 
   // EVM specific hooks - always call these regardless of chainId
   const evmNetworkConfig =
-    formattedChainId && !isNonEvm
+    formattedChainId && !isSolana
       ? evmNetworkConfigurations[formattedChainId as Hex]
       : undefined;
 
@@ -80,7 +80,7 @@ export const useMultichainBlockExplorerTxUrl = ({
   let explorerTxUrl: string | undefined;
   if (!txHash) {
     explorerTxUrl = undefined;
-  } else if (isNonEvm) {
+  } else if (isSolana) {
     // Solana
     explorerTxUrl = getTransactionUrl(txHash, formatChainIdToCaip(chainId));
   } else {
@@ -95,12 +95,12 @@ export const useMultichainBlockExplorerTxUrl = ({
 
   // Determine explorer name and chain name
   const explorerName =
-    isNonEvm && explorerTxUrl
+    isSolana && explorerTxUrl
       ? getBlockExplorerName(explorerTxUrl)
       : evmExplorer.name;
 
   const chainName =
-    isNonEvm && formattedChainId
+    isSolana && formattedChainId
       ? nonEvmNetworkConfigurations[formattedChainId]?.name
       : evmNetworkConfig?.name;
 

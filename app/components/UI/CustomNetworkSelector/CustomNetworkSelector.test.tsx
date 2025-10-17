@@ -18,12 +18,8 @@ import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse'
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-
-jest.mock('../../../core/Multichain/utils', () => ({
-  isNonEvmChainId: jest.fn().mockReturnValue(false),
-}));
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -38,8 +34,6 @@ jest.mock('@metamask/utils', () => ({
   KnownCaipNamespace: {
     Eip155: 'eip155',
     Solana: 'solana',
-    Bip122: 'bip122',
-    Tron: 'tron',
   },
 }));
 
@@ -267,15 +261,9 @@ describe('CustomNetworkSelector', () => {
       networksToUse: [...mockNetworks, ...mockNetworks], // Combined EVM and Solana networks
       evmNetworks: mockNetworks,
       solanaNetworks: mockNetworks,
-      bitcoinNetworks: mockNetworks,
       isMultichainAccountsState2Enabled: true,
       selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
-      selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
-      selectedTronAccount: { id: 'tron-account' } as InternalAccount,
-      tronNetworks: mockNetworks,
-      areAllBitcoinNetworksSelected: false,
-      areAllTronNetworksSelected: false,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
