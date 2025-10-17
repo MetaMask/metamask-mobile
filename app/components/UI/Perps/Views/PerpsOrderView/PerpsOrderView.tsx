@@ -572,7 +572,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       limitPrice: orderForm.limitPrice,
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
-      onConfirm: (takeProfitPrice?: string, stopLossPrice?: string) => {
+      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
         // Use the same clearing approach as the "Off" button
         // If values are undefined or empty, ensure they're cleared properly
         const tpToSet = takeProfitPrice || undefined;

@@ -127,7 +127,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     leverage?: number;
     orderType?: 'market' | 'limit';
     limitPrice?: string;
-    onConfirm: (takeProfitPrice?: string, stopLossPrice?: string) => void;
+    onConfirm: (
+      takeProfitPrice?: string,
+      stopLossPrice?: string,
+    ) => Promise<void>;
   };
 
   // Root perps view
