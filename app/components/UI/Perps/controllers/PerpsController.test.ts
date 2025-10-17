@@ -342,6 +342,58 @@ describe('PerpsController', () => {
         'REMOTE-US',
       ]);
     });
+
+    it('continues initialization when RemoteFeatureFlagController state call throws error', () => {
+      // Arrange: Mock messenger that throws error for RemoteFeatureFlagController:getState
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          throw new Error('RemoteFeatureFlagController not ready');
+        }
+        return undefined;
+      });
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+
+      // Act: Construct controller with fallback regions
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+          getRestricted: jest.fn().mockReturnValue({
+            call: mockCall,
+            publish: jest.fn(),
+            subscribe: jest.fn(),
+            registerActionHandler: jest.fn(),
+            registerEventHandler: jest.fn(),
+            registerInitialEventPayload: jest.fn(),
+          }),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
+        },
+      });
+
+      // Assert: Controller initializes successfully and uses fallback
+      expect(testController).toBeDefined();
+      expect((testController as any).blockedRegionList.source).toBe('fallback');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'FALLBACK-US',
+        'FALLBACK-CA',
+      ]);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: 'PerpsController.constructor',
+          operation: 'readRemoteFeatureFlags',
+        }),
+      );
+
+      mockLoggerError.mockRestore();
+    });
   });
 
   describe('getActiveProvider', () => {

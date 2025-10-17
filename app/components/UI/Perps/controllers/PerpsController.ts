@@ -505,11 +505,23 @@ export class PerpsController extends BaseController<
      *
      * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
      */
-    const currentRemoteFeatureFlagState = this.messagingSystem.call(
-      'RemoteFeatureFlagController:getState',
-    );
+    try {
+      const currentRemoteFeatureFlagState = this.messagingSystem.call(
+        'RemoteFeatureFlagController:getState',
+      );
 
-    this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
+      this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
+    } catch (error) {
+      // If we can't read the remote feature flags at construction time, we'll rely on:
+      // 1. The fallback blocked regions already set above
+      // 2. The subscription to catch updates when RemoteFeatureFlagController is ready
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('constructor', {
+          operation: 'readRemoteFeatureFlags',
+        }),
+      );
+    }
 
     this.messagingSystem.subscribe(
       'RemoteFeatureFlagController:stateChange',
