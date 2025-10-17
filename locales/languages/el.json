@@ -1512,7 +1512,7 @@
         "history_will_appear": "Το ιστορικό συναλλαγών σας θα εμφανιστεί εδώ"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Συνέχεια",
       "skip": "Παράλειψη",
@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Έτοιμοι να ξεκινήσετε τις συναλλαγές;",
         "description": "Χρηματοδοτήστε τον λογαριασμό σας για συμβόλαια αορίστου διάρκειας με οποιοδήποτε token και ξεκινήστε τις πρώτες σας συναλλαγές μέσα σε δευτερόλεπτα.",
-        "footer_text": "Το MetaMask θα μετατρέψει τα κεφάλαιά σας σε USDC στο δίκτυο Arbitrum και θα τα καταθέσει στο HyperEVM χωρίς επιπλέον χρέωση."
+        "footer_text": "Το MetaMask θα μετατρέψει τα κεφάλαιά σας σε USDC στο δίκτυο Arbitrum και θα τα καταθέσει στο HyperCore χωρίς επιπλέον χρέωση."
       },
       "got_it": "Κατανοητό",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Θα μετατρέψουμε τα tokens σας σε USDC στο HyperEVM, το δίκτυο που χρησιμοποιούμε για συμβόλαια αορίστου διάρκειας (perps). Οι πάροχοι ανταλλαγών ενδέχεται να χρεώνουν προμήθεια, αλλά το MetaMask δεν χρεώνει."
+        "transaction_fee": "Θα μετατρέψουμε τα tokens σας σε USDC στο HyperCore, το δίκτυο που χρησιμοποιούμε για συμβόλαια αορίστου διάρκειας (perps). Οι πάροχοι ανταλλαγών ενδέχεται να χρεώνουν προμήθεια, αλλά το MetaMask δεν χρεώνει."
       },
       "title": {
         "transaction_fee": "Τέλη"
@@ -5889,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Λήψη κέρδους",
-        "stop_loss": "Περιορισμός ζημιάς",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5926,9 +5926,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",

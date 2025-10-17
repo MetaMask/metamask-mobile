@@ -887,7 +887,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "marginBottom": 8,
-                                      "width": "100%",
                                     }
                                   }
                                 >
@@ -933,34 +932,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      <View
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        numberOfLines={2}
+                                        onTextLayout={[Function]}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "flexWrap": "wrap",
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          ellipsizeMode="tail"
-                                          numberOfLines={2}
-                                          onTextLayout={[Function]}
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "flex": 1,
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          Failed to fetch quote
-                                        </Text>
-                                      </View>
+                                        Failed to fetch quote
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>
@@ -1678,7 +1666,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -1712,9 +1699,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -2775,7 +2760,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "marginBottom": 8,
-                                      "width": "100%",
                                     }
                                   }
                                 >
@@ -2821,34 +2805,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      <View
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        numberOfLines={2}
+                                        onTextLayout={[Function]}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "flexWrap": "wrap",
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          ellipsizeMode="tail"
-                                          numberOfLines={2}
-                                          onTextLayout={[Function]}
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "flex": 1,
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          Failed to fetch quote.
-                                        </Text>
-                                      </View>
+                                        Failed to fetch quote.
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>
@@ -3566,7 +3539,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -3600,9 +3572,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -4663,7 +4633,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "marginBottom": 8,
-                                      "width": "100%",
                                     }
                                   }
                                 >
@@ -4709,34 +4678,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      <View
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        numberOfLines={2}
+                                        onTextLayout={[Function]}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "flexWrap": "wrap",
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          ellipsizeMode="tail"
-                                          numberOfLines={2}
-                                          onTextLayout={[Function]}
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "flex": 1,
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          Routing failed
-                                        </Text>
-                                      </View>
+                                        Routing failed
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>
@@ -5454,7 +5412,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -5488,9 +5445,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -7269,7 +7224,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -7303,9 +7257,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -9084,7 +9036,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -9118,9 +9069,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -10899,7 +10848,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -10933,9 +10881,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -12049,9 +11995,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                       {
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
+                                        "fontSize": 14,
                                         "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -12061,6 +12007,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     accessibilityRole="link"
                                     accessible={true}
                                     isDisabled={false}
+                                    labelTextVariant="sBodySM"
                                     loading={false}
                                     onPress={[MockFunction]}
                                     onPressIn={[Function]}
@@ -12807,7 +12754,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -12841,9 +12787,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -14622,7 +14566,6 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -14656,9 +14599,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      ,
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -16437,7 +16378,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -16471,9 +16411,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -18252,7 +18190,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -18286,9 +18223,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -19402,9 +19337,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                       {
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
+                                        "fontSize": 14,
                                         "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -19414,6 +19349,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     accessibilityRole="link"
                                     accessible={true}
                                     isDisabled={false}
+                                    labelTextVariant="sBodySM"
                                     loading={false}
                                     onPress={[MockFunction]}
                                     onPressIn={[Function]}
@@ -20160,7 +20096,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -20194,9 +20129,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -21973,7 +21906,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -22007,9 +21939,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -23121,9 +23051,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                       {
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
+                                        "fontSize": 14,
                                         "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -23133,6 +23063,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     accessibilityRole="link"
                                     accessible={true}
                                     isDisabled={false}
+                                    labelTextVariant="sBodySM"
                                     loading={false}
                                     onPress={[MockFunction]}
                                     onPressIn={[Function]}
@@ -23879,7 +23810,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -23913,9 +23843,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View
@@ -25694,7 +25622,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    disabled={true}
                                     onPress={[Function]}
                                     style={
                                       [
@@ -25728,9 +25655,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           undefined,
                                         ]
                                       }
-                                    >
-                                      .
-                                    </Text>
+                                    />
                                   </TouchableOpacity>
                                 </View>
                                 <View

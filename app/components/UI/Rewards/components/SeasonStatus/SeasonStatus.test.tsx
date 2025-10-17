@@ -619,6 +619,14 @@ describe('SeasonStatus', () => {
 
       expect(() => unmount()).not.toThrow();
     });
+
+    it('should call useSeasonStatus with onlyForExplicitFetch: true', () => {
+      render(<SeasonStatus />);
+
+      expect(mockUseSeasonStatus).toHaveBeenCalledWith({
+        onlyForExplicitFetch: true,
+      });
+    });
   });
 
   describe('RewardsThemeImageComponent Integration', () => {

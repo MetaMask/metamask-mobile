@@ -1512,7 +1512,7 @@
         "history_will_appear": "Ваша история торговли отобразится здесь"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Продолжить",
       "skip": "Пропустить",
@@ -1542,7 +1542,7 @@
       "ready_to_trade": {
         "title": "Готовы к торговле?",
         "description": "Пополните свой счет бессрочных фьючерсов любыми токенами и совершите первую сделку за считанные секунды.",
-        "footer_text": "MetaMask обменяет ваши средства на USDC на Arbitrum и внесет их на HyperEVM без дополнительной комиссии."
+        "footer_text": "MetaMask обменяет ваши средства на USDC на Arbitrum и внесет их на HyperCore без дополнительной комиссии."
       },
       "got_it": "Понятно",
       "card": {
@@ -5293,7 +5293,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Мы обменяем ваши токены на USDC в HyperEVM, сети, используемой Перами. Поставщики услуг свопов могут взимать комиссию, но MetaMask не взимает ее."
+        "transaction_fee": "Мы обменяем ваши токены на USDC в HyperCore, сети, используемой Перами. Поставщики услуг свопов могут взимать комиссию, но MetaMask не взимает ее."
       },
       "title": {
         "transaction_fee": "Комиссии"
@@ -5889,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Тейк-профит",
-        "stop_loss": "Стоп-лосс",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5926,9 +5926,7 @@
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
