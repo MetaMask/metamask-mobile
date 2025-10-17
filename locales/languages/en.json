@@ -594,7 +594,9 @@
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
-      "title": "Deposit"
+      "title": "Deposit",
+      "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
+      "limitError": "Failed to check your deposit limits. Please try again later."
     },
     "token_modal": {
       "select_a_token": "Select a Token",
@@ -1620,6 +1622,46 @@
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
       "button": "Got it"
+    },
+    "deposit": {
+      "in_progress": "Deposit in progress",
+      "adding_funds": "Adding funds",
+      "adding_your_funds": "Adding your funds",
+      "add_funds": "Add funds",
+      "withdraw": "Withdraw",
+      "estimated_processing_time": "Est. {{time}} seconds",
+      "account_ready": "Your account is ready",
+      "account_ready_description": "{{amount}} added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Your account wasn't funded",
+      "try_again": "Try again"
+    },
+    "add_funds_sheet": {
+      "title": "Add funds",
+      "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+    },
+    "transactions": {
+      "title": "Predictions",
+      "no_transactions": "No recent activity",
+      "buy_title": "Predicted",
+      "sell_title": "Cashed out",
+      "claim_title": "Claimed winnings",
+      "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
+      "sell_detail": "Sold at {{priceCents}} per share",
+      "claim_detail": "Claimed winnings",
+      "not_available": "N/A",
+      "date": "Date",
+      "market": "Market",
+      "outcome": "Outcome",
+      "predicted_amount": "Predicted amount",
+      "shares_bought": "Shares bought",
+      "shares_sold": "Shares sold",
+      "price_per_share": "Price per share",
+      "price_impact": "Price impact",
+      "net_pnl": "Net P&L",
+      "total_net_pnl": "Total Net P&L",
+      "market_net_pnl": "Market Net P&L",
+      "activity_details": "Activity details"
     }
   },
   "receive": {
@@ -5483,6 +5525,9 @@
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
+    "recipient": "Recipient",
+    "select_recipient": "Select recipient",
+    "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "insufficient_funds": "Insufficient funds",
     "insufficient_gas": "Insufficient gas",
@@ -5781,6 +5826,12 @@
     "invalid": {
       "title": "This page doesn't exist",
       "description": "We can't find the page you're looking for.",
+      "update_to_store_link": "Update to the latest version of MetaMask",
+      "well_take_you_to_right_place": " and we'll take you to the right place."
+    },
+    "unsupported": {
+      "title": "This page is not supported in current version",
+      "description": "Update to the latest version to use this feature",
       "update_to_store_link": "Update to the latest version of MetaMask",
       "well_take_you_to_right_place": " and we'll take you to the right place."
     },
@@ -6159,7 +6210,8 @@
 
     "link_account_group": {
       "link_account": "Add account",
-      "linked_accounts": "Tracked addresses",
+      "tracked": "Tracked",
+      "untracked": "Untracked",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },

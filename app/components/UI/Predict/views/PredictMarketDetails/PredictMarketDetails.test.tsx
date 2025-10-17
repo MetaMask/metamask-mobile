@@ -132,6 +132,17 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: jest.fn(() => ({
+    balance: 100,
+    hasNoBalance: false,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadBalance: jest.fn(),
+  })),
+}));
+
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictDetailsChart() {
@@ -737,7 +748,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(cashOutButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.CASH_OUT,
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
         params: {
           position: mockPosition,
           outcome: expect.any(Object),
@@ -764,7 +775,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(yesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.PLACE_BET,
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
         params: {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
@@ -795,7 +806,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(noButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.PLACE_BET,
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
         params: {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],

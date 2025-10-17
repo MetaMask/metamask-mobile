@@ -22,7 +22,7 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Box style={styles.emptyState}>
+    <Box testID="predict-position-empty" style={styles.emptyState}>
       <Icon
         name={IconName.Sparkle}
         size={IconSize.XXL}
