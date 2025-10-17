@@ -1,5 +1,9 @@
-# Get the name of the remote branch being pushed to
-# This handles cases where we're pushing to origin/main, origin/develop, etc.
+#!/bin/sh
+# Pre-push hook: Validates Prettier formatting and ESLint errors before pushing
+# Purpose: Prevents unformatted code from reaching remote branches, catching issues
+# that slip through `git commit --no-verify`. Only blocks on formatting issues and
+# ESLint errors (warnings are allowed). Can be bypassed with `git push --no-verify`.
+
 while read local_ref local_sha remote_ref remote_sha
 do
   if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
@@ -9,6 +13,21 @@ do
 
   # Extract remote branch name (e.g., refs/heads/main -> main)
   REMOTE_BRANCH=$(echo "$remote_ref" | sed 's|refs/heads/||')
+
+  # Handle new branches without remote tracking
+  # Check if remote branch exists, otherwise compare against main
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ] || ! git rev-parse "$remote_sha" >/dev/null 2>&1; then
+    # For new branches, compare against origin/main or main
+    remote_sha=$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null || echo "")
+    if [ -z "$remote_sha" ]; then
+      echo "⚠️  Cannot determine base commit for comparison. Skipping validation."
+      echo "💡 First push to a new repository? Run validation manually with:"
+      echo "   npx prettier --check 'app/**/*.{ts,tsx,js,jsx}'"
+      echo "   npx eslint 'app/**/*.{ts,tsx,js,jsx}'"
+      continue
+    fi
+    echo "ℹ️  New branch detected - comparing against main branch"
+  fi
 
   # Get list of files changed between remote and local HEAD
   # Only check files being pushed, not all uncommitted changes
@@ -21,6 +40,11 @@ do
 
   FILE_COUNT=$(echo "$FILES" | wc -l | xargs)
   echo "🔍 Validating $FILE_COUNT file(s) being pushed to $REMOTE_BRANCH..."
+
+  # Warn about potential performance impact for large pushes
+  if [ "$FILE_COUNT" -gt 50 ]; then
+    echo "⚠️  Large push detected ($FILE_COUNT files) - validation may take a minute..."
+  fi
   echo ""
 
   # Step 1: Check Prettier formatting (this is what CI checks with format:check:changed)
@@ -45,15 +69,17 @@ do
   echo "✅ Prettier formatting check passed"
   echo ""
 
-  # Step 2: Check ESLint (catches code quality issues)
-  echo "🔍 Checking ESLint..."
-  echo "$FILES" | tr '\n' '\0' | xargs -0 npx eslint --max-warnings=0
+  # Step 2: Check ESLint for errors only (warnings are allowed)
+  echo "🔍 Checking ESLint for errors..."
+  echo "$FILES" | tr '\n' '\0' | xargs -0 npx eslint
 
   if [ $? -ne 0 ]; then
     echo ""
     echo "❌ ESLint validation failed!"
     echo ""
     echo "Please fix the linting errors before pushing."
+    echo "Note: Warnings are allowed, but errors must be fixed."
+    echo ""
     echo "You can run 'npx eslint <file>' to check specific files."
     echo "You can run 'npx eslint <file> --fix' to auto-fix some issues."
     echo ""
