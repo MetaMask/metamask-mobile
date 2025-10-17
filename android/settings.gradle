@@ -6,28 +6,6 @@ pluginManagement {
         google()
     }
 }
-
-plugins { id("com.facebook.react.settings") }
-
-// Cirrus HTTP Cache configuration for remote build caching
-buildCache {
-    def httpCacheHost = System.getenv("CIRRUS_HTTP_CACHE_HOST")
-    if (httpCacheHost != null) {
-        remote(HttpBuildCache) {
-            url = "http://${httpCacheHost}/"
-            enabled = true
-            // TODO: Testing push on all branches - revert to main/develop only after testing
-            // Push to cache only on main/develop branches to prevent cache pollution
-            // Why: PRs still READ from cache (get full speed benefits), but only stable branches
-            // write to it. This prevents cache filling with one-off experimental builds that
-            // are unlikely to be reused, keeping the cache focused on canonical artifacts.
-            // def githubRef = System.getenv("GITHUB_REF_NAME")
-            // push = (githubRef == "main" || githubRef == "develop")
-            push = true  // Testing: Allow all branches to push
-        }
-    }
-}
-
 plugins { id("com.facebook.react.settings") }
  
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
