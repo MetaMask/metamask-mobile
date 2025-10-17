@@ -550,7 +550,7 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(
+export function getSendFlowTitle({
   title,
   navigation,
   route,
@@ -560,7 +560,7 @@ export function getSendFlowTitle(
   disableNetwork = true,
   showSelectedNetwork = false,
   globalChainId = '',
-) {
+} = {}) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -989,7 +989,7 @@ export function getWalletNavbarOptions(
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
-              } catch (e) {
+              } catch {
                 Alert.alert(
                   strings('import_private_key.error_title'),
                   strings('import_private_key.error_message'),
@@ -2198,7 +2198,7 @@ export const getSettingsNavigationOptions = (
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Close}
-          onPress={() => navigation && navigation.goBack()}
+          onPress={() => navigation?.goBack()}
           style={innerStyles.accessories}
           testID={NetworksViewSelectorsIDs.CLOSE_ICON}
         />
