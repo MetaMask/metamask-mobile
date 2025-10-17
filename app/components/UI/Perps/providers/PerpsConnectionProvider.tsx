@@ -12,9 +12,7 @@ import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycl
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import type { ReconnectOptions } from '../types/perps-types';
-import type { IPerpsProvider } from '../controllers/types';
 import Logger from '../../../../util/Logger';
-import Engine from '../../../../core/Engine';
 
 export interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -25,7 +23,6 @@ export interface PerpsConnectionContextValue {
   disconnect: () => Promise<void>;
   resetError: () => void;
   reconnectWithNewContext: (options?: ReconnectOptions) => Promise<void>;
-  getProvider: () => IPerpsProvider | null;
 }
 
 export const PerpsConnectionContext =
@@ -179,15 +176,6 @@ export const PerpsConnectionProvider: React.FC<
     [],
   );
 
-  // Get provider instance for debug/testing purposes
-  const getProvider = useCallback(() => {
-    try {
-      return Engine.context.PerpsController.getActiveProvider();
-    } catch {
-      return null;
-    }
-  }, []);
-
   // Use the connection lifecycle hook to manage visibility and app state
   usePerpsConnectionLifecycle({
     isVisible,
@@ -236,7 +224,6 @@ export const PerpsConnectionProvider: React.FC<
       disconnect,
       resetError,
       reconnectWithNewContext,
-      getProvider,
     }),
     [
       connectionState.isConnected,
@@ -247,7 +234,6 @@ export const PerpsConnectionProvider: React.FC<
       disconnect,
       resetError,
       reconnectWithNewContext,
-      getProvider,
     ],
   );
 
