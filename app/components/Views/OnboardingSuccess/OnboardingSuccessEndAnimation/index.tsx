@@ -28,7 +28,7 @@ const OnboardingSuccessEndAnimation: React.FC<
 
   useEffect(() => {
     if (isE2E) return;
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (riveRef.current) {
         try {
           // Set dark mode input
@@ -44,6 +44,8 @@ const OnboardingSuccessEndAnimation: React.FC<
         }
       }
     }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [isDarkMode]);
 
   return (

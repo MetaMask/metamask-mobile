@@ -94,7 +94,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
@@ -259,7 +259,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
@@ -424,7 +424,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
@@ -589,7 +589,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
@@ -754,7 +754,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
@@ -919,7 +919,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
@@ -1084,7 +1084,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
@@ -1249,7 +1249,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         {
           "alignItems": "center",
           "paddingBottom": 4,
-          "rowGap": 16,
+          "rowGap": 12,
         }
       }
     >
