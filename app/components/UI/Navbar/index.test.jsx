@@ -12,11 +12,13 @@ import {
   getSettingsNavigationOptions,
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
+  getSendFlowTitle,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
+import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -70,6 +72,30 @@ jest.mock('../../../util/notifications', () => ({
 jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
   getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
+}));
+
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn(() => ({
+      trackEvent: jest.fn(),
+    })),
+    trackEvent: jest.fn(),
+  },
+  MetaMetricsEvents: {
+    SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
+  },
+  trackEvent: jest.fn(),
+  MetricsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(() => ({})),
+      })),
+    })),
+  },
+}));
+
+jest.mock('../../../util/blockaid', () => ({
+  getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
 }));
 
 describe('getNetworkNavbarOptions', () => {
@@ -940,6 +966,279 @@ describe('getBridgeNavbar', () => {
       );
 
       expect(options.headerLeft).toBeNull();
+    });
+  });
+
+  describe('getSendFlowTitle', () => {
+    const mockNavigation = {
+      pop: jest.fn(),
+      dangerouslyGetParent: jest.fn(() => ({
+        pop: jest.fn(),
+      })),
+    };
+
+    const mockRoute = {
+      params: {
+        providerType: 'mainnet',
+      },
+    };
+
+    const mockThemeColors = mockTheme.colors;
+    const mockResetTransaction = jest.fn();
+    const mockTransaction = {
+      id: 'test-transaction',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return navbar options with required parameters', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+        transaction: mockTransaction,
+      });
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+      expect(options.headerRight).toBeDefined();
+      expect(options.headerLeft).toBeDefined();
+      expect(options.headerStyle).toBeDefined();
+    });
+
+    it('should use default values when called with empty object', () => {
+      const options = getSendFlowTitle({
+        title: 'send.send_to',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+    });
+
+    it('should return headerTitle function', () => {
+      const options = getSendFlowTitle({
+        title: 'send.amount',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      expect(options.headerTitle).toBeDefined();
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should render Cancel button in headerRight', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+        transaction: mockTransaction,
+      });
+
+      const HeaderRight = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(getByTestId(SendViewSelectorsIDs.SEND_CANCEL_BUTTON)).toBeTruthy();
+    });
+
+    it('should call resetTransaction and navigate when Cancel is pressed', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+        transaction: mockTransaction,
+      });
+
+      const HeaderRight = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const cancelButton = getByTestId(SendViewSelectorsIDs.SEND_CANCEL_BUTTON);
+      fireEvent.press(cancelButton);
+
+      expect(mockResetTransaction).toHaveBeenCalled();
+      expect(mockNavigation.dangerouslyGetParent).toHaveBeenCalled();
+    });
+
+    it('should render Back button when not on send_to screen', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      const HeaderLeft = options.headerLeft;
+      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(getByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON)).toBeTruthy();
+    });
+
+    it('should call navigation.pop when Back button is pressed', () => {
+      const options = getSendFlowTitle({
+        title: 'send.amount',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      const HeaderLeft = options.headerLeft;
+      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const backButton = getByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON);
+      fireEvent.press(backButton);
+
+      expect(mockNavigation.pop).toHaveBeenCalled();
+    });
+
+    it('should not render Back button on send_to screen', () => {
+      const options = getSendFlowTitle({
+        title: 'send.send_to',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      const HeaderLeft = options.headerLeft;
+      const { queryByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(queryByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON)).toBeNull();
+    });
+
+    it('should not render Back button when isPaymentRequest is true', () => {
+      const paymentRequestRoute = {
+        params: {
+          providerType: 'mainnet',
+          isPaymentRequest: true,
+        },
+      };
+
+      const options = getSendFlowTitle({
+        title: 'send.amount',
+        navigation: mockNavigation,
+        route: paymentRequestRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      const HeaderLeft = options.headerLeft;
+      const { queryByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(queryByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON)).toBeNull();
+    });
+
+    it('should apply correct styles from themeColors', () => {
+      const customThemeColors = {
+        ...mockThemeColors,
+        primary: { default: '#FF0000' },
+        background: { default: '#00FF00' },
+      };
+
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: customThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      expect(options.headerStyle).toBeDefined();
+      expect(options.headerStyle.backgroundColor).toBe('#00FF00');
+    });
+
+    it('should pass disableNetwork to NavbarTitle', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+        disableNetwork: false,
+      });
+
+      expect(options.headerTitle).toBeDefined();
+    });
+
+    it('should pass showSelectedNetwork to NavbarTitle when enabled', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+        showSelectedNetwork: true,
+      });
+
+      expect(options.headerTitle).toBeDefined();
+    });
+
+    it('should pass globalChainId to NavbarTitle', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+        globalChainId: '0x1',
+      });
+
+      expect(options.headerTitle).toBeDefined();
+    });
+
+    it('should handle missing route params gracefully', () => {
+      const emptyRoute = {};
+
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: emptyRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+      });
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+    });
+
+    it('should handle missing transaction gracefully', () => {
+      const options = getSendFlowTitle({
+        title: 'send.confirm',
+        navigation: mockNavigation,
+        route: mockRoute,
+        themeColors: mockThemeColors,
+        resetTransaction: mockResetTransaction,
+        transaction: undefined,
+      });
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
     });
   });
 });
