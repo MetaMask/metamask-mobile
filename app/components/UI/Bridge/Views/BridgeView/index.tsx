@@ -67,7 +67,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode, CowSwapQuoteResponse } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -79,7 +79,7 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE, QuoteMetadata } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 
 export interface BridgeRouteParams {
@@ -299,7 +299,7 @@ const BridgeView = () => {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
         await submitBridgeTx({
-          quoteResponse: activeQuote,
+          quoteResponse: activeQuote as CowSwapQuoteResponse & QuoteMetadata,
         });
       }
     } catch (error) {

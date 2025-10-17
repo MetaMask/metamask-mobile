@@ -105,6 +105,7 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
+      'KeyringController:signTypedMessage',
       'BridgeStatusController:submitTx',
       'DelegationController:signDelegation',
       'NetworkController:getEIP1559Compatibility',

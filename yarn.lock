@@ -7085,9 +7085,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^50.0.0":
-  version: 50.0.0
-  resolution: "@metamask/bridge-controller@npm:50.0.0"
+"@metamask/bridge-controller@file:../core/packages/bridge-controller::locator=metamask%40workspace%3A.":
+  version: 52.0.0
+  resolution: "@metamask/bridge-controller@file:../core/packages/bridge-controller#../core/packages/bridge-controller::hash=f8187e&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/address": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
@@ -7097,31 +7097,35 @@ __metadata:
     "@metamask/base-controller": ^8.4.1
     "@metamask/controller-utils": ^11.14.1
     "@metamask/gas-fee-controller": ^24.1.0
-    "@metamask/keyring-api": ^21.0.0
+    "@metamask/intent-manager": "file:../Intent-manager"
+    "@metamask/keyring-api": ^20.1.0
     "@metamask/metamask-eth-abis": ^3.1.1
     "@metamask/multichain-network-controller": ^1.0.1
     "@metamask/polling-controller": ^14.0.1
     "@metamask/utils": ^11.8.1
+    "@microsoft/fetch-event-source": ^2.0.1
     bignumber.js: ^9.1.2
     reselect: ^5.1.1
     uuid: ^8.3.2
   peerDependencies:
     "@metamask/accounts-controller": ^33.0.0
-    "@metamask/assets-controllers": ^80.0.0
+    "@metamask/assets-controllers": ^81.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: e0b114f4ba57e7f52906505d175ac55c3236e7b5821496bcc8ff5dbba17fce152a883670e89870e772deeeedecd5022fffa5de0e69d438d7d15b2076ccfdf9e4
+  checksum: 93c211cbac228e286841ccef18237d4aa926a2a301794856045cd7d1a1f3d06f06a588da52c93b765b71b75cd96fc62dbf401cff872e8d15b7f1e8d5bc1ef67e
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^50.0.0":
-  version: 50.1.0
-  resolution: "@metamask/bridge-status-controller@npm:50.1.0"
+"@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller::locator=metamask%40workspace%3A.":
+  version: 51.0.0
+  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=60b681&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": ^8.4.1
     "@metamask/controller-utils": ^11.14.1
+    "@metamask/intent-manager": "file:../Intent-manager"
+    "@metamask/keyring-api": ^21.0.0
     "@metamask/polling-controller": ^14.0.1
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.8.1
@@ -7129,12 +7133,12 @@ __metadata:
     uuid: ^8.3.2
   peerDependencies:
     "@metamask/accounts-controller": ^33.0.0
-    "@metamask/bridge-controller": ^51.0.0
+    "@metamask/bridge-controller": ^52.0.0
     "@metamask/gas-fee-controller": ^24.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: a39547856c3fc0e4574eb75f882a96b3eb7c38a3cb80f68938b5bb994d7252dc98507b2ad7b7e495591627382ed0e4d9f1c44961b9fee52d23736f85f59020b5
+  checksum: 7a9c74ff2208292d29c56710b0a588f0bcc60fb7c94f4a74626e5cfc65eefd1ba8f7437f73afa2ae4bb076f891fb828134d4316bd5de4ec43abc3265dbca77b0
   languageName: node
   linkType: hard
 
@@ -7736,6 +7740,42 @@ __metadata:
   peerDependencies:
     "@metamask/snaps-controllers": ^14.0.1
   checksum: 673361aaad69d0068df8e14be65eb08de10a31245ab3ca45f9180284934058de2e84de68c6486d910ec9776a36e43544eb9911ad4cb9ac321506067852192490
+  languageName: node
+  linkType: hard
+
+"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-controller%23..%2Fcore%2Fpackages%2Fbridge-controller%3A%3Ahash%3Df8187e%26locator%3Dmetamask%2540workspace%253A.":
+  version: 1.0.0
+  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=5fbfb0&locator=%40metamask%2Fbridge-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-controller%23..%2Fcore%2Fpackages%2Fbridge-controller%3A%3Ahash%3Df8187e%26locator%3Dmetamask%2540workspace%253A."
+  dependencies:
+    "@metamask/base-controller": ^8.3.0
+    "@metamask/controller-utils": ^11.12.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.4.2
+  checksum: c64ca4f807e347e5b87dbac21f26dfdfaf64d7449e588786ccd1120dac365b8ae0cbfb22c4d641a78f1116c60f65fc796c428df468fa2db1bd705a7d563c039b
+  languageName: node
+  linkType: hard
+
+"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D60b681%26locator%3Dmetamask%2540workspace%253A.":
+  version: 1.0.0
+  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=5fbfb0&locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D60b681%26locator%3Dmetamask%2540workspace%253A."
+  dependencies:
+    "@metamask/base-controller": ^8.3.0
+    "@metamask/controller-utils": ^11.12.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.4.2
+  checksum: c64ca4f807e347e5b87dbac21f26dfdfaf64d7449e588786ccd1120dac365b8ae0cbfb22c4d641a78f1116c60f65fc796c428df468fa2db1bd705a7d563c039b
+  languageName: node
+  linkType: hard
+
+"@metamask/intent-manager@file:../core/packages/intent-manager::locator=metamask%40workspace%3A.":
+  version: 1.0.0
+  resolution: "@metamask/intent-manager@file:../core/packages/intent-manager#../core/packages/intent-manager::hash=5fbfb0&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": ^8.3.0
+    "@metamask/controller-utils": ^11.12.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.4.2
+  checksum: c64ca4f807e347e5b87dbac21f26dfdfaf64d7449e588786ccd1120dac365b8ae0cbfb22c4d641a78f1116c60f65fc796c428df468fa2db1bd705a7d563c039b
   languageName: node
   linkType: hard
 
@@ -8855,7 +8895,43 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^60.4.0, @metamask/transaction-controller@npm:^60.6.0":
+"@metamask/transaction-controller@file:../core/packages/transaction-controller::locator=metamask%40workspace%3A.":
+  version: 60.6.1
+  resolution: "@metamask/transaction-controller@file:../core/packages/transaction-controller#../core/packages/transaction-controller::hash=cbed76&locator=metamask%40workspace%3A."
+  dependencies:
+    "@ethereumjs/common": ^4.4.0
+    "@ethereumjs/tx": ^5.4.0
+    "@ethereumjs/util": ^9.1.0
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/contracts": ^5.7.0
+    "@ethersproject/providers": ^5.7.0
+    "@ethersproject/wallet": ^5.7.0
+    "@metamask/base-controller": ^8.4.1
+    "@metamask/controller-utils": ^11.14.1
+    "@metamask/eth-query": ^4.0.0
+    "@metamask/metamask-eth-abis": ^3.1.1
+    "@metamask/nonce-tracker": ^6.0.0
+    "@metamask/rpc-errors": ^7.0.2
+    "@metamask/utils": ^11.8.1
+    async-mutex: ^0.5.0
+    bn.js: ^5.2.1
+    eth-method-registry: ^4.0.0
+    fast-json-patch: ^3.1.1
+    lodash: ^4.17.21
+    uuid: ^8.3.2
+  peerDependencies:
+    "@babel/runtime": ^7.0.0
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/approval-controller": ^7.0.0
+    "@metamask/eth-block-tracker": ">=9"
+    "@metamask/gas-fee-controller": ^24.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/remote-feature-flag-controller": ^1.5.0
+  checksum: bca88fbed6cee8226f28b6e0c2c83728b2486ae12defe173042b0dbe0bca040c513d24b391f19aa3accc2f2f158dbcbfdedaf1e7fb3e46f0c0b2c662a1f53c18
+  languageName: node
+  linkType: hard
+
+"@metamask/transaction-controller@npm:^60.4.0":
   version: 60.6.0
   resolution: "@metamask/transaction-controller@npm:60.6.0"
   dependencies:
@@ -8965,6 +9041,13 @@ __metadata:
     semver: ^7.5.4
     uuid: ^9.0.1
   checksum: f720b0f7bdd46054aa88d15a9702e1de6d7200a1ca1d4f6bc48761b039f1bbffb46ac88bc87fe79e66128c196d424f3b9ef071b3cb4b40139223786d56da35e0
+  languageName: node
+  linkType: hard
+
+"@microsoft/fetch-event-source@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@microsoft/fetch-event-source@npm:2.0.1"
+  checksum: a50e1c0f33220206967266d0a4bbba0703e2793b079d9f6e6bfd48f71b2115964a803e14cf6e902c6fab321edc084f26022334f5eaacc2cec87f174715d41852
   languageName: node
   linkType: hard
 
@@ -34101,8 +34184,8 @@ __metadata:
     "@metamask/assets-controllers": ^79.0.0
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.3.0
-    "@metamask/bridge-controller": ^50.0.0
-    "@metamask/bridge-status-controller": ^50.0.0
+    "@metamask/bridge-controller": "file:../core/packages/bridge-controller"
+    "@metamask/bridge-status-controller": "file:../core/packages/bridge-status-controller"
     "@metamask/browser-passworder": ^5.0.0
     "@metamask/build-utils": ^1.0.0
     "@metamask/chain-agnostic-permission": ^1.1.0
@@ -34135,6 +34218,7 @@ __metadata:
     "@metamask/foundryup": 1.0.0
     "@metamask/gas-fee-controller": ^24.0.0
     "@metamask/gator-permissions-controller": ^0.2.0
+    "@metamask/intent-manager": "file:../core/packages/intent-manager"
     "@metamask/json-rpc-engine": ^10.0.3
     "@metamask/json-rpc-middleware-stream": ^8.0.7
     "@metamask/key-tree": ^10.1.1
@@ -34196,7 +34280,7 @@ __metadata:
     "@metamask/test-dapp-multichain": ^0.17.1
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
-    "@metamask/transaction-controller": ^60.6.0
+    "@metamask/transaction-controller": "file:../core/packages/transaction-controller"
     "@metamask/tron-wallet-snap": ^1.1.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
