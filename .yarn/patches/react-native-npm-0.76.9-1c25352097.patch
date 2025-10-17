@@ -1,0 +1,488 @@
+diff --git a/Libraries/Components/Pressable/Pressable.js b/Libraries/Components/Pressable/Pressable.js
+index bd0d6a43a3a666ef9bc0268a91ea9c8f5554d39c..11263f64ccdcc46a3ff34a089aad47c7c2ec14c7 100644
+--- a/Libraries/Components/Pressable/Pressable.js
++++ b/Libraries/Components/Pressable/Pressable.js
+@@ -30,7 +30,10 @@ import useAndroidRippleForView, {
+   type RippleConfig,
+ } from './useAndroidRippleForView';
+ import * as React from 'react';
+-import {useMemo, useRef, useState} from 'react';
++import {useMemo, useRef, useState, useEffect} from 'react';
++import Platform from '../../Utilities/Platform';
++import {Gesture, GestureDetector} from 'react-native-gesture-handler';
++import {AccessibilityInfo} from 'react-native';
+ 
+ type ViewStyleProp = $ElementType<React.ElementConfig<typeof View>, 'style'>;
+ 
+@@ -238,6 +241,38 @@ function Pressable(
+     ...restProps
+   } = props;
+ 
++  // Check if we should use custom gesture handling for Android
++  const shouldUseCustomGestureHandler = 
++    Platform.OS === 'android' && 
++    process.env.NODE_ENV !== 'test' &&
++    process.env.IS_TEST !== 'true' &&
++    process.env.METAMASK_ENVIRONMENT !== 'e2e';
++
++  // Track accessibility state for gesture handling
++  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState(false);
++
++  useEffect(() => {
++    if (!shouldUseCustomGestureHandler) return;
++
++    // Check initial accessibility state
++    AccessibilityInfo.isScreenReaderEnabled()
++      .then(setIsAccessibilityEnabled)
++      .catch((error) => {
++        console.warn('AccessibilityInfo.isScreenReaderEnabled failed:', error);
++        // Fallback to false - assume accessibility is OFF
++        // This ensures gesture handler will work in ScrollViews
++        setIsAccessibilityEnabled(false);
++      });
++
++    // Listen for accessibility changes
++    const subscription = AccessibilityInfo.addEventListener(
++      'screenReaderChanged',
++      setIsAccessibilityEnabled,
++    );
++
++    return () => subscription?.remove();
++  }, [shouldUseCustomGestureHandler]);
++
+   const viewRef = useRef<Instance | null>(null);
+   const mergedRef = useMergeRefs(forwardedRef, viewRef);
+ 
+@@ -342,6 +377,70 @@ function Pressable(
+   );
+   const eventHandlers = usePressability(config);
+ 
++  // Create gesture handlers for Android if needed
++  if (shouldUseCustomGestureHandler && onPress) {
++    const isDisabled = disabled || ariaDisabled || accessibilityState?.disabled;
++
++    // Native gesture handler to prevent interruption from other gestures (BottomSheet pan, etc.)
++    const native = Gesture.Native().disallowInterruption(true);
++
++    // Gesture detection for ScrollView and BottomSheet compatibility on Android
++    const tap = Gesture.Tap()
++      .runOnJS(true)
++      .shouldCancelWhenOutside(false)
++      .maxDeltaX(20) // Allow some movement while tapping
++      .maxDeltaY(20)
++      .maxDuration(200) // Shorter duration for better responsiveness
++      .minPointers(1)
++      .onEnd((gestureEvent) => {
++        // Only handle gesture when we KNOW accessibility is OFF
++        // When accessibility is ON or UNKNOWN, let Pressable handle the press
++        if (onPress && !isDisabled && isAccessibilityEnabled === false) {
++          // Create a proper GestureResponderEvent-like object from gesture event
++          const syntheticEvent = {
++            nativeEvent: {
++              locationX: gestureEvent.x || 0,
++              locationY: gestureEvent.y || 0,
++              pageX: gestureEvent.absoluteX || 0,
++              pageY: gestureEvent.absoluteY || 0,
++              timestamp: Date.now(),
++            },
++            persist: () => {
++              /* no-op for synthetic event */
++            },
++            preventDefault: () => {
++              /* no-op for synthetic event */
++            },
++            stopPropagation: () => {
++              /* no-op for synthetic event */
++            },
++          };
++
++          onPress(syntheticEvent);
++        }
++      });
++
++    // Modify event handlers to conditionally use onPress
++    const modifiedEventHandlers = {
++      ...eventHandlers,
++      onPress: isAccessibilityEnabled === true && !isDisabled ? onPress : undefined,
++    };
++
++    return (
++      <GestureDetector gesture={Gesture.Simultaneous(native, tap)}>
++        <View
++          {...restPropsWithDefaults}
++          {...modifiedEventHandlers}
++          ref={mergedRef}
++          style={typeof style === 'function' ? style({pressed}) : style}
++          collapsable={false}>
++          {typeof children === 'function' ? children({pressed}) : children}
++          {__DEV__ ? <PressabilityDebugView color="red" hitSlop={hitSlop} /> : null}
++        </View>
++      </GestureDetector>
++    );
++  }
++
+   return (
+     <View
+       {...restPropsWithDefaults}
+diff --git a/Libraries/Components/Touchable/TouchableOpacity.js b/Libraries/Components/Touchable/TouchableOpacity.js
+index 14ca87aba403cd6d8ecca1acfa0bfa6390d70371..52438bda8d218ec09e5f5ccf493181ac8b5e2242 100644
+--- a/Libraries/Components/Touchable/TouchableOpacity.js
++++ b/Libraries/Components/Touchable/TouchableOpacity.js
+@@ -21,6 +21,10 @@ import flattenStyle from '../../StyleSheet/flattenStyle';
+ import Platform from '../../Utilities/Platform';
+ import * as React from 'react';
+ 
++// Import gesture handler components for Android gesture handling
++import {Gesture, GestureDetector} from 'react-native-gesture-handler';
++import {AccessibilityInfo} from 'react-native';
++
+ type TVProps = $ReadOnly<{|
+   hasTVPreferredFocus?: ?boolean,
+   nextFocusDown?: ?number,
+@@ -148,53 +152,26 @@ class TouchableOpacity extends React.Component<Props, State> {
+       delayPressOut: this.props.delayPressOut,
+       minPressDuration: 0,
+       pressRectOffset: this.props.pressRetentionOffset,
+-      onBlur: event => {
+-        if (Platform.isTV) {
+-          this._opacityInactive(250);
+-        }
+-        if (this.props.onBlur != null) {
+-          this.props.onBlur(event);
+-        }
+-      },
+-      onFocus: event => {
+-        if (Platform.isTV) {
+-          this._opacityActive(150);
+-        }
+-        if (this.props.onFocus != null) {
+-          this.props.onFocus(event);
+-        }
+-      },
++      android_disableSound: this.props.android_disableSound,
++      onBlur: this.props.onBlur,
++      onFocus: this.props.onFocus,
+       onLongPress: this.props.onLongPress,
+       onPress: this.props.onPress,
+-      onPressIn: event => {
+-        this._opacityActive(
+-          event.dispatchConfig.registrationName === 'onResponderGrant'
+-            ? 0
+-            : 150,
+-        );
+-        if (this.props.onPressIn != null) {
+-          this.props.onPressIn(event);
+-        }
+-      },
+-      onPressOut: event => {
+-        this._opacityInactive(250);
+-        if (this.props.onPressOut != null) {
+-          this.props.onPressOut(event);
+-        }
+-      },
++      onPressIn: this.props.onPressIn,
++      onPressOut: this.props.onPressOut,
++      onPressStart: this.props.onPressStart,
++      onPressMove: this.props.onPressMove,
++      onPressEnd: this.props.onPressEnd,
+     };
+   }
+ 
+-  /**
+-   * Animate the touchable to a new opacity.
+-   */
+-  _setOpacityTo(toValue: number, duration: number): void {
+-    Animated.timing(this.state.anim, {
+-      toValue,
+-      duration,
+-      easing: Easing.inOut(Easing.quad),
+-      useNativeDriver: true,
+-    }).start();
++  componentDidUpdate(prevProps: Props, prevState: State): void {
++    this.state.pressability.configure(this._createPressabilityConfig());
++    this._opacityInactive(250);
++  }
++
++  componentWillUnmount(): void {
++    this.state.pressability.reset();
+   }
+ 
+   _opacityActive(duration: number): void {
+@@ -212,6 +189,15 @@ class TouchableOpacity extends React.Component<Props, State> {
+     return typeof opacity === 'number' ? opacity : 1;
+   }
+ 
++  _setOpacityTo(toValue: number, duration: number): void {
++    Animated.timing(this.state.anim, {
++      toValue,
++      duration,
++      easing: Easing.inOut(Easing.quad),
++      useNativeDriver: true,
++    }).start();
++  }
++
+   render(): React.Node {
+     // BACKWARD-COMPATIBILITY: Focus and blur events were never supported before
+     // adopting `Pressability`, so preserve that behavior.
+@@ -252,6 +238,28 @@ class TouchableOpacity extends React.Component<Props, State> {
+ 
+     const accessibilityLabel =
+       this.props['aria-label'] ?? this.props.accessibilityLabel;
++
++    // Check if we should use custom gesture handling for Android
++    const shouldUseCustomGestureHandler = 
++      Platform.OS === 'android' && 
++      process.env.NODE_ENV !== 'test' &&
++      process.env.IS_TEST !== 'true' &&
++      process.env.METAMASK_ENVIRONMENT !== 'e2e';
++
++    if (shouldUseCustomGestureHandler) {
++      return (
++        <CustomTouchableOpacityWithGesture
++          {...this.props}
++          anim={this.state.anim}
++          eventHandlersWithoutBlurAndFocus={eventHandlersWithoutBlurAndFocus}
++          _accessibilityState={_accessibilityState}
++          accessibilityValue={accessibilityValue}
++          accessibilityLiveRegion={accessibilityLiveRegion}
++          accessibilityLabel={accessibilityLabel}
++        />
++      );
++    }
++
+     return (
+       <Animated.View
+         accessible={this.props.accessible !== false}
+@@ -300,39 +308,160 @@ class TouchableOpacity extends React.Component<Props, State> {
+       </Animated.View>
+     );
+   }
++}
+ 
+-  componentDidUpdate(prevProps: Props, prevState: State) {
+-    this.state.pressability.configure(this._createPressabilityConfig());
+-    if (
+-      this.props.disabled !== prevProps.disabled ||
+-      // $FlowFixMe[underconstrained-implicit-instantiation]
+-      // $FlowFixMe[prop-missing]
+-      flattenStyle(prevProps.style)?.opacity !==
+-        // $FlowFixMe[underconstrained-implicit-instantiation]
+-        // $FlowFixMe[prop-missing]
+-        flattenStyle(this.props.style)?.opacity
+-    ) {
+-      this._opacityInactive(250);
+-    }
+-  }
++// Custom TouchableOpacity component with gesture handling for Android
++class CustomTouchableOpacityWithGesture extends React.Component<{
++  ...Props,
++  anim: Animated.Value,
++  eventHandlersWithoutBlurAndFocus: any,
++  _accessibilityState: any,
++  accessibilityValue: any,
++  accessibilityLiveRegion: any,
++  accessibilityLabel: any,
++}, {isAccessibilityEnabled: boolean | null}> {
++  state = {
++    isAccessibilityEnabled: false, // Default to false to ensure gesture handler works
++  };
+ 
+-  componentDidMount(): void {
+-    this.state.pressability.configure(this._createPressabilityConfig());
++  componentDidMount() {
++    // Check initial accessibility state
++    AccessibilityInfo.isScreenReaderEnabled()
++      .then((isEnabled) => {
++        this.setState({isAccessibilityEnabled: isEnabled});
++      })
++      .catch((error) => {
++        console.warn('AccessibilityInfo.isScreenReaderEnabled failed:', error);
++        // Fallback to false - assume accessibility is OFF
++        // This ensures gesture handler will work in ScrollViews
++        this.setState({isAccessibilityEnabled: false});
++      });
++
++    // Listen for accessibility changes
++    const subscription = AccessibilityInfo.addEventListener(
++      'screenReaderChanged',
++      (isEnabled) => {
++        this.setState({isAccessibilityEnabled: isEnabled});
++      },
++    );
++
++    this.subscription = subscription;
+   }
+ 
+-  componentWillUnmount(): void {
+-    this.state.pressability.reset();
+-    this.state.anim.resetAnimation();
++  componentWillUnmount() {
++    this.subscription?.remove();
+   }
+-}
+ 
+-const Touchable: React.AbstractComponent<
+-  Props,
+-  React.ElementRef<typeof Animated.View>,
+-> = React.forwardRef((props, ref) => (
+-  <TouchableOpacity {...props} hostRef={ref} />
+-));
++  subscription: any;
++
++  render() {
++    const {
++      anim,
++      eventHandlersWithoutBlurAndFocus,
++      _accessibilityState,
++      accessibilityValue,
++      accessibilityLiveRegion,
++      accessibilityLabel,
++      onPress,
++      disabled,
++      children,
++      ...props
++    } = this.props;
++
++    const isDisabled = disabled || this.props['aria-disabled'] || this.props.accessibilityState?.disabled;
++
++    // Native gesture handler to prevent interruption from other gestures (BottomSheet pan, etc.)
++    const native = Gesture.Native().disallowInterruption(true);
++
++    // Gesture detection for ScrollView and BottomSheet compatibility on Android
++    const tap = Gesture.Tap()
++      .runOnJS(true)
++      .shouldCancelWhenOutside(false)
++      .maxDeltaX(20) // Allow some movement while tapping
++      .maxDeltaY(20)
++      .maxDuration(200) // Shorter duration for better responsiveness
++      .minPointers(1)
++      .onEnd((gestureEvent) => {
++        // Only handle gesture when we KNOW accessibility is OFF
++        // When accessibility is ON or UNKNOWN, let TouchableOpacity handle the press
++        if (onPress && !isDisabled && this.state.isAccessibilityEnabled === false) {
++          // Create a proper GestureResponderEvent-like object from gesture event
++          const syntheticEvent = {
++            nativeEvent: {
++              locationX: gestureEvent.x || 0,
++              locationY: gestureEvent.y || 0,
++              pageX: gestureEvent.absoluteX || 0,
++              pageY: gestureEvent.absoluteY || 0,
++              timestamp: Date.now(),
++            },
++            persist: () => {
++              /* no-op for synthetic event */
++            },
++            preventDefault: () => {
++              /* no-op for synthetic event */
++            },
++            stopPropagation: () => {
++              /* no-op for synthetic event */
++            },
++          };
++
++          onPress(syntheticEvent);
++        }
++      });
+ 
+-Touchable.displayName = 'TouchableOpacity';
++    return (
++      <GestureDetector gesture={Gesture.Simultaneous(native, tap)}>
++        <Animated.View
++          accessible={this.props.accessible !== false}
++          accessibilityLabel={accessibilityLabel}
++          accessibilityHint={this.props.accessibilityHint}
++          accessibilityLanguage={this.props.accessibilityLanguage}
++          accessibilityRole={this.props.accessibilityRole}
++          accessibilityState={_accessibilityState}
++          accessibilityActions={this.props.accessibilityActions}
++          onAccessibilityAction={this.props.onAccessibilityAction}
++          accessibilityValue={accessibilityValue}
++          importantForAccessibility={
++            this.props['aria-hidden'] === true
++              ? 'no-hide-descendants'
++              : this.props.importantForAccessibility
++          }
++          accessibilityViewIsModal={
++            this.props['aria-modal'] ?? this.props.accessibilityViewIsModal
++          }
++          accessibilityLiveRegion={accessibilityLiveRegion}
++          accessibilityElementsHidden={
++            this.props['aria-hidden'] ?? this.props.accessibilityElementsHidden
++          }
++          style={[this.props.style, {opacity: anim}]}
++          nativeID={this.props.id ?? this.props.nativeID}
++          testID={this.props.testID}
++          onLayout={this.props.onLayout}
++          nextFocusDown={this.props.nextFocusDown}
++          nextFocusForward={this.props.nextFocusForward}
++          nextFocusLeft={this.props.nextFocusLeft}
++          nextFocusRight={this.props.nextFocusRight}
++          nextFocusUp={this.props.nextFocusUp}
++          hasTVPreferredFocus={this.props.hasTVPreferredFocus}
++          hitSlop={this.props.hitSlop}
++          focusable={
++            this.props.focusable !== false &&
++            this.props.onPress !== undefined &&
++            !this.props.disabled
++          }
++          ref={this.props.hostRef}
++          onPress={
++            this.state.isAccessibilityEnabled === true && !isDisabled ? onPress : undefined
++          } // Use TouchableOpacity onPress only when accessibility is explicitly ON (safer for accessibility users)
++          {...eventHandlersWithoutBlurAndFocus}>
++          {children}
++          {__DEV__ ? (
++            <PressabilityDebugView color="cyan" hitSlop={this.props.hitSlop} />
++          ) : null}
++        </Animated.View>
++      </GestureDetector>
++    );
++  }
++}
+ 
+-module.exports = Touchable;
++export default TouchableOpacity;
+\ No newline at end of file
+diff --git a/React/Views/RCTModalHostViewManager.m b/React/Views/RCTModalHostViewManager.m
+index 8407662ff18c974431d4841ee2f68215b125673c..09d29e781b1af066a7fafcc0eb105d387b5c7611 100644
+--- a/React/Views/RCTModalHostViewManager.m
++++ b/React/Views/RCTModalHostViewManager.m
+@@ -64,9 +64,9 @@ - (void)presentModalHostView:(RCTModalHostView *)modalHostView
+     if (self->_presentationBlock) {
+       self->_presentationBlock([modalHostView reactViewController], viewController, animated, completionBlock);
+     } else {
+-      [[self _topMostViewControllerFrom:[modalHostView reactViewController]] presentViewController:viewController
+-                                                                                          animated:animated
+-                                                                                        completion:completionBlock];
++          [[modalHostView reactViewController] presentViewController:viewController
++                                                        animated:animated
++                                                      completion:completionBlock];
+     }
+   });
+ }
+@@ -107,25 +107,6 @@ - (void)invalidate
+   _hostViews = nil;
+ }
+ 
+-#pragma mark - Private
+-
+-- (UIViewController *)_topMostViewControllerFrom:(UIViewController *)rootViewController
+-{
+-  UIViewController *topController = rootViewController;
+-  while (topController.presentedViewController) {
+-    topController = topController.presentedViewController;
+-  }
+-  if ([topController isKindOfClass:[UINavigationController class]]) {
+-    UINavigationController *navigationController = (UINavigationController *)topController;
+-    topController = navigationController.visibleViewController;
+-    return [self _topMostViewControllerFrom:topController];
+-  } else if ([topController isKindOfClass:[UITabBarController class]]) {
+-    UITabBarController *tabBarController = (UITabBarController *)topController;
+-    topController = tabBarController.selectedViewController;
+-    return [self _topMostViewControllerFrom:topController];
+-  }
+-  return topController;
+-}
+ 
+ RCT_EXPORT_VIEW_PROPERTY(animationType, NSString)
+ RCT_EXPORT_VIEW_PROPERTY(presentationStyle, UIModalPresentationStyle)

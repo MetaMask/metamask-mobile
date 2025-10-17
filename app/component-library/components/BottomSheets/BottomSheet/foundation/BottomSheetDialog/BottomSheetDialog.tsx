@@ -239,9 +239,6 @@ const BottomSheetDialog = forwardRef<
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
-          shouldCancelWhenOutside={false}
-          activeOffsetY={[-10, 10]}
-          activeOffsetX={[-50, 50]}
         >
           <Animated.View
             onLayout={updateSheetHeight}

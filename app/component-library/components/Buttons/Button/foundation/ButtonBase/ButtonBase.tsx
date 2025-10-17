@@ -69,17 +69,17 @@ export const TouchableOpacity = ({
     return () => subscription?.remove();
   }, []);
 
-  // Aggressive gesture configuration for nested BottomSheet compatibility
+  // Native gesture handler to prevent interruption from other gestures (BottomSheet pan, etc.)
+  const native = Gesture.Native().disallowInterruption(true);
+
+  // Gesture detection for ScrollView and BottomSheet compatibility on Android
   const tap = Gesture.Tap()
     .runOnJS(true)
     .shouldCancelWhenOutside(false)
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
-    .maxDuration(150) // Even shorter duration for nested contexts
+    .maxDuration(200) // Shorter duration for better responsiveness
     .minPointers(1)
-    // Allow zero distance for immediate response (removed invalid minDistance)
-    .enabled(true) // Explicitly enable
-    .shouldCancelWhenOutside(false) // Don't cancel when outside
     .onEnd(
       (
         gestureEvent: GestureStateChangeEvent<TapGestureHandlerEventPayload>,
@@ -126,7 +126,7 @@ export const TouchableOpacity = ({
   }
 
   return (
-    <GestureDetector gesture={tap}>
+    <GestureDetector gesture={Gesture.Simultaneous(native, tap)}>
       <RNTouchableOpacity
         disabled={isDisabled}
         onPress={

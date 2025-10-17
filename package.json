@@ -187,7 +187,8 @@
     "@scure/bip32": "1.7.0",
     "@metamask/snaps-sdk": "^10.0.0",
     "@metamask/assets-controllers@^78.0.1": "patch:@metamask/assets-controllers@npm%3A78.0.1#./.yarn/patches/@metamask-assets-controllers-npm-78.0.1-056db65261.patch",
-    "@metamask/assets-controllers@^79.0.0": "patch:@metamask/assets-controllers@npm%3A79.0.0#./.yarn/patches/@metamask-assets-controllers-npm-79.0.0-8b55992ea9.patch"
+    "@metamask/assets-controllers@^79.0.0": "patch:@metamask/assets-controllers@npm%3A79.0.0#./.yarn/patches/@metamask-assets-controllers-npm-79.0.0-8b55992ea9.patch",
+    "react-native@0.76.9": "patch:react-native@npm%3A0.76.9#./.yarn/patches/react-native-npm-0.76.9-1c25352097.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
