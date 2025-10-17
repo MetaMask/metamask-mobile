@@ -14,6 +14,14 @@ jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: Record<string, string> = {
+      'predict.prediction_placed': 'Prediction placed',
+    };
+    return translations[key] || key;
+  },
+}));
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
