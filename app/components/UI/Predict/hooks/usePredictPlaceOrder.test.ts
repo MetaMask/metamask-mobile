@@ -6,6 +6,7 @@ import { usePredictPlaceOrder } from './usePredictPlaceOrder';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { Result, Side } from '../types';
 import { useContext } from 'react';
+import type { OrderPreview } from '../providers/types';
 
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
@@ -33,15 +34,31 @@ describe('usePredictPlaceOrder', () => {
   const mockPlaceOrder = jest.fn();
   const mockGetPositions = jest.fn();
   const mockClaim = jest.fn();
-  const mockCalculateBetAmounts = jest.fn();
-  const mockCalculateCashOutAmounts = jest.fn();
+  const mockGetBalance = jest.fn();
+
+  function createMockOrderPreview(
+    overrides?: Partial<OrderPreview>,
+  ): OrderPreview {
+    return {
+      marketId: 'market-123',
+      outcomeId: 'outcome-123',
+      outcomeTokenId: 'token-456',
+      timestamp: Date.now(),
+      side: Side.BUY,
+      sharePrice: 0.5,
+      maxAmountSpent: 100,
+      minAmountReceived: 200,
+      slippage: 0.005,
+      tickSize: 0.01,
+      minOrderSize: 0.01,
+      negRisk: false,
+      ...overrides,
+    };
+  }
 
   const mockOrderParams = {
-    outcomeId: 'outcome-123',
-    outcomeTokenId: 'token-456',
-    side: Side.BUY,
-    size: 100,
     providerId: 'polymarket',
+    preview: createMockOrderPreview(),
   };
 
   const mockSuccessResult: Result<{ transactionHash: string }> = {
@@ -60,8 +77,8 @@ describe('usePredictPlaceOrder', () => {
       placeOrder: mockPlaceOrder,
       getPositions: mockGetPositions,
       claim: mockClaim,
-      calculateBetAmounts: mockCalculateBetAmounts,
-      calculateCashOutAmounts: mockCalculateCashOutAmounts,
+      getBalance: mockGetBalance,
+      previewOrder: jest.fn(),
     });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
   });
@@ -369,7 +386,11 @@ describe('usePredictPlaceOrder', () => {
 
       // Second call should maintain the result until completion
       await act(async () => {
-        await result.current.placeOrder({ ...mockOrderParams, size: 200 });
+        const updatedPreview = createMockOrderPreview({ maxAmountSpent: 200 });
+        await result.current.placeOrder({
+          providerId: 'polymarket',
+          preview: updatedPreview,
+        });
       });
 
       expect(result.current.result).toEqual(mockSuccessResult);

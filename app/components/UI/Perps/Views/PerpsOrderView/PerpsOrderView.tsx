@@ -52,7 +52,9 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import RewardPointsDisplay from '../../components/RewardPointsDisplay';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -105,6 +107,7 @@ import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
 import { getDisplaySymbol } from '../../utils/marketUtils';
+import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -143,6 +146,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     useState<PerpsTooltipContentKey | null>(null);
 
   const { track } = usePerpsEventTracking();
+  const { openTooltipModal } = useTooltipModal();
 
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
@@ -1090,13 +1094,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 </TouchableOpacity>
               </View>
               <View style={styles.pointsRightContainer}>
-                <RewardPointsDisplay
-                  estimatedPoints={rewardsState.estimatedPoints}
+                <RewardsAnimations
+                  value={rewardsState.estimatedPoints ?? 0}
                   bonusBips={rewardsState.bonusBips}
-                  isLoading={rewardsState.isLoading}
-                  hasError={rewardsState.hasError}
                   shouldShow={rewardsState.shouldShowRewardsRow}
-                  isRefresh={rewardsState.isRefresh}
+                  infoOnPress={() =>
+                    openTooltipModal(
+                      strings('perps.points_error'),
+                      strings('perps.points_error_content'),
+                    )
+                  }
+                  state={
+                    rewardsState.isLoading
+                      ? RewardAnimationState.Loading
+                      : rewardsState.hasError
+                      ? RewardAnimationState.ErrorState
+                      : RewardAnimationState.Idle
+                  }
                 />
               </View>
             </View>

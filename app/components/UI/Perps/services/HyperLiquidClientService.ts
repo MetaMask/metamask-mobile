@@ -14,8 +14,9 @@ import { strings } from '../../../../../locales/i18n';
 import type { CandleData } from '../types/perps-types';
 
 import { CandlePeriod } from '../constants/chartConfig';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError , ensureError } from '../utils/perpsErrorHandler';
 import Logger from '../../../../util/Logger';
+import { Hex } from '@metamask/utils';
 
 /**
  * Valid time intervals for historical candle data
@@ -60,20 +61,21 @@ export class HyperLiquidClientService {
         name: string;
         version: string;
         chainId: number;
-        verifyingContract: `0x${string}`;
+        verifyingContract: Hex;
       };
       types: {
         [key: string]: { name: string; type: string }[];
       };
       primaryType: string;
       message: Record<string, unknown>;
-    }) => Promise<`0x${string}`>;
+    }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   }): void {
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
       this.transport = this.createTransport();
 
+      // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
       // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
       this.exchangeClient = new ExchangeClient({
         wallet: wallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
@@ -130,14 +132,14 @@ export class HyperLiquidClientService {
         name: string;
         version: string;
         chainId: number;
-        verifyingContract: `0x${string}`;
+        verifyingContract: Hex;
       };
       types: {
         [key: string]: { name: string; type: string }[];
       };
       primaryType: string;
       message: Record<string, unknown>;
-    }) => Promise<`0x${string}`>;
+    }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   }): Promise<HyperLiquidNetwork> {
     this.isTestnet = !this.isTestnet;
@@ -174,14 +176,14 @@ export class HyperLiquidClientService {
         name: string;
         version: string;
         chainId: number;
-        verifyingContract: `0x${string}`;
+        verifyingContract: Hex;
       };
       types: {
         [key: string]: { name: string; type: string }[];
       };
       primaryType: string;
       message: Record<string, unknown>;
-    }) => Promise<`0x${string}`>;
+    }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   }): void {
     if (!this.subscriptionClient) {

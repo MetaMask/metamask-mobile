@@ -27,16 +27,15 @@ import {
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
-  CalculateBetAmountsParams,
-  CalculateBetAmountsResponse,
-  CalculateCashOutAmountsParams,
-  CalculateCashOutAmountsResponse,
   GetAccountStateParams,
+  GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
+  OrderPreview,
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
+  PreviewOrderParams,
 } from '../providers/types';
 import {
   ClaimParams,
@@ -289,16 +288,6 @@ export class PredictController extends BaseController<
       });
       return;
     }
-
-    // Check deposit transaction (batch)
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.CONFIRMED;
-      });
-      return;
-    }
   }
 
   /**
@@ -324,16 +313,6 @@ export class PredictController extends BaseController<
       });
       return;
     }
-
-    // Check deposit transaction
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.ERROR;
-      });
-      return;
-    }
   }
 
   /**
@@ -356,16 +335,6 @@ export class PredictController extends BaseController<
       this.update((state) => {
         if (!state.claimTransaction) return;
         state.claimTransaction.status = PredictClaimStatus.CANCELLED;
-      });
-      return;
-    }
-
-    // Check deposit transaction
-    const depositTransaction = this.state.depositTransaction;
-    if (depositTransaction?.batchId === id) {
-      this.update((state) => {
-        if (!state.depositTransaction) return;
-        state.depositTransaction.status = PredictDepositStatus.CANCELLED;
       });
       return;
     }
@@ -723,7 +692,16 @@ export class PredictController extends BaseController<
     }
   }
 
-  async placeOrder<T>(params: PlaceOrderParams): Promise<Result<T>> {
+  async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+
+    return provider.previewOrder(params);
+  }
+
+  async placeOrder(params: PlaceOrderParams): Promise<Result> {
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
@@ -753,26 +731,6 @@ export class PredictController extends BaseController<
             : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
       };
     }
-  }
-
-  async calculateBetAmounts(
-    params: CalculateBetAmountsParams,
-  ): Promise<CalculateBetAmountsResponse> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-    return provider.calculateBetAmounts(params);
-  }
-
-  async calculateCashOutAmounts(
-    params: CalculateCashOutAmountsParams,
-  ): Promise<CalculateCashOutAmountsResponse> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-    return provider.calculateCashOutAmounts(params);
   }
 
   async claim({ positions, providerId }: ClaimParams): Promise<PredictClaim> {
@@ -964,6 +922,19 @@ export class PredictController extends BaseController<
     return provider.getAccountState({
       ...params,
       ownerAddress: selectedAddress,
+    });
+  }
+
+  public async getBalance(params: GetBalanceParams): Promise<number> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+    const { AccountsController } = Engine.context;
+    const selectedAddress = AccountsController.getSelectedAccount().address;
+    return provider.getBalance({
+      ...params,
+      address: params.address ?? selectedAddress,
     });
   }
 }

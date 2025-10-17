@@ -30,6 +30,12 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
+// Mock usePredictBalance hook
+const mockUsePredictBalance = jest.fn();
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => mockUsePredictBalance(),
+}));
+
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 
@@ -85,6 +91,10 @@ describe('PredictMarketSingle', () => {
     mockUsePredictEligibility.mockReturnValue({
       isEligible: true,
     });
+    // Default mock implementation - user has balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: false,
+    });
   });
 
   afterEach(() => {
@@ -119,7 +129,7 @@ describe('PredictMarketSingle', () => {
 
     fireEvent.press(yesButton);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockOutcome,
@@ -129,7 +139,7 @@ describe('PredictMarketSingle', () => {
 
     fireEvent.press(noButton);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockOutcome,
@@ -305,5 +315,65 @@ describe('PredictMarketSingle', () => {
     // which should resolve to 'Yes' and 'No' based on the mock data
     expect(getByText('Yes')).toBeOnTheScreen();
     expect(getByText('No')).toBeOnTheScreen();
+  });
+
+  it('navigates to add funds sheet when user has no balance', () => {
+    // Mock user has no balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes');
+    fireEvent.press(yesButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('displays 0% when tokens have price 0', () => {
+    const marketWithZeroPriceTokens: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockOutcome,
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 0 },
+            { id: 'token-no', title: 'No', price: 0 },
+          ],
+        },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={marketWithZeroPriceTokens} />,
+      { state: initialState },
+    );
+
+    expect(getByText('0%')).toBeOnTheScreen();
+  });
+
+  it('displays Unknown Market when title is missing', () => {
+    const marketWithNoTitle: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockOutcome,
+          title: undefined as unknown as string,
+        },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={marketWithNoTitle} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Unknown Market')).toBeOnTheScreen();
   });
 });

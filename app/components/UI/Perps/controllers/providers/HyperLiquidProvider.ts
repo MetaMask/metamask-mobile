@@ -37,7 +37,7 @@ import type {
   MetaResponse,
   PerpsAssetCtx,
   FrontendOrder,
-} from '../../types/hyperliquid-types';
+ SDKOrderParams } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
   getMaxOrderValue,
