@@ -29,6 +29,31 @@ import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracki
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 
+/**
+ * Removes all snaps from SnapController state to test performance impact.
+ * Since all snaps in the snaps object appear to be preinstalled, we replace it with an empty object.
+ * This removes all snap data from BOTH Redux and filesystem persistence while maintaining the expected structure.
+ */
+const filterPreinstalledSnapsFromState = (controllerState: any) => {
+  if (!controllerState?.snaps) {
+    return controllerState;
+  }
+
+  const originalSnapCount = Object.keys(controllerState.snaps).length;
+  
+  // Replace snaps with empty object (all appear to be preinstalled)
+  const filteredState = {
+    ...controllerState,
+    snaps: {},
+  };
+
+  // Debug: Log the filtering action
+  console.log(`🧪 [SNAP FILTER] Omitted ${originalSnapCount} snaps from SnapController persistence`);
+  console.log('🧪 [SNAP FILTER] Original snap IDs:', Object.keys(controllerState.snaps));
+  
+  return filteredState;
+};
+
 export class EngineService {
   private engineInitialized = false;
 
@@ -83,10 +108,17 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
 
-    const state =
-      (isE2E
-        ? reduxState?.engine?.backgroundState
-        : persistedState?.backgroundState) ?? {};
+    let state = persistedState?.backgroundState ?? {};
+
+    // 🧪 EXPERIMENTAL: Filter preinstalled snaps from initial state before engine initialization
+    if ((state as any).SnapController) {
+      console.log('🔧 [INIT FILTER] Applying snap filter to initial engine state');
+      state = {
+        ...state,
+        SnapController: filterPreinstalledSnapsFromState((state as any).SnapController),
+      };
+      console.log('🔧 [INIT FILTER] Initial state filtered - snaps count:', Object.keys(((state as any).SnapController?.snaps) || {}).length);
+    }
 
     const Engine = UntypedEngine;
     try {
@@ -177,9 +209,18 @@ export class EngineService {
             eventName,
             async (controllerState: StateConstraint) => {
               try {
+                let processedState = controllerState;
+
+        // 🧪 EXPERIMENTAL: Omit all snaps from SnapController (performance test)
+        if (controllerName === 'SnapController') {
+          console.log('🔧 [DEBUG] SnapController state change detected - applying filter');
+          processedState = filterPreinstalledSnapsFromState(controllerState);
+          console.log('🔧 [DEBUG] After filtering - snaps count:', Object.keys(processedState.snaps || {}).length);
+        }
+
                 // Filter out non-persistent fields based on controller metadata
                 const filteredState = getPersistentState(
-                  controllerState,
+                  processedState,
                   // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
                   UntypedEngine.context[controllerName]?.metadata,
                 );
@@ -220,7 +261,18 @@ export class EngineService {
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
     const vaultBackupResult = await getVaultFromBackup();
     const persistedState = await ControllerStorage.getAllPersistedState();
-    const state = persistedState?.backgroundState ?? {};
+    let state = persistedState?.backgroundState ?? {};
+    
+    // 🧪 EXPERIMENTAL: Filter preinstalled snaps from backup recovery state  
+    if ((state as any).SnapController) {
+      console.log('🔧 [BACKUP FILTER] Applying snap filter to vault backup state');
+      state = {
+        ...state,
+        SnapController: filterPreinstalledSnapsFromState((state as any).SnapController),
+      };
+      console.log('🔧 [BACKUP FILTER] Backup state filtered - snaps count:', Object.keys(((state as any).SnapController?.snaps) || {}).length);
+    }
+    
     const Engine = UntypedEngine;
     await Engine.destroyEngine();
     this.engineInitialized = false;

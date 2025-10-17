@@ -4,4 +4,6 @@ export const PerformanceEventNames = {
   AddSnapAccount: 'ADD_SNAP_ACCOUNT',
   // When adding a HD account.
   AddHdAccount: 'ADD_HD_ACCOUNT',
+  // App startup complete timing
+  AppStartupComplete: 'APP_STARTUP_COMPLETE',
 };

@@ -59,9 +59,6 @@ const slice = createSlice({
         environment?: PerformanceState['environment'];
       }>,
     ) => {
-      if (!isTest) {
-        return;
-      }
       // Initialize session if not already initialized
       if (!state.isInitialized) {
         const { environment } = action.payload;
@@ -89,16 +86,11 @@ const slice = createSlice({
         additionalMetadata?: Record<string, unknown>;
       }>,
     ) => {
-      if (!isTest) {
-        return;
-      }
       const { eventName, additionalMetadata = {} } = action.payload;
       const activeTrace = state.activeTraceBySessionId[eventName];
 
       if (activeTrace) {
         const duration = Date.now() - activeTrace.startTime;
-        // eslint-disable-next-line no-console
-        console.debug(`-- ! perf: ${eventName} took ${duration.toFixed(2)}ms`);
         state.metrics.push({
           eventName,
           timestamp: activeTrace.startTime,
@@ -112,9 +104,6 @@ const slice = createSlice({
       }
     },
     clearPerformanceMetrics: (state) => {
-      if (!isTest) {
-        return;
-      }
       state.metrics = [];
       state.activeTraceBySessionId = {};
     },
