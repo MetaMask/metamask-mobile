@@ -53,6 +53,7 @@ import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
+import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
 
 /**
  * CardHome Component
@@ -70,11 +71,8 @@ const CardHome = () => {
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const {
-    isAuthenticated,
-    logoutFromProvider,
-    isLoading: isSDKLoading,
-  } = useCardSDK();
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
 
   const { trackEvent, createEventBuilder } = useMetrics();
