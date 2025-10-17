@@ -1,40 +1,16 @@
-import {
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
-} from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
-import {
-  TransactionMeta,
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastContext } from '../../../../component-library/components/Toast';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import Engine from '../../../../core/Engine';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import { usePredictClaim } from './usePredictClaim';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 import { selectPredictClaimablePositions } from '../selectors/predictController';
 import { PredictPosition, PredictPositionStatus } from '../types';
 import { formatPrice } from '../utils/format';
+import { usePredictClaim } from './usePredictClaim';
 import { usePredictPositions } from './usePredictPositions';
-
-const toastStyles = StyleSheet.create({
-  spinnerContainer: {
-    paddingRight: 12,
-    alignContent: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+import { usePredictToasts } from './usePredictToasts';
 
 export const usePredictClaimToasts = () => {
-  const theme = useAppThemeFromContext();
-  const { toastRef } = useContext(ToastContext);
   const { claim } = usePredictClaim();
   const { loadPositions } = usePredictPositions({
     claimable: true,
@@ -58,138 +34,37 @@ export const usePredictClaimToasts = () => {
       ),
     [wonPositions],
   );
-  const showPendingToast = useCallback(
-    (amount: string) =>
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('predict.claim.toasts.pending.title', { amount }),
-            isBold: true,
-          },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.claim.toasts.pending.description', {
-              time: 5,
-            }),
-            isBold: false,
-          },
-        ],
-        iconName: IconName.Loading,
-        iconColor: theme.colors.accent04.dark,
-        backgroundColor: theme.colors.accent04.normal,
-        hasNoTimeout: false,
-        startAccessory: (
-          <View style={toastStyles?.spinnerContainer}>
-            <Spinner
-              color={ReactNativeDsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
-            />
-          </View>
-        ),
+
+  const formattedAmount = formatPrice(totalClaimableAmount, {
+    maximumDecimals: 2,
+  });
+
+  usePredictToasts({
+    transactionType: TransactionType.predictClaim,
+    pendingToastConfig: {
+      title: strings('predict.claim.toasts.pending.title', {
+        amount: '{amount}',
       }),
-    [theme.colors.accent04.dark, theme.colors.accent04.normal, toastRef],
-  );
-
-  const showConfirmedToast = useCallback(
-    (amount: string) =>
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('predict.deposit.account_ready'), isBold: true },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.deposit.account_ready_description', {
-              amount,
-            }),
-            isBold: false,
-          },
-        ],
-        iconName: IconName.CheckBold,
-        iconColor: theme.colors.success.default,
-        backgroundColor: theme.colors.accent04.normal,
-        hasNoTimeout: false,
+      description: strings('predict.claim.toasts.pending.description', {
+        time: 5,
       }),
-    [theme.colors.accent04.normal, theme.colors.success.default, toastRef],
-  );
-
-  const showErrorToast = useCallback(
-    () =>
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('predict.claim.toasts.error.title'), isBold: true },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.claim.toasts.error.description'),
-            isBold: false,
-          },
-        ],
-        iconName: IconName.Error,
-        iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.accent04.normal,
-        hasNoTimeout: false,
-        linkButtonOptions: {
-          label: strings('predict.claim.toasts.error.try_again'),
-          onPress: () => {
-            claim();
-          },
-        },
+      getAmount: () => formattedAmount,
+    },
+    confirmedToastConfig: {
+      title: strings('predict.deposit.account_ready'),
+      description: strings('predict.deposit.account_ready_description', {
+        amount: '{amount}',
       }),
-    [claim, theme.colors.accent04.normal, theme.colors.error.default, toastRef],
-  );
-
-  useEffect(() => {
-    const handlePredictClaimTransactionStatusUpdate = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
-      const isPredictClaim = transactionMeta?.nestedTransactions?.some(
-        (tx) => tx.type === TransactionType.predictClaim,
-      );
-      if (!isPredictClaim) {
-        return;
-      }
-
-      if (transactionMeta.status === TransactionStatus.approved) {
-        showPendingToast(
-          formatPrice(totalClaimableAmount, { maximumDecimals: 2 }),
-        );
-      }
-
-      if (transactionMeta.status === TransactionStatus.confirmed) {
-        Engine.context.PredictController.clearClaimTransaction();
-        showConfirmedToast(
-          formatPrice(totalClaimableAmount, { maximumDecimals: 2 }),
-        );
-        loadPositions();
-      }
-
-      // Handle PredictDeposit failed - clear deposit in progress
-      if (transactionMeta.status === TransactionStatus.failed) {
-        Engine.context.PredictController.clearClaimTransaction();
-        showErrorToast();
-      }
-    };
-
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionStatusUpdated',
-      handlePredictClaimTransactionStatusUpdate,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionStatusUpdated',
-        handlePredictClaimTransactionStatusUpdate,
-      );
-    };
-  }, [
-    loadPositions,
-    showConfirmedToast,
-    showErrorToast,
-    showPendingToast,
-    toastRef,
-    totalClaimableAmount,
-  ]);
+      getAmount: () => formattedAmount,
+    },
+    errorToastConfig: {
+      title: strings('predict.claim.toasts.error.title'),
+      description: strings('predict.claim.toasts.error.description'),
+      retryLabel: strings('predict.claim.toasts.error.try_again'),
+      onRetry: claim,
+    },
+    clearTransaction: () =>
+      Engine.context.PredictController.clearClaimTransaction(),
+    onConfirmed: loadPositions,
+  });
 };

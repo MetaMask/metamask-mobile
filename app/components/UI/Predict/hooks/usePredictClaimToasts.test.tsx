@@ -424,7 +424,7 @@ describe('usePredictClaimToasts', () => {
       const onPressRetry = toastCall.linkButtonOptions?.onPress;
 
       // Assert
-      expect(onPressRetry).toBeInstanceOf(Function);
+      expect(onPressRetry).toEqual(expect.any(Function));
     });
   });
 
