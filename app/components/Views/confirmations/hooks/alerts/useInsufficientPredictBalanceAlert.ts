@@ -22,7 +22,7 @@ export function useInsufficientPredictBalanceAlert({
   pendingAmount?: string;
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const from = transactionMeta?.txParams?.from as Hex;
+  const from = (transactionMeta?.txParams?.from ?? '0x0') as Hex;
   const { usdValue } = useTokenAmount();
   const amountFiat = pendingAmount ?? usdValue ?? '0';
 

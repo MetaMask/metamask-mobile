@@ -173,7 +173,7 @@ function getTokenAddress(transactionMeta: TransactionMeta | undefined): Hex {
 
 function useTokenBalance() {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const from = transactionMeta?.txParams?.from as Hex;
+  const from = (transactionMeta?.txParams?.from ?? '0x0') as Hex;
 
   const { payToken } = useTransactionPayToken();
   const payTokenBalance = payToken?.tokenFiatAmount ?? 0;
