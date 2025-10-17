@@ -1789,7 +1789,6 @@
     "alphabetically": "Thứ tự bảng chữ cái (A – Z)",
     "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
     "token_is_needed_to_continue": "Cần {{tokenSymbol}} để tiếp tục",
-    "fund_your_wallet_to_get_started": "Nạp tiền vào ví để bắt đầu trong web3",
     "add_funds": "Nạp tiền",
     "next": "Tiếp theo",
     "buy_asset": "Mua {{asset}}",

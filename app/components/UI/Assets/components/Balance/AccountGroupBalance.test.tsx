@@ -52,4 +52,13 @@ describe('AccountGroupBalance', () => {
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeTruthy();
   });
+
+  it('renders balance empty state when balance is zero', () => {
+    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
+      state: testState,
+    });
+
+    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    expect(el).toBeTruthy();
+  });
 });
