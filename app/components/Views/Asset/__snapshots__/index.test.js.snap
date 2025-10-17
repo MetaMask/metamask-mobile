@@ -1761,7 +1761,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -3528,7 +3528,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -5264,7 +5264,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -7103,7 +7103,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -8870,7 +8870,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -10606,7 +10606,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -12975,7 +12975,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -14742,7 +14742,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,

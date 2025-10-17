@@ -181,7 +181,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
+                    "borderColor": "#f3f5f9",
                     "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
@@ -413,7 +413,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
+                    "borderColor": "#f3f5f9",
                     "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
