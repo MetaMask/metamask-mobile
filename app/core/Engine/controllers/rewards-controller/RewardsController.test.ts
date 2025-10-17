@@ -24,6 +24,10 @@ jest.mock('./utils/multi-subscription-token-vault', () => ({
   ...jest.requireActual('./utils/multi-subscription-token-vault'),
   storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
   removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
+  resetAllSubscriptionTokens: jest.fn().mockResolvedValue(undefined),
+  getSubscriptionToken: jest
+    .fn()
+    .mockResolvedValue({ token: null, success: false }),
 }));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -70,6 +74,7 @@ jest.mock('./services/rewards-data-service', () => {
       login: jest.fn(),
     })),
     InvalidTimestampError: actual.InvalidTimestampError,
+    AuthorizationFailedError: actual.AuthorizationFailedError,
   };
 });
 // Mock base58 decode from ethers
@@ -92,9 +97,12 @@ import Logger from '../../../../util/Logger';
 import {
   storeSubscriptionToken,
   removeSubscriptionToken,
+  resetAllSubscriptionTokens,
+  getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import {
+  AuthorizationFailedError,
   InvalidTimestampError,
   RewardsDataService,
 } from './services/rewards-data-service';
@@ -121,6 +129,10 @@ const mockStoreSubscriptionToken =
 const mockRemoveSubscriptionToken =
   removeSubscriptionToken as jest.MockedFunction<
     typeof removeSubscriptionToken
+  >;
+const mockResetAllSubscriptionTokens =
+  resetAllSubscriptionTokens as jest.MockedFunction<
+    typeof resetAllSubscriptionTokens
   >;
 const mockSignSolanaRewardsMessage =
   signSolanaRewardsMessage as jest.MockedFunction<
@@ -421,9 +433,9 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should subscribe to account change events', () => {
+    it('should subscribe to account group change events', () => {
       expect(mockMessenger.subscribe).toHaveBeenCalledWith(
-        'AccountsController:selectedAccountChange',
+        'AccountTreeController:selectedAccountGroupChange',
         expect.any(Function),
       );
     });
@@ -444,8 +456,6 @@ describe('RewardsController', () => {
           account: CAIP_ACCOUNT_1,
           hasOptedIn: true,
           subscriptionId: 'test',
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: 5.0,
           lastPerpsDiscountRateFetched: Date.now(),
         },
@@ -568,7 +578,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 0,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -602,7 +611,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 0,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -698,7 +706,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       };
@@ -809,7 +816,6 @@ describe('RewardsController', () => {
       expect(result).toEqual({
         has_more: false,
         cursor: null,
-        total_results: 0,
         results: [],
       });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -828,7 +834,6 @@ describe('RewardsController', () => {
       const mockResponse = {
         has_more: true,
         cursor: 'next-cursor',
-        total_results: 50,
         results: [
           {
             id: 'event-123',
@@ -879,7 +884,6 @@ describe('RewardsController', () => {
       const mockResponse = {
         has_more: false,
         cursor: null,
-        total_results: 25,
         results: [
           {
             id: 'event-456',
@@ -967,7 +971,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1037,7 +1040,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1077,7 +1079,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1116,7 +1117,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 0,
           results: [],
         };
 
@@ -1167,7 +1167,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 3,
           results: [
             {
               id: 'event-1',
@@ -1216,12 +1215,6 @@ describe('RewardsController', () => {
             subscriptionId: 'sub-123',
           },
         );
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with latest updatedAt',
-          expect.objectContaining({
-            latestUpdatedAt: latestTimestamp.getTime(),
-          }),
-        );
       });
 
       it('should handle Date vs string updatedAt timestamps in points events', async () => {
@@ -1256,7 +1249,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1321,7 +1313,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1347,15 +1338,6 @@ describe('RewardsController', () => {
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
           'RewardsController:balanceUpdated',
           expect.any(Object),
-        );
-
-        // Verify the 500ms buffer was added in logging and season status timestamp is included
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with latest updatedAt',
-          expect.objectContaining({
-            cacheBalanceUpdatedAt: cachedTimestamp.getTime() + 500,
-            latestUpdatedAt: eventTimestamp.getTime(),
-          }),
         );
       });
 
@@ -1392,7 +1374,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1453,7 +1434,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1490,6 +1470,344 @@ describe('RewardsController', () => {
         );
       });
     });
+
+    describe('SWR callback behavior', () => {
+      let testableController: TestableRewardsController;
+
+      beforeEach(() => {
+        testableController = new TestableRewardsController({
+          messenger: mockMessenger,
+        });
+        // Clear any previous mock calls
+        mockMessenger.publish.mockClear();
+      });
+
+      it('should emit pointsEventsUpdated event when oldMostRecentId differs from freshMostRecentId', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const oldPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'old-event-1',
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T10:00:00Z'),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T10:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'new-event-1', // Different ID from old
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T11:00:00Z'),
+              value: 150,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T11:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached points events with stale data
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: oldPointsEvents.results.map((result) => ({
+              ...result,
+              timestamp: result.timestamp.getTime(),
+              updatedAt: result.updatedAt.getTime(),
+            })),
+            has_more: oldPointsEvents.has_more,
+            cursor: oldPointsEvents.cursor,
+            lastFetched: Date.now() - 10000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return fresh data
+        mockMessenger.call.mockResolvedValue(freshPointsEvents);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(oldPointsEvents); // Should return stale data immediately
+      });
+
+      it('should not emit pointsEventsUpdated event when oldMostRecentId equals freshMostRecentId', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const sameEventId = 'same-event-1';
+        const oldPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: sameEventId,
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T10:00:00Z'),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T10:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: sameEventId, // Same ID as old
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T11:00:00Z'), // Different timestamp but same ID
+              value: 150, // Different value but same ID
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T11:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached points events with stale data
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: oldPointsEvents.results.map((result) => ({
+              ...result,
+              timestamp: result.timestamp.getTime(),
+              updatedAt: result.updatedAt.getTime(),
+            })),
+            has_more: oldPointsEvents.has_more,
+            cursor: oldPointsEvents.cursor,
+            lastFetched: Date.now() - 10000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return fresh data
+        mockMessenger.call.mockResolvedValue(freshPointsEvents);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(oldPointsEvents); // Should return stale data immediately
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the pointsEventsUpdated event was NOT emitted
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:pointsEventsUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should not emit pointsEventsUpdated event when both old and fresh results are empty', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const emptyPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [],
+        };
+
+        // Set up cached points events with empty stale data
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: [],
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now() - 10000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return empty fresh data
+        mockMessenger.call.mockResolvedValue(emptyPointsEvents);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(emptyPointsEvents); // Should return stale data immediately
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the pointsEventsUpdated event was NOT emitted
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:pointsEventsUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should emit pointsEventsUpdated event', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'new-event-2',
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T11:00:00Z'),
+              value: 150,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T11:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached points events with undefined results (oldMostRecentId will be empty string)
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: [
+              {
+                id: 'new-event-1',
+                type: 'SWAP' as const,
+                timestamp: new Date('2024-01-01T11:00:00Z'),
+                value: 150,
+                bonus: { bips: 0, bonuses: [] },
+                accountAddress: '0x123',
+                updatedAt: new Date('2024-01-01T11:00:00Z'),
+                payload: null,
+              },
+            ] as any,
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now() - 90000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return fresh data and last updated timestamp
+        mockMessenger.call
+          .mockResolvedValueOnce(new Date()) // Second call for getPointsEventsLastUpdated
+          .mockResolvedValueOnce(freshPointsEvents); // First call for getPointsEvents
+
+        // Act
+        await testableController.getPointsEvents(mockRequest);
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Verify that the pointsEventsUpdated event was emitted
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Emitting pointsEventsUpdated event due to new points events',
+          {
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          },
+        );
+      });
+    });
+  });
+
+  describe('getPointsEventsLastUpdated', () => {
+    beforeEach(() => {
+      // Mock feature flag to be enabled by default for existing tests
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should successfully get points events last updated timestamp', async () => {
+      // Arrange
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+      const mockLastUpdated = new Date('2024-01-01T10:00:00Z');
+      mockMessenger.call.mockResolvedValue(mockLastUpdated);
+
+      // Act
+      const result = await controller.getPointsEventsLastUpdated(mockRequest);
+
+      // Assert
+      expect(result).toEqual(mockLastUpdated);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEventsLastUpdated',
+        mockRequest,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
+        mockRequest,
+      );
+    });
+
+    it('should handle getPointsEventsLastUpdated errors and rethrow them', async () => {
+      // Arrange
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+      const apiError = new Error('API error');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      // Act & Assert
+      await expect(
+        controller.getPointsEventsLastUpdated(mockRequest),
+      ).rejects.toThrow('API error');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
+        mockRequest,
+      );
+    });
+
+    it('should return null when data service returns null', async () => {
+      // Arrange
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Act
+      const result = await controller.getPointsEventsLastUpdated(mockRequest);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEventsLastUpdated',
+        mockRequest,
+      );
+    });
   });
 
   describe('getPerpsDiscountForAccount', () => {
@@ -1514,7 +1832,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: recentTime,
       };
@@ -1545,7 +1862,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -1581,7 +1897,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'test',
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -1652,7 +1967,6 @@ describe('RewardsController', () => {
       expect(newAccountState.hasOptedIn).toBe(false);
       expect(newAccountState.perpsFeeDiscount).toBe(2000);
       expect(newAccountState.subscriptionId).toBeNull();
-      expect(newAccountState.lastCheckedAuth).toBeGreaterThan(0);
       expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
         Date.now(),
       );
@@ -1734,21 +2048,23 @@ describe('RewardsController', () => {
       const originalDateNow = Date.now;
       Date.now = jest.fn(() => mockTimestamp * 1000);
 
+      // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
       mockMessenger.call
-        .mockReturnValueOnce(mockInternalAccount)
-        .mockResolvedValueOnce('0xsignature')
+        .mockReturnValueOnce([mockInternalAccount]) // Return accounts for handleAuthenticationTrigger
+        .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
         .mockResolvedValueOnce({
           sessionId: 'session123',
           subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
-        });
+        }); // RewardsDataService:login
 
-      // Trigger authentication via account change
+      // Trigger authentication via account group change
       const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       )?.[1];
 
       if (subscribeCallback) {
-        await subscribeCallback(mockInternalAccount, mockInternalAccount);
+        await subscribeCallback(undefined, undefined);
       }
 
       // Verify the message was formatted and converted to hex correctly
@@ -1785,18 +2101,20 @@ describe('RewardsController', () => {
         subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
       };
 
+      // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
       mockMessenger.call
-        .mockReturnValueOnce(mockInternalAccount)
-        .mockResolvedValueOnce('0xsignature')
-        .mockResolvedValueOnce(mockLoginResponse);
+        .mockReturnValueOnce([mockInternalAccount]) // Return accounts for handleAuthenticationTrigger
+        .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
+        .mockResolvedValueOnce(mockLoginResponse); // RewardsDataService:login
 
       // When: Authentication is triggered
       const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       )?.[1];
 
       if (subscribeCallback) {
-        await subscribeCallback(mockInternalAccount, mockInternalAccount);
+        await subscribeCallback(undefined, undefined);
       }
 
       // Then: Login should be called with the original address (not CAIP format)
@@ -1820,13 +2138,14 @@ describe('RewardsController', () => {
       // Mock Date.now for consistent testing
       Date.now = jest.fn(() => 1000000); // Fixed timestamp
 
-      // Get the account change subscription callback
+      // Get the account group change subscription callback
       const subscribeCalls = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       );
       subscribeCallback = subscribeCalls
         ? subscribeCalls[1]
-        : async () => undefined;
+        : async (_current?: any, _previous?: any) => undefined;
     });
 
     it('should skip silent auth for hardware accounts', async () => {
@@ -1846,11 +2165,12 @@ describe('RewardsController', () => {
         },
       };
 
-      mockMessenger.call.mockReturnValue(mockAccount);
+      // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
+      mockMessenger.call.mockReturnValue([mockAccount]);
 
       // Act - trigger account change
       if (subscribeCallback) {
-        await subscribeCallback(mockAccount, mockAccount);
+        await subscribeCallback();
       }
 
       // Assert - should not attempt to call login service for hardware accounts
@@ -1861,7 +2181,7 @@ describe('RewardsController', () => {
 
       // Trigger the authentication again to verify login is not called
       if (subscribeCallback) {
-        await subscribeCallback(mockAccount, mockAccount);
+        await subscribeCallback();
       }
 
       // Now verify login was not called after the second trigger
@@ -1874,6 +2194,8 @@ describe('RewardsController', () => {
     it('should NOT skip silent auth for Solana addresses', async () => {
       // Arrange
       mockIsSolanaAddress.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
       const mockAccount = {
         address: 'solana-address',
         type: 'solana:data-account' as const,
@@ -1888,28 +2210,18 @@ describe('RewardsController', () => {
         },
       };
 
-      // Mock the messenger to handle different method calls
-      const originalMockCall = mockMessenger.call;
-      mockMessenger.call = jest.fn().mockImplementation((method, ...args) => {
-        if (method === 'AccountsController:getSelectedMultichainAccount') {
-          return mockAccount;
-        }
-        if (method === 'RewardsDataService:login') {
-          return Promise.resolve({ success: true });
-        }
-        return originalMockCall(method, args[0], args[1], args[2]);
-      });
+      // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
+      mockMessenger.call
+        .mockReturnValueOnce([mockAccount]) // Return accounts for handleAuthenticationTrigger
+        .mockResolvedValueOnce({ success: true }); // RewardsDataService:login
 
       // Act - trigger account change
       if (subscribeCallback) {
-        await subscribeCallback(mockAccount, mockAccount);
+        await subscribeCallback();
       }
 
       // Assert - should attempt to call login service for Solana accounts now
       expect(mockIsSolanaAddress).toHaveBeenCalledWith('solana-address');
-
-      // Restore the original mock
-      mockMessenger.call = originalMockCall;
     });
 
     it('should handle Solana message signing', async () => {
@@ -1918,6 +2230,7 @@ describe('RewardsController', () => {
       Date.now = jest.fn().mockReturnValue(mockTimestamp);
 
       const mockSolanaAccount = {
+        id: 'test-id',
         address: 'solana123',
         type: 'solana:pubkey' as const,
       };
@@ -1946,13 +2259,13 @@ describe('RewardsController', () => {
 
       // Call the function directly
       const result = await signSolanaRewardsMessage(
-        mockSolanaAccount.address,
+        mockSolanaAccount.id,
         base64Message,
       );
 
       // Assert
       expect(mockSignSolanaRewardsMessage).toHaveBeenCalledWith(
-        mockSolanaAccount.address,
+        mockSolanaAccount.id,
         expect.any(String),
       );
       expect(result).toEqual({
@@ -1963,82 +2276,6 @@ describe('RewardsController', () => {
 
       // Restore Date.now
       jest.restoreAllMocks();
-    });
-
-    it('should perform silent auth when outside grace period', async () => {
-      // Arrange
-      const now = 1000000;
-      const outsideGracePeriod = now - 15 * 60 * 1000; // 15 minutes ago (outside grace period)
-
-      const accountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        lastCheckedAuth: outsideGracePeriod,
-        perpsFeeDiscount: 0,
-        lastPerpsDiscountRateFetched: null,
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      const mockAccount = {
-        address: '0x123',
-        type: 'eip155:eoa' as const,
-        id: 'test-id',
-        scopes: ['eip155:1' as const],
-        options: {},
-        methods: ['personal_sign'],
-        metadata: {
-          name: 'Test Account',
-          keyring: { type: 'HD Key Tree' },
-          importTime: Date.now(),
-        },
-      };
-
-      mockMessenger.call
-        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount
-        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
-        .mockResolvedValueOnce({
-          // login
-          sessionId: 'session123',
-          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
-        });
-
-      // Get the new subscription callback for the recreated controller
-      const newSubscribeCallback = mockMessenger.subscribe.mock.calls
-        .filter(
-          (call) => call[0] === 'AccountsController:selectedAccountChange',
-        )
-        .pop()?.[1];
-
-      // Act - trigger account change
-      if (newSubscribeCallback) {
-        await newSubscribeCallback(mockAccount, mockAccount);
-      }
-
-      // Assert - should attempt authentication outside grace period
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'KeyringController:signPersonalMessage',
-        expect.objectContaining({
-          from: '0x123',
-        }),
-      );
-    });
-
-    beforeEach(() => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsSolanaAddress.mockReturnValue(false);
     });
 
     it('should throw error when session token storage fails', async () => {
@@ -2062,12 +2299,6 @@ describe('RewardsController', () => {
         subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
       };
 
-      // Mock successful login but failed token storage
-      mockMessenger.call
-        .mockReturnValueOnce(mockInternalAccount) // getSelectedMultichainAccount
-        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
-        .mockResolvedValueOnce(mockLoginResponse); // login
-
       // Mock token storage failure
       mockStoreSubscriptionToken.mockResolvedValue({ success: false });
 
@@ -2077,20 +2308,21 @@ describe('RewardsController', () => {
 
       // Act & Assert
       const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       )?.[1];
 
       if (subscribeCallback) {
         // Setup mocks for the actual test
         mockMessenger.call
-          .mockReturnValueOnce(mockInternalAccount) // getSelectedMultichainAccount
-          .mockResolvedValueOnce('0xsignature') // signPersonalMessage
-          .mockResolvedValueOnce(mockLoginResponse); // login
+          .mockReturnValueOnce([mockInternalAccount]) // AccountTreeController:getAccountsFromSelectedAccountGroup
+          .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
+          .mockResolvedValueOnce(mockLoginResponse); // RewardsDataService:login
 
         mockStoreSubscriptionToken.mockResolvedValue({ success: false });
 
         // Should log error and not update state
-        await subscribeCallback(mockInternalAccount, mockInternalAccount);
+        await subscribeCallback(undefined, undefined);
 
         // Verify error was logged
         expect(mockLogger.log).toHaveBeenCalledWith(
@@ -2111,17 +2343,12 @@ describe('RewardsController', () => {
               account: 'eip155:1:0x123' as CaipAccountId,
               hasOptedIn: false,
               subscriptionId: null,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: 0,
               lastPerpsDiscountRateFetched: null,
             };
           }
 
           // Now set the properties
-          state.accounts[
-            'eip155:1:0x123' as CaipAccountId
-          ].lastCheckedAuthError = true;
           state.accounts['eip155:1:0x123' as CaipAccountId].hasOptedIn =
             undefined;
           state.accounts['eip155:1:0x123' as CaipAccountId].subscriptionId =
@@ -2132,7 +2359,6 @@ describe('RewardsController', () => {
         const updatedAccountState =
           controller.state.accounts['eip155:1:0x123' as CaipAccountId];
         expect(updatedAccountState).toBeDefined();
-        expect(updatedAccountState.lastCheckedAuthError).toBe(true);
         expect(updatedAccountState.hasOptedIn).toBeUndefined(); // Should be undefined due to error
         expect(updatedAccountState.subscriptionId).toBeNull();
       }
@@ -2178,6 +2404,11 @@ describe('RewardsController', () => {
         if (method === 'AccountsController:getSelectedMultichainAccount') {
           return Promise.resolve(mockInternalAccount);
         }
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockInternalAccount];
+        }
         if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xmockSignature');
         }
@@ -2200,67 +2431,16 @@ describe('RewardsController', () => {
         state: getRewardsControllerDefaultState(),
       });
 
-      // Find the callback function for the 'AccountsController:selectedAccountChange' event
+      // Find the callback function for the 'AccountTreeController:selectedAccountGroupChange' event
       subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
-      )?.[1] as () => void;
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
+      )?.[1] as (_current?: any, _previous?: any) => void;
     });
 
     afterEach(() => {
       // Restore original Date.now
       Date.now = originalDateNow;
-    });
-
-    it('should retry silent auth with server timestamp on InvalidTimestampError', async () => {
-      // Import the actual InvalidTimestampError
-      const { InvalidTimestampError } = jest.requireActual(
-        './services/rewards-data-service',
-      );
-      const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
-      const mockJwt = 'mock-jwt';
-
-      // Clear previous calls
-      mockRewardsDataService.getJwt.mockClear();
-
-      // First call fails with timestamp error, second call succeeds
-      mockRewardsDataService.getJwt
-        .mockImplementationOnce(() => Promise.reject(mockError))
-        .mockImplementationOnce(() => Promise.resolve(mockJwt));
-
-      // Trigger the silent auth flow
-      subscribeCallback?.();
-
-      // Let the event loop run to allow promises to resolve
-      await new Promise(process.nextTick);
-
-      expect(mockRewardsDataService.getJwt).toHaveBeenCalledTimes(2);
-      expect(mockRewardsDataService.getJwt).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Number),
-        mockInternalAccount.address,
-      );
-      expect(mockRewardsDataService.getJwt).toHaveBeenCalledWith(
-        expect.any(String),
-        mockError.timestamp,
-        mockInternalAccount.address,
-      );
-    });
-
-    it('should not retry silent auth if error is not InvalidTimestampError', async () => {
-      const mockError = new Error('Some other error');
-
-      // Clear previous calls
-      mockRewardsDataService.getJwt.mockClear();
-      // Mock to reject with a non-InvalidTimestampError
-      mockRewardsDataService.getJwt.mockRejectedValueOnce(mockError);
-
-      // Trigger the silent auth flow
-      subscribeCallback?.();
-
-      // Let the event loop run
-      await new Promise(process.nextTick);
-
-      expect(mockRewardsDataService.getJwt).toHaveBeenCalledTimes(1);
     });
 
     it('should log errors that do not include "Engine does not exist"', async () => {
@@ -2329,7 +2509,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle non-string errors in catch block', async () => {
+    it('should handle non-string errors.in catch block', async () => {
       // Directly test the error filtering logic with a non-string, non-Error object
       const numberError = 404;
       const errorMessage = String(numberError);
@@ -2648,16 +2828,24 @@ describe('RewardsController', () => {
     it('should handle network timeout error and log it', async () => {
       // Arrange
       const mockTimeoutError = new Error('Request timed out');
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -2671,7 +2859,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      mockMessenger.call.mockRejectedValue(mockTimeoutError);
+      localMockMessenger.call.mockRejectedValue(mockTimeoutError);
 
       // Act & Assert
       await expect(
@@ -2684,19 +2872,54 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle 403 error and invalidate subscription cache', async () => {
+    it('should handle 403 error, reauth, and fetch status again', async () => {
       // Arrange
-      const mock403Error = new Error('Forbidden: 403');
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x123',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+      const mockLoginResponse = {
+        subscription: { id: 'new-mock-subscription-id' },
+      };
+      const mockSeasonStatus = {
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z'),
+          endDate: new Date('2024-12-31T23:59:59Z'),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+        },
+        currentTierId: 'tier-1',
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -2716,9 +2939,730 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      mockMessenger.call.mockRejectedValue(mock403Error);
+      // Mock the messenger calls
+      let getSeasonStatusCallCount = 0;
+      localMockMessenger.call.mockImplementation(
+        async (method, ..._args): Promise<any> => {
+          if (method === 'RewardsDataService:getSeasonStatus') {
+            getSeasonStatusCallCount++;
+            if (getSeasonStatusCallCount === 1) {
+              return Promise.reject(mock403Error);
+            }
+            // The second call should succeed
+            return mockSeasonStatus;
+          }
+          if (method === 'AccountsController:getSelectedMultichainAccount') {
+            return mockAccount;
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return 'mock-signature';
+          }
+          if (method === 'RewardsDataService:login') {
+            return mockLoginResponse;
+          }
+          return undefined;
+        },
+      );
 
-      // Spy on invalidation methods
+      // Act
+      const result = await testableController.getSeasonStatus(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+          endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+          refereePortion: undefined,
+          updatedAt: undefined,
+        },
+        tier: {
+          currentTier: {
+            id: 'tier-1',
+            name: 'Tier 1',
+            pointsNeeded: 0,
+          },
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+        lastFetched: 1000000,
+      });
+
+      // Verify reauth was attempted and status was fetched again
+      expect(getSeasonStatusCallCount).toBe(2);
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.objectContaining({
+          account: mockAccount.address,
+        }),
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with a valid account after 403 error',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully fetched season status after reauth',
+        mockSeasonStatus,
+      );
+    });
+
+    it('should handle 403 error, reauth, and re-throw error if reauth failed', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const mockReauthError = new Error('Reauth failed');
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x123',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {
+          [mockSubscriptionId]: {
+            id: mockSubscriptionId,
+            referralCode: 'REF123',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger calls
+      let getSeasonStatusCallCount = 0;
+      localMockMessenger.call.mockImplementation(
+        async (method, ..._args): Promise<any> => {
+          if (method === 'RewardsDataService:getSeasonStatus') {
+            getSeasonStatusCallCount++;
+            return Promise.reject(mock403Error);
+          }
+          if (method === 'AccountsController:getSelectedMultichainAccount') {
+            return mockAccount;
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return 'mock-signature';
+          }
+          if (method === 'RewardsDataService:login') {
+            return Promise.reject(mockReauthError);
+          }
+          return undefined;
+        },
+      );
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache' as any,
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions' as any,
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow(mock403Error);
+
+      // Verify reauth was attempted and status was fetched again
+      expect(getSeasonStatusCallCount).toBe(2);
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.objectContaining({
+          account: mockAccount.address,
+        }),
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with a valid account after 403 error',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to reauth with a valid account after 403 error',
+        mock403Error.message,
+      );
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+    });
+
+    it('should handle 403 error, reauth with active account, and fetch status again', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x123',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+      const mockLoginResponse = {
+        subscription: { id: 'new-mock-subscription-id' },
+      };
+      const mockSeasonStatus = {
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z'),
+          endDate: new Date('2024-12-31T23:59:59Z'),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+        },
+        currentTierId: 'tier-1',
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {
+          'eip155:1:0x123': {
+            account: 'eip155:1:0x123',
+            subscriptionId: mockSubscriptionId,
+
+            hasOptedIn: true,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        };
+        state.subscriptions = {
+          [mockSubscriptionId]: {
+            id: mockSubscriptionId,
+            referralCode: 'REF123',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger calls
+      let getSeasonStatusCallCount = 0;
+      localMockMessenger.call.mockImplementation(
+        async (method, ..._args): Promise<any> => {
+          if (method === 'RewardsDataService:getSeasonStatus') {
+            getSeasonStatusCallCount++;
+            if (getSeasonStatusCallCount === 1) {
+              return Promise.reject(mock403Error);
+            }
+            // The second call should succeed
+            return mockSeasonStatus;
+          }
+          if (method === 'AccountsController:getSelectedMultichainAccount') {
+            return mockAccount;
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return 'mock-signature';
+          }
+          if (method === 'RewardsDataService:login') {
+            return mockLoginResponse;
+          }
+          return undefined;
+        },
+      );
+
+      // Act
+      const result = await testableController.getSeasonStatus(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+          endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+          refereePortion: undefined,
+          updatedAt: undefined,
+        },
+        tier: {
+          currentTier: {
+            id: 'tier-1',
+            name: 'Tier 1',
+            pointsNeeded: 0,
+          },
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+        lastFetched: 1000000,
+      });
+
+      // Verify reauth was attempted and status was fetched again
+      expect(getSeasonStatusCallCount).toBe(2);
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.objectContaining({
+          account: mockAccount.address,
+        }),
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with a valid account after 403 error',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully fetched season status after reauth',
+        mockSeasonStatus,
+      );
+    });
+
+    it('should handle 403 error, reauth with non-active account, and fetch status again', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const mockAccount = {
+        id: 'test-account-id-2',
+        address: '0x456',
+        name: 'Test Account 2',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+      const mockLoginResponse = {
+        subscription: { id: 'new-mock-subscription-id' },
+      };
+      const mockSeasonStatus = {
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z'),
+          endDate: new Date('2024-12-31T23:59:59Z'),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+        },
+        currentTierId: 'tier-1',
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {
+          'eip155:1:0x123': {
+            account: 'eip155:1:0x123',
+            subscriptionId: mockSubscriptionId,
+
+            hasOptedIn: true,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          'eip155:1:0x456': {
+            account: 'eip155:1:0x456',
+            subscriptionId: mockSubscriptionId,
+
+            hasOptedIn: true,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        };
+        state.subscriptions = {
+          [mockSubscriptionId]: {
+            id: mockSubscriptionId,
+            referralCode: 'REF123',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger calls
+      let getSeasonStatusCallCount = 0;
+      localMockMessenger.call.mockImplementation(
+        async (method, ..._args): Promise<any> => {
+          if (method === 'RewardsDataService:getSeasonStatus') {
+            getSeasonStatusCallCount++;
+            if (getSeasonStatusCallCount === 1) {
+              return Promise.reject(mock403Error);
+            }
+            // The second call should succeed
+            return mockSeasonStatus;
+          }
+          if (method === 'AccountsController:getSelectedMultichainAccount') {
+            return mockAccount;
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return 'mock-signature';
+          }
+          if (method === 'RewardsDataService:login') {
+            return mockLoginResponse;
+          }
+          return undefined;
+        },
+      );
+
+      // Act
+      const result = await testableController.getSeasonStatus(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+          endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+          refereePortion: undefined,
+          updatedAt: undefined,
+        },
+        tier: {
+          currentTier: {
+            id: 'tier-1',
+            name: 'Tier 1',
+            pointsNeeded: 0,
+          },
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+        lastFetched: 1000000,
+      });
+
+      // Verify reauth was attempted and status was fetched again
+      expect(getSeasonStatusCallCount).toBe(2);
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.objectContaining({
+          account: mockAccount.address,
+        }),
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with a valid account after 403 error',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully fetched season status after reauth',
+        mockSeasonStatus,
+      );
+    });
+
+    it('should handle 403 error when accounts exist but accountForSub is not found', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const testSubscriptionId = 'test-sub-id';
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        // Set accounts but with different subscriptionId so accountForSub won't be found
+        state.accounts = {
+          ['eip155:1:0x456' as CaipAccountId]: {
+            subscriptionId: 'different-sub-id', // Different from testSubscriptionId
+            account: 'eip155:1:0x456' as CaipAccountId,
+            hasOptedIn: true,
+
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        };
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger to return the account and reject with 403
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        return Promise.resolve({});
+      });
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      // Verify that conversion function was never called since accountForSub was not found
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      // Verify cache invalidation still happens
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        testSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+    });
+
+    it('should handle 403 error when accounts exist but intAccountForSub is not found after conversion', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const testSubscriptionId = 'test-sub-id';
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x456',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        // Set accounts with matching subscriptionId but will return unmatchable internal account
+        state.accounts = {
+          ['eip155:1:0x456' as CaipAccountId]: {
+            subscriptionId: testSubscriptionId,
+            account: 'eip155:1:0x456' as CaipAccountId,
+            hasOptedIn: true,
+
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        };
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger to return the account and reject with 403
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        if (method === 'AccountsController:listMultichainAccounts') {
+          return [mockAccount];
+        }
+        return Promise.resolve({});
+      });
+
+      const convertInternalAccountToCaipAccountIdSpy = jest
+        .spyOn(testableController, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue('eip155:1:0x999'); // Different CAIP ID to ensure no match
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      // Verify cache invalidation
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        testSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      convertInternalAccountToCaipAccountIdSpy.mockRestore();
+    });
+
+    it('should handle 403 error when accounts is undefined', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = undefined as any; // Test undefined accounts
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        return Promise.resolve({});
+      });
+
       const invalidateSubscriptionCacheSpy = jest.spyOn(
         testableController,
         'invalidateSubscriptionCache',
@@ -2731,31 +3675,112 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('Forbidden: 403');
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
 
+      // Verify no calls to listMultichainAccounts when accounts is undefined
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      // Verify cache invalidation still happens
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
         mockSubscriptionId,
       );
       expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get season status:',
-        'Forbidden: 403',
+    });
+
+    it('should handle 403 error when accounts is empty', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
       );
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {}; // Test empty accounts
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        return Promise.resolve({});
+      });
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      // Verify no calls to listMultichainAccounts when accounts is empty
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      // Verify cache invalidation still happens
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
     });
 
     it('should handle API server error (500)', async () => {
       // Arrange
       const serverError = new Error('Internal Server Error: 500');
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -2769,7 +3794,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      mockMessenger.call.mockRejectedValue(serverError);
+      localMockMessenger.call.mockRejectedValue(serverError);
 
       // Act & Assert
       await expect(
@@ -2785,16 +3810,25 @@ describe('RewardsController', () => {
     it('should handle API rate limit error (429)', async () => {
       // Arrange
       const rateLimitError = new Error('Too Many Requests: 429');
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
+
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -2808,7 +3842,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      mockMessenger.call.mockRejectedValue(rateLimitError);
+      localMockMessenger.call.mockRejectedValue(rateLimitError);
 
       // Act & Assert
       await expect(
@@ -3035,399 +4069,343 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('optIn', () => {
-    const mockEvmInternalAccount = {
-      address: '0x123456789',
-      type: 'eip155:eoa' as const,
-      id: 'test-id',
-      scopes: ['eip155:1' as const],
-      options: {},
-      methods: ['personal_sign'],
-      metadata: {
-        name: 'Test EVM Account',
-        keyring: { type: 'HD Key Tree' },
-        importTime: Date.now(),
-      },
-    } as InternalAccount;
-
-    const mockSolanaInternalAccount = {
-      address: 'solanaAddress123',
-      type: 'solana:data-account' as const,
-      id: 'solana-test-id',
-      scopes: ['solana:data-account' as const],
-      options: {},
-      methods: ['signMessage'],
-      metadata: {
-        name: 'Test Solana Account',
-        keyring: { type: 'HD Key Tree' },
-        importTime: Date.now(),
-      },
-    } as InternalAccount;
-
+  describe('handleAuthenticationTrigger', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
     });
 
-    it('should skip opt-in when feature flag is disabled', async () => {
+    it('should call performSilentAuth with null when no accounts are available', async () => {
       // Arrange
-      mockSelectRewardsEnabledFlag.mockReturnValue(false);
-      // Clear any previous calls
-      mockMessenger.call.mockClear();
+      mockMessenger.call.mockReturnValueOnce([]); // Empty accounts array
 
       // Act
-      const result = await controller.optIn(mockEvmInternalAccount);
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
-      expect(result).toBeNull();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Rewards feature is disabled, skipping optin',
-        expect.anything(),
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
-      // Now verify no calls are made
-      expect(mockMessenger.call).not.toHaveBeenCalled();
+      // Verify that activeAccount is set to null when no accounts are available
+      expect(controller.state.activeAccount).toBeNull();
     });
 
-    it('should successfully opt-in with an EVM account', async () => {
+    it('should call performSilentAuth with null when accounts is null', async () => {
       // Arrange
-      const mockSubscriptionId = 'test-subscription-id';
-      const mockOptinResponse = {
-        subscription: { id: mockSubscriptionId },
-        sessionId: 'test-session-id',
-      };
-
-      // Mock the messaging system calls
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:mobileOptin') {
-          const { account, signature, timestamp } = _args[0] as any;
-          expect(account).toBe(mockEvmInternalAccount.address);
-          expect(signature).toBeDefined();
-          expect(timestamp).toBeDefined();
-          return Promise.resolve(mockOptinResponse);
-        } else if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature');
-        }
-        return Promise.resolve();
-      });
+      mockMessenger.call.mockReturnValueOnce(null); // Null accounts
 
       // Act
-      const result = await controller.optIn(mockEvmInternalAccount);
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
-      expect(result).toBe(mockSubscriptionId);
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'KeyringController:signPersonalMessage',
-        expect.objectContaining({
-          from: mockEvmInternalAccount.address,
-        }),
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:mobileOptin',
-        expect.objectContaining({
-          account: mockEvmInternalAccount.address,
-        }),
-      );
+      // Verify that activeAccount is set to null when accounts is null
+      expect(controller.state.activeAccount).toBeNull();
     });
 
-    it('should successfully opt-in with a Solana account', async () => {
+    it('should successfully authenticate with single account', async () => {
       // Arrange
-      const mockSubscriptionId = 'solana-subscription-id';
-      const mockOptinResponse = {
-        subscription: { id: mockSubscriptionId },
-        sessionId: 'test-session-id',
-      };
-
-      // Save original mock implementations to restore later
-      const originalIsSolanaAddress =
-        mockIsSolanaAddress.getMockImplementation();
-      const originalIsNonEvmAddress =
-        mockIsNonEvmAddress.getMockImplementation();
-      const originalSignSolanaRewardsMessage =
-        mockSignSolanaRewardsMessage.getMockImplementation();
-
-      try {
-        // Mock isSolanaAddress to return true for the Solana account
-        mockIsSolanaAddress.mockReturnValue(true);
-        mockIsNonEvmAddress.mockReturnValue(true);
-
-        // Mock signSolanaRewardsMessage
-        mockSignSolanaRewardsMessage.mockResolvedValue({
-          signedMessage: 'base64-encoded-message',
-          signature: 'solana-signature',
-          signatureType: 'ed25519',
-        });
-
-        // Mock base58.decode to return a Buffer
-        const originalBase58Decode = (
-          base58.decode as jest.Mock
-        ).getMockImplementation();
-        (base58.decode as jest.Mock).mockReturnValue(
-          Buffer.from('01020304', 'hex'),
-        );
-
-        // Mock the messaging system calls
-        const originalMessengerCall =
-          mockMessenger.call.getMockImplementation();
-        mockMessenger.call.mockImplementation((method, ..._args): any => {
-          const params = _args[0] as any;
-          if (method === 'RewardsDataService:mobileOptin') {
-            // Don't verify signature here as it might not be set yet
-            expect(params.account).toBe(mockSolanaInternalAccount.address);
-            return Promise.resolve(mockOptinResponse);
-          }
-          return Promise.resolve();
-        });
-
-        // Act
-        const result = await controller.optIn(mockSolanaInternalAccount);
-
-        // Assert
-        expect(result).toBe(mockSubscriptionId);
-        // Verify that signSolanaRewardsMessage was called instead of KeyringController:signPersonalMessage
-        expect(mockSignSolanaRewardsMessage).toHaveBeenCalled();
-        expect(mockMessenger.call).not.toHaveBeenCalledWith(
-          'KeyringController:signPersonalMessage',
-          expect.any(Object),
-        );
-
-        // Restore original mocks
-        mockMessenger.call.mockImplementation(originalMessengerCall);
-        (base58.decode as jest.Mock).mockImplementation(originalBase58Decode);
-      } finally {
-        // Always restore original mocks even if test fails
-        mockIsSolanaAddress.mockImplementation(originalIsSolanaAddress);
-        mockIsNonEvmAddress.mockImplementation(originalIsNonEvmAddress);
-        mockSignSolanaRewardsMessage.mockImplementation(
-          originalSignSolanaRewardsMessage,
-        );
-      }
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:mobileOptin',
-        expect.objectContaining({
-          account: mockSolanaInternalAccount.address,
-        }),
-      );
-    });
-
-    it('should handle signature generation errors', async () => {
-      // Arrange
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.reject(new Error('Signature failed'));
-        }
-        return Promise.resolve();
-      });
-
-      // Act & Assert
-      await expect(controller.optIn(mockEvmInternalAccount)).rejects.toThrow(
-        'Signature failed',
-      );
-    });
-
-    it('should handle optin service errors', async () => {
-      // Arrange
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature123');
-        } else if (method === 'RewardsDataService:mobileOptin') {
-          return Promise.reject(new Error('Optin failed'));
-        }
-        return Promise.resolve();
-      });
-
-      // Act & Assert
-      await expect(controller.optIn(mockEvmInternalAccount)).rejects.toThrow(
-        'Optin failed',
-      );
-    });
-
-    it('should handle InvalidTimestampError and retry with server timestamp', async () => {
-      // Arrange
-      const mockSubscriptionId = 'test-subscription-id';
-      const mockOptinResponse = {
-        subscription: { id: mockSubscriptionId },
-        sessionId: 'test-session-id',
-      };
-
-      // Import the actual InvalidTimestampError
-      const { InvalidTimestampError } = jest.requireActual(
-        './services/rewards-data-service',
-      );
-      const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
-
-      // Mock the messaging system calls
-      let callCount = 0;
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:mobileOptin') {
-          callCount++;
-          const { account, signature, timestamp } = _args[0] as any;
-
-          // First call fails with timestamp error, second call succeeds
-          if (callCount === 1) {
-            expect(account).toBe(mockEvmInternalAccount.address);
-            expect(signature).toBeDefined();
-            expect(timestamp).toBeDefined();
-            return Promise.reject(mockError);
-          }
-          // Verify the second call uses the server timestamp
-          expect(account).toBe(mockEvmInternalAccount.address);
-          expect(signature).toBeDefined();
-          expect(timestamp).toBe(12345);
-          return Promise.resolve(mockOptinResponse);
-        } else if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature');
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await controller.optIn(mockEvmInternalAccount);
-
-      // Assert
-      expect(result).toBe(mockSubscriptionId);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'KeyringController:signPersonalMessage',
-        expect.objectContaining({
-          from: mockEvmInternalAccount.address,
-        }),
-      );
-      expect(callCount).toBe(2); // Verify retry happened
-    });
-
-    it('should store subscription token when optin response has subscription id and session id', async () => {
-      // Arrange
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'REF123',
-          accounts: [],
+      const mockAccount = {
+        address: '0x1234567890abcdef',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
         },
       };
 
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature123');
-        } else if (method === 'RewardsDataService:mobileOptin') {
-          return Promise.resolve(mockOptinResponse);
-        }
-        return Promise.resolve({
-          id: 'challenge-123',
-          message: 'test challenge message',
-        });
-      });
-
-      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
+      mockMessenger.call.mockReturnValueOnce([mockAccount]);
 
       // Act
-      const result = await controller.optIn(mockEvmInternalAccount);
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
-      expect(mockStoreSubscriptionToken).toHaveBeenCalledWith(
-        'sub-789',
-        'session-456',
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
-      expect(result).toBe('sub-789');
+      // Verify that activeAccount is set correctly
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
+      // Verify that the account was added to the accounts map
+      const accountId = controller.state.activeAccount?.account;
+      expect(accountId).toBeDefined();
+      expect(
+        controller.state.accounts[accountId as CaipAccountId],
+      ).toBeDefined();
     });
 
-    it('should handle storeSubscriptionToken errors gracefully without throwing', async () => {
+    it('should try multiple accounts and succeed on first account', async () => {
       // Arrange
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'REF123',
-          accounts: [],
+      const mockAccount1 = {
+        address: '0x1111111111111111',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 1',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
         },
       };
 
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature123');
-        } else if (method === 'RewardsDataService:mobileOptin') {
-          return Promise.resolve(mockOptinResponse);
-        }
-        return Promise.resolve({
-          id: 'challenge-123',
-          message: 'test challenge message',
-        });
-      });
+      const mockAccount2 = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-2',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 2',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
 
-      const mockError = new Error('Token storage failed');
-      mockStoreSubscriptionToken.mockRejectedValue(mockError);
+      mockMessenger.call.mockReturnValueOnce([mockAccount1, mockAccount2]);
 
       // Act
-      const result = await controller.optIn(mockEvmInternalAccount);
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
-      expect(mockStoreSubscriptionToken).toHaveBeenCalledWith(
-        'sub-789',
-        'session-456',
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      // Verify that activeAccount is set to the first account
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
+      // Verify that only the first account was processed (should stop after first success)
+      const accountId = controller.state.activeAccount?.account;
+      expect(accountId).toBeDefined();
+      expect(
+        controller.state.accounts[accountId as CaipAccountId],
+      ).toBeDefined();
+    });
+
+    it('should try multiple accounts and succeed on second account after first fails', async () => {
+      // Arrange
+      const mockAccount1 = {
+        address: '0x1111111111111111',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 1',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const mockAccount2 = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-2',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 2',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValueOnce([mockAccount1, mockAccount2]);
+
+      // Mock the rewards data service to fail for first account and succeed for second
+      mockRewardsDataService.login
+        .mockRejectedValueOnce(new Error('First account auth failed'))
+        .mockResolvedValueOnce({
+          subscription: { id: 'subscription-id-123' },
+          jwt: 'mock-jwt-token',
+        });
+
+      // Act
+      await controller.handleAuthenticationTrigger('test-reason');
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      // Verify that activeAccount is set to the second account (after first failed)
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
+      // Verify that the account was added to the accounts map
+      const accountId = controller.state.activeAccount?.account;
+      expect(accountId).toBeDefined();
+      expect(
+        controller.state.accounts[accountId as CaipAccountId],
+      ).toBeDefined();
+    });
+
+    it('should not throw error when single account fails authentication', async () => {
+      // Arrange
+      const mockAccount = {
+        address: '0x1234567890abcdef',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValueOnce([mockAccount]);
+
+      // Mock the rewards data service to fail for the single account
+      mockRewardsDataService.login.mockRejectedValue(
+        new Error('Single account auth failed'),
+      );
+
+      // Act - should not throw
+      await controller.handleAuthenticationTrigger('test-reason');
+
+      // Assert
+      // Verify that the method completed without throwing
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+    });
+
+    it('should handle "Engine does not exist" errors silently', async () => {
+      // Arrange
+      const mockAccount = {
+        address: '0x1234567890abcdef',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValueOnce([mockAccount]);
+
+      // Mock the rewards data service to throw "Engine does not exist" error
+      mockRewardsDataService.login.mockRejectedValue(
+        new Error('Engine does not exist'),
+      );
+
+      // Act - should not throw and should not log the error
+      await controller.handleAuthenticationTrigger('test-reason');
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(mockLogger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Silent authentication failed:',
+        'Engine does not exist',
+      );
+    });
+
+    it('should handle messagingSystem.call throwing an error', async () => {
+      // Arrange
+      mockMessenger.call.mockImplementation(() => {
+        throw new Error('Messaging system error');
+      });
+
+      // Act - should not throw
+      await controller.handleAuthenticationTrigger('test-reason');
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to store subscription token:',
-        mockError,
+        'RewardsController: Silent authentication failed:',
+        'Messaging system error',
       );
-      // Should still complete successfully and return subscription id
-      expect(result).toBe('sub-789');
     });
 
-    it('should not store subscription token when optin response lacks subscription id', async () => {
+    it('should handle non-Error objects thrown', async () => {
       // Arrange
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          // Missing id
-          referralCode: 'REF123',
-          accounts: [],
-        },
-      } as any; // Type assertion to allow incomplete response for testing
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature123');
-        } else if (method === 'RewardsDataService:mobileOptin') {
-          return Promise.resolve(mockOptinResponse);
-        }
-        return Promise.resolve();
+      mockMessenger.call.mockImplementation(() => {
+        throw 'String error'; // Non-Error object
       });
 
-      // Act
-      const result = await controller.optIn(mockEvmInternalAccount);
+      // Act - should not throw
+      await controller.handleAuthenticationTrigger('test-reason');
 
       // Assert
-      expect(mockStoreSubscriptionToken).not.toHaveBeenCalled();
-      expect(result).toBeUndefined();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Silent authentication failed:',
+        'String error',
+      );
     });
 
-    it('should not store subscription token when optin response lacks session id', async () => {
-      // Arrange
-      const mockOptinResponse = {
-        // Missing sessionId
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'REF123',
-          accounts: [],
+    it('should sort accounts correctly using sortAccounts utility', async () => {
+      // Arrange - Create accounts with different types to test sorting
+      const mockEvmAccount = {
+        address: '0x1111111111111111',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'EVM Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
         },
-      } as any; // Type assertion to allow incomplete response for testing
+      };
 
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature123');
-        } else if (method === 'RewardsDataService:mobileOptin') {
-          return Promise.resolve(mockOptinResponse);
-        }
-        return Promise.resolve();
-      });
+      const mockSolanaAccount = {
+        address: 'solana-address-123',
+        type: 'solana:data-account' as const,
+        id: 'test-id-2',
+        scopes: ['solana:mainnet' as const],
+        options: {},
+        methods: ['solana_signMessage'],
+        metadata: {
+          name: 'Solana Account',
+          keyring: { type: 'Solana Keyring' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Return Solana account first to test sorting
+      mockMessenger.call.mockReturnValueOnce([
+        mockSolanaAccount,
+        mockEvmAccount,
+      ]);
 
       // Act
-      const result = await controller.optIn(mockEvmInternalAccount);
+      await controller.handleAuthenticationTrigger('test-reason');
 
-      // Assert
-      expect(mockStoreSubscriptionToken).not.toHaveBeenCalled();
-      expect(result).toBe('sub-789');
+      // Assert - Should authenticate with EVM account first (sorted)
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
+      // Verify that the EVM account was processed first by checking the active account
+      const accountId = controller.state.activeAccount?.account;
+      expect(accountId).toContain('eip155:1:0x1111111111111111');
     });
   });
+
+  // Removed outdated 'reset' tests; behavior covered by 'resetAll' and 'logout' tests
 
   describe('logout', () => {
     beforeEach(() => {
@@ -3482,10 +4460,10 @@ describe('RewardsController', () => {
         state: {
           activeAccount: {
             account: CAIP_ACCOUNT_1,
-            lastCheckedAuthError: false,
+
             hasOptedIn: true,
             subscriptionId: mockSubscriptionId,
-            lastCheckedAuth: Date.now(),
+
             perpsFeeDiscount: 5.0,
             lastPerpsDiscountRateFetched: Date.now(),
           },
@@ -3512,10 +4490,9 @@ describe('RewardsController', () => {
       const mockSubscriptionId = 'sub-456';
       const mockActiveAccount = {
         account: CAIP_ACCOUNT_1,
-        lastCheckedAuthError: false,
         hasOptedIn: true,
         subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
+
         perpsFeeDiscount: 10.0,
         lastPerpsDiscountRateFetched: Date.now(),
       };
@@ -3632,10 +4609,10 @@ describe('RewardsController', () => {
 
       const activeAccountState = {
         account: CAIP_ACCOUNT_1,
-        lastCheckedAuthError: false,
+
         hasOptedIn: true,
         subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
+
         perpsFeeDiscount: 5.0,
         lastPerpsDiscountRateFetched: Date.now(),
       };
@@ -3668,6 +4645,154 @@ describe('RewardsController', () => {
 
       // Reset mock for other tests
       mockIsHardwareAccount.mockReturnValue(false);
+    });
+  });
+
+  describe('resetAll', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+    });
+
+    it('should skip reset when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+      const mockSubscriptionId = 'sub-abc';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+
+        perpsFeeDiscount: 5.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF999',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.resetAll();
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+    });
+
+    it('should clear tokens and reset state, preserving active account opted-out', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        perpsFeeDiscount: 10.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.resetAll();
+
+      // Assert tokens cleared
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+
+      // Assert state updated: tokens cleared and state reset; active account is opted-out if preserved
+      const active = controller.state.activeAccount;
+      const activeIsOptedOut =
+        !!active &&
+        active.account === CAIP_ACCOUNT_1 &&
+        active.hasOptedIn === false &&
+        active.subscriptionId === null;
+      expect(active === null || activeIsOptedOut).toBe(true);
+
+      // Accounts and subscriptions should be cleared by resetState
+      expect(Object.keys(controller.state.accounts)).toHaveLength(0);
+      expect(Object.keys(controller.state.subscriptions)).toHaveLength(0);
+
+      // Success log
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Reset completed successfully',
+      );
+    });
+
+    it('should log error and re-throw when token reset fails', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-err';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        perpsFeeDiscount: 7.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REFERR',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      const error = new Error('secure storage failure');
+      mockResetAllSubscriptionTokens.mockRejectedValueOnce(error);
+
+      // Act & Assert
+      await expect(controller.resetAll()).rejects.toThrow(
+        'secure storage failure',
+      );
+
+      // Error log
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Reset failed to complete',
+        'secure storage failure',
+      );
     });
   });
 
@@ -4037,8 +5162,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4047,8 +5170,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -4090,8 +5211,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: 0,
               lastPerpsDiscountRateFetched: null,
             },
@@ -4133,8 +5252,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub456',
-            lastCheckedAuth: 1234567890,
-            lastCheckedAuthError: true,
             perpsFeeDiscount: 10,
             lastPerpsDiscountRateFetched: 9876543210,
           },
@@ -4143,8 +5260,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub456',
-              lastCheckedAuth: 1234567890,
-              lastCheckedAuthError: true,
               perpsFeeDiscount: 10,
               lastPerpsDiscountRateFetched: 9876543210,
             },
@@ -4179,8 +5294,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub789',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4212,8 +5325,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub1',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4222,8 +5333,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub1',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -4231,8 +5340,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_2,
               hasOptedIn: false,
               subscriptionId: 'sub2',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: true,
               perpsFeeDiscount: 5,
               lastPerpsDiscountRateFetched: Date.now(),
             },
@@ -4240,8 +5347,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_3,
               hasOptedIn: true,
               subscriptionId: null,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -4286,8 +5391,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4296,8 +5399,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -4539,6 +5640,993 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('optIn (based on active account group)', () => {
+    const mockEvmInternalAccount = {
+      address: '0x123456789',
+      type: 'eip155:eoa' as const,
+      id: 'test-id',
+      scopes: ['eip155:1' as const],
+      options: {},
+      methods: ['personal_sign'],
+      metadata: {
+        name: 'Test EVM Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    } as InternalAccount;
+
+    const mockEvmInternalAccount2 = {
+      address: '0x987654321',
+      type: 'eip155:eoa' as const,
+      id: 'test-id-2',
+      scopes: ['eip155:1' as const],
+      options: {},
+      methods: ['personal_sign'],
+      metadata: {
+        name: 'Test EVM Account 2',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    } as InternalAccount;
+
+    const mockSubscriptionId = 'test-subscription-id';
+    const mockOptinResponse = {
+      subscription: { id: mockSubscriptionId },
+      sessionId: 'test-session-id',
+    };
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+    });
+
+    it('should successfully opt in with account group and link remaining accounts', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        } else if (method === 'RewardsDataService:mobileJoin') {
+          return Promise.resolve({ id: mockSubscriptionId });
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts to return the accounts in the same order
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileOptin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount.address,
+          signature: '0xsignature123',
+        }),
+      );
+      // Should also call mobileJoin for the second account
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount2.address,
+        }),
+        mockSubscriptionId,
+      );
+    });
+
+    it('should successfully opt in with referral code', async () => {
+      // Arrange
+      const referralCode = 'REF123';
+      const mockAccounts = [mockEvmInternalAccount];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          const params = _args[0] as any;
+          expect(params.referralCode).toBe(referralCode);
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn(referralCode);
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileOptin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount.address,
+          referralCode,
+        }),
+      );
+    });
+
+    it('should return null when rewards feature is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('should return null when no accounts found in selected account group', async () => {
+      // Arrange
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+    });
+
+    it('should throw error when all accounts fail to opt in', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.reject(new Error('Signature failed'));
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act & Assert
+      await expect(controller.optIn()).rejects.toThrow(
+        'Failed to opt in any account from the account group',
+      );
+    });
+
+    it('should handle InvalidTimestampError and retry with server timestamp', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
+
+      let callCount = 0;
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          callCount++;
+          if (callCount === 1) {
+            throw mockError;
+          }
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+      expect(callCount).toBe(2); // Should retry once
+    });
+
+    it('should handle optin service errors gracefully', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.reject(new Error('Optin service error'));
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act & Assert
+      await expect(controller.optIn()).rejects.toThrow(
+        'Failed to opt in any account from the account group',
+      );
+    });
+
+    it('should handle signature generation errors', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.reject(new Error('Signature failed'));
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act & Assert
+      await expect(controller.optIn()).rejects.toThrow(
+        'Failed to opt in any account from the account group',
+      );
+    });
+
+    it('should update controller state after successful opt-in', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+
+      // Check that the controller state was updated
+      const state = controller.state;
+      expect(state.subscriptions[mockSubscriptionId]).toBeDefined();
+      expect(state.subscriptions[mockSubscriptionId].id).toBe(
+        mockSubscriptionId,
+      );
+    });
+
+    it('should link remaining accounts after successful opt-in', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          // Only succeed for the first account
+          const params = _args[0] as any;
+          if (params.account === mockEvmInternalAccount.address) {
+            return Promise.resolve(mockOptinResponse);
+          }
+          return Promise.reject(new Error('Second account optin failed'));
+        } else if (method === 'RewardsDataService:mobileJoin') {
+          return Promise.resolve({ id: mockSubscriptionId });
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+      // Verify that mobileJoin was called for the second account
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount2.address,
+        }),
+        mockSubscriptionId,
+      );
+    });
+
+    it('should handle linkAccountsToSubscriptionCandidate failure gracefully', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          // Only succeed for the first account
+          const params = _args[0] as any;
+          if (params.account === mockEvmInternalAccount.address) {
+            return Promise.resolve(mockOptinResponse);
+          }
+          return Promise.reject(new Error('Second account optin failed'));
+        } else if (method === 'RewardsDataService:mobileJoin') {
+          return Promise.reject(new Error('Account linking failed'));
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId); // Should still return the subscription ID even if linking fails
+    });
+
+    it('should handle subscription token storage failure gracefully', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      jest.doMock('./utils/multi-subscription-token-vault', () => ({
+        storeSubscriptionToken: jest
+          .fn()
+          .mockRejectedValue(new Error('Storage failed')),
+      }));
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId); // Should still succeed even if token storage fails
+    });
+
+    it('should handle mixed account types with proper sorting', async () => {
+      // Arrange
+      const mockSolanaAccount = {
+        address: 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+        type: 'solana:data-account' as const,
+        id: 'solana-test-id',
+        scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const],
+        options: {},
+        methods: ['solana_signMessage'],
+        metadata: {
+          name: 'Test Solana Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      const mockAccounts = [mockSolanaAccount, mockEvmInternalAccount];
+      const sortedAccounts = [mockEvmInternalAccount, mockSolanaAccount]; // EVM first
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts to return EVM account first
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(sortedAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId); // Should try EVM account first due to sorting
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileOptin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount.address,
+        }),
+      );
+    });
+
+    it('should handle empty remaining accounts array', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId); // Should not call mobileJoin since there are no remaining accounts
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should handle InvalidTimestampError retry with server timestamp in #optIn', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
+      let callCount = 0;
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          callCount++;
+          if (callCount === 1) {
+            throw mockError;
+          }
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+      expect(callCount).toBe(2); // Should retry once with server timestamp
+    });
+
+    it('should handle InvalidTimestampError exceeding max retry attempts', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          throw mockError; // Always throw InvalidTimestampError
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act & Assert
+      await expect(controller.optIn()).rejects.toThrow(
+        'Failed to opt in any account from the account group',
+      );
+    });
+
+    it('should handle non-InvalidTimestampError without retry', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      const mockError = new Error('Network error');
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          throw mockError;
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act & Assert
+      await expect(controller.optIn()).rejects.toThrow(
+        'Failed to opt in any account from the account group',
+      );
+    });
+
+    it('should handle #optIn returning null when rewards disabled', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+
+      // Mock rewards disabled check inside #optIn
+      mockSelectRewardsEnabledFlag.mockImplementation(() => {
+        // First call (in main optIn) returns true, second call (in #optIn) returns false
+        const callCount = mockSelectRewardsEnabledFlag.mock.calls.length;
+        return callCount === 1;
+      });
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act & Assert
+      await expect(controller.optIn()).rejects.toThrow(
+        'Failed to opt in any account from the account group',
+      );
+    });
+
+    it('should handle convertInternalAccountToCaipAccountId returning null in #optIn', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+
+      // Mock convertInternalAccountToCaipAccountId to return null
+      jest
+        .spyOn(controller as any, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(null);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId); // Should still succeed even if convertInternalAccountToCaipAccountId returns null
+    });
+
+    it('should handle #optIn with missing subscription or sessionId in response', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      const incompleteResponse = {
+        subscription: { id: mockSubscriptionId },
+        // Missing sessionId
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(incompleteResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId); // Should still succeed even if sessionId is missing
+    });
+
+    it('should handle #optIn with missing subscription id in response', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      const incompleteResponse = {
+        subscription: {}, // Missing id
+        sessionId: 'test-session-id',
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(incompleteResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await controller.optIn();
+
+      // Assert
+      expect(result).toBeNull(); // Should return null when subscription id is missing
+    });
+  });
+
+  describe('linkAccountsToSubscriptionCandidate', () => {
+    const mockEvmInternalAccount = {
+      address: '0x123456789',
+      type: 'eip155:eoa' as const,
+      id: 'test-id',
+      scopes: ['eip155:1' as const],
+      options: {},
+      methods: ['personal_sign'],
+      metadata: {
+        name: 'Test EVM Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    } as InternalAccount;
+
+    const mockEvmInternalAccount2 = {
+      address: '0x987654321',
+      type: 'eip155:eoa' as const,
+      id: 'test-id-2',
+      scopes: ['eip155:1' as const],
+      options: {},
+      methods: ['personal_sign'],
+      metadata: {
+        name: 'Test EVM Account 2',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    } as InternalAccount;
+
+    const mockSolanaAccount = {
+      address: 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+      type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const,
+      id: 'solana-test-id',
+      scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const],
+      options: {},
+      methods: ['solana_signMessage'],
+      metadata: {
+        name: 'Test Solana Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    } as unknown as InternalAccount;
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+      // Restore any spies that might be left over from previous tests
+      jest.restoreAllMocks();
+    });
+
+    it('should return empty array when accounts array is empty', async () => {
+      // Act
+      const result = await controller.linkAccountsToSubscriptionCandidate([]);
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should return all accounts as failed when rewards feature is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+      const accounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
+
+      // Act
+      const result = await controller.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([
+        { account: mockEvmInternalAccount, success: false },
+        { account: mockEvmInternalAccount2, success: false },
+      ]);
+    });
+
+    it('should successfully link multiple accounts', async () => {
+      // Arrange
+      const accounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
+      const testSubscriptionId = 'test-subscription-id';
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [testSubscriptionId]: {
+              id: testSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [{ address: '0x123', chainId: 1 }],
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileJoin') {
+          return Promise.resolve({ id: testSubscriptionId });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await testController.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([
+        { account: mockEvmInternalAccount, success: true },
+        { account: mockEvmInternalAccount2, success: true },
+      ]);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount.address,
+        }),
+        testSubscriptionId,
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount2.address,
+        }),
+        testSubscriptionId,
+      );
+    });
+
+    it('should skip accounts that already have a subscription', async () => {
+      // Arrange
+      const accounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
+      // Set up controller state with one account already having a subscription
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            'existing-subscription': {
+              id: 'existing-subscription',
+              referralCode: 'REF123',
+              accounts: [{ address: '0x123456789', chainId: 1 }],
+            },
+          },
+          accounts: {
+            'eip155:1:0x123456789': {
+              account: 'eip155:1:0x123456789' as CaipAccountId,
+              hasOptedIn: true,
+              subscriptionId: 'existing-subscription',
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileJoin') {
+          return Promise.resolve({ id: 'test-subscription-id' });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await testController.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([
+        { account: mockEvmInternalAccount2, success: true },
+      ]);
+      // Should not call mobileJoin for the account that already has a subscription
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount.address,
+        }),
+        expect.any(String),
+      );
+    });
+
+    it('should handle mixed account types correctly', async () => {
+      // Arrange
+      const accounts = [mockEvmInternalAccount, mockSolanaAccount];
+      const testSubscriptionId = 'test-subscription-id';
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [testSubscriptionId]: {
+              id: testSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [{ address: '0x123', chainId: 1 }],
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileJoin') {
+          return Promise.resolve({ id: testSubscriptionId });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await testController.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([
+        { account: mockEvmInternalAccount, success: true },
+        { account: mockSolanaAccount, success: true },
+      ]);
+    });
+
+    it('should handle convertInternalAccountToCaipAccountId returning null', async () => {
+      // Arrange
+      const accounts = [mockEvmInternalAccount];
+      const testSubscriptionId = 'test-subscription-id';
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [testSubscriptionId]: {
+              id: testSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [{ address: '0x123', chainId: 1 }],
+            },
+          },
+        },
+      });
+
+      // Mock convertInternalAccountToCaipAccountId to return null
+      jest
+        .spyOn(testController as any, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(null);
+
+      // Act
+      const result = await testController.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([
+        { account: mockEvmInternalAccount, success: false },
+      ]);
+    });
+  });
+
   describe('optOut', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
@@ -4612,8 +6700,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4648,8 +6734,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: expect.any(Number),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       });
@@ -4670,8 +6754,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4707,8 +6789,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4721,6 +6801,411 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toBe(false);
+    });
+
+    it('should handle multiple subscriptions correctly', async () => {
+      // Arrange
+      const subscriptionId2 = 'test-subscription-id-2';
+      mockMessenger.call.mockResolvedValue({ success: true });
+      mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            'test-subscription-id': {
+              id: 'test-subscription-id',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+            'test-subscription-id-2': {
+              id: subscriptionId2,
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut('test-subscription-id');
+
+      // Assert
+      expect(result).toBe(true);
+
+      // Verify that the state was reset (all subscriptions cleared)
+      const newState = testController.state;
+      expect(newState.subscriptions).toEqual({});
+    });
+  });
+
+  describe('optIn and optOut edge cases', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+    });
+
+    describe('optIn edge cases', () => {
+      it('should handle empty account group gracefully', async () => {
+        // Arrange
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [];
+          }
+          return Promise.resolve();
+        });
+
+        // Act
+        const result = await controller.optIn();
+
+        // Assert
+        expect(result).toBeNull();
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        );
+      });
+
+      it('should handle null account group gracefully', async () => {
+        // Arrange
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return null;
+          }
+          return Promise.resolve();
+        });
+
+        // Act
+        const result = await controller.optIn();
+
+        // Assert
+        expect(result).toBeNull();
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        );
+      });
+
+      it('should handle undefined account group gracefully', async () => {
+        // Arrange
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return undefined;
+          }
+          return Promise.resolve();
+        });
+
+        // Act
+        const result = await controller.optIn();
+
+        // Assert
+        expect(result).toBeNull();
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        );
+      });
+
+      it('should handle account group with unsupported accounts', async () => {
+        // Arrange
+        const unsupportedAccount = {
+          address: 'unsupported-address',
+          type: 'any:account' as const,
+          id: 'unsupported-id',
+          scopes: ['any:account' as const],
+          options: {},
+          methods: [],
+          metadata: {
+            name: 'Unsupported Account',
+            keyring: { type: 'Unsupported' },
+            importTime: Date.now(),
+          },
+        } as InternalAccount;
+
+        const mockAccounts = [unsupportedAccount];
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return mockAccounts;
+          }
+          return Promise.resolve();
+        });
+
+        // Mock sortAccounts
+        jest.doMock('./utils/sortAccounts', () => ({
+          sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+        }));
+
+        // Act & Assert
+        await expect(controller.optIn()).rejects.toThrow(
+          'Failed to opt in any account from the account group',
+        );
+      });
+
+      it('should handle very long referral codes', async () => {
+        // Arrange
+        const longReferralCode = 'A'.repeat(1000); // Very long referral code
+        const mockEvmInternalAccount = {
+          address: '0x123456789',
+          type: 'eip155:eoa' as const,
+          id: 'test-id',
+          scopes: ['eip155:1' as const],
+          options: {},
+          methods: ['personal_sign'],
+          metadata: {
+            name: 'Test EVM Account',
+            keyring: { type: 'HD Key Tree' },
+            importTime: Date.now(),
+          },
+        } as InternalAccount;
+        const mockAccounts = [mockEvmInternalAccount];
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return mockAccounts;
+          } else if (method === 'KeyringController:signPersonalMessage') {
+            return Promise.resolve('0xsignature123');
+          } else if (method === 'RewardsDataService:mobileOptin') {
+            const params = _args[0] as any;
+            expect(params.referralCode).toBe(longReferralCode);
+            return Promise.resolve({
+              subscription: { id: 'test-subscription-id' },
+              sessionId: 'test-session-id',
+            });
+          }
+          return Promise.resolve();
+        });
+
+        // Mock sortAccounts
+        jest.doMock('./utils/sortAccounts', () => ({
+          sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+        }));
+
+        // Act
+        const result = await controller.optIn(longReferralCode);
+
+        // Assert
+        expect(result).toBe('test-subscription-id');
+      });
+
+      it('should handle special characters in referral codes', async () => {
+        // Arrange
+        const specialReferralCode = 'REF@#$%^&*()_+-=[]{}|;:,.<>?';
+        const mockEvmInternalAccount = {
+          address: '0x123456789',
+          type: 'eip155:eoa' as const,
+          id: 'test-id',
+          scopes: ['eip155:1' as const],
+          options: {},
+          methods: ['personal_sign'],
+          metadata: {
+            name: 'Test EVM Account',
+            keyring: { type: 'HD Key Tree' },
+            importTime: Date.now(),
+          },
+        } as InternalAccount;
+        const mockAccounts = [mockEvmInternalAccount];
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return mockAccounts;
+          } else if (method === 'KeyringController:signPersonalMessage') {
+            return Promise.resolve('0xsignature123');
+          } else if (method === 'RewardsDataService:mobileOptin') {
+            const params = _args[0] as any;
+            expect(params.referralCode).toBe(specialReferralCode);
+            return Promise.resolve({
+              subscription: { id: 'test-subscription-id' },
+              sessionId: 'test-session-id',
+            });
+          }
+          return Promise.resolve();
+        });
+
+        // Mock sortAccounts
+        jest.doMock('./utils/sortAccounts', () => ({
+          sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+        }));
+
+        // Act
+        const result = await controller.optIn(specialReferralCode);
+
+        // Assert
+        expect(result).toBe('test-subscription-id');
+      });
+    });
+
+    describe('optOut edge cases', () => {
+      it('should handle empty subscription ID', async () => {
+        // Arrange
+        const testController = new TestableRewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            subscriptions: {},
+          },
+        });
+
+        // Clear any calls made during controller initialization
+        mockMessenger.call.mockClear();
+
+        // Act
+        const result = await testController.optOut('');
+
+        // Assert
+        expect(result).toBe(false);
+        expect(mockMessenger.call).not.toHaveBeenCalled();
+      });
+
+      it('should handle null subscription ID', async () => {
+        // Arrange
+        const testController = new TestableRewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            subscriptions: {},
+          },
+        });
+
+        // Clear any calls made during controller initialization
+        mockMessenger.call.mockClear();
+
+        // Act
+        const result = await testController.optOut(null as any);
+
+        // Assert
+        expect(result).toBe(false);
+        expect(mockMessenger.call).not.toHaveBeenCalled();
+      });
+
+      it('should handle undefined subscription ID', async () => {
+        // Arrange
+        const testController = new TestableRewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            subscriptions: {},
+          },
+        });
+
+        // Clear any calls made during controller initialization
+        mockMessenger.call.mockClear();
+
+        // Act
+        const result = await testController.optOut(undefined as any);
+
+        // Assert
+        expect(result).toBe(false);
+        expect(mockMessenger.call).not.toHaveBeenCalled();
+      });
+
+      it('should handle very long subscription ID', async () => {
+        // Arrange
+        const longSubscriptionId = 'A'.repeat(1000);
+        mockMessenger.call.mockResolvedValue({ success: true });
+        mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+        const testController = new TestableRewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            subscriptions: {
+              [longSubscriptionId]: {
+                id: longSubscriptionId,
+                referralCode: 'REF123',
+                accounts: [],
+              },
+            },
+          },
+        });
+
+        // Act
+        const result = await testController.optOut(longSubscriptionId);
+
+        // Assert
+        expect(result).toBe(true);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:optOut',
+          longSubscriptionId,
+        );
+      });
+
+      it('should handle special characters in subscription ID', async () => {
+        // Arrange
+        const specialSubscriptionId = 'sub@#$%^&*()_+-=[]{}|;:,.<>?';
+        mockMessenger.call.mockResolvedValue({ success: true });
+        mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+        const testController = new TestableRewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            subscriptions: {
+              [specialSubscriptionId]: {
+                id: specialSubscriptionId,
+                referralCode: 'REF123',
+                accounts: [],
+              },
+            },
+          },
+        });
+
+        // Act
+        const result = await testController.optOut(specialSubscriptionId);
+
+        // Assert
+        expect(result).toBe(true);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:optOut',
+          specialSubscriptionId,
+        );
+      });
+
+      it('should handle subscription ID with whitespace', async () => {
+        // Arrange
+        const subscriptionIdWithWhitespace = '  sub123  ';
+        mockMessenger.call.mockResolvedValue({ success: true });
+        mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+        const testController = new TestableRewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            subscriptions: {
+              [subscriptionIdWithWhitespace]: {
+                id: subscriptionIdWithWhitespace,
+                referralCode: 'REF123',
+                accounts: [],
+              },
+            },
+          },
+        });
+
+        // Act
+        const result = await testController.optOut(
+          subscriptionIdWithWhitespace,
+        );
+
+        // Assert
+        expect(result).toBe(true);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:optOut',
+          subscriptionIdWithWhitespace,
+        );
+      });
     });
   });
 
@@ -4750,8 +7235,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             subscriptionId: null, // No active subscription
             hasOptedIn: false,
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -4807,7 +7290,7 @@ describe('RewardsController', () => {
           methods: [],
         },
       ];
-      const mockOptInResponse = { ois: [false, false] }; // No accounts opted in
+      const mockOptInResponse = { ois: [false, false], sids: [null, null] }; // No accounts opted in
 
       mockMessenger.call
         .mockReturnValueOnce(mockInternalAccounts) // getInternalAccounts
@@ -4829,6 +7312,65 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
+    it('should return subscription ID from sids array when available', async () => {
+      // Arrange
+      const mockInternalAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockOptInResponse = {
+        ois: [true, false],
+        sids: ['sub-from-sids-123', null], // First account has subscription ID in sids
+      };
+
+      mockMessenger.call.mockReturnValueOnce(mockInternalAccounts); // listMultichainAccounts
+
+      // Mock the getOptInStatus method to return our test response
+      jest
+        .spyOn(controller, 'getOptInStatus')
+        .mockResolvedValueOnce(mockOptInResponse);
+
+      // Mock getSubscriptionToken to return a valid session token
+      (getSubscriptionToken as jest.Mock).mockResolvedValueOnce({
+        success: true,
+        token: 'valid-session-token',
+      });
+
+      // Act
+      const result = await controller.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBe('sub-from-sids-123');
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+      expect(getSubscriptionToken).toHaveBeenCalledWith('sub-from-sids-123');
+    });
+
     it('should return active account subscription ID when available', async () => {
       // Arrange
       const activeSubscriptionId = 'active-sub-123';
@@ -4840,8 +7382,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             subscriptionId: activeSubscriptionId,
             hasOptedIn: true,
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -5477,7 +8017,10 @@ describe('RewardsController', () => {
         { address: '0x123', type: 'eip155:eoa' as const },
         { address: '0x456', type: 'eip155:eoa' as const },
       ];
-      const mockOptInStatusResponse = { ois: [false, false] };
+      const mockOptInStatusResponse = {
+        ois: [false, false],
+        sids: [null, null],
+      };
 
       const testController = new RewardsController({
         messenger: mockMessenger,
@@ -5517,7 +8060,10 @@ describe('RewardsController', () => {
         { address: '0x123', type: 'eip155:eoa' as const },
         { address: '0x456', type: 'eip155:eoa' as const },
       ];
-      const mockOptInStatusResponse = { ois: [true, true] };
+      const mockOptInStatusResponse = {
+        ois: [true, true],
+        sids: [null, null], // No subscription IDs, forcing silent auth
+      };
 
       const testController = new RewardsController({
         messenger: mockMessenger,
@@ -5645,7 +8191,7 @@ describe('RewardsController', () => {
       // Mock Solana address check (return false for all - they are not Solana)
       mockIsSolanaAddress.mockReturnValue(false);
 
-      const mockOptInResponse = { ois: [false, false] }; // Only 2 accounts checked (hardware excluded)
+      const mockOptInResponse = { ois: [false, false], sids: [null, null] }; // Only 2 accounts checked (hardware excluded)
 
       // Create a spy on the getOptInStatus method to directly verify the call
       const getOptInStatusSpy = jest.spyOn(
@@ -5745,10 +8291,40 @@ describe('RewardsController', () => {
         expect((error as Error).message).toBe(
           'No valid subscription found to link account to',
         );
-        expect(mockLogger.log).not.toHaveBeenCalledWith(
-          'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
-        );
       }
+    });
+
+    it('should return false when account is not supported for opt-in', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Mock getCandidateSubscriptionId to return a valid ID
+      jest
+        .spyOn(testController, 'getCandidateSubscriptionId')
+        .mockResolvedValue('test-subscription-id');
+
+      // Mock isOptInSupported to return false
+      jest.spyOn(testController, 'isOptInSupported').mockReturnValue(false);
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Account is not supported for opt-in',
+      );
+      // Verify that mobile join was not called
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.anything(),
+        'test-subscription-id',
+      );
     });
 
     it('should handle InvalidTimestampError and retry with server timestamp', async () => {
@@ -5815,8 +8391,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               subscriptionId: 'existing-sub',
               hasOptedIn: true,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -5917,8 +8491,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'candidate-sub-123',
-        lastCheckedAuth: expect.any(Number),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       });
@@ -5929,6 +8501,183 @@ describe('RewardsController', () => {
           account: CAIP_ACCOUNT_1,
           subscriptionId: 'candidate-sub-123',
         },
+      );
+    });
+
+    it('should not invalidate cache or publish event when invalidateRelatedData is false', async () => {
+      // Arrange
+      const mockUpdatedSubscription = {
+        id: 'candidate-sub-123',
+        referralCode: 'REF456',
+        accounts: [{ address: '0x123', chainId: 1 }],
+      };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            'candidate-sub-123': {
+              id: 'candidate-sub-123',
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      mockToHex.mockReturnValue('0xsignature');
+      mockMessenger.call
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+        false, // invalidateRelatedData = false
+      );
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        {
+          account: '0x123',
+          timestamp: expect.any(Number),
+          signature: '0xsignature',
+        },
+        'candidate-sub-123',
+      );
+
+      // Verify account state was updated
+      const accountState = testController.state.accounts[CAIP_ACCOUNT_1];
+      expect(accountState).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'candidate-sub-123',
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+
+      // Verify that cache invalidation and event publishing were NOT called
+      expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+        'RewardsController:accountLinked',
+        expect.anything(),
+      );
+      expect(mockLogger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Invalidated cache for subscription',
+        expect.anything(),
+      );
+    });
+
+    it('should invalidate cache and publish event when invalidateRelatedData is true', async () => {
+      // Arrange
+      const subscriptionId = 'candidate-sub-123';
+      const currentSeasonCompositeKey = `current:${subscriptionId}`;
+      const mockUpdatedSubscription = {
+        id: subscriptionId,
+        referralCode: 'REF456',
+        accounts: [{ address: '0x123', chainId: 1 }],
+      };
+
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        subscriptions: {
+          [subscriptionId]: {
+            id: subscriptionId,
+            referralCode: 'REF456',
+            accounts: [],
+          },
+        },
+        seasonStatuses: {
+          [currentSeasonCompositeKey]: {
+            season: {
+              id: 'current',
+              name: 'Current Season',
+              startDate: Date.now(),
+              endDate: Date.now() + 86400000,
+              tiers: [],
+            },
+            balance: { total: 1000, refereePortion: 0 },
+            tier: {
+              currentTier: {
+                id: 'bronze',
+                name: 'Bronze',
+                pointsNeeded: 0,
+                image: { lightModeUrl: '', darkModeUrl: '' },
+                levelNumber: '1',
+                rewards: [],
+              },
+              nextTier: null,
+              nextTierPointsNeeded: null,
+            },
+            lastFetched: Date.now(),
+          },
+        },
+        activeBoosts: {
+          [currentSeasonCompositeKey]: {
+            boosts: [],
+            lastFetched: Date.now(),
+          },
+        },
+        unlockedRewards: {
+          [currentSeasonCompositeKey]: {
+            rewards: [
+              {
+                id: 'reward-1',
+                seasonRewardId: 'sr1',
+                claimStatus: RewardClaimStatus.UNCLAIMED,
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+        },
+      };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      mockToHex.mockReturnValue('0xsignature');
+      mockMessenger.call
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+        true, // invalidateRelatedData = true (default)
+      );
+
+      // Assert
+      expect(result).toBe(true);
+
+      // Verify cache was invalidated for the linked subscription
+      expect(
+        testController.state.seasonStatuses[currentSeasonCompositeKey],
+      ).toBeUndefined();
+      expect(
+        testController.state.activeBoosts[currentSeasonCompositeKey],
+      ).toBeUndefined();
+      expect(
+        testController.state.unlockedRewards[currentSeasonCompositeKey],
+      ).toBeUndefined();
+
+      // Verify account linking event was published
+      expect(mockMessenger.publish).toHaveBeenCalledWith(
+        'RewardsController:accountLinked',
+        {
+          subscriptionId,
+          account: CAIP_ACCOUNT_1,
+        },
+      );
+
+      // Verify cache invalidation was logged
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Invalidated cache for subscription',
+        subscriptionId,
+        'all seasons',
       );
     });
 
@@ -6351,9 +9100,123 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('linkAccountsToSubscriptionCandidate', () => {
+    const mockInternalAccount1 = {
+      address: '0x123',
+      type: 'eip155:eoa' as const,
+      id: 'account1',
+      options: {},
+      metadata: {
+        name: 'Test Account 1',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+      },
+      scopes: ['eip155:1' as const],
+      methods: [],
+    } as InternalAccount;
+
+    const mockInternalAccount2 = {
+      address: '0x456',
+      type: 'eip155:eoa' as const,
+      id: 'account2',
+      options: {},
+      metadata: {
+        name: 'Test Account 2',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+      },
+      scopes: ['eip155:1' as const],
+      methods: [],
+    } as InternalAccount;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+    });
+
+    it('should return all accounts as failed when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+      const accounts = [mockInternalAccount1, mockInternalAccount2];
+
+      // Act
+      const result = await controller.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([
+        { account: mockInternalAccount1, success: false },
+        { account: mockInternalAccount2, success: false },
+      ]);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Rewards feature is disabled',
+      );
+    });
+
+    it('should return empty array when accounts array is empty', async () => {
+      // Arrange
+      const accounts: InternalAccount[] = [];
+
+      // Act
+      const result = await controller.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should not invalidate cache or emit event when no accounts are successfully linked', async () => {
+      // Arrange
+      const accounts = [mockInternalAccount1, mockInternalAccount2];
+
+      // Mock the individual linkAccountToSubscriptionCandidate calls to all fail
+      const linkSpy = jest.spyOn(
+        controller,
+        'linkAccountToSubscriptionCandidate',
+      );
+      linkSpy
+        .mockRejectedValueOnce(new Error('Linking failed'))
+        .mockRejectedValueOnce(new Error('Linking failed'));
+
+      // Act
+      const result = await controller.linkAccountsToSubscriptionCandidate(
+        accounts,
+      );
+
+      // Assert
+      expect(result).toEqual([
+        { account: mockInternalAccount1, success: false },
+        { account: mockInternalAccount2, success: false },
+      ]);
+
+      // Verify that linkAccountToSubscriptionCandidate was called for each account
+      expect(linkSpy).toHaveBeenCalledTimes(2);
+
+      // Verify cache invalidation was NOT called
+      const invalidateSpy = jest.spyOn(
+        controller,
+        'invalidateSubscriptionCache',
+      );
+      expect(invalidateSpy).not.toHaveBeenCalled();
+
+      // Verify event was NOT published
+      expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+        'RewardsController:accountLinked',
+        expect.anything(),
+      );
+
+      // Clean up
+      linkSpy.mockRestore();
+      invalidateSpy.mockRestore();
+    });
+  });
+
   describe('getOptInStatus', () => {
     const mockParams = { addresses: ['0x123', '0x456'] };
-    const mockResponse = { ois: [true, false] };
+    const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
@@ -6368,14 +9231,38 @@ describe('RewardsController', () => {
       const result = await controller.getOptInStatus(mockParams);
 
       // Assert
-      expect(result).toEqual({ ois: [false, false] });
+      expect(result).toEqual({ ois: [false, false], sids: [null, null] });
     });
 
     it('should successfully get opt-in status from service', async () => {
       // Arrange
       const mockAccounts = [
-        { address: '0x123', type: 'eip155:eoa' as const },
-        { address: '0x456', type: 'eip155:eoa' as const },
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
       ];
 
       // Mock both messenger calls to succeed
@@ -6394,12 +9281,93 @@ describe('RewardsController', () => {
       );
     });
 
+    it('should cache subscription IDs from sids array in account state', async () => {
+      // Arrange
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
+
+      // Mock both messenger calls to succeed
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
+
+      // Act
+      const result = await controller.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Check that subscription IDs were cached in account state
+      const state = controller.state;
+      const account1State = state.accounts['eip155:1:0x123'];
+      const account2State = state.accounts['eip155:1:0x456'];
+
+      expect(account1State).toBeDefined();
+      expect(account1State.hasOptedIn).toBe(true);
+      expect(account1State.subscriptionId).toBe('sub_123');
+
+      expect(account2State).toBeDefined();
+      expect(account2State.hasOptedIn).toBe(false);
+      expect(account2State.subscriptionId).toBe(null);
+    });
+
     it('should handle service errors and rethrow them', async () => {
       // Arrange
       const mockError = new Error('Service error');
       const mockAccounts = [
-        { address: '0x123', type: 'eip155:eoa' as const },
-        { address: '0x456', type: 'eip155:eoa' as const },
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
       ];
 
       // Mock AccountsController call to succeed, then RewardsDataService call to fail
@@ -6440,6 +9408,387 @@ describe('RewardsController', () => {
         'RewardsController: Failed to get opt-in status:',
         'String error',
       );
+    });
+
+    it('should use cached data when account state has hasOptedIn defined', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x456'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+
+      // Set up controller with cached account state
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            'eip155:1:0x123': {
+              account: 'eip155:1:0x123',
+              hasOptedIn: true,
+              subscriptionId: 'cached_sub_123',
+
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            'eip155:1:0x456': {
+              account: 'eip155:1:0x456',
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+        },
+      });
+
+      // Clear any previous calls and mock only the accounts call
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual({
+        ois: [true, false],
+        sids: ['cached_sub_123', null],
+      });
+
+      // Verify that only the accounts call was made, not the service call since we used cached data
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        expect.anything(),
+      );
+    });
+
+    it('should update existing account state when fresh data is fetched', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockResponse = { ois: [true], sids: ['fresh_sub_123'] };
+
+      // Set up controller with existing account state that has undefined hasOptedIn
+      // This will force a fresh API call instead of using cached data
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            'eip155:1:0x123': {
+              account: 'eip155:1:0x123',
+              hasOptedIn: undefined, // This will force fresh API call
+              subscriptionId: 'old_sub_123', // Will be updated to fresh_sub_123
+
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+        },
+      });
+
+      // Clear any previous calls and mock both messenger calls
+      mockMessenger.call.mockClear();
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Verify that the existing account state was updated (not created new)
+      const updatedAccountState =
+        testController.state.accounts['eip155:1:0x123'];
+      expect(updatedAccountState).toBeDefined();
+      expect(updatedAccountState.hasOptedIn).toBe(true);
+      expect(updatedAccountState.subscriptionId).toBe('fresh_sub_123');
+    });
+
+    it('should use cached results in final combination loop', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x456', '0x789'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x789',
+          type: 'eip155:eoa' as const,
+          id: 'account3',
+          options: {},
+          metadata: {
+            name: 'Account 3',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+
+      // Set up controller with mixed cached and non-cached data
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            // First account has cached data
+            'eip155:1:0x123': {
+              account: 'eip155:1:0x123',
+              hasOptedIn: true,
+              subscriptionId: 'cached_sub_123',
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            // Second account has cached data
+            'eip155:1:0x456': {
+              account: 'eip155:1:0x456',
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            // Third account has no cached data, will need fresh API call
+          },
+        },
+      });
+
+      // Mock the fresh API response for only the third account
+      const mockFreshResponse = { ois: [true], sids: ['fresh_sub_789'] };
+
+      // Clear any previous calls and mock both messenger calls
+      mockMessenger.call.mockClear();
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockResolvedValueOnce(mockFreshResponse); // RewardsDataService:getOptInStatus (only for 0x789)
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual({
+        ois: [true, false, true], // First two from cache, third from fresh API
+        sids: ['cached_sub_123', null, 'fresh_sub_789'],
+      });
+
+      // Verify that the service was called with only the non-cached address
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        { addresses: ['0x789'] },
+      );
+    });
+
+    it('should update activeAccount when it matches an account being checked', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x456'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ] as any;
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
+
+      // Set up controller with an active account that matches 0x456
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+
+      testController.testUpdate((state) => {
+        state.activeAccount = {
+          account: 'eip155:1:0x456',
+          hasOptedIn: false,
+          subscriptionId: null,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+      });
+
+      // Mock both messenger calls to succeed
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts)
+        .mockResolvedValueOnce(mockResponse);
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Verify that activeAccount was updated for the matching account (0x456)
+      const state = testController.state;
+      const activeAccount = state.activeAccount;
+      expect(activeAccount).toBeDefined();
+      expect(activeAccount?.account).toBe('eip155:1:0x456');
+      expect(activeAccount?.hasOptedIn).toBe(false);
+      expect(activeAccount?.subscriptionId).toBe(null);
+
+      // Verify that the regular account state was also updated
+      const account456State = state.accounts['eip155:1:0x456'];
+      expect(account456State).toBeDefined();
+      expect(account456State.hasOptedIn).toBe(false);
+      expect(account456State.subscriptionId).toBe(null);
+    });
+
+    it('should not update activeAccount when it does not match any account being checked', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x999'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x999',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ] as any;
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
+
+      // Set up controller with an active account that does NOT match any account being checked
+      const originalActiveAccount = {
+        account: 'eip155:1:0x456',
+        hasOptedIn: true,
+        subscriptionId: 'old_sub',
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+
+      testController.testUpdate((state) => {
+        state.activeAccount = originalActiveAccount as RewardsAccountState;
+      });
+
+      // Mock both messenger calls to succeed
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts)
+        .mockResolvedValueOnce(mockResponse);
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Verify that activeAccount was NOT updated since it didn't match any checked account
+      const state = testController.state;
+      const activeAccount = state.activeAccount;
+      expect(activeAccount).toBeDefined();
+      expect(activeAccount?.account).toBe('eip155:1:0x456');
+      expect(activeAccount?.hasOptedIn).toBe(true); // Original value preserved
+      expect(activeAccount?.subscriptionId).toBe('old_sub'); // Original value preserved
     });
   });
 
@@ -8713,8 +12062,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'test-sub-123',
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       };
@@ -8754,8 +12101,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       };
@@ -8834,6 +12179,7 @@ describe('RewardsController', () => {
       mockFetchFresh = jest.fn();
       mockSwrCallback = jest.fn();
       jest.clearAllMocks();
+      mockLogger.log.mockClear();
       const mockTimestamp = 1234567890;
       Date.now = jest.fn().mockReturnValue(mockTimestamp);
     });
@@ -8862,37 +12208,6 @@ describe('RewardsController', () => {
         expect(mockReadCache).toHaveBeenCalledWith('test-key');
         expect(mockFetchFresh).not.toHaveBeenCalled();
         expect(mockWriteCache).not.toHaveBeenCalled();
-      });
-
-      it('returns stale cached data and triggers SWR when cache is stale and SWR callback provided', async () => {
-        // Arrange
-        const staleData = {
-          payload: 'stale-value',
-          lastFetched: Date.now() - 10000,
-        };
-        mockReadCache.mockReturnValue(staleData);
-        mockFetchFresh.mockResolvedValue('fresh-value');
-
-        // Act
-        const result = await wrapWithCache({
-          key: 'test-key',
-          ttl: 5000,
-          readCache: mockReadCache,
-          fetchFresh: mockFetchFresh,
-          writeCache: mockWriteCache,
-          swrCallback: mockSwrCallback,
-        });
-
-        // Assert
-        expect(result).toBe('stale-value');
-        expect(mockReadCache).toHaveBeenCalledWith('test-key');
-
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        expect(mockFetchFresh).toHaveBeenCalled();
-        expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
-        expect(mockSwrCallback).toHaveBeenCalledWith('fresh-value');
       });
 
       it('fetches fresh data when no cache exists', async () => {
@@ -8990,37 +12305,6 @@ describe('RewardsController', () => {
           'Cache write failed',
         );
         expect(mockFetchFresh).toHaveBeenCalled();
-      });
-
-      it('handles SWR revalidation errors gracefully', async () => {
-        // Arrange
-        const staleData = {
-          payload: 'stale-value',
-          lastFetched: Date.now() - 10000,
-        };
-        mockReadCache.mockReturnValue(staleData);
-        mockFetchFresh.mockRejectedValue(new Error('SWR fetch failed'));
-
-        // Act
-        const result = await wrapWithCache({
-          key: 'test-key',
-          ttl: 5000,
-          readCache: mockReadCache,
-          fetchFresh: mockFetchFresh,
-          writeCache: mockWriteCache,
-          swrCallback: mockSwrCallback,
-        });
-
-        // Assert
-        expect(result).toBe('stale-value');
-
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'SWR revalidation failed:',
-          'SWR fetch failed',
-        );
       });
     });
 
@@ -9126,7 +12410,10 @@ describe('RewardsController', () => {
 
         expect(mockFetchFresh).toHaveBeenCalled();
         expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
-        expect(mockSwrCallback).toHaveBeenCalledWith('fresh-value');
+        expect(mockSwrCallback).toHaveBeenCalledWith(
+          'stale-value',
+          'fresh-value',
+        );
       });
     });
 
@@ -9203,6 +12490,467 @@ describe('RewardsController', () => {
         expect(result).toBe(42);
         expect(mockFetchFresh).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('checkOptInStatusAgainstCache', () => {
+    const ADDRESS_1 = '0x1234567890123456789012345678901234567890';
+    const ADDRESS_2 = '0x2345678901234567890123456789012345678901';
+    const ADDRESS_3 = '0x3456789012345678901234567890123456789012';
+    const CAIP_ACCOUNT_1 =
+      'eip155:1:0x1234567890123456789012345678901234567890';
+    const CAIP_ACCOUNT_2 =
+      'eip155:1:0x2345678901234567890123456789012345678901';
+    const CAIP_ACCOUNT_3 =
+      'eip155:1:0x3456789012345678901234567890123456789012';
+
+    const mockInternalAccount1: InternalAccount = {
+      id: 'account-1',
+      address: ADDRESS_1,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 1',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    const mockInternalAccount2: InternalAccount = {
+      id: 'account-2',
+      address: ADDRESS_2,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 2',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    const mockInternalAccount3: InternalAccount = {
+      id: 'account-3',
+      address: ADDRESS_3,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 3',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    beforeEach(() => {
+      // Mock convertInternalAccountToCaipAccountId to return predictable CAIP IDs
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === ADDRESS_1) return CAIP_ACCOUNT_1;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          if (account.address === ADDRESS_3) return CAIP_ACCOUNT_3;
+          return null;
+        });
+    });
+
+    it('should return all cached results when all addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState3: RewardsAccountState = {
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: true,
+        subscriptionId: 'sub-3',
+        perpsFeeDiscount: 1000,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, false, true]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, 'sub-3']);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should return no cached results when no addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual([null, null, null]);
+      expect(result.addressesNeedingFresh).toEqual([
+        ADDRESS_1,
+        ADDRESS_2,
+        ADDRESS_3,
+      ]);
+    });
+
+    it('should return mixed results when some addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      // Only ADDRESS_1 has cached data, ADDRESS_2 and ADDRESS_3 don't
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+    });
+
+    it('should handle addresses with undefined hasOptedIn status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: undefined as any, // Explicitly undefined
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, false]);
+      expect(result.cachedSubscriptionIds).toEqual([null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+    });
+
+    it('should handle addresses not found in addressToAccountMap', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        // ADDRESS_2 and ADDRESS_3 are missing from the map
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+    });
+
+    it('should handle empty addresses array', () => {
+      // Arrange
+      const addresses: string[] = [];
+      const addressToAccountMap = new Map();
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([]);
+      expect(result.cachedSubscriptionIds).toEqual([]);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should handle case-insensitive address matching', () => {
+      // Arrange
+      const addresses = [ADDRESS_1.toUpperCase(), ADDRESS_2.toLowerCase()];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, false]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null]);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should handle convertInternalAccountToCaipAccountId returning null', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      // Mock convertInternalAccountToCaipAccountId to return null for ADDRESS_1
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === ADDRESS_1) return null;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          return null;
+        });
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: true,
+        subscriptionId: 'sub-2',
+        perpsFeeDiscount: 750,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, true]);
+      expect(result.cachedSubscriptionIds).toEqual([null, 'sub-2']);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+    });
+
+    it('should preserve order of results matching input addresses order', () => {
+      // Arrange
+      const addresses = [ADDRESS_3, ADDRESS_1, ADDRESS_2]; // Different order
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState3: RewardsAccountState = {
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: true,
+        subscriptionId: 'sub-3',
+        perpsFeeDiscount: 1000,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      // Results should be in the same order as input addresses
+      expect(result.cachedOptInResults).toEqual([true, true, false]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-3', 'sub-1', null]);
+      expect(result.addressesNeedingFresh).toEqual([]);
     });
   });
 });

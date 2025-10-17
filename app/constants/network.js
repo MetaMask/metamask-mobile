@@ -1,4 +1,5 @@
 import { NetworkType, toHex } from '@metamask/controller-utils';
+import { KnownCaipNamespace, toCaipChainId } from '@metamask/utils';
 
 export const INFURA_PROJECT_ID = process.env.MM_INFURA_PROJECT_ID;
 
@@ -57,6 +58,8 @@ export const NETWORKS_CHAIN_ID = {
   SEI: toHex('1329'),
   MONAD_TESTNET: toHex('10143'),
   HYPER_EVM: toHex('999'),
+  LUKSO: toHex('42'),
+  PLASMA: toHex('9745'),
 };
 
 // To add a deprecation warning to a network, add it to the array
@@ -89,6 +92,8 @@ export const CHAINLIST_CURRENCY_SYMBOLS_MAP = {
   MEGAETH_MAINNET: 'ETH',
   SEI: 'SEI',
   MONAD_TESTNET: 'MON',
+  LUKSO: 'LYX',
+  PLASMA: 'XPL',
 };
 
 export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
@@ -117,6 +122,8 @@ export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
   [NETWORKS_CHAIN_ID.SEI]: CHAINLIST_CURRENCY_SYMBOLS_MAP.SEI,
   [NETWORKS_CHAIN_ID.MONAD_TESTNET]:
     CHAINLIST_CURRENCY_SYMBOLS_MAP.MONAD_TESTNET,
+  [NETWORKS_CHAIN_ID.LUKSO]: CHAINLIST_CURRENCY_SYMBOLS_MAP.LUKSO,
+  [NETWORKS_CHAIN_ID.PLASMA]: CHAINLIST_CURRENCY_SYMBOLS_MAP.PLASMA,
 };
 
 export const TEST_NETWORK_IDS = [
@@ -127,3 +134,7 @@ export const TEST_NETWORK_IDS = [
   NETWORKS_CHAIN_ID.MEGAETH_TESTNET,
   NETWORKS_CHAIN_ID.MONAD_TESTNET,
 ];
+
+export const TESTNET_CAIP_IDS = TEST_NETWORK_IDS.map((id) =>
+  toCaipChainId(KnownCaipNamespace.Eip155, parseInt(id, 16).toString()),
+);

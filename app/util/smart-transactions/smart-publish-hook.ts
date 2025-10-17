@@ -5,8 +5,13 @@ import {
   TransactionType,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
-import SmartTransactionsController, {
+import {
+  SmartTransactionsController,
   SmartTransactionsControllerSmartTransactionEvent,
+  SmartTransactionStatuses,
+  type Fee,
+  type Fees,
+  type SmartTransaction,
 } from '@metamask/smart-transactions-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import {
@@ -15,12 +20,6 @@ import {
   getTransactionType,
 } from './index';
 import Logger from '../Logger';
-import {
-  Fee,
-  Fees,
-  SmartTransaction,
-  SmartTransactionStatuses,
-} from '@metamask/smart-transactions-controller/dist/types';
 import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
@@ -62,7 +61,7 @@ export interface SubmitSmartTransactionRequest {
         }
       | Record<string, never>;
   };
-  transactions: PublishBatchHookTransaction[];
+  transactions?: PublishBatchHookTransaction[];
 }
 
 const LOG_PREFIX = 'STX publishHook';
@@ -104,7 +103,7 @@ class SmartTransactionHook {
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
   #mobileReturnTxHashAsap: boolean;
-  #transactions: PublishBatchHookTransaction[];
+  #transactions?: PublishBatchHookTransaction[];
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -276,7 +275,7 @@ class SmartTransactionHook {
       LOG_PREFIX,
       'Started submit batch hook',
       'Transaction IDs:',
-      this.#transactions.map((tx) => tx.id).join(', '),
+      (this.#transactions?.map((tx) => tx.id) ?? []).join(', '),
     );
 
     try {

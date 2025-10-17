@@ -1,6 +1,5 @@
 import type { RestrictedMessenger } from '@metamask/base-controller';
 import { getVersion } from 'react-native-device-info';
-import AppConstants from '../../../../AppConstants';
 import type {
   LoginResponseDto,
   EstimatePointsDto,
@@ -37,6 +36,16 @@ export class InvalidTimestampError extends Error {
     super(message);
     this.name = 'InvalidTimestampError';
     this.timestamp = timestamp;
+  }
+}
+
+/**
+ * Custom error for authorization failures
+ */
+export class AuthorizationFailedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthorizationFailedError';
   }
 }
 
@@ -168,6 +177,10 @@ export type RewardsDataServiceMessenger = RestrictedMessenger<
  * Data service for rewards API endpoints
  */
 export class RewardsDataService {
+  readonly name: typeof SERVICE_NAME = SERVICE_NAME;
+
+  readonly state: null = null;
+
   readonly #messenger: RewardsDataServiceMessenger;
 
   readonly #fetch: typeof fetch;
@@ -568,6 +581,13 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData?.message?.includes('Rewards authorization failed')) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+
       throw new Error(`Get season status failed: ${response.status}`);
     }
 
@@ -621,8 +641,7 @@ export class RewardsDataService {
     let location = 'UNKNOWN';
 
     try {
-      const environment = AppConstants.IS_DEV ? 'DEV' : 'PROD';
-      const response = await successfulFetch(GEOLOCATION_URLS[environment]);
+      const response = await successfulFetch(GEOLOCATION_URLS.PROD);
 
       if (!response.ok) {
         return location;

@@ -1,14 +1,28 @@
 import { ParamListBase } from '@react-navigation/native';
-import { PredictPosition } from '.';
+import {
+  PredictActivityItem,
+  PredictMarket,
+  PredictOutcome,
+  PredictOutcomeToken,
+  PredictPosition,
+} from '.';
 
 export interface PredictNavigationParamList extends ParamListBase {
-  [key: string]: object | undefined;
-
-  PredictCashOut: {
-    position: PredictPosition;
-  };
-
+  Predict: undefined;
+  PredictMarketList: undefined;
   PredictMarketDetails: {
+    marketId?: string;
+  };
+  PredictSellPreview: {
     position: PredictPosition;
+    outcome: PredictOutcome;
+  };
+  PredictBuyPreview: {
+    market: PredictMarket;
+    outcome: PredictOutcome;
+    outcomeToken: PredictOutcomeToken;
+  };
+  PredictActivityDetail: {
+    activity: PredictActivityItem;
   };
 }

@@ -1,12 +1,12 @@
 import { NotificationTransactionTypes } from '../util/notifications';
 
 import NotificationManager, {
-  PERPS_DEPOSIT_SKIP_STATUS,
+  IN_PROGRESS_SKIP_STATUS,
   SKIP_NOTIFICATION_TRANSACTION_TYPES,
   constructTitleAndMessage,
 } from './NotificationManager';
 import { strings } from '../../locales/i18n';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import Engine from './Engine';
 import {
   TransactionController,
@@ -483,7 +483,7 @@ describe('NotificationManager', () => {
       },
     );
 
-    describe.each(PERPS_DEPOSIT_SKIP_STATUS)(
+    describe.each(IN_PROGRESS_SKIP_STATUS)(
       'if perps deposit transaction exists with status of %s',
       (transactionStatus) => {
         beforeEach(() => {

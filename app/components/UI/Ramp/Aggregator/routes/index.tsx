@@ -1,17 +1,20 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Regions from '../Views/Regions';
 import Quotes from '../Views/Quotes';
 import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
 import TokenSelectModal from '../components/TokenSelectModal/TokenSelectModal';
+import PaymentMethodSelectorModal from '../components/PaymentMethodSelectorModal';
 import FiatSelectorModal from '../components/FiatSelectorModal';
+
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
+import RegionSelectorModal from '../components/RegionSelectorModal';
+import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -46,12 +49,6 @@ const MainRoutes = () => (
       }}
     />
     <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
-    <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
-    <Stack.Screen
-      name={Routes.RAMP.REGION_HAS_STARTED}
-      component={Regions}
-      options={{ animationEnabled: false }}
-    />
   </Stack.Navigator>
 );
 
@@ -65,12 +62,25 @@ const RampModalsRoutes = () => (
       component={TokenSelectModal}
     />
     <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PAYMENT_METHOD_SELECTOR}
+      component={PaymentMethodSelectorModal}
+    />
+    <ModalsStack.Screen
       name={Routes.RAMP.MODALS.FIAT_SELECTOR}
       component={FiatSelectorModal}
     />
+
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
       component={IncompatibleAccountTokenModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.REGION_SELECTOR}
+      component={RegionSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.UNSUPPORTED_REGION}
+      component={UnsupportedRegionModal}
     />
   </ModalsStack.Navigator>
 );

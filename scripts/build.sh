@@ -416,19 +416,19 @@ buildAndroidFlaskLocal(){
 # Builds and installs the Main iOS app for local development
 buildIosMainLocal(){
 	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device "$IOS_SIMULATOR"
 }
 
 # Builds and installs the Flask iOS app for local development
 buildIosFlaskLocal(){
 	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device "$IOS_SIMULATOR"
 }
 
 # Builds and installs the QA iOS app for local development
 buildIosQALocal(){
   	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device "$IOS_SIMULATOR"
 }
 
 buildIosSimulatorE2E(){
@@ -604,6 +604,8 @@ buildAndroid() {
 		buildAndroidReleaseE2E
   	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
+	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+		buildAndroidFlaskDev
 	else
 		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized."
 		exit 1
@@ -738,7 +740,7 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "dev" ]; then
 		remapMainDevEnvVariables
 	fi
-elif [ "$MODE" == "flask" ]; then
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebugE2E" ]; then
 	# TODO: Map environment variables based on environment
 	if [ "$ENVIRONMENT" == "production" ]; then
 		remapFlaskProdEnvVariables
@@ -800,5 +802,3 @@ elif [ "$PLATFORM" == "android" ]; then
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
 fi
-	
-

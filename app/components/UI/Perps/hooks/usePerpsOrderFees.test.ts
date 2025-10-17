@@ -11,7 +11,6 @@ import {
 } from './usePerpsOrderFees';
 import type { FeeCalculationResult } from '../controllers/types';
 
-// Mock dependencies
 jest.mock('./usePerpsTrading');
 
 // Import existing mocks

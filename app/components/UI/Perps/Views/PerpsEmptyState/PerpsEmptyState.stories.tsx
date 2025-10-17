@@ -7,10 +7,9 @@ const PerpsEmptyStateMeta = {
 
 export default PerpsEmptyStateMeta;
 
-// Default story
 export const Default = {
   args: {
-    onStartTrading: () => {
+    onAction: () => {
       // eslint-disable-next-line no-console
       console.log('Start Trading pressed');
     },

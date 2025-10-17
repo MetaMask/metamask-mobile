@@ -53,7 +53,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
@@ -88,10 +87,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-  })),
   useWithdrawValidation: jest.fn(() => ({
     hasAmount: false,
     isBelowMinimum: false,
@@ -99,6 +94,7 @@ jest.mock('../../hooks', () => ({
     getMinimumAmount: jest.fn(() => '10.00'),
   })),
   usePerpsNetwork: jest.fn(() => 'mainnet'),
+  usePerpsMeasurement: jest.fn(),
 }));
 
 // Mock components
@@ -262,7 +258,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
-            amount: '$1,000.00',
+            amount: '$1,000',
           }),
         ),
       ).toBeOnTheScreen();

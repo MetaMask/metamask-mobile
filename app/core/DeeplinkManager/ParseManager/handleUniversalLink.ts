@@ -34,6 +34,7 @@ enum SUPPORTED_ACTIONS {
   PERPS = ACTIONS.PERPS,
   PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
+  REWARDS = ACTIONS.REWARDS,
   WC = ACTIONS.WC,
 }
 
@@ -82,14 +83,11 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
-  if (
-    !Object.values(SUPPORTED_ACTIONS).includes(action) ||
-    !isSupportedDomain
-  ) {
+  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+  if (!isSupportedDomain) {
     isInvalidLink = true;
   }
-
-  if (hasSignature(validatedUrl) && !isInvalidLink) {
+  if (hasSignature(validatedUrl) && isSupportedDomain) {
     try {
       const signatureResult = await verifyDeeplinkSignature(validatedUrl);
       switch (signatureResult) {
@@ -118,12 +116,27 @@ async function handleUniversalLink({
   }
 
   const linkType = () => {
+    // Invalid domain
     if (isInvalidLink) {
       return DeepLinkModalLinkType.INVALID;
     }
+
+    // Unsupported action with valid signature
+    if (!isActionSupported && isPrivateLink) {
+      return DeepLinkModalLinkType.UNSUPPORTED;
+    }
+
+    // Unsupported action without valid signature
+    if (!isActionSupported) {
+      return DeepLinkModalLinkType.INVALID;
+    }
+
+    // Supported action with valid signature
     if (isPrivateLink) {
       return DeepLinkModalLinkType.PRIVATE;
     }
+
+    // Supported action without signature
     return DeepLinkModalLinkType.PUBLIC;
   };
 
@@ -202,6 +215,9 @@ async function handleUniversalLink({
   ) {
     const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handlePerps(perpsPath);
+  } else if (action === SUPPORTED_ACTIONS.REWARDS) {
+    const rewardsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleRewards(rewardsPath);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;

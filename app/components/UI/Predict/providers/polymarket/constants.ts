@@ -1,9 +1,20 @@
 import { ContractConfig, RoundConfig, TickSize } from './types';
 
+export const POLYMARKET_PROVIDER_ID = 'polymarket';
+
+export const FEE_PERCENTAGE = 4; // 4%
+export const FEE_COLLECTOR_ADDRESS =
+  '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
+
+export const DEFAULT_SLIPPAGE = 0.01; // 1%
+
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 
 export const COLLATERAL_TOKEN_DECIMALS = 6;
 export const CONDITIONAL_TOKEN_DECIMALS = 6;
+
+export const HASH_ZERO_BYTES32 =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 export const EIP712Domain = [
   { name: 'name', type: 'string' },

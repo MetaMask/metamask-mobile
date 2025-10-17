@@ -129,7 +129,6 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
-  selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
@@ -447,6 +446,9 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Perps', {
       screen: 'PerpsMarketListView',
+      params: {
+        source: 'main_action_button',
+      },
     });
   });
 
@@ -474,9 +476,7 @@ describe('WalletActions', () => {
     // closeBottomSheetAndNavigate wraps navigation in a callback
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsTutorial',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('PerpsTutorial');
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {

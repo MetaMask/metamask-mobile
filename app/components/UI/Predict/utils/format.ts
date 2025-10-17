@@ -103,6 +103,20 @@ export const formatVolume = (volume: string | number): string => {
   return Math.floor(num).toString();
 };
 
+/**
+ * Trims an Ethereum address to show first 3 and last 2 characters
+ * @param address - Full Ethereum address (e.g., "0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d")
+ * @returns Trimmed address (e.g., "0x2F...A9d")
+ * @example formatAddress("0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d") => "0x2F5...A9d"
+ */
+export const formatAddress = (address?: string): string => {
+  if (!address || address.length < 6) {
+    return 'N/A';
+  }
+
+  return `${address.slice(0, 5)}...${address.slice(-3)}`;
+};
+
 export const getRecurrence = (series?: PredictSeries[]): Recurrence => {
   if (!series || series.length === 0) {
     return Recurrence.NONE;
@@ -129,4 +143,79 @@ export const getRecurrence = (series?: PredictSeries[]): Recurrence => {
     default:
       return Recurrence.NONE;
   }
+};
+
+export const formatCents = (dollars: string | number): string => {
+  const num = typeof dollars === 'string' ? parseFloat(dollars) : dollars;
+
+  if (isNaN(num)) {
+    return '0¢';
+  }
+
+  // Convert dollars to cents (multiply by 100) and round to whole cents
+  const cents = Math.round(num * 100);
+
+  return `${cents}¢`;
+};
+
+/**
+ * Formats position size with variable decimal precision based on magnitude
+ * @param size - Raw position size value
+ * @returns Format varies by size:
+ * - Size < 0.01: "X.XXXXXX" (6 decimals)
+ * - Size < 1: "X.XXXX" (4 decimals)
+ * - Size >= 1: "X.XX" (2 decimals)
+ * @example formatPositionSize(0.001234) => "0.001234"
+ * @example formatPositionSize(0.5678) => "0.5678"
+ * @example formatPositionSize(123.456) => "123.46"
+ */
+export const formatPositionSize = (size: string | number): string => {
+  const num = typeof size === 'string' ? parseFloat(size) : size;
+
+  if (isNaN(num)) {
+    return '0';
+  }
+
+  const abs = Math.abs(num);
+
+  // For very small numbers, use more decimal places
+  if (abs < 0.01) {
+    return num.toFixed(6);
+  }
+
+  // For small numbers, use 4 decimal places
+  if (abs < 1) {
+    return num.toFixed(4);
+  }
+
+  // For normal numbers, use 2 decimal places
+  return num.toFixed(2);
+};
+
+export const formatCurrencyValue = (
+  value?: number,
+  options: { showSign?: boolean } = {},
+): string | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  const formatted = formatPrice(Math.abs(value), {
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+  });
+
+  if (!options.showSign) {
+    return formatted;
+  }
+
+  if (value > 0) {
+    return `+${formatted}`;
+  }
+
+  if (value < 0) {
+    return `-${formatted}`;
+  }
+
+  return formatted;
 };

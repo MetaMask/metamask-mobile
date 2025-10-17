@@ -47,9 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
-import RewardsNavigator, {
-  RewardsModalStack,
-} from '../../UI/Rewards/RewardsNavigator';
+import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -76,6 +74,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectBrowserFullscreen } from '../../../selectors/browser';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
@@ -96,9 +95,14 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
   PerpsModalStack,
+  PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import { PredictScreenStack, selectPredictEnabledFlag } from '../../UI/Predict';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -114,6 +118,8 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
+import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
@@ -260,6 +266,15 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+      component={RewardOptInAccountGroupModal}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
+      component={ReferralBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -509,6 +524,8 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
+  const isBrowserFullscreen = useSelector(selectBrowserFullscreen);
+
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -611,6 +628,14 @@ const HomeTabs = () => {
       return null;
     }
 
+    // Hide tab bar when browser is in fullscreen mode
+    if (
+      isBrowserFullscreen &&
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
+    ) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar
@@ -672,7 +697,6 @@ const Webview = () => (
       name="SimpleWebview"
       component={SimpleWebview}
       mode={'modal'}
-      options={SimpleWebview.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -999,6 +1023,13 @@ const MainNavigator = () => {
             }}
           />
           <Stack.Screen
+            name={Routes.PERPS.TUTORIAL}
+            component={PerpsTutorialCarousel}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
             options={clearStackNavigatorOptions}
@@ -1034,13 +1065,24 @@ const MainNavigator = () => {
         </>
       )}
       {isPredictEnabled && (
-        <Stack.Screen
-          name={Routes.PREDICT.ROOT}
-          component={PredictScreenStack}
-          options={{
-            animationEnabled: false,
-          }}
-        />
+        <>
+          <Stack.Screen
+            name={Routes.PREDICT.ROOT}
+            component={PredictScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PREDICT.MODALS.ROOT}
+            component={PredictModalStack}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+              animationEnabled: true,
+            }}
+          />
+        </>
       )}
       <Stack.Screen
         name="SetPasswordFlow"

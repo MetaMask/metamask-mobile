@@ -20,7 +20,6 @@ import {
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
 
-// Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
@@ -1423,6 +1422,98 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Disconnect failed');
     });
+
+    describe('ping() health check', () => {
+      beforeEach(() => {
+        // Spy on ensureReady to prevent it from throwing
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        jest.spyOn(provider as any, 'ensureReady').mockResolvedValue(undefined);
+      });
+
+      it('should successfully ping WebSocket connection with default timeout', async () => {
+        const mockReady = jest.fn().mockResolvedValue(undefined);
+        const mockSubscriptionClient = {
+          transport: {
+            ready: mockReady,
+          },
+        };
+        mockClientService.getSubscriptionClient.mockReturnValue(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mockSubscriptionClient as any,
+        );
+
+        await provider.ping();
+
+        expect(mockReady).toHaveBeenCalled();
+        // Verify the AbortSignal was passed
+        expect(mockReady.mock.calls[0][0]).toBeInstanceOf(AbortSignal);
+      });
+
+      it('should successfully ping WebSocket connection with custom timeout', async () => {
+        const mockReady = jest.fn().mockResolvedValue(undefined);
+        const mockSubscriptionClient = {
+          transport: {
+            ready: mockReady,
+          },
+        };
+        mockClientService.getSubscriptionClient.mockReturnValue(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mockSubscriptionClient as any,
+        );
+
+        await provider.ping(10000);
+
+        expect(mockReady).toHaveBeenCalled();
+        expect(mockReady.mock.calls[0][0]).toBeInstanceOf(AbortSignal);
+      });
+
+      it('should throw error when subscription client is not initialized', async () => {
+        mockClientService.getSubscriptionClient.mockReturnValue(undefined);
+
+        await expect(provider.ping()).rejects.toThrow(
+          'Subscription client not initialized',
+        );
+      });
+
+      it('should throw CONNECTION_TIMEOUT error when timeout occurs', async () => {
+        const mockReady = jest
+          .fn()
+          .mockImplementation(
+            () =>
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Aborted')), 100),
+              ),
+          );
+        const mockSubscriptionClient = {
+          transport: {
+            ready: mockReady,
+          },
+        };
+        mockClientService.getSubscriptionClient.mockReturnValue(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mockSubscriptionClient as any,
+        );
+
+        await expect(provider.ping(50)).rejects.toThrow('CONNECTION_TIMEOUT');
+      });
+
+      it('should throw error when WebSocket connection fails', async () => {
+        const mockReady = jest
+          .fn()
+          .mockRejectedValue(new Error('WebSocket closed'));
+        const mockSubscriptionClient = {
+          transport: {
+            ready: mockReady,
+          },
+        };
+        mockClientService.getSubscriptionClient.mockReturnValue(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mockSubscriptionClient as any,
+        );
+
+        await expect(provider.ping()).rejects.toThrow('WebSocket closed');
+      });
+    });
   });
 
   describe('Asset Mapping', () => {
@@ -2538,9 +2629,7 @@ describe('HyperLiquidProvider', () => {
         const result = await freshProvider.updatePositionTPSL(updateParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain(
-          'Connection error. Please check your network and try again.',
-        );
+        expect(result.error).toBe('WebSocket connection failed');
       });
 
       it('should handle non-WebSocket error in getPositions', async () => {
@@ -2694,11 +2783,13 @@ describe('HyperLiquidProvider', () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue({
           meta: jest.fn().mockResolvedValue(null),
           allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          predictedFundings: jest.fn().mockResolvedValue([]),
+          metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
         });
 
-        const result = await provider.getMarketDataWithPrices();
-
-        expect(result).toEqual([]);
+        await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
+          'Failed to fetch market data - no data received',
+        );
       });
 
       it('should handle missing allMids', async () => {
@@ -2707,11 +2798,13 @@ describe('HyperLiquidProvider', () => {
             universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
           }),
           allMids: jest.fn().mockResolvedValue(null),
+          predictedFundings: jest.fn().mockResolvedValue([]),
+          metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]),
         });
 
-        const result = await provider.getMarketDataWithPrices();
-
-        expect(result).toEqual([]);
+        await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
+          'Failed to fetch market data - no data received',
+        );
       });
 
       it('should handle meta and predictedFundings calls successfully', async () => {
@@ -3444,6 +3537,55 @@ describe('HyperLiquidProvider', () => {
               discountPercentage: undefined,
               isActive: false,
             },
+          );
+        });
+      });
+
+      describe('discount applied to orders', () => {
+        it('applies discount to builder fee in placeOrder', async () => {
+          // Arrange: Set 65% discount (6500 basis points)
+          provider.setUserFeeDiscount(6500);
+
+          // Act
+          await provider.placeOrder({
+            coin: 'BTC',
+            isBuy: true,
+            size: '0.001',
+            orderType: 'market',
+          });
+
+          // Assert: Verify exchangeClient.order called with discounted fee
+          // 100 * (1 - 0.65) = 35
+          expect(
+            mockClientService.getExchangeClient().order,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              builder: expect.objectContaining({
+                f: 35,
+              }),
+            }),
+          );
+        });
+
+        it('applies discount to builder fee in updatePositionTPSL', async () => {
+          // Arrange: Set 65% discount
+          provider.setUserFeeDiscount(6500);
+
+          // Act
+          await provider.updatePositionTPSL({
+            coin: 'BTC',
+            takeProfitPrice: '50000',
+          });
+
+          // Assert: Verify discounted fee (35 instead of 100)
+          expect(
+            mockClientService.getExchangeClient().order,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              builder: expect.objectContaining({
+                f: 35,
+              }),
+            }),
           );
         });
       });
@@ -4442,6 +4584,61 @@ describe('HyperLiquidProvider', () => {
         provider as unknown as ProviderWithPrivateMethods;
       const result = testableProvider.isFeeCacheValid('0xnonexistent');
       expect(result).toBe(false);
+    });
+
+    it('should transform fill data with liquidation information', async () => {
+      // Mock fill with liquidation data
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 123,
+            coin: 'BTC',
+            side: 'A',
+            sz: '0.1',
+            px: '45000',
+            fee: '5',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '-500',
+            dir: 'Close Long',
+            liquidation: {
+              liquidatedUser: '0x123',
+              markPx: '44900',
+              method: 'market',
+            },
+          },
+        ]),
+      });
+
+      const fills = await provider.getOrderFills();
+
+      expect(fills[0].liquidation).toEqual({
+        liquidatedUser: '0x123',
+        markPx: '44900',
+        method: 'market',
+      });
+    });
+
+    it('should handle fills without liquidation data', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 124,
+            coin: 'ETH',
+            side: 'B',
+            sz: '1.0',
+            px: '3000',
+            fee: '3',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '100',
+            dir: 'Open Long',
+          },
+        ]),
+      });
+
+      const fills = await provider.getOrderFills();
+      expect(fills[0].liquidation).toBeUndefined();
     });
   });
 });

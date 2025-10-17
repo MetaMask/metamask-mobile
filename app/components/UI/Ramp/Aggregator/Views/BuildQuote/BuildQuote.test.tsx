@@ -12,6 +12,7 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -106,7 +107,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockQueryGetCountries = jest.fn();
-const mockClearUnsupportedRegion = jest.fn();
 
 const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
   data: mockRegionsData,
@@ -114,8 +114,6 @@ const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
   error: null,
   query: mockQueryGetCountries,
   selectedRegion: mockRegionsData[0],
-  unsupportedRegion: undefined,
-  clearUnsupportedRegion: mockClearUnsupportedRegion,
 };
 
 let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
@@ -233,7 +231,6 @@ let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
 
 jest.mock('../../hooks/useBalance', () => jest.fn(() => mockUseBalanceValues));
 
-const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
 const mockSetSelectedFiatCurrencyId = jest.fn();
@@ -241,7 +238,6 @@ const mockSetSelectedFiatCurrencyId = jest.fn();
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: mockPaymentMethods[0].id,
   selectedRegion: mockRegionsData[0],
-  setSelectedRegion: mockSetSelectedRegion,
   selectedAsset: mockCryptoCurrenciesData[0],
   setSelectedAsset: mockSetSelectedAsset,
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
@@ -317,6 +313,12 @@ jest.mock('../../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../../selectors/networkController'),
 }));
 
+const mockIsNonEvmAddress = jest.fn();
+jest.mock('../../../../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../../../../core/Multichain/utils'),
+  isNonEvmAddress: (address: string) => mockIsNonEvmAddress(address),
+}));
+
 describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -325,7 +327,6 @@ describe('BuildQuote View', () => {
     mockReset.mockClear();
     mockPop.mockClear();
     mockTrackEvent.mockClear();
-    (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
     jest.clearAllMocks();
   });
 
@@ -354,6 +355,7 @@ describe('BuildQuote View', () => {
     mockUseGasPriceEstimationValue = {
       ...mockUseGasPriceEstimationInitialValue,
     };
+    mockIsNonEvmAddress.mockReturnValue(false);
   });
 
   //
@@ -476,6 +478,17 @@ describe('BuildQuote View', () => {
     expect(endTrace).toHaveBeenCalledTimes(1);
   });
 
+  describe('Balance display', () => {
+    it('displays balance from useBalance for non-EVM addresses', () => {
+      mockIsNonEvmAddress.mockReturnValue(true);
+      mockUseRampSDKValues.selectedAddress =
+        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      mockUseBalanceValues.balance = '1.5';
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('Regions data', () => {
     it('renders the loading page when regions are loading', async () => {
       mockUseRegionsValues = {
@@ -505,17 +518,19 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetCountries).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedRegion when selecting a region', async () => {
+    it('navigates to region selector modal when region button is pressed', async () => {
       render(BuildQuote);
       await act(async () =>
         fireEvent.press(
           getByRoleButton(mockUseRegionsValues.selectedRegion?.emoji),
         ),
       );
-      await act(async () =>
-        fireEvent.press(getByRoleButton(mockRegionsData[1].name)),
-      );
-      expect(mockSetSelectedRegion).toHaveBeenCalledWith(mockRegionsData[1]);
+      expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
+        screen: 'RampRegionSelectorModal',
+        params: {
+          regions: mockRegionsData,
+        },
+      });
     });
   });
 
@@ -612,12 +627,18 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedPaymentMethodId when selecting a payment method', async () => {
+    it('navigates to payment method selector when payment method button is pressed', async () => {
       render(BuildQuote);
-      fireEvent.press(getByRoleButton(mockPaymentMethods[0].name));
-      fireEvent.press(getByRoleButton(mockPaymentMethods[1].name));
-      expect(mockSetSelectedPaymentMethodId).toHaveBeenCalledWith(
-        mockPaymentMethods[1]?.id,
+      fireEvent.press(getByRoleButton('Change'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentMethodSelectorModal',
+          params: expect.objectContaining({
+            paymentMethods: mockPaymentMethods,
+            location: 'Amount to Buy Screen',
+          }),
+        }),
       );
     });
   });
@@ -712,6 +733,29 @@ describe('BuildQuote View', () => {
       expect(
         screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
       ).toBeTruthy();
+    });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}100`);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('2'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}2`);
     });
   });
 
@@ -882,6 +926,28 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
+    });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`100 ${symbol}`);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('2'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`2 ${symbol}`);
     });
   });
 

@@ -34,7 +34,6 @@ import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import Loader from '../../../component-library/components-temp/Loader';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -133,7 +132,14 @@ const Tokens = memo(() => {
                 setTimeout(processChunk, 0);
               } else {
                 // All chunks processed
-                setRenderedTokenKeys(accumulatedTokens);
+                const tokenMap = new Map();
+                accumulatedTokens.forEach((item) => {
+                  const staked = item.isStaked ? 'staked' : 'unstaked';
+                  const key = `${item.address}-${item.chainId}-${staked}`;
+                  tokenMap.set(key, item);
+                });
+                const deduped = Array.from(tokenMap.values());
+                setRenderedTokenKeys(deduped);
                 setIsTokensLoading(false);
               }
             });
@@ -240,7 +246,6 @@ const Tokens = memo(() => {
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
-      <AssetPollingProvider />
       <TokenListControlBar goToAddToken={goToAddToken} />
       {!isTokensLoading &&
       renderedTokenKeys.length === 0 &&

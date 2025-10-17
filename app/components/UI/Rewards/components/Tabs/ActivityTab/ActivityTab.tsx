@@ -32,7 +32,7 @@ const LoadingFooter: React.FC = () => (
   </Box>
 );
 
-const ItemSeparator: React.FC = () => <Box twClassName="h-6" />;
+const ItemSeparator: React.FC = () => <Box twClassName="h-2" />;
 
 const EmptyState: React.FC = () => {
   const dispatch = useDispatch();
@@ -131,7 +131,7 @@ export const ActivityTab: React.FC = () => {
     return null;
   }
 
-  if (error) {
+  if (error && !pointsEvents?.length) {
     return (
       <RewardsErrorBanner
         title={strings('rewards.active_activity_error.error_fetching_title')}
