@@ -470,7 +470,7 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
         if (params.claimable) {
-          state.claimablePositions = positions;
+          state.claimablePositions = [...positions];
         }
       });
 
