@@ -31,7 +31,7 @@ export function useInsufficientPredictBalanceAlert({
   );
 
   const isPredictWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.predictSell,
+    TransactionType.predictWithdraw,
   ]);
 
   const isInsufficient = useMemo(

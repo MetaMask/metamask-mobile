@@ -46,7 +46,7 @@ function PredictWithdraw() {
   const handleWithdraw = useCallback(() => {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
-      transactionType: TransactionType.predictSell,
+      transactionType: TransactionType.predictWithdraw,
     });
   }, [addTransactionBatchAndNavigate]);
 

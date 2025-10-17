@@ -182,7 +182,7 @@ function useTokenBalance() {
     selectPredictBalanceByAddress(state, from),
   );
 
-  return hasTransactionType(transactionMeta, [TransactionType.predictSell])
+  return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
     ? predictBalance
     : payTokenBalance;
 }

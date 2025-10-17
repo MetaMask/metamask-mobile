@@ -107,7 +107,7 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [TransactionType.predictSell])
+    hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
   ) {
     return <PredictWithdrawInfo />;
   }
