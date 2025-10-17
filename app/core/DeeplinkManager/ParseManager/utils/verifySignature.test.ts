@@ -396,6 +396,37 @@ describe('verifySignature', () => {
         expect(canonicalUrl).not.toContain('alsonothere');
       });
 
+      it('deduplicates repeated params in sig_params', async () => {
+        // Given sig_params with duplicate parameter names
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?token=ETH&amount=100&sig=${validSignature}&sig_params=token,amount,token`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        // When verifying
+        const result = await verifyDeeplinkSignature(url);
+
+        // Then duplicates are removed from sig_params
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should contain deduplicated sig_params
+        expect(canonicalUrl).toContain('sig_params=token%2Camount');
+        expect(canonicalUrl).not.toContain('sig_params=token%2Camount%2Ctoken');
+
+        // Each param should appear only once
+        const tokenMatches = canonicalUrl.match(/token=ETH/g);
+        expect(tokenMatches).toHaveLength(1);
+        const amountMatches = canonicalUrl.match(/amount=100/g);
+        expect(amountMatches).toHaveLength(1);
+      });
+
       it('maintains backward compatibility when sig_params is not present', async () => {
         // Given a URL without sig_params (legacy format)
         const validSignature = Buffer.from(new Array(64).fill(0)).toString(

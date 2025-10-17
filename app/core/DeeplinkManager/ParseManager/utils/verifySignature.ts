@@ -43,18 +43,20 @@ function canonicalize(url: URL): string {
     const allowedParams = sigParamsStr?.split(',') ?? [];
     const signedParams = new URLSearchParams();
     const existingParams: string[] = [];
+    const seenParams = new Set<string>(); // Track which params we've already processed
 
     for (const param of allowedParams) {
-      if (params.has(param)) {
+      if (params.has(param) && !seenParams.has(param)) {
         const value = params.get(param);
         if (value !== null) {
           signedParams.set(param, value);
           existingParams.push(param);
+          seenParams.add(param); // Mark this param as processed
         }
       }
     }
     // CRITICAL: Include normalized sig_params in the signature to prevent tampering
-    // Only include params that actually exist in the URL
+    // Only include params that actually exist in the URL (deduplicated)
     const rejoinedSigParams = existingParams.join(',');
     signedParams.set('sig_params', rejoinedSigParams);
 
