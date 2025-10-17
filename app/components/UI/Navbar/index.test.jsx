@@ -999,20 +999,25 @@ describe('getBridgeNavbar', () => {
       jest.clearAllMocks();
     });
 
-    it('should be defined and callable as exported function', () => {
+    // Explicit test to cover function export line
+    it('function exists and is callable', () => {
       expect(getSendFlowTitle).toBeDefined();
-      expect(typeof getSendFlowTitle).toBe('function');
-
-      // Explicitly call with object parameter to cover export line
       const result = getSendFlowTitle({
         title: 'test',
         navigation: mockNavigation,
         route: mockRoute,
         themeColors: mockThemeColors,
         resetTransaction: mockResetTransaction,
+        transaction: mockTransaction,
+        disableNetwork: true,
+        showSelectedNetwork: false,
+        globalChainId: '',
       });
-
       expect(result).toBeDefined();
+      expect(result.headerTitle).toBeDefined();
+      expect(result.headerLeft).toBeDefined();
+      expect(result.headerRight).toBeDefined();
+      expect(result.headerStyle).toBeDefined();
     });
 
     it('should return navbar options with required parameters', () => {
