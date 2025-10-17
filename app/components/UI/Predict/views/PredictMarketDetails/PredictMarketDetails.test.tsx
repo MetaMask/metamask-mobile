@@ -748,7 +748,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(cashOutButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.CASH_OUT,
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
         params: {
           position: mockPosition,
           outcome: expect.any(Object),
@@ -775,7 +775,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(yesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.PLACE_BET,
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
         params: {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
@@ -806,7 +806,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(noButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.PLACE_BET,
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
         params: {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],

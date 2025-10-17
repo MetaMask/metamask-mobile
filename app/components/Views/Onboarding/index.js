@@ -59,6 +59,7 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FoxAnimation from './FoxAnimation';
@@ -884,6 +885,13 @@ class Onboarding extends PureComponent {
           <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
 
           <View>{this.handleSimpleNotification()}</View>
+
+          <FastOnboarding
+            onPressContinueWithGoogle={this.onPressContinueWithGoogle}
+            onPressContinueWithApple={this.onPressContinueWithApple}
+            onPressImport={this.onPressImport}
+            onPressCreate={this.onPressCreate}
+          />
         </SafeAreaView>
       </ErrorBoundary>
     );

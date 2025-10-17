@@ -15,40 +15,34 @@ import {
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
-  TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  addTransaction,
-  addTransactionBatch,
-} from '../../../../util/transaction-controller';
+import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
-  CalculateBetAmountsParams,
-  CalculateBetAmountsResponse,
-  CalculateCashOutAmountsParams,
-  CalculateCashOutAmountsResponse,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
+  OrderPreview,
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
+  PreviewOrderParams,
 } from '../providers/types';
 import {
   ClaimParams,
   GetPriceHistoryParams,
+  PredictActivity,
   PredictClaim,
   PredictClaimStatus,
   PredictDeposit,
   PredictDepositStatus,
   PredictMarket,
   PredictPosition,
-  PredictActivity,
   PredictPriceHistoryPoint,
   Result,
   UnrealizedPnL,
@@ -94,6 +88,7 @@ export type PredictControllerState = {
   lastUpdateTimestamp: number;
 
   // Claim management
+  claimablePositions: PredictPosition[];
   claimTransaction: PredictClaim | null;
 
   // Deposit management
@@ -112,6 +107,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  claimablePositions: [],
   claimTransaction: null,
   depositTransaction: null,
   isOnboarded: {},
@@ -124,6 +120,7 @@ const metadata = {
   eligibility: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
+  claimablePositions: { persist: false, anonymous: false },
   claimTransaction: { persist: false, anonymous: false },
   depositTransaction: { persist: false, anonymous: false },
   isOnboarded: { persist: true, anonymous: false },
@@ -216,27 +213,6 @@ export class PredictController extends BaseController<
 
     this.providers = new Map();
 
-    // Subscribe to TransactionController events for deposit tracking
-    this.messagingSystem.subscribe(
-      'TransactionController:transactionSubmitted',
-      this.handleTransactionSubmitted.bind(this),
-    );
-
-    this.messagingSystem.subscribe(
-      'TransactionController:transactionConfirmed',
-      this.handleTransactionConfirmed.bind(this),
-    );
-
-    this.messagingSystem.subscribe(
-      'TransactionController:transactionFailed',
-      this.handleTransactionFailed.bind(this),
-    );
-
-    this.messagingSystem.subscribe(
-      'TransactionController:transactionRejected',
-      this.handleTransactionRejected.bind(this),
-    );
-
     this.initializeProviders().catch((error) => {
       DevLogger.log('PredictController: Error initializing providers', {
         error:
@@ -256,90 +232,6 @@ export class PredictController extends BaseController<
         timestamp: new Date().toISOString(),
       });
     });
-  }
-
-  /**
-   * Handle transaction submitted event
-   */
-  private handleTransactionSubmitted(
-    _event: TransactionControllerTransactionSubmittedEvent['payload'][0],
-  ): void {
-    // TODO: Implement transaction submission tracking
-  }
-
-  /**
-   * Handle transaction confirmed event
-   */
-  private async handleTransactionConfirmed(
-    _txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0],
-  ): Promise<void> {
-    const batchId = _txMeta.batchId;
-    const txId = _txMeta.id;
-    const id = batchId ?? txId;
-
-    if (!id) {
-      return;
-    }
-
-    // Check claim transaction (single tx)
-    const claimTransaction = this.state.claimTransaction;
-    if (claimTransaction?.transactionId === id) {
-      this.update((state) => {
-        if (!state.claimTransaction) return;
-        state.claimTransaction.status = PredictClaimStatus.CONFIRMED;
-      });
-      return;
-    }
-  }
-
-  /**
-   * Handle transaction failed event
-   */
-  private handleTransactionFailed(
-    _event: TransactionControllerTransactionFailedEvent['payload'][0],
-  ): void {
-    const batchId = _event.transactionMeta.batchId;
-    const txId = _event.transactionMeta.id;
-    const id = batchId ?? txId;
-
-    if (!id) {
-      return;
-    }
-
-    // Check claim transaction
-    const claimTransaction = this.state.claimTransaction;
-    if (claimTransaction?.transactionId === id) {
-      this.update((state) => {
-        if (!state.claimTransaction) return;
-        state.claimTransaction.status = PredictClaimStatus.ERROR;
-      });
-      return;
-    }
-  }
-
-  /**
-   * Handle transaction rejected event
-   */
-  private handleTransactionRejected(
-    _event: TransactionControllerTransactionRejectedEvent['payload'][0],
-  ): void {
-    const batchId = _event.transactionMeta.batchId;
-    const txId = _event.transactionMeta.id;
-    const id = batchId ?? txId;
-
-    if (!id) {
-      return;
-    }
-
-    // Check claim transaction
-    const claimTransaction = this.state.claimTransaction;
-    if (claimTransaction?.transactionId === id) {
-      this.update((state) => {
-        if (!state.claimTransaction) return;
-        state.claimTransaction.status = PredictClaimStatus.CANCELLED;
-      });
-      return;
-    }
   }
 
   /**
@@ -577,6 +469,9 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
+        if (params.claimable) {
+          state.claimablePositions = [...positions];
+        }
       });
 
       return positions;
@@ -694,7 +589,16 @@ export class PredictController extends BaseController<
     }
   }
 
-  async placeOrder<T>(params: PlaceOrderParams): Promise<Result<T>> {
+  async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+
+    return provider.previewOrder(params);
+  }
+
+  async placeOrder(params: PlaceOrderParams): Promise<Result> {
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
@@ -726,27 +630,9 @@ export class PredictController extends BaseController<
     }
   }
 
-  async calculateBetAmounts(
-    params: CalculateBetAmountsParams,
-  ): Promise<CalculateBetAmountsResponse> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-    return provider.calculateBetAmounts(params);
-  }
-
-  async calculateCashOutAmounts(
-    params: CalculateCashOutAmountsParams,
-  ): Promise<CalculateCashOutAmountsResponse> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-    return provider.calculateCashOutAmounts(params);
-  }
-
-  async claim({ positions, providerId }: ClaimParams): Promise<PredictClaim> {
+  async claimWithConfirmation({
+    providerId,
+  }: ClaimParams): Promise<PredictClaim> {
     const provider = this.providers.get(providerId);
     if (!provider) {
       throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
@@ -766,29 +652,39 @@ export class PredictController extends BaseController<
         KeyringController.signPersonalMessage(params),
     };
 
-    const claimTransaction = await provider.prepareClaim({
-      positions,
-      signer,
+    const claimablePositions = await this.getPositions({
+      claimable: true,
     });
 
-    const { transactionMeta } = await addTransaction(
-      {
-        ...claimTransaction.transactionParams,
-      },
-      {
-        networkClientId: NetworkController.findNetworkClientIdByChainId(
-          numberToHex(claimTransaction.chainId),
-        ),
-        origin: ORIGIN_METAMASK,
-        type: TransactionType.contractInteraction,
-      },
+    const { transactions, chainId } = await provider.prepareClaim({
+      positions: claimablePositions,
+      signer,
+    });
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      numberToHex(chainId),
     );
 
+    const { batchId } = await addTransactionBatch({
+      from: signer.address as Hex,
+      origin: ORIGIN_METAMASK,
+      networkClientId,
+      disableHook: true,
+      disableSequential: true,
+      transactions: [
+        {
+          params: {
+            to: signer.address as Hex,
+            value: '0x1',
+          },
+        },
+        ...transactions,
+      ],
+    });
+
     const predictClaim: PredictClaim = {
-      transactionId: transactionMeta.id,
-      chainId: claimTransaction.chainId,
+      batchId,
+      chainId,
       status: PredictClaimStatus.PENDING,
-      txParams: { ...claimTransaction.transactionParams, value: '0x0' },
     };
 
     this.update((state) => {
@@ -838,7 +734,7 @@ export class PredictController extends BaseController<
     this.update(updater);
   }
 
-  public clearClaimTransactions(): void {
+  public clearClaimTransaction(): void {
     this.update((state) => {
       state.claimTransaction = null;
     });
