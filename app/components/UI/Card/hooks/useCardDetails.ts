@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { CardDetailsResponse, CardError, CardErrorType } from '../types';
+import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 interface State {
   cardDetails: CardDetailsResponse | null;
@@ -14,7 +16,8 @@ const useCardDetails = () => {
     isLoading: false,
     error: null,
   });
-  const { sdk, isAuthenticated } = useCardSDK();
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const { sdk } = useCardSDK();
 
   const fetchCardDetails = useCallback(async () => {
     if (!sdk) return;

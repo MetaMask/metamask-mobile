@@ -23,6 +23,7 @@ import {
   selectIsCardholder,
 } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
+import { withCardSDK } from '../sdk';
 
 const Stack = createStackNavigator();
 
@@ -117,4 +118,4 @@ const CardRoutes = () => {
   );
 };
 
-export default CardRoutes;
+export default withCardSDK(CardRoutes);

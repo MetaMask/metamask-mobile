@@ -104,6 +104,11 @@ export const CardSDKProvider = ({
   const handleTokenAuthentication = useCallback(async (): Promise<void> => {
     const tokenResult = await getCardBaanxToken();
 
+    if (tokenResult.success && !tokenResult.tokenData) {
+      dispatch(setIsAuthenticatedCard(false));
+      return;
+    }
+
     // If token retrieval failed, user is not authenticated
     if (
       !tokenResult.success ||
@@ -112,7 +117,6 @@ export const CardSDKProvider = ({
       !tokenResult.tokenData?.expiresAt ||
       !tokenResult.tokenData?.location
     ) {
-      Logger.log('Token retrieval failed:', tokenResult.error);
       dispatch(setIsAuthenticatedCard(false));
       return;
     }

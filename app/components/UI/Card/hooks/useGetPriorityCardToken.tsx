@@ -25,6 +25,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import {
   selectCardPriorityToken,
   selectCardPriorityTokenLastFetched,
+  selectIsAuthenticatedCard,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   setCardPriorityToken,
@@ -139,7 +140,8 @@ interface State {
 export const useGetPriorityCardToken = () => {
   const dispatch = useDispatch();
   const { TokensController, NetworkController } = Engine.context;
-  const { sdk, isAuthenticated, isLoading: isLoadingSDK } = useCardSDK();
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const { sdk, isLoading: isLoadingSDK } = useCardSDK();
   const [state, setState] = useState<State>({
     isLoading: false,
     isLoadingAddToken: false,
@@ -465,7 +467,8 @@ export const useGetPriorityCardToken = () => {
 
         const mappedCardExternalWalletDetails =
           mapCardExternalWalletDetailToCardTokenAllowance(
-            cardExternalWalletDetailsWithPriority,
+            cardExternalWalletDetailsWithPriority ??
+              cardExternalWalletDetails?.[0],
           );
 
         setState((prevState) => ({

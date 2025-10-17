@@ -73,7 +73,6 @@ const CardHome = () => {
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
 
@@ -85,6 +84,7 @@ const CardHome = () => {
 
   const privacyMode = useSelector(selectPrivacyMode);
   const selectedChainId = useSelector(selectChainId);
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
   const {
     priorityToken,
@@ -530,4 +530,4 @@ const CardHome = () => {
   );
 };
 
-export default React.memo(CardHome);
+export default CardHome;
