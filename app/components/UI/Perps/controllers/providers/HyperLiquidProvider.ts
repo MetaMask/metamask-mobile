@@ -262,6 +262,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log(
         'HyperLiquidProvider: HIP-3 disabled via equityEnabled flag',
       );
+      this.cachedAllPerpDexs = [null];
       this.cachedValidatedDexs = [null];
       return this.cachedValidatedDexs;
     }
@@ -279,6 +280,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         'HyperLiquidProvider: Failed to fetch DEX list (invalid response), falling back to main DEX only',
         { allDexs },
       );
+      this.cachedAllPerpDexs = [null];
       this.cachedValidatedDexs = [null];
       return this.cachedValidatedDexs;
     }
