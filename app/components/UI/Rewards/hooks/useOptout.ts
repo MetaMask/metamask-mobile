@@ -58,7 +58,7 @@ export const useOptout = (): UseOptoutResult => {
         );
         const traits = {
           [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
-          [UserProfileProperty.REWARDS_SUBSCRIPTION_ID]: null,
+          [UserProfileProperty.REWARDS_SUBSCRIPTION_ID]: '',
         };
         addTraitsToUser(traits);
         Logger.log('useOptout: Opt-out successful, resetting state');
