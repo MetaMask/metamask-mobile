@@ -23,11 +23,12 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
 
   useEffect(() => {
     if (isE2E) return;
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (riveRef.current) {
         riveRef.current.fireState('FoxRaiseUp', 'Loader2');
       }
     }, 100);
+    return () => clearTimeout(timeoutId);
   }, [riveRef]);
 
   return (
