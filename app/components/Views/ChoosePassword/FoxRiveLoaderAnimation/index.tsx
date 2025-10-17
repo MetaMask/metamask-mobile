@@ -28,7 +28,7 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
         riveRef.current.fireState('FoxRaiseUp', 'Loader2');
       }
     }, 100);
-  }, []);
+  }, [riveRef]);
 
   return (
     <View testID="fox-rive-loader-animation" style={styles.animationContainer}>
