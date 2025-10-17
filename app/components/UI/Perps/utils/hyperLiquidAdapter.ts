@@ -214,7 +214,7 @@ export function adaptMarketFromSDK(
  */
 export function adaptAccountStateFromSDK(
   perpsState: ClearinghouseStateResponse,
-  spotState?: SpotClearinghouseStateResponse,
+  spotState?: SpotClearinghouseStateResponse | null,
 ): AccountState {
   // Calculate total unrealized PnL from all positions
   const { totalUnrealizedPnl, weightedReturnOnEquity } =
@@ -431,7 +431,7 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
       let amount = '0';
       let asset = 'USDC';
 
-      if ('usdc' in update.delta) {
+      if ('usdc' in update.delta && update.delta.usdc) {
         amount = Math.abs(parseFloat(update.delta.usdc)).toString();
       }
       if ('coin' in update.delta && typeof update.delta.coin === 'string') {

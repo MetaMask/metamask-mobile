@@ -82,7 +82,7 @@ describe('usePerpsTransactionState', () => {
       withdrawalRequests: [
         {
           id: '1',
-          status: 'bridging',
+          status: 'bridging' as const,
           amount: '250',
           asset: 'USDC',
           timestamp: Date.now(),
@@ -104,7 +104,7 @@ describe('usePerpsTransactionState', () => {
       withdrawalRequests: [
         {
           id: '1',
-          status: 'pending',
+          status: 'pending' as const,
           amount: '100',
           asset: 'USDC',
           timestamp: Date.now(),

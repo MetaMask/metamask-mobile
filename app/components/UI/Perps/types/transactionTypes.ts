@@ -23,10 +23,11 @@ export interface BaseTransactionResult {
 export interface LastTransactionResult {
   amount: string;
   asset: string;
-  txHash?: string;
+  txHash: string;
   timestamp: number;
   success: boolean;
-  error?: string;
+  error: string;
+  [key: string]: string | number | boolean;
 }
 
 /**
@@ -34,6 +35,15 @@ export interface LastTransactionResult {
  * Used for transaction history display and detailed status tracking
  * JSON serializable for controller state
  */
+export interface LastTransactionResult {
+  amount: string;
+  asset: string;
+  txHash: string;
+  timestamp: number;
+  success: boolean;
+  error: string;
+}
+
 export interface TransactionRecord {
   id: string;
   amount: string;

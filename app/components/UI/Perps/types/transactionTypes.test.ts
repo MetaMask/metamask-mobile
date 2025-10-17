@@ -42,17 +42,18 @@ describe('Transaction Types', () => {
       expect(lastResult.error).toBe('Transaction failed');
     });
 
-    it('should work without error property for successful transactions', () => {
+    it('should work with empty error for successful transactions', () => {
       const lastResult: LastTransactionResult = {
         amount: '100',
         asset: 'USDC',
         txHash: '0x123',
         timestamp: Date.now(),
         success: true,
+        error: '',
       };
 
       expect(lastResult.success).toBe(true);
-      expect(lastResult.error).toBeUndefined();
+      expect(lastResult.error).toBe('');
     });
   });
 
@@ -113,8 +114,10 @@ describe('Transaction Types', () => {
       const lastResult: LastTransactionResult = {
         amount: '100',
         asset: 'USDC',
+        txHash: '0x123',
         timestamp: Date.now(),
         success: true,
+        error: '',
       };
 
       expect(isTransactionRecord(lastResult)).toBe(false);
@@ -134,8 +137,10 @@ describe('Transaction Types', () => {
       const lastResult: LastTransactionResult = {
         amount: '100',
         asset: 'USDC',
+        txHash: '0x123',
         timestamp: Date.now(),
         success: true,
+        error: '',
       };
 
       const unionArray: (LastTransactionResult | TransactionRecord)[] = [
