@@ -2357,18 +2357,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@deeeed/hyperliquid-node20@npm:^0.23.1-node20.1":
-  version: 0.23.1-node20.1
-  resolution: "@deeeed/hyperliquid-node20@npm:0.23.1-node20.1"
-  dependencies:
-    "@msgpack/msgpack": ^3.1.2
-    "@noble/hashes": ^1.8.0
-    "@noble/secp256k1": ^2.3.0
-    typescript-event-target: 1.1.1
-  checksum: c1cd84083aaba4767dc657437518c3cb95e18ddb414a9151d785b0daf326716bd15636dc514eab0c1f0d592b72905f7b3e4a3614b7e93b03045b9a89a6d45e06
-  languageName: node
-  linkType: hard
-
 "@discoveryjs/json-ext@npm:^0.5.0":
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
@@ -6950,9 +6938,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^81.0.0":
-  version: 81.0.0
-  resolution: "@metamask/assets-controllers@npm:81.0.0"
+"@metamask/assets-controllers@npm:^81.0.1":
+  version: 81.0.1
+  resolution: "@metamask/assets-controllers@npm:81.0.1"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@ethersproject/abi": ^5.7.0
@@ -6997,7 +6985,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 8128572ec8772644b20f5882f68c5c8dab3838e07f3e0c50b3d68262ea41438906337093e7bb41d5d21ec0e01659c21aa0e3e0b1b1f775c73da5aa5b783dcc5d
+  checksum: 9418fb5b9878568102c7b16ea28d2da916921eeb2e693dd8f3787fd9864b8a1efb16d4a2f61869d5bd27e56db2769fd0954e3c3c55b35797b387ec53fc1da8df
   languageName: node
   linkType: hard
 
@@ -8984,6 +8972,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nktkas/hyperliquid@npm:^0.25.1":
+  version: 0.25.1
+  resolution: "@nktkas/hyperliquid@npm:0.25.1"
+  dependencies:
+    "@msgpack/msgpack": ^3.1.2
+    "@noble/hashes": ^2.0.0
+    "@noble/secp256k1": ^3.0.0
+    typescript-event-target: 1.1.1
+    valibot: 1.1.0
+  bin:
+    hyperliquid: esm/bin/cli.js
+  checksum: 313e96cbc788c10012bad61fc0ceb30de26b3f78fee25ea510f683005eceecbe9bf36ce3d97736e82677913c6e74278662427d7b2079b94e5f2814447f23c29c
+  languageName: node
+  linkType: hard
+
 "@noble/ciphers@npm:1.2.1":
   version: 1.2.1
   resolution: "@noble/ciphers@npm:1.2.1"
@@ -9080,6 +9083,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/hashes@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "@noble/hashes@npm:2.0.1"
+  checksum: aea67a671ca464027cd512d07666a804bd99abc343ba98c93ee8463a1c870c5594f8de468279ef3c60f3b23b6330db9f1a92bd23723b8a911ec73bddc9420248
+  languageName: node
+  linkType: hard
+
 "@noble/hashes@npm:~1.3.2":
   version: 1.3.3
   resolution: "@noble/hashes@npm:1.3.3"
@@ -9094,10 +9104,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/secp256k1@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "@noble/secp256k1@npm:2.3.0"
-  checksum: 423c7242203fe843f630b48eb3188ca73fffdc81dc29ce8b2579db850c381fb32cda82a8e721623007762241547527c0d5d76d56aa6570bfe077e71dcfbbd583
+"@noble/secp256k1@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@noble/secp256k1@npm:3.0.0"
+  checksum: f5c3be6fa1f27bd00606051cba9de62031ee67c4c519b3df9232c7343a740b805ca092f7c7a8d2ac9d9db99e4cc7ae8a8929842db64911a80aa2a071317a4749
   languageName: node
   linkType: hard
 
@@ -34021,7 +34031,6 @@ __metadata:
     "@craftzdog/react-native-buffer": ^6.1.0
     "@cucumber/message-streams": ^4.0.1
     "@cucumber/messages": ^22.0.0
-    "@deeeed/hyperliquid-node20": ^0.23.1-node20.1
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.2
@@ -34044,7 +34053,7 @@ __metadata:
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
     "@metamask/approval-controller": ^7.1.3
-    "@metamask/assets-controllers": ^81.0.0
+    "@metamask/assets-controllers": ^81.0.1
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.3.0
     "@metamask/bridge-controller": ^50.0.0
@@ -34147,6 +34156,7 @@ __metadata:
     "@metamask/tron-wallet-snap": ^1.4.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
+    "@nktkas/hyperliquid": ^0.25.1
     "@noble/curves": 1.9.6
     "@notifee/react-native": ^9.0.0
     "@octokit/rest": ^21.0.0
@@ -44627,6 +44637,18 @@ __metadata:
     "@types/istanbul-lib-coverage": ^2.0.1
     convert-source-map: ^1.6.0
   checksum: 2069d59ee46cf8d83b4adfd8a5c1a90834caffa9f675e4360f1157ffc8578ef0f763c8f32d128334424159bb6b01f3876acd39cd13297b2769405a9da241f8d1
+  languageName: node
+  linkType: hard
+
+"valibot@npm:1.1.0":
+  version: 1.1.0
+  resolution: "valibot@npm:1.1.0"
+  peerDependencies:
+    typescript: ">=5"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: c1b95d4f783cd62713a1c32a7fd25eb42b588037135dbc2cf2b4788acc720306374f831576d29e91da42f716a497503842c457a3332a04dab92c00cb2fa3227a
   languageName: node
   linkType: hard
 

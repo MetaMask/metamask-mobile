@@ -179,7 +179,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       (o) => o.id === currentPosition?.outcomeId,
     );
     navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.CASH_OUT,
+      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
       params: { position: currentPosition, outcome },
     });
   };
@@ -209,7 +209,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       return;
     }
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market,
         outcome: market?.outcomes?.[0],
@@ -227,7 +227,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       return;
     }
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market,
         outcome: market?.outcomes?.[0],
