@@ -18,7 +18,6 @@ import {
   PredictPosition,
   PredictPriceHistoryPoint,
   UnrealizedPnL,
-  Result,
   Side,
 } from '../../types';
 import {
@@ -458,7 +457,7 @@ export class PolymarketProvider implements PredictProvider {
       success,
       response,
       error,
-    } as Result<OrderResponse>;
+    } as OrderResult;
   }
 
   public async prepareClaim(
