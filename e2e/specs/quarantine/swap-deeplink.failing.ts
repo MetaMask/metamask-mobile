@@ -1,28 +1,28 @@
 'use strict';
 /* eslint-disable no-console */
 import { Mockttp } from 'mockttp';
-import { loginToApp } from '../../viewHelper.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { loginToApp } from '../../viewHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Ganache from '../../../app/util/test/ganache';
 import {
   loadFixture,
   stopFixtureServer,
   startFixtureServer,
-} from '../../framework/fixtures/FixtureHelper.ts';
+} from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers.js';
-import FixtureServer from '../../framework/fixtures/FixtureServer.ts';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
 import {
   getFixturesServerPort,
   getMockServerPort,
-} from '../../framework/fixtures/FixtureUtils.ts';
+} from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags.js';
-import Assertions from '../../utils/Assertions.js';
+import Assertions from '../../framework/Assertions';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import QuoteView from '../../pages/swaps/QuoteView';
-import Matchers from '../../utils/Matchers.js';
-import Gestures from '../../utils/Gestures.js';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { Assertions as FrameworkAssertions } from '../../framework';
-import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks.ts';
+import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks';
 import { localNodeOptions } from '../swaps/helpers/constants';
 
 const fixtureServer: FixtureServer = new FixtureServer();
