@@ -101,17 +101,31 @@ describe('PerpsController', () => {
       HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
     ).mockImplementation(() => mockProvider);
 
+    // Create mock messenger call function that handles RemoteFeatureFlagController:getState
+    const mockCall = jest.fn().mockImplementation((action: string) => {
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return {
+          remoteFeatureFlags: {
+            perpsPerpTradingGeoBlockedCountriesV2: {
+              blockedRegions: [],
+            },
+          },
+        };
+      }
+      return undefined;
+    });
+
     // Create a new controller instance
     controller = new PerpsController({
       messenger: {
-        call: jest.fn(),
+        call: mockCall,
         publish: jest.fn(),
         subscribe: jest.fn(),
         registerActionHandler: jest.fn(),
         registerEventHandler: jest.fn(),
         registerInitialEventPayload: jest.fn(),
         getRestricted: jest.fn().mockReturnValue({
-          call: jest.fn(),
+          call: mockCall,
           publish: jest.fn(),
           subscribe: jest.fn(),
           registerActionHandler: jest.fn(),
@@ -135,6 +149,198 @@ describe('PerpsController', () => {
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.connectionStatus).toBe('disconnected');
       expect(controller.state.isEligible).toBe(false);
+    });
+
+    it('should read current RemoteFeatureFlagController state during construction', () => {
+      // Given: A mock messenger that tracks calls
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US', 'CA'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+          getRestricted: jest.fn().mockReturnValue({
+            call: mockCall,
+            publish: jest.fn(),
+            subscribe: jest.fn(),
+            registerActionHandler: jest.fn(),
+            registerEventHandler: jest.fn(),
+            registerInitialEventPayload: jest.fn(),
+          }),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+      });
+
+      // Then: Should have called to get RemoteFeatureFlagController state
+      expect(testController).toBeDefined();
+      expect(mockCall).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:getState',
+      );
+    });
+
+    it('should apply remote blocked regions when available during construction', () => {
+      // Given: Remote feature flags with blocked regions
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US-NY', 'CA-ON'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+          getRestricted: jest.fn().mockReturnValue({
+            call: mockCall,
+            publish: jest.fn(),
+            subscribe: jest.fn(),
+            registerActionHandler: jest.fn(),
+            registerEventHandler: jest.fn(),
+            registerInitialEventPayload: jest.fn(),
+          }),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-REGION'],
+        },
+      });
+
+      // Then: Should have used remote regions (not fallback)
+      // Verify by checking the internal blockedRegionList
+      expect((testController as any).blockedRegionList.source).toBe('remote');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'US-NY',
+        'CA-ON',
+      ]);
+    });
+
+    it('should use fallback regions when remote flags are not available', () => {
+      // Given: Remote feature flags without blocked regions
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {},
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed with fallback regions
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+          getRestricted: jest.fn().mockReturnValue({
+            call: mockCall,
+            publish: jest.fn(),
+            subscribe: jest.fn(),
+            registerActionHandler: jest.fn(),
+            registerEventHandler: jest.fn(),
+            registerInitialEventPayload: jest.fn(),
+          }),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
+        },
+      });
+
+      // Then: Should have used fallback regions
+      expect((testController as any).blockedRegionList.source).toBe('fallback');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'FALLBACK-US',
+        'FALLBACK-CA',
+      ]);
+    });
+
+    it('should never downgrade from remote to fallback regions', () => {
+      // Given: Remote feature flags with blocked regions
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['REMOTE-US'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed with both remote and fallback
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+          getRestricted: jest.fn().mockReturnValue({
+            call: mockCall,
+            publish: jest.fn(),
+            subscribe: jest.fn(),
+            registerActionHandler: jest.fn(),
+            registerEventHandler: jest.fn(),
+            registerInitialEventPayload: jest.fn(),
+          }),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-US'],
+        },
+      });
+
+      // Then: Should use remote (set after fallback)
+      expect((testController as any).blockedRegionList.source).toBe('remote');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'REMOTE-US',
+      ]);
+
+      // When: Attempt to set fallback again (simulating what setBlockedRegionList does)
+      (testController as any).setBlockedRegionList(
+        ['NEW-FALLBACK'],
+        'fallback',
+      );
+
+      // Then: Should still use remote (no downgrade)
+      expect((testController as any).blockedRegionList.source).toBe('remote');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'REMOTE-US',
+      ]);
     });
   });
 
@@ -1402,16 +1608,29 @@ describe('PerpsController', () => {
 
     it('should skip data lake reporting for testnet', async () => {
       // Arrange - create a new controller with testnet state
+      const mockCallTestnet = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: [],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
       const testnetController = new PerpsController({
         messenger: {
-          call: jest.fn(),
+          call: mockCallTestnet,
           publish: jest.fn(),
           subscribe: jest.fn(),
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
           getRestricted: jest.fn().mockReturnValue({
-            call: jest.fn(),
+            call: mockCallTestnet,
             publish: jest.fn(),
             subscribe: jest.fn(),
             registerActionHandler: jest.fn(),

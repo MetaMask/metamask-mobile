@@ -87,6 +87,7 @@ import { getEnvironment } from './utils';
 import type {
   RemoteFeatureFlagControllerState,
   RemoteFeatureFlagControllerStateChangeEvent,
+  RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 
 // Simple wait utility
@@ -412,7 +413,8 @@ export type PerpsControllerActions =
  */
 export type AllowedActions =
   | NetworkControllerGetStateAction
-  | AuthenticationController.AuthenticationControllerGetBearerToken;
+  | AuthenticationController.AuthenticationControllerGetBearerToken
+  | RemoteFeatureFlagControllerGetStateAction;
 
 /**
  * External events the PerpsController can subscribe to
@@ -495,7 +497,19 @@ export class PerpsController extends BaseController<
       'fallback',
     );
 
-    // RemoteFeatureFlagController state is empty by default so we must wait for it to be populated.
+    /**
+     * Immediately read current state to catch any flags already loaded
+     * This is necessary to avoid race conditions where the RemoteFeatureFlagController fetches flags
+     * before the PerpsController initializes its RemoteFeatureFlagController subscription.
+     *
+     * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
+     */
+    const currentRemoteFeatureFlagState = this.messagingSystem.call(
+      'RemoteFeatureFlagController:getState',
+    );
+
+    this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
+
     this.messagingSystem.subscribe(
       'RemoteFeatureFlagController:stateChange',
       this.refreshEligibilityOnFeatureFlagChange.bind(this),
