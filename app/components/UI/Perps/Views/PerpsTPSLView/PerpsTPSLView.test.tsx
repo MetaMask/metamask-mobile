@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
-import PerpsTPSLBottomSheet from './PerpsTPSLBottomSheet';
+import PerpsTPSLView from './PerpsTPSLView';
 import type { Position } from '../../controllers/types';
 
 // Mock dependencies - only what's absolutely necessary
@@ -419,7 +419,7 @@ jest.doMock('react-native', () => ({
 }));
 
 // Mock styles
-jest.mock('./PerpsTPSLBottomSheet.styles', () => ({
+jest.mock('./PerpsTPSLView.styles', () => ({
   createStyles: () => ({
     container: { padding: 16 },
     priceDisplay: { backgroundColor: '#f0f0f0' },
@@ -445,7 +445,7 @@ jest.mock('./PerpsTPSLBottomSheet.styles', () => ({
   }),
 }));
 
-describe('PerpsTPSLBottomSheet', () => {
+describe('PerpsTPSLView', () => {
   const mockTheme = {
     colors: {
       background: { alternative: '#f0f0f0' },
@@ -500,7 +500,7 @@ describe('PerpsTPSLBottomSheet', () => {
   describe('Component Rendering', () => {
     it('renders when visible', () => {
       // Act
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
@@ -510,7 +510,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('returns null when not visible', () => {
       // Act
-      render(<PerpsTPSLBottomSheet {...defaultProps} isVisible={false} />);
+      render(<PerpsTPSLView {...defaultProps} isVisible={false} />);
 
       // Assert
       expect(screen.queryByText('perps.tpsl.title')).toBeNull();
@@ -520,7 +520,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('displays current price for new orders', () => {
       // Act
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert
       expect(screen.getByText('perps.tpsl.current_price')).toBeOnTheScreen();
@@ -530,7 +530,7 @@ describe('PerpsTPSLBottomSheet', () => {
     it('displays entry price when editing existing position', () => {
       // Act
       render(
-        <PerpsTPSLBottomSheet
+        <PerpsTPSLView
           {...defaultProps}
           position={mockPosition}
           currentPrice={undefined}
@@ -545,7 +545,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('renders percentage buttons with correct RoE values', () => {
       // Act
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Take Profit buttons (RoE percentages)
       expect(screen.getByText('+10%')).toBeOnTheScreen();
@@ -562,9 +562,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('renders without crashing when position is provided', () => {
       // Arrange & Act
-      render(
-        <PerpsTPSLBottomSheet {...defaultProps} position={mockPosition} />,
-      );
+      render(<PerpsTPSLView {...defaultProps} position={mockPosition} />);
 
       // Assert - Component should render successfully with position
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
@@ -572,7 +570,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('renders without crashing when leverage prop is provided', () => {
       // Arrange & Act
-      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={5} />);
+      render(<PerpsTPSLView {...defaultProps} leverage={5} />);
 
       // Assert - Component should render successfully with leverage prop
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
@@ -580,9 +578,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('renders without crashing when margin is provided', () => {
       // Arrange & Act
-      render(
-        <PerpsTPSLBottomSheet {...defaultProps} marginRequired="500.00" />,
-      );
+      render(<PerpsTPSLView {...defaultProps} marginRequired="500.00" />);
 
       // Assert - Component should render successfully with margin prop
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
@@ -617,7 +613,7 @@ describe('PerpsTPSLBottomSheet', () => {
       };
 
       // Act
-      render(<PerpsTPSLBottomSheet {...props} />);
+      render(<PerpsTPSLView {...props} />);
 
       // Assert
       const takeProfitInputs = screen.getAllByDisplayValue('$3300.00');
@@ -636,7 +632,7 @@ describe('PerpsTPSLBottomSheet', () => {
       };
 
       // Act
-      render(<PerpsTPSLBottomSheet {...props} />);
+      render(<PerpsTPSLView {...props} />);
 
       // Assert - The hook should have been called with the component
       // The initial prices are passed as props, so the component should render
@@ -660,7 +656,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
+      render(<PerpsTPSLView {...defaultProps} leverage={10} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -684,7 +680,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[0];
@@ -707,7 +703,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[0];
@@ -731,7 +727,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
+      render(<PerpsTPSLView {...defaultProps} leverage={10} />);
 
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
         'perps.tpsl.profit_roe_placeholder',
@@ -755,7 +751,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
+      render(<PerpsTPSLView {...defaultProps} leverage={10} />);
 
       const stopLossPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -779,7 +775,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
+      render(<PerpsTPSLView {...defaultProps} leverage={10} />);
 
       const stopLossPercentInput = screen.getAllByPlaceholderText(
         'perps.tpsl.loss_roe_placeholder',
@@ -805,7 +801,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
+      render(<PerpsTPSLView {...defaultProps} leverage={10} />);
       const tenPercentButton = screen.getByText('+10%');
 
       // Act
@@ -826,7 +822,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
+      render(<PerpsTPSLView {...defaultProps} leverage={10} />);
       const fivePercentButton = screen.getByText('-5%');
 
       // Act
@@ -849,7 +845,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Get the take profit off button - there are two "Off" buttons, get all and find the first one
       const offButtons = screen.getAllByText('perps.tpsl.off');
@@ -873,7 +869,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Get the stop loss off button - there are two "Off" buttons, get all and find the second one
       const offButtons = screen.getAllByText('perps.tpsl.off');
@@ -901,7 +897,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Component should display the form state values
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
@@ -930,7 +926,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Component should display the form state values
       const stopLossPriceInput = screen.getAllByPlaceholderText(
@@ -957,7 +953,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Component can handle validation errors
       // (Note: The component might not display error messages directly,
@@ -976,7 +972,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Component renders correctly even with validation errors
       const confirmButton = screen.getByText('perps.tpsl.done');
@@ -998,7 +994,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+      render(<PerpsTPSLView {...defaultProps} direction="long" />);
 
       // Assert - Stop loss liquidation error should be displayed
       expect(
@@ -1018,7 +1014,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} direction="short" />);
+      render(<PerpsTPSLView {...defaultProps} direction="short" />);
 
       // Assert - Stop loss liquidation error should be displayed
       expect(
@@ -1039,7 +1035,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+      render(<PerpsTPSLView {...defaultProps} direction="long" />);
 
       // Assert - Stop loss error should be displayed (takes precedence in current implementation)
       expect(
@@ -1063,7 +1059,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Regular stop loss error should be displayed
       expect(
@@ -1084,7 +1080,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+      render(<PerpsTPSLView {...defaultProps} direction="long" />);
 
       // Assert - Stop loss liquidation error should be displayed
       expect(
@@ -1105,7 +1101,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1134,9 +1130,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(
-        <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
-      );
+      render(<PerpsTPSLView {...defaultProps} onConfirm={mockOnConfirm} />);
 
       const confirmButton = screen.getByText('perps.tpsl.done');
 
@@ -1150,9 +1144,7 @@ describe('PerpsTPSLBottomSheet', () => {
     it('calls onConfirm with undefined for empty values', () => {
       // Arrange
       const mockOnConfirm = jest.fn();
-      render(
-        <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
-      );
+      render(<PerpsTPSLView {...defaultProps} onConfirm={mockOnConfirm} />);
 
       const confirmButton = screen.getByText('perps.tpsl.done');
 
@@ -1166,7 +1158,7 @@ describe('PerpsTPSLBottomSheet', () => {
     it('does not call onClose immediately after confirm', () => {
       // Arrange
       const mockOnClose = jest.fn();
-      render(<PerpsTPSLBottomSheet {...defaultProps} onClose={mockOnClose} />);
+      render(<PerpsTPSLView {...defaultProps} onClose={mockOnClose} />);
 
       const confirmButton = screen.getByText('perps.tpsl.done');
 
@@ -1186,7 +1178,7 @@ describe('PerpsTPSLBottomSheet', () => {
         direction: 'short' as const,
       };
 
-      render(<PerpsTPSLBottomSheet {...shortProps} />);
+      render(<PerpsTPSLView {...shortProps} />);
 
       // Assert - Should display short-specific labels
       expect(
@@ -1197,14 +1189,14 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('renders RoE percentage buttons for both directions', () => {
       // Assert - RoE buttons should always be present regardless of direction
-      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+      render(<PerpsTPSLView {...defaultProps} direction="long" />);
       expect(screen.getByText('+10%')).toBeOnTheScreen();
       expect(screen.getByText('-5%')).toBeOnTheScreen();
     });
 
     it('renders RoE percentage buttons for short direction', () => {
       // Assert - RoE buttons should always be present regardless of direction
-      render(<PerpsTPSLBottomSheet {...defaultProps} direction="short" />);
+      render(<PerpsTPSLView {...defaultProps} direction="short" />);
       expect(screen.getByText('+10%')).toBeOnTheScreen();
       expect(screen.getByText('-5%')).toBeOnTheScreen();
     });
@@ -1220,7 +1212,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Act & Assert - Should not crash
       expect(() =>
-        render(<PerpsTPSLBottomSheet {...propsWithoutPrice} />),
+        render(<PerpsTPSLView {...propsWithoutPrice} />),
       ).not.toThrow();
     });
 
@@ -1233,7 +1225,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Act & Assert - Should not crash
       expect(() =>
-        render(<PerpsTPSLBottomSheet {...propsWithoutDirection} />),
+        render(<PerpsTPSLView {...propsWithoutDirection} />),
       ).not.toThrow();
     });
 
@@ -1245,7 +1237,7 @@ describe('PerpsTPSLBottomSheet', () => {
         currentPrice: 3200, // Live price should be displayed
       };
 
-      render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
+      render(<PerpsTPSLView {...propsWithPosition} />);
 
       // Assert - Should display current price (live price)
       expect(screen.getByText('$3200.00')).toBeOnTheScreen();
@@ -1260,7 +1252,7 @@ describe('PerpsTPSLBottomSheet', () => {
         currentPrice: undefined, // No current price provided - should fall back to entry price
       };
 
-      render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
+      render(<PerpsTPSLView {...propsWithPosition} />);
 
       // Assert - Should display position entry price as fallback
       expect(screen.getAllByText('$2800.00')).toHaveLength(2);
@@ -1272,14 +1264,14 @@ describe('PerpsTPSLBottomSheet', () => {
   describe('Component Memoization', () => {
     it('renders correctly with different props', () => {
       // Arrange
-      const { rerender } = render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const { rerender } = render(<PerpsTPSLView {...defaultProps} />);
 
       // Act - Change a prop
       const newProps = {
         ...defaultProps,
         onClose: jest.fn(), // Different function reference
       };
-      rerender(<PerpsTPSLBottomSheet {...newProps} />);
+      rerender(<PerpsTPSLView {...newProps} />);
 
       // Assert - Component should still render correctly
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
@@ -1287,10 +1279,10 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('re-renders when visibility changes', () => {
       // Arrange
-      const { rerender } = render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const { rerender } = render(<PerpsTPSLView {...defaultProps} />);
 
       // Act
-      rerender(<PerpsTPSLBottomSheet {...defaultProps} isVisible={false} />);
+      rerender(<PerpsTPSLView {...defaultProps} isVisible={false} />);
 
       // Assert - Should render null when not visible
       expect(screen.queryByText('perps.tpsl.title')).toBeNull();
@@ -1313,7 +1305,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1345,7 +1337,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
         'perps.tpsl.profit_roe_placeholder',
@@ -1373,7 +1365,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const stopLossPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1405,7 +1397,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const stopLossPercentInput = screen.getAllByPlaceholderText(
         'perps.tpsl.loss_roe_placeholder',
@@ -1425,7 +1417,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('hides keypad when input loses focus', () => {
       // Arrange
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1452,7 +1444,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1478,7 +1470,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
         'perps.tpsl.profit_roe_placeholder',
@@ -1504,7 +1496,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const stopLossPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1530,7 +1522,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const stopLossPercentInput = screen.getAllByPlaceholderText(
         'perps.tpsl.loss_roe_placeholder',
@@ -1547,7 +1539,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('dismisses keypad when tapping outside the input area', () => {
       // Arrange
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1576,7 +1568,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1601,7 +1593,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -1631,7 +1623,7 @@ describe('PerpsTPSLBottomSheet', () => {
         },
       });
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
         'perps.tpsl.profit_roe_placeholder',
@@ -1653,7 +1645,7 @@ describe('PerpsTPSLBottomSheet', () => {
       // Arrange
       mockPlatform.OS = 'ios';
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Component should render without issues on iOS
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
@@ -1663,7 +1655,7 @@ describe('PerpsTPSLBottomSheet', () => {
       // Arrange
       mockPlatform.OS = 'android';
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLView {...defaultProps} />);
 
       // Assert - Component should render without issues on Android
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();

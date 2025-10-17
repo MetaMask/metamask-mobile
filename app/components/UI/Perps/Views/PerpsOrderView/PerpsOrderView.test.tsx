@@ -438,7 +438,7 @@ const createBottomSheetMock = (testId: string) => {
   };
 };
 
-jest.mock('../../components/PerpsTPSLBottomSheet', () =>
+jest.mock('../PerpsTPSLView/PerpsTPSLView', () =>
   createBottomSheetMock('tpsl-bottom-sheet'),
 );
 jest.mock('../../components/PerpsLeverageBottomSheet', () =>

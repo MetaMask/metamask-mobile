@@ -116,6 +116,20 @@ export interface PerpsNavigationParamList extends ParamListBase {
     isFromGTMModal?: boolean;
   };
 
+  // TP/SL screen
+  PerpsTPSL: {
+    asset: string;
+    currentPrice?: number;
+    direction?: 'long' | 'short';
+    position?: Position;
+    initialTakeProfitPrice?: string;
+    initialStopLossPrice?: string;
+    leverage?: number;
+    orderType?: 'market' | 'limit';
+    limitPrice?: string;
+    onConfirm: (takeProfitPrice?: string, stopLossPrice?: string) => void;
+  };
+
   // Root perps view
   Perps: undefined;
 }

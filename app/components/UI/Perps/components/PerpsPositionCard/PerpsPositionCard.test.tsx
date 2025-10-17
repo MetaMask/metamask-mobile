@@ -117,8 +117,8 @@ jest.mock('../../hooks', () => ({
   }),
 }));
 
-// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
-jest.mock('../PerpsTPSLBottomSheet', () => ({
+// Mock PerpsTPSLView to avoid PerpsConnectionProvider requirement
+jest.mock('../../Views/PerpsTPSLView/PerpsTPSLView', () => ({
   __esModule: true,
   default: ({
     isVisible,
@@ -638,7 +638,7 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('Bottom Sheet Interactions', () => {
-    it('renders PerpsTPSLBottomSheet when isTPSLVisible is true', () => {
+    it('renders PerpsTPSLView when isTPSLVisible is true', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
@@ -651,7 +651,7 @@ describe('PerpsPositionCard', () => {
       expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
     });
 
-    it('handles PerpsTPSLBottomSheet onClose callback', () => {
+    it('handles PerpsTPSLView onClose callback', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 

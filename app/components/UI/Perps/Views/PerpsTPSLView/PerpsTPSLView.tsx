@@ -1,15 +1,26 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { memo, useCallback, useRef, useState } from 'react';
+import {
+  Keyboard,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -22,16 +33,16 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import type { Position } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
-  getPerpsTPSLBottomSheetSelector,
-  PerpsTPSLBottomSheetSelectorsIDs,
+  getPerpsTPSLViewSelector,
+  PerpsTPSLViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
-import { createStyles } from './PerpsTPSLBottomSheet.styles';
+import { createStyles } from './PerpsTPSLView.styles';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -41,42 +52,27 @@ import {
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
 const STOP_LOSS_PERCENTAGES = [-5, -10, -25, -50]; // -5%, -10%, -25%, -50% RoE
 
-interface PerpsTPSLBottomSheetProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onConfirm: (takeProfitPrice?: string, stopLossPrice?: string) => void;
-  // Context data
-  asset: string;
-  currentPrice?: number;
-  direction?: 'long' | 'short'; // For new orders
-  position?: Position; // For existing positions
-  initialTakeProfitPrice?: string;
-  initialStopLossPrice?: string;
-  isUpdating?: boolean;
-  leverage?: number; // For new orders
-  marginRequired?: string; // For new orders
-  orderType?: 'market' | 'limit'; // Order type for new orders
-  limitPrice?: string; // Limit price for limit orders
-}
+const PerpsTPSLView: React.FC = () => {
+  const navigation = useNavigation();
+  const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
 
-const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
-  isVisible,
-  onClose,
-  onConfirm,
-  asset,
-  currentPrice: initialCurrentPrice,
-  direction,
-  position,
-  initialTakeProfitPrice,
-  initialStopLossPrice,
-  isUpdating = false,
-  leverage: propLeverage,
-  orderType,
-  limitPrice,
-}) => {
+  // Extract params from navigation route
+  const {
+    asset,
+    currentPrice: initialCurrentPrice,
+    direction,
+    position,
+    initialTakeProfitPrice,
+    initialStopLossPrice,
+    leverage: propLeverage,
+    orderType,
+    limitPrice,
+    onConfirm,
+  } = route.params;
+
+  const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Keypad state management
@@ -88,10 +84,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const stopLossPriceRef = useRef<TextInput>(null);
   const stopLossPercentageRef = useRef<TextInput>(null);
 
-  // Subscribe to real-time price only when visible and we have an asset
+  // Subscribe to real-time price only when we have an asset
   // Use 1s debounce for TP/SL bottom sheet
   const priceData = usePerpsLivePrices({
-    symbols: isVisible && asset ? [asset] : [],
+    symbols: asset ? [asset] : [],
     throttleMs: 1000,
   });
   const livePrice = priceData[asset]?.price
@@ -157,7 +153,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     initialStopLossPrice,
     leverage: propLeverage,
     entryPrice: effectiveEntryPrice,
-    isVisible,
+    isVisible: true,
     liquidationPrice: displayLiquidationPrice,
     orderType,
   });
@@ -204,7 +200,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    conditions: [isVisible],
+    conditions: [true],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TP_SL,
       [PerpsEventProperties.ASSET]: asset,
@@ -215,16 +211,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     },
   });
 
-  useEffect(() => {
-    if (isVisible) {
-      bottomSheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
-
-  // Handle close without saving
-  const handleClose = useCallback(() => {
-    onClose();
-  }, [onClose]);
+  // Handle back button press
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   // Keypad handlers
   const handleKeypadChange = useCallback(
@@ -316,7 +306,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     setFocusedInput(null);
   }, [focusedInput]);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
     if (focusedInput) {
       dismissKeypad();
     }
@@ -330,39 +320,48 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
-    onConfirm(parseTakeProfitPrice, parseStopLossPrice);
-    // Don't close immediately - let the parent handle closing after update completes
-  }, [focusedInput, takeProfitPrice, stopLossPrice, onConfirm, dismissKeypad]);
+    setIsUpdating(true);
+    try {
+      await onConfirm(parseTakeProfitPrice, parseStopLossPrice);
+      navigation.goBack();
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [
+    focusedInput,
+    takeProfitPrice,
+    stopLossPrice,
+    onConfirm,
+    dismissKeypad,
+    navigation,
+  ]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;
   const inputsDisabled = isUpdating;
 
-  if (!isVisible) return null;
-
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={handleClose}
-      testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
-      isFullscreen
-    >
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      {/* Simple header with back button and title */}
+      <View style={styles.header}>
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          iconColor={IconColor.Default}
+          size={ButtonIconSizes.Md}
+          onPress={handleBack}
+          testID="back-button"
+        />
+        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.tpsl.title')}
         </Text>
-      </BottomSheetHeader>
-      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content}>
-        <TouchableOpacity
-          style={styles.scrollContent}
-          activeOpacity={1}
-          testID="scroll-content"
-          onPress={() => {
-            if (focusedInput) {
-              dismissKeypad();
-            }
-          }}
-        >
+      </View>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        onScrollBeginDrag={Keyboard.dismiss}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.scrollContent} testID="scroll-content">
           {/* Description text */}
           {!focusedInput && (
             <Text
@@ -468,7 +467,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                       styles.percentageButtonActiveTP,
                   ]}
                   onPress={() => handleTakeProfitPercentageButton(percentage)}
-                  testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
+                  testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
                     percentage,
                   )}
                   disabled={inputsDisabled}
@@ -607,7 +606,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                       styles.percentageButtonActiveSL,
                   ]}
                   onPress={() => handleStopLossPercentageButton(percentage)}
-                  testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
+                  testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
                     percentage,
                   )}
                   disabled={inputsDisabled}
@@ -710,7 +709,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </Text>
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <View style={styles.keypadFooter}>
@@ -746,22 +745,22 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </View>
           </>
         ) : (
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                label: strings('perps.tpsl.done'),
-                variant: ButtonVariants.Primary,
-                size: ButtonSize.Lg,
-                onPress: handleConfirm,
-                isDisabled: confirmDisabled,
-                loading: isUpdating,
-              },
-            ]}
-          />
+          <View style={styles.footer}>
+            <Button
+              label={strings('perps.tpsl.done')}
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              onPress={handleConfirm}
+              isDisabled={confirmDisabled}
+              loading={isUpdating}
+              testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+            />
+          </View>
         )}
       </View>
-    </BottomSheet>
+    </SafeAreaView>
   );
 };
 
-export default memo(PerpsTPSLBottomSheet);
+export default memo(PerpsTPSLView);
