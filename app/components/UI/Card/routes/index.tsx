@@ -5,7 +5,6 @@ import {
 } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
-import { useCardSDK, withCardSDK } from '../sdk';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
@@ -18,7 +17,12 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
-import { useIsCardholder } from '../hooks/useIsCardholder';
+import OnboardingNavigator from './OnboardingNavigator';
+import {
+  selectIsAuthenticatedCard,
+  selectIsCardholder,
+} from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 const Stack = createStackNavigator();
 
@@ -78,8 +82,9 @@ export const cardAuthenticationNavigationOptions = ({
 });
 
 const CardRoutes = () => {
-  const { isAuthenticated } = useCardSDK();
-  const isCardholder = useIsCardholder();
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isCardholder = useSelector(selectIsCardholder);
+
   const initialRouteName = useMemo(
     () =>
       isAuthenticated || isCardholder ? Routes.CARD.HOME : Routes.CARD.WELCOME,
@@ -103,7 +108,13 @@ const CardRoutes = () => {
         component={CardAuthentication}
         options={cardAuthenticationNavigationOptions}
       />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.ROOT}
+        component={OnboardingNavigator}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
-export default withCardSDK(CardRoutes);
+
+export default CardRoutes;

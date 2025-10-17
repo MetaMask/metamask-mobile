@@ -1,14 +1,13 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
-import { PredictCashOut } from '..';
+import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictMarketList from '../views/PredictMarketList';
-import PredictTabView from '../views/PredictTabView';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
-import PredictPlaceBet from '../views/PredictPlaceBet/PredictPlaceBet';
+import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
@@ -27,10 +26,6 @@ const PredictModalStack = () => (
     }}
   >
     <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.CASH_OUT}
-      component={PredictCashOut}
-    />
-    <ModalStack.Screen
       name={Routes.PREDICT.MODALS.UNAVAILABLE}
       component={PredictUnavailableModal}
     />
@@ -45,10 +40,13 @@ const PredictModalStack = () => (
         headerShown: false,
       }}
     />
-
     <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.PLACE_BET}
-      component={PredictPlaceBet}
+      name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+      component={PredictBuyPreview}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+      component={PredictSellPreview}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.ACTIVITY_DETAIL}
@@ -61,15 +59,7 @@ const PredictModalStack = () => (
 );
 
 const PredictScreenStack = () => (
-  <Stack.Navigator initialRouteName={Routes.PREDICT.ROOT}>
-    <Stack.Screen
-      name={Routes.PREDICT.ROOT}
-      component={PredictTabView}
-      options={{
-        headerShown: false,
-      }}
-    />
-
+  <Stack.Navigator initialRouteName={Routes.PREDICT.MARKET_LIST}>
     <Stack.Screen
       name={Routes.PREDICT.MARKET_LIST}
       component={PredictMarketList}

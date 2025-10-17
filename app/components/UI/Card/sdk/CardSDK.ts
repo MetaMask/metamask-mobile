@@ -120,16 +120,6 @@ export class CardSDK {
     );
   }
 
-  private get rampApiUrl() {
-    const onRampApi = this.cardFeatureFlag.constants?.onRampApiUrl;
-
-    if (!onRampApi) {
-      throw new Error('On Ramp API URL is not defined for the current chain');
-    }
-
-    return onRampApi;
-  }
-
   private get accountsApiUrl() {
     const accountsApi = this.cardFeatureFlag.constants?.accountsApiUrl;
 
@@ -263,17 +253,24 @@ export class CardSDK {
 
   getGeoLocation = async (): Promise<string> => {
     try {
-      const url = new URL('geolocation', this.rampApiUrl);
+      const env = process.env.NODE_ENV ?? 'production';
+      const environment = env === 'production' ? 'PROD' : 'DEV';
+
+      const GEOLOCATION_URLS = {
+        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+      };
+      const url = GEOLOCATION_URLS[environment];
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch geolocation');
+        throw new Error(`Failed to get geolocation: ${response.statusText}`);
       }
 
       return await response.text();
     } catch (error) {
       Logger.log(error as Error, 'CardSDK: Failed to get geolocation');
-      return '';
+      return 'UNKNOWN';
     }
   };
 
