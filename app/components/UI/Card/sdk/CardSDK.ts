@@ -816,31 +816,12 @@ export class CardSDK {
         return [];
       }
 
-      const mockedExternalWalletDetails: CardWalletExternalResponse[] = [
-        {
-          balance: '10',
-          allowance: '2199023255551.0',
-          currency: 'usdc',
-          network: 'linea',
-          address: '0x9e16319a3895f88e74f3b4dea012516df8a75cdc',
-        },
-      ];
-      const mockedPriorityWalletDetails: CardWalletExternalPriorityResponse[] =
-        [
-          {
-            currency: 'usdc',
-            address: '0x9e16319a3895f88e74f3b4dea012516df8a75cdc',
-            priority: 5,
-            id: 1,
-            network: 'linea',
-          },
-        ];
-
-      const combinedDetails = mockedExternalWalletDetails.map(
+      const combinedDetails = externalWalletDetails.map(
         (wallet: CardWalletExternalResponse) => {
-          const priorityWallet = mockedPriorityWalletDetails.find(
+          const priorityWallet = priorityWalletDetails.find(
             (p: CardWalletExternalPriorityResponse) =>
-              p?.address?.toLowerCase() === wallet?.address?.toLowerCase(),
+              p?.address?.toLowerCase() === wallet?.address?.toLowerCase() &&
+              p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
           );
           const supportedTokens = this.getSupportedTokensByChainId(
             this.mapAPINetworkToCaipChainId(wallet.network),

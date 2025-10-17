@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
@@ -30,7 +30,6 @@ import createStyles from './CardAuthentication.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
 import { CardAuthenticationSelectors } from '../../../../../../e2e/selectors/Card/CardAuthentication.selectors';
-import { NavigationActions } from '@react-navigation/compat';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardLocation } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
@@ -76,11 +75,7 @@ const CardAuthentication = () => {
   // Navigate to home after successful login when loading is complete
   useEffect(() => {
     if (loginSuccess && !loading && !error) {
-      dispatch(
-        NavigationActions.navigate({
-          routeName: Routes.CARD.HOME,
-        }),
-      );
+      dispatch(StackActions.replace(Routes.CARD.HOME));
       setLoginSuccess(false); // Reset the flag
     }
   }, [loginSuccess, loading, error, dispatch]);

@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { FlashListAssetKey } from '../Tokens/TokenList';
 
 /**
@@ -24,13 +23,13 @@ export interface CardToken {
 }
 
 export interface AuthenticatedCardTokenAllowanceData {
-  availableBalance?: ethers.BigNumber;
+  availableBalance?: string;
   walletAddress?: string;
 }
 
 export type CardTokenAllowance = {
   allowanceState: AllowanceState;
-  allowance: ethers.BigNumber;
+  allowance: string;
 } & FlashListAssetKey &
   CardToken &
   AuthenticatedCardTokenAllowanceData;

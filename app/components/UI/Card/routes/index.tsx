@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
-import { withCardSDK } from '../sdk';
+import { useCardSDK, withCardSDK } from '../sdk';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
@@ -18,6 +18,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import { useIsCardholder } from '../hooks/useIsCardholder';
 
 const Stack = createStackNavigator();
 
@@ -76,23 +77,33 @@ export const cardAuthenticationNavigationOptions = ({
   headerRight: () => <View />,
 });
 
-const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
-    <Stack.Screen
-      name={Routes.CARD.HOME}
-      component={CardHome}
-      options={cardDefaultNavigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.CARD.WELCOME}
-      component={CardWelcome}
-      options={cardDefaultNavigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.CARD.AUTHENTICATION}
-      component={CardAuthentication}
-      options={cardAuthenticationNavigationOptions}
-    />
-  </Stack.Navigator>
-);
+const CardRoutes = () => {
+  const { isAuthenticated } = useCardSDK();
+  const isCardholder = useIsCardholder();
+  const initialRouteName = useMemo(
+    () =>
+      isAuthenticated || isCardholder ? Routes.CARD.HOME : Routes.CARD.WELCOME,
+    [isAuthenticated, isCardholder],
+  );
+
+  return (
+    <Stack.Navigator initialRouteName={initialRouteName} headerMode="screen">
+      <Stack.Screen
+        name={Routes.CARD.HOME}
+        component={CardHome}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.WELCOME}
+        component={CardWelcome}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.AUTHENTICATION}
+        component={CardAuthentication}
+        options={cardAuthenticationNavigationOptions}
+      />
+    </Stack.Navigator>
+  );
+};
 export default withCardSDK(CardRoutes);

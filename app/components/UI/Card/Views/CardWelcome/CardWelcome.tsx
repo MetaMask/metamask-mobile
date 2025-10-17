@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, View } from 'react-native';
 
@@ -20,7 +20,7 @@ import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardW
 import Routes from '../../../../../constants/navigation/Routes';
 
 const CardWelcome = () => {
-  const { navigate } = useNavigation();
+  const { dispatch } = useNavigation();
   const theme = useTheme();
 
   const styles = createStyles(theme);
@@ -56,7 +56,9 @@ const CardWelcome = () => {
             label={strings('card.card_onboarding.verify_account_button')}
             size={ButtonSize.Lg}
             testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            onPress={() => navigate(Routes.CARD.AUTHENTICATION)}
+            onPress={() =>
+              dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION))
+            }
             style={styles.button}
             width={ButtonWidthTypes.Full}
           />

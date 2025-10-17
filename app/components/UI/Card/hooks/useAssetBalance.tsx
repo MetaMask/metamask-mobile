@@ -13,7 +13,6 @@ import { TokenI } from '../../Tokens/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
-import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import {
@@ -28,6 +27,8 @@ import {
   addCurrencySymbol,
   balanceToFiatNumber,
 } from '../../../../util/number';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { createSelector } from 'reselect';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -41,13 +42,8 @@ export const useAssetBalance = (
   rawTokenBalance: number | undefined;
 } => {
   const { MultichainAssetsRatesController } = Engine.context;
-  const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
-  const chainIds = Object.entries(popularNetworks || {})
-    .map((network) => network[1]?.chainId)
-    .filter(Boolean);
-  if (!chainIds.includes(SOLANA_MAINNET.chainId as Hex)) {
-    chainIds.push(SOLANA_MAINNET.chainId as Hex);
-  }
+  const chainIds = [LINEA_CHAIN_ID, SOLANA_MAINNET.chainId];
+
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
@@ -84,15 +80,41 @@ export const useAssetBalance = (
   }
   const chainId = asset?.chainId as Hex;
 
-  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
-  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-  const conversionRate = useSelector((state: RootState) =>
-    selectCurrencyRateForChainId(state, chainId as Hex),
+  const assetBalanceSelector = createSelector(
+    [
+      selectPrimaryCurrency,
+      selectShowFiatInTestnets,
+      (rootState) => selectCurrencyRateForChainId(rootState, chainId),
+      (rootState) =>
+        selectSingleTokenPriceMarketData(
+          rootState,
+          chainId,
+          asset?.address as Hex,
+        ),
+      selectCurrentCurrency,
+    ],
+    (
+      primaryCurrency,
+      showFiatOnTestnets,
+      conversionRate,
+      exchangeRates,
+      currentCurrency,
+    ) => ({
+      primaryCurrency: primaryCurrency ?? 'ETH',
+      showFiatOnTestnets,
+      conversionRate,
+      exchangeRates,
+      currentCurrency,
+    }),
   );
-  const exchangeRates = useSelector((state: RootState) =>
-    selectSingleTokenPriceMarketData(state, chainId, asset?.address as Hex),
-  );
-  const currentCurrency = useSelector(selectCurrentCurrency);
+  const assetBalance = useSelector(assetBalanceSelector);
+  const {
+    primaryCurrency,
+    showFiatOnTestnets,
+    conversionRate,
+    exchangeRates,
+    currentCurrency,
+  } = assetBalance;
 
   const { balanceFiat, balanceValueFormatted, rawFiatNumber, rawTokenBalance } =
     useMemo(() => {
@@ -106,7 +128,7 @@ export const useAssetBalance = (
       }
 
       if (token.availableBalance) {
-        asset.balance = token.availableBalance.toString();
+        asset.balance = token.availableBalance;
         asset.balanceFiat = undefined; // Reset balanceFiat to undefined to fetch a new balanceFiat based on the new balance
         let derivedBalance;
 
@@ -122,28 +144,22 @@ export const useAssetBalance = (
           if (assetConversionRate) {
             const balanceFiatCalculation = Number(
               balanceToFiatNumber(
-                token.availableBalance.toString(),
+                token.availableBalance,
                 Number(assetConversionRate.rate),
                 1,
               ),
             );
             derivedBalance = {
-              balance: token.availableBalance.toString(),
+              balance: token.availableBalance,
               balanceFiat: addCurrencySymbol(balanceFiatCalculation, 'usd'),
-              balanceValueFormatted: `${token.availableBalance.toString()} ${
-                asset.symbol
-              }`,
+              balanceValueFormatted: `${token.availableBalance} ${asset.symbol}`,
             };
           } else {
             // If the asset conversion rate is not found, use the  availableBalance prop + symbol to display the balance.
             derivedBalance = {
-              balance: token.availableBalance.toString(),
-              balanceFiat: `${token.availableBalance.toString()} ${
-                asset.symbol
-              }`,
-              balanceValueFormatted: `${token.availableBalance.toString()} ${
-                asset.symbol
-              }`,
+              balance: token.availableBalance,
+              balanceFiat: `${token.availableBalance} ${asset.symbol}`,
+              balanceValueFormatted: `${token.availableBalance} ${asset.symbol}`,
             };
           }
         } else {

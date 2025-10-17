@@ -32,7 +32,6 @@ import {
 } from '../../../../core/redux/slices/card';
 import Engine from '../../../../core/Engine';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
-import { ethers } from 'ethers';
 import { createSelector } from 'reselect';
 import { isZero } from '../../../../util/lodash';
 import { isSolanaChainId } from '@metamask/bridge-controller';
@@ -89,7 +88,7 @@ const fetchAllowances = async (
         decimals: tokenInfo.decimals ?? null,
         name: tokenInfo.name ?? null,
         symbol: tokenInfo.symbol ?? null,
-        allowance,
+        allowance: allowance.toString(),
         chainId,
       };
     });
@@ -155,7 +154,6 @@ export const useGetPriorityCardToken = () => {
       createSelector(
         [
           selectAllTokenBalances,
-          selectSelectedInternalAccountByScope,
           (rootState) =>
             selectCardPriorityToken(
               isAuthenticated,
@@ -167,14 +165,8 @@ export const useGetPriorityCardToken = () => {
               selectedAddress,
             )(rootState),
         ],
-        (
+        (allTokenBalances, priorityToken, lastFetched) => ({
           allTokenBalances,
-          selectedAccountByScope,
-          priorityToken,
-          lastFetched,
-        ) => ({
-          allTokenBalances,
-          selectedAddress: selectedAccountByScope('eip155:0')?.address,
           priorityToken,
           lastFetched,
         }),
@@ -209,7 +201,7 @@ export const useGetPriorityCardToken = () => {
   const filterNonZeroAllowances = (
     allowances: CardTokenAllowance[],
   ): CardTokenAllowance[] =>
-    allowances.filter(({ allowance }) => allowance.gt(0));
+    allowances.filter(({ allowance }) => parseFloat(allowance) > 0);
 
   const getBalancesForChain = useCallback(
     (tokenChainId: Hex): Record<Hex, string> =>
@@ -225,7 +217,7 @@ export const useGetPriorityCardToken = () => {
   ): CardTokenAllowance | undefined =>
     allowances.find(
       ({ allowance, address: tokenAddress }) =>
-        allowance.gt(0) &&
+        parseFloat(allowance) > 0 &&
         balances[tokenAddress as Hex] &&
         BigNumber(balances[tokenAddress as Hex]).gt(0),
     );
@@ -412,29 +404,18 @@ export const useGetPriorityCardToken = () => {
       return null;
     }
 
-    // Convert decimal strings to integers before creating BigNumber
-    // Handle potential decimal values by parsing as float and converting to integer string
     const allowanceFloat = parseFloat(
       cardExternalWalletDetail.allowance || '0',
     );
     const balanceFloat = parseFloat(cardExternalWalletDetail.balance || '0');
 
-    // Ensure we have valid numbers and convert to integer strings
-    const allowanceString = isNaN(allowanceFloat)
-      ? '0'
-      : Math.floor(allowanceFloat).toString();
-    const balanceString = isNaN(balanceFloat)
-      ? '0'
-      : Math.floor(balanceFloat).toString();
-
-    const allowance = ethers.BigNumber.from(allowanceString);
-    const balance = ethers.BigNumber.from(balanceString);
-    const allowanceState = allowance.isZero()
-      ? AllowanceState.NotEnabled
-      : allowance.lt(ARBITRARY_ALLOWANCE)
-      ? AllowanceState.Limited
-      : AllowanceState.Enabled;
-    const availableBalance = Math.min(balance.toNumber(), allowance.toNumber());
+    const allowanceState =
+      allowanceFloat === 0
+        ? AllowanceState.NotEnabled
+        : allowanceFloat < ARBITRARY_ALLOWANCE
+        ? AllowanceState.Limited
+        : AllowanceState.Enabled;
+    const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
     return {
       address: cardExternalWalletDetail.tokenDetails.address ?? '',
@@ -444,8 +425,8 @@ export const useGetPriorityCardToken = () => {
       walletAddress: cardExternalWalletDetail.walletAddress,
       chainId: cardExternalWalletDetail.chainId,
       allowanceState,
-      allowance,
-      availableBalance: ethers.BigNumber.from(availableBalance),
+      allowance: allowanceFloat.toString(),
+      availableBalance: availableBalance.toString(),
       isStaked: false,
     };
   };
@@ -530,18 +511,13 @@ export const useGetPriorityCardToken = () => {
 
   useEffect(() => {
     const run = async () => {
-      Logger.log('run');
       if (!selectedAddress || isLoadingSDK) {
         return;
       }
 
-      Logger.log('cacheIsValid', cacheIsValid);
-
       if (cacheIsValid) {
         return;
       }
-
-      Logger.log('isAuthenticated', isAuthenticated);
 
       if (isAuthenticated) {
         await fetchPriorityTokenAPI();
