@@ -13,6 +13,7 @@ import {
   PredictController,
   type PredictControllerState,
 } from './PredictController';
+import type { OrderPreview } from '../providers/types';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -69,6 +70,26 @@ type UnrestrictedMessenger = Messenger<any, any>;
 describe('PredictController', () => {
   let mockPolymarketProvider: jest.Mocked<PolymarketProvider>;
 
+  function createMockOrderPreview(
+    overrides?: Partial<OrderPreview>,
+  ): OrderPreview {
+    return {
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      timestamp: Date.now(),
+      side: Side.BUY,
+      sharePrice: 0.5,
+      maxAmountSpent: 1,
+      minAmountReceived: 2,
+      slippage: 0.005,
+      tickSize: 0.01,
+      minOrderSize: 0.01,
+      negRisk: false,
+      ...overrides,
+    };
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -88,6 +109,7 @@ describe('PredictController', () => {
       isEligible: jest.fn(),
       providerId: 'polymarket',
       getUnrealizedPnL: jest.fn(),
+      previewOrder: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Mock the PolymarketProvider constructor
@@ -644,21 +666,22 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
 
-        const result = await controller.placeOrder({
-          providerId: 'polymarket',
+        const preview = createMockOrderPreview({
+          marketId: 'market-1',
           outcomeId: 'outcome-1',
           outcomeTokenId: 'token-1',
           side: Side.BUY,
-          size: 1,
+        });
+
+        const result = await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
         });
 
         expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledWith(
           expect.objectContaining({
             providerId: 'polymarket',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'token-1',
-            side: 'BUY',
-            size: 1,
+            preview,
             signer: expect.objectContaining({
               address: '0x1234567890123456789012345678901234567890',
             }),
@@ -676,12 +699,11 @@ describe('PredictController', () => {
           Promise.reject(new Error('Order placement failed')),
         );
 
+        const preview = createMockOrderPreview({ side: Side.SELL });
+
         const result = await controller.placeOrder({
           providerId: 'polymarket',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.SELL,
-          size: 2,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -696,12 +718,11 @@ describe('PredictController', () => {
           Promise.reject('String error'),
         );
 
+        const preview = createMockOrderPreview({ side: Side.SELL });
+
         const result = await controller.placeOrder({
           providerId: 'polymarket',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.SELL,
-          size: 2,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -711,12 +732,11 @@ describe('PredictController', () => {
 
     it('handle provider not available error', async () => {
       await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
         const result = await controller.placeOrder({
           providerId: 'nonexistent',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.BUY,
-          size: 1,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -753,12 +773,15 @@ describe('PredictController', () => {
           transactionMeta: mockTxMeta,
         });
 
-        await controller.placeOrder({
-          providerId: 'polymarket',
+        const preview = createMockOrderPreview({
           outcomeId: 'outcome-1',
           outcomeTokenId: 'outcome-token-1',
           side: Side.SELL,
-          size: 2,
+        });
+
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
         });
 
         // Verify that signPersonalMessage is included in the signer object
@@ -774,174 +797,7 @@ describe('PredictController', () => {
     });
   });
 
-  describe('calculateBetAmounts', () => {
-    it('calculate bet amounts successfully', async () => {
-      const mockResponse = {
-        toWin: 150,
-        sharePrice: 0.5,
-      };
-
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.calculateBetAmounts.mockResolvedValue(
-          mockResponse,
-        );
-
-        const result = await controller.calculateBetAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-1',
-          userBetAmount: 100,
-        });
-
-        expect(result).toEqual(mockResponse);
-        expect(mockPolymarketProvider.calculateBetAmounts).toHaveBeenCalledWith(
-          {
-            providerId: 'polymarket',
-            outcomeTokenId: 'token-1',
-            userBetAmount: 100,
-          },
-        );
-      });
-    });
-
-    it('handle provider not available error', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.calculateBetAmounts({
-            providerId: 'nonexistent',
-            outcomeTokenId: 'token-1',
-            userBetAmount: 100,
-          }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-      });
-    });
-  });
-
-  describe('calculateCashOutAmounts', () => {
-    it('calculate cash out amounts successfully', async () => {
-      const mockResponse = {
-        currentValue: 120,
-        cashPnl: 20,
-        percentPnl: 20,
-      };
-
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.calculateCashOutAmounts.mockResolvedValue(
-          mockResponse,
-        );
-
-        const result = await controller.calculateCashOutAmounts({
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-          marketId: 'market-1',
-          outcomeTokenId: 'token-1',
-        });
-
-        expect(result).toEqual(mockResponse);
-        expect(
-          mockPolymarketProvider.calculateCashOutAmounts,
-        ).toHaveBeenCalledWith({
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-          marketId: 'market-1',
-          outcomeTokenId: 'token-1',
-        });
-      });
-    });
-
-    it('handle provider not available error', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.calculateCashOutAmounts({
-            address: '0x1234567890123456789012345678901234567890',
-            providerId: 'nonexistent',
-            marketId: 'market-1',
-            outcomeTokenId: 'token-1',
-          }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-      });
-    });
-  });
-
   describe('transaction event handlers', () => {
-    it('update claim transaction status to CONFIRMED on transactionConfirmed', () => {
-      withController(({ controller, messenger }) => {
-        const txId = 'tx1';
-        const txData = '0xclaimdata';
-
-        // Set up claim transaction with matching transaction ID
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            transactionId: txId,
-            chainId: 1,
-            txParams: { to: '0xclaim', data: txData, value: '0x0' },
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const event = {
-          id: txId,
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xclaim',
-            data: txData,
-            value: '0x0',
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the claim transaction was updated to CONFIRMED
-        expect(controller.state.claimTransaction?.status).toBe(
-          PredictClaimStatus.CONFIRMED,
-        );
-      });
-    });
-
-    it('not modify state when claim transaction data does not match on transactionConfirmed', () => {
-      withController(({ controller, messenger }) => {
-        const claimTxId = 'claim-tx-2';
-
-        // Set up claim transaction
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            transactionId: claimTxId,
-            chainId: 1,
-            txParams: { to: '0xclaim', data: '0xclaimdata', value: '0x0' },
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const initialState = { ...controller.state };
-
-        const event = {
-          id: 'tx1', // Different transaction ID that won't match
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xclaim',
-            data: '0xdifferentdata', // Different data that won't match
-            value: '0x0',
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        // State should remain unchanged since no matching transaction was found
-        expect(controller.state).toEqual(initialState);
-      });
-    });
-
     it('update claim transaction status to ERROR on transactionFailed', () => {
       withController(({ controller, messenger }) => {
         const txId = 'tx-failed';
@@ -1119,12 +975,11 @@ describe('PredictController', () => {
   describe('provider error handling', () => {
     it('throw PROVIDER_NOT_AVAILABLE when provider is missing in placeOrder', async () => {
       await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
         const result = await controller.placeOrder({
           providerId: 'nonexistent',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.BUY,
-          size: 1,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -2404,6 +2259,74 @@ describe('PredictController', () => {
             providerId: 'polymarket',
           }),
         ).rejects.toThrow('Balance fetch failed');
+      });
+    });
+  });
+
+  describe('previewOrder', () => {
+    it('should preview order successfully', async () => {
+      const mockOrderPreview = createMockOrderPreview({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+      });
+
+      mockPolymarketProvider.previewOrder.mockResolvedValue(mockOrderPreview);
+
+      await withController(async ({ controller }) => {
+        const result = await controller.previewOrder({
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 100,
+        });
+
+        expect(result).toEqual(mockOrderPreview);
+        expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 100,
+        });
+      });
+    });
+
+    it('should throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewOrder({
+            providerId: 'invalid-provider',
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('should handle preview errors', async () => {
+      mockPolymarketProvider.previewOrder.mockRejectedValue(
+        new Error('Preview failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewOrder({
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          }),
+        ).rejects.toThrow('Preview failed');
       });
     });
   });

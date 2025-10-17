@@ -595,7 +595,9 @@
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
-      "title": "Deposit"
+      "title": "Deposit",
+      "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
+      "limitError": "Failed to check your deposit limits. Please try again later."
     },
     "token_modal": {
       "select_a_token": "Select a Token",
@@ -1637,7 +1639,7 @@
     },
     "add_funds_sheet": {
       "title": "Add funds",
-      "description": "You’ll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+      "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
     "transactions": {
       "title": "Predictions",
@@ -1647,7 +1649,20 @@
       "claim_title": "Claimed winnings",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
-      "claim_detail": "Claimed winnings"
+      "claim_detail": "Claimed winnings",
+      "not_available": "N/A",
+      "date": "Date",
+      "market": "Market",
+      "outcome": "Outcome",
+      "predicted_amount": "Predicted amount",
+      "shares_bought": "Shares bought",
+      "shares_sold": "Shares sold",
+      "price_per_share": "Price per share",
+      "price_impact": "Price impact",
+      "net_pnl": "Net P&L",
+      "total_net_pnl": "Total Net P&L",
+      "market_net_pnl": "Market Net P&L",
+      "activity_details": "Activity details"
     }
   },
   "receive": {
@@ -6196,7 +6211,8 @@
 
     "link_account_group": {
       "link_account": "Add account",
-      "linked_accounts": "Tracked addresses",
+      "tracked": "Tracked",
+      "untracked": "Untracked",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },
