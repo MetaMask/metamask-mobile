@@ -13,7 +13,7 @@ import { useStyles } from '../../../hooks/useStyles';
 // Internal dependencies.
 import { IconProps, IconColor } from './Icon.types';
 import styleSheet from './Icon.styles';
-import { assetByIconName } from './Icon.assets';
+import { getIcon } from './Icon.assets.lazy';
 import { DEFAULT_ICON_SIZE, DEFAULT_ICON_COLOR } from './Icon.constants';
 
 const Icon = ({
@@ -28,7 +28,7 @@ const Icon = ({
     style,
     color,
   });
-  const SVG = assetByIconName[name];
+  const SVG = getIcon(name);
   const sizeAsNum = Number(size);
   let iconColor;
   switch (color) {
@@ -72,8 +72,6 @@ const Icon = ({
     <SVG
       fill="currentColor"
       color={iconColor}
-      // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-      // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
       style={styles.icon}
       width={sizeAsNum}
       height={sizeAsNum}
