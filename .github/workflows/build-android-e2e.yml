@@ -28,6 +28,11 @@ on:
         required: false
         default: 'qa'
         type: string
+      force_rebuild:
+        description: 'Force a full rebuild instead of using cached APKs'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-android-apks:
@@ -116,6 +121,7 @@ jobs:
 
       - name: Check and restore cached APKs if Fingerprint is found
         id: cache-restore
+        if: ${{ inputs.force_rebuild != true }}
         uses: cirruslabs/cache@v4
         with:
           path: |
@@ -128,9 +134,12 @@ jobs:
             android-apk-
 
       - name: Build Android E2E APKs
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.force_rebuild == true || steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
+          if [[ "${{ inputs.force_rebuild }}" == "true" ]]; then
+            echo "⚡ Force rebuild requested - building from scratch"
+          fi
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
@@ -179,7 +188,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        if: ${{ inputs.force_rebuild != true && steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
