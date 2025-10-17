@@ -339,7 +339,7 @@ describe('OnboardingSuccess', () => {
     });
 
     const description = getByText(
-      strings('onboarding_success.import_description_social_login', {
+      strings('onboarding_success.import_description_social_login_ios', {
         authConnection: capitalize(AuthConnection.Apple) || '',
       }),
     );
@@ -379,7 +379,7 @@ describe('OnboardingSuccess', () => {
     });
 
     const description = getByText(
-      strings('onboarding_success.import_description_social_login', {
+      strings('onboarding_success.import_description_social_login_ios', {
         authConnection: capitalize(AuthConnection.Google) || '',
       }),
     );
