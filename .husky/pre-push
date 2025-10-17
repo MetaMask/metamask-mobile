@@ -1,0 +1,73 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Get the name of the remote branch being pushed to
+# This handles cases where we're pushing to origin/main, origin/develop, etc.
+while read local_ref local_sha remote_ref remote_sha
+do
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    # Branch deletion, skip checks
+    continue
+  fi
+
+  # Extract remote branch name (e.g., refs/heads/main -> main)
+  REMOTE_BRANCH=$(echo "$remote_ref" | sed 's|refs/heads/||')
+
+  # Get list of files changed between remote and local HEAD
+  # Only check files being pushed, not all uncommitted changes
+  FILES=$(git diff --name-only --diff-filter=ACMR "$remote_sha".."$local_sha" 2>/dev/null | grep -E '\.(js|jsx|ts|tsx)$' || true)
+
+  if [ -z "$FILES" ]; then
+    echo "✅ No JavaScript/TypeScript files changed in this push"
+    continue
+  fi
+
+  FILE_COUNT=$(echo "$FILES" | wc -l | xargs)
+  echo "🔍 Validating $FILE_COUNT file(s) being pushed to $REMOTE_BRANCH..."
+  echo ""
+
+  # Step 1: Check Prettier formatting (this is what CI checks with format:check:changed)
+  echo "📝 Checking Prettier formatting..."
+  echo "$FILES" | tr '\n' '\0' | xargs -0 npx prettier --check
+
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Prettier formatting check failed!"
+    echo ""
+    echo "These files have formatting issues. Please run:"
+    echo "  npx prettier --write <file>"
+    echo ""
+    echo "Or format all changed files:"
+    echo "  npx prettier --write 'app/**/*.{ts,tsx,js,jsx}'"
+    echo ""
+    echo "💡 To bypass this check (not recommended): git push --no-verify"
+    echo ""
+    exit 1
+  fi
+
+  echo "✅ Prettier formatting check passed"
+  echo ""
+
+  # Step 2: Check ESLint (catches code quality issues)
+  echo "🔍 Checking ESLint..."
+  echo "$FILES" | tr '\n' '\0' | xargs -0 npx eslint --max-warnings=0
+
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ ESLint validation failed!"
+    echo ""
+    echo "Please fix the linting errors before pushing."
+    echo "You can run 'npx eslint <file>' to check specific files."
+    echo "You can run 'npx eslint <file> --fix' to auto-fix some issues."
+    echo ""
+    echo "💡 To bypass this check (not recommended): git push --no-verify"
+    echo ""
+    exit 1
+  fi
+
+  echo "✅ ESLint validation passed"
+  echo ""
+  echo "✅ All validation passed for push to $REMOTE_BRANCH"
+done
+
+exit 0
