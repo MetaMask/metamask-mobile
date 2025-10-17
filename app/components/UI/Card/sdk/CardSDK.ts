@@ -820,7 +820,7 @@ export class CardSDK {
         (wallet: CardWalletExternalResponse) => {
           const priorityWallet = priorityWalletDetails.find(
             (p: CardWalletExternalPriorityResponse) =>
-              p?.address?.toLowerCase() === wallet?.address?.toLowerCase() &&
+              p?.currency === wallet?.currency &&
               p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
           );
           const supportedTokens = this.getSupportedTokensByChainId(

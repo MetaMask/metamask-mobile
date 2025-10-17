@@ -36,6 +36,10 @@ const useCardDetails = () => {
       if (err instanceof CardError) {
         if (err.type === CardErrorType.NO_CARD) {
           // Add Card Provisioning Flow
+          setState((prevState) => ({
+            ...prevState,
+            isLoading: false,
+          }));
           return;
         }
       }
