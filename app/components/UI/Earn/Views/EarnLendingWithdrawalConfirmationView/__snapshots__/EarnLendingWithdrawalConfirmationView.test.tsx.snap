@@ -100,7 +100,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
+                    "borderColor": "#f3f5f9",
                     "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
@@ -832,7 +832,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#ffffff",
+                            "borderColor": "#f3f5f9",
                             "borderRadius": 4,
                             "borderWidth": 1,
                             "height": 16,

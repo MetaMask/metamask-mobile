@@ -459,7 +459,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -725,7 +725,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -991,7 +991,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -1257,7 +1257,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -1523,7 +1523,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -2147,7 +2147,7 @@ exports[`OrdersList renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -2413,7 +2413,7 @@ exports[`OrdersList renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -2679,7 +2679,7 @@ exports[`OrdersList renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -2945,7 +2945,7 @@ exports[`OrdersList renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -3211,7 +3211,7 @@ exports[`OrdersList renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -3477,7 +3477,7 @@ exports[`OrdersList renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -4484,7 +4484,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -4995,7 +4995,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -5619,7 +5619,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -5885,7 +5885,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -6151,7 +6151,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -6417,7 +6417,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -6683,7 +6683,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -6949,7 +6949,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#ffffff",
+                          "borderColor": "#f3f5f9",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
