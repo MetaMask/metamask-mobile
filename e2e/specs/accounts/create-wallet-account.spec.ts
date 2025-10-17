@@ -7,6 +7,7 @@ import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import AddressList from '../../pages/MultichainAccounts/AddressList';
 import { defaultGanacheOptions } from '../../framework/Constants';
 import { completeSrpQuiz } from '../multisrp/utils';
+import TestHelpers from '../../helpers.js';
 
 describe(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
@@ -21,6 +22,13 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
         },
       );
       await AccountListBottomSheet.tapCreateAccount(FIRST);
+
+      // FIXME: Creating account seems to take a bit of time, and the following assertion might not
+      // be correct either. Checking for "Account 3" is not enough, since there's already another
+      // account named that way in another wallet.
+      // For now, we just add a delay to make sure account indexing is correct, but we should
+      // probably change this and use the "Creating accounts..." status instead.
+      await TestHelpers.delay(2000);
 
       // Account names are now per wallet, thus other accounts from the fixture (that are not associated
       // with the primary HD keyring) are not considered for account index. Current fixture uses 2 HD
