@@ -53,6 +53,7 @@ import {
   PredictPosition,
   PredictPriceHistoryPoint,
   Result,
+  Side,
   UnrealizedPnL,
 } from '../types';
 
@@ -761,26 +762,33 @@ export class PredictController extends BaseController<
       const completionDuration = performance.now() - startTime;
 
       if (result.success) {
-        // Extract order ID from response if available
-        const orderId =
-          result.response &&
-          typeof result.response === 'object' &&
-          'orderID' in result.response
-            ? (result.response as { orderID?: string }).orderID
-            : undefined;
+        const { id: orderId, spentAmount, receivedAmount } = result.response;
+
+        let realSharePrice = sharePrice;
+        try {
+          if (preview.side === Side.BUY) {
+            realSharePrice =
+              parseFloat(receivedAmount) / parseFloat(spentAmount);
+          } else {
+            realSharePrice =
+              parseFloat(spentAmount) / parseFloat(receivedAmount);
+          }
+        } catch (_e) {
+          // If we can't get real share price, continue without it
+        }
 
         // Track Predict Action Completed (fire and forget)
         // TODO: LUIS - PUT THE CORRECT AMOUNT IN THE RESPONSE
         this.trackPredictOrderEvent({
           eventType: PredictEventType.COMPLETED,
-          amount,
+          amount: spentAmount ? parseFloat(spentAmount) : amount,
           analyticsProperties,
           provider,
           providerId,
           ownerAddress: selectedAddress,
           completionDuration,
           orderId,
-          sharePrice,
+          sharePrice: realSharePrice,
         });
       } else {
         // Track Predict Action Failed (fire and forget)
