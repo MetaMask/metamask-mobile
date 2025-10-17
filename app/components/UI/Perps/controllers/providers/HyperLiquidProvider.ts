@@ -1321,18 +1321,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
-      const assetInfo = meta.universe.find(
-        (asset) => asset.name === params.coin,
-      );
+      const assetInfo = meta.universe.find((asset) => asset.name === coin);
       if (!assetInfo) {
         throw new Error(
-          `Asset ${params.coin} not found in ${dexName || 'main'} DEX universe`,
+          `Asset ${coin} not found in ${dexName || 'main'} DEX universe`,
         );
       }
 
-      const assetId = this.coinToAssetId.get(params.coin);
+      const assetId = this.coinToAssetId.get(coin);
       if (assetId === undefined) {
-        throw new Error(`Asset ID not found for ${params.coin}`);
+        throw new Error(`Asset ID not found for ${coin}`);
       }
 
       // Build orders array for TP/SL
