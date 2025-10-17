@@ -1029,6 +1029,16 @@ describe('getBridgeNavbar', () => {
       expect(options.headerTitle).toBeDefined();
     });
 
+    it('should use default empty object when called without arguments', () => {
+      const options = getSendFlowTitle();
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+      expect(options.headerLeft).toBeDefined();
+      expect(options.headerRight).toBeDefined();
+      expect(options.headerStyle).toBeDefined();
+    });
+
     it('should return headerTitle function', () => {
       const options = getSendFlowTitle({
         title: 'send.amount',
