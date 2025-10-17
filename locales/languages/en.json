@@ -6245,9 +6245,10 @@
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
-      "bridge_loading": "Bridge",
       "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
+      "bridge_send_loading": "Bridge Send",
       "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
+      "bridge_receive_loading": "Bridge Receive",
       "default": "Transaction",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
