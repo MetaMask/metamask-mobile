@@ -428,7 +428,7 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon' })),
 }));
 
-// Consolidated mock for all bottom sheet components
+// Consolidated mock for bottom sheet components (not PerpsTPSLView - it's now a navigation screen)
 const createBottomSheetMock = (testId: string) => {
   const MockReact = jest.requireActual('react');
   return {
@@ -438,9 +438,6 @@ const createBottomSheetMock = (testId: string) => {
   };
 };
 
-jest.mock('../PerpsTPSLView/PerpsTPSLView', () =>
-  createBottomSheetMock('tpsl-bottom-sheet'),
-);
 jest.mock('../../components/PerpsLeverageBottomSheet', () =>
   createBottomSheetMock('leverage-bottom-sheet'),
 );
@@ -1775,11 +1772,16 @@ describe('PerpsOrderView', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(mockLimitPriceRequiredToast);
 
-      // Verify that the TP/SL bottom sheet was NOT opened
-      expect(screen.queryByTestId('tpsl-bottom-sheet')).toBeNull();
+      // Verify that navigation to TP/SL screen was NOT triggered
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          asset: expect.anything(),
+        }),
+      );
     });
 
-    it('opens TP/SL bottom sheet on limit order with limit price', async () => {
+    it('navigates to TP/SL screen on limit order with limit price', async () => {
       // Set up route params
       (useRoute as jest.Mock).mockReturnValue({
         params: {
@@ -1863,9 +1865,18 @@ describe('PerpsOrderView', () => {
       );
       fireEvent.press(tpSlButton);
 
-      // Verify that TP/SL bottom sheet IS shown
+      // Verify that navigation to TP/SL screen was triggered
       await waitFor(() => {
-        expect(screen.getByTestId('tpsl-bottom-sheet')).toBeDefined();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining('TPSL'),
+          expect.objectContaining({
+            asset: 'ETH',
+            direction: 'long',
+            leverage: 3,
+            orderType: 'limit',
+            limitPrice: '3100',
+          }),
+        );
       });
     });
   });

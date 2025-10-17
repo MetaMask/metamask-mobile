@@ -47,10 +47,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-
-// Quick percentage buttons constants - RoE percentages
-const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
-const STOP_LOSS_PERCENTAGES = [-5, -10, -25, -50]; // -5%, -10%, -25%, -50% RoE
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation();
@@ -85,10 +82,10 @@ const PerpsTPSLView: React.FC = () => {
   const stopLossPercentageRef = useRef<TextInput>(null);
 
   // Subscribe to real-time price only when we have an asset
-  // Use 1s debounce for TP/SL bottom sheet
+  // Use throttle for TP/SL screen to reduce re-renders
   const priceData = usePerpsLivePrices({
     symbols: asset ? [asset] : [],
-    throttleMs: 1000,
+    throttleMs: TP_SL_VIEW_CONFIG.PRICE_THROTTLE_MS,
   });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
@@ -200,7 +197,6 @@ const PerpsTPSLView: React.FC = () => {
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    conditions: [true],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TP_SL,
       [PerpsEventProperties.ASSET]: asset,
@@ -458,7 +454,7 @@ const PerpsTPSLView: React.FC = () => {
                   {strings('perps.tpsl.off')}
                 </Text>
               </TouchableOpacity>
-              {TAKE_PROFIT_PERCENTAGES.map((percentage) => (
+              {TP_SL_VIEW_CONFIG.TAKE_PROFIT_ROE_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={[
@@ -499,7 +495,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={takeProfitPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleTakeProfitPriceChange(text);
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
@@ -537,7 +533,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={formattedTakeProfitPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleTakeProfitPercentageChange(text);
                   }}
                   placeholder={strings('perps.tpsl.profit_roe_placeholder')}
@@ -597,7 +593,7 @@ const PerpsTPSLView: React.FC = () => {
                   {strings('perps.tpsl.off')}
                 </Text>
               </TouchableOpacity>
-              {STOP_LOSS_PERCENTAGES.map((percentage) => (
+              {TP_SL_VIEW_CONFIG.STOP_LOSS_ROE_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={[
@@ -638,7 +634,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={stopLossPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleStopLossPriceChange(text);
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
@@ -676,7 +672,7 @@ const PerpsTPSLView: React.FC = () => {
                   value={formattedStopLossPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleStopLossPercentageChange(text);
                   }}
                   placeholder={strings('perps.tpsl.loss_roe_placeholder')}
@@ -736,11 +732,8 @@ const PerpsTPSLView: React.FC = () => {
                     : formattedStopLossPercentage
                 }
                 onChange={handleKeypadChange}
-                // USD_PERPS is not a real currency - it's a custom configuration
-                // that allows 5 decimal places for crypto prices, overriding the
-                // default USD configuration which only allows 2 decimal places.
-                currency="USD_PERPS"
-                decimals={5}
+                currency={TP_SL_VIEW_CONFIG.KEYPAD_CURRENCY_CODE}
+                decimals={TP_SL_VIEW_CONFIG.KEYPAD_DECIMALS}
               />
             </View>
           </>
