@@ -20,6 +20,7 @@ interface Props {
  */
 export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   const gasIncluded = quote?.quote.gasIncluded;
+  const gasSponsored = quote?.quote?.gasSponsored;
 
   const sourceChainId = quote?.quote.srcChainId;
 
@@ -57,7 +58,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
         )
       : null;
 
-  if (gasIncluded) {
+  if (gasIncluded || gasSponsored) {
     return true;
   }
 
