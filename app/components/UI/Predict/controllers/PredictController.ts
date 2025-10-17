@@ -768,17 +768,16 @@ export class PredictController extends BaseController<
         try {
           if (preview.side === Side.BUY) {
             realSharePrice =
-              parseFloat(receivedAmount) / parseFloat(spentAmount);
+              parseFloat(spentAmount) / parseFloat(receivedAmount);
           } else {
             realSharePrice =
-              parseFloat(spentAmount) / parseFloat(receivedAmount);
+              parseFloat(receivedAmount) / parseFloat(spentAmount);
           }
         } catch (_e) {
           // If we can't get real share price, continue without it
         }
 
         // Track Predict Action Completed (fire and forget)
-        // TODO: LUIS - PUT THE CORRECT AMOUNT IN THE RESPONSE
         this.trackPredictOrderEvent({
           eventType: PredictEventType.COMPLETED,
           amount: spentAmount ? parseFloat(spentAmount) : amount,
