@@ -930,6 +930,8 @@ describe('polymarket utils', () => {
             resolvedBy: '0x0000000000000000000000000000000000000000',
           },
         ],
+        liquidity: 1000000,
+        volume: 1000000,
       });
     });
 

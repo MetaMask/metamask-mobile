@@ -10,6 +10,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
 import PredictBuyPreview from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 
 // Mock navigation hooks
 const mockGoBack = jest.fn();
@@ -198,6 +199,7 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
       title: 'Yes',
       price: 0.5,
     },
+    entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   },
 };
 
@@ -380,6 +382,16 @@ describe('PredictBuyPreview', () => {
           outcomeId: 'outcome-456',
           outcomeTokenId: 'outcome-token-789',
           side: 'BUY',
+        }),
+        analyticsProperties: expect.objectContaining({
+          marketId: 'market-123',
+          marketTitle: 'Will Bitcoin reach $150,000?',
+          marketCategory: 'crypto',
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+          liquidity: 1000000,
+          volume: 1000000,
+          sharePrice: 0.5,
         }),
       });
     });

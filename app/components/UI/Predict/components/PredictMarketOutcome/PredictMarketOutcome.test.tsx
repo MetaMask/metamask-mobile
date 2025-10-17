@@ -4,6 +4,7 @@ import { Alert } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket, PredictOutcome, Recurrence } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketOutcome from '.';
 
 const mockAlert = jest.fn();
@@ -123,6 +124,7 @@ describe('PredictMarketOutcome', () => {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
 
@@ -133,6 +135,7 @@ describe('PredictMarketOutcome', () => {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
   });
