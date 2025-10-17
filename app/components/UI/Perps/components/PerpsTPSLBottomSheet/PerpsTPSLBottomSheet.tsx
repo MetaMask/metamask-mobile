@@ -1,10 +1,15 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonSize,
@@ -337,6 +342,19 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const confirmDisabled = !hasChanges || !isValid || isUpdating;
   const inputsDisabled = isUpdating;
 
+  // Debug logging for button state
+  // console.log('Button Debug State:', {
+  //   hasChanges,
+  //   isValid,
+  //   isUpdating,
+  //   confirmDisabled,
+  //   position: !!position,
+  //   takeProfitPrice,
+  //   stopLossPrice,
+  //   initialTakeProfitPrice,
+  //   initialStopLossPrice,
+  // });
+
   if (!isVisible) return null;
 
   return (
@@ -345,24 +363,22 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       shouldNavigateBack={false}
       onClose={handleClose}
       testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
-      isFullscreen
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.tpsl.title')}
         </Text>
       </BottomSheetHeader>
-      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content}>
-        <TouchableOpacity
-          style={styles.scrollContent}
-          activeOpacity={1}
-          testID="scroll-content"
-          onPress={() => {
-            if (focusedInput) {
-              dismissKeypad();
-            }
-          }}
-        >
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.content}
+        onTouchStart={() => {
+          if (focusedInput) {
+            dismissKeypad();
+          }
+        }}
+      >
+        <View style={styles.scrollContent} testID="scroll-content">
           {/* Description text */}
           {!focusedInput && (
             <Text
@@ -710,12 +726,16 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </Text>
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <View style={styles.keypadFooter}>
         {focusedInput ? (
           <>
+            {/* {console.log(
+              'Rendering regular Button (focusedInput is truthy):',
+              focusedInput,
+            )} */}
             <Button
               style={styles.doneButton}
               label={strings('perps.tpsl.done')}
@@ -746,18 +766,42 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </View>
           </>
         ) : (
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                label: strings('perps.tpsl.done'),
-                variant: ButtonVariants.Primary,
-                size: ButtonSize.Lg,
-                onPress: handleConfirm,
-                isDisabled: confirmDisabled,
-                loading: isUpdating,
-              },
-            ]}
-          />
+          <View style={{ marginRight: 8, marginLeft: 8 }}>
+            {/* Replace BottomSheetFooter with simple TouchableOpacity */}
+            <TouchableOpacity
+              style={[
+                styles.doneButton,
+                {
+                  backgroundColor: confirmDisabled
+                    ? colors.background.muted
+                    : colors.primary.default,
+                  padding: 16,
+                  borderRadius: 8,
+                  opacity: confirmDisabled ? 0.5 : 1,
+                },
+              ]}
+              onPress={confirmDisabled ? undefined : handleConfirm}
+              disabled={confirmDisabled}
+            >
+              <Text
+                style={{
+                  color: colors.text.default,
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  fontSize: 16,
+                }}
+              >
+                {isUpdating ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.primary.default}
+                  />
+                ) : (
+                  strings('perps.tpsl.done')
+                )}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </BottomSheet>
