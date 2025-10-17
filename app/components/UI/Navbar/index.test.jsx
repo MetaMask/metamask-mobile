@@ -1312,5 +1312,12 @@ describe('getBridgeNavbar', () => {
       expect(options).toBeDefined();
       expect(options.headerTitle).toBeDefined();
     });
+
+    it('should throw error when called without required parameters', () => {
+      // Calling without any parameters should throw because themeColors is required
+      expect(() => {
+        getSendFlowTitle();
+      }).toThrow();
+    });
   });
 });
