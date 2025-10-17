@@ -76,7 +76,6 @@ export class HyperLiquidClientService {
       this.transport = this.createTransport();
 
       // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
-      // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
       this.exchangeClient = new ExchangeClient({
         wallet: wallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
         transport: this.transport,
