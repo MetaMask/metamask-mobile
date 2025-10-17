@@ -140,7 +140,7 @@ export const BridgeDestNetworksBar = () => {
               <Box
                 flexDirection={FlexDirection.Row}
                 alignItems={AlignItems.center}
-                gap={4}
+                gap={8}
               >
                 {selectedDestChainId === chain.chainId ? (
                   <AvatarNetwork
