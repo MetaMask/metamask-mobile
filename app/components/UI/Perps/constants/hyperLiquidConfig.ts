@@ -213,3 +213,33 @@ export const HYPERLIQUID_CONFIG = {
   // HyperLiquid uses 'HlPerp' as their perps exchange identifier
   EXCHANGE_NAME: 'HlPerp',
 } as const;
+
+/**
+ * HIP-3 multi-DEX asset ID calculation constants
+ * Per HIP-3-IMPLEMENTATION.md:
+ * - Main DEX: assetId = index (0, 1, 2, ...)
+ * - HIP-3 DEX: assetId = BASE_ASSET_ID + (perpDexIndex × DEX_MULTIPLIER) + index
+ *
+ * This formula enables proper order routing across multiple DEXs:
+ * - Main DEX (perpDexIndex=0): Uses index directly (BTC=0, ETH=1, SOL=2, etc.)
+ * - xyz DEX (perpDexIndex=1): 100000 + (1 × 10000) + index = 110000-110999
+ * - abc DEX (perpDexIndex=2): 100000 + (2 × 10000) + index = 120000-120999
+ *
+ * Supports up to 10 HIP-3 DEXs with 10000 assets each.
+ */
+export const HIP3_ASSET_ID_CONFIG = {
+  // Base offset for HIP-3 asset IDs (100000)
+  // Ensures HIP-3 asset IDs don't conflict with main DEX indices
+  BASE_ASSET_ID: 100000,
+
+  // Multiplier for DEX index in asset ID calculation (10000)
+  // Allocates 10000 asset ID slots per DEX (0-9999)
+  DEX_MULTIPLIER: 10000,
+} as const;
+
+/**
+ * Basis points conversion constant
+ * 1 basis point (bp) = 0.01% = 0.0001 as decimal
+ * Used for fee discount calculations (e.g., 6500 bps = 65%)
+ */
+export const BASIS_POINTS_DIVISOR = 10000;

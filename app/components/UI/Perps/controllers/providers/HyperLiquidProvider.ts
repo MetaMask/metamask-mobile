@@ -5,6 +5,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../utils/perpsErrorHandler';
 import {
+  BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
   FEE_RATES,
   getBridgeInfo,
@@ -362,7 +363,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    *
    * Per HIP-3-IMPLEMENTATION.md:
    * - Main DEX: assetId = index (0, 1, 2, ...)
-   * - HIP-3 DEX: assetId = 100000 + (perpDexIndex × 10000) + index
+   * - HIP-3 DEX: assetId = BASE_ASSET_ID + (perpDexIndex × DEX_MULTIPLIER) + index
    *
    * This enables proper order routing - when placeOrder({ coin: "xyz:XYZ100" }) is called,
    * the asset ID lookup succeeds and the order routes to the correct DEX.
@@ -945,7 +946,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
       if (this.userFeeDiscountBips !== undefined) {
         builderFee = Math.floor(
-          builderFee * (1 - this.userFeeDiscountBips / 10000),
+          builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
         );
         DevLogger.log('HyperLiquid: Applying builder fee discount', {
           originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
@@ -955,7 +956,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // 6. Submit via single SDK exchange client
-      // Asset ID determines routing (main DEX: direct index, HIP-3: 100000 + dexIndex*10000 + coinIndex)
+      // Asset ID determines routing (main DEX: direct index, HIP-3: BASE_ASSET_ID + dexIndex*DEX_MULTIPLIER + coinIndex)
       // The exchange client handles all DEXs through a single instance
       const exchangeClient = this.clientService.getExchangeClient();
 
@@ -1405,7 +1406,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
       if (this.userFeeDiscountBips !== undefined) {
         builderFee = Math.floor(
-          builderFee * (1 - this.userFeeDiscountBips / 10000),
+          builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
         );
         DevLogger.log('HyperLiquid: Applying builder fee discount to TP/SL', {
           originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
@@ -3377,7 +3378,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Apply MetaMask reward discount if active
     if (this.userFeeDiscountBips !== undefined) {
-      const discount = this.userFeeDiscountBips / 10000; // Convert basis points to decimal
+      const discount = this.userFeeDiscountBips / BASIS_POINTS_DIVISOR; // Convert basis points to decimal
       metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal * (1 - discount);
 
       DevLogger.log('HyperLiquid: Applied MetaMask fee discount', {

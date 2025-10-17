@@ -15,6 +15,7 @@ import type {
   Position,
 } from '../controllers/types';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
+import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -440,7 +441,7 @@ export function calculatePositionSize(params: {
 
 /**
  * Calculate HIP-3 asset ID from perpDexIndex and market index
- * Formula: 100000 + (perpDexIndex * 10000) + index_in_meta
+ * Formula: BASE_ASSET_ID + (perpDexIndex * DEX_MULTIPLIER) + index_in_meta
  *
  * @param perpDexIndex - DEX index from perpDexs() array (0=main, 1=xyz, 2=abc, etc.)
  * @param indexInMeta - Market index within the DEX's meta universe
@@ -459,7 +460,11 @@ export function calculateHip3AssetId(
   if (perpDexIndex === 0) {
     return indexInMeta;
   }
-  return 100000 + perpDexIndex * 10000 + indexInMeta;
+  return (
+    HIP3_ASSET_ID_CONFIG.BASE_ASSET_ID +
+    perpDexIndex * HIP3_ASSET_ID_CONFIG.DEX_MULTIPLIER +
+    indexInMeta
+  );
 }
 
 /**
