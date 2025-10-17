@@ -9,7 +9,6 @@ pluginManagement {
 
 // Cirrus HTTP Cache configuration for remote build caching
 buildCache {
-    // Check if Cirrus HTTP Cache is available
     def httpCacheHost = System.getenv("CIRRUS_HTTP_CACHE_HOST")
     if (httpCacheHost != null) {
         remote(HttpBuildCache) {
