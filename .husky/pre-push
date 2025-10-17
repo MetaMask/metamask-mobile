@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Get the name of the remote branch being pushed to
 # This handles cases where we're pushing to origin/main, origin/develop, etc.
 while read local_ref local_sha remote_ref remote_sha
