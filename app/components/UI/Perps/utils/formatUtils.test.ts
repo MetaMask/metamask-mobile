@@ -662,7 +662,7 @@ describe('formatUtils', () => {
         });
 
       const olderDate = new Date('2022-01-15T12:00:00Z').getTime();
-      expect(formatDateSection(olderDate)).toBe('Jan, 15');
+      expect(formatDateSection(olderDate)).toBe('Jan 15');
     });
 
     it('should handle different months', () => {
@@ -681,7 +681,7 @@ describe('formatUtils', () => {
         });
 
       const julyDate = new Date('2021-07-15T12:00:00Z').getTime();
-      expect(formatDateSection(julyDate)).toBe('Jul, 15');
+      expect(formatDateSection(julyDate)).toBe('Jul 15');
     });
   });
 });

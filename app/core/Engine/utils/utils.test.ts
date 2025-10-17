@@ -49,6 +49,7 @@ import {
   snapsRegistryInit,
 } from '../controllers/snaps';
 import { TransactionControllerInit } from '../controllers/transaction-controller';
+import { GatorPermissionsControllerInit } from '../controllers/gator-permissions-controller/gator-permissions-controller-init';
 import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
@@ -66,10 +67,26 @@ import { multichainAccountServiceInit } from '../controllers/multichain-account-
 import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
 import { rewardsControllerInit } from '../controllers/rewards-controller';
 import { RewardsController } from '../controllers/rewards-controller/RewardsController';
+import { predictControllerInit } from '../controllers/predict-controller';
+import { PredictController } from '../../../components/UI/Predict/controllers/PredictController';
+import { GatorPermissionsController } from '@metamask/gator-permissions-controller';
+import { selectedNetworkControllerInit } from '../controllers/selected-network-controller-init';
+import { SelectedNetworkController } from '@metamask/selected-network-controller';
+import { permissionControllerInit } from '../controllers/permission-controller-init';
+import {
+  CaveatSpecificationConstraint,
+  PermissionController,
+  PermissionSpecificationConstraint,
+  SubjectMetadataController,
+} from '@metamask/permission-controller';
+import { subjectMetadataControllerInit } from '../controllers/subject-metadata-controller-init';
+import { preferencesControllerInit } from '../controllers/preferences-controller-init';
+import { PreferencesController } from '@metamask/preferences-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
 jest.mock('../controllers/app-metadata-controller');
+jest.mock('../controllers/predict-controller');
 jest.mock('../controllers/approval-controller');
 jest.mock(
   '../controllers/currency-rate-controller/currency-rate-controller-init',
@@ -105,10 +122,21 @@ jest.mock('../controllers/bridge-controller/bridge-controller-init');
 jest.mock(
   '../controllers/bridge-status-controller/bridge-status-controller-init',
 );
+jest.mock(
+  '../controllers/gator-permissions-controller/gator-permissions-controller-init',
+);
+jest.mock('../controllers/selected-network-controller-init');
+jest.mock('../controllers/permission-controller-init');
+jest.mock('../controllers/subject-metadata-controller-init');
+jest.mock('../controllers/preferences-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
   const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
+  const mockPermissionControllerInit = jest.mocked(permissionControllerInit);
+  const mockSelectedNetworkControllerInit = jest.mocked(
+    selectedNetworkControllerInit,
+  );
   const mockMultichainNetworkControllerInit = jest.mocked(
     multichainNetworkControllerInit,
   );
@@ -164,6 +192,14 @@ describe('initModularizedControllers', () => {
     networkEnablementControllerInit,
   );
   const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
+  const mockPredictControllerInit = jest.mocked(predictControllerInit);
+  const mockGatorPermissionsControllerInit = jest.mocked(
+    GatorPermissionsControllerInit,
+  );
+  const mockSubjectMetadataControllerInit = jest.mocked(
+    subjectMetadataControllerInit,
+  );
+  const mockPreferencesControllerInit = jest.mocked(preferencesControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -174,6 +210,8 @@ describe('initModularizedControllers', () => {
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
           AccountTreeController: mockAccountTreeControllerInit,
+          PermissionController: mockPermissionControllerInit,
+          SelectedNetworkController: mockSelectedNetworkControllerInit,
           ApprovalController: mockApprovalControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
@@ -205,6 +243,10 @@ describe('initModularizedControllers', () => {
           BridgeController: mockBridgeControllerInit,
           BridgeStatusController: mockBridgeStatusControllerInit,
           RewardsController: mockRewardsControllerInit,
+          PredictController: mockPredictControllerInit,
+          GatorPermissionsController: mockGatorPermissionsControllerInit,
+          SubjectMetadataController: mockSubjectMetadataControllerInit,
+          PreferencesController: mockPreferencesControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -223,6 +265,15 @@ describe('initModularizedControllers', () => {
     });
     mockApprovalControllerInit.mockReturnValue({
       controller: {} as unknown as ApprovalController,
+    });
+    mockPermissionControllerInit.mockReturnValue({
+      controller: {} as unknown as PermissionController<
+        PermissionSpecificationConstraint,
+        CaveatSpecificationConstraint
+      >,
+    });
+    mockSelectedNetworkControllerInit.mockReturnValue({
+      controller: {} as unknown as SelectedNetworkController,
     });
     mockTransactionControllerInit.mockReturnValue({
       controller: {} as unknown as TransactionController,
@@ -289,6 +340,18 @@ describe('initModularizedControllers', () => {
     });
     mockRewardsControllerInit.mockReturnValue({
       controller: {} as unknown as RewardsController,
+    });
+    mockPredictControllerInit.mockReturnValue({
+      controller: {} as unknown as PredictController,
+    });
+    mockGatorPermissionsControllerInit.mockReturnValue({
+      controller: {} as unknown as GatorPermissionsController,
+    });
+    mockSubjectMetadataControllerInit.mockReturnValue({
+      controller: {} as unknown as SubjectMetadataController,
+    });
+    mockPreferencesControllerInit.mockReturnValue({
+      controller: {} as unknown as PreferencesController,
     });
   });
 

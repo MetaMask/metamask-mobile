@@ -15,7 +15,6 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
-// Mock dependencies
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

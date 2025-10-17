@@ -1,4 +1,4 @@
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { getMultichainAccountName } from './getMultichainAccountName';
 import { WalletClientType } from '../MultichainWalletSnapClient';
@@ -33,6 +33,9 @@ describe('getMultichainAccountName', () => {
     [SolScope.Mainnet, WalletClientType.Solana, 'Solana Account 1'],
     [SolScope.Devnet, WalletClientType.Solana, 'Solana Devnet Account 1'],
     [SolScope.Testnet, WalletClientType.Solana, 'Solana Testnet Account 1'],
+    [TrxScope.Mainnet, WalletClientType.Tron, 'Tron Account 1'],
+    [TrxScope.Nile, WalletClientType.Tron, 'Tron Nile Account 1'],
+    [TrxScope.Shasta, WalletClientType.Tron, 'Tron Shasta Account 1'],
   ])(
     'should return account name for %s scope and %s client type',
     (scope, clientType, expectedName) => {

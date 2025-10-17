@@ -41,21 +41,20 @@ import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { TraceName } from '../../../../../util/trace';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import {
-  usePerpsLiveAccount,
   usePerpsConnection,
-  usePerpsPerformance,
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
-import { usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
@@ -73,35 +72,25 @@ import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
   isNavigationFromOrderSuccess?: boolean;
+  source?: string;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, initialTab, isNavigationFromOrderSuccess } =
+  const { market, initialTab, isNavigationFromOrderSuccess, source } =
     route.params || {};
   const { track } = usePerpsEventTracking();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
-  // Track screen load time
-  const { startMeasure, endMeasure } = usePerpsPerformance();
-  const hasTrackedAssetView = useRef(false);
-
   const isEligible = useSelector(selectPerpsEligibility);
-
-  // Start measuring screen load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
-    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
-  }, [startMeasure]);
 
   // Set navigation header with proper back button
   useEffect(() => {
@@ -121,11 +110,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  const { account } = usePerpsLiveAccount();
+
   // TP/SL order selection state - track TP and SL separately
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
-
-  const { account } = usePerpsLiveAccount();
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -225,53 +214,50 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
-  // Track screen load and position data loaded
-  useEffect(() => {
-    if (
-      market &&
-      marketStats &&
-      !isLoadingHistory &&
-      !isLoadingPosition &&
-      !hasTrackedAssetView.current
-    ) {
-      // Track asset screen loaded
-      endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
+  // Track Perps asset screen load performance with simplified API
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsPositionDetailsView,
+    conditions: [
+      !!market,
+      !!marketStats,
+      !isLoadingHistory,
+      !isLoadingPosition,
+    ],
+    debugContext: {
+      symbol: market?.symbol,
+      hasMarketStats: !!marketStats,
+      loadingStates: { isLoadingHistory, isLoadingPosition },
+    },
+  });
 
-      // Track asset screen viewed event - only once
-      track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
-        [PerpsEventProperties.ASSET]: market.symbol,
-        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
-        [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
-      });
-
-      hasTrackedAssetView.current = true;
-    }
-  }, [
-    market,
-    marketStats,
-    isLoadingHistory,
-    isLoadingPosition,
-    existingPosition,
-    track,
-    endMeasure,
-  ]);
-
-  useEffect(() => {
-    if (!isLoadingPosition && market) {
-      // Track position data loaded for asset screen
-      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
-    }
-  }, [isLoadingPosition, market, endMeasure]);
+  // Track asset screen viewed event - declarative (main's event name)
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [
+      !!market,
+      !!marketStats,
+      !isLoadingHistory,
+      !isLoadingPosition,
+    ],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+      [PerpsEventProperties.ASSET]: market?.symbol || '',
+      [PerpsEventProperties.SOURCE]:
+        source || PerpsEventValues.SOURCE.PERP_MARKETS,
+      [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
+    },
+  });
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
       setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
-      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.ASSET]: market?.symbol || '',
         [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
+          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
@@ -365,7 +351,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation.goBack();
     } else {
       // Fallback to markets list if no previous screen
-      navigation.navigate(Routes.PERPS.MARKETS);
+      navigation.navigate(Routes.PERPS.MARKETS, { source });
     }
   };
 

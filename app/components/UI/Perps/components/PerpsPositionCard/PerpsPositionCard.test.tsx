@@ -6,7 +6,6 @@ import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/P
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useFocusEffect: jest.fn(),

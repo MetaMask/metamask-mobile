@@ -403,9 +403,9 @@ describe('useTokenBalancesPolling', () => {
             PreferencesController: {
               ...state.engine.backgroundState.PreferencesController,
               tokenNetworkFilter: {
-                '0x1': 'true',
-                '0x89': 'true',
-                '0xa': 'true',
+                '0x1': true,
+                '0x89': true,
+                '0xa': true,
               },
             },
           },

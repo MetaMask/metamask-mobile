@@ -1,5 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
-import { BtcScope, EthScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, EthScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import {
   selectMultichainNetworkControllerState,
   selectIsEvmNetworkSelected,
@@ -140,6 +140,7 @@ describe('getActiveNetworksByScopes', () => {
   const MOCK_ETH_ACCOUNT = '0xS0M3FAk3ADDr355Dc8Ebf7A2152cdfB9D43FAk3';
   const MOCK_SOL_ACCOUNT = 'SoLaNaToTheMoonKopQixMzG9SMnKuCZQzQ9ujeZuvC5';
   const MOCK_BTC_ACCOUNT = '1BitcoinSatoshiNakamoto123456789';
+  const MOCK_TRON_ACCOUNT = 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb';
   const MOCK_ETH_ACCOUNT_NO_ACTIVITY =
     '0xNoActivityAccount1234567890123456789012';
   const baseState = {
@@ -154,6 +155,9 @@ describe('getActiveNetworksByScopes', () => {
               activeChains: [],
             },
             [MOCK_BTC_ACCOUNT]: {
+              activeChains: [],
+            },
+            [MOCK_TRON_ACCOUNT]: {
               activeChains: [],
             },
           },
@@ -196,6 +200,22 @@ describe('getActiveNetworksByScopes', () => {
     (scope: BtcScope) => {
       const account = {
         address: MOCK_BTC_ACCOUNT,
+        scopes: [scope],
+      };
+      const result = getActiveNetworksByScopes(baseState, account);
+      expect(result).toEqual([
+        {
+          caipChainId: scope,
+        },
+      ]);
+    },
+  );
+
+  it.each(Object.values(TrxScope))(
+    'should return correct network for Tron: %s',
+    (scope: TrxScope) => {
+      const account = {
+        address: MOCK_TRON_ACCOUNT,
         scopes: [scope],
       };
       const result = getActiveNetworksByScopes(baseState, account);

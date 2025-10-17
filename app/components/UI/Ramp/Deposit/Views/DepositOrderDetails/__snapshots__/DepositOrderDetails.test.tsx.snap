@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DepositOrderDetails Component renders an error screen if a CREATED order cannot be polled on load 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -29,7 +37,15 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
         ]
       }
     >
-      <RCTSafeAreaView
+      <RNCSafeAreaView
+        edges={
+          {
+            "bottom": "additive",
+            "left": "additive",
+            "right": "additive",
+            "top": "off",
+          }
+        }
         style={
           {
             "flex": 1,
@@ -157,14 +173,22 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
             </TouchableOpacity>
           </View>
         </View>
-      </RCTSafeAreaView>
+      </RNCSafeAreaView>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`DepositOrderDetails Component renders error state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -530,7 +554,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -581,7 +605,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -692,11 +716,19 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
       </View>
     </RCTScrollView>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`DepositOrderDetails Component renders loading state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -739,11 +771,19 @@ exports[`DepositOrderDetails Component renders loading state correctly 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`DepositOrderDetails Component renders no order found state 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -761,11 +801,19 @@ exports[`DepositOrderDetails Component renders no order found state 1`] = `
       ]
     }
   />
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`DepositOrderDetails Component renders processing state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -1135,7 +1183,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -1186,7 +1234,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -1297,11 +1345,19 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
       </View>
     </RCTScrollView>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`DepositOrderDetails Component renders success state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -1667,7 +1723,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -1718,7 +1774,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -1829,5 +1885,5 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
       </View>
     </RCTScrollView>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

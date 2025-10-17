@@ -9,7 +9,6 @@ export function getUserStorageControllerMessenger(
     allowedActions: [
       // Keyring Controller Requests
       'KeyringController:getState',
-      'KeyringController:withKeyring',
       // Snap Controller Requests
       'SnapController:handleRequest',
       // Auth Controller Requests
@@ -17,10 +16,6 @@ export function getUserStorageControllerMessenger(
       'AuthenticationController:getSessionProfile',
       'AuthenticationController:isSignedIn',
       'AuthenticationController:performSignIn',
-      // Accounts Controller Requests
-      'AccountsController:listAccounts',
-      'AccountsController:updateAccountMetadata',
-      'AccountsController:updateAccounts',
       // Address Book Controller Requests
       'AddressBookController:list',
       'AddressBookController:set',
@@ -30,9 +25,6 @@ export function getUserStorageControllerMessenger(
       // Keyring Controller Events
       'KeyringController:lock',
       'KeyringController:unlock',
-      // Accounts Controller Events
-      'AccountsController:accountAdded',
-      'AccountsController:accountRenamed',
       // Address Book Controller Events
       'AddressBookController:contactUpdated',
       'AddressBookController:contactDeleted',

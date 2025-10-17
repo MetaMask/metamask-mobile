@@ -60,7 +60,6 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
@@ -119,7 +118,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   }),
 }));
 
-jest.mock('react-native-scrollable-tab-view', () => {
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

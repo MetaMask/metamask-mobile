@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import { renderWithProviders } from '../testUtils';
 import OnboardingStep1 from '../OnboardingStep1';
 
@@ -104,13 +104,24 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 // Mock actions and reducers
 jest.mock('../../../../../../actions/rewards', () => ({
-  setOnboardingActiveStep: jest.fn(),
+  setOnboardingActiveStep: jest.fn((step) => ({
+    type: 'SET_ONBOARDING_ACTIVE_STEP',
+    payload: step,
+  })),
 }));
 
 jest.mock('../../../../../../reducers/rewards/types', () => ({
   OnboardingStep: {
     STEP_1: 'STEP_1',
+    STEP_4: 'STEP_4',
   },
+}));
+
+// Mock routes
+jest.mock('../../../../../../constants/navigation/Routes', () => ({
+  REWARDS_ONBOARDING_2: 'REWARDS_ONBOARDING_2',
+  REWARDS_ONBOARDING_4: 'REWARDS_ONBOARDING_4',
+  WALLET_VIEW: 'WALLET_VIEW',
 }));
 
 describe('OnboardingStep1', () => {
@@ -151,6 +162,30 @@ describe('OnboardingStep1', () => {
       // Verify navigation and dispatch functions are available
       expect(mockDispatch).toBeDefined();
       expect(mockNavigate).toBeDefined();
+    });
+  });
+
+  describe('skip functionality', () => {
+    it('should render skip button', () => {
+      renderWithProviders(<OnboardingStep1 />);
+
+      // Verify skip button is rendered
+      const skipButton = screen.getByTestId('skip-button');
+      expect(skipButton).toBeDefined();
+    });
+
+    it('should navigate to step 4 and update redux state when skip button is pressed', () => {
+      renderWithProviders(<OnboardingStep1 />);
+
+      // Find and press the skip button
+      const skipButton = screen.getByTestId('skip-button');
+      fireEvent.press(skipButton);
+
+      // Verify navigation and dispatch were called with correct arguments
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: 'STEP_4' }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith('REWARDS_ONBOARDING_4');
     });
   });
 });

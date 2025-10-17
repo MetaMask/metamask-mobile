@@ -33,6 +33,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
+  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -56,7 +57,7 @@ interface AccountStatusProps {
 interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: string;
+  onboardingTraceCtx?: TraceContext;
 }
 
 const AccountStatus = ({
@@ -144,7 +145,7 @@ const AccountStatus = ({
 
   const descriptionForFoundTypeAccountStatus = useCallback(() => {
     if (Platform.OS === 'ios') {
-      return 'account_status.account_already_exists_ios_new_userd_escription';
+      return 'account_status.account_already_exists_ios_new_user_description';
     }
     return 'account_status.account_already_exists_description';
   }, []);

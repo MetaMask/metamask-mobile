@@ -6,7 +6,13 @@ import { selectAccountsWithNativeBalanceByChainId } from '../../../selectors/mul
 import { BridgeViewMode } from '../../../components/UI/Bridge/types';
 import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeView';
 import { WalletClientType } from '../../SnapKeyring/MultichainWalletSnapClient';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  SolScope,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  TrxScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../components/UI/Bridge/utils/tokenUtils';
 
@@ -16,6 +22,10 @@ const getClientType = (chainId: string) => {
     clientType = WalletClientType.Bitcoin;
   } else if (Object.values(SolScope).includes(chainId as SolScope)) {
     clientType = WalletClientType.Solana;
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  } else if (Object.values(TrxScope).includes(chainId as TrxScope)) {
+    clientType = WalletClientType.Tron;
+    ///: END:ONLY_INCLUDE_IF
   } else {
     throw new Error(`Unsupported chainId: ${chainId}`);
   }

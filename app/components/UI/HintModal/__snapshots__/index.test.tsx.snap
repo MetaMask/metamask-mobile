@@ -61,7 +61,6 @@ exports[`HintModal should render correctly 1`] = `
         <ButtonIcon
           iconName="Close"
           onPress={[Function]}
-          size="24"
         />
       </View>
       <Text

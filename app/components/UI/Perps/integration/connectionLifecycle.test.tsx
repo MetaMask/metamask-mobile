@@ -3,13 +3,11 @@ import { render, act, waitFor } from '@testing-library/react-native';
 import { Text, AppState } from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import Device from '../../../../util/device';
-import {
-  PerpsConnectionProvider,
-  usePerpsConnection,
-} from '../providers/PerpsConnectionProvider';
+import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsTabViewWithProvider from '../Views/PerpsTabView';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { usePerpsConnection } from '../hooks';
 
 // Type definitions for hook parameters
 interface PerpsConnectionLifecycleParams {
@@ -72,12 +70,12 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
     );
   },
 }));
-jest.mock('../hooks/usePerpsDepositStatus', () => ({
-  usePerpsDepositStatus: jest.fn(),
-}));
 // Mock hooks that use Redux
 jest.mock('../hooks/usePerpsWithdrawStatus', () => ({
   usePerpsWithdrawStatus: jest.fn(() => undefined),
+}));
+jest.mock('../hooks/usePerpsDepositStatus', () => ({
+  usePerpsDepositStatus: jest.fn(() => undefined),
 }));
 jest.mock('../hooks', () => ({
   usePerpsNetworkValidation: jest.fn(() => undefined),
@@ -99,6 +97,23 @@ jest.mock('../Views/PerpsTabView/PerpsTabView', () => ({
 jest.mock('../providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  usePerpsStream: jest.fn(() => ({
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    prices: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    fills: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+  })),
 }));
 
 describe('Connection Lifecycle Integration Tests', () => {

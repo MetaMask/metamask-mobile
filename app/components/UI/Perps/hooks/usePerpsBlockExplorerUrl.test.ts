@@ -4,7 +4,6 @@ import Engine from '../../../../core/Engine';
 import { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 import { PerpsController } from '../controllers';
 
-// Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => () => ({
     address: '0x1234567890abcdef1234567890abcdef12345678',

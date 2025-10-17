@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
 
@@ -6,6 +7,7 @@ import { createMockInternalAccount } from '../../../../util/test/accountsControl
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import { AddressList } from './AddressList';
+import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
@@ -14,11 +16,13 @@ const TITLE = 'Test Address List';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    setOptions: mockSetOptions,
   }),
 }));
 
@@ -38,6 +42,7 @@ const mockEthEoaAccount = {
   ),
   id: 'mock-eth-account-1',
   scopes: [EthScope.Eoa],
+  groupId: 'entropy:wallet-id-1/1"',
 };
 const shortenedEthAddress = '0x4FeC2...fdcB5';
 
@@ -144,7 +149,15 @@ describe('AddressList', () => {
   it('renders correctly with list of addresses from a specific account group', () => {
     const { getAllByText, getByText } = renderWithAddressList();
 
-    expect(getByText(TITLE)).toBeDefined();
+    // The title is set in navigation options, not rendered in the component
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerShown: true,
+        headerTitleAlign: 'center',
+        headerTitle: expect.any(Function),
+        headerLeft: expect.any(Function),
+      }),
+    );
 
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
     expect(getByText('Ethereum')).toBeDefined();
@@ -153,5 +166,54 @@ describe('AddressList', () => {
 
     expect(getAllByText(shortenedSolAddress).length).toBe(1);
     expect(getByText('Solana Mainnet')).toBeDefined();
+  });
+
+  it('sets navigation options when title is provided', () => {
+    renderWithAddressList();
+
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      headerShown: true,
+      headerTitleAlign: 'center',
+      headerTitle: expect.any(Function),
+      headerLeft: expect.any(Function),
+    });
+  });
+
+  it('does not set navigation options when title is not provided', () => {
+    const { useParams } = jest.requireMock(
+      '../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      title: null,
+      groupId: ACCOUNT_GROUP_ID,
+    });
+
+    renderWithAddressList();
+
+    expect(mockSetOptions).not.toHaveBeenCalled();
+  });
+
+  it('navigates to QR code screen when QR button is pressed', () => {
+    const { getByTestId } = renderWithAddressList();
+
+    const qrButton = getByTestId(
+      `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-eip155:1`,
+    );
+
+    // Simulate button press by calling the onPress function directly
+    fireEvent.press(qrButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'ShareAddressQR',
+        params: {
+          address: mockEthEoaAccount.address,
+          networkName: 'Ethereum',
+          chainId: 'eip155:1',
+          groupId: ACCOUNT_GROUP_ID,
+        },
+      },
+    );
   });
 });

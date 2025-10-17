@@ -1,13 +1,10 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import {
-  PerpsConnectionProvider,
-  usePerpsConnection,
-} from './PerpsConnectionProvider';
+import { PerpsConnectionProvider } from './PerpsConnectionProvider';
+import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
-// Mock dependencies
 jest.mock('../services/PerpsConnectionManager');
 
 // Mock navigation
@@ -63,9 +60,6 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
     );
   },
 }));
-jest.mock('../hooks/usePerpsDepositStatus', () => ({
-  usePerpsDepositStatus: jest.fn(() => ({ depositInProgress: false })),
-}));
 jest.mock('../hooks/usePerpsConnectionLifecycle', () => ({
   usePerpsConnectionLifecycle: jest.fn(() => ({ hasConnected: false })),
 }));
@@ -112,6 +106,7 @@ describe('PerpsConnectionProvider', () => {
   let mockGetConnectionState: jest.Mock;
   let mockConnect: jest.Mock;
   let mockDisconnect: jest.Mock;
+  let mockReconnectWithNewContext: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -127,11 +122,14 @@ describe('PerpsConnectionProvider', () => {
     });
     mockConnect = jest.fn().mockResolvedValue(undefined);
     mockDisconnect = jest.fn().mockResolvedValue(undefined);
+    mockReconnectWithNewContext = jest.fn().mockResolvedValue(undefined);
 
     (PerpsConnectionManager.getConnectionState as jest.Mock) =
       mockGetConnectionState;
     (PerpsConnectionManager.connect as jest.Mock) = mockConnect;
     (PerpsConnectionManager.disconnect as jest.Mock) = mockDisconnect;
+    (PerpsConnectionManager.reconnectWithNewContext as jest.Mock) =
+      mockReconnectWithNewContext;
   });
 
   afterEach(() => {
@@ -589,7 +587,7 @@ describe('PerpsConnectionProvider', () => {
   });
 
   describe('retry logic behavior', () => {
-    it('should call PerpsConnectionManager.connect directly on retry', async () => {
+    it('should call PerpsConnectionManager.reconnectWithNewContext on retry', async () => {
       // Mock error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -605,7 +603,7 @@ describe('PerpsConnectionProvider', () => {
       );
 
       // Clear previous mock calls
-      mockConnect.mockClear();
+      mockReconnectWithNewContext.mockClear();
 
       // Click retry button
       const retryButton = getByTestId('retry-button');
@@ -614,8 +612,8 @@ describe('PerpsConnectionProvider', () => {
       });
 
       await waitFor(() => {
-        // Should call PerpsConnectionManager.connect directly
-        expect(mockConnect).toHaveBeenCalledTimes(1);
+        // Should call PerpsConnectionManager.reconnectWithNewContext for full reset
+        expect(mockReconnectWithNewContext).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -677,11 +675,13 @@ describe('PerpsConnectionProvider', () => {
       );
 
       // Mock connection failures
-      mockConnect.mockRejectedValue(new Error('Connection failed'));
+      mockReconnectWithNewContext.mockRejectedValue(
+        new Error('Connection failed'),
+      );
 
       // First retry
       const retryButton = getByTestId('retry-button');
-      act(() => {
+      await act(async () => {
         retryButton.props.onPress();
       });
 
@@ -690,7 +690,7 @@ describe('PerpsConnectionProvider', () => {
       });
 
       // Second retry
-      act(() => {
+      await act(async () => {
         retryButton.props.onPress();
       });
 
@@ -699,7 +699,7 @@ describe('PerpsConnectionProvider', () => {
       });
 
       // Third retry
-      act(() => {
+      await act(async () => {
         retryButton.props.onPress();
       });
 
@@ -724,13 +724,13 @@ describe('PerpsConnectionProvider', () => {
       );
 
       // Mock connection failure then success
-      mockConnect
+      mockReconnectWithNewContext
         .mockRejectedValueOnce(new Error('First retry failed'))
         .mockResolvedValueOnce(undefined);
 
       // First retry (fails)
       const retryButton = getByTestId('retry-button');
-      act(() => {
+      await act(async () => {
         retryButton.props.onPress();
       });
 
@@ -747,7 +747,7 @@ describe('PerpsConnectionProvider', () => {
       });
 
       // Second retry (succeeds)
-      act(() => {
+      await act(async () => {
         retryButton.props.onPress();
       });
 

@@ -34,7 +34,7 @@ import {
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { EntropySourceId, SolScope } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import { logOut } from '../../actions/user';
 import { RootState } from '../../reducers';
 import {
@@ -90,8 +90,6 @@ const mockSnapClient = {
 
 const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
 
-const mockDiscoverAndCreateAccounts = jest.fn();
-
 jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
   MultichainWalletSnapFactory: {
@@ -117,6 +115,7 @@ jest.mock('../Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
+      state: { vault: null },
     },
 
     MultichainAccountService: {
@@ -153,16 +152,12 @@ jest.mock('../BackupVault/backupVault', () => ({
 
 jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+  clearState: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
   isMultichainAccountsState2Enabled: () =>
     mockIsMultichainAccountsState2Enabled(),
-}));
-
-jest.mock('../../multichain-accounts/discovery', () => ({
-  discoverAndCreateAccounts: (entropySource: EntropySourceId) =>
-    mockDiscoverAndCreateAccounts(entropySource),
 }));
 
 const mockUint8ArrayToMnemonic = jest
@@ -531,20 +526,6 @@ describe('Authentication', () => {
       );
     });
 
-    it('(state 2) - calls discoverAccounts after vault creation in newWalletAndKeychain', async () => {
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
-      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-      await Authentication.newWalletAndKeychain('1234', {
-        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-      });
-      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
-        expect.any(String), // mock entropySource
-      );
-    });
-
     it('calls discoverAccounts in newWalletVaultAndRestore', async () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
@@ -564,25 +545,6 @@ describe('Authentication', () => {
       );
     });
 
-    it('(state 2) - calls discoverAccounts in newWalletVaultAndRestore', async () => {
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
-      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-      await Authentication.newWalletAndRestore(
-        '1234',
-        {
-          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-        },
-        '1234',
-        false,
-      );
-      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
-        expect.any(String), // mock entropySource
-      );
-    });
-
     describe('Account discovery failure handling', () => {
       beforeEach(() => {
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -595,7 +557,6 @@ describe('Authentication', () => {
         jest.clearAllMocks();
         mockSnapClient.addDiscoveredAccounts.mockClear();
         mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
-        mockDiscoverAndCreateAccounts.mockClear();
       });
 
       afterEach(() => {
@@ -615,43 +576,6 @@ describe('Authentication', () => {
 
         // Verify discovery was attempted
         expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
-      });
-
-      it('(state 2) - completes wallet creation when discovery fails', async () => {
-        mockDiscoverAndCreateAccounts.mockRejectedValueOnce(
-          new Error('Discovery error'),
-        );
-
-        mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-        await expect(
-          Authentication.newWalletAndKeychain('1234', {
-            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-          }),
-        ).resolves.not.toThrow();
-
-        // Verify discovery was attempted
-        expect(mockDiscoverAndCreateAccounts).toHaveBeenCalled();
-      });
-
-      it('(state 2) - completes wallet restore when discovery fails', async () => {
-        // Mock discovery to fail
-        mockDiscoverAndCreateAccounts.mockRejectedValueOnce(
-          new Error('Discovery timeout'),
-        );
-
-        // Wallet restore should succeed despite failure
-        mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-        await expect(
-          Authentication.newWalletAndRestore(
-            '1234',
-            { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
-            'test seed phrase',
-            true,
-          ),
-        ).resolves.not.toThrow();
-
-        // Verify discovery was attempted
-        expect(mockDiscoverAndCreateAccounts).toHaveBeenCalled();
       });
 
       it('does not break authentication flow when discovery fails', async () => {
@@ -1187,6 +1111,7 @@ describe('Authentication', () => {
         submitGlobalPassword: jest.fn(),
         checkIsPasswordOutdated: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
+        state: { vault: 'seedless onboarding vault' },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
         setLocked: jest.fn(),
@@ -1285,6 +1210,8 @@ describe('Authentication', () => {
       ).mockResolvedValueOnce({
         id: 'new-keyring-id',
       });
+      Engine.context.SeedlessOnboardingController.state.vault =
+        'seedless onboarding vault';
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
@@ -2102,6 +2029,7 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
         updateBackupMetadataState: jest.fn(),
+        state: { vault: 'seedless onboarding vault' },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       // Mock Engine.setSelectedAddress
@@ -2125,6 +2053,10 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('throw when call import seedless mnemonic and return account details without seedless flow', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
@@ -2142,6 +2074,7 @@ describe('Authentication', () => {
           },
         }),
       } as unknown as ReduxStore);
+      Engine.context.SeedlessOnboardingController.state.vault = undefined;
 
       // Act
       await expect(
@@ -2199,6 +2132,8 @@ describe('Authentication', () => {
       const error = new Error('Failed to add new keyring');
       Engine.context.KeyringController.addNewKeyring.mockRejectedValue(error);
 
+      Engine.context.SeedlessOnboardingController.state.vault =
+        'seedless onboarding vault';
       // Act & Assert
       await expect(
         Authentication.importSeedlessMnemonicToVault(mnemonic),
@@ -2210,6 +2145,8 @@ describe('Authentication', () => {
       const mnemonic = 'test mnemonic phrase for wallet';
       const error = new Error('Failed to get accounts');
       mockKeyring.getAccounts.mockRejectedValue(error);
+      Engine.context.SeedlessOnboardingController.state.vault =
+        'seedless onboarding vault';
 
       // Act & Assert
       await expect(
@@ -2704,6 +2641,7 @@ describe('Authentication', () => {
       mockConvertEnglishWordlistIndicesToCodepoints.mockReturnValue(
         Buffer.from('test mnemonic phrase'),
       );
+      mockUint8ArrayToMnemonic.mockReturnValue('test mnemonic phrase');
     });
 
     it('sync seed phrases with private key and mnemonic secrets', async () => {

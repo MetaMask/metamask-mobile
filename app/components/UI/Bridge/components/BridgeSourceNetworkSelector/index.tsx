@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '../../../Box/Box';
@@ -35,6 +35,9 @@ import { getNativeSourceToken } from '../../hooks/useInitialSourceToken';
 
 const createStyles = () =>
   StyleSheet.create({
+    scrollContainer: {
+      flex: 1,
+    },
     listContent: {
       padding: 8,
     },
@@ -264,7 +267,12 @@ export const BridgeSourceNetworkSelector: React.FC<
         />
       </Box>
 
-      <Box style={styles.listContent}>{renderSourceNetworks()}</Box>
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Box style={styles.listContent}>{renderSourceNetworks()}</Box>
+      </ScrollView>
 
       <Box style={styles.applyButtonContainer}>
         <Button

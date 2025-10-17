@@ -18,6 +18,7 @@ import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatFundingRate } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
+import PerpsTutorialCard from '../PerpsTutorialCard/PerpsTutorialCard';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -74,16 +75,16 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
   return (
     <View style={styles.statisticsGrid}>
-      {/* Row 1: 24hr High/Low */}
+      {/* Row 1: 24h High/Low */}
       <View style={styles.statisticsRow}>
         <View
           style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_LOW_24H}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('perps.market.24hr_low')}
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.market.24h_low')}
           </Text>
-          <Text style={styles.statisticsValue} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
             {marketStats.low24h}
           </Text>
         </View>
@@ -91,10 +92,10 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('perps.market.24hr_high')}
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.market.24h_high')}
           </Text>
-          <Text style={styles.statisticsValue} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
             {marketStats.high24h}
           </Text>
         </View>
@@ -106,10 +107,10 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_VOLUME_24H}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.market.24h_volume')}
           </Text>
-          <Text style={styles.statisticsValue} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
             {marketStats.volume24h}
           </Text>
         </View>
@@ -118,21 +119,21 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_OPEN_INTEREST}
         >
           <View style={styles.statisticsLabelContainer}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.market.open_interest')}
             </Text>
             <TouchableOpacity onPress={() => onTooltipPress('open_interest')}>
               <Icon
                 name={IconName.Info}
                 size={IconSize.Sm}
-                color={IconColor.Muted}
+                color={IconColor.Alternative}
                 testID={
                   PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON
                 }
               />
             </TouchableOpacity>
           </View>
-          <Text style={styles.statisticsValue} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
             {marketStats.openInterest}
           </Text>
         </View>
@@ -145,14 +146,14 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_RATE}
         >
           <View style={styles.statisticsLabelContainer}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.market.funding_rate')}
             </Text>
             <TouchableOpacity onPress={() => onTooltipPress('funding_rate')}>
               <Icon
                 name={IconName.Info}
                 size={IconSize.Sm}
-                color={IconColor.Muted}
+                color={IconColor.Alternative}
                 testID={
                   PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON
                 }
@@ -160,11 +161,14 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             </TouchableOpacity>
           </View>
           <View style={styles.fundingRateContainer}>
-            <Text style={styles.statisticsValue} color={fundingRateData.color}>
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={fundingRateData.color}
+            >
               {fundingRateData.displayText}
             </Text>
             <FundingCountdown
-              variant={TextVariant.BodyXS}
+              variant={TextVariant.BodySM}
               color={TextColor.Alternative}
               style={styles.fundingCountdown}
               nextFundingTime={nextFundingTime}
@@ -175,6 +179,9 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             />
           </View>
         </View>
+      </View>
+      <View style={styles.tutorialCardContainer}>
+        <PerpsTutorialCard />
       </View>
     </View>
   );

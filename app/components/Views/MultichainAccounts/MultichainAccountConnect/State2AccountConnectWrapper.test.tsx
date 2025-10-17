@@ -87,17 +87,16 @@ const createMockState = (isState2Enabled: boolean): DeepPartial<RootState> => ({
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          enableMultichainAccounts: isState2Enabled
-            ? {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '0.0.0', // Use a very low version to ensure it passes
-              }
-            : {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '0.0.0', // Use a very low version to ensure it passes
-              },
+          enableMultichainAccounts: {
+            enabled: !isState2Enabled,
+            featureVersion: '1',
+            minimumVersion: '0.0.0', // Use a very low version to ensure it passes
+          },
+          enableMultichainAccountsState2: {
+            enabled: isState2Enabled,
+            featureVersion: '2',
+            minimumVersion: '0.0.0', // Use a very low version to ensure it passes
+          },
         },
         cacheTimestamp: 0,
       },
@@ -319,12 +318,15 @@ describe('State2AccountConnectWrapper', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <State2AccountConnectWrapper {...mockProps} />,
         { state: mockStateWithoutFlag },
       );
 
-      expect(getByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeTruthy();
+      expect(
+        getByTestId(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
+      ).toBeTruthy();
+      expect(queryByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeNull();
     });
 
     it('handles feature flag with version 1 correctly', () => {
@@ -337,6 +339,11 @@ describe('State2AccountConnectWrapper', () => {
                   enabled: true,
                   featureVersion: '1',
                   minimumVersion: '0.0.0',
+                },
+                enableMultichainAccountsState2: {
+                  enabled: false,
+                  featureVersion: null,
+                  minimumVersion: null,
                 },
               },
               cacheTimestamp: 0,

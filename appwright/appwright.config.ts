@@ -20,7 +20,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: '**/tests/performance/*.spec.js',
+      testMatch: '**/tests/performance/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -29,11 +29,12 @@ export default defineConfig({
           osVersion: '14', // this can be changed to your emulator version
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'ios',
-      testMatch: '**/tests/performance/*.spec.js',
+      testMatch: '**/tests/performance/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -41,12 +42,12 @@ export default defineConfig({
           osVersion: '16.0', // this can be changed to your simulator version
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .app file
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'browserstack-android',
-      testMatch: '**/tests/performance/*.spec.js',
-      testIgnore: '**/tests/performance/scenario{2,3}.spec.js',
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -55,12 +56,12 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/tests/performance/*.spec.js',
-      testIgnore: '**/tests/performance/scenario{2,3}.spec.js',
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -69,11 +70,12 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
         buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'android-onboarding',
-      testMatch: '**/tests/performance/scenario{2,3}.spec.js',
+      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -82,11 +84,12 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'ios-onboarding',
-      testMatch: '**/tests/performance/scenario{2,3}.spec.js',
+      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -95,6 +98,7 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
         buildPath: process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
   ],

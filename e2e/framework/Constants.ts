@@ -18,6 +18,12 @@ export const defaultGanacheOptions = {
 
 export const DEFAULT_TAB_ID = 1749234797566;
 
+// App Package IDs for different platforms
+export const APP_PACKAGE_IDS = {
+  IOS: 'io.metamask.MetaMask',
+  ANDROID: 'io.metamask',
+} as const;
+
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',
   '..',

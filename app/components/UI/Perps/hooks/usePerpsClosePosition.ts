@@ -4,9 +4,6 @@ import type { Position, OrderResult, TrackingData } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { strings } from '../../../../../locales/i18n';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 
 interface UsePerpsClosePositionOptions {
@@ -40,9 +37,6 @@ export const usePerpsClosePosition = (
           orderType,
           limitPrice,
         });
-
-        const closeStartTime = performance.now();
-
         const isLong = parseFloat(position.size) >= 0;
         const direction = isLong
           ? strings('perps.market.long')
@@ -105,25 +99,9 @@ export const usePerpsClosePosition = (
           trackingData,
         });
 
-        // Measure close order submission toast
-        const submissionDuration = performance.now() - closeStartTime;
-        setMeasurement(
-          PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED,
-          submissionDuration,
-          'millisecond',
-        );
-
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
-          // Measure close order confirmation toast
-          const confirmationDuration = performance.now() - closeStartTime;
-          setMeasurement(
-            PerpsMeasurementName.CLOSE_ORDER_CONFIRMATION_TOAST_LOADED,
-            confirmationDuration,
-            'millisecond',
-          );
-
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
           // Note: We only support market close for now but keeping check for future limit close support.

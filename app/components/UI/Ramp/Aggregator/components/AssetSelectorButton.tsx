@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
 import Box from './Box';
+import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -9,13 +10,18 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 
-interface Props {
+export interface Props {
   label?: string;
   assetSymbol: string;
   icon?: ReactNode;
   assetName: string;
   highlighted?: boolean;
+  loading?: boolean;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress?: () => any;
@@ -28,33 +34,48 @@ const AssetSelectorButton: React.FC<Props> = ({
   icon,
   onPress,
   highlighted,
+  loading = false,
   ...props
 }: Props) => (
   <Box
     label={label}
-    onPress={onPress}
+    onPress={loading ? undefined : onPress}
     highlighted={highlighted}
     compact
     {...props}
   >
     <View>
-      <ListItem>
-        {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
+      {loading ? (
+        <ListItem>
+          <ListItemColumn>
+            <AvatarToken size={AvatarTokenSize.Lg} />
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <SkeletonText small />
+          </ListItemColumn>
+          <ListItemColumn>
+            <SkeletonText small />
+          </ListItemColumn>
+        </ListItem>
+      ) : (
+        <ListItem>
+          {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
 
-        <ListItemColumn widthType={WidthType.Fill}>
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {assetName}
-          </Text>
-        </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text
+              variant={TextVariant.BodyLGMedium}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {assetName}
+            </Text>
+          </ListItemColumn>
 
-        <ListItemColumn>
-          <DownChevronText text={assetSymbol} />
-        </ListItemColumn>
-      </ListItem>
+          <ListItemColumn>
+            <DownChevronText text={assetSymbol} />
+          </ListItemColumn>
+        </ListItem>
+      )}
     </View>
   </Box>
 );

@@ -1,8 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RemoteImage should render ipfs sources 1`] = `
-<Image
-  onError={[Function]}
+<View
   source={
     {
       "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
@@ -12,8 +11,9 @@ exports[`RemoteImage should render ipfs sources 1`] = `
 `;
 
 exports[`RemoteImage should render static sources 1`] = `
-<Image
+<MockedExpoImage
   onError={[Function]}
+  onLoad={[Function]}
   source={
     {
       "uri": "https://s3.amazonaws.com/airswap-token-images/OXT.png",
@@ -23,28 +23,15 @@ exports[`RemoteImage should render static sources 1`] = `
 `;
 
 exports[`RemoteImage should render svg correctly 1`] = `
-<ComponentErrorBoundary
-  componentLabel="RemoteImage-SVG"
->
-  <View
-    style={
-      {
-        "overflow": "hidden",
-      }
+<MockedExpoImage
+  onError={[Function]}
+  onLoad={[Function]}
+  source={
+    {
+      "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
     }
-  >
-    <SvgUri
-      height="100%"
-      source={
-        {
-          "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
-        }
-      }
-      uri="https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg"
-      width="100%"
-    />
-  </View>
-</ComponentErrorBoundary>
+  }
+/>
 `;
 
 exports[`RemoteImage should render with Solana network badge when on Solana network 1`] = `
@@ -52,91 +39,85 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
   useNativeDriver={true}
 >
   <View
-    onLoadEnd={[Function]}
+    onLayout={[Function]}
+    style={
+      {
+        "alignSelf": "flex-start",
+        "position": "relative",
+      }
+    }
+    testID="badge-wrapper-badge"
   >
+    <View>
+      <View>
+        <View
+          fadeIn={true}
+          isTokenImage={true}
+          source={
+            {
+              "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
+            }
+          }
+          style={
+            {
+              "borderRadius": 8,
+              "height": "100%",
+              "width": "100%",
+            }
+          }
+        />
+      </View>
+    </View>
     <View
-      onLayout={[Function]}
       style={
         {
-          "alignSelf": "flex-start",
-          "position": "relative",
+          "bottom": 5,
+          "position": "absolute",
+          "right": 5,
         }
       }
-      testID="badge-wrapper-badge"
     >
-      <View>
-        <View>
-          <Image
-            fadeIn={true}
-            isTokenImage={true}
-            onError={[Function]}
-            resizeMode="cover"
-            source={
-              {
-                "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
-              }
-            }
-            style={
-              {
-                "borderRadius": 8,
-                "height": "100%",
-                "width": "100%",
-              }
-            }
-          />
-        </View>
-      </View>
       <View
-        style={
-          {
-            "position": "absolute",
-            "right": -4,
-            "top": -4,
-          }
-        }
+        onLayout={[Function]}
+        style={{}}
+        testID="badgenetwork"
       >
         <View
-          onLayout={[Function]}
-          style={{}}
-          testID="badgenetwork"
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#f3f5f9",
+              "borderColor": "#ffffff",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "height": 16,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "shadowColor": "#0000001a",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 1,
+              "shadowRadius": 4,
+              "width": 16,
+            }
+          }
         >
-          <View
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#f3f5f9",
-                "borderColor": "#ffffff",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "height": 16,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "shadowColor": "#0000001a",
-                "shadowOffset": {
-                  "height": 2,
-                  "width": 0,
-                },
-                "shadowOpacity": 1,
-                "shadowRadius": 4,
-                "width": 16,
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 10,
+                "letterSpacing": 0,
+                "lineHeight": undefined,
               }
             }
           >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 10,
-                  "letterSpacing": 0,
-                  "lineHeight": undefined,
-                }
-              }
-            >
-              S
-            </Text>
-          </View>
+            S
+          </Text>
         </View>
       </View>
     </View>

@@ -10,18 +10,21 @@ import {
   UNDERSTAND_WARNING_CONTINUE,
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
 import { NETWORK_SELECTOR_TEST_IDS } from '../../app/constants/networkSelector.js';
 
 class SendScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get container() {
@@ -38,6 +41,10 @@ class SendScreen {
     } else {
       return AppwrightSelectors.getElementByID(this._device, NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER);
     }
+  }
+
+  get reviewButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'review-button-send');
   }
 
   get sendAddressInputField() {
@@ -72,6 +79,7 @@ class SendScreen {
   get addAddressButton() {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
+  
 
   async openNetworkPicker() {
     if (!this._device) {
@@ -86,9 +94,25 @@ class SendScreen {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
-      const element = await AppwrightSelectors.getElementByID(this._device, SEND_ADDRESS_INPUT_FIELD);
-      await element.fill(address);
+      const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
+      await AppwrightGestures.typeText(element, address);
     }
+  }
+
+  async clickOnReviewButton() {
+    const reviewButton = await this.reviewButton;
+    await reviewButton.tap();
+  }
+
+  async clickOnAccountByName(accountName) {
+    const account = await AppwrightSelectors.getElementByCatchAll(this._device, accountName);
+    await AppwrightGestures.tap(account);
+  }
+
+  async clickOnAccountByAddress(accountAddress) {
+    const accountId = `recipient-name-${accountAddress}`;
+    const account = await AppwrightSelectors.getElementByID(this._device, accountId);
+    await account.tap();
   }
 
   async isSendWarningMessageVisible(message) {
@@ -104,8 +128,8 @@ class SendScreen {
   }
 
   async isVisible() {
-    const element = await this.container;
-    await appwrightExpect(element).toBeVisible();
+    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Ethereum');
+    await appwrightExpect(networkButton).toBeVisible();
   }
 
   async tapAddAddressButton() {
@@ -148,7 +172,7 @@ class SendScreen {
       await Gestures.tapTextByXpath(contactName);
     } else {
       const element = await AppwrightSelectors.getElementByText(this._device, contactName);
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -157,8 +181,37 @@ class SendScreen {
       await Gestures.tapTextByXpath(NEXT_BUTTON);
     } else {
       const element = await AppwrightSelectors.getElementByID(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
+  }
+
+  async selectNetwork(network) {
+    if (!this._device) {
+      await Gestures.tapTextByXpath(network);
+    } else {
+      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
+      await AppwrightGestures.tap(networkButton);
+    }
+  }
+
+  async selectToken(tokenName, tokenSymbol) {
+
+    if (!this._device) {
+      await Gestures.tapTextByXpath(tokenName);
+    } else {
+      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, `${tokenName}, ${tokenSymbol}`);
+      await tokenButton.tap();
+    }
+  }
+
+  async assetsListIsDisplayed() {
+    const assetsList = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
+    await appwrightExpect(assetsList).toBeVisible();
+  }
+
+  async isSelectAddressScreenDisplayed() {
+    const selectAddressScreen = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
+    appwrightExpect(await selectAddressScreen).toBeVisible();
   }
 }
 

@@ -90,7 +90,16 @@ EmptyIcon.propTypes = {
   testID: PropTypes.string,
 };
 
-function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
+function TokenIcon({
+  symbol,
+  icon,
+  medium,
+  big,
+  biggest,
+  style,
+  emptyIconTextStyle,
+  testID,
+}) {
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -149,6 +158,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
             medium && styles.tokenSymbolMedium,
             (big || biggest) && styles.tokenSymbolBig,
             biggest && styles.tokenSymbolBiggest,
+            emptyIconTextStyle,
           ]}
         >
           {symbol[0].toUpperCase()}
@@ -167,6 +177,7 @@ TokenIcon.propTypes = {
   big: PropTypes.bool,
   biggest: PropTypes.bool,
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  emptyIconTextStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
   testID: PropTypes.string,
 };
 

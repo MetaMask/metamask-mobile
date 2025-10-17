@@ -11,6 +11,10 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
+import {
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+} from '../constants/hyperLiquidConfig';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -40,6 +44,11 @@ export const usePerpsDepositStatus = () => {
       state.engine.backgroundState.PerpsController?.depositInProgress ?? false,
   );
 
+  const lastDepositResult = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.lastDepositResult ?? null,
+  );
+
   // Get the internal transaction ID from the controller. Needed to get bridge quotes.
   const lastDepositTransactionId = useSelector(
     (state: RootState) =>
@@ -52,24 +61,27 @@ export const usePerpsDepositStatus = () => {
     selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
   );
 
-  // Listen for PerpsDeposit transaction status updates to display appropriate toasts
+  // Listen for PerpsDeposit approval - Used to display deposit in progress toast
   useEffect(() => {
-    const handlePerpsDepositTransactionStatusUpdate = ({
+    const handleTransactionApproved = ({
       transactionMeta,
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (transactionMeta.type !== TransactionType.perpsDeposit) {
-        return;
-      }
+      const { metamaskPay } = transactionMeta;
 
-      // Handle PerpsDeposit approved to display "deposit in progress" toast
-      if (transactionMeta.status === TransactionStatus.approved) {
+      const isArbUSDCDeposit =
+        metamaskPay?.chainId === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        metamaskPay?.tokenAddress === USDC_ARBITRUM_MAINNET_ADDRESS;
+
+      if (
+        transactionMeta.type === TransactionType.perpsDeposit &&
+        transactionMeta.status === TransactionStatus.approved
+      ) {
         expectingDepositRef.current = true;
         prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
 
-        const processingTimeSeconds =
-          bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
+        const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
         showToast(
           PerpsToastOptions.accountManagement.deposit.inProgress(
@@ -78,32 +90,22 @@ export const usePerpsDepositStatus = () => {
           ),
         );
       }
-
-      // Handle PerpsDeposit failed to display "deposit error" toast
-      if (transactionMeta.status === TransactionStatus.failed) {
-        expectingDepositRef.current = false;
-
-        showToast(PerpsToastOptions.accountManagement.deposit.error);
-
-        clearDepositResult();
-      }
     };
 
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
-      handlePerpsDepositTransactionStatusUpdate,
+      handleTransactionApproved,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
-        handlePerpsDepositTransactionStatusUpdate,
+        handleTransactionApproved,
       );
     };
   }, [
     PerpsToastOptions.accountManagement.deposit,
     bridgeQuotes,
-    clearDepositResult,
     liveAccount?.availableBalance,
     showToast,
   ]);
@@ -130,6 +132,27 @@ export const usePerpsDepositStatus = () => {
       prevAvailableBalanceRef.current = liveAccount.availableBalance;
     }
   }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
+
+  // Handle deposit errors from controller state
+  useEffect(() => {
+    if (lastDepositResult && !lastDepositResult.success) {
+      showToast(PerpsToastOptions.accountManagement.deposit.error);
+
+      expectingDepositRef.current = false;
+
+      const timeout = setTimeout(() => {
+        clearDepositResult();
+      }, 500);
+
+      // Clear the error after showing toast
+      return () => clearTimeout(timeout);
+    }
+  }, [
+    lastDepositResult,
+    clearDepositResult,
+    showToast,
+    PerpsToastOptions.accountManagement.deposit.error,
+  ]);
 
   return { depositInProgress };
 };

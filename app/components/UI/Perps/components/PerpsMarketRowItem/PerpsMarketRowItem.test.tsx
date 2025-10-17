@@ -6,7 +6,6 @@ import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/P
 
 const { TouchableOpacity } = jest.requireActual('react-native');
 
-// Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => {
     const actualStyleSheet = jest.requireActual(

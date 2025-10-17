@@ -123,6 +123,7 @@ describe('selectWallets', () => {
     const wallet1: AccountWalletObject = {
       id: WALLET_ID_1,
       type: AccountWalletType.Keyring,
+      status: 'ready',
       groups: {
         [GROUP_ID_1]: {
           accounts: ['account1' as const],
@@ -146,6 +147,7 @@ describe('selectWallets', () => {
     const wallet2: AccountWalletObject = {
       id: WALLET_ID_2,
       type: AccountWalletType.Keyring,
+      status: 'ready',
       groups: {
         [GROUP_ID_2]: {
           accounts: ['account2' as const],
@@ -221,6 +223,7 @@ describe('selectWallets', () => {
     const walletWithEmptyGroups: AccountWalletObject = {
       id: WALLET_ID_1,
       type: AccountWalletType.Keyring,
+      status: 'ready',
       metadata: {
         name: 'Empty Groups Wallet',
         keyring: {

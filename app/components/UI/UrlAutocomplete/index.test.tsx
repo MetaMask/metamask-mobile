@@ -21,7 +21,7 @@ const defaultState: DeepPartial<RootState> = {
       PreferencesController: {
         isIpfsGatewayEnabled: false,
         tokenNetworkFilter: {
-          '0x1': 'true',
+          '0x1': true,
         },
       },
       CurrencyRateController: {

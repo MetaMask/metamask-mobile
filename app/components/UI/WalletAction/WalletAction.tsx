@@ -69,6 +69,10 @@ const WalletAction = ({
       title: strings('asset_overview.perps_button'),
       description: strings('asset_overview.perps_description'),
     },
+    [WalletActionType.Predict]: {
+      title: strings('asset_overview.predict_button'),
+      description: strings('asset_overview.predict_description'),
+    },
   };
 
   const actionStrings = actionType ? walletActionDetails[actionType] : null;

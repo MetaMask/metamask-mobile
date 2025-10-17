@@ -6,6 +6,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
 
@@ -26,7 +27,7 @@ interface PerpsAmountDisplayProps {
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   amount,
   showWarning = false,
-  warningMessage = 'No funds available. Please deposit first.',
+  warningMessage = strings('perps.deposit.no_funds_available'),
   onPress,
   isActive = false,
   label,

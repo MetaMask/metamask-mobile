@@ -10,7 +10,6 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
-import SDKConnectV2 from '../../SDKConnectV2';
 
 export function handleMetaMaskDeeplink({
   instance,
@@ -41,21 +40,13 @@ export function handleMetaMaskDeeplink({
     return;
   }
 
-  if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`)) {
-    DevLogger.log(
-      `DeeplinkManager:: Mobile Wallet Protocol deeplink detected. Routing to SDKConnectV2.`,
-      url,
-    );
-    SDKConnectV2.handleConnectDeeplink(url);
-    return;
-  }
-
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       SDKConnect.getInstance().state.navigation?.navigate(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+          hideReturnToApp: params.hr,
         },
       );
     } else if (params.channelId) {
@@ -96,6 +87,7 @@ export function handleMetaMaskDeeplink({
           context: 'deeplink_scheme',
           originatorInfo,
           rpc: params.rpc,
+          hideReturnToApp: params.hr,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err) => {

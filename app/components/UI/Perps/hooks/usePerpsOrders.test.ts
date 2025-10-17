@@ -6,7 +6,6 @@ import { usePerpsOrders } from './usePerpsOrders';
 import type { Order, GetOrdersParams } from '../controllers/types';
 import { CaipAccountId } from '@metamask/utils';
 
-// Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -16,7 +15,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// Mock data
 const mockOrders: Order[] = [
   {
     orderId: 'order-1',

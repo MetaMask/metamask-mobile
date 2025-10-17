@@ -14,8 +14,6 @@ const mockUseRampSDKInitialValues: DeepPartial<RampSDK> = {
     support: { buy: true, sell: true },
   },
   setSelectedRegion: jest.fn(),
-  unsupportedRegion: undefined,
-  setUnsupportedRegion: jest.fn(),
   isBuy: true,
   isSell: false,
 };
@@ -86,8 +84,6 @@ describe('useRegions', () => {
         unsupported: false,
         support: { sell: true, buy: true },
       },
-      unsupportedRegion: undefined,
-      clearUnsupportedRegion: expect.any(Function),
     });
   });
 
@@ -113,8 +109,6 @@ describe('useRegions', () => {
         unsupported: false,
         support: { sell: true, buy: true },
       },
-      unsupportedRegion: undefined,
-      clearUnsupportedRegion: expect.any(Function),
     });
   });
 
@@ -185,101 +179,6 @@ describe('useRegions', () => {
       id: 'state-2',
       detected: true,
       support: { buy: true, sell: true },
-    });
-  });
-
-  it('sets the unsupported region if the selected region is unsupported', () => {
-    mockUseRampSDKValues.selectedRegion = {
-      id: 'unsupported-region',
-      unsupported: true,
-    };
-    const mockQueryGetCountries = jest.fn();
-    (useSDKMethod as jest.Mock).mockReturnValue([
-      {
-        data: [
-          {
-            id: 'unsupported-region',
-            unsupported: true,
-            support: { buy: false, sell: false },
-          },
-          {
-            id: 'region-2',
-            unsupported: false,
-            support: { buy: true, sell: true },
-          },
-        ],
-        error: null,
-        isFetching: false,
-      },
-      mockQueryGetCountries,
-    ]);
-    renderHookWithProvider(() => useRegions());
-
-    expect(mockUseRampSDKValues.setSelectedRegion).toHaveBeenCalledWith(null);
-    expect(mockUseRampSDKValues.setUnsupportedRegion).toHaveBeenCalledWith({
-      id: 'unsupported-region',
-      unsupported: true,
-      support: { buy: false, sell: false },
-    });
-  });
-
-  it('updates the selected region and handles unsupported regions based on sell support', () => {
-    mockUseRampSDKValues.isBuy = false;
-    mockUseRampSDKValues.isSell = true;
-    mockUseRampSDKValues.selectedRegion = {
-      id: 'unsupported-sell-region',
-      unsupported: false,
-      support: { buy: true, sell: true },
-    };
-    const mockQueryGetCountries = jest.fn();
-    (useSDKMethod as jest.Mock).mockReturnValue([
-      {
-        data: [
-          {
-            id: 'unsupported-sell-region',
-            support: { sell: false, buy: true },
-          },
-        ],
-        error: null,
-        isFetching: false,
-      },
-      mockQueryGetCountries,
-    ]);
-    renderHookWithProvider(() => useRegions());
-
-    expect(mockUseRampSDKValues.setUnsupportedRegion).toHaveBeenCalledWith({
-      id: 'unsupported-sell-region',
-      support: { buy: true, sell: false },
-    });
-  });
-
-  it('updates the selected region and handles unsupported regions based on buy support', () => {
-    mockUseRampSDKValues.isBuy = true;
-    mockUseRampSDKValues.isSell = false;
-    mockUseRampSDKValues.selectedRegion = {
-      id: 'unsupported-buy-region',
-      unsupported: false,
-      support: { sell: true, buy: true },
-    };
-    const mockQueryGetCountries = jest.fn();
-    (useSDKMethod as jest.Mock).mockReturnValue([
-      {
-        data: [
-          {
-            id: 'unsupported-buy-region',
-            support: { sell: true, buy: false },
-          },
-        ],
-        error: null,
-        isFetching: false,
-      },
-      mockQueryGetCountries,
-    ]);
-    renderHookWithProvider(() => useRegions());
-
-    expect(mockUseRampSDKValues.setUnsupportedRegion).toHaveBeenCalledWith({
-      id: 'unsupported-buy-region',
-      support: { buy: false, sell: true },
     });
   });
 });

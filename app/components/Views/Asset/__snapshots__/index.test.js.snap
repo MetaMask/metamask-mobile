@@ -819,6 +819,21 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -1709,6 +1724,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -1754,10 +1770,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -2680,6 +2694,21 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -3570,6 +3599,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -3615,10 +3645,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -4541,6 +4569,21 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -5431,6 +5474,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -6441,6 +6485,21 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -7331,6 +7390,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -7376,10 +7436,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -8302,6 +8360,21 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -9192,6 +9265,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -9237,10 +9311,8 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -10163,6 +10235,21 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -11053,6 +11140,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -12593,6 +12681,21 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -13483,6 +13586,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -13528,10 +13632,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -14454,6 +14556,21 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "color": "#121314",
+                                            "fontFamily": "Geist Bold",
+                                            "fontSize": 24,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 32,
+                                          }
+                                        }
+                                        testID="token-price"
+                                      >
+                                        $0
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -15344,6 +15461,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         {
                                           "flex": 1,
                                           "paddingHorizontal": 16,
+                                          "paddingTop": 24,
                                         }
                                       }
                                     >
@@ -15389,10 +15507,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",

@@ -4,6 +4,7 @@ import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useNftNames } from './useNftName';
 import { useAccountNames } from './useAccountNames';
+import { useAccountWalletNames } from './useAccountWalletNames';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -15,9 +16,10 @@ export interface UseDisplayNameRequest {
 export interface UseDisplayNameResponse {
   contractDisplayName?: string;
   image?: string;
-  name?: string;
-  variant: DisplayNameVariant;
   isFirstPartyContractName?: boolean;
+  name?: string;
+  subtitle?: string;
+  variant: DisplayNameVariant;
 }
 
 /**
@@ -96,6 +98,7 @@ export function useDisplayNames(
   const erc20Tokens = useERC20Tokens(requests);
   const nftNames = useNftNames(requests);
   const accountNames = useAccountNames(requests);
+  const accountWalletNames = useAccountWalletNames(requests);
 
   return requests.map((_request, index) => {
     const watchedNftName = watchedNftNames[index];
@@ -104,6 +107,7 @@ export function useDisplayNames(
     const { name: nftCollectionName, image: nftCollectionImage } =
       nftNames[index] || {};
     const accountName = accountNames[index];
+    const subtitle = accountWalletNames[index];
 
     const name =
       accountName ||
@@ -120,9 +124,10 @@ export function useDisplayNames(
     return {
       contractDisplayName: erc20Token?.name,
       image,
-      name,
-      variant: getVariant({ name, accountName }),
       isFirstPartyContractName,
+      name,
+      subtitle,
+      variant: getVariant({ name, accountName }),
     };
   });
 }

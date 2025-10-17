@@ -29,6 +29,7 @@ import WebviewModal, { KycWebviewModal } from '../Views/Modals/WebviewModal';
 import IncompatibleAccountTokenModal from '../Views/Modals/IncompatibleAccountTokenModal';
 import SsnInfoModal from '../Views/Modals/SsnInfoModal';
 import ConfigurationModal from '../Views/Modals/ConfigurationModal';
+import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -169,6 +170,10 @@ const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.CONFIGURATION}
       component={ConfigurationModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.ERROR_DETAILS}
+      component={ErrorDetailsModal}
     />
   </ModalsStack.Navigator>
 );

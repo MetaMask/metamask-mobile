@@ -38,6 +38,7 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
         blockExplorer = getEtherscanBaseUrl(type);
         name = 'Etherscan';
       }
+
       if (!blockExplorer) {
         throw new Error('No block explorer url');
       }

@@ -68,7 +68,6 @@ import {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -110,7 +109,10 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
-import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import {
+  selectIsSeedlessPasswordOutdated,
+  selectSeedlessOnboardingLoginFlow,
+} from '../../../selectors/seedlessOnboardingController';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -124,7 +126,7 @@ const EmptyRecordConstant = {};
 interface LoginRouteParams {
   locked: boolean;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: unknown;
+  onboardingTraceCtx?: TraceContext;
 }
 
 interface LoginProps {
@@ -177,12 +179,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     selectIsSeedlessPasswordOutdated,
   );
 
-  const invalidCredentialsError = () => {
-    if (Platform.OS === 'ios' && isComingFromOauthOnboarding) {
-      return strings('login.invalid_pin');
-    }
-    return strings('login.invalid_password');
-  };
+  const isSocialLoginUser = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const track = (
     event: IMetaMetricsEvent,
@@ -340,7 +337,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       Logger.error(e as Error);
       setLoading(false);
 
-      setError(invalidCredentialsError());
+      setError(strings('login.invalid_password'));
     }
   };
 
@@ -373,7 +370,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleUseOtherMethod = () => {
-    navigation.navigate(Routes.ONBOARDING.ONBOARDING);
+    navigation.goBack();
     OAuthService.resetOauthState();
   };
 
@@ -455,7 +452,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.message ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
       ) {
-        setError(invalidCredentialsError());
+        setError(strings('login.invalid_password'));
         return;
       } else if (
         seedlessError.message ===
@@ -531,7 +528,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     setLoading(false);
 
-    setError(invalidCredentialsError());
+    setError(strings('login.invalid_password'));
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   };
 
@@ -800,22 +797,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              {(Platform.OS === 'android' || !isComingFromOauthOnboarding) && (
-                <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                  style={styles.label}
-                >
-                  {strings('login.password')}
-                </Label>
-              )}
               <TextField
                 size={TextFieldSize.Lg}
-                placeholder={
-                  Platform.OS === 'ios' && isComingFromOauthOnboarding
-                    ? strings('login.pin_placeholder')
-                    : strings('login.password_placeholder')
-                }
+                placeholder={strings(
+                  Platform.OS === 'ios' &&
+                    (isSocialLoginUser || isComingFromOauthOnboarding)
+                    ? 'login.pin_placeholder'
+                    : 'login.password_placeholder',
+                )}
                 placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
@@ -865,7 +854,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 loading={finalLoading}
               />
 
-              {isComingFromOauthOnboarding ? (
+              {!isComingFromOauthOnboarding && (
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={toggleWarningModal}
+                  testID={LoginViewSelectors.RESET_WALLET}
+                  label={strings(
+                    Platform.OS === 'ios' && isSocialLoginUser
+                      ? 'login.forgot_pin'
+                      : 'login.forgot_password',
+                  )}
+                  isDisabled={finalLoading}
+                  size={ButtonSize.Lg}
+                />
+              )}
+            </View>
+
+            {isComingFromOauthOnboarding && (
+              <View style={styles.footer}>
                 <Button
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
@@ -876,18 +883,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
-              ) : (
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
-                  isDisabled={finalLoading}
-                  size={ButtonSize.Lg}
-                />
-              )}
-            </View>
+              </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />

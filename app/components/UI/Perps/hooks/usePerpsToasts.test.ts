@@ -8,7 +8,6 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 
-// Mock dependencies
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
