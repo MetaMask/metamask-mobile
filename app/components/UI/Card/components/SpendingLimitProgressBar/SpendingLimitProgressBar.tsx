@@ -8,6 +8,7 @@ import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
 import { ethers } from 'ethers';
+
 interface SpendingLimitProgressBarProps {
   remainingAllowance?: ethers.BigNumber;
   totalAllowance?: ethers.BigNumber;

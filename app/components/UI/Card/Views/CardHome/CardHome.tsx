@@ -247,6 +247,7 @@ const CardHome = () => {
 
   const logoutAction = () => {
     logoutFromProvider();
+    navigation.goBack();
   };
 
   const isLoading = useMemo(

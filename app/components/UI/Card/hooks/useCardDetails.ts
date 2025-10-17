@@ -17,7 +17,7 @@ const useCardDetails = () => {
     error: null,
   });
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const { sdk } = useCardSDK();
+  const { sdk, isLoading: isSDKLoading } = useCardSDK();
 
   const fetchCardDetails = useCallback(async () => {
     if (!sdk) return;
@@ -56,10 +56,10 @@ const useCardDetails = () => {
   }, [sdk]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isSDKLoading) {
       fetchCardDetails();
     }
-  }, [isAuthenticated, fetchCardDetails]);
+  }, [isAuthenticated, isSDKLoading, fetchCardDetails]);
 
   return { ...state, fetchCardDetails };
 };
