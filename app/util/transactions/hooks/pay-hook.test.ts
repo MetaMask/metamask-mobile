@@ -1,6 +1,11 @@
 import {
+  TransactionControllerGetStateAction,
+  TransactionControllerState,
+  TransactionControllerStateChangeEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
   TransactionMeta,
+  TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import {
   TransactionBridgeQuote,
@@ -14,20 +19,22 @@ import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
   BridgeStatusControllerState,
-  BridgeStatusControllerStateChangeEvent,
 } from '@metamask/bridge-status-controller';
 import { store } from '../../../store';
 import { RootState } from '../../../reducers';
 import { StatusTypes } from '@metamask/bridge-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { toHex } from '@metamask/controller-utils';
 
 jest.mock('../../../selectors/smartTransactionsController');
 jest.mock('../../transaction-controller');
 jest.mock('../../../components/Views/confirmations/utils/bridge');
 
 const TRANSACTION_ID_MOCK = '123-456';
+const REQUIRED_TRANSACTION_ID_MOCK = '234-567';
 const BRIDGE_TRANSACTION_ID_MOCK = '456-789';
 const BRIDGE_TRANSACTION_ID_2_MOCK = '789-012';
+const ERROR_MESSAGE_MOCK = 'Test error';
 
 const QUOTE_MOCK = {
   quote: {
@@ -59,8 +66,9 @@ const BRIDGE_TRANSACTION_META_2_MOCK = {
 describe('Pay Publish Hook', () => {
   let hook: PayHook;
   let baseMessenger: Messenger<
-    BridgeStatusControllerActions,
+    BridgeStatusControllerActions | TransactionControllerGetStateAction,
     | BridgeStatusControllerEvents
+    | TransactionControllerStateChangeEvent
     | TransactionControllerUnapprovedTransactionAddedEvent
   >;
   let messengerMock: jest.Mocked<TransactionControllerInitMessenger>;
@@ -73,10 +81,43 @@ describe('Pay Publish Hook', () => {
     BridgeStatusController['submitTx']
   > = jest.fn();
 
+  const getTransactionStateMock = jest.fn();
+  const getBridgeStatusStateMock = jest.fn();
   const refreshQuoteMock = jest.mocked(refreshQuote);
 
   function runHook() {
     return hook.getHook()(TRANSACTION_META_MOCK, '0x1234');
+  }
+
+  function unapprovedTransactionEvent(transactionId: string) {
+    baseMessenger.publish('TransactionController:unapprovedTransactionAdded', {
+      ...TRANSACTION_META_MOCK,
+      id: transactionId,
+      chainId: toHex(123),
+    });
+  }
+
+  function updateTransactionStatus(
+    transactionId: string,
+    status: TransactionStatus,
+  ) {
+    baseMessenger.publish(
+      'TransactionController:stateChange',
+      {
+        transactions: [
+          {
+            ...TRANSACTION_META_MOCK,
+            id: transactionId,
+            status,
+            type: TransactionType.bridge,
+            error: {
+              message: ERROR_MESSAGE_MOCK,
+            },
+          },
+        ],
+      } as TransactionControllerState,
+      [],
+    );
   }
 
   function updateBridgeStatus(
@@ -101,22 +142,33 @@ describe('Pay Publish Hook', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    baseMessenger = new Messenger<
-      BridgeStatusControllerActions,
-      | BridgeStatusControllerStateChangeEvent
-      | TransactionControllerUnapprovedTransactionAddedEvent
-    >();
+    baseMessenger = new Messenger();
+
+    baseMessenger.registerActionHandler(
+      'BridgeStatusController:getState',
+      getBridgeStatusStateMock,
+    );
 
     baseMessenger.registerActionHandler(
       'BridgeStatusController:submitTx',
       submitTransactionMock,
     );
 
+    baseMessenger.registerActionHandler(
+      'TransactionController:getState',
+      getTransactionStateMock,
+    );
+
     messengerMock = baseMessenger.getRestricted({
       name: 'TransactionControllerInitMessenger',
-      allowedActions: ['BridgeStatusController:submitTx'],
+      allowedActions: [
+        'BridgeStatusController:getState',
+        'BridgeStatusController:submitTx',
+        'TransactionController:getState',
+      ],
       allowedEvents: [
         'BridgeStatusController:stateChange',
+        'TransactionController:stateChange',
         'TransactionController:unapprovedTransactionAdded',
       ],
     }) as jest.Mocked<TransactionControllerInitMessenger>;
@@ -152,6 +204,14 @@ describe('Pay Publish Hook', () => {
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
 
     refreshQuoteMock.mockImplementation(async (_quote) => _quote);
+
+    getTransactionStateMock.mockReturnValue({
+      transactions: [],
+    } as unknown as TransactionControllerState);
+
+    getBridgeStatusStateMock.mockReturnValue({
+      txHistory: {},
+    } as BridgeStatusControllerState);
   });
 
   it('submits matching quotes to bridge status controller', async () => {
@@ -228,7 +288,7 @@ describe('Pay Publish Hook', () => {
       return BRIDGE_TRANSACTION_META_MOCK;
     });
 
-    await expect(runHook).rejects.toThrow('Bridge transaction failed');
+    await expect(runHook).rejects.toThrow('Bridge failed');
   });
 
   it('returns empty result once all bridges are complete', async () => {
@@ -255,5 +315,61 @@ describe('Pay Publish Hook', () => {
     await runHook();
 
     expect(refreshQuoteMock).toHaveBeenCalledWith(QUOTE_2_MOCK);
+  });
+
+  it.each([TransactionStatus.dropped, TransactionStatus.failed])(
+    'throws if required transaction status is %s',
+    async (status) => {
+      submitTransactionMock.mockReset();
+      submitTransactionMock.mockImplementationOnce(async () => {
+        unapprovedTransactionEvent(REQUIRED_TRANSACTION_ID_MOCK);
+
+        setTimeout(() => {
+          updateTransactionStatus(REQUIRED_TRANSACTION_ID_MOCK, status);
+        }, 0);
+
+        return BRIDGE_TRANSACTION_META_MOCK;
+      });
+
+      await expect(runHook()).rejects.toThrow(
+        `Required transaction failed - ${TransactionType.bridge} - ${ERROR_MESSAGE_MOCK}`,
+      );
+    },
+  );
+
+  it('waits for required transactions to confirm', async () => {
+    jest.spyOn(store, 'getState').mockReturnValue({
+      confirmationMetrics: {
+        transactionBridgeQuotesById: {
+          [TRANSACTION_ID_MOCK]: [QUOTE_MOCK],
+        },
+      },
+    } as unknown as RootState);
+
+    getBridgeStatusStateMock.mockReturnValue({
+      txHistory: {
+        [BRIDGE_TRANSACTION_ID_MOCK]: {
+          status: {
+            status: StatusTypes.COMPLETE,
+          },
+        },
+      },
+    });
+
+    submitTransactionMock.mockReset();
+    submitTransactionMock.mockImplementationOnce(async () => {
+      unapprovedTransactionEvent(REQUIRED_TRANSACTION_ID_MOCK);
+
+      setTimeout(() => {
+        updateTransactionStatus(
+          REQUIRED_TRANSACTION_ID_MOCK,
+          TransactionStatus.confirmed,
+        );
+      }, 0);
+
+      return BRIDGE_TRANSACTION_META_MOCK;
+    });
+
+    await runHook();
   });
 });
