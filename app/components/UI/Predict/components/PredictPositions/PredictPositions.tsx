@@ -1,24 +1,24 @@
 import React, {
-  useCallback,
-  useRef,
   forwardRef,
+  useCallback,
   useImperativeHandle,
+  useRef,
 } from 'react';
 
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { ActivityIndicator, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { IconColor } from '../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../constants/navigation/Routes';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
-import PredictPosition from '../PredictPosition/PredictPosition';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
-import Routes from '../../../../../constants/navigation/Routes';
-import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictNewButton from '../PredictNewButton';
-import { ActivityIndicator, View } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { IconColor } from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
+import PredictPosition from '../PredictPosition/PredictPosition';
+import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
 
 export interface PredictPositionsHandle {
@@ -40,6 +40,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
+    refreshOnFocus: true,
   });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
 

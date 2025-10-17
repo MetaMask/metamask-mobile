@@ -1152,7 +1152,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137, // POLYGON_MAINNET_CHAIN_ID
-        transactionParams: {
+        transactions: {
           data: '0xencodedclaim',
           to: '0xConditionalTokensAddress',
           value: '0x0',
@@ -1200,7 +1200,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137,
-        transactionParams: {
+        transactions: {
           data: '0xencodedclaim',
           to: '0xConditionalTokensAddress',
           value: '0x0',
