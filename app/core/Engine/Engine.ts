@@ -55,6 +55,11 @@ import { isZero } from '../../util/lodash';
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
 ///: END:ONLY_INCLUDE_IF
+import {
+  backendWebSocketServiceInit,
+  accountActivityServiceInit,
+} from './controllers/core-backend';
+import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -211,6 +216,12 @@ export class Engine {
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
+  /**
+   * The app state WebSocket manager.
+   * This is used to handle WebSocket lifecycle based on app state.
+   */
+  appStateWebSocketManager: AppStateWebSocketManager;
+
   accountsController: AccountsController;
   gasFeeController: GasFeeController;
   gatorPermissionsController: GatorPermissionsController;
@@ -333,6 +344,8 @@ export class Engine {
         AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        BackendWebSocketService: backendWebSocketServiceInit,
+        AccountActivityService: accountActivityServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
@@ -425,6 +438,13 @@ export class Engine {
     const authenticationController = controllersByName.AuthenticationController;
     const userStorageController = controllersByName.UserStorageController;
     ///: END:ONLY_INCLUDE_IF
+
+    // Initialize BackendWebSocketService lifecycle management
+    const backendWebSocketService = controllersByName.BackendWebSocketService;
+    this.appStateWebSocketManager = new AppStateWebSocketManager(
+      backendWebSocketService,
+    );
+    const accountActivityService = controllersByName.AccountActivityService;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsController =
@@ -527,6 +547,8 @@ export class Engine {
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
+      BackendWebSocketService: backendWebSocketService,
+      AccountActivityService: accountActivityService,
       AccountsController: accountsController,
       PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1116,6 +1138,9 @@ export class Engine {
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.appStateListener?.remove();
     ///: END:ONLY_INCLUDE_IF
+
+    // Cleanup AppStateWebSocketManager
+    this.appStateWebSocketManager.cleanup();
   }
 
   async destroyEngineInstance() {
