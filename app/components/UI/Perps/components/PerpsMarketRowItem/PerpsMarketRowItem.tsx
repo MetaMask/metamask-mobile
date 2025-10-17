@@ -9,6 +9,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { getDisplaySymbol, getMarketBadgeType } from '../../utils/marketUtils';
 import {
   formatPercentage,
   formatPerpsFiat,
@@ -16,6 +17,7 @@ import {
   formatVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsMarketRowItem.styles';
@@ -99,6 +101,9 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
 
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
+  // Determine badge type using centralized utility
+  const badgeType = getMarketBadgeType(displayMarket);
+
   return (
     <TouchableOpacity
       style={styles.container}
@@ -120,17 +125,27 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
         <View style={styles.tokenInfo}>
           <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {displayMarket.symbol}
+              {getDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-            style={styles.tokenVolume}
-          >
-            {displayMarket.volume}
-          </Text>
+          <View style={styles.secondRow}>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.tokenVolume}
+            >
+              {displayMarket.volume}
+            </Text>
+            {badgeType && (
+              <PerpsBadge
+                type={badgeType}
+                testID={getPerpsMarketRowItemSelector.badge(
+                  displayMarket.symbol,
+                )}
+              />
+            )}
+          </View>
         </View>
       </View>
 

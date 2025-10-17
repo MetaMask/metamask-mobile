@@ -38,6 +38,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { getDisplaySymbol } from '../../utils/marketUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
@@ -320,7 +321,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {position.coin} {position.leverage.value}x{' '}
+                {getDisplaySymbol(position.coin)} {position.leverage.value}x{' '}
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {direction === 'long'
                     ? strings('perps.market.long_lowercase')
@@ -330,7 +331,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </View>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {formatPositionSize(absoluteSize.toString())} {position.coin}
+                {formatPositionSize(absoluteSize.toString())}{' '}
+                {getDisplaySymbol(position.coin)}
               </Text>
             </View>
           </View>

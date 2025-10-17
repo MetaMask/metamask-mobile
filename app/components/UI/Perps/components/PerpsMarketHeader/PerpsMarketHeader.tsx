@@ -15,7 +15,9 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsMarketData } from '../../controllers/types';
+import { getDisplaySymbol, getMarketBadgeType } from '../../utils/marketUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import PerpsBadge from '../PerpsBadge';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
@@ -36,6 +38,9 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+
+  // Determine badge type using centralized utility
+  const badgeType = getMarketBadgeType(market);
 
   return (
     <View style={styles.container} testID={testID}>
@@ -69,11 +74,17 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             color={TextColor.Default}
             style={styles.assetName}
           >
-            {market.symbol}-USD
+            {getDisplaySymbol(market.symbol)}-USD
           </Text>
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
-        <View style={styles.positionValueRow}>
+        <View style={styles.secondRow}>
+          {badgeType && (
+            <PerpsBadge
+              type={badgeType}
+              testID={`${PerpsMarketHeaderSelectorsIDs.CONTAINER}-badge`}
+            />
+          )}
           <LivePriceHeader
             symbol={market.symbol}
             fallbackPrice={market.price || '0'}

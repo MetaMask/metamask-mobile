@@ -104,6 +104,7 @@ import {
 import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
+import { getDisplaySymbol } from '../../utils/marketUtils';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -803,7 +804,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <PerpsOrderHeader
-        asset={orderForm.asset}
+        asset={getDisplaySymbol(orderForm.asset)}
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderForm.type}
@@ -822,7 +823,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
-          tokenSymbol={orderForm.asset}
+          tokenSymbol={getDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
         />
 

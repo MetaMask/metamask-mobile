@@ -28,6 +28,7 @@ import {
   quantizeDown,
   bumpByOneTick,
 } from '../utils/hyperLiquidAdapter';
+import { usePerpsLivePrices } from '../hooks';
 
 interface TestResult {
   status: 'idle' | 'loading' | 'success' | 'error';
@@ -56,12 +57,20 @@ const HIP3DebugView: React.FC = () => {
     useState<TestResult>({
       status: 'idle',
     });
+  const [priceTestResult, setPriceTestResult] = useState<TestResult>({
+    status: 'idle',
+  });
   const [transport] = useState(
     () =>
       new WebSocketTransport({
         isTestnet: false,
       }),
   );
+
+  const testPrices = usePerpsLivePrices({
+    symbols: ['xyz:XYZ100'],
+    throttleMs: 1000,
+  });
 
   useEffect(() => {
     navigation.setOptions(
@@ -75,46 +84,94 @@ const HIP3DebugView: React.FC = () => {
 
   const checkAssetId = async () => {
     setResult({ status: 'loading' });
-    DevLogger.log('=== CHECKING ASSET IDs ===');
+    DevLogger.log('=== CHECKING ALL DEXs AND ASSETS ===');
 
     try {
       const infoClient = new InfoClient({ transport });
 
-      DevLogger.log('Fetching meta for main DEX...');
-      const mainMeta = await infoClient.meta();
+      // Fetch all available DEXs
+      DevLogger.log('Fetching perpDexs...');
+      const perpDexs = await infoClient.perpDexs();
 
-      DevLogger.log('Fetching meta for xyz DEX...');
-      const xyzMeta = await infoClient.meta({ dex: 'xyz' });
+      DevLogger.log(`Found ${perpDexs.length} DEXs, fetching metadata...`);
 
-      const mainAsset0 = mainMeta.universe[0];
-      const xyzAsset0 = xyzMeta.universe[0];
+      // Fetch metadata for all DEXs in parallel
+      const allMetas = await Promise.all(
+        perpDexs.map(async (dex, index) => {
+          const dexName = dex?.name || '';
+          const meta = await infoClient.meta({ dex: dexName });
+          return { dex, index, meta };
+        }),
+      );
 
+      // Build output showing all DEXs and their assets
       const output = [
-        '=== ASSET ID 0 COMPARISON ===',
+        '=== ALL DEXs AND ASSETS ===',
         '',
-        'Main DEX (asset ID 0):',
-        `  Name: ${mainAsset0?.name || 'N/A'}`,
-        `  szDecimals: ${mainAsset0?.szDecimals ?? 'N/A'}`,
+        `Total DEXs: ${perpDexs.length}`,
         '',
-        'xyz DEX (asset ID 0):',
-        `  Name: ${xyzAsset0?.name || 'N/A'}`,
-        `  szDecimals: ${xyzAsset0?.szDecimals ?? 'N/A'}`,
-        '',
-        '=== CONCLUSION ===',
-        '✅ Both use asset ID 0, but different assets!',
-        `   Main DEX: "${mainAsset0?.name || 'N/A'}"`,
-        `   xyz DEX:  "${xyzAsset0?.name || 'N/A'}"`,
-        '',
-        '❓ How does HyperLiquid route orders?',
-        '   When you send {a: 0, b: true, ...}',
-        '   How does it know which DEX you mean?',
-      ].join('\n');
+      ];
 
-      DevLogger.log(output);
+      allMetas.forEach(({ dex, index, meta }) => {
+        const dexName = dex?.name || 'MAIN';
+        const isMainDex = index === 0;
+
+        output.push(`[${index}] ${dexName.toUpperCase()} DEX`);
+        output.push(`    Full Name: ${dex?.full_name || 'Main Validator DEX'}`);
+        output.push(`    Assets: ${meta.universe.length}`);
+        output.push('');
+
+        // Show first 5 assets from each DEX (or all if less than 5)
+        const assetsToShow = meta.universe.slice(0, 5);
+
+        assetsToShow.forEach((asset, assetIndex) => {
+          const assetId = isMainDex
+            ? assetIndex
+            : calculateHip3AssetId(index, assetIndex);
+
+          output.push(`    Asset ${assetIndex}: ${asset.name}`);
+          output.push(`      Asset ID: ${assetId}`);
+          output.push(`      szDecimals: ${asset.szDecimals}`);
+          output.push(`      maxLeverage: ${asset.maxLeverage}x`);
+          output.push('');
+        });
+
+        if (meta.universe.length > 5) {
+          output.push(`    ... and ${meta.universe.length - 5} more assets`);
+          output.push('');
+        }
+      });
+
+      output.push('=== DEX_MARKET_TYPE_MAP SUGGESTIONS ===');
+      output.push('');
+      output.push('Add these to HyperLiquidProvider.DEX_MARKET_TYPE_MAP:');
+      output.push('');
+
+      allMetas.forEach(({ dex, index }) => {
+        if (index > 0 && dex) {
+          // Skip main DEX
+          output.push(
+            `  '${dex.name}': 'equity' | 'commodity' | 'forex' | 'crypto',`,
+          );
+        }
+      });
+
+      if (allMetas.length === 1) {
+        output.push('  (No HIP-3 DEXs found - only main DEX available)');
+      }
+
+      output.push('');
+      output.push('Example assignments:');
+      output.push("  'xyz': 'equity'       // Stock markets");
+      output.push("  'commodity': 'commodity'  // Commodity futures");
+      output.push("  'forex': 'forex'      // Currency pairs");
+
+      const finalOutput = output.join('\n');
+      DevLogger.log(finalOutput);
 
       setResult({
         status: 'success',
-        data: output,
+        data: finalOutput,
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -758,6 +815,58 @@ const HIP3DebugView: React.FC = () => {
     }
   };
 
+  const testPriceSubscription = () => {
+    setPriceTestResult({ status: 'loading' });
+    DevLogger.log('=== TESTING PRICE SUBSCRIPTION FOR xyz:XYZ100 ===');
+
+    try {
+      const priceData = testPrices['xyz:XYZ100'];
+
+      const allSymbols = Object.keys(testPrices);
+      const output = [
+        '=== PRICE SUBSCRIPTION TEST ===',
+        '',
+        'Target Symbol: xyz:XYZ100',
+        '',
+        'All Symbols in Hook Result:',
+        allSymbols.length > 0
+          ? allSymbols.map((s) => `  - ${s}`).join('\n')
+          : '  (none)',
+        '',
+        'Full Hook Result:',
+        JSON.stringify(testPrices, null, 2),
+        '',
+        'Data for xyz:XYZ100:',
+        priceData ? JSON.stringify(priceData, null, 2) : '  (undefined)',
+        '',
+        'Expected Fields:',
+        `  - price: ${priceData?.price || 'MISSING ❌'}`,
+        `  - percentChange24h: ${priceData?.percentChange24h || 'MISSING ❌'}`,
+        '',
+        'Status:',
+        priceData?.price
+          ? '✅ Data found - subscription working!'
+          : '❌ No data - subscription not working',
+        '',
+        'This simulates exactly what PerpsMarketHeader does.',
+      ].join('\n');
+
+      DevLogger.log(output);
+
+      setPriceTestResult({
+        status: priceData?.price ? 'success' : 'error',
+        data: output,
+        error: priceData?.price
+          ? undefined
+          : 'No price data received for xyz:XYZ100',
+      });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      DevLogger.log('❌ Price subscription test failed:', error);
+      setPriceTestResult({ status: 'error', error: errorMsg });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView>
@@ -771,7 +880,7 @@ const HIP3DebugView: React.FC = () => {
         <View style={styles.section}>
           <TouchableOpacity style={styles.button} onPress={checkAssetId}>
             <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
-              Check Asset ID 0
+              Check Assets
             </Text>
           </TouchableOpacity>
 
@@ -959,6 +1068,37 @@ const HIP3DebugView: React.FC = () => {
             <View style={styles.resultBox}>
               <Text variant={TextVariant.BodyXS} style={styles.resultText}>
                 {closeResult.data}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={testPriceSubscription}
+          >
+            <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
+              Test Price Subscription (xyz:XYZ100)
+            </Text>
+          </TouchableOpacity>
+
+          {priceTestResult.status === 'loading' && (
+            <ActivityIndicator style={styles.loader} />
+          )}
+
+          {priceTestResult.status === 'error' && (
+            <View style={styles.errorBox}>
+              <Text variant={TextVariant.BodySM} style={styles.errorText}>
+                ❌ {priceTestResult.error}
+              </Text>
+            </View>
+          )}
+
+          {priceTestResult.status === 'success' && (
+            <View style={styles.resultBox}>
+              <Text variant={TextVariant.BodyXS} style={styles.resultText}>
+                {priceTestResult.data}
               </Text>
             </View>
           )}

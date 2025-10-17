@@ -15,6 +15,7 @@ import {
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { getDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
@@ -53,8 +54,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   if (position) {
     const leverage = position.leverage.value;
     const isLong = parseFloat(position.size) > 0;
-    primaryText = `${position.coin} ${leverage}x ${isLong ? 'long' : 'short'}`;
-    secondaryText = `${Math.abs(parseFloat(position.size))} ${position.coin}`;
+    const displaySymbol = getDisplaySymbol(position.coin);
+    primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
+    secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
 
     // Calculate PnL display
     const pnlValue = parseFloat(position.unrealizedPnl);
@@ -65,8 +67,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     const roeValue = parseFloat(position.returnOnEquity) * 100;
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
-    primaryText = `${order.symbol} ${order.side === 'buy' ? 'long' : 'short'}`;
-    secondaryText = `${order.originalSize} ${order.symbol}`;
+    const displaySymbol = getDisplaySymbol(order.symbol);
+    primaryText = `${displaySymbol} ${order.side === 'buy' ? 'long' : 'short'}`;
+    secondaryText = `${order.originalSize} ${displaySymbol}`;
     const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
     valueText = formatPerpsFiat(orderValue, {
       ranges: PRICE_RANGES_MINIMAL_VIEW,
