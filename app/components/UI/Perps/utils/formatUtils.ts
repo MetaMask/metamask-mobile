@@ -336,6 +336,7 @@ export const PRICE_RANGES_MINIMAL_VIEW: FiatRangeConfig[] = [
     minimumDecimals: 2,
     maximumDecimals: 2,
     threshold: PRICE_THRESHOLD.LOW,
+    stripTrailingZeros: false,
   },
 ];
 

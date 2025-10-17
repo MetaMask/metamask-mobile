@@ -15,6 +15,7 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPercentage,
+  DEFAULT_FIAT_RANGES,
 } from '../../utils/formatUtils';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
@@ -176,7 +177,9 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
                 color={TextColor.Default}
                 testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
               >
-                {formatPerpsFiat(availableBalance)}
+                {formatPerpsFiat(availableBalance, {
+                  ranges: DEFAULT_FIAT_RANGES,
+                })}
               </Text>
               <Icon
                 name={IconName.ArrowRight}
