@@ -4,7 +4,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import RewardOptInAccountGroupModal from './RewardOptInAccountGroupModal';
 import { useLinkAccountGroup } from '../../hooks/useLinkAccountGroup';
-import ClipboardManager from '../../../../../core/ClipboardManager';
 import { CaipChainId } from '@metamask/utils';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
@@ -25,10 +24,6 @@ jest.mock('../../hooks/useLinkAccountGroup', () => ({
   useLinkAccountGroup: jest.fn(),
 }));
 
-jest.mock('../../../../../core/ClipboardManager', () => ({
-  setString: jest.fn(),
-}));
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -43,6 +38,20 @@ jest.mock('../../../../../util/networks', () => ({
   isTestNet: jest.fn((chainId: string) => chainId === '0x5'),
 }));
 
+// Mock useWindowDimensions
+jest.mock('react-native', () => {
+  const actualRN = jest.requireActual('react-native');
+  return {
+    ...actualRN,
+    useWindowDimensions: jest.fn(() => ({
+      width: 375,
+      height: 800,
+      scale: 2,
+      fontScale: 1,
+    })),
+  };
+});
+
 // Mock the selectors directly
 jest.mock('../../../../../selectors/multichainAccounts/accountTreeController');
 jest.mock('../../../../../selectors/networkController');
@@ -52,6 +61,15 @@ jest.mock('@metamask/multichain-network-controller', () => ({
     (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
   ),
 }));
+
+// Mock react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    FlatList: actual.FlatList,
+    ScrollView: actual.ScrollView,
+  };
+});
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
@@ -105,6 +123,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       BodyMd: 'BodyMd',
       HeadingMd: 'HeadingMd',
+      HeadingSm: 'HeadingSm',
     },
     FontWeight: {
       Medium: 'medium',
@@ -114,11 +133,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     ButtonSize: {
       Lg: 'lg',
-    },
-    IconName: {
-      Check: 'check',
-      Close: 'close',
-      Warning: 'warning',
     },
   };
 });
@@ -190,35 +204,24 @@ jest.mock(
 
 // Mock MultichainAddressRow
 jest.mock(
-  '../../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow',
+  '../../../../../component-library/components-temp/MultichainAccounts',
   () => {
     const ReactActual = jest.requireActual('react');
-    const { View, TouchableOpacity } = jest.requireActual('react-native');
+    const { View } = jest.requireActual('react-native');
 
     return {
       __esModule: true,
-      default: ({
+      MultichainAddressRow: ({
         testID,
         address,
         chainId,
         networkName,
-        copyParams,
-        icons,
         ...props
       }: {
         testID?: string;
         address: string;
         chainId: string;
         networkName: string;
-        copyParams?: {
-          successMessage: string;
-          callback: () => void;
-        };
-        icons?: {
-          name: string;
-          callback: () => void;
-          testId: string;
-        }[];
         [key: string]: unknown;
       }) =>
         ReactActual.createElement(
@@ -228,21 +231,6 @@ jest.mock(
           ReactActual.createElement(View, {
             testID: `network-${networkName}`,
           }),
-          icons?.map((icon, index) =>
-            ReactActual.createElement(View, {
-              key: index,
-              testID: icon.testId,
-            }),
-          ),
-          copyParams &&
-            ReactActual.createElement(
-              TouchableOpacity,
-              {
-                testID: `copy-button-${address}`,
-                onPress: copyParams.callback,
-              },
-              null,
-            ),
         ),
     };
   },
@@ -399,9 +387,6 @@ describe('RewardOptInAccountGroupModal', () => {
 
     // Mock useSelector to pass through to actual selectors
     mockUseSelector.mockImplementation((selector) => selector({} as never));
-
-    // Mock ClipboardManager
-    (ClipboardManager.setString as jest.Mock).mockResolvedValue(undefined);
   });
 
   describe('Basic Rendering', () => {
@@ -432,57 +417,6 @@ describe('RewardOptInAccountGroupModal', () => {
       ).toBeOnTheScreen();
       expect(
         getByTestId('address-0x0987654321098765432109876543210987654321'),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Address Status Icons', () => {
-    it('should show check icon for opted-in address', () => {
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      expect(
-        getByTestId(
-          'status-icon-0x1234567890123456789012345678901234567890-eip155:1',
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('should show close icon for opted-out address', () => {
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      expect(
-        getByTestId(
-          'status-icon-0x0987654321098765432109876543210987654321-eip155:1',
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('should show warning icon for unsupported address', () => {
-      // Arrange
-      mockUseRoute.mockReturnValue({
-        params: {
-          ...defaultRouteParams,
-          addressData: [
-            {
-              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-              hasOptedIn: false,
-              scopes: ['eip155:1' as CaipChainId],
-              isSupported: false,
-            },
-          ],
-        },
-        key: 'test-route',
-        name: 'RewardOptInAccountGroupModal',
-      } as never);
-
-      // Act
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      // Assert
-      expect(
-        getByTestId(
-          'status-icon-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-eip155:1',
-        ),
       ).toBeOnTheScreen();
     });
   });
@@ -818,26 +752,6 @@ describe('RewardOptInAccountGroupModal', () => {
     });
   });
 
-  describe('Copy Address Functionality', () => {
-    it('should copy address to clipboard when copy button is pressed', async () => {
-      // Arrange
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      // Act
-      const copyButton = getByTestId(
-        'copy-button-0x1234567890123456789012345678901234567890',
-      );
-      fireEvent.press(copyButton);
-
-      // Assert
-      await waitFor(() => {
-        expect(ClipboardManager.setString).toHaveBeenCalledWith(
-          '0x1234567890123456789012345678901234567890',
-        );
-      });
-    });
-  });
-
   describe('Edge Cases', () => {
     it('should handle missing account group context', () => {
       // Arrange
@@ -921,12 +835,102 @@ describe('RewardOptInAccountGroupModal', () => {
       expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
     });
 
-    it('should have correct FlatList props', () => {
+    it('should have correct FlatList props for scrolling', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       const flatList = getByTestId('reward-opt-in-address-list');
-      expect(flatList).toHaveProp('removeClippedSubviews', true);
-      expect(flatList).toHaveProp('showsVerticalScrollIndicator', false);
+      expect(flatList).toHaveProp('showsVerticalScrollIndicator', true);
+    });
+  });
+
+  describe('Section Headers (Tracked/Untracked)', () => {
+    it('should show section headers when there are both tracked and untracked addresses', () => {
+      // Arrange - default route params has both tracked and untracked addresses
+      const { getByText } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert
+      expect(getByText('rewards.link_account_group.tracked')).toBeOnTheScreen();
+      expect(
+        getByText('rewards.link_account_group.untracked'),
+      ).toBeOnTheScreen();
+    });
+
+    it('should not show section headers when all addresses are tracked', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: true,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { queryByText } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert - Headers should not be rendered when there's only one type
+      expect(queryByText('rewards.link_account_group.tracked')).toBeNull();
+      expect(queryByText('rewards.link_account_group.untracked')).toBeNull();
+    });
+
+    it('should not show section headers when all addresses are untracked', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x0987654321098765432109876543210987654321',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { queryByText } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert - Headers should not be rendered when there's only one type
+      expect(queryByText('rewards.link_account_group.tracked')).toBeNull();
+      expect(queryByText('rewards.link_account_group.untracked')).toBeNull();
+    });
+
+    it('should not show section headers for unsupported addresses', () => {
+      // Arrange
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: false,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      // Act
+      const { queryByText } = render(<RewardOptInAccountGroupModal />);
+
+      // Assert - Unsupported addresses should not be shown in the list
+      expect(queryByText('rewards.link_account_group.tracked')).toBeNull();
+      expect(queryByText('rewards.link_account_group.untracked')).toBeNull();
     });
   });
 

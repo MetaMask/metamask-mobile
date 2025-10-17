@@ -217,6 +217,14 @@ import type {
 
 ///: END:ONLY_INCLUDE_IF
 import {
+  BackendWebSocketService,
+  BackendWebSocketServiceActions,
+  BackendWebSocketServiceEvents,
+  AccountActivityService,
+  AccountActivityServiceActions,
+  AccountActivityServiceEvents,
+} from '@metamask/core-backend';
+import {
   AccountsController,
   AccountsControllerActions,
   AccountsControllerEvents,
@@ -398,6 +406,8 @@ type GlobalActions =
   | CronjobControllerActions
   | WebSocketServiceActions
   ///: END:ONLY_INCLUDE_IF
+  | BackendWebSocketServiceActions
+  | AccountActivityServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
@@ -458,6 +468,8 @@ type GlobalEvents =
   | CronjobControllerEvents
   | WebSocketServiceEvents
   ///: END:ONLY_INCLUDE_IF
+  | BackendWebSocketServiceEvents
+  | AccountActivityServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
@@ -559,6 +571,8 @@ export type Controllers = {
   CronjobController: CronjobController;
   WebSocketService: WebSocketService;
   ///: END:ONLY_INCLUDE_IF
+  BackendWebSocketService: BackendWebSocketService;
+  AccountActivityService: AccountActivityService;
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
@@ -699,6 +713,8 @@ export type ControllersToInitialize =
   | 'SubjectMetadataController'
   | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
+  | 'BackendWebSocketService'
+  | 'AccountActivityService'
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
@@ -740,6 +756,7 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
+  | 'PPOMController'
   | 'RewardsController'
   | 'RewardsDataService'
   | 'GatorPermissionsController'

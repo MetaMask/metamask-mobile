@@ -1182,6 +1182,9 @@ export class NetworkSettings extends PureComponent {
    */
   validateSymbol = (chainToMatch = null) => {
     const { ticker, networkList, chainId } = this.state;
+    const { networkConfigurations } = this.props;
+    const networkConfiguration = networkConfigurations[chainId];
+    const networkConfigurationSymbol = networkConfiguration?.nativeCurrency;
 
     if (isWhitelistedSymbol(chainId, ticker)) {
       return this.setState({
@@ -1196,7 +1199,9 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    const symbol = chainToMatch
+    const symbol = networkConfigurationSymbol
+      ? networkConfigurationSymbol
+      : chainToMatch
       ? chainToMatch?.nativeCurrency?.symbol ?? null
       : networkList?.nativeCurrency?.symbol ?? null;
 
@@ -1477,9 +1482,11 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
-  onTickerChange = async (ticker) => {
-    await this.setState({ ticker, validatedSymbol: false });
-    this.getCurrentState();
+  onTickerChange = (ticker) => {
+    this.setState({ ticker, validatedSymbol: false }, () => {
+      this.getCurrentState();
+      this.validateSymbol();
+    });
   };
 
   // this function will autofill the symbol field with the value in parameter

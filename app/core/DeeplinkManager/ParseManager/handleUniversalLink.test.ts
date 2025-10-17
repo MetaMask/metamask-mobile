@@ -47,6 +47,7 @@ describe('handleUniversalLinks', () => {
   const mockHandleCreateAccount = jest.fn();
   const mockHandlePerps = jest.fn();
   const mockHandleRewards = jest.fn();
+  const mockHandleFastOnboarding = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -69,6 +70,7 @@ describe('handleUniversalLinks', () => {
     _handleCreateAccount: mockHandleCreateAccount,
     _handlePerps: mockHandlePerps,
     _handleRewards: mockHandleRewards,
+    _handleFastOnboarding: mockHandleFastOnboarding,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -602,6 +604,53 @@ describe('handleUniversalLinks', () => {
 
         expect(handled).toHaveBeenCalled();
         expect(mockParse).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('ACTIONS.ONBOARDING', () => {
+    const testCases = [
+      {
+        domain: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        description: 'old deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        description: 'new deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+        description: 'test deeplink domain',
+      },
+    ] as const;
+
+    it.each(testCases)(
+      'calls _handleFastOnboarding with transformed URL for $description',
+      async ({ domain }) => {
+        const dappUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.ONBOARDING}?param=value`;
+        const origin = `${PROTOCOLS.HTTPS}://${domain}`;
+        const dappUrlObj = {
+          ...urlObj,
+          hostname: domain,
+          href: dappUrl,
+          pathname: `/${ACTIONS.ONBOARDING}`,
+          origin,
+        };
+        const expectedTransformedPath = '?param=value';
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: dappUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: dappUrl,
+          source: 'test-source',
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleFastOnboarding).toHaveBeenCalledWith(
+          expectedTransformedPath,
+        );
       },
     );
   });
