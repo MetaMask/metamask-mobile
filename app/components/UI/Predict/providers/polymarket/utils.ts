@@ -750,10 +750,16 @@ export const getParsedMarketsFromPolymarketApi = async (
     offset,
   );
 
-  let queryParamsEvents = `limit=${limit}&active=true&archived=false&closed=false&ascending=false&offset=${offset}`;
-  const queryParamsSearch = `limit_per_type=${limit}&page=${
-    Math.floor(offset / limit) + 1
-  }&ascending=false`;
+  const limitParam = `limit=${limit}`;
+  const active = `active=true`;
+  const archived = `archived=false`;
+  const closed = `closed=false`;
+  const ascending = `ascending=false`;
+  const offsetParam = `offset=${offset}`;
+  const volume = `volume_min=${10000.0}`;
+  const liquidity = `liquidity_min=${10000.0}`;
+
+  let queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
 
   const categoryTagMap: Record<PredictCategory, string> = {
     trending: '&exclude_tag_id=100639&order=volume24hr',
@@ -764,6 +770,16 @@ export const getParsedMarketsFromPolymarketApi = async (
   };
 
   queryParamsEvents += categoryTagMap[category];
+
+  const limitPerType = `limit_per_type=${limit}`;
+  const type = `type=events`;
+  const eventsStatus = `events_status=active`;
+  const sort = `sort=volume_24hr`;
+  const presetsTitle = `presets=EventsTitle`;
+  const presetsEvents = `presets=Events`;
+  const page = `page=${Math.floor(offset / limit) + 1}`;
+
+  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${presetsEvents}&${limitPerType}&${page}`;
 
   // Use search endpoint if q parameter is provided
   const endpoint = q
