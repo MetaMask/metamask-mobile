@@ -544,7 +544,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "gap": 4,
+                                  "gap": 10,
                                   "paddingHorizontal": 4,
                                 }
                               }
@@ -572,9 +572,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -624,9 +624,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -678,9 +678,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -732,9 +732,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -1091,7 +1091,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1402,7 +1402,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1743,7 +1743,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
