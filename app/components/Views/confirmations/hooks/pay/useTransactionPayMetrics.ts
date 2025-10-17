@@ -7,10 +7,7 @@ import {
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json } from '@metamask/utils';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
@@ -69,9 +66,8 @@ export function useTransactionPayMetrics() {
   }
 
   if (
-    hasTransactionType(transactionMeta as TransactionMeta, [
-      TransactionType.predictDeposit,
-    ])
+    payToken &&
+    hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
   ) {
     properties.mm_pay_use_case = 'predict_deposit';
     properties.simulation_sending_assets_total_value = amountPrecise ?? null;
