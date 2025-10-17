@@ -14,7 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import type { CandleData } from '../types/perps-types';
 
 import { CandlePeriod } from '../constants/chartConfig';
-import { ensureError , ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../utils/perpsErrorHandler';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
 
