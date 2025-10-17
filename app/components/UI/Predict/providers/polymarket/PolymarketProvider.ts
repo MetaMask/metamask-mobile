@@ -477,7 +477,7 @@ export class PolymarketProvider implements PredictProvider {
     });
     return {
       chainId: POLYGON_MAINNET_CHAIN_ID,
-      transactionParams: claimTransaction,
+      transactions: claimTransaction,
     };
   }
 

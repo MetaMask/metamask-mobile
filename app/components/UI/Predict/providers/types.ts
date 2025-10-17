@@ -93,11 +93,14 @@ export interface ClaimOrderParams {
 
 export interface ClaimOrderResponse {
   chainId: number;
-  transactionParams: {
-    from: Hex;
-    to: Hex;
-    data: Hex;
-  };
+  transactions: {
+    params: {
+      to: Hex;
+      data?: Hex;
+      value?: Hex;
+    };
+    type?: TransactionType;
+  }[];
 }
 
 export interface GetPositionsParams {
