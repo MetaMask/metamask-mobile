@@ -7,6 +7,8 @@ pluginManagement {
     }
 }
 
+plugins { id("com.facebook.react.settings") }
+
 // Cirrus HTTP Cache configuration for remote build caching
 buildCache {
     def httpCacheHost = System.getenv("CIRRUS_HTTP_CACHE_HOST")
@@ -25,8 +27,6 @@ buildCache {
         }
     }
 }
-
-plugins { id("com.facebook.react.settings") }
  
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
