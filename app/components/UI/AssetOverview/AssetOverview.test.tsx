@@ -17,18 +17,13 @@ import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { swapsUtils } from '@metamask/swaps-controller';
 import {
   BALANCE_TEST_ID,
   TOKEN_AMOUNT_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
-import {
-  ActionButtonType,
-  ActionLocation,
-  ActionPosition,
-} from '../../../util/analytics/actionButtonTracking';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { handleFetch } from '@metamask/controller-utils';
 
 jest.mock('../../../selectors/accountsController', () => ({
@@ -185,23 +180,6 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
-// Mock useMetrics hook
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn();
-const mockBuild = jest.fn();
-const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
-
-jest.mock('../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual('../../../components/hooks/useMetrics');
-  return {
-    ...actualMetrics,
-    useMetrics: jest.fn(() => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    })),
-  };
-});
-
 jest.mock(
   '../../../selectors/featureFlagController/multichainAccounts',
   () => ({
@@ -243,12 +221,6 @@ describe('AssetOverview', () => {
   const mockSendNonEvmAsset = jest.fn();
 
   beforeEach(() => {
-    // Setup event builder chain
-    mockBuild.mockReturnValue({ category: 'test' });
-    mockCreateEventBuilder.mockReturnValue({
-      addProperties: mockAddProperties,
-    });
-
     // Default mock setup for the hook - return false to continue with EVM flow
     mockSendNonEvmAsset.mockResolvedValue(false);
     (useSendNonEvmAsset as jest.Mock).mockReturnValue({
@@ -275,6 +247,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -288,6 +261,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -309,101 +283,13 @@ describe('AssetOverview', () => {
     });
   });
 
-  it('should track buy button click analytics with correct properties', async () => {
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-
-    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
-
-    // Extract the onBuy function from navigation params
-    fireEvent.press(buyButton);
-
-    // Get the onBuy function that was passed to navigation
-    const navigationCall = navigate.mock.calls[0];
-    const onBuyFunction = navigationCall[1].params.onBuy;
-
-    // Clear mocks to isolate the tracking test
-    jest.clearAllMocks();
-
-    // Setup event builder chain again after clearing
-    mockBuild.mockReturnValue({ category: 'test' });
-    mockCreateEventBuilder.mockReturnValue({
-      addProperties: mockAddProperties,
-    });
-
-    // Call the onBuy function directly
-    onBuyFunction();
-
-    // Verify createEventBuilder was called with correct event
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
-    );
-
-    // Verify addProperties was called with correct properties
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      action_name: ActionButtonType.BUY,
-      action_position: ActionPosition.FIRST_POSITION,
-      button_label: 'Buy',
-      location: ActionLocation.ASSET_DETAILS,
-    });
-
-    // Verify build was called
-    expect(mockBuild).toHaveBeenCalled();
-
-    // Verify trackEvent was called with the built event
-    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
-  });
-
-  it('should fire buy button tracking exactly once per button press', async () => {
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-
-    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
-    fireEvent.press(buyButton);
-
-    // Get the onBuy function
-    const navigationCall = navigate.mock.calls[0];
-    const onBuyFunction = navigationCall[1].params.onBuy;
-
-    // Clear mocks
-    jest.clearAllMocks();
-
-    // Setup event builder chain
-    mockBuild.mockReturnValue({ category: 'test' });
-    mockCreateEventBuilder.mockReturnValue({
-      addProperties: mockAddProperties,
-    });
-
-    // Call onBuy
-    onBuyFunction();
-
-    // Verify each tracking function was called exactly once
-    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
-    expect(mockAddProperties).toHaveBeenCalledTimes(2);
-    expect(mockBuild).toHaveBeenCalledTimes(2);
-    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-  });
-
   it('should handle send button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -416,43 +302,6 @@ describe('AssetOverview', () => {
     await Promise.resolve();
 
     expect(navigate.mock.calls[1][0]).toEqual('Send');
-  });
-
-  it('should track send button click analytics with correct properties', async () => {
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-
-    const sendButton = getByTestId('token-send-button');
-    fireEvent.press(sendButton);
-
-    // Wait for async operations to complete
-    await Promise.resolve();
-
-    // Verify createEventBuilder was called with correct event
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
-    );
-
-    // Verify addProperties was called with correct properties
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      action_name: ActionButtonType.SEND,
-      action_position: ActionPosition.THIRD_POSITION,
-      button_label: 'Send',
-      location: ActionLocation.ASSET_DETAILS,
-    });
-
-    // Verify build was called
-    expect(mockBuild).toHaveBeenCalled();
-
-    // Verify trackEvent was called with the built event
-    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
@@ -476,7 +325,12 @@ describe('AssetOverview', () => {
     };
 
     const { getByTestId } = renderWithProvider(
-      <AssetOverview asset={nativeAsset} displayBuyButton displaySwapsButton />,
+      <AssetOverview
+        asset={nativeAsset}
+        displayBuyButton
+        displaySwapsButton
+        displayBridgeButton
+      />,
       {
         state: {
           ...mockInitialState,
@@ -526,20 +380,28 @@ describe('AssetOverview', () => {
 
   it('should handle swap button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        displayBridgeButton
+      />,
       { state: mockInitialState },
     );
 
     const swapButton = getByTestId('token-swap-button');
     fireEvent.press(swapButton);
 
-    // Now navigates to Bridge with unified mode
-    expect(navigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: expect.objectContaining({
-        bridgeViewMode: 'Unified',
-        sourcePage: 'MainView',
-      }),
+    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(navigate).toHaveBeenNthCalledWith(1, 'WalletTabHome', {
+      screen: 'WalletTabStackFlow',
+      params: {
+        screen: 'WalletView',
+      },
+    });
+    expect(navigate).toHaveBeenNthCalledWith(2, 'Swaps', {
+      screen: 'SwapsAmountView',
+      params: { sourceToken: '0x123', chainId: '0x1', sourcePage: 'MainView' },
     });
   });
 
@@ -559,6 +421,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -589,53 +452,29 @@ describe('AssetOverview', () => {
     selectSelectedAccountGroup.mockReset();
   });
 
-  it('should track receive button click analytics with correct properties', async () => {
-    // Arrange - Mock the selectors directly to ensure conditions are met
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    const { selectSelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    );
-    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
-    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
-
+  it('should handle bridge button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        networkName="Ethereum Mainnet"
+        displayBridgeButton
       />,
       { state: mockInitialState },
     );
 
-    // Act
-    const receiveButton = getByTestId('token-receive-button');
+    const receiveButton = getByTestId('token-bridge-button');
     fireEvent.press(receiveButton);
 
-    // Assert - Verify createEventBuilder was called with correct event
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
-    );
-
-    // Verify addProperties was called with correct properties
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      action_name: ActionButtonType.RECEIVE,
-      action_position: ActionPosition.FOURTH_POSITION,
-      button_label: 'Receive',
-      location: ActionLocation.ASSET_DETAILS,
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenNthCalledWith(1, 'BrowserTabHome', {
+      params: {
+        newTabUrl:
+          'https://portfolio.metamask.io/bridge/?metamaskEntry=mobile&srcChain=1',
+        timestamp: 123,
+      },
+      screen: 'BrowserView',
     });
-
-    // Verify build was called
-    expect(mockBuild).toHaveBeenCalled();
-
-    // Verify trackEvent was called with the built event
-    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
-
-    // Cleanup mocks for isolation
-    selectSelectedInternalAccount.mockReset();
-    selectSelectedAccountGroup.mockReset();
   });
 
   it('should not render swap button if displaySwapsButton is false', async () => {
@@ -644,6 +483,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton={false}
+        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -652,12 +492,28 @@ describe('AssetOverview', () => {
     expect(swapButton).toBeNull();
   });
 
+  it('should not render bridge button if displayBridgeButton is false', async () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        displayBridgeButton={false}
+      />,
+      { state: mockInitialState },
+    );
+
+    const bridgeButton = queryByTestId('token-bridge-button');
+    expect(bridgeButton).toBeNull();
+  });
+
   it('should not render buy button if displayBuyButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
         displayBuyButton={false}
         displaySwapsButton
+        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -676,6 +532,7 @@ describe('AssetOverview', () => {
         }}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -694,6 +551,7 @@ describe('AssetOverview', () => {
         }}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
       />,
       {
         state: {
@@ -737,17 +595,22 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    // Now navigates to Bridge with unified mode
-    expect(navigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: expect.objectContaining({
-        bridgeViewMode: 'Unified',
+    expect(navigate).toHaveBeenCalledWith('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        destinationToken: assetFromSearch.address,
         sourcePage: 'MainView',
-      }),
+        chainId: assetFromSearch.chainId,
+      },
     });
   });
 
-  it('should navigate to bridge when swap button is pressed on different chain', async () => {
+  it('should prompt to add the network if coming from search and on a different chain', async () => {
+    (
+      Engine.context.NetworkController
+        .getNetworkConfigurationByChainId as jest.Mock
+    ).mockReturnValueOnce(null);
     const differentChainAssetFromSearch = {
       ...assetFromSearch,
       chainId: '0xa',
@@ -767,14 +630,7 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    // Should navigate to bridge view
-    expect(navigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: expect.objectContaining({
-        bridgeViewMode: 'Unified',
-        sourcePage: 'MainView',
-      }),
-    });
+    expect(mockAddPopularNetwork).toHaveBeenCalled();
   });
 
   describe('Portfolio view network switching', () => {
@@ -799,6 +655,7 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -817,7 +674,7 @@ describe('AssetOverview', () => {
       });
     });
 
-    it('should navigate to bridge when swapping on different chain', async () => {
+    it('should switch networks before swapping when on different chain', async () => {
       const differentChainAsset = {
         ...asset,
         chainId: '0x89', // Different chain (Polygon)
@@ -828,6 +685,7 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -838,13 +696,27 @@ describe('AssetOverview', () => {
       // Wait for all promises to resolve
       await Promise.resolve();
 
-      // Now navigates to Bridge with unified mode
-      expect(navigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: expect.objectContaining({
-          bridgeViewMode: 'Unified',
+      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+
+      expect(
+        Engine.context.NetworkController.getNetworkConfigurationByChainId,
+      ).toHaveBeenCalledWith('0x89');
+
+      // Fast-forward timers to trigger the swap navigation
+      jest.advanceTimersByTime(500);
+
+      expect(navigate).toHaveBeenCalledWith('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: differentChainAsset.address,
           sourcePage: 'MainView',
-        }),
+          chainId: '0x89',
+        },
       });
     });
 
@@ -859,6 +731,7 @@ describe('AssetOverview', () => {
           asset={sameChainAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -905,6 +778,7 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -962,6 +836,7 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -994,6 +869,7 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -1024,6 +900,7 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -1049,7 +926,12 @@ describe('AssetOverview', () => {
       mockSendNonEvmAsset.mockResolvedValue(false);
 
       const { getByTestId } = renderWithProvider(
-        <AssetOverview asset={evmAsset} displayBuyButton displaySwapsButton />,
+        <AssetOverview
+          asset={evmAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+        />,
         { state: mockInitialState },
       );
 

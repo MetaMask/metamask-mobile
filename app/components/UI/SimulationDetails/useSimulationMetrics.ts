@@ -90,11 +90,14 @@ export function useSimulationMetrics({
     simulation_latency: simulationLatency,
     ...getProperties(receivingAssets, 'simulation_receiving_assets_'),
     ...getProperties(sendingAssets, 'simulation_sending_assets_'),
-    ...getTotalValueProperty(receivingAssets, 'simulation_receiving_assets_'),
-    ...getTotalValueProperty(sendingAssets, 'simulation_sending_assets_'),
   };
 
-  const params = { properties };
+  const sensitiveProperties = {
+    ...getSensitiveProperties(receivingAssets, 'simulation_receiving_assets_'),
+    ...getSensitiveProperties(sendingAssets, 'simulation_sending_assets_'),
+  };
+
+  const params = { properties, sensitiveProperties };
 
   const shouldSkipMetrics =
     !enableMetrics ||
@@ -166,7 +169,7 @@ function getProperties(changes: BalanceChange[], prefix: string) {
   return getPrefixProperties({ quantity, type, value }, prefix);
 }
 
-function getTotalValueProperty(changes: BalanceChange[], prefix: string) {
+function getSensitiveProperties(changes: BalanceChange[], prefix: string) {
   const fiatAmounts = changes.map((change) => change.usdAmount);
   const totalFiat = calculateTotalFiat(fiatAmounts);
   const totalValue = totalFiat ? totalFiat.abs().toNumber() : undefined;

@@ -6,10 +6,8 @@ import {
   RewardsDashboardModalType,
 } from './useRewardDashboardModals';
 import Routes from '../../../../constants/navigation/Routes';
-import { useLinkAccountGroup } from './useLinkAccountGroup';
+import { useLinkAccount } from './useLinkAccount';
 import { isHardwareAccount } from '../../../../util/address';
-import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -35,8 +33,8 @@ jest.mock('../../../../reducers/rewards', () => ({
   })),
 }));
 
-jest.mock('./useLinkAccountGroup', () => ({
-  useLinkAccountGroup: jest.fn(),
+jest.mock('./useLinkAccount', () => ({
+  useLinkAccount: jest.fn(),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -59,8 +57,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.dashboard_modal_info.account_not_supported.description_general':
         'This account type is not supported',
       'rewards.dashboard_modal_info.account_not_supported.confirm': 'OK',
-      'rewards.link_account_group.linking_account': 'Linking...',
-      'rewards.link_account_group.link_account': 'Link Account',
+      'rewards.linking_account': 'Linking...',
+      'rewards.link_account': 'Link Account',
       'confirmation_modal.confirm_cta': 'OK',
       'drawer.cancel': 'Cancel',
     };
@@ -82,24 +80,16 @@ describe('useRewardDashboardModals', () => {
   const mockNavigate = jest.fn();
   const mockGoBack = jest.fn();
   const mockDispatch = jest.fn();
-  const mockLinkAccountGroup = jest.fn();
-  const mockSelectedAccountGroup = {
-    id: 'test-account-group-id',
+  const mockLinkAccount = jest.fn();
+  const mockSelectedAccount = {
+    id: '0x123',
+    address: '0x123',
     metadata: {
-      name: 'Test Account Group',
-    },
-  };
-  const mockAccounts = [
-    {
-      id: '0x123',
-      address: '0x123',
-      metadata: {
-        keyring: {
-          type: 'HD Key Tree',
-        },
+      keyring: {
+        type: 'HD Key Tree',
       },
     },
-  ];
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -110,16 +100,16 @@ describe('useRewardDashboardModals', () => {
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     // Mock both selectors that are used in the hook
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectInternalAccountsByGroupId) {
-        return (_groupId: string) => mockAccounts;
+      if (selector.toString().includes('selectSelectedInternalAccount')) {
+        return mockSelectedAccount;
       }
-      if (selector === selectSelectedAccountGroup) {
-        return mockSelectedAccountGroup;
+      if (selector.toString().includes('selectSelectedAccountGroupId')) {
+        return 'test-account-group-id';
       }
-      return mockSelectedAccountGroup; // fallback
+      return mockSelectedAccount; // fallback
     });
-    (useLinkAccountGroup as jest.Mock).mockReturnValue({
-      linkAccountGroup: mockLinkAccountGroup,
+    (useLinkAccount as jest.Mock).mockReturnValue({
+      linkAccount: mockLinkAccount,
       isLoading: false,
     });
   });
@@ -179,14 +169,14 @@ describe('useRewardDashboardModals', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not show modal when no selected account group', () => {
+    it('does not show modal when no selected account', () => {
       // Arrange
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
-        }
-        if (selector === selectSelectedAccountGroup) {
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
           return null;
+        }
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
         return null;
       });
@@ -288,7 +278,7 @@ describe('useRewardDashboardModals', () => {
           customIcon: expect.any(Object),
           confirmAction: {
             label: 'Link Account',
-            loadOnPress: true,
+            isLoading: false,
             onPress: expect.any(Function),
             variant: 'Primary',
           },
@@ -301,8 +291,8 @@ describe('useRewardDashboardModals', () => {
 
     it('shows linking state when account is linking', () => {
       // Arrange
-      (useLinkAccountGroup as jest.Mock).mockReturnValue({
-        linkAccountGroup: mockLinkAccountGroup,
+      (useLinkAccount as jest.Mock).mockReturnValue({
+        linkAccount: mockLinkAccount,
         isLoading: true,
       });
 
@@ -322,14 +312,14 @@ describe('useRewardDashboardModals', () => {
       // Assert
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       const modalCall = mockNavigate.mock.calls[0][1];
-      expect(modalCall.confirmAction.loadOnPress).toBe(true);
+      expect(modalCall.confirmAction.isLoading).toBe(true);
     });
 
-    it('calls linkAccountGroup when confirm is pressed and not currently linking', async () => {
+    it('calls linkAccount when confirm is pressed and not currently linking', async () => {
       // Arrange
-      mockLinkAccountGroup.mockResolvedValue({ success: true, byAddress: {} });
-      (useLinkAccountGroup as jest.Mock).mockReturnValue({
-        linkAccountGroup: mockLinkAccountGroup,
+      mockLinkAccount.mockResolvedValue(true);
+      (useLinkAccount as jest.Mock).mockReturnValue({
+        linkAccount: mockLinkAccount,
         isLoading: false,
       });
 
@@ -356,20 +346,18 @@ describe('useRewardDashboardModals', () => {
       });
 
       // Assert
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith(
-        mockSelectedAccountGroup.id,
-      );
+      expect(mockLinkAccount).toHaveBeenCalledWith(mockSelectedAccount);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'SET_HIDE_CURRENT_ACCOUNT_NOT_OPTED_IN_BANNER',
-        payload: { accountGroupId: mockSelectedAccountGroup.id, hide: true },
+        payload: { accountId: 'eip155:1:0x123', hide: true },
       });
     });
 
     it('does not link account when already linking', async () => {
       // Arrange
-      (useLinkAccountGroup as jest.Mock).mockReturnValue({
-        linkAccountGroup: mockLinkAccountGroup,
+      (useLinkAccount as jest.Mock).mockReturnValue({
+        linkAccount: mockLinkAccount,
         isLoading: true,
       });
 
@@ -394,17 +382,53 @@ describe('useRewardDashboardModals', () => {
       });
 
       // Assert
-      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
+      expect(mockLinkAccount).not.toHaveBeenCalled();
     });
 
-    it('does not show modal when no selected account group', () => {
+    it('does not hide banner when link account fails', async () => {
+      // Arrange
+      mockLinkAccount.mockResolvedValue(false);
+      (useLinkAccount as jest.Mock).mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+
+      // Reset session tracker to ensure modal can be shown
+      const { result: resetResult } = renderHook(() =>
+        useRewardDashboardModals(),
+      );
+      resetResult.current.resetSessionTracking();
+
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      act(() => {
+        result.current.showNotOptedInModal();
+      });
+
+      const modalCall = mockNavigate.mock.calls[0][1];
+      const onPress = modalCall.confirmAction.onPress;
+      mockNavigate.mockClear();
+      mockDispatch.mockClear();
+
+      // Act
+      await act(async () => {
+        await onPress();
+      });
+
+      // Assert
+      expect(mockLinkAccount).toHaveBeenCalledWith(mockSelectedAccount);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not show modal when no selected account', () => {
       // Arrange
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
-        }
-        if (selector === selectSelectedAccountGroup) {
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
           return null;
+        }
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
         return null;
       });
@@ -428,26 +452,19 @@ describe('useRewardDashboardModals', () => {
 
     it('shows general description for non-hardware wallet', () => {
       // Arrange
-      const nonHardwareAccounts = [
-        {
-          id: '0x123',
-          address: '0x123',
-          metadata: {
-            keyring: {
-              type: 'HD Key Tree',
-            },
-          },
-        },
-      ];
+      const nonHardwareAccount = {
+        ...mockSelectedAccount,
+        address: '0x123',
+      };
 
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => nonHardwareAccounts;
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
+          return nonHardwareAccount;
         }
-        if (selector === selectSelectedAccountGroup) {
-          return mockSelectedAccountGroup;
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
-        return mockSelectedAccountGroup;
+        return nonHardwareAccount;
       });
       (isHardwareAccount as jest.Mock).mockReturnValue(false);
 
@@ -479,26 +496,19 @@ describe('useRewardDashboardModals', () => {
 
     it('shows hardware wallet specific description for hardware wallets', () => {
       // Arrange
-      const hardwareAccounts = [
-        {
-          id: '0x456',
-          address: '0x456',
-          metadata: {
-            keyring: {
-              type: 'Hardware',
-            },
-          },
-        },
-      ];
+      const hardwareAccount = {
+        ...mockSelectedAccount,
+        address: '0x456',
+      };
 
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => hardwareAccounts;
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
+          return hardwareAccount;
         }
-        if (selector === selectSelectedAccountGroup) {
-          return mockSelectedAccountGroup;
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
-        return mockSelectedAccountGroup;
+        return hardwareAccount;
       });
       (isHardwareAccount as jest.Mock).mockReturnValue(true);
 
@@ -528,14 +538,14 @@ describe('useRewardDashboardModals', () => {
       );
     });
 
-    it('does not show modal when no selected account group', () => {
+    it('does not show modal when no selected account', () => {
       // Arrange
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
-        }
-        if (selector === selectSelectedAccountGroup) {
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
           return null;
+        }
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
         return null;
       });
@@ -574,14 +584,14 @@ describe('useRewardDashboardModals', () => {
   });
 
   describe('hasShownModal', () => {
-    it('returns false when no selected account group', () => {
+    it('returns false when no selected account', () => {
       // Arrange
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
-        }
-        if (selector === selectSelectedAccountGroup) {
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
           return null;
+        }
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
         return null;
       });
@@ -615,26 +625,56 @@ describe('useRewardDashboardModals', () => {
   });
 
   describe('tracking key fallback behavior', () => {
-    it('falls back to "unknown" when accountGroupId is null', () => {
+    it('falls back to account id when accountGroupId is null', () => {
       // Arrange
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroup) {
-          return null; // no account group
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
+          return mockSelectedAccount;
         }
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return null; // no account group id
+        }
+        return mockSelectedAccount;
+      });
+
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      // Act - show modal with account ID as tracking key
+      act(() => {
+        result.current.showNotOptedInModal();
+      });
+
+      mockNavigate.mockClear();
+
+      // Try to show again - should not show (tracked by account ID)
+      act(() => {
+        result.current.showNotOptedInModal();
+      });
+
+      // Assert - modal should not show again
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('falls back to "unknown" when both accountGroupId and account are null', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
+          return null; // no account
+        }
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return null; // no group id
         }
         return null;
       });
 
       const { result } = renderHook(() => useRewardDashboardModals());
 
-      // Act - should not show modal without account group
+      // Act - should not show modal without account
       act(() => {
         result.current.showNotOptedInModal();
       });
 
-      // Assert - modal should not show without account group
+      // Assert - modal should not show without account
       expect(mockNavigate).not.toHaveBeenCalled();
 
       // But hasShownModal should still work with "unknown" key
@@ -822,21 +862,21 @@ describe('useRewardDashboardModals', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('does not reset tracking when no selected account group', () => {
+    it('does not reset tracking when no selected account', () => {
       // Arrange
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
-        }
-        if (selector === selectSelectedAccountGroup) {
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
           return null;
+        }
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
         return null;
       });
 
       const { result } = renderHook(() => useRewardDashboardModals());
 
-      // Act - try to reset without selected account group
+      // Act - try to reset without selected account
       act(() => {
         result.current.resetSessionTrackingForCurrentAccountGroup();
       });
@@ -858,19 +898,13 @@ describe('useRewardDashboardModals', () => {
 
       // Switch to different account group
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroup) {
-          return {
-            ...mockSelectedAccountGroup,
-            id: 'different-account-group-id',
-          };
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
+          return { ...mockSelectedAccount, id: 'different-account' };
         }
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'different-account-group-id';
         }
-        return {
-          ...mockSelectedAccountGroup,
-          id: 'different-account-group-id',
-        };
+        return { ...mockSelectedAccount, id: 'different-account' };
       });
 
       const { result: result2 } = renderHook(() => useRewardDashboardModals());
@@ -897,13 +931,13 @@ describe('useRewardDashboardModals', () => {
 
       // Switch back to first account group
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroup) {
-          return mockSelectedAccountGroup;
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
+          return mockSelectedAccount;
         }
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'test-account-group-id';
         }
-        return mockSelectedAccountGroup;
+        return mockSelectedAccount;
       });
 
       const { result: result3 } = renderHook(() => useRewardDashboardModals());
@@ -1009,13 +1043,13 @@ describe('useRewardDashboardModals', () => {
 
       // Switch to different account group for second instance
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectSelectedAccountGroup) {
-          return { ...mockSelectedAccountGroup, id: 'group-2' };
+        if (selector.toString().includes('selectSelectedInternalAccount')) {
+          return { ...mockSelectedAccount, id: 'account-2' };
         }
-        if (selector === selectInternalAccountsByGroupId) {
-          return (_groupId: string) => mockAccounts;
+        if (selector.toString().includes('selectSelectedAccountGroupId')) {
+          return 'group-2';
         }
-        return { ...mockSelectedAccountGroup, id: 'group-2' };
+        return { ...mockSelectedAccount, id: 'account-2' };
       });
 
       const { result: result2 } = renderHook(() => useRewardDashboardModals());

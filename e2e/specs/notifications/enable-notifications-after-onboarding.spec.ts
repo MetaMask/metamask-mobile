@@ -21,7 +21,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     // since they're turned on by default
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withDefaultFixture().build(),
+        fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
         permissions: {
           notifications: 'YES',
@@ -55,12 +55,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await NotificationDetailsView.tapOnBackButton();
 
         // Wallet Announcement Details
-        // Check that notification details can be watched for some notifications
-        // Reduced number of elements to test to avoid flakiness
-        const walletNotifications = getMockWalletNotificationItemIds().slice(
-          0,
-          3,
-        );
+        const walletNotifications = getMockWalletNotificationItemIds();
         for (const walletNotificationId of walletNotifications) {
           await NotificationMenuView.scrollToNotificationItem(
             walletNotificationId,
@@ -76,22 +71,6 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           );
           await NotificationDetailsView.tapOnBackButton();
         }
-
-        // Check that all notifications are visible in the UI
-        const foundIds: string[] = [];
-        const otherNotifications = getMockWalletNotificationItemIds().slice(3);
-        for (const id of otherNotifications) {
-          await NotificationMenuView.scrollToNotificationItem(id);
-          await Assertions.expectElementToBeVisible(
-            NotificationMenuView.selectNotificationItem(id),
-            { description: `wallet notification ${id} visible` },
-          );
-          foundIds.push(id);
-        }
-        await Assertions.checkIfArrayHasLength(
-          foundIds,
-          otherNotifications.length,
-        );
       },
     );
   });

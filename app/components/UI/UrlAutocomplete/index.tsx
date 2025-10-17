@@ -254,13 +254,16 @@ const UrlAutocomplete = forwardRef<
     sourcePage: 'MainView',
   });
 
-  const goToSwaps = useCallback(async () => {
-    try {
-      await goToSwapsHook();
-    } catch (error) {
-      return;
-    }
-  }, [goToSwapsHook]);
+  const goToSwaps = useCallback(
+    async (result: TokenSearchResult) => {
+      try {
+        await goToSwapsHook(result);
+      } catch (error) {
+        return;
+      }
+    },
+    [goToSwapsHook],
+  );
 
   const renderSectionHeader = useCallback(
     ({ section: { category } }: { section: ResultsWithCategory }) => (

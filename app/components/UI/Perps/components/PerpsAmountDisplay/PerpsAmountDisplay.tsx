@@ -7,11 +7,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  formatPerpsFiat,
-  formatPositionSize,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
+import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {
@@ -97,7 +93,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
             : amount
-            ? formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW })
+            ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
             : '$0'}
         </Text>
         {isActive && (

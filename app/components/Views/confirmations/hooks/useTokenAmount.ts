@@ -1,10 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { NetworkClientId } from '@metamask/network-controller';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import I18n from '../../../../../locales/i18n';
@@ -41,8 +38,6 @@ interface TokenAmountProps {
    * Optional value in wei to display. If not provided, the amount from the transactionMetadata will be used.
    */
   amountWei?: string;
-
-  transactionMeta?: TransactionMeta;
 }
 
 interface TokenAmount {
@@ -91,11 +86,8 @@ const useTokenDecimals = (
 
 export const useTokenAmount = ({
   amountWei,
-  transactionMeta,
 }: TokenAmountProps = {}): TokenAmount => {
   const fiatFormatter = useFiatFormatter();
-  const currentTransaction = useTransactionMetadataOrThrow();
-  const transaction = transactionMeta ?? currentTransaction;
 
   const {
     chainId,
@@ -103,7 +95,7 @@ export const useTokenAmount = ({
     networkClientId,
     txParams,
     type: transactionType,
-  } = transaction;
+  } = useTransactionMetadataOrThrow();
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId as Hex),

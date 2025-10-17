@@ -11,12 +11,11 @@ import { loginToApp } from '../../viewHelper';
 jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
-  it('runs the onInstall lifecycle hook when the Snap is installed', async () => {
+  it('runs the `onInstall` lifecycle hook when the Snap is installed', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -31,23 +30,17 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
     );
   });
 
-  it('runs the onStart lifecycle hook when the client is started', async () => {
+  it('runs the `onStart` lifecycle hook when the client is started', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
-        skipReactNativeReload: true,
       },
       async () => {
         await TestHelpers.terminateApp();
         await TestHelpers.launchApp({
           launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
         });
-
-        try {
-          await loginToApp();
-        } catch {
-          // The assertions inside may fail due to the ongoing test.
-        }
+        await loginToApp();
 
         await Assertions.checkIfTextIsDisplayed(
           'The client was started successfully, and the "onStart" handler was called.',

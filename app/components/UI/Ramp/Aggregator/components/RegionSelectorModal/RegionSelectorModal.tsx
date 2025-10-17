@@ -164,11 +164,7 @@ function RegionSelectorModal() {
 
       return (
         <ListItemSelect
-          isSelected={
-            selectedRegion?.id === region.id ||
-            (selectedRegion?.id.includes('-') &&
-              selectedRegion.id.split('-')[0] === region.id)
-          }
+          isSelected={selectedRegion?.id === region.id}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible

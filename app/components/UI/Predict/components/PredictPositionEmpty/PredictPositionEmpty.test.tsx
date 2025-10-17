@@ -152,29 +152,28 @@ describe('PredictPositionEmpty', () => {
     it('renders the empty state with all required elements', () => {
       renderWithProvider(<PredictPositionEmpty />);
 
+      expect(screen.getByText('No predictions yet')).toBeOnTheScreen();
       expect(
-        screen.getByText(
-          'Your predictions will appear here, showing your stake and market movement.',
-        ),
+        screen.getByText('Open a prediction to get started.'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Browse markets')).toBeOnTheScreen();
+      expect(screen.getByText('Explore markets')).toBeOnTheScreen();
       expect(screen.getByTestId('icon')).toBeOnTheScreen();
     });
 
-    it('renders the browse markets button', () => {
+    it('renders the explore markets button', () => {
       renderWithProvider(<PredictPositionEmpty />);
 
-      const browseButton = screen.getByText('Browse markets');
-      expect(browseButton).toBeOnTheScreen();
+      const exploreButton = screen.getByText('Explore markets');
+      expect(exploreButton).toBeOnTheScreen();
     });
   });
 
   describe('Navigation Interaction', () => {
-    it('navigates to market list when browse button is pressed', () => {
+    it('navigates to market list when explore button is pressed', () => {
       renderWithProvider(<PredictPositionEmpty />);
 
-      const browseButton = screen.getByText('Browse markets');
-      fireEvent.press(browseButton);
+      const exploreButton = screen.getByText('Explore markets');
+      fireEvent.press(exploreButton);
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
@@ -189,23 +188,21 @@ describe('PredictPositionEmpty', () => {
   });
 
   describe('Content Display', () => {
+    it('displays the correct empty state title', () => {
+      renderWithProvider(<PredictPositionEmpty />);
+
+      expect(screen.getByText('No predictions yet')).toBeOnTheScreen();
+    });
+
     it('displays the correct empty state description', () => {
       renderWithProvider(<PredictPositionEmpty />);
 
       expect(
-        screen.getByText(
-          'Your predictions will appear here, showing your stake and market movement.',
-        ),
+        screen.getByText('Open a prediction to get started.'),
       ).toBeOnTheScreen();
     });
 
-    it('displays the correct button text', () => {
-      renderWithProvider(<PredictPositionEmpty />);
-
-      expect(screen.getByText('Browse markets')).toBeOnTheScreen();
-    });
-
-    it('displays the sparkle icon', () => {
+    it('displays the details icon', () => {
       renderWithProvider(<PredictPositionEmpty />);
 
       const icon = screen.getByTestId('icon');

@@ -1,5 +1,6 @@
 import { Platform, TouchableOpacity as RNTouchableOpacity } from 'react-native';
 import { TouchableOpacity as TemporaryTouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
+import { useCallback, useRef } from 'react';
 
 /**
  * TouchablePerpsComponent - Platform-specific TouchableOpacity for Perps components
@@ -35,3 +36,31 @@ export const TouchablePerpsComponent =
   Platform.OS === 'android' && !isE2ETest && !isUnitTest
     ? TemporaryTouchableOpacity
     : RNTouchableOpacity;
+/**
+ * useCoordinatedPress - Hook that replicates ButtonBase's press coordination logic
+ *
+ * This hook provides the exact same press coordination behavior as ButtonBase,
+ * including test environment handling and TalkBack compatibility.
+ */
+export const useCoordinatedPress = () => {
+  // Shared coordination system for maximum reliability
+  // Both custom TouchableOpacity and main component use the same timestamp reference
+  const lastPressTime = useRef(0);
+  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+
+  return useCallback((onPress?: () => void) => {
+    // Skip coordination logic in test environments
+    if (process.env.NODE_ENV === 'test') {
+      onPress?.();
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastPress = now - lastPressTime.current;
+
+    if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
+      lastPressTime.current = now;
+      onPress();
+    }
+  }, []); // Empty dependency array - function never changes
+};

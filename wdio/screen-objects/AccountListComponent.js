@@ -30,12 +30,8 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByCatchAll(this._device, 'Create account');
+      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT);
     }
-  }
-
-  get addWalletButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'account-list-add-account-button');
   }
 
   async tapCreateAccountButton() {
@@ -44,11 +40,6 @@ class AccountListComponent {
     } else {
       await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
-  }
-
-  async tapOnAddWalletButton() {
-    const element = await this.addWalletButton;
-    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async isComponentDisplayed() {

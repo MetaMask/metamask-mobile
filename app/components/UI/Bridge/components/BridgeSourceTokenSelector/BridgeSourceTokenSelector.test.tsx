@@ -136,14 +136,12 @@ describe('BridgeSourceTokenSelector', () => {
 
     // Assert - check that actions were called
     expect(setSourceToken).toHaveBeenCalledWith({
-      accountType: undefined,
       address: '0x0000000000000000000000000000000000000001',
       balance: '1.0',
       balanceFiat: '$20000',
       chainId: '0x1',
       decimals: 18,
-      image:
-        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png',
+      image: 'https://token1.com/logo.png',
       name: 'Token One',
       symbol: 'TOKEN1',
       tokenFiatAmount: 20000,

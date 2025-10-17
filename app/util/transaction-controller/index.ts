@@ -4,8 +4,6 @@ import {
   TransactionParams,
   TransactionEnvelopeType,
   TransactionController as BaseTransactionController,
-  IsAtomicBatchSupportedRequest,
-  IsAtomicBatchSupportedResult,
 } from '@metamask/transaction-controller';
 import { NetworkClientId } from '@metamask/network-controller';
 
@@ -189,13 +187,6 @@ export function updateRequiredTransactionIds(
 ) {
   const { TransactionController } = Engine.context;
   return TransactionController.updateRequiredTransactionIds(...args);
-}
-
-export async function isAtomicBatchSupported(
-  request: IsAtomicBatchSupportedRequest,
-): Promise<IsAtomicBatchSupportedResult> {
-  const { TransactionController } = Engine.context;
-  return TransactionController?.isAtomicBatchSupported(request);
 }
 
 function sanitizeTransactionParamsGasValues(

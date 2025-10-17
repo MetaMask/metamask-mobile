@@ -104,8 +104,6 @@ const Routes = {
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
-    REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
-    REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -237,7 +235,6 @@ const Routes = {
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
-      RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -264,13 +261,9 @@ const Routes = {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
-    ACTIVITY_DETAIL: 'PredictActivityDetail',
     MODALS: {
       ROOT: 'PredictModals',
-      BUY_PREVIEW: 'PredictBuyPreview',
-      SELL_PREVIEW: 'PredictSellPreview',
-      UNAVAILABLE: 'PredictUnavailable',
-      ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
+      CASH_OUT: 'PredictCashOut',
     },
   },
   LOCK_SCREEN: 'LockScreen',
@@ -311,7 +304,6 @@ const Routes = {
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
-    NO_HEADER: 'NoHeaderConfirmations',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
@@ -347,7 +339,6 @@ const Routes = {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
-    AUTHENTICATION: 'CardAuthentication',
   },
   SEND: {
     RECIPIENT: 'Recipient',

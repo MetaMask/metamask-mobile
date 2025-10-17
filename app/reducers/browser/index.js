@@ -10,7 +10,6 @@ const initialState = {
   activeTab: null,
   // Keep track of viewed Dapps, which is used for MetaMetricsEvents.DAPP_VIEWED event
   visitedDappsByHostname: {},
-  isFullscreen: false,
 };
 const browserReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -97,11 +96,6 @@ const browserReducer = (state = initialState, action) => {
           { origin: action.origin, url: action.url },
           ...state.favicons,
         ].slice(0, AppConstants.FAVICON_CACHE_MAX_SIZE),
-      };
-    case 'TOGGLE_FULLSCREEN':
-      return {
-        ...state,
-        isFullscreen: action.isFullscreen,
       };
     default:
       return state;

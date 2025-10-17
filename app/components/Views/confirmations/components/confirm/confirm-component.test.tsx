@@ -54,7 +54,6 @@ jest.mock(
 );
 
 jest.mock('../../hooks/gas/useGasFeeToken');
-jest.mock('../../hooks/tokens/useTokenWithBalance');
 
 const mockSetOptions = jest.fn();
 const mockNavigation = {
@@ -360,7 +359,7 @@ describe('Confirm', () => {
 
   it('displays alternate loader if specified', () => {
     useParamsMock.mockReturnValue({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.PerpsDeposit,
     });
 
     const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
@@ -375,7 +374,7 @@ describe('Confirm', () => {
       state: stateWithoutRequest,
     });
 
-    expect(getByTestId('confirm-loader-custom-amount')).toBeDefined();
+    expect(getByTestId('confirm-loader-perps-deposit')).toBeDefined();
   });
 
   it('sets navigation options with header hidden for modal confirmations', () => {

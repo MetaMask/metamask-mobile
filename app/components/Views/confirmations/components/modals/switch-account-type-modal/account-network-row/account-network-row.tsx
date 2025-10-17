@@ -66,7 +66,6 @@ const AccountNetworkRow = ({
   );
 
   const onSwitch = useCallback(async () => {
-    if (switchRequestSubmitted) return;
     setSwitchRequestSubmitted(true);
     if (addressSupportSmartAccount) {
       await downgradeAccount(address);
@@ -95,7 +94,6 @@ const AccountNetworkRow = ({
     upgradeAccount,
     upgradeContractAddress,
     useMultichainAccountsDesign,
-    switchRequestSubmitted,
   ]);
 
   useEffect(() => {

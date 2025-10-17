@@ -25,7 +25,6 @@ export const colors = {
   modalScrollButton: '#ECEEFF',
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
-  gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
 };
 
 export const onboardingCarouselColors: Record<

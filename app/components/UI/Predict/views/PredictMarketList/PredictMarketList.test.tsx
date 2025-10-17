@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -10,7 +10,6 @@ import PredictMarketList from './PredictMarketList';
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
-  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -30,16 +29,6 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     default: Text,
     TextVariant: {
       HeadingLG: 'HeadingLG',
-      BodyMD: 'BodyMD',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Primary: 'Primary',
-      Alternative: 'Alternative',
-      Muted: 'Muted',
-      Success: 'Success',
-      Error: 'Error',
     },
   };
 });
@@ -57,45 +46,6 @@ jest.mock('../../components/MarketListContent', () => {
     return (
       <View testID={`market-list-content-${category}`}>
         <Text testID={`category-${category}`}>{category} markets</Text>
-      </View>
-    );
-  };
-});
-
-jest.mock('../../components/PredictBalance/PredictBalance', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockPredictBalance() {
-    return (
-      <View testID="predict-balance">
-        <Text>Balance: $100.00</Text>
-      </View>
-    );
-  };
-});
-
-jest.mock('../../components/SearchBox', () => {
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  return function MockSearchBox({
-    isVisible,
-    onCancel,
-    onSearch,
-  }: {
-    isVisible: boolean;
-    onCancel: () => void;
-    onSearch: (query: string) => void;
-  }) {
-    return (
-      <View testID="search-box">
-        <Text>Search Box Visible: {String(isVisible)}</Text>
-        <TouchableOpacity testID="search-cancel-button" onPress={onCancel}>
-          <Text>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID="search-input-button"
-          onPress={() => onSearch('test query')}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -150,97 +100,12 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     },
     IconName: {
       Search: 'Search',
-      AddSquare: 'AddSquare',
     },
     IconSize: {
       Lg: 'Lg',
-      Md: 'Md',
-    },
-    IconColor: {
-      Default: 'Default',
-      Primary: 'Primary',
-      Alternative: 'Alternative',
-      Muted: 'Muted',
     },
   };
 });
-
-jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockAvatar({
-      variant,
-      testID,
-    }: {
-      variant: string;
-      testID?: string;
-    }) {
-      return <View testID={testID || `avatar-${variant}`} />;
-    },
-    AvatarVariant: {
-      Icon: 'Icon',
-    },
-    AvatarSize: {
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockButton({
-      onPress,
-      children,
-      label,
-      testID,
-    }: {
-      onPress?: () => void;
-      children?: React.ReactNode;
-      label?: string;
-      testID?: string;
-    }) {
-      return (
-        <TouchableOpacity onPress={onPress} testID={testID || 'button'}>
-          <Text>{label || children}</Text>
-        </TouchableOpacity>
-      );
-    },
-    ButtonVariants: {
-      Link: 'Link',
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-    },
-    ButtonSize: {
-      Md: 'Md',
-      Sm: 'Sm',
-      Lg: 'Lg',
-    },
-    ButtonWidthTypes: {
-      Auto: 'Auto',
-      Full: 'Full',
-    },
-  };
-});
-
-jest.mock('../../hooks/usePredictBalance', () => ({
-  usePredictBalance: jest.fn(() => ({
-    balance: 100,
-    hasNoBalance: false,
-    isLoading: false,
-    isRefreshing: false,
-    error: null,
-    loadBalance: jest.fn(),
-  })),
-}));
-
-jest.mock('../../utils/format', () => ({
-  formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
-  formatVolume: jest.fn((value: number) => value.toLocaleString()),
-}));
 
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const { View } = jest.requireActual('react-native');
@@ -252,12 +117,12 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
       style,
     }: {
       children?: React.ReactNode;
-      renderTabBar?: false | (() => React.ReactNode);
+      renderTabBar?: () => React.ReactNode;
       style?: object;
     }) {
       return (
         <View testID="scrollable-tab-view" style={style}>
-          {renderTabBar && typeof renderTabBar === 'function' && renderTabBar()}
+          {renderTabBar?.()}
           {children}
         </View>
       );
@@ -267,30 +132,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
 
 jest.mock('../../../Navbar', () => ({
   getNavigationOptionsTitle: jest.fn(),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'predict.category.trending': 'Trending',
-      'predict.category.new': 'New',
-      'predict.category.sports': 'Sports',
-      'predict.category.crypto': 'Crypto',
-      'predict.category.politics': 'Politics',
-    };
-    return translations[key] || key;
-  }),
-}));
-
-jest.mock('../../../../../../e2e/selectors/Predict/Predict.selectors', () => ({
-  PredictMarketListSelectorsIDs: {
-    CONTAINER: 'predict-market-list-container',
-    TRENDING_TAB: 'predict-market-list-trending-tab',
-    NEW_TAB: 'predict-market-list-new-tab',
-    SPORTS_TAB: 'predict-market-list-sports-tab',
-    CRYPTO_TAB: 'predict-market-list-crypto-tab',
-    POLITICS_TAB: 'predict-market-list-politics-tab',
-  },
 }));
 
 jest.mock('../../../../../util/theme', () => ({
@@ -415,90 +256,6 @@ describe('PredictMarketList', () => {
           screen.getByTestId(`market-list-content-${category}`),
         ).toBeOnTheScreen();
       });
-    });
-  });
-
-  describe('Search Functionality', () => {
-    it('shows search box when search icon is pressed', () => {
-      const { getByTestId, queryByText } = render(<PredictMarketList />);
-
-      // Initially search box should not be visible
-      expect(queryByText('Search Box Visible: true')).not.toBeOnTheScreen();
-
-      // Press search icon
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Search box should now be visible
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
-      expect(screen.getByText('Search Box Visible: true')).toBeOnTheScreen();
-    });
-
-    it('hides search box when cancel button is pressed', () => {
-      const { getByTestId } = render(<PredictMarketList />);
-
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
-
-      // Cancel search
-      const cancelButton = getByTestId('search-cancel-button');
-      fireEvent.press(cancelButton);
-
-      // Search box should be hidden and title should be visible again
-      expect(screen.queryByTestId('search-box')).not.toBeOnTheScreen();
-      expect(screen.getByText('Predictions')).toBeOnTheScreen();
-    });
-
-    it('handles search query input', () => {
-      const { getByTestId } = render(<PredictMarketList />);
-
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Input search query
-      const searchInputButton = getByTestId('search-input-button');
-      fireEvent.press(searchInputButton);
-
-      // Search results should be displayed
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
-    });
-
-    it('clears search query when cancel is pressed', () => {
-      const { getByTestId } = render(<PredictMarketList />);
-
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Input search query
-      const searchInputButton = getByTestId('search-input-button');
-      fireEvent.press(searchInputButton);
-
-      // Cancel search
-      const cancelButton = getByTestId('search-cancel-button');
-      fireEvent.press(cancelButton);
-
-      // Should return to normal view
-      expect(screen.getByText('Predictions')).toBeOnTheScreen();
-      expect(screen.queryByTestId('search-box')).not.toBeOnTheScreen();
-    });
-
-    it('hides main tab view when search is visible', () => {
-      const { getByTestId, queryByTestId } = render(<PredictMarketList />);
-
-      // Initially main tab content should be visible
-      expect(queryByTestId('predict-balance')).toBeOnTheScreen();
-
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Main content should be hidden when search is active
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
     });
   });
 });

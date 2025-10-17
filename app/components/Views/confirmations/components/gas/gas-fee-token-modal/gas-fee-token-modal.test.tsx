@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { GasFeeTokenModal } from './gas-fee-token-modal';
 import { GasFeeToken } from '@metamask/transaction-controller';
@@ -172,7 +172,7 @@ describe('GasFeeTokenModal', () => {
     ).toBeTruthy();
   });
 
-  it('handles token selection and calls updateSelectedGasFeeToken', async () => {
+  it('handles token selection and calls updateSelectedGasFeeToken', () => {
     const transactionId = 'test-tx-id';
     const { getByTestId } = setupTest({
       transactionId,
@@ -185,35 +185,28 @@ describe('GasFeeTokenModal', () => {
         `gas-fee-token-list-item-${MOCK_WETH_USE_GAS_FEE_TOKEN.symbol}`,
       ),
     );
-
-    await waitFor(() =>
-      expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
-        transactionId,
-        MOCK_WETH_USE_GAS_FEE_TOKEN.tokenAddress,
-      ),
+    expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
+      transactionId,
+      MOCK_WETH_USE_GAS_FEE_TOKEN.tokenAddress,
     );
-
-    await waitFor(() => expect(mockOnClose).toHaveBeenCalled());
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('handles native token selection', async () => {
+  it('handles native token selection', () => {
     const transactionId = 'test-tx-id';
-    const { getByTestId } = setupTest({ transactionId });
-
+    const { getByTestId } = setupTest({
+      transactionId,
+    });
     fireEvent.press(
       getByTestId(
         `gas-fee-token-list-item-${MOCK_NATIVE_USE_GAS_FEE_TOKEN.symbol}`,
       ),
     );
-
-    await waitFor(() =>
-      expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
-        transactionId,
-        undefined,
-      ),
+    expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
+      transactionId,
+      undefined,
     );
-
-    await waitFor(() => expect(mockOnClose).toHaveBeenCalled());
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('shows native token as selected when no gas fee token is selected', () => {

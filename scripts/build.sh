@@ -604,8 +604,6 @@ buildAndroid() {
 		buildAndroidReleaseE2E
   	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
-	elif [ "$MODE" == "flaskDebugE2E" ] ; then
-		buildAndroidFlaskDev
 	else
 		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized."
 		exit 1
@@ -740,7 +738,7 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "dev" ]; then
 		remapMainDevEnvVariables
 	fi
-elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebugE2E" ]; then
+elif [ "$MODE" == "flask" ]; then
 	# TODO: Map environment variables based on environment
 	if [ "$ENVIRONMENT" == "production" ]; then
 		remapFlaskProdEnvVariables

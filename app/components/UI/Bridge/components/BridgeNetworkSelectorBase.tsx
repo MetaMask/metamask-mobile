@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -76,9 +76,7 @@ export const BridgeNetworkSelectorBase: React.FC<
           </BottomSheetHeader>
         </Box>
 
-        <Box style={styles.content}>
-          <ScrollView>{children}</ScrollView>
-        </Box>
+        <Box style={styles.content}>{children}</Box>
       </Box>
     </BottomSheet>
   );

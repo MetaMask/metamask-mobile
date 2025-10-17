@@ -34,7 +34,6 @@ import {
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
-import ExternalAccountCell from './ExternalAccountCell';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -42,28 +41,18 @@ const MultichainAccountSelectorList = ({
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   showCheckbox = false,
-  showFooter = true,
   setKeyboardAvoidingViewEnabled,
-  accountSections: accountSectionsProp,
-  chainId,
-  hideAccountCellMenu = false,
-  showExternalAccountOnEmptySearch = false,
-  onSelectExternalAccount,
-  selectedExternalAddress,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
   const isMultichainAccountsEnabled = useSelector(
     selectMultichainAccountsState1Enabled,
   );
-  const accountSectionsFromSelector = useSelector(selectAccountGroupsByWallet);
-  const accountSections = accountSectionsProp || accountSectionsFromSelector;
+  const accountSections = useSelector(selectAccountGroupsByWallet);
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
-  const [searchText, setSearchText] = useState(selectedExternalAddress || '');
-  const [debouncedSearchText, setDebouncedSearchText] = useState(
-    selectedExternalAddress || '',
-  );
+  const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const [lastCreatedAccountId, setLastCreatedAccountId] = useState<
     string | null
   >(null);
@@ -140,18 +129,11 @@ const MultichainAccountSelectorList = ({
   }, [walletSections, debouncedSearchText, matchesSearch]);
 
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
-    const items: FlattenedMultichainAccountListItem[] = [];
-
     if (filteredWalletSections.length === 0) {
-      if (showExternalAccountOnEmptySearch) {
-        const address = debouncedSearchText.trim();
-        items.push({
-          type: 'external',
-          data: { address },
-        });
-      }
-      return items;
+      return [];
     }
+
+    const items: FlattenedMultichainAccountListItem[] = [];
 
     filteredWalletSections.forEach((section) => {
       items.push({
@@ -174,11 +156,7 @@ const MultichainAccountSelectorList = ({
     });
 
     return items;
-  }, [
-    filteredWalletSections,
-    debouncedSearchText,
-    showExternalAccountOnEmptySearch,
-  ]);
+  }, [filteredWalletSections]);
 
   // Compute first selected account index for initial positioning only
   const initialSelectedIndex = useMemo(() => {
@@ -247,13 +225,6 @@ const MultichainAccountSelectorList = ({
     [onSelectAccount],
   );
 
-  const handleSelectExternalAccount = useCallback(
-    (address: string) => {
-      onSelectExternalAccount?.(address);
-    },
-    [onSelectExternalAccount],
-  );
-
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
     useCallback(
       ({ item }: { item: FlattenedMultichainAccountListItem }) => {
@@ -271,28 +242,11 @@ const MultichainAccountSelectorList = ({
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
                 showCheckbox={showCheckbox}
-                chainId={chainId}
-                hideMenu={hideAccountCellMenu}
-              />
-            );
-          }
-
-          case 'external': {
-            const isSelected = selectedExternalAddress ? 
-              item.data.address.toLowerCase() ===
-              selectedExternalAddress.toLowerCase() : false;
-            return (
-              <ExternalAccountCell
-                address={item.data.address}
-                onPress={() => handleSelectExternalAccount(item.data.address)}
-                chainId={chainId}
-                isSelected={isSelected}
               />
             );
           }
 
           case 'footer': {
-            if (!showFooter) return null;
             return (
               <AccountListFooter
                 walletId={item.data.walletId}
@@ -309,13 +263,8 @@ const MultichainAccountSelectorList = ({
         selectedIdSet,
         handleSelectAccount,
         handleAccountCreated,
-        handleSelectExternalAccount,
         avatarAccountType,
         showCheckbox,
-        showFooter,
-        chainId,
-        hideAccountCellMenu,
-        selectedExternalAddress,
       ],
     );
 
@@ -326,8 +275,6 @@ const MultichainAccountSelectorList = ({
           return `header-${item.data.walletName}`;
         case 'cell':
           return `account-${item.data.id}`;
-        case 'external':
-          return `external-${item.data.address}`;
         case 'footer':
           return `footer-${item.data.walletName}`;
         default:

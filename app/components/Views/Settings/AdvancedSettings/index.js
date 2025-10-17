@@ -1,8 +1,7 @@
 // Third party dependencies.
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { Linking, StyleSheet, Switch, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Linking, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
@@ -386,7 +385,7 @@ class AdvancedSettings extends PureComponent {
     const { styles } = this.getStyles();
 
     return (
-      <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
+      <SafeAreaView style={baseStyles.flexGrow}>
         <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}

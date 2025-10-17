@@ -221,12 +221,6 @@
     "remind_later_description2": "Sie können Ihre Wallet sichern oder Ihre geheime Wiederherstellungsphrase sehen in:",
     "setting_security_privacy": "Einstellungen > Sicherheit und Datenschutz"
   },
-  "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
-  },
   "onboarding_carousel": {
     "title1": "Willkommen bei MetaMask",
     "title2": "Verwalten Sie Ihr digitales Vermögen",
@@ -395,7 +389,6 @@
     "description": "Schaltet MetaMask nur auf diesem Gerät frei.",
     "description_social_login": "Verwenden Sie dies, um die Wallet auf allen Geräten wiederherzustellen.",
     "description_social_login_update": "Wenn Sie dieses Passwort verlieren, verlieren Sie auch auf sämtlichen Geräten den Zugang zu Ihrer Wallet. Bewahren Sie es an einem sicheren Ort auf,",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask kann es nicht zurücksetzen.",
     "subtitle": "Dieses Passwort wird Ihre MetaMask-Wallet nur auf diesem Gerät entsperren.",
     "password": "Passwort erstellen",
@@ -669,14 +662,7 @@
       "bullet_2_description": "USDC ist auf Stabilität ausgelegt, damit Sie leichter planen, sparen und ausgeben können.",
       "bullet_3_title": "Schneller als Banken",
       "bullet_3_description": "Senden und empfangen Sie in wenigen Minuten, ohne auf Banköffnungszeiten oder internationale Verzögerungen zu warten.",
-      "button": "Erste Schritte",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "Erste Schritte"
     },
     "enter_email": {
       "navbar_title": "Verifizieren Sie Ihre Identität",
@@ -893,6 +879,7 @@
     "refresh_balance": "Guthaben aktualisieren",
     "add_funds": "Gelder hinzufügen",
     "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Ihre Positionen",
     "loading_positions": "Positionen werden geladen ...",
     "refreshing_positions": "Positionen werden aktualisiert ...",
@@ -1613,13 +1600,7 @@
     "won_markets_text_plural": "{{count}} Märkte gewonnen",
     "claim_amount_text": "{{amount}} $ einfordern",
     "unrealized_pnl_label": "Nicht realisierte GuV",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unavailable": {
-      "title": "Unavailable in your region",
-      "description": "Predictions aren't available in your region due to legal restrictions.",
-      "link": "See Polymarket terms",
-      "button": "Got it"
-    }
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "Empfangen"
@@ -2803,13 +2784,12 @@
   },
   "gas_fee_token_modal": {
     "title": "Ein Token wählen",
+    "title_pay_eth": "Mit ETH bezahlen",
     "native_toggle_wallet": "Bezahlen Sie die Netzwerkgebühr mit dem Guthaben in Ihrer Wallet.",
     "list_balance": "Guth.:",
     "insufficient_balance": "Unzureichende Gelder",
-    "native_toggle_metamask": "MetaMask ergänzt das Guthaben, um diese Transaktion abzuschließen."
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "MetaMask ergänzt das Guthaben, um diese Transaktion abzuschließen.",
+    "title_pay_with_other_tokens": "Mit anderen Tokens bezahlen"
   },
   "transaction": {
     "transaction_id": "Transaktions-ID",
@@ -3092,7 +3072,6 @@
     "tx_review_lending_deposit": "Krediteinzahlung",
     "tx_review_lending_withdraw": "Kreditauszahlung",
     "tx_review_perps_deposit": "Perps-Konto finanziert",
-    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Ether senden",
     "self_sent_ether": "Senden Sie sich selbst Ether",
     "received_ether": "Ether empfangen",
@@ -5297,8 +5276,7 @@
       "transfer": "Übertragungsanfrage",
       "switch_account_type": "Konto-Update",
       "approve": "Anfrage genehmigen",
-      "perps_deposit": "Gelder hinzufügen",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "Gelder hinzufügen"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -5316,9 +5294,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "Wir swappen Ihre Token gegen USDC auf HyperCore, dem von Perps verwendeten Netzwerk. Swap-Anbieter können eine Gebühr erheben, MetaMask jedoch nicht."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Gebühren"
@@ -5537,9 +5512,7 @@
     "account_not_found": "Wallet nicht gefunden",
     "account_not_found_description": "Wir konnten keine Wallet für „{{accountName}}“ finden. Möchten Sie mit dieser Anmeldung eine neue erstellen?",
     "create_new_wallet": "Neue Wallet erstellen",
-    "use_different_login_method": "Eine andere Anmeldemethode verwenden",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "use_different_login_method": "Eine andere Anmeldemethode verwenden"
   },
   "error_sheet": {
     "still_there_title": "Noch da?",
@@ -5919,15 +5892,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      },
-      "date": "Date",
-      "account": "Account",
-      "bonus": "Bonus",
-      "details": "Details",
-      "points": "Points",
-      "points_base": "Base",
-      "points_boost": "Boost",
-      "points_total": "Total"
+      }
     },
     "onboarding": {
       "not_supported_region_title": "Region wird nicht unterstützt",
@@ -6099,8 +6064,7 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded Perps account",
-      "predict_deposit": "Funded Predict account",
+      "perps_deposit": "Perps-Konto finanziert",
       "default": "Transaktionsdetails"
     },
     "label": {
@@ -6116,7 +6080,6 @@
       "bridge_loading": "Bridge",
       "default": "Transaktion",
       "perps_deposit": "Gelder hinzufügen",
-      "predict_deposit": "Add funds",
       "swap": "Tokens tauschen",
       "swap_approval": "Tokens genehmigen"
     }
@@ -6129,10 +6092,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

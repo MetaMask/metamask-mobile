@@ -19,7 +19,7 @@ import Keypad from '../../../../Base/Keypad';
 import {
   formatPerpsFiat,
   formatWithSignificantDigits,
-  PRICE_RANGES_UNIVERSAL,
+  PRICE_RANGES_POSITION_VIEW,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -303,7 +303,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           {asset}-USD{' '}
           {currentPrice
             ? formatPerpsFiat(currentPrice, {
-                ranges: PRICE_RANGES_UNIVERSAL,
+                ranges: PRICE_RANGES_POSITION_VIEW,
               })
             : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
         </Text>

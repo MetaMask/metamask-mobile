@@ -1,20 +1,18 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import CardWelcome from './CardWelcome';
+import { cardDefaultNavigationOptions } from '../../routes';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 
 // Mocks
-const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-    }),
+    useNavigation: () => ({ goBack: mockGoBack }),
   };
 });
 
@@ -39,7 +37,6 @@ jest.mock('../../../../../util/theme', () => ({
 describe('CardWelcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockClear();
   });
 
   it('renders required UI elements', () => {
@@ -57,10 +54,27 @@ describe('CardWelcome', () => {
     ).toBeTruthy();
   });
 
-  it('navigates to authentication when verify account button pressed', () => {
+  it('calls goBack when verify account button pressed', () => {
     const { getByTestId } = render(<CardWelcome />);
     fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigation options provides header components and close triggers goBack', () => {
+    const mockNavigation = {
+      goBack: mockGoBack,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+    const options = cardDefaultNavigationOptions({
+      navigation: mockNavigation,
+    });
+    expect(options.headerTitle).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
+
+    const headerRightEl = options.headerRight();
+    // Simulate pressing close button by invoking onPress prop
+    headerRightEl.props.onPress();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

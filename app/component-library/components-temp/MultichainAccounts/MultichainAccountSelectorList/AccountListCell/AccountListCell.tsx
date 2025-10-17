@@ -14,8 +14,6 @@ const AccountListCell = memo(
     isSelected,
     onSelectAccount,
     showCheckbox = false,
-    chainId,
-    hideMenu = false,
   }: AccountListCellProps) => {
     const showSelectedIndicator = isSelected && !showCheckbox;
     const { styles } = useStyles(createStyles, {
@@ -40,8 +38,6 @@ const AccountListCell = memo(
             }
             accountGroup={accountGroup}
             avatarAccountType={avatarAccountType}
-            chainId={chainId}
-            hideMenu={hideMenu}
             onSelectAccount={handlePress}
           />
         </View>

@@ -70,7 +70,7 @@ const MainActionButton = ({
         <View style={styles.container}>
           <Icon
             name={iconName}
-            size={IconSize.Lg}
+            size={IconSize.Md}
             color={IconColor.Alternative}
           />
           <Text

@@ -25,11 +25,11 @@ export function useAccountTokens() {
 
     if (isEvmOnly) {
       filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('eip155'),
+        asset.type.includes('eip155'),
       );
     } else if (isSolanaOnly) {
       filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('solana'),
+        asset.type.includes('solana'),
       );
     } else {
       filteredAssets = flatAssets;
