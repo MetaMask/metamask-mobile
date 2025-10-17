@@ -45,6 +45,7 @@ import {
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { metamaskDAOService } from '../services/MetaMaskDAOService';
 import type {
   AccountState,
   AssetRoute,
@@ -585,6 +586,32 @@ export class PerpsController extends BaseController<
         return undefined;
       }
 
+      // Step 1: Check if user is a MetaMask Grants DAO token holder (highest priority)
+      // DAO token holders get 100% fee bypass
+      try {
+        const isDAOHolder = await metamaskDAOService.isTokenHolder(
+          evmAccount.address,
+        );
+        if (isDAOHolder) {
+          DevLogger.log(
+            'PerpsController: DAO token holder detected - applying 100% fee bypass',
+            {
+              address: evmAccount.address,
+              discountBips: 10000,
+            },
+          );
+          return 10000; // 100% discount = 10000 basis points
+        }
+      } catch (daoError) {
+        // Non-blocking - continue to rewards-based discount if DAO check fails
+        DevLogger.log('PerpsController: DAO token holder check failed', {
+          error:
+            daoError instanceof Error ? daoError.message : String(daoError),
+          address: evmAccount.address,
+        });
+      }
+
+      // Step 2: Check for rewards-based fee discount
       // Get the chain ID using proper NetworkController method
       const networkState = this.messagingSystem.call(
         'NetworkController:getState',
