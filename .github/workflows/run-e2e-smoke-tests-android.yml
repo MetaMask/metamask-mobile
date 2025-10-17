@@ -62,7 +62,7 @@ jobs:
   accounts-android-smoke:
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -70,7 +70,7 @@ jobs:
       platform: android
       test_suite_tag: "SmokeAccounts"
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 1
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
@@ -107,7 +107,7 @@ jobs:
   confirmations-redesigned-android-smoke:
    strategy:
      matrix:
-       split: [1, 2]
+       split: [1, 2, 3]
      fail-fast: false
    uses: ./.github/workflows/run-e2e-workflow.yml
    with:
@@ -115,7 +115,7 @@ jobs:
      platform: android
      test_suite_tag: "SmokeConfirmationsRedesigned"
      split_number: ${{ matrix.split }}
-     total_splits: 2
+     total_splits: 3
      changed_files: ${{ inputs.changed_files }}
    secrets: inherit
 
@@ -192,7 +192,7 @@ jobs:
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-          node .github/scripts/create-e2e-test-report.mjs
+          node .github/scripts/e2e-create-test-report.mjs
           
           # Clean up temporary node_modules
           rm -rf node_modules

@@ -36,7 +36,7 @@ import {
   PerpsEventValues,
 } from '../constants/eventNames';
 import { ensureError } from '../utils/perpsErrorHandler';
-import type { CandleData } from '../types';
+import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
