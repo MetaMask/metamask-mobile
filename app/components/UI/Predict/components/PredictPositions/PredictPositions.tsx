@@ -25,8 +25,6 @@ export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
 }
 
-const AUTO_REFRESH_TIMEOUT = 10000;
-
 const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   const tw = useTailwind();
   const navigation =
@@ -35,7 +33,6 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     usePredictPositions({
       loadOnMount: true,
       refreshOnFocus: true,
-      autoRefreshTimeout: AUTO_REFRESH_TIMEOUT,
     });
   const {
     positions: claimablePositions,
@@ -44,7 +41,6 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     claimable: true,
     loadOnMount: true,
     refreshOnFocus: true,
-    autoRefreshTimeout: AUTO_REFRESH_TIMEOUT,
   });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
 
