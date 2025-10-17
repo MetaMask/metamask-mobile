@@ -2,6 +2,8 @@ import { selectIsBitcoinAccountsEnabled } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 import packageJson from '../../../../package.json';
+import type { BitcoinAccountsFeatureFlag } from '../../../multichain-bitcoin/remote-feature-flag';
+import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
@@ -19,7 +21,7 @@ afterEach(() => {
 });
 
 // Helper function to create mock state with bitcoinAccounts flag
-function mockStateWith(bitcoinAccounts: unknown) {
+function mockStateWith(bitcoinAccounts: BitcoinAccountsFeatureFlag) {
   return {
     engine: {
       backgroundState: {
@@ -27,7 +29,8 @@ function mockStateWith(bitcoinAccounts: unknown) {
           cacheTimestamp: 0,
           remoteFeatureFlags: {
             bitcoinAccounts,
-          },
+            // Not sure why this cannot be inferred properly.
+          } as unknown as FeatureFlags,
         },
       },
     },
@@ -83,6 +86,7 @@ describe('selectIsBitcoinAccountsEnabled', () => {
   });
 
   it('returns false when flag structure is invalid', () => {
+    // @ts-expect-error - Testing error case.
     const mockedState = mockStateWith({
       enabled: true,
       // Missing minimumVersion - should return false for safety

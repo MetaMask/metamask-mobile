@@ -19,8 +19,10 @@ import {
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
 import { MultichainAccountServiceMultichainAccountGroupUpdatedEvent } from '@metamask/multichain-account-service';
-import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
-import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.d.cts';
+import {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 
 type Actions =
   | AccountsControllerListMultichainAccountsAction
