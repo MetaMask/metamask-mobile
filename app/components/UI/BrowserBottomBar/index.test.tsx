@@ -199,7 +199,10 @@ describe('BrowserBottomBar', () => {
     it('should track fullscreen closed event when exiting fullscreen', () => {
       const toggleFullscreen = jest.fn();
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar toggleFullscreen={toggleFullscreen} isFullscreen />,
+        <BrowserBottomBar
+          toggleFullscreen={toggleFullscreen}
+          isFullscreen
+        />,
       );
 
       fireEvent.press(

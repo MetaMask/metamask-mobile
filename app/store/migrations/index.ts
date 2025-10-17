@@ -288,7 +288,7 @@ export const asyncifyMigrations = (
    * - This function "redistributes" the single object back into individual controller files
    * - Then strips engine.backgroundState from redux to maintain the new architecture
    * - "repacking" the single object back into distributed files
-   *
+   * 
    * CRITICAL: Only strips engine.backgroundState if ALL controllers save successfully.
    * Failed controllers are preserved to prevent data loss.
    */
@@ -300,7 +300,7 @@ export const asyncifyMigrations = (
         string,
         unknown,
       ][];
-
+      
       let failedControllers = 0;
       const failedControllerStates: Record<string, unknown> = {};
 
@@ -333,7 +333,7 @@ export const asyncifyMigrations = (
         const { engine: _engine, ...rest } = s;
         return rest as unknown;
       }
-
+      
       // Keep failed controllers in engine.backgroundState to prevent data loss
       captureException(
         new Error(
