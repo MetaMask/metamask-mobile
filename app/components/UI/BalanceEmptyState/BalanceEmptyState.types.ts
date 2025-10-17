@@ -1,12 +1,8 @@
+import { BoxProps } from '@metamask/design-system-react-native';
 /**
  * Props for the BalanceEmptyState smart component
  */
-export interface BalanceEmptyStateProps {
-  /**
-   * Optional callback function to override the default deposit navigation.
-   * If not provided, will navigate to the deposit flow with tracking.
-   */
-  onAction?: () => void;
+export interface BalanceEmptyStateProps extends BoxProps {
   /**
    * Test ID for component testing
    */

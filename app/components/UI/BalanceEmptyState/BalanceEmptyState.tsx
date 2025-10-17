@@ -29,15 +29,15 @@ import bankTransferImage from '../../../images/bank-transfer.png';
  * with an illustration, title, subtitle, and action button that navigates to deposit flow.
  */
 const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
-  onAction,
   testID = 'balance-empty-state',
+  ...props
 }) => {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const goToDeposit = () => {
+  const handleAction = () => {
     navigation.navigate(...createDepositNavigationDetails());
 
     trackEvent(
@@ -62,11 +62,8 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
     });
   };
 
-  const handleAction = onAction || goToDeposit;
-
   return (
     <Box
-      twClassName="rounded-2xl"
       paddingLeft={4}
       paddingRight={4}
       paddingTop={3}
@@ -75,6 +72,8 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
       backgroundColor={BoxBackgroundColor.BackgroundSection}
       gap={5}
       testID={testID}
+      {...props}
+      twClassName={`rounded-2xl ${props.twClassName}`}
     >
       <Box
         flexDirection={BoxFlexDirection.Column}
