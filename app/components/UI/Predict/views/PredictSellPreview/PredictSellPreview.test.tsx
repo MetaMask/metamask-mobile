@@ -14,7 +14,7 @@ import {
   PredictPositionStatus,
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import PredictCashOut from './PredictCashOut';
+import PredictSellPreview from './PredictSellPreview';
 
 // Mock Alert
 const mockAlert = jest.fn();
@@ -74,15 +74,24 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   },
 }));
 
-// Mock usePredictCashOutAmounts hook
-let mockCashOutAmounts = {
-  currentValue: 60,
-  percentPnl: 20,
-  cashPnl: 10,
+// Mock usePredictOrderPreview hook
+let mockPreview = {
+  marketId: 'market-1',
+  outcomeId: 'outcome-456',
+  outcomeTokenId: 'outcome-token-789',
+  timestamp: Date.now(),
+  side: 'SELL',
+  sharePrice: 0.5,
+  maxAmountSpent: 100,
+  minAmountReceived: 60,
+  slippage: 0.005,
+  tickSize: 0.01,
+  minOrderSize: 1,
+  negRisk: false,
 };
-jest.mock('../../hooks/usePredictCashOutAmounts', () => ({
-  usePredictCashOutAmounts: () => ({
-    cashOutAmounts: mockCashOutAmounts,
+jest.mock('../../hooks/usePredictOrderPreview', () => ({
+  usePredictOrderPreview: () => ({
+    preview: mockPreview,
     isCalculating: false,
     error: null,
   }),
@@ -218,9 +227,9 @@ const mockOutcome: PredictOutcome = {
   groupItemTitle: 'Bitcoin Price',
 };
 
-const mockRoute: RouteProp<PredictNavigationParamList, 'PredictCashOut'> = {
-  key: 'PredictCashOut-key',
-  name: 'PredictCashOut',
+const mockRoute: RouteProp<PredictNavigationParamList, 'PredictSellPreview'> = {
+  key: 'PredictSellPreview-key',
+  name: 'PredictSellPreview',
   params: {
     position: mockPosition,
     outcome: mockOutcome,
@@ -248,7 +257,7 @@ const initialState = {
   },
 };
 
-describe('PredictCashOut', () => {
+describe('PredictSellPreview', () => {
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -261,10 +270,19 @@ describe('PredictCashOut', () => {
     jest.clearAllMocks();
 
     // Reset mock values to defaults
-    mockCashOutAmounts = {
-      currentValue: 60,
-      percentPnl: 20,
-      cashPnl: 10,
+    mockPreview = {
+      marketId: 'market-1',
+      outcomeId: 'outcome-456',
+      outcomeTokenId: 'outcome-token-789',
+      timestamp: Date.now(),
+      side: 'SELL',
+      sharePrice: 0.5,
+      maxAmountSpent: 100,
+      minAmountReceived: 60,
+      slippage: 0.005,
+      tickSize: 0.01,
+      minOrderSize: 1,
+      negRisk: false,
     };
     mockLoadingState = false;
 
@@ -307,7 +325,7 @@ describe('PredictCashOut', () => {
   describe('rendering', () => {
     it('renders cash out screen with position details', () => {
       const { getByText, queryByText } = renderWithProvider(
-        <PredictCashOut />,
+        <PredictSellPreview />,
         {
           state: initialState,
         },
@@ -323,16 +341,18 @@ describe('PredictCashOut', () => {
     });
 
     it('displays current value and P&L correctly', () => {
-      renderWithProvider(<PredictCashOut />, {
+      renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
+      // Component uses preview.minAmountReceived for current value
       expect(mockFormatPrice).toHaveBeenCalledWith(60, { minimumDecimals: 2 });
+      // PnL is calculated from position data, not preview
       expect(mockFormatPercentage).toHaveBeenCalledWith(20);
     });
 
     it('displays positive P&L in success color', () => {
-      renderWithProvider(<PredictCashOut />, {
+      renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -342,10 +362,19 @@ describe('PredictCashOut', () => {
 
     it('displays negative P&L in error color', () => {
       // Set mock to return negative P&L
-      mockCashOutAmounts = {
-        currentValue: 40,
-        percentPnl: -20,
-        cashPnl: -10,
+      mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'SELL',
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 40,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
       };
 
       const negativePnLPosition = {
@@ -360,7 +389,7 @@ describe('PredictCashOut', () => {
         },
       });
 
-      renderWithProvider(<PredictCashOut />, {
+      renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -368,7 +397,7 @@ describe('PredictCashOut', () => {
     });
 
     it('renders position icon with correct source', () => {
-      renderWithProvider(<PredictCashOut />, {
+      renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -382,7 +411,7 @@ describe('PredictCashOut', () => {
       const mockResult = { success: true, txMeta: { id: 'test' } };
       mockPlaceOrder.mockReturnValue(mockResult);
 
-      const { getByTestId } = renderWithProvider(<PredictCashOut />, {
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -390,23 +419,23 @@ describe('PredictCashOut', () => {
       fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
-        outcomeId: mockPosition.outcomeId,
-        outcomeTokenId: mockPosition.outcomeTokenId,
-        side: 'SELL',
-        size: mockPosition.amount,
-        providerId: mockPosition.providerId,
+        providerId: 'polymarket',
+        preview: expect.objectContaining({
+          marketId: 'market-1',
+          outcomeId: 'outcome-456',
+          outcomeTokenId: 'outcome-token-789',
+          side: 'SELL',
+          minAmountReceived: 60,
+        }),
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('disables cash out button when loading', () => {
       mockLoadingState = true;
 
-      const { getByTestId } = renderWithProvider(<PredictCashOut />, {
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -420,7 +449,7 @@ describe('PredictCashOut', () => {
     it('shows loading state when loading is true', () => {
       mockLoadingState = true;
 
-      const { getByTestId } = renderWithProvider(<PredictCashOut />, {
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -432,7 +461,7 @@ describe('PredictCashOut', () => {
     });
 
     it('calls goBack when close button is pressed', () => {
-      renderWithProvider(<PredictCashOut />, {
+      renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -450,7 +479,7 @@ describe('PredictCashOut', () => {
         throw new Error('Navigation error');
       });
 
-      const { getByTestId } = renderWithProvider(<PredictCashOut />, {
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -471,7 +500,7 @@ describe('PredictCashOut', () => {
       mockPlaceOrder.mockReturnValue(mockResult);
       mockDispatch.mockImplementation(jest.fn()); // Reset to default mock
 
-      const { getByTestId } = renderWithProvider(<PredictCashOut />, {
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -479,25 +508,22 @@ describe('PredictCashOut', () => {
       fireEvent.press(cashOutButton);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('uses correct route params', () => {
-      renderWithProvider(<PredictCashOut />, {
+      renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
       expect(mockUseRoute).toHaveBeenCalled();
-      // Verify the component uses the position from route params
-      expect(mockFormatPrice).toHaveBeenCalledWith(60, { minimumDecimals: 2 });
+      // Verify the component renders with preview data
+      expect(mockFormatPrice).toHaveBeenCalled();
     });
   });
 
   describe('styling and theming', () => {
     it('applies correct theme colors to button', () => {
-      const { getByTestId } = renderWithProvider(<PredictCashOut />, {
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
@@ -507,7 +533,7 @@ describe('PredictCashOut', () => {
     });
 
     it('uses useStyles hook for styling', () => {
-      renderWithProvider(<PredictCashOut />, {
+      renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 

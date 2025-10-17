@@ -16,25 +16,24 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { usePredictCashOutAmounts } from '../../hooks/usePredictCashOutAmounts';
+import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
-import styleSheet from './PredictCashOut.styles';
+import styleSheet from './PredictSellPreview.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const PredictCashOut = () => {
+const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
-    useRoute<RouteProp<PredictNavigationParamList, 'PredictCashOut'>>();
+    useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { position } = route.params;
 
   const { icon, title, outcome: outcomeSideText, initialValue } = position;
@@ -44,10 +43,7 @@ const PredictCashOut = () => {
   const { placeOrder, isLoading } = usePredictPlaceOrder({
     onComplete: () => {
       try {
-        // TODO: fix this logic. This only seems to pop the stack once, but does not
-        // navigate to the market details screen
         dispatch(StackActions.pop());
-        dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
       } catch (error) {
         // Navigation errors shouldn't prevent the order from being considered successful
         console.warn('Navigation error after successful cash out:', error);
@@ -58,23 +54,27 @@ const PredictCashOut = () => {
     },
   });
 
-  const {
-    cashOutAmounts: { currentValue, percentPnl, cashPnl },
-  } = usePredictCashOutAmounts({
-    position,
+  const { preview, isCalculating } = usePredictOrderPreview({
+    providerId: position.providerId,
+    marketId: position.marketId,
+    outcomeId: position.outcomeId,
+    outcomeTokenId: position.outcomeTokenId,
+    side: Side.SELL,
+    size: position.amount,
     autoRefreshTimeout: 5000,
   });
+
+  const currentValue = preview?.minAmountReceived ?? 0;
+  const { cashPnl, percentPnl } = position;
 
   const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
 
   const onCashOut = () => {
+    if (!preview) return;
     // Implement cash out action here
     placeOrder({
-      outcomeId: position.outcomeId,
-      outcomeTokenId: position.outcomeTokenId,
-      side: Side.SELL,
-      size: position.amount,
       providerId: position.providerId,
+      preview,
     });
   };
 
@@ -124,12 +124,12 @@ const PredictCashOut = () => {
             <Button
               label="Cash out"
               variant={ButtonVariants.Secondary}
+              disabled={!preview || isCalculating || isLoading}
               onPress={onCashOut}
               style={{
                 ...styles.cashOutButton,
                 backgroundColor: colors.primary.default,
               }}
-              disabled={isLoading}
               loading={isLoading}
             />
             <Text variant={TextVariant.BodySM} style={styles.cashOutButtonText}>
@@ -142,4 +142,4 @@ const PredictCashOut = () => {
   );
 };
 
-export default PredictCashOut;
+export default PredictSellPreview;

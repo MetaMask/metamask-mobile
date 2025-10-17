@@ -1,5 +1,4 @@
-import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import { type Hex, type CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -34,6 +33,7 @@ import {
   formatHyperLiquidSize,
   type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
+import type { SDKOrderParams } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
   getMaxOrderValue,
@@ -97,7 +97,7 @@ import { PERPS_ERROR_CODES } from '../PerpsController';
  * HyperLiquid provider implementation
  *
  * Implements the IPerpsProvider interface for HyperLiquid protocol.
- * Uses the @deeeed/hyperliquid-node20 SDK for all operations.
+ * Uses the @nktkas/hyperliquid SDK for all operations.
  * Delegates to service classes for client management, wallet integration, and subscriptions.
  */
 export class HyperLiquidProvider implements IPerpsProvider {
@@ -1150,7 +1150,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
               childrenCount: parentOrder.children.length,
             });
 
-            parentOrder.children.forEach((childOrder) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Child order structure not exported by SDK
+            parentOrder.children.forEach((childOrder: any) => {
               if (childOrder.isTrigger && childOrder.reduceOnly) {
                 if (
                   childOrder.orderType === 'Take Profit Market' ||
