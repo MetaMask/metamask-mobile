@@ -10,6 +10,7 @@ import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 import { isBitcoinAccountsFeatureEnabled } from '../../../../multichain-bitcoin/remote-feature-flag';
+import { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 
 /**
  * Initialize the multichain account service.
@@ -76,10 +77,9 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   let currentBitcoinEnabled = initialBitcoinEnabled;
   initMessenger.subscribe(
     'RemoteFeatureFlagController:stateChange',
-    (state: unknown) => {
+    (state: RemoteFeatureFlagControllerState) => {
       const bitcoinAccountsEnabled = isBitcoinAccountsFeatureEnabled(
-        (state as { remoteFeatureFlags?: { bitcoinAccounts?: unknown } })
-          ?.remoteFeatureFlags?.bitcoinAccounts,
+        state.remoteFeatureFlags.bitcoinAccounts,
       );
 
       // Only react if the flag actually changed
