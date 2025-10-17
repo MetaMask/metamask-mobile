@@ -36,12 +36,11 @@ function canonicalize(url: URL): string {
 
   params.delete('sig');
 
-  const sigParamsStr = params.get('sig_params');
   let queryString = '';
 
-  if (sigParamsStr) {
-    // Only keep params listed in sig_params that actually exist
-    const allowedParams = sigParamsStr.split(',');
+  if (params.has('sig_params')) {
+    const sigParamsStr = params.get('sig_params');
+    const allowedParams = sigParamsStr?.split(',') ?? [];
     const signedParams = new URLSearchParams();
     const existingParams: string[] = [];
 
