@@ -15,9 +15,9 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
-import { PredictPositionStatus } from '../../../../../UI/Predict';
 import { selectPredictClaimablePositions } from '../../../../../UI/Predict/selectors/predictController';
 import styleSheet from './predict-claim-footer.styles';
+import { PredictPositionStatus } from '../../../../../UI/Predict/types';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;

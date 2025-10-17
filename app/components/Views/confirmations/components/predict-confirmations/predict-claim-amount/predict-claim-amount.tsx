@@ -7,13 +7,13 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
-import { PredictPositionStatus } from '../../../../../UI/Predict';
 import { selectPredictClaimablePositions } from '../../../../../UI/Predict/selectors/predictController';
 import {
   formatPercentage,
   formatPrice,
 } from '../../../../../UI/Predict/utils/format';
 import styleSheet from './predict-claim-amount.styles';
+import { PredictPositionStatus } from '../../../../../UI/Predict/types';
 
 export function PredictClaimAmount() {
   const { styles } = useStyles(styleSheet, {});
