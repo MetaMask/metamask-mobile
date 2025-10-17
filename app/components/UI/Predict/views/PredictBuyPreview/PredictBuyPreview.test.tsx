@@ -183,6 +183,8 @@ const mockMarket: PredictMarket = {
       tickSize: '0.01',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {

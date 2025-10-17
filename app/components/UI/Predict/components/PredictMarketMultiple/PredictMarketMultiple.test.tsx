@@ -56,6 +56,8 @@ const mockMarket: PredictMarket = {
       groupItemTitle: 'Bitcoin Price Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {

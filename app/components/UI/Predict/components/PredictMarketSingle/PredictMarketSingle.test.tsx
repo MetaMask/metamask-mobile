@@ -76,6 +76,8 @@ const mockMarket: PredictMarketType = {
   recurrence: Recurrence.NONE,
   categories: ['crypto'],
   outcomes: [mockOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {
