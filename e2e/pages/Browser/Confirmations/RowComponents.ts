@@ -53,6 +53,12 @@ class RowComponents {
   get NetworkAndOrigin(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.NETWORK);
   }
+
+  get NetworkFeePaidByMetaMask(): DetoxElement {
+    return Matchers.getElementByID(
+      ConfirmationRowComponentIDs.PAID_BY_METAMASK,
+    );
+  }
 }
 
 export default new RowComponents();
