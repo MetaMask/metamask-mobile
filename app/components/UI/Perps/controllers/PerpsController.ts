@@ -98,7 +98,8 @@ const wait = (ms: number): Promise<void> =>
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
 
 const ON_RAMP_GEO_BLOCKING_URLS = {
-  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  // Use UAT endpoint since DEV endpoint is less reliable.
+  DEV: 'https://on-ramp.uat-api.cx.metamask.io/geolocation',
   PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
 };
 
