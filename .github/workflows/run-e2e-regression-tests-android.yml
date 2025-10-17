@@ -201,7 +201,7 @@ jobs:
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: 'Android E2E Regression Test Results'
-          path: 'all-test-results/**/*.xml'
+          path: 'all-test-results/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
           list-suites: 'failed'
