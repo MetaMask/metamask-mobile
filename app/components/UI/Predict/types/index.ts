@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
-import { Hex } from '@metamask/utils';
-
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -232,7 +230,6 @@ export type PredictPosition = {
 };
 
 export interface ClaimParams {
-  positions: PredictPosition[];
   providerId: string;
 }
 
@@ -253,14 +250,9 @@ export interface UnrealizedPnL {
 }
 
 export type PredictClaim = {
-  transactionId: string;
+  batchId: string;
   chainId: number;
   status: PredictClaimStatus;
-  txParams: {
-    to: Hex;
-    data: Hex;
-    value: Hex;
-  };
 };
 
 export type PredictDeposit = {
