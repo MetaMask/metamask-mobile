@@ -7,7 +7,10 @@ import {
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
@@ -15,6 +18,7 @@ import { BigNumber } from 'bignumber.js';
 import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
+import { hasTransactionType } from '../../utils/transaction';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -61,6 +65,15 @@ export function useTransactionPayMetrics() {
 
   if (payToken && type === TransactionType.perpsDeposit) {
     properties.mm_pay_use_case = 'perps_deposit';
+    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+  }
+
+  if (
+    hasTransactionType(transactionMeta as TransactionMeta, [
+      TransactionType.predictDeposit,
+    ])
+  ) {
+    properties.mm_pay_use_case = 'predict_deposit';
     properties.simulation_sending_assets_total_value = amountPrecise ?? null;
   }
 
