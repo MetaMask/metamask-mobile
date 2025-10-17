@@ -73,7 +73,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
       gap={5}
       testID={testID}
       {...props}
-      twClassName={`rounded-2xl ${props.twClassName}`}
+      twClassName={`rounded-2xl ${props?.twClassName ?? ''}`}
     >
       <Box
         flexDirection={BoxFlexDirection.Column}
