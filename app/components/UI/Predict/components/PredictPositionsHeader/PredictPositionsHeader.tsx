@@ -104,7 +104,8 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const totalClaimableAmount = useMemo(
       () =>
         wonPositions.reduce(
-          (sum: number, position: PredictPosition) => sum + position.cashPnl,
+          (sum: number, position: PredictPosition) =>
+            sum + position.currentValue,
           0,
         ),
       [wonPositions],

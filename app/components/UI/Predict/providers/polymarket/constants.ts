@@ -6,7 +6,12 @@ export const FEE_PERCENTAGE = 4; // 4%
 export const FEE_COLLECTOR_ADDRESS =
   '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
 
-export const DEFAULT_SLIPPAGE = 0.01; // 1%
+/**
+ * Default slippage for market orders.
+ * TODO: This is not currently being used, so we can test
+ * how often orders fail before we need to apply slippage.
+ */
+export const DEFAULT_SLIPPAGE = 0.005; // 0.5%
 
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 
