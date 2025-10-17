@@ -76,6 +76,7 @@ jest.mock(
   () => ({
     UserProfileProperty: {
       HAS_REWARDS_OPTED_IN: 'has_rewards_opted_in',
+      REWARDS_SUBSCRIPTION_ID: 'rewards_subscription_id',
       OFF: 'off',
     },
   }),
@@ -220,6 +221,7 @@ describe('useOptout', () => {
       // Verify user traits are updated
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
+        [UserProfileProperty.REWARDS_SUBSCRIPTION_ID]: undefined,
       });
 
       // Navigation should not happen in the optout function itself

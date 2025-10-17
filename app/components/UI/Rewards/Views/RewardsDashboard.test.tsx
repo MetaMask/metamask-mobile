@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-native';
-import RewardsDashboard from './RewardsDashboard';
 import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
@@ -438,6 +437,46 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockAddTraitsToUser = jest.fn();
+jest.mock('../../../hooks/useMetrics', () => {
+  const mockBuilder = {
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({}),
+  };
+  const mockCreateEventBuilder = jest.fn(() => mockBuilder);
+
+  return {
+    useMetrics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+      addTraitsToUser: mockAddTraitsToUser,
+    }),
+    MetaMetricsEvents: {
+      REWARDS_DASHBOARD_VIEWED: 'REWARDS_DASHBOARD_VIEWED',
+      REWARDS_DASHBOARD_TAB_VIEWED: 'REWARDS_DASHBOARD_TAB_VIEWED',
+    },
+  };
+});
+
+// Mock Engine controllerMessenger
+jest.mock('../../../../core/Engine', () => {
+  const mockCall = jest.fn();
+  // Store reference so we can access it in tests
+  (
+    globalThis as unknown as { mockControllerMessengerCall: jest.Mock }
+  ).mockControllerMessengerCall = mockCall;
+  return {
+    __esModule: true,
+    default: {
+      controllerMessenger: {
+        call: mockCall,
+      },
+    },
+  };
+});
+
 // Mock Alert
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
@@ -464,6 +503,14 @@ const mockConvertInternalAccountToCaipAccountId =
   convertInternalAccountToCaipAccountId as jest.MockedFunction<
     typeof convertInternalAccountToCaipAccountId
   >;
+
+// Import the component after all mocks are set up
+import RewardsDashboard from './RewardsDashboard';
+
+// Get the mock controller messenger call from global
+const mockControllerMessengerCall = (
+  globalThis as unknown as { mockControllerMessengerCall: jest.Mock }
+).mockControllerMessengerCall as jest.Mock;
 
 describe('RewardsDashboard', () => {
   const mockDispatch = jest.fn();
@@ -545,6 +592,9 @@ describe('RewardsDashboard', () => {
     mockShowNotSupportedModal.mockClear();
     mockHasShownModal.mockClear();
     mockResetSessionTracking.mockClear();
+    mockTrackEvent.mockClear();
+    mockAddTraitsToUser.mockClear();
+    mockControllerMessengerCall.mockClear();
 
     mockUseDispatch.mockReturnValue(mockDispatch);
 
@@ -1403,6 +1453,98 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(() => unmount()).not.toThrow();
+    });
+  });
+
+  describe('analytics and metrics', () => {
+    it('should track dashboard viewed event on mount', () => {
+      // Arrange
+      mockControllerMessengerCall.mockReturnValue('test-subscription-id');
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('should add subscription ID trait to user when subscription exists', () => {
+      // Arrange
+      const testSubscriptionId = 'test-subscription-id-123';
+      mockControllerMessengerCall.mockReturnValue(testSubscriptionId);
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'RewardsController:getFirstSubscriptionId',
+      );
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+        rewards_subscription_id: testSubscriptionId,
+      });
+    });
+
+    it('should not add subscription ID trait when subscription does not exist', () => {
+      // Arrange
+      mockControllerMessengerCall.mockReturnValue(null);
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'RewardsController:getFirstSubscriptionId',
+      );
+      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+    });
+
+    it('should not add subscription ID trait when controller call throws error', () => {
+      // Arrange
+      mockControllerMessengerCall.mockImplementation(() => {
+        throw new Error('Failed to fetch subscription ID');
+      });
+
+      // Act & Assert - should not throw and should render normally
+      expect(() => render(<RewardsDashboard />)).not.toThrow();
+      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+    });
+
+    it('should track dashboard viewed event only once', () => {
+      // Arrange
+      mockControllerMessengerCall.mockReturnValue('test-subscription-id');
+
+      // Act
+      const { rerender } = render(<RewardsDashboard />);
+      rerender(<RewardsDashboard />);
+
+      // Assert - should only be called once despite rerender
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Once for dashboard viewed, once for tab viewed
+    });
+
+    it('should track tab viewed event when active tab changes', () => {
+      // Arrange
+      mockControllerMessengerCall.mockReturnValue('test-subscription-id');
+      mockSelectActiveTab.mockReturnValue('levels');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab) return 'levels';
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

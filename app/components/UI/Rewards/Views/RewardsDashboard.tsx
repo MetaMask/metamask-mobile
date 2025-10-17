@@ -16,6 +16,7 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
+import Engine from '../../../../core/Engine';
 import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { RewardsTab } from '../../../../reducers/rewards/types';
@@ -40,6 +41,7 @@ import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
@@ -49,7 +51,7 @@ const RewardsDashboard: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const hasTrackedDashboardViewed = useRef(false);
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
@@ -232,12 +234,27 @@ const RewardsDashboard: React.FC = () => {
 
   useEffect(() => {
     if (!hasTrackedDashboardViewed.current) {
+      // Ensure subscription ID trait is set if user has a subscription ID
+      try {
+        const fetchedSubscriptionId = Engine.controllerMessenger.call(
+          'RewardsController:getFirstSubscriptionId',
+        );
+        if (fetchedSubscriptionId) {
+          addTraitsToUser({
+            [UserProfileProperty.REWARDS_SUBSCRIPTION_ID]:
+              fetchedSubscriptionId,
+          });
+        }
+      } catch {
+        // Failed to fetch first subscription ID
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED).build(),
       );
       hasTrackedDashboardViewed.current = true;
     }
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, addTraitsToUser]);
 
   useEffect(() => {
     trackEvent(

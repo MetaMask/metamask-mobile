@@ -18,6 +18,7 @@ export enum UserProfileProperty {
   HAS_REWARDS_OPTED_IN = 'has_rewards_opted_in',
   REWARDS_REFERRED = 'rewards_referred',
   REWARDS_REFERRAL_CODE_USED = 'rewards_referral_code_used',
+  REWARDS_SUBSCRIPTION_ID = 'rewards_subscription_id',
   REWARD_ENABLED_ACCOUNTS_COUNT = 'reward_enabled_accounts_count',
 }
 

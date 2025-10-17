@@ -59,6 +59,9 @@ jest.mock(
   () => ({
     UserProfileProperty: {
       HAS_REWARDS_OPTED_IN: 'has_rewards_opted_in',
+      REWARDS_SUBSCRIPTION_ID: 'rewards_subscription_id',
+      REWARDS_REFERRED: 'rewards_referred',
+      REWARDS_REFERRAL_CODE_USED: 'rewards_referral_code_used',
       ON: 'on',
     },
   }),
@@ -230,6 +233,7 @@ describe('useOptIn', () => {
       );
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         has_rewards_opted_in: 'on',
+        rewards_subscription_id: 'subscription-123',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -261,6 +265,12 @@ describe('useOptIn', () => {
         'Rewards Opt-in Started',
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and Completed
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+        has_rewards_opted_in: 'on',
+        rewards_subscription_id: 'subscription-123',
+        rewards_referred: true,
+        rewards_referral_code_used: 'ABC123',
+      });
     });
 
     it('should handle optin failure', async () => {
