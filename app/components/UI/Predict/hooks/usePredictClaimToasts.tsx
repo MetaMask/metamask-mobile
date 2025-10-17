@@ -65,6 +65,6 @@ export const usePredictClaimToasts = () => {
     },
     clearTransaction: () =>
       Engine.context.PredictController.clearClaimTransaction(),
-    onConfirmed: loadPositions,
+    onConfirmed: () => loadPositions({ isRefresh: true }),
   });
 };
