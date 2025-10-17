@@ -177,10 +177,9 @@ const baseReducers = {
   networkConnectionBanner: networkConnectionBannerReducer,
 };
 
-if (isTest) {
-  // @ts-expect-error - it's expected to not exist, it should only exist in not production environments
-  baseReducers.performance = performanceReducer;
-}
+// Always include performance reducer for performance monitoring
+// @ts-expect-error - it's expected to not exist in the base type
+baseReducers.performance = performanceReducer;
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions

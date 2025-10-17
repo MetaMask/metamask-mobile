@@ -15,6 +15,11 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
+import { 
+  startPerformanceTrace, 
+  endPerformanceTrace 
+} from '../core/redux/slices/performance';
+import { PerformanceEventNames } from '../core/redux/slices/performance/constants';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -24,12 +29,17 @@ const pReducer = persistReducer<RootState, AnyAction>(
 
 // eslint-disable-next-line import/no-mutable-exports
 let store: ReduxStore, persistor: Persistor;
+
 const createStoreAndPersistor = async () => {
+  // Capture start time for store initialization
+  const storeInitStartTime = Date.now();
+  
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
     op: TraceOperation.StoreInit,
   });
+  
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isE2E
     ? await ReadOnlyNetworkStore.getState()
@@ -61,7 +71,25 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
+    // Calculate store init duration (includes store creation + persist rehydration)
+    const storeInitDurationMs = Date.now() - storeInitStartTime;
+    
+    // End store init trace
     endTrace({ name: TraceName.StoreInit });
+    
+    Logger.log(`📊 [PERFORMANCE] Store Init + Persist completed in ${storeInitDurationMs}ms`);
+    
+    // START app startup performance trace - AFTER store is stable
+    // Include store init duration as metadata for complete picture
+    store.dispatch(
+      startPerformanceTrace({
+        eventName: PerformanceEventNames.AppStartupComplete,
+        metadata: {
+          storeInitDurationMs,
+        },
+      }),
+    );
+    
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
 
