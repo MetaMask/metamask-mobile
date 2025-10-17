@@ -1,6 +1,6 @@
 import { Platform, TouchableOpacity as RNTouchableOpacity } from 'react-native';
 import { TouchableOpacity as TemporaryTouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 
 /**
  * TouchablePerpsComponent - Platform-specific TouchableOpacity for Perps components
@@ -46,7 +46,21 @@ export const useCoordinatedPress = () => {
   // Shared coordination system for maximum reliability
   // Both custom TouchableOpacity and main component use the same timestamp reference
   const lastPressTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+  const COORDINATION_WINDOW = 500; // 500ms window for TalkBack compatibility and double-tap prevention
+
+  // Immediate lock to prevent race conditions when multiple handlers check timestamp simultaneously
+  const isPressing = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
 
   return useCallback((onPress?: () => void) => {
     // Skip coordination logic in test environments
@@ -55,11 +69,28 @@ export const useCoordinatedPress = () => {
       return;
     }
 
+    // Immediate lock check - prevents race condition
+    if (isPressing.current) {
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastPress = now - lastPressTime.current;
 
     if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
       lastPressTime.current = now;
+      isPressing.current = true;
+
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Reset after short delay to prevent immediate double-fire
+      timeoutRef.current = setTimeout(() => {
+        isPressing.current = false;
+      }, 300); // Short timeout just to prevent race condition
+
       onPress();
     }
   }, []); // Empty dependency array - function never changes

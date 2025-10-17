@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   TouchableOpacity as RNTouchableOpacity,
   TouchableOpacityProps,
@@ -119,7 +119,21 @@ const ButtonBase = ({
   // Shared coordination system for maximum reliability
   // Both custom TouchableOpacity and main component use the same timestamp reference
   const lastPressTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+  const COORDINATION_WINDOW = 500; // 500ms window for TalkBack compatibility and double-tap prevention
+
+  // Immediate lock to prevent race conditions when multiple handlers check timestamp simultaneously
+  const isPressing = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
 
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =
@@ -140,11 +154,28 @@ const ButtonBase = ({
           return;
         }
 
+        // Immediate lock check - prevents race condition
+        if (isPressing.current) {
+          return;
+        }
+
         const now = Date.now();
         const timeSinceLastPress = now - lastPressTime.current;
 
         if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
           lastPressTime.current = now;
+          isPressing.current = true;
+
+          // Clear any existing timeout
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+
+          // Reset after short delay to prevent immediate double-fire
+          timeoutRef.current = setTimeout(() => {
+            isPressing.current = false;
+          }, 300); // Short timeout just to prevent race condition
+
           onPress();
         }
       };
