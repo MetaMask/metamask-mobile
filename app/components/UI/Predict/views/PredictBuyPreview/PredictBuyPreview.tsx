@@ -28,7 +28,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
-import { usePredictBetAmounts } from '../../hooks/usePredictBetAmounts';
+import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatCents, formatPrice } from '../../utils/format';
@@ -39,43 +39,51 @@ import PredictKeypad, {
 } from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const PredictPlaceBet = () => {
+const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
-    useRoute<RouteProp<PredictNavigationParamList, 'PredictPlaceBet'>>();
+    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { market, outcome, outcomeToken } = route.params;
   const { placeOrder, isLoading } = usePredictPlaceOrder();
 
-  const [currentValue, setCurrentValue] = useState(1);
-  const [currentValueUSDString, setCurrentValueUSDString] = useState('1');
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const {
-    betAmounts: { toWin },
-  } = usePredictBetAmounts({
-    outcomeToken,
+  const [currentValue, setCurrentValue] = useState(0);
+  const [currentValueUSDString, setCurrentValueUSDString] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(true);
+
+  const { preview, isCalculating } = usePredictOrderPreview({
     providerId: outcome.providerId,
-    userBetAmount: currentValue,
+    marketId: market.id,
+    outcomeId: outcome.id,
+    outcomeTokenId: outcomeToken.id,
+    side: Side.BUY,
+    size: currentValue,
+    autoRefreshTimeout: 5000,
   });
+
+  const toWin = preview?.minAmountReceived ?? 0;
+
+  const metamaskFee = preview?.fees?.metamaskFee ?? 0;
+  const providerFee = preview?.fees?.providerFee ?? 0;
+  const total = currentValue + providerFee + metamaskFee;
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
     ? `${outcome.groupItemTitle} • `
     : '';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
-    outcomeToken?.price ?? 0,
+    preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
 
   const onPlaceBet = async () => {
+    if (!preview) return;
+
     await placeOrder({
-      outcomeId: outcome.id,
-      outcomeTokenId: outcomeToken.id,
-      side: Side.BUY,
-      size: currentValue,
       providerId: outcome.providerId,
+      preview,
     });
     try {
       dispatch(StackActions.pop());
@@ -204,7 +212,7 @@ const PredictPlaceBet = () => {
                   ? 'text-success-default'
                   : 'text-error-default',
               )}
-              disabled={isLoading}
+              disabled={!preview || isCalculating || isLoading}
               loading={isLoading}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
@@ -225,8 +233,10 @@ const PredictPlaceBet = () => {
       {renderHeader()}
       {renderAmount()}
       <PredictFeeSummary
-        isInputFocused={isInputFocused}
-        currentValue={currentValue}
+        disabled={isInputFocused}
+        total={total}
+        metamaskFee={metamaskFee}
+        providerFee={providerFee}
       />
       <PredictKeypad
         ref={keypadRef}
@@ -242,4 +252,4 @@ const PredictPlaceBet = () => {
   );
 };
 
-export default PredictPlaceBet;
+export default PredictBuyPreview;

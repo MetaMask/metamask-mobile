@@ -42,7 +42,7 @@ on:
         description: 'The environment to build for'
         required: false
         type: string
-        default: 'qa'
+        default: 'e2e'
       changed_files:
         description: 'Changed files'
         required: false
