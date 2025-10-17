@@ -83,6 +83,9 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    listContentContainer: {
+      paddingBottom: 80,
+    },
     bottomModal: {
       justifyContent: 'flex-end',
       margin: 0,
@@ -529,7 +532,8 @@ class Transactions extends PureComponent {
   speedUpTransaction = async (transactionObject) => {
     try {
       if (transactionObject?.error) {
-        throw new SpeedupTransactionError(transactionObject.error);
+        // We don't need to throw an error here because the error is already in the UI
+        return;
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
@@ -597,7 +601,8 @@ class Transactions extends PureComponent {
   cancelTransaction = async (transactionObject) => {
     try {
       if (transactionObject?.error) {
-        throw new CancelTransactionError(transactionObject.error);
+        // We don't need to throw an error here because the error is already in the UI
+        return;
       }
 
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
@@ -806,6 +811,7 @@ class Transactions extends PureComponent {
                   ? this.footer
                   : this.renderEmpty()
               }
+              contentContainerStyle={styles.listContentContainer}
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}
               onScroll={this.onScroll}

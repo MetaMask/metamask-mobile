@@ -51,26 +51,34 @@ import {
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
+import {
+  formatPositionSize,
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
 } from '../../utils/positionCalculations';
 import { createStyles } from './PerpsClosePositionView.styles';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { TraceName } from '../../../../../util/trace';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
-import RewardPointsDisplay from '../../components/RewardPointsDisplay';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
+import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -83,10 +91,11 @@ const PerpsClosePositionView: React.FC = () => {
   const inputMethodRef = useRef<InputMethod>('default');
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { openTooltipModal } = useTooltipModal();
 
   // Track screen load performance with unified hook (immediate measurement)
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
+    traceName: TraceName.PerpsClosePositionView,
   });
 
   // State for order type and bottom sheets
@@ -428,8 +437,8 @@ const PerpsClosePositionView: React.FC = () => {
 
   const realizedPnl = useMemo(() => {
     const price = Math.abs(effectivePnL * (closePercentage / 100));
-    const formattedPrice = formatPrice(price, {
-      maximumDecimals: 2,
+    const formattedPrice = formatPerpsFiat(price, {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
     });
 
     return { formattedPrice, price, isNegative: effectivePnL < 0 };
@@ -465,11 +474,11 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
-            {formatPrice(
+            {formatPerpsFiat(
               (closePercentage / 100) * initialMargin +
                 effectivePnL * (closePercentage / 100),
               {
-                maximumDecimals: 2,
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
               },
             )}
           </Text>
@@ -510,8 +519,8 @@ const PerpsClosePositionView: React.FC = () => {
         <View style={styles.summaryValue}>
           <PerpsFeesDisplay
             feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-            formatFeeText={`-${formatPrice(feeResults.totalFee, {
-              maximumDecimals: 2,
+            formatFeeText={`-${formatPerpsFiat(feeResults.totalFee, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}`}
             variant={TextVariant.BodyMD}
           />
@@ -539,7 +548,9 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {formatPrice(receiveAmount, { maximumDecimals: 2 })}
+            {formatPerpsFiat(receiveAmount, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
+            })}
           </Text>
         </View>
       </View>
@@ -564,13 +575,23 @@ const PerpsClosePositionView: React.FC = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.summaryValue}>
-            <RewardPointsDisplay
-              estimatedPoints={rewardsState.estimatedPoints}
+            <RewardsAnimations
+              value={rewardsState.estimatedPoints ?? 0}
               bonusBips={rewardsState.bonusBips}
-              isLoading={rewardsState.isLoading}
-              hasError={rewardsState.hasError}
               shouldShow={rewardsState.shouldShowRewardsRow}
-              isRefresh={rewardsState.isRefresh}
+              infoOnPress={() =>
+                openTooltipModal(
+                  strings('perps.points_error'),
+                  strings('perps.points_error_content'),
+                )
+              }
+              state={
+                rewardsState.isLoading
+                  ? RewardAnimationState.Loading
+                  : rewardsState.hasError
+                  ? RewardAnimationState.ErrorState
+                  : RewardAnimationState.Idle
+              }
             />
           </View>
         </View>
@@ -669,7 +690,9 @@ const PerpsClosePositionView: React.FC = () => {
                       color={TextColor.Default}
                     >
                       {limitPrice
-                        ? `${formatPrice(limitPrice, { maximumDecimals: 2 })}`
+                        ? `${formatPerpsFiat(limitPrice, {
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })}`
                         : 'Set price'}
                     </Text>
                   </ListItemColumn>

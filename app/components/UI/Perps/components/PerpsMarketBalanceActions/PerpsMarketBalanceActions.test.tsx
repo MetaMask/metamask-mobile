@@ -26,7 +26,6 @@ interface MockComponentProps {
     | ((state: { pressed: boolean }) => StyleProp<ViewStyle>);
 }
 
-// Mock dependencies
 const mockNavigate = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
@@ -65,6 +64,12 @@ jest.mock('../../hooks', () => ({
 
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePerpsDepositProgress', () => ({
+  usePerpsDepositProgress: jest.fn(() => ({
+    isDepositInProgress: false,
+  })),
 }));
 
 // Mock design system

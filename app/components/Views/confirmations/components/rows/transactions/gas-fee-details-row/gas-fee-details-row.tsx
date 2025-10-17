@@ -31,6 +31,8 @@ import {
   TextColor,
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
+import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
+import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
 
 const EstimationInfo = ({
   hideFiatForTestnet,
@@ -44,17 +46,21 @@ const EstimationInfo = ({
   fiatOnly: boolean;
 }) => {
   const gasFeeToken = useSelectedGasFeeToken();
-
-  const fiatValue = gasFeeToken
-    ? gasFeeToken.amountFiat
-    : feeCalculations.estimatedFeeFiat;
   const { styles } = useStyles(styleSheet, {});
+
+  const fiatValue = gasFeeToken?.amountFiat ?? feeCalculations.estimatedFeeFiat;
+  const nativeValue = feeCalculations.estimatedFeeNative;
+
+  const displayValue =
+    hideFiatForTestnet || !fiatValue ? nativeValue : fiatValue;
+  const displayStyle =
+    hideFiatForTestnet || !fiatValue
+      ? styles.primaryValue
+      : styles.secondaryValue;
 
   return (
     <View style={styles.estimationContainer}>
-      {!hideFiatForTestnet && fiatValue && (
-        <Text style={styles.secondaryValue}>{fiatValue}</Text>
-      )}
+      {displayValue && <Text style={displayStyle}>{displayValue}</Text>}
       {!fiatOnly && <SelectedGasFeeToken />}
     </View>
   );
@@ -168,6 +174,7 @@ const GasFeesDetailsRow = ({
 }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
+  useAutomaticGasFeeTokenSelect();
 
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
@@ -247,6 +254,7 @@ const GasFeesDetailsRow = ({
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}
+      <GasFeeTokenToast />
     </>
   );
 };

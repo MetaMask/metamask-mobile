@@ -7,10 +7,7 @@ import React, {
 } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
-import {
-  RefreshTestId,
-  SpinnerTestId,
-} from '../CollectibleContracts/constants';
+import { RefreshTestId, SpinnerTestId } from './constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -77,8 +74,9 @@ const NftGridList = () => {
         renderItem={({ item }) => (
           <NftGridItem item={item} onLongPress={setLongPressedCollectible} />
         )}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item, index) => `nft-${item.address}-${index}`}
         testID={RefreshTestId}
+        decelerationRate="fast"
         refreshControl={<NftGridListRefreshControl />}
         ListEmptyComponent={
           !isNftFetchingProgress ? (

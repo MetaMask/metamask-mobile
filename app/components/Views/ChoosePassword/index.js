@@ -1,15 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActivityIndicator,
   Alert,
   View,
-  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   Platform,
   Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -68,8 +67,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import fox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
+import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/index';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -725,39 +723,10 @@ class ChoosePassword extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <LottieView
-                style={styles.image}
-                autoPlay
-                loop
-                source={fox}
-                resizeMode="contain"
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.text.default} />
-            <View style={styles.loadingTextContainer}>
-              <Text
-                variant={TextVariant.HeadingLG}
-                color={colors.text.default}
-                adjustsFontSizeToFit
-                numberOfLines={1}
-              >
-                {strings(
-                  previousScreen === ONBOARDING
-                    ? 'create_wallet.title'
-                    : 'secure_your_wallet.creating_password',
-                )}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={colors.text.alternative}
-              >
-                {strings('create_wallet.subtitle')}
-              </Text>
-            </View>
+            <FoxRiveLoaderAnimation />
           </View>
         ) : (
           <KeyboardAwareScrollView
@@ -797,18 +766,24 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {strings(
-                          'choose_password.description_social_login_update',
+                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                          ? strings(
+                              'choose_password.description_social_login_update_ios',
+                            )
+                          : strings(
+                              'choose_password.description_social_login_update',
+                            )}
+                        {Platform.OS === 'android' && (
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Warning}
+                          >
+                            {' '}
+                            {strings(
+                              'choose_password.description_social_login_update_bold',
+                            )}
+                          </Text>
                         )}
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Warning}
-                        >
-                          {' '}
-                          {strings(
-                            'choose_password.description_social_login_update_bold',
-                          )}
-                        </Text>
                       </Text>
                     ) : (
                       strings('choose_password.description')
