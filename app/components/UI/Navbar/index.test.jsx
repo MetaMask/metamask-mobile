@@ -13,12 +13,18 @@ import {
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
   getSendFlowTitle,
+  getTransactionOptionsTitle,
+  getPaymentRequestSuccessOptionsTitle,
+  getApproveNavbar,
+  getModalNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -1239,6 +1245,586 @@ describe('getBridgeNavbar', () => {
 
       expect(options).toBeDefined();
       expect(options.headerTitle).toBeDefined();
+    });
+  });
+
+  describe('getTransactionOptionsTitle', () => {
+    const mockNavigation = {
+      pop: jest.fn(),
+    };
+
+    const mockThemeColors = mockTheme.colors;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return navbar options with required parameters', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+      expect(options.headerLeft).toBeDefined();
+      expect(options.headerRight).toBeDefined();
+      expect(options.headerStyle).toBeDefined();
+      expect(options.headerTintColor).toBeDefined();
+    });
+
+    it('should use edit title when mode is edit', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: 'edit',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options.headerTitle).toBeDefined();
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should use provided title when mode is not edit', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options.headerTitle).toBeDefined();
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should render Edit button in headerLeft when not in edit mode', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(
+        getByTestId(CommonSelectorsIDs.CONFIRM_TXN_EDIT_BUTTON),
+      ).toBeTruthy();
+    });
+
+    it('should disable Edit button when disableModeChange is true', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+          disableModeChange: true,
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const editButton = getByTestId(
+        CommonSelectorsIDs.CONFIRM_TXN_EDIT_BUTTON,
+      );
+      expect(editButton.props.disabled).toBe(true);
+    });
+
+    it('should call modeChange dispatch when Edit button is pressed', () => {
+      const mockDispatch = jest.fn();
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: mockDispatch,
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const editButton = getByTestId(
+        CommonSelectorsIDs.CONFIRM_TXN_EDIT_BUTTON,
+      );
+      fireEvent.press(editButton);
+
+      expect(mockDispatch).toHaveBeenCalledWith('edit');
+    });
+
+    it('should not render Edit button when in edit mode', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: 'edit',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      const { queryByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(
+        queryByTestId(CommonSelectorsIDs.CONFIRM_TXN_EDIT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('should render Cancel button in headerRight for Send route', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(getByTestId(CommonSelectorsIDs.SEND_BACK_BUTTON)).toBeTruthy();
+    });
+
+    it('should call navigation.pop when Cancel button is pressed', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const cancelButton = getByTestId(CommonSelectorsIDs.SEND_BACK_BUTTON);
+      fireEvent.press(cancelButton);
+
+      expect(mockNavigation.pop).toHaveBeenCalled();
+    });
+
+    it('should not render Cancel button in headerRight for non-Send route', () => {
+      const mockRoute = {
+        name: 'Confirm',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { queryByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(queryByTestId(CommonSelectorsIDs.SEND_BACK_BUTTON)).toBeNull();
+    });
+
+    it('should apply correct styles from themeColors', () => {
+      const customThemeColors = {
+        ...mockThemeColors,
+        primary: { default: '#FF0000' },
+        background: { default: '#00FF00' },
+      };
+
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          mode: '',
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        customThemeColors,
+      );
+
+      expect(options.headerStyle).toBeDefined();
+      expect(options.headerStyle.backgroundColor).toBe('#00FF00');
+      expect(options.headerTintColor).toBe('#FF0000');
+    });
+
+    it('should handle missing route params gracefully', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {},
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+    });
+
+    it('should default to empty string for mode when not provided', () => {
+      const mockRoute = {
+        name: 'Send',
+        params: {
+          dispatch: jest.fn(),
+        },
+      };
+
+      const options = getTransactionOptionsTitle(
+        'transaction.confirm',
+        mockNavigation,
+        mockRoute,
+        mockThemeColors,
+      );
+
+      expect(options).toBeDefined();
+      expect(options.headerLeft).toBeDefined();
+    });
+  });
+
+  describe('getPaymentRequestSuccessOptionsTitle', () => {
+    const mockNavigation = {
+      pop: jest.fn(),
+    };
+
+    const mockThemeColors = mockTheme.colors;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return navbar options with required parameters', () => {
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options).toBeDefined();
+      expect(options.headerStyle).toBeDefined();
+      expect(options.title).toBeNull();
+      expect(options.headerLeft).toBeDefined();
+      expect(options.headerRight).toBeDefined();
+      expect(options.headerTintColor).toBeDefined();
+    });
+
+    it('should render empty View in headerLeft', () => {
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      const { toJSON } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const tree = toJSON();
+      expect(tree).toBeDefined();
+      expect(tree.type).toBe('View');
+      expect(tree.children).toBeNull();
+    });
+
+    it('should render close button in headerRight', () => {
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(
+        getByTestId(SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON),
+      ).toBeTruthy();
+    });
+
+    it('should call navigation.pop when close button is pressed', () => {
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const closeButton = getByTestId(
+        SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      expect(mockNavigation.pop).toHaveBeenCalled();
+    });
+
+    it('should apply correct styles from themeColors', () => {
+      const customThemeColors = {
+        ...mockThemeColors,
+        primary: { default: '#FF0000' },
+        background: { default: '#00FF00' },
+      };
+
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        customThemeColors,
+      );
+
+      expect(options.headerStyle).toBeDefined();
+      expect(options.headerStyle.backgroundColor).toBe('#00FF00');
+      expect(options.headerTintColor).toBe('#FF0000');
+    });
+
+    it('should have null title', () => {
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options.title).toBeNull();
+    });
+
+    it('should return consistent structure', () => {
+      const options = getPaymentRequestSuccessOptionsTitle(
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(typeof options.headerLeft).toBe('function');
+      expect(typeof options.headerRight).toBe('function');
+      expect(typeof options.headerStyle).toBe('object');
+      expect(typeof options.headerTintColor).toBe('string');
+    });
+  });
+
+  describe('getApproveNavbar', () => {
+    it('should return navbar options with required parameters', () => {
+      const options = getApproveNavbar('approve.title');
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+      expect(options.headerLeft).toBeDefined();
+      expect(options.headerRight).toBeDefined();
+    });
+
+    it('should return headerTitle as a function', () => {
+      const options = getApproveNavbar('approve.title');
+
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should render empty View in headerLeft', () => {
+      const options = getApproveNavbar('approve.title');
+
+      const HeaderLeft = options.headerLeft;
+      const { toJSON } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const tree = toJSON();
+      expect(tree).toBeDefined();
+      expect(tree.type).toBe('View');
+      expect(tree.children).toBeNull();
+    });
+
+    it('should render empty View in headerRight', () => {
+      const options = getApproveNavbar('approve.title');
+
+      const HeaderRight = options.headerRight;
+      const { toJSON } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const tree = toJSON();
+      expect(tree).toBeDefined();
+      expect(tree.type).toBe('View');
+      expect(tree.children).toBeNull();
+    });
+
+    it('should handle different title values', () => {
+      const titles = [
+        'approve.title',
+        'transaction.confirm',
+        'custom.title',
+        '',
+      ];
+
+      titles.forEach((title) => {
+        const options = getApproveNavbar(title);
+        expect(options).toBeDefined();
+        expect(options.headerTitle).toBeDefined();
+        expect(typeof options.headerTitle).toBe('function');
+      });
+    });
+
+    it('should return consistent structure', () => {
+      const options = getApproveNavbar('approve.title');
+
+      expect(typeof options.headerTitle).toBe('function');
+      expect(typeof options.headerLeft).toBe('function');
+      expect(typeof options.headerRight).toBe('function');
+    });
+
+    it('should have exactly three properties', () => {
+      const options = getApproveNavbar('approve.title');
+      const keys = Object.keys(options);
+
+      expect(keys).toHaveLength(3);
+      expect(keys).toContain('headerTitle');
+      expect(keys).toContain('headerLeft');
+      expect(keys).toContain('headerRight');
+    });
+  });
+
+  describe('getModalNavbarOptions', () => {
+    it('should return navbar options with headerTitle', () => {
+      const options = getModalNavbarOptions('modal.title');
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+    });
+
+    it('should return headerTitle as a function', () => {
+      const options = getModalNavbarOptions('modal.title');
+
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should handle different title values', () => {
+      const titles = [
+        'modal.title',
+        'transaction.confirm',
+        'custom.modal.title',
+        '',
+      ];
+
+      titles.forEach((title) => {
+        const options = getModalNavbarOptions(title);
+        expect(options).toBeDefined();
+        expect(options.headerTitle).toBeDefined();
+        expect(typeof options.headerTitle).toBe('function');
+      });
+    });
+
+    it('should return consistent structure', () => {
+      const options = getModalNavbarOptions('modal.title');
+
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should have exactly one property', () => {
+      const options = getModalNavbarOptions('modal.title');
+      const keys = Object.keys(options);
+
+      expect(keys).toHaveLength(1);
+      expect(keys).toContain('headerTitle');
+    });
+
+    it('should work with undefined title', () => {
+      const options = getModalNavbarOptions(undefined);
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should work with null title', () => {
+      const options = getModalNavbarOptions(null);
+
+      expect(options).toBeDefined();
+      expect(options.headerTitle).toBeDefined();
+      expect(typeof options.headerTitle).toBe('function');
     });
   });
 });
