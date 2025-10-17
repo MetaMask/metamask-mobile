@@ -147,17 +147,17 @@ export interface PredictControllerEvents {
  */
 export type PredictControllerActions =
   | {
-    type: 'PredictController:getState';
-    handler: () => PredictControllerState;
-  }
+      type: 'PredictController:getState';
+      handler: () => PredictControllerState;
+    }
   | {
-    type: 'PredictController:refreshEligibility';
-    handler: PredictController['refreshEligibility'];
-  }
+      type: 'PredictController:refreshEligibility';
+      handler: PredictController['refreshEligibility'];
+    }
   | {
-    type: 'PredictController:placeOrder';
-    handler: PredictController['placeOrder'];
-  };
+      type: 'PredictController:placeOrder';
+      handler: PredictController['placeOrder'];
+    };
 
 /**
  * External actions the PredictController can call
@@ -611,6 +611,7 @@ export class PredictController extends BaseController<
     completionDuration,
     orderId,
     failureReason,
+    sharePrice,
   }: {
     eventType: PredictEventTypeValue;
     amount: number;
@@ -621,6 +622,7 @@ export class PredictController extends BaseController<
     completionDuration?: number;
     orderId?: string;
     failureReason?: string;
+    sharePrice?: number;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -651,7 +653,8 @@ export class PredictController extends BaseController<
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
-      [PredictEventProperties.SHARE_PRICE]: analyticsProperties.sharePrice,
+      [PredictEventProperties.VOLUME]: analyticsProperties.volume,
+      [PredictEventProperties.SHARE_PRICE]: sharePrice,
       // Add completion duration for COMPLETED and FAILED events
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
@@ -719,6 +722,10 @@ export class PredictController extends BaseController<
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
     const startTime = performance.now();
     const { analyticsProperties, preview, providerId } = params;
+
+    const sharePrice = preview?.sharePrice;
+    const amount = preview?.maxAmountSpent;
+
     try {
       const provider = this.providers.get(providerId);
       if (!provider) {
@@ -740,11 +747,12 @@ export class PredictController extends BaseController<
       // Track Predict Action Submitted (fire and forget)
       this.trackPredictOrderEvent({
         eventType: PredictEventType.SUBMITTED,
-        amount: preview?.minOrderSize,
+        amount,
         analyticsProperties,
         provider,
         providerId,
         ownerAddress: selectedAddress,
+        sharePrice,
       });
 
       const result = await provider.placeOrder({ ...params, signer });
@@ -756,31 +764,34 @@ export class PredictController extends BaseController<
         // Extract order ID from response if available
         const orderId =
           result.response &&
-            typeof result.response === 'object' &&
-            'orderID' in result.response
+          typeof result.response === 'object' &&
+          'orderID' in result.response
             ? (result.response as { orderID?: string }).orderID
             : undefined;
 
         // Track Predict Action Completed (fire and forget)
+        // TODO: LUIS - PUT THE CORRECT AMOUNT IN THE RESPONSE
         this.trackPredictOrderEvent({
           eventType: PredictEventType.COMPLETED,
-          amount: preview?.minOrderSize,
+          amount,
           analyticsProperties,
           provider,
           providerId,
           ownerAddress: selectedAddress,
           completionDuration,
           orderId,
+          sharePrice,
         });
       } else {
         // Track Predict Action Failed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.FAILED,
-          amount: preview?.minOrderSize,
+          amount,
           analyticsProperties,
           provider,
           providerId,
           ownerAddress: selectedAddress,
+          sharePrice,
           completionDuration,
           failureReason: result.error || 'Unknown error',
         });
@@ -798,11 +809,12 @@ export class PredictController extends BaseController<
 
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
-        amount: preview?.minOrderSize,
+        amount,
         analyticsProperties,
         provider,
         providerId,
         ownerAddress: selectedAddress,
+        sharePrice,
         completionDuration,
         failureReason: error instanceof Error ? error.message : 'Unknown error',
       });

@@ -85,6 +85,8 @@ export type PredictMarket = {
   recurrence: Recurrence;
   categories: PredictCategory[];
   outcomes: PredictOutcome[];
+  liquidity: number;
+  volume: number;
 };
 
 export type PredictSeries = {

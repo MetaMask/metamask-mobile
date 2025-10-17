@@ -44,8 +44,9 @@ export interface PlaceOrderParams {
     marketCategory?: string;
     entryPoint?: string;
     transactionType?: string;
-    liquidity?: number;
     sharePrice?: number;
+    liquidity?: number;
+    volume?: number;
   };
 }
 

@@ -15,6 +15,7 @@ export const PredictEventProperties = {
   ENTRY_POINT: 'entry_point',
   TRANSACTION_TYPE: 'transaction_type',
   LIQUIDITY: 'liquidity',
+  VOLUME: 'volume',
   FAILURE_REASON: 'failure_reason',
 
   // Sensitive properties

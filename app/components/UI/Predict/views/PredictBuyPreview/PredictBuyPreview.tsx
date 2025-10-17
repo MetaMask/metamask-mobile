@@ -68,10 +68,11 @@ const PredictBuyPreview = () => {
         outcomeToken?.title === 'Yes'
           ? PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
           : PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
-      liquidity: outcome?.volume,
+      liquidity: market?.liquidity,
+      volume: market?.volume,
       sharePrice: outcomeToken?.price,
     }),
-    [market, outcome, outcomeToken, entryPoint],
+    [market, outcomeToken, entryPoint],
   );
 
   const { placeOrder, isLoading } = usePredictPlaceOrder();
