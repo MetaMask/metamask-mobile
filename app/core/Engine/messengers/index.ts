@@ -12,6 +12,11 @@ import {
   getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
 } from './defi-positions-controller-messenger/defi-positions-controller-messenger';
+import {
+  getBackendWebSocketServiceMessenger,
+  getBackendWebSocketServiceInitMessenger,
+  getAccountActivityServiceMessenger,
+} from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   getCronjobControllerMessenger,
@@ -28,6 +33,14 @@ import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger/multichain-assets-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
+import {
+  getRatesControllerInitMessenger,
+  getRatesControllerMessenger,
+} from './rates-controller-messenger';
+import {
+  getSnapKeyringBuilderInitMessenger,
+  getSnapKeyringBuilderMessenger,
+} from './snap-keyring-builder-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -57,10 +70,6 @@ import {
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
-import {
-  getSnapKeyringBuilderInitMessenger,
-  getSnapKeyringBuilderMessenger,
-} from './snap-keyring-builder-messenger';
 import { getKeyringControllerMessenger } from './keyring-controller-messenger';
 import {
   getNetworkControllerInitMessenger,
@@ -90,6 +99,23 @@ import { getAccountTrackerControllerMessenger } from './account-tracker-controll
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
 import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
+import { getUserStorageControllerMessenger } from './identity/user-storage-controller-messenger';
+import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
+import {
+  getEarnControllerInitMessenger,
+  getEarnControllerMessenger,
+} from './earn-controller-messenger';
+import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
+import { getSwapsControllerMessenger } from './swaps-controller-messenger';
+import {
+  getDelegationControllerInitMessenger,
+  getDelegationControllerMessenger,
+} from './delegation/delegation-controller-messenger';
+import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
+import {
+  getPPOMControllerInitMessenger,
+  getPPOMControllerMessenger,
+} from './ppom-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -114,6 +140,10 @@ export const CONTROLLER_MESSENGERS = {
   AssetsContractController: {
     getMessenger: getAssetsContractControllerMessenger,
     getInitMessenger: noop,
+  },
+  EarnController: {
+    getMessenger: getEarnControllerMessenger,
+    getInitMessenger: getEarnControllerInitMessenger,
   },
   TokenListController: {
     getMessenger: getTokenListControllerMessenger,
@@ -172,6 +202,10 @@ export const CONTROLLER_MESSENGERS = {
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  AuthenticationController: {
+    getMessenger: getAuthenticationControllerMessenger,
+    getInitMessenger: noop,
+  },
   CronjobController: {
     getMessenger: getCronjobControllerMessenger,
     getInitMessenger: noop,
@@ -204,6 +238,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSubjectMetadataControllerMessenger,
     getInitMessenger: noop,
   },
+  UserStorageController: {
+    getMessenger: getUserStorageControllerMessenger,
+    getInitMessenger: noop,
+  },
   WebSocketService: {
     getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
@@ -226,6 +264,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
   },
+  RatesController: {
+    getMessenger: getRatesControllerMessenger,
+    getInitMessenger: getRatesControllerInitMessenger,
+  },
   SnapKeyringBuilder: {
     getMessenger: getSnapKeyringBuilderMessenger,
     getInitMessenger: getSnapKeyringBuilderInitMessenger,
@@ -245,6 +287,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SwapsController: {
+    getMessenger: getSwapsControllerMessenger,
     getInitMessenger: noop,
   },
   NetworkEnablementController: {
@@ -271,8 +317,20 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainAccountServiceMessenger,
     getInitMessenger: getMultichainAccountServiceInitMessenger,
   },
+  PPOMController: {
+    getMessenger: getPPOMControllerMessenger,
+    getInitMessenger: getPPOMControllerInitMessenger,
+  },
+  RemoteFeatureFlagController: {
+    getMessenger: getRemoteFeatureFlagControllerMessenger,
+    getInitMessenger: noop,
+  },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  RewardsDataService: {
+    getMessenger: getRewardsDataServiceMessenger,
     getInitMessenger: noop,
   },
   TokenBalancesController: {
@@ -297,6 +355,18 @@ export const CONTROLLER_MESSENGERS = {
   },
   GatorPermissionsController: {
     getMessenger: getGatorPermissionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  DelegationController: {
+    getMessenger: getDelegationControllerMessenger,
+    getInitMessenger: getDelegationControllerInitMessenger,
+  },
+  BackendWebSocketService: {
+    getMessenger: getBackendWebSocketServiceMessenger,
+    getInitMessenger: getBackendWebSocketServiceInitMessenger,
+  },
+  AccountActivityService: {
+    getMessenger: getAccountActivityServiceMessenger,
     getInitMessenger: noop,
   },
 } as const;

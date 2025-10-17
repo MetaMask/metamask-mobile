@@ -8,9 +8,10 @@ import type {
   HyperLiquidTransportConfig,
   TradingDefaultsConfig,
   FeeRatesConfig,
-} from '../types';
+} from '../types/perps-types';
 
 // Network constants
+export const ARBITRUM_MAINNET_CHAIN_ID_HEX = '0xa4b1';
 export const ARBITRUM_MAINNET_CHAIN_ID = '42161';
 export const ARBITRUM_TESTNET_CHAIN_ID = '421614';
 export const ARBITRUM_MAINNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_MAINNET_CHAIN_ID}`;
@@ -122,7 +123,7 @@ export const BUILDER_FEE_CONFIG = {
   maxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
   maxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
     .toFixed(4)
-    .replace(/\.?0+$/, '')}%` as `${string}%`,
+    .replace(/\.?0+$/, '')}%`,
 };
 
 // Referral code configuration
@@ -201,4 +202,14 @@ export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
 // CAIP asset namespace constants
 export const CAIP_ASSET_NAMESPACES = {
   ERC20: 'erc20',
+} as const;
+
+/**
+ * HyperLiquid protocol-specific configuration
+ * Contains constants specific to HyperLiquid's perps exchange
+ */
+export const HYPERLIQUID_CONFIG = {
+  // Exchange name used in predicted funding data
+  // HyperLiquid uses 'HlPerp' as their perps exchange identifier
+  EXCHANGE_NAME: 'HlPerp',
 } as const;
