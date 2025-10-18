@@ -3,6 +3,7 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -61,6 +62,7 @@ export const createTokenSelectModalNavigationDetails =
 function TokenSelectModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
 
   const { tokens } = useParams<TokenSelectModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
@@ -150,9 +152,11 @@ function TokenSelectModal() {
   const handleSelectTokenCallback = useCallback(
     (newAsset: CryptoCurrency) => {
       setSelectedAsset(newAsset);
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.goBack();
+      });
     },
-    [setSelectedAsset],
+    [setSelectedAsset, navigation],
   );
 
   const scrollToTop = useCallback(() => {
@@ -243,8 +247,14 @@ function TokenSelectModal() {
   }, [tokens]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          sheetRef.current?.onCloseBottomSheet(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         </Text>
