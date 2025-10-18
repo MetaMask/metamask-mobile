@@ -75,24 +75,29 @@ describe('useGetPriorityCardToken', () => {
 
   let mockPriorityToken: CardTokenAllowance | null = null;
   let mockLastFetched: Date | string | null = null;
+
+  const mockSupportedTokens = [
+    {
+      address: '0xToken1',
+      decimals: 18,
+      symbol: 'TKN1',
+      name: 'Token 1',
+    },
+    {
+      address: '0xToken2',
+      decimals: 18,
+      symbol: 'TKN2',
+      name: 'Token 2',
+    },
+  ];
+
   // Mock Redux state that persists across test lifecycle
   const mockSDK = {
     getPriorityToken: mockGetPriorityToken,
     getSupportedTokensAllowances: mockFetchAllowances,
-    supportedTokens: [
-      {
-        address: '0xToken1',
-        decimals: 18,
-        symbol: 'TKN1',
-        name: 'Token 1',
-      },
-      {
-        address: '0xToken2',
-        decimals: 18,
-        symbol: 'TKN2',
-        name: 'Token 2',
-      },
-    ],
+    getSupportedTokensByChainId: jest.fn(() => mockSupportedTokens),
+    lineaChainId: LINEA_CHAIN_ID,
+    supportedTokens: mockSupportedTokens,
   };
 
   const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -180,7 +185,51 @@ describe('useGetPriorityCardToken', () => {
       if (selector === selectSelectedInternalAccountByScope) {
         return mockAccountSelector;
       }
-      const selectorString = selector.toString();
+
+      // If selector is a function (like createSelector result), try to execute it
+      if (typeof selector === 'function') {
+        try {
+          const mockState = {
+            card: {
+              cardholderAccounts: [],
+              isLoaded: true,
+              priorityTokensByAddress: {
+                [mockAddress.toLowerCase()]: mockPriorityToken,
+              },
+              lastFetchedByAddress: {
+                [mockAddress.toLowerCase()]: mockLastFetched,
+              },
+              authenticatedPriorityToken: null,
+              authenticatedPriorityTokenLastFetched: null,
+            },
+            engine: {
+              backgroundState: {
+                TokenBalancesController: {
+                  tokenBalances: mockTokenBalances,
+                },
+              },
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as unknown as any;
+
+          const result = selector(mockState);
+
+          // If the result is an object with allTokenBalances, return it (this is the cardState)
+          if (
+            result &&
+            typeof result === 'object' &&
+            'allTokenBalances' in result
+          ) {
+            return result;
+          }
+
+          return result;
+        } catch (_e) {
+          // Fallback for selectors that fail
+        }
+      }
+
+      const selectorString = selector?.toString?.() || '';
       if (
         selectorString.includes('selectCardPriorityToken') &&
         !selectorString.includes('LastFetched')
@@ -190,24 +239,10 @@ describe('useGetPriorityCardToken', () => {
       if (selectorString.includes('selectCardPriorityTokenLastFetched')) {
         return mockLastFetched;
       }
-      // Fallback: try invoking the selector with a minimal state shape
-      try {
-        return selector({
-          card: {
-            cardholderAccounts: [],
-            isLoaded: true,
-            priorityTokensByAddress: {
-              [mockAddress.toLowerCase()]: mockPriorityToken,
-            },
-            lastFetchedByAddress: {
-              [mockAddress.toLowerCase()]: mockLastFetched,
-            },
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as unknown as any);
-      } catch (_e) {
-        // no-op
+      if (selectorString.includes('selectIsAuthenticatedCard')) {
+        return false;
       }
+
       return null;
     });
 
@@ -432,6 +467,39 @@ describe('useGetPriorityCardToken', () => {
       if (selector === selectSelectedInternalAccountByScope) {
         return noAddressSelector;
       }
+
+      // Handle createSelector - return proper cardState
+      if (typeof selector === 'function') {
+        try {
+          const mockState = {
+            card: {
+              cardholderAccounts: [],
+              isLoaded: true,
+              priorityTokensByAddress: {},
+              lastFetchedByAddress: {},
+              authenticatedPriorityToken: null,
+              authenticatedPriorityTokenLastFetched: null,
+            },
+            engine: {
+              backgroundState: {
+                TokenBalancesController: {
+                  tokenBalances: {},
+                },
+              },
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as unknown as any;
+
+          return selector(mockState);
+        } catch (_e) {
+          // Fallback
+        }
+      }
+
+      if (selector?.toString?.().includes('selectIsAuthenticatedCard')) {
+        return false;
+      }
+
       return null;
     });
 
@@ -517,6 +585,7 @@ describe('useGetPriorityCardToken', () => {
       sdk: {
         ...mockSDK,
         supportedTokens: [],
+        getSupportedTokensByChainId: jest.fn(() => []),
       },
     });
 
@@ -625,7 +694,40 @@ describe('useGetPriorityCardToken', () => {
           return undefined;
         };
       }
-      const selectorString = selector.toString();
+
+      // Handle createSelector - return proper cardState
+      if (typeof selector === 'function') {
+        try {
+          const mockState = {
+            card: {
+              cardholderAccounts: [],
+              isLoaded: true,
+              priorityTokensByAddress: {
+                [mockAddress.toLowerCase()]: mockPriorityToken,
+              },
+              lastFetchedByAddress: {
+                [mockAddress.toLowerCase()]: mockLastFetched,
+              },
+              authenticatedPriorityToken: null,
+              authenticatedPriorityTokenLastFetched: null,
+            },
+            engine: {
+              backgroundState: {
+                TokenBalancesController: {
+                  tokenBalances: customTokenBalances,
+                },
+              },
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as unknown as any;
+
+          return selector(mockState);
+        } catch (_e) {
+          // Fallback
+        }
+      }
+
+      const selectorString = selector?.toString?.() || '';
       if (
         selectorString.includes('selectCardPriorityToken') &&
         !selectorString.includes('LastFetched')
@@ -634,6 +736,9 @@ describe('useGetPriorityCardToken', () => {
       }
       if (selectorString.includes('selectCardPriorityTokenLastFetched')) {
         return mockLastFetched;
+      }
+      if (selectorString.includes('selectIsAuthenticatedCard')) {
+        return false;
       }
       return null;
     });
@@ -715,7 +820,40 @@ describe('useGetPriorityCardToken', () => {
           return undefined;
         };
       }
-      const selectorString = selector.toString();
+
+      // Handle createSelector - return proper cardState
+      if (typeof selector === 'function') {
+        try {
+          const mockState = {
+            card: {
+              cardholderAccounts: [],
+              isLoaded: true,
+              priorityTokensByAddress: {
+                [mockAddress.toLowerCase()]: mockPriorityToken,
+              },
+              lastFetchedByAddress: {
+                [mockAddress.toLowerCase()]: mockLastFetched,
+              },
+              authenticatedPriorityToken: null,
+              authenticatedPriorityTokenLastFetched: null,
+            },
+            engine: {
+              backgroundState: {
+                TokenBalancesController: {
+                  tokenBalances: zeroBalanceTokens,
+                },
+              },
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as unknown as any;
+
+          return selector(mockState);
+        } catch (_e) {
+          // Fallback
+        }
+      }
+
+      const selectorString = selector?.toString?.() || '';
       if (
         selectorString.includes('selectCardPriorityToken') &&
         !selectorString.includes('LastFetched')
@@ -724,6 +862,9 @@ describe('useGetPriorityCardToken', () => {
       }
       if (selectorString.includes('selectCardPriorityTokenLastFetched')) {
         return mockLastFetched;
+      }
+      if (selectorString.includes('selectIsAuthenticatedCard')) {
+        return false;
       }
       return null;
     });
@@ -756,27 +897,48 @@ describe('useGetPriorityCardToken', () => {
   });
 
   it('should handle loading state correctly during fetch', async () => {
-    let resolvePromise: (value: CardToken) => void;
-    const mockPromise = new Promise<CardToken>((resolve) => {
-      resolvePromise = resolve;
+    // Use deferred promises to control timing
+    let resolveAllowances: (value: typeof mockSDKTokensData) => void;
+    let resolvePriorityToken: (value: CardToken) => void;
+
+    const allowancesPromise = new Promise<typeof mockSDKTokensData>(
+      (resolve) => {
+        resolveAllowances = resolve;
+      },
+    );
+    const priorityTokenPromise = new Promise<CardToken>((resolve) => {
+      resolvePriorityToken = resolve;
     });
 
-    mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
-    mockGetPriorityToken.mockReturnValue(mockPromise);
+    mockFetchAllowances.mockReturnValue(allowancesPromise);
+    mockGetPriorityToken.mockReturnValue(priorityTokenPromise);
 
     const { result } = renderHook(() => useGetPriorityCardToken());
 
+    // Wait for initial effect to trigger
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
     });
 
+    // Should be loading while fetching allowances
     expect(result.current.isLoading).toBe(true);
 
+    // Resolve allowances
     await act(async () => {
-      resolvePromise(mockCardToken);
+      resolveAllowances(mockSDKTokensData);
       await new Promise((resolve) => setTimeout(resolve, 10));
     });
 
+    // Still loading while fetching priority token
+    expect(result.current.isLoading).toBe(true);
+
+    // Resolve priority token
+    await act(async () => {
+      resolvePriorityToken(mockCardToken);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    // Should be done loading
     expect(result.current.isLoading).toBe(false);
   });
 
@@ -1034,17 +1196,10 @@ describe('useGetPriorityCardToken', () => {
       const { useSelector: useSelectorMock2 } = jest.requireMock('react-redux');
       useSelectorMock2.mockImplementation(
         (selector: (state: unknown) => unknown) => {
-          const selectorStr = selector.toString();
-          if (
-            selector === selectAllTokenBalances ||
-            selectorStr.includes('selectAllTokenBalances')
-          ) {
+          if (selector === selectAllTokenBalances) {
             return STATIC_TOKEN_BALANCES;
           }
-          if (
-            selector === selectSelectedInternalAccountByScope ||
-            selectorStr.includes('selectSelectedInternalAccountByScope')
-          ) {
+          if (selector === selectSelectedInternalAccountByScope) {
             return (scope: string) => {
               if (scope === 'eip155:0') {
                 return {
@@ -1054,11 +1209,48 @@ describe('useGetPriorityCardToken', () => {
               return undefined;
             };
           }
+
+          // Handle createSelector - return proper cardState with null priorityToken
+          if (typeof selector === 'function') {
+            try {
+              const mockState = {
+                card: {
+                  cardholderAccounts: [],
+                  isLoaded: true,
+                  priorityTokensByAddress: {
+                    [mockAddress.toLowerCase()]: null,
+                  },
+                  lastFetchedByAddress: {
+                    [mockAddress.toLowerCase()]: new Date(),
+                  },
+                  authenticatedPriorityToken: null,
+                  authenticatedPriorityTokenLastFetched: null,
+                },
+                engine: {
+                  backgroundState: {
+                    TokenBalancesController: {
+                      tokenBalances: STATIC_TOKEN_BALANCES,
+                    },
+                  },
+                },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              } as unknown as any;
+
+              return selector(mockState);
+            } catch (_e) {
+              // Fallback
+            }
+          }
+
+          const selectorStr = selector?.toString?.() || '';
           if (selectorStr.includes('selectCardPriorityToken')) {
             return null; // No priority token
           }
           if (selectorStr.includes('selectCardPriorityTokenLastFetched')) {
             return new Date();
+          }
+          if (selectorStr.includes('selectIsAuthenticatedCard')) {
+            return false;
           }
           return null;
         },

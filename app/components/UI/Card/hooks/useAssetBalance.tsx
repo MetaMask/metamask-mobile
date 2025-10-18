@@ -134,7 +134,7 @@ export const useAssetBalance = (
 
         if (isSolanaChainId(chainId)) {
           const conversionRates =
-            MultichainAssetsRatesController.state.conversionRates;
+            MultichainAssetsRatesController?.state?.conversionRates;
           const assetConversionRate =
             conversionRates[
               `${chainId}/token:${asset.address}` as `${string}:${string}/${string}:${string}`
@@ -193,7 +193,7 @@ export const useAssetBalance = (
       asset,
       token,
       chainId,
-      MultichainAssetsRatesController.state.conversionRates,
+      MultichainAssetsRatesController?.state?.conversionRates,
       currentCurrency,
       exchangeRates,
       conversionRate,
@@ -224,14 +224,14 @@ export const useAssetBalance = (
     }
   }
 
-  if (asset?.hasBalanceError) {
-    mainBalance = asset.symbol;
-    secondaryBalance = strings('wallet.unable_to_load');
-  }
-
   if (balanceFiat === TOKEN_RATE_UNDEFINED) {
     mainBalance = balanceValueFormatted;
     secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+  }
+
+  if (asset?.hasBalanceError) {
+    mainBalance = asset.symbol;
+    secondaryBalance = strings('wallet.unable_to_load');
   }
 
   asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };

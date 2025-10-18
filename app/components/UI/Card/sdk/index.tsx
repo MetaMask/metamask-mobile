@@ -122,8 +122,6 @@ export const CardSDKProvider = ({
       return;
     }
 
-    Logger.log('Token result:', tokenResult);
-
     // If token retrieval failed, user is not authenticated
     if (
       !tokenResult.success ||

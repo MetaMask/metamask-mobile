@@ -62,7 +62,7 @@ describe('buildTokenIconUrl', () => {
   });
 
   it('should work with BSC mainnet', () => {
-    const chainId = '56'; // BSC mainnet
+    const chainId = '0x38'; // BSC mainnet
     const address = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82';
     const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/erc20/${address.toLowerCase()}.png`;
 
