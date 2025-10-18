@@ -186,6 +186,7 @@ describe('usePredictPlaceOrder', () => {
     });
 
     it('shows cashed out toast when SELL order is placed successfully', async () => {
+      jest.useFakeTimers();
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
 
       const sellOrderParams = {
@@ -202,7 +203,7 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(sellOrderParams);
       });
 
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(1);
 
       // First call - loading toast
       expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
@@ -220,7 +221,13 @@ describe('usePredictPlaceOrder', () => {
         }),
       );
 
-      // Second call - success toast
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // Second call - success toast (after delay)
       expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
@@ -235,6 +242,8 @@ describe('usePredictPlaceOrder', () => {
           hasNoTimeout: false,
         }),
       );
+
+      jest.useRealTimers();
     });
 
     it('reloads balance after successful order placement', async () => {

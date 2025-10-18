@@ -48,22 +48,27 @@ export function usePredictPlaceOrder(
   const { toastRef } = useContext(ToastContext);
 
   const showCashedOutToast = useCallback(
-    (amount: string) =>
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Check,
-        labelOptions: [
-          { label: strings('predict.order.cashed_out'), isBold: true },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.order.cashed_out_subtitle', {
-              amount,
-            }),
-            isBold: false,
-          },
-        ],
-        hasNoTimeout: false,
-      }),
+    (amount: string) => {
+      // NOTE: When cashing out happens fast, stacking toasts messes the UX.
+      // Figure out how toast behavior can be improved to avoid this.
+      setTimeout(() => {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Check,
+          labelOptions: [
+            { label: strings('predict.order.cashed_out'), isBold: true },
+            { label: '\n', isBold: false },
+            {
+              label: strings('predict.order.cashed_out_subtitle', {
+                amount,
+              }),
+              isBold: false,
+            },
+          ],
+          hasNoTimeout: false,
+        });
+      }, 2000);
+    },
     [toastRef],
   );
 
