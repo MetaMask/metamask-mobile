@@ -22,6 +22,16 @@ export interface CardToken {
   name: string | null;
 }
 
+// Card token data interface
+// Used on Keychain storage
+export interface CardTokenData {
+  accessToken: string;
+  refreshToken: string;
+  acessTokenExpiresAt: number;
+  refreshTokenExpiresAt: number;
+  location: CardLocation;
+}
+
 export interface AuthenticatedCardTokenAllowanceData {
   availableBalance?: string;
   walletAddress?: string;

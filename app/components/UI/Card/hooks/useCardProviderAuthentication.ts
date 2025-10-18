@@ -5,7 +5,10 @@ import { generatePKCEPair, generateState } from '../util/pkceHelpers';
 import { CardError, CardErrorType, CardLocation } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
-import { setIsAuthenticatedCard as setIsAuthenticatedAction } from '../../../../core/redux/slices/card';
+import {
+  setIsAuthenticatedCard as setIsAuthenticatedAction,
+  setUserCardLocation,
+} from '../../../../core/redux/slices/card';
 
 /**
  * Maps CardError types to user-friendly localized error messages
@@ -72,19 +75,16 @@ const useCardProviderAuthentication = (): {
       try {
         setLoading(true);
         const initiateResponse = await sdk.initiateCardProviderAuthentication({
-          location: params.location,
           state,
           codeChallenge,
         });
 
         const loginResponse = await sdk.login({
-          location: params.location,
           email: params.email,
           password: params.password,
         });
 
         const authorizeResponse = await sdk.authorize({
-          location: params.location,
           initiateAccessToken: initiateResponse.token,
           loginAccessToken: loginResponse.accessToken,
         });
@@ -94,7 +94,6 @@ const useCardProviderAuthentication = (): {
         }
 
         const exchangeTokenResponse = await sdk.exchangeToken({
-          location: params.location,
           code: authorizeResponse.code,
           codeVerifier,
           grantType: 'authorization_code',
@@ -103,12 +102,13 @@ const useCardProviderAuthentication = (): {
         await storeCardBaanxToken({
           accessToken: exchangeTokenResponse.accessToken,
           refreshToken: exchangeTokenResponse.refreshToken,
-          expiresAt: Date.now() + exchangeTokenResponse.expiresIn * 1000,
+          acessTokenExpiresAt: exchangeTokenResponse.expiresIn,
+          refreshTokenExpiresAt: exchangeTokenResponse.refreshTokenExpiresIn,
           location: params.location,
         });
 
-        setError(null);
         dispatch(setIsAuthenticatedAction(true));
+        dispatch(setUserCardLocation(params.location));
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
