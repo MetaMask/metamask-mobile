@@ -1,5 +1,10 @@
 import BN from 'bnjs4';
-import { renderFromWei, weiToFiat, toWei, conversionUtil } from '../number';
+import {
+  renderFromWei,
+  weiToFiat,
+  toWei,
+  conversionUtil,
+} from '../number/legacy';
 import { strings } from '../../../locales/i18n';
 import TransactionTypes from '../../core/TransactionTypes';
 import { estimateGas } from '../transaction-controller';

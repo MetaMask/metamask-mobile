@@ -39,14 +39,15 @@ import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
+
 import {
-  renderFromTokenMinimalUnit,
-  balanceToFiatNumber,
-  weiToFiatNumber,
-  toHexadecimal,
-  hexToBN,
+  hexToBigInt,
   renderFromWei,
+  weiToFiatNumber,
+  balanceToFiatNumber,
+  renderFromTokenMinimalUnit,
 } from '../../util/number';
+
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
@@ -827,7 +828,6 @@ export class Engine {
 
     networkConfigurations.forEach((networkConfig) => {
       const { chainId } = networkConfig;
-      const chainIdHex = toHexadecimal(chainId);
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
         return;
@@ -859,17 +859,16 @@ export class Engine {
       }
 
       const accountData =
-        accountsByChainId?.[chainIdHex]?.[
-          selectedInternalAccountFormattedAddress
-        ];
+        accountsByChainId?.[chainId]?.[selectedInternalAccountFormattedAddress];
       if (accountData) {
         const balanceHex = accountData.balance;
-        const balanceBN = hexToBN(balanceHex);
+        const balanceBigInt = hexToBigInt(balanceHex);
 
-        const stakedBalanceBN = hexToBN(accountData.stakedBalance || '0x00');
-        const totalAccountBalance = balanceBN
-          .add(stakedBalanceBN)
-          .toString('hex');
+        const stakedBalanceBigInt = hexToBigInt(
+          accountData.stakedBalance || '0x00',
+        );
+
+        const totalAccountBalance = balanceBigInt + stakedBalanceBigInt;
 
         const chainEthFiat = weiToFiatNumber(
           totalAccountBalance,
@@ -882,7 +881,7 @@ export class Engine {
           totalEthFiat += chainEthFiat;
         }
 
-        const tokenExchangeRates = marketData?.[chainIdHex];
+        const tokenExchangeRates = marketData?.[chainId];
         const ethPricePercentChange1d =
           tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
@@ -912,10 +911,10 @@ export class Engine {
       }
 
       const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
+        TokensController.state.allTokens?.[chainId]?.[
           selectedInternalAccount.address
         ] || [];
-      const tokenExchangeRates = marketData?.[chainIdHex];
+      const tokenExchangeRates = marketData?.[chainId];
 
       if (tokens.length > 0) {
         const { tokenBalances: allTokenBalances } =

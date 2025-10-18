@@ -9,7 +9,7 @@ import {
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { add0x, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
@@ -525,7 +525,9 @@ describe('Engine', () => {
       AccountTrackerController: {
         accountsByChainId: {
           [chainId]: {
-            [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
+            [selectedAddress]: {
+              balance: add0x((ethBalance * 1e18).toString(16)),
+            },
           },
         },
       },
@@ -554,8 +556,8 @@ describe('Engine', () => {
           accountsByChainId: {
             [chainId]: {
               [selectedAddress]: {
-                balance: '0',
-                stakedBalance: '0',
+                balance: '0x0',
+                stakedBalance: '0x0',
               },
             },
           },
@@ -728,8 +730,8 @@ describe('Engine', () => {
           accountsByChainId: {
             [chainId]: {
               [selectedAddress]: {
-                balance: (ethBalance * 1e18).toString(),
-                stakedBalance: (stakedEthBalance * 1e18).toString(),
+                balance: add0x((ethBalance * 1e18).toString(16)),
+                stakedBalance: add0x((stakedEthBalance * 1e18).toString(16)),
               },
             },
           },

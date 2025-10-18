@@ -4,7 +4,7 @@ import type {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { estimateGasFee } from '../../../../util/transaction-controller';
-import { addHexPrefix } from '../../../../util/number';
+import { addHexPrefix } from '../../../../util/number/legacy';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
 

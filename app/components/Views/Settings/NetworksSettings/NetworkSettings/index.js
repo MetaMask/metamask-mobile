@@ -33,7 +33,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import BigNumber from 'bignumber.js';
 import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
-import { isPrefixedFormattedHexString } from '../../../../../util/number';
+import { isPrefixedFormattedHexString } from '../../../../../util/number/legacy';
 import AppConstants from '../../../../../core/AppConstants';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';

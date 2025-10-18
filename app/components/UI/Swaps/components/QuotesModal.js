@@ -22,7 +22,7 @@ import {
   toWei,
   weiToFiat,
   calculateEthFeeForMultiLayer,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { getQuotesSourceMessage } from '../utils';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';

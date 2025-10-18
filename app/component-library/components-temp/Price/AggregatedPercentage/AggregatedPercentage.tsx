@@ -5,7 +5,7 @@ import {
 } from '../../../../component-library/components/Texts/Text';
 import SensitiveText from '../../../../component-library/components/Texts/SensitiveText';
 import { View } from 'react-native';
-import { renderFiat } from '../../../../util/number';
+import { renderFiat } from '../../../../util/number/legacy';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import styleSheet from './AggregatedPercentage.styles';

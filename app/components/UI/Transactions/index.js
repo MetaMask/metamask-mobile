@@ -53,7 +53,11 @@ import {
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
 } from '../../../util/networks';
-import { addHexPrefix, hexToBN, renderFromWei } from '../../../util/number';
+import {
+  addHexPrefix,
+  hexToBN,
+  renderFromWei,
+} from '../../../util/number/legacy';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
   speedUpTransaction,

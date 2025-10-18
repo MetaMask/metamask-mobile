@@ -7,7 +7,7 @@ import { ERC721, ERC1155 } from '@metamask/controller-utils';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
-import { BNToHex } from '../number';
+import { BNToHex } from '../number/legacy';
 import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 import {

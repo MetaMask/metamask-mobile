@@ -9,7 +9,7 @@ import {
 import { fontStyles } from '../../../../../../../styles/common';
 import StyledButton from '../../../../../../UI/StyledButton';
 import { strings } from '../../../../../../../../locales/i18n';
-import { isNumber } from '../../../../../../../util/number';
+import { isNumber } from '../../../../../../../util/number/legacy';
 import ConnectHeader from '../../../../../../UI/ConnectHeader';
 import Device from '../../../../../../../util/device';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';

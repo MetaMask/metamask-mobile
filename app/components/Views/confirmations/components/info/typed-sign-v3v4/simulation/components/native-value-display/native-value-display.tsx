@@ -24,7 +24,7 @@ import {
 } from '../../../../../../../../UI/SimulationDetails/formatAmount';
 import { AssetType } from '../../../../../../../../UI/SimulationDetails/types';
 import { shortenString } from '../../../../../../../../../util/notifications/methods/common';
-import { isNumberValue } from '../../../../../../../../../util/number';
+import { isNumberValue } from '../../../../../../../../../util/number/legacy';
 import { calcTokenAmount } from '../../../../../../../../../util/transactions';
 import BottomModal from '../../../../../UI/bottom-modal';
 

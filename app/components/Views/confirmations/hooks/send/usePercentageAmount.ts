@@ -3,7 +3,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 
-import { hexToBN } from '../../../../../util/number';
+import { hexToBN } from '../../../../../util/number/legacy';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { AssetType } from '../../types/token';
 import { fromBNWithDecimals, getLayer1GasFeeForSend } from '../../utils/send';
