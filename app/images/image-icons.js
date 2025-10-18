@@ -48,6 +48,7 @@ import AAVE from './aave-token-round.png';
 import HEMI from './hemi.png';
 import LUKSO from './lukso.png';
 import PLASMA from './plasma-native.png';
+import CRONOS from './cronos.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron.png';
 /// END:ONLY_INCLUDE_IF
@@ -108,4 +109,5 @@ export default {
   HEMI,
   LYX: LUKSO,
   XPL: PLASMA,
+  CRO: CRONOS,
 };
