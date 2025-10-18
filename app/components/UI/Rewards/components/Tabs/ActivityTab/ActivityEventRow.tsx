@@ -27,11 +27,13 @@ import Logger from '../../../../../../util/Logger';
 import { openActivityDetailsSheet } from './EventDetails/ActivityDetailsSheet';
 import { TouchableOpacity } from 'react-native';
 import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
+import { RewardsActivityListSelectorsIDs } from '../../../../../../../e2e/selectors/Rewards/RewardsActivityList.selectors';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
   accountName: string | undefined;
-}> = ({ event, accountName }) => {
+  testID?: string;
+}> = ({ event, accountName, testID }) => {
   const navigation = useNavigation();
   const eventDetails = React.useMemo(
     () => (event ? getEventDetails(event, accountName) : undefined),
@@ -91,6 +93,7 @@ export const ActivityEventRow: React.FC<{
         justifyContent={BoxJustifyContent.Between}
         twClassName="w-full py-3"
         gap={3}
+        testID={testID}
       >
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
@@ -127,14 +130,20 @@ export const ActivityEventRow: React.FC<{
               alignItems={BoxAlignItems.End}
               gap={1}
             >
-              <Text>{eventDetails.title}</Text>
+              <Text
+                testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_TITLE}-${testID}`}
+              >
+                {eventDetails.title}
+              </Text>
             </Box>
 
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.End}
             >
-              <Text>{`${event.value > 0 ? '+' : ''}${formatNumber(
+              <Text
+                testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_VALUE}-${testID}`}
+              >{`${event.value > 0 ? '+' : ''}${formatNumber(
                 event.value,
               )}`}</Text>
               {event.bonus?.bips && (
@@ -151,12 +160,14 @@ export const ActivityEventRow: React.FC<{
 
           <Box flexDirection={BoxFlexDirection.Row}>
             <Text
+              testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_DETAILS}-${testID}`}
               variant={TextVariant.BodySm}
               twClassName="text-alternative flex-1 max-w-[60%]"
             >
               {eventDetails.details}
             </Text>
             <Text
+              testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_DATE}-${testID}`}
               variant={TextVariant.BodySm}
               twClassName="text-alternative flex-1 text-right"
             >
