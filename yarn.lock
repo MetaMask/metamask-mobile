@@ -7055,7 +7055,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^50.0.0":
+"@metamask/bridge-status-controller@npm:50.1.0":
   version: 50.1.0
   resolution: "@metamask/bridge-status-controller@npm:50.1.0"
   dependencies:
@@ -7074,6 +7074,28 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
   checksum: a39547856c3fc0e4574eb75f882a96b3eb7c38a3cb80f68938b5bb994d7252dc98507b2ad7b7e495591627382ed0e4d9f1c44961b9fee52d23736f85f59020b5
+  languageName: node
+  linkType: hard
+
+"@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A50.1.0#./.yarn/patches/@metamask-bridge-status-controller-npm-50.1.0-308ed9262e.patch::locator=metamask%40workspace%3A.":
+  version: 50.1.0
+  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A50.1.0#./.yarn/patches/@metamask-bridge-status-controller-npm-50.1.0-308ed9262e.patch::version=50.1.0&hash=31ccdf&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": ^8.4.1
+    "@metamask/controller-utils": ^11.14.1
+    "@metamask/polling-controller": ^14.0.1
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.8.1
+    bignumber.js: ^9.1.2
+    uuid: ^8.3.2
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/bridge-controller": ^51.0.0
+    "@metamask/gas-fee-controller": ^24.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/snaps-controllers": ^14.0.0
+    "@metamask/transaction-controller": ^60.0.0
+  checksum: f33d27da587bf350d442aa55d61509e46f043db92da37cff8c08c5c078dd3812355c8abea3fc7745133c7bbf2a3885ad7f8aff359c7f199c50cde1f1060b33b4
   languageName: node
   linkType: hard
 
