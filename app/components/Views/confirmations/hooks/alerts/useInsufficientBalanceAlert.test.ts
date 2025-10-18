@@ -250,4 +250,20 @@ describe('useInsufficientBalanceAlert', () => {
       ]);
     });
   });
+
+  describe('when isGasFeeSponsored is true', () => {
+    it('returns empty array', () => {
+      mockUseAccountNativeBalance.mockReturnValue({
+        balanceWeiInHex: '0xC',
+      } as unknown as ReturnType<typeof useAccountNativeBalance>);
+      const txWithGasFeeSponsored = {
+        ...mockTransaction,
+        isGasFeeSponsored: true,
+      };
+      mockUseTransactionMetadataRequest.mockReturnValue(txWithGasFeeSponsored);
+
+      const { result } = renderHook(() => useInsufficientBalanceAlert());
+      expect(result.current).toEqual([]);
+    });
+  });
 });
