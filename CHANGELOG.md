@@ -10,30 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.56.4]
 
 ### Fixed
-* fix: address feature flag config issue
+- fix: address feature flag config issue
 
 ## [7.56.3]
 
 ### Fixed
-* fix: remove unintended metrics from transaction finalised event ([#20733](https://github.com/MetaMask/metamask-mobile/pull/20733))							
-* fix: force rendering on token list when order changes ([#20771](https://github.com/MetaMask/metamask-mobile/pull/20771)) 									
-* fix: add contentful max version number segmentation ([#20769](https://github.com/MetaMask/metamask-mobile/pull/20769))									
+- fix: remove unintended metrics from transaction finalised event ([#20733](https://github.com/MetaMask/metamask-mobile/pull/20733))							
+- fix: force rendering on token list when order changes ([#20771](https://github.com/MetaMask/metamask-mobile/pull/20771)) 									
+- fix: add contentful max version number segmentation ([#20769](https://github.com/MetaMask/metamask-mobile/pull/20769))									
 
 ## [7.56.2]
 
 ### Fixed
-* fix: address feature flag config issue
+- fix: address feature flag config issue
 
 ## [7.56.1]
 
 ### Fixed
-* fix: in recipient validations for internal accounts ([#20694](https://github.com/MetaMask/metamask-mobile/pull/20694)) 
-* feat: iOS Rehydration Flow Update to release/7.56.1 ([#20681](https://github.com/MetaMask/metamask-mobile/pull/20681))
-* feat: social login success screen added for social login users and ios platform. ([#20679](https://github.com/MetaMask/metamask-mobile/pull/20679))
-* fix: Returned Scrollview to Perps and Defi tab cp-7.56.1 ([#20650](https://github.com/MetaMask/metamask-mobile/pull/20650))
-* fix: missing transactions in activity after perps deposit (\#20507) ([09ef7e5](https://github.com/MetaMask/metamask-mobile/commit/09ef7e5f5111d0d3592b5e6d60499f31dc22f013))
-* fix: cp-7.56.1 Temp Revert page-level scroll for Wallet (#20579) ([#20616](https://github.com/MetaMask/metamask-mobile/pull/20616)) 
-* fix: Temp Revert page-level scroll for Wallet (\#20579) ([9022244](https://github.com/MetaMask/metamask-mobile/commit/902224410fbdf37250b990c75986eb7a948fb5ec))
+- fix: in recipient validations for internal accounts ([#20694](https://github.com/MetaMask/metamask-mobile/pull/20694)) 
+- feat: iOS Rehydration Flow Update to release/7.56.1 ([#20681](https://github.com/MetaMask/metamask-mobile/pull/20681))
+- feat: social login success screen added for social login users and ios platform. ([#20679](https://github.com/MetaMask/metamask-mobile/pull/20679))
+- fix: Returned Scrollview to Perps and Defi tab cp-7.56.1 ([#20650](https://github.com/MetaMask/metamask-mobile/pull/20650))
+- fix: missing transactions in activity after perps deposit (\#20507) ([09ef7e5](https://github.com/MetaMask/metamask-mobile/commit/09ef7e5f5111d0d3592b5e6d60499f31dc22f013))
+- fix: cp-7.56.1 Temp Revert page-level scroll for Wallet (#20579) ([#20616](https://github.com/MetaMask/metamask-mobile/pull/20616)) 
+- fix: Temp Revert page-level scroll for Wallet (\#20579) ([9022244](https://github.com/MetaMask/metamask-mobile/commit/902224410fbdf37250b990c75986eb7a948fb5ec))
 
 ## [7.56.0]
 
