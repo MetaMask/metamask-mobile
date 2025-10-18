@@ -328,7 +328,10 @@ class AuthenticationService {
     }
     const existingUser = selectExistingUser(ReduxService.store.getState());
     if (existingUser) {
-      if (await SecureKeychain.getGenericPassword()) {
+      const genericPassword = await SecureKeychain.getGenericPassword().catch(
+        () => null,
+      );
+      if (genericPassword) {
         return {
           currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
           availableBiometryType,
