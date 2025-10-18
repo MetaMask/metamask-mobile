@@ -14,11 +14,20 @@ export const createStyles = (colors: Theme['colors']) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 16,
+      justifyContent: 'center',
       paddingHorizontal: 16,
       paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
+      position: 'relative',
+    },
+    headerBackButton: {
+      position: 'absolute',
+      left: 16,
+      zIndex: 1,
+    },
+    headerTitleContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     footer: {
       paddingHorizontal: 16,
@@ -81,7 +90,7 @@ export const createStyles = (colors: Theme['colors']) =>
       color: colors.text.default,
       paddingVertical: 0,
       textAlign: 'left',
-      marginRight: 8,
+      marginLeft: 8,
     },
 
     percentageRow: {
@@ -105,14 +114,6 @@ export const createStyles = (colors: Theme['colors']) =>
       backgroundColor: colors.background.pressed,
       borderWidth: 1,
       borderColor: colors.border.muted,
-    },
-    percentageButtonActiveTP: {
-      borderWidth: 1,
-      borderColor: colors.primary.default,
-    },
-    percentageButtonActiveSL: {
-      borderWidth: 1,
-      borderColor: colors.primary.default,
     },
     helperText: {
       marginTop: 4,
@@ -202,5 +203,23 @@ export const createStyles = (colors: Theme['colors']) =>
     doneButton: {
       width: '100%',
       marginBottom: 8,
+    },
+    expectedPnLText: {
+      marginTop: 8,
+      textAlign: 'right',
+    },
+    sectionTitleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    footerButtonsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      width: '100%',
+    },
+    footerButton: {
+      flex: 1,
     },
   });
