@@ -808,7 +808,6 @@ export class PerpsController extends BaseController<
     }
     this.providers.clear();
 
-    // Get feature flags for HIP-3 DEX support
     const equityEnabled = this.getEquityEnabledFlag();
     const enabledDexs = this.getEnabledDexs();
 
