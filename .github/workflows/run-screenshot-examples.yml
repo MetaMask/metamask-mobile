@@ -1,0 +1,32 @@
+# Workflow to run screenshot examples E2E tests
+# This demonstrates the new screenshot capture functionality
+
+name: Screenshot Examples E2E Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to test (ios or android)'
+        required: true
+        type: choice
+        options:
+          - ios
+          - android
+        default: ios
+
+jobs:
+  screenshot-examples:
+    name: Screenshot Examples - ${{ inputs.platform }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: screenshot-examples
+      platform: ${{ inputs.platform }}
+      test_suite_tag: 'ScreenshotExamples:'
+      test-timeout-minutes: 30
+      split_number: 1
+      total_splits: 1
+      build_type: main
+      metamask_environment: e2e
+    secrets: inherit
+
