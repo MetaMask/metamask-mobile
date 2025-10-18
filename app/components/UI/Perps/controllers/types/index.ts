@@ -359,6 +359,17 @@ export interface PerpsControllerConfig {
    * The fallback is set by default if defined and replaced with remote block list once available.
    */
   fallbackBlockedRegions?: string[];
+  /**
+   * HIP-3 equity perps master switch passed from client
+   * Controls whether HIP-3 (builder-deployed) DEXs are enabled
+   */
+  equityEnabled?: boolean;
+  /**
+   * HIP-3 DEX whitelist passed from client
+   * Empty array = auto-discover all DEXs, non-empty = whitelist specific DEXs
+   * Only applies when equityEnabled === true
+   */
+  enabledDexs?: string[];
 }
 
 export interface PriceUpdate {

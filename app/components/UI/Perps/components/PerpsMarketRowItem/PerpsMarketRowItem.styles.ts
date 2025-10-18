@@ -36,9 +36,6 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 8,
       marginTop: 2,
     },
-    tokenVolume: {
-      // No margin needed - spacing handled by secondRow gap
-    },
     rightSection: {
       alignItems: 'flex-end',
       flex: 1,

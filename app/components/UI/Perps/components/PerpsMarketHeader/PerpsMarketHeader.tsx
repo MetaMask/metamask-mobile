@@ -43,7 +43,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Back Button */}
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
