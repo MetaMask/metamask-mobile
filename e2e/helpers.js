@@ -6,7 +6,7 @@ import {
   getMockServerPort,
   getSecondTestDappPort,
 } from './framework/fixtures/FixtureUtils';
-import Utilities from './utils/Utilities';
+import Utilities from './framework/Utilities';
 import { resolveConfig } from 'detox/internals';
 import { createLogger } from './framework/logger';
 

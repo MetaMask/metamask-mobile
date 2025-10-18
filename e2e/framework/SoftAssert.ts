@@ -1,4 +1,4 @@
-import { createLogger } from '../framework/logger';
+import { createLogger } from './logger';
 
 const logger = createLogger({
   name: 'SoftAssert',
