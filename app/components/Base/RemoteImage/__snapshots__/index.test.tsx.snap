@@ -87,7 +87,7 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
             {
               "alignItems": "center",
               "backgroundColor": "#f3f5f9",
-              "borderColor": "#ffffff",
+              "borderColor": "#f3f5f9",
               "borderRadius": 8,
               "borderWidth": 1,
               "height": 16,

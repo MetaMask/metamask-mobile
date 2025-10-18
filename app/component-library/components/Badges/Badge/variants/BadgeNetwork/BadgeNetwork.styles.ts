@@ -58,7 +58,7 @@ const styleSheet = (params: {
       isScaled ? networkIconStyles : {},
       {
         borderWidth: Number(size) * (1 / 16),
-        borderColor: theme.colors.background.default,
+        borderColor: theme.colors.background.section,
         ...theme.shadows.size.xs,
       } as ViewStyle,
       style,

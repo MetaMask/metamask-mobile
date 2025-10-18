@@ -1031,7 +1031,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1252,7 +1252,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1473,7 +1473,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1694,7 +1694,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,

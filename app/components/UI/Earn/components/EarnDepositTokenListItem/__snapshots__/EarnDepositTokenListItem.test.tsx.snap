@@ -96,7 +96,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#ffffff",
+                "borderColor": "#f3f5f9",
                 "borderRadius": 4,
                 "borderWidth": 1,
                 "height": 16,

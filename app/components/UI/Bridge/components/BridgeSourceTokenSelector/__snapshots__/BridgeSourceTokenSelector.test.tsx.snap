@@ -1156,7 +1156,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1433,7 +1433,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1740,7 +1740,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -2017,7 +2017,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -2294,7 +2294,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -2571,7 +2571,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -2878,7 +2878,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -3155,7 +3155,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#ffffff",
+                                                    "borderColor": "#f3f5f9",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
