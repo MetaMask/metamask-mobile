@@ -480,10 +480,11 @@ describe('BridgeView', () => {
     expect(maxButton).toBeTruthy();
     fireEvent.press(maxButton);
 
-    // Verify the input value is set to the maximum available balance (2.0 from useLatestBalance mock)
+    // Verify the input displays truncated value ("2.0" → "2" for display only)
+    // The actual sourceAmount in Redux state retains full precision "2.0" for API
     const input = getByTestId('source-token-area-input');
     await waitFor(() => {
-      expect(input.props.value).toBe('2.0');
+      expect(input.props.value).toBe('2');
     });
   });
 
