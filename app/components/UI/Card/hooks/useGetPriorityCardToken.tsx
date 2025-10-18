@@ -456,8 +456,7 @@ export const useGetPriorityCardToken = () => {
         ) {
           cardExternalWalletDetailsWithPriority =
             cardExternalWalletDetails?.find((detail) => {
-              const parsedBalance = parseInt(detail.balance);
-              if (isNaN(parsedBalance) || isZero(parsedBalance)) {
+              if (isNaN(parseFloat(detail.balance)) || isZero(detail.balance)) {
                 return false;
               }
 

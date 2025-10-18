@@ -1295,6 +1295,146 @@ describe('useGetPriorityCardToken', () => {
       expect(result.current.error).toBe(false);
     });
 
+    it('skips wallets with zero balance and selects wallet with positive balance', async () => {
+      const walletWithUndefinedBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: undefined,
+        tokenDetails: {
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          decimals: 18,
+        },
+      };
+
+      const walletWithZeroBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: '0',
+        tokenDetails: {
+          address: '0xToken2',
+          symbol: 'TKN2',
+          name: 'Token 2',
+          decimals: 18,
+        },
+      };
+
+      const walletWithPositiveBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: '5000000000000',
+        tokenDetails: {
+          address: '0xToken3',
+          symbol: 'TKN3',
+          name: 'Token 3',
+          decimals: 18,
+        },
+      };
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([
+          walletWithUndefinedBalance,
+          walletWithZeroBalance,
+          walletWithPositiveBalance,
+        ]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken3',
+            symbol: 'TKN3',
+          }),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('skips wallets with non-numeric balance and selects wallet with valid balance', async () => {
+      const walletWithUndefinedBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: undefined,
+        tokenDetails: {
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          decimals: 18,
+        },
+      };
+
+      const walletWithInvalidBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: 'invalid',
+        tokenDetails: {
+          address: '0xToken2',
+          symbol: 'TKN2',
+          name: 'Token 2',
+          decimals: 18,
+        },
+      };
+
+      const walletWithValidBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: '5000000000000',
+        tokenDetails: {
+          address: '0xToken3',
+          symbol: 'TKN3',
+          name: 'Token 3',
+          decimals: 18,
+        },
+      };
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([
+          walletWithUndefinedBalance,
+          walletWithInvalidBalance,
+          walletWithValidBalance,
+        ]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken3',
+            symbol: 'TKN3',
+          }),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
+
     it('maps NotEnabled allowance state when allowance is zero', async () => {
       const walletWithZeroAllowance = {
         ...mockCardExternalWalletDetail,
