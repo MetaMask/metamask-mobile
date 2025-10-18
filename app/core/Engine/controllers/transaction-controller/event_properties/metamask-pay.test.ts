@@ -46,6 +46,19 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('returns nothing if predict_deposit', () => {
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDeposit },
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {},
+      sensitiveProperties: {},
+    });
+  });
+
   it('copies properties from parent transaction if bridge', () => {
     getUIMetricsMock.mockReturnValue({
       properties: {

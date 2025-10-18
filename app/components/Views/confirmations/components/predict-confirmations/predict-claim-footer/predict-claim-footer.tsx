@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -15,9 +15,8 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
-import { selectPredictClaimablePositions } from '../../../../../UI/Predict/selectors/predictController';
 import styleSheet from './predict-claim-footer.styles';
-import { PredictPositionStatus } from '../../../../../UI/Predict/types';
+import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
@@ -25,17 +24,9 @@ export interface PredictClaimFooterProps {
 
 export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
   const { styles } = useStyles(styleSheet, {});
+  const wonPositions = useSelector(selectPredictWonPositions);
 
-  const claimablePositions = useSelector(selectPredictClaimablePositions);
-  const wonPositions = useMemo(
-    () =>
-      claimablePositions.filter(
-        (position) => position.status === PredictPositionStatus.WON,
-      ),
-    [claimablePositions],
-  );
-
-  const networkAvatars = wonPositions.map((position) => ({
+  const positionIcons = wonPositions.map((position) => ({
     imageSource: { uri: position.icon },
     variant: AvatarVariant.Token as const,
   }));
@@ -49,7 +40,7 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
           })}
         </Text>
         <AvatarGroup
-          avatarPropsList={networkAvatars}
+          avatarPropsList={positionIcons}
           size={AvatarSize.Sm}
           maxStackedAvatars={3}
         />
