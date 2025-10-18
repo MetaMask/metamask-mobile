@@ -701,6 +701,253 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get available balance for a specific DEX
+   * @param params - Balance query parameters
+   * @param params.dex - DEX name (null = main, 'xyz' = HIP-3)
+   * @returns Available balance in USDC
+   * @private
+   */
+  private async getBalanceForDex(params: {
+    dex: string | null;
+  }): Promise<number> {
+    const { dex } = params;
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+    const infoClient = this.clientService.getInfoClient();
+
+    const queryParams = dex
+      ? { user: userAddress, dex }
+      : { user: userAddress };
+
+    const accountState = await infoClient.clearinghouseState(queryParams);
+    const adapted = adaptAccountStateFromSDK(accountState);
+    return parseFloat(adapted.availableBalance);
+  }
+
+  /**
+   * Find source DEX with sufficient balance for transfer
+   * Strategy: Prefer main DEX → other HIP-3 DEXs
+   * @param params - Source search parameters
+   * @param params.targetDex - Target DEX name
+   * @param params.requiredAmount - Required balance shortfall
+   * @returns Source DEX info or null if insufficient funds
+   * @private
+   */
+  private async findSourceDexWithBalance(params: {
+    targetDex: string;
+    requiredAmount: number;
+  }): Promise<{ sourceDex: string; available: number } | null> {
+    const { targetDex, requiredAmount } = params;
+
+    // Try main DEX first
+    try {
+      const mainBalance = await this.getBalanceForDex({ dex: null });
+      if (mainBalance >= requiredAmount) {
+        return { sourceDex: '', available: mainBalance };
+      }
+    } catch (error) {
+      DevLogger.log('Could not fetch main DEX balance', { error });
+    }
+
+    // Try other HIP-3 DEXs
+    for (const dex of this.enabledDexs) {
+      if (dex === targetDex) continue;
+
+      try {
+        const balance = await this.getBalanceForDex({ dex });
+        if (balance >= requiredAmount) {
+          return { sourceDex: dex, available: balance };
+        }
+      } catch (error) {
+        DevLogger.log(`Could not fetch balance for DEX ${dex}`, { error });
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Auto-transfer funds for HIP-3 orders when insufficient balance
+   * Only called for HIP-3 markets (not main DEX)
+   * @param params - Transfer parameters
+   * @param params.targetDex - HIP-3 DEX name (e.g., 'xyz')
+   * @param params.requiredMargin - Required margin with buffer
+   * @returns Transfer info for rollback, or null if no transfer needed
+   * @private
+   */
+  private async autoTransferForHip3Order(params: {
+    targetDex: string;
+    requiredMargin: number;
+  }): Promise<{ amount: number; sourceDex: string } | null> {
+    const { targetDex, requiredMargin } = params;
+
+    // Check target DEX balance
+    const targetBalance = await this.getBalanceForDex({ dex: targetDex });
+
+    DevLogger.log('HyperLiquidProvider: HIP-3 balance check', {
+      targetDex,
+      targetBalance: targetBalance.toFixed(2),
+      requiredMargin: requiredMargin.toFixed(2),
+      shortfall: Math.max(0, requiredMargin - targetBalance).toFixed(2),
+    });
+
+    // Sufficient balance - no transfer needed
+    if (targetBalance >= requiredMargin) {
+      return null;
+    }
+
+    // Calculate shortfall and find source
+    const shortfall = requiredMargin - targetBalance;
+    const source = await this.findSourceDexWithBalance({
+      targetDex,
+      requiredAmount: shortfall,
+    });
+
+    if (!source) {
+      throw new Error(
+        `Insufficient balance for HIP-3 order. Required: ${requiredMargin.toFixed(
+          2,
+        )} USDC on ${targetDex} DEX, Available: ${targetBalance.toFixed(
+          2,
+        )} USDC. Please transfer funds to ${targetDex} DEX.`,
+      );
+    }
+
+    // Execute transfer
+    const transferAmount = Math.min(shortfall, source.available).toFixed(6);
+
+    DevLogger.log('HyperLiquidProvider: Executing HIP-3 auto-transfer', {
+      from: source.sourceDex || 'main',
+      to: targetDex,
+      amount: transferAmount,
+    });
+
+    const result = await this.transferBetweenDexs({
+      sourceDex: source.sourceDex,
+      destinationDex: targetDex,
+      amount: transferAmount,
+    });
+
+    if (!result.success) {
+      throw new Error(
+        `Auto-transfer failed: ${result.error || 'Unknown error'}`,
+      );
+    }
+
+    DevLogger.log('✅ HyperLiquidProvider: HIP-3 auto-transfer complete', {
+      amount: transferAmount,
+      from: source.sourceDex || 'main',
+      to: targetDex,
+    });
+
+    return {
+      amount: parseFloat(transferAmount),
+      sourceDex: source.sourceDex,
+    };
+  }
+
+  /**
+   * Auto-transfer freed margin back to main DEX after closing a HIP-3 position
+   *
+   * This method transfers the margin released from closing a position back to
+   * the main DEX to prevent balance fragmentation across HIP-3 DEXs.
+   *
+   * Design: Non-blocking operation - failures are logged but don't affect the
+   * position close operation. Extensible for future configuration options.
+   *
+   * @param params - Transfer configuration
+   * @param params.sourceDex - HIP-3 DEX name to transfer from
+   * @param params.freedMargin - Amount of margin released from position close
+   * @param params.transferAll - (Future) Transfer all available balance instead
+   * @param params.skipTransfer - (Future) Skip auto-transfer if disabled
+   * @returns Transfer info if successful, null if skipped/failed
+   * @private
+   */
+  private async autoTransferBackAfterClose(params: {
+    sourceDex: string;
+    freedMargin: number;
+    transferAll?: boolean;
+    skipTransfer?: boolean;
+  }): Promise<{ amount: number; destinationDex: string } | null> {
+    const {
+      sourceDex,
+      freedMargin,
+      transferAll = false,
+      skipTransfer = false,
+    } = params;
+
+    // Future: Check user preference to skip auto-transfer
+    if (skipTransfer) {
+      DevLogger.log('Auto-transfer back skipped (disabled by config)');
+      return null;
+    }
+
+    try {
+      DevLogger.log('Attempting auto-transfer back to main DEX', {
+        sourceDex,
+        freedMargin: freedMargin.toFixed(2),
+        transferAll,
+      });
+
+      // Get current balance on HIP-3 DEX
+      const sourceBalance = await this.getBalanceForDex({ dex: sourceDex });
+
+      if (sourceBalance <= 0) {
+        DevLogger.log('No balance to transfer back', { sourceBalance });
+        return null;
+      }
+
+      // Determine transfer amount
+      const transferAmount = transferAll
+        ? sourceBalance
+        : Math.min(freedMargin, sourceBalance);
+
+      if (transferAmount <= 0) {
+        DevLogger.log('Transfer amount too small', { transferAmount });
+        return null;
+      }
+
+      DevLogger.log('Transferring back to main DEX', {
+        amount: transferAmount.toFixed(6),
+        from: sourceDex,
+        to: 'main',
+      });
+
+      // Execute transfer back to main DEX (empty string '' represents main DEX)
+      const result = await this.transferBetweenDexs({
+        sourceDex,
+        destinationDex: '',
+        amount: transferAmount.toFixed(6),
+      });
+
+      if (!result.success) {
+        DevLogger.log('❌ Auto-transfer back failed', {
+          error: result.error,
+        });
+        return null;
+      }
+
+      DevLogger.log('✅ Auto-transfer back successful', {
+        amount: transferAmount.toFixed(6),
+        from: sourceDex,
+        to: 'main',
+      });
+
+      return {
+        amount: transferAmount,
+        destinationDex: '',
+      };
+    } catch (error) {
+      // Non-blocking: Log error but don't throw
+      DevLogger.log('❌ Auto-transfer back exception', {
+        error,
+        sourceDex,
+        freedMargin,
+      });
+      return null;
+    }
+  }
+
+  /**
    * Place an order using direct wallet signing (same as working debug test)
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
@@ -860,6 +1107,37 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       }
 
+      // HIP-3 Atomic Transaction: Auto-transfer → Order → Rollback on failure
+      // Only runs for HIP-3 markets (dexName !== null), skipped for main DEX
+      const isHip3Order = dexName !== null;
+      let transferInfo: { amount: number; sourceDex: string } | null = null;
+
+      if (isHip3Order) {
+        // Calculate required margin for this order
+        const positionSize = parseFloat(formattedSize);
+        const notionalValue = positionSize * orderPrice;
+        const effectiveLeverage = params.leverage || assetInfo.maxLeverage || 1;
+        const requiredMargin = notionalValue / effectiveLeverage;
+
+        // Add buffer for fees and slippage (5%)
+        const requiredMarginWithBuffer = requiredMargin * 1.05;
+
+        DevLogger.log('HyperLiquidProvider: HIP-3 order margin check', {
+          coin: params.coin,
+          dex: dexName,
+          notionalValue: notionalValue.toFixed(2),
+          leverage: effectiveLeverage,
+          requiredMargin: requiredMargin.toFixed(2),
+          requiredMarginWithBuffer: requiredMarginWithBuffer.toFixed(2),
+        });
+
+        // Transfer funds if needed (tracked for potential rollback)
+        transferInfo = await this.autoTransferForHip3Order({
+          targetDex: dexName,
+          requiredMargin: requiredMarginWithBuffer,
+        });
+      }
+
       // Build orders array - main order plus optional TP/SL orders
       const orders: SDKOrderParams[] = [];
 
@@ -957,7 +1235,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       }
 
-      // 6. Submit via single SDK exchange client
+      // 6. Submit order with atomic rollback for HIP-3 failures
       // Asset ID determines routing (main DEX: direct index, HIP-3: BASE_ASSET_ID + dexIndex*DEX_MULTIPLIER + coinIndex)
       // The exchange client handles all DEXs through a single instance
       const exchangeClient = this.clientService.getExchangeClient();
@@ -974,30 +1252,78 @@ export class HyperLiquidProvider implements IPerpsProvider {
         },
       );
 
-      const result = await exchangeClient.order({
-        orders,
-        grouping,
-        builder: {
-          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-          f: builderFee,
-        },
-      });
+      try {
+        const result = await exchangeClient.order({
+          orders,
+          grouping,
+          builder: {
+            b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+            f: builderFee,
+          },
+        });
 
-      if (result.status !== 'ok') {
-        throw new Error(`Order failed: ${JSON.stringify(result)}`);
+        if (result.status !== 'ok') {
+          throw new Error(`Order failed: ${JSON.stringify(result)}`);
+        }
+
+        const status = result.response?.data?.statuses?.[0];
+        const restingOrder =
+          status && 'resting' in status ? status.resting : null;
+        const filledOrder = status && 'filled' in status ? status.filled : null;
+
+        // Order succeeded - keep funds on HIP-3 DEX (no rollback)
+        return {
+          success: true,
+          orderId:
+            restingOrder?.oid?.toString() || filledOrder?.oid?.toString(),
+          filledSize: filledOrder?.totalSz,
+          averagePrice: filledOrder?.avgPx,
+        };
+      } catch (orderError) {
+        // Order failed - rollback HIP-3 transfer if funds were moved
+        // HyperLiquid has no fees for internal transfers between DEXs
+        if (transferInfo && dexName) {
+          try {
+            DevLogger.log(
+              'HyperLiquidProvider: Rolling back failed order transfer',
+              {
+                from: dexName,
+                to: transferInfo.sourceDex || 'main',
+                amount: transferInfo.amount.toFixed(6),
+                reason: 'order_failed',
+              },
+            );
+
+            const rollbackResult = await this.transferBetweenDexs({
+              sourceDex: dexName, // From HIP-3 DEX
+              destinationDex: transferInfo.sourceDex, // Back to source
+              amount: transferInfo.amount.toFixed(6),
+            });
+
+            if (rollbackResult.success) {
+              DevLogger.log('✅ HyperLiquidProvider: Rollback successful', {
+                amount: transferInfo.amount.toFixed(6),
+                returnedTo: transferInfo.sourceDex || 'main',
+              });
+            } else {
+              DevLogger.log('❌ HyperLiquidProvider: Rollback failed', {
+                error: rollbackResult.error,
+                note: 'Funds remain on HIP-3 DEX, user must manually transfer',
+              });
+            }
+          } catch (rollbackError) {
+            // Log but don't throw - original order error is more important
+            DevLogger.log('❌ HyperLiquidProvider: Rollback exception', {
+              error:
+                rollbackError instanceof Error
+                  ? rollbackError.message
+                  : String(rollbackError),
+              note: 'Funds remain on HIP-3 DEX, user must manually transfer',
+            });
+          }
+        }
+        throw orderError;
       }
-
-      const status = result.response?.data?.statuses?.[0];
-      const restingOrder =
-        status && 'resting' in status ? status.resting : null;
-      const filledOrder = status && 'filled' in status ? status.filled : null;
-
-      return {
-        success: true,
-        orderId: restingOrder?.oid?.toString() || filledOrder?.oid?.toString(),
-        filledSize: filledOrder?.totalSz,
-        averagePrice: filledOrder?.avgPx,
-      };
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -1450,6 +1776,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Close a position
+   *
+   * For HIP-3 positions, this method automatically transfers freed margin
+   * back to the main DEX after successfully closing the position.
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
     try {
@@ -1466,6 +1795,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const isBuy = positionSize < 0;
       const closeSize = params.size || Math.abs(positionSize).toString();
 
+      // Capture position details BEFORE closing for freed margin calculation
+      const totalMarginUsed = parseFloat(position.marginUsed);
+      const totalPositionSize = Math.abs(positionSize);
+      const closeSizeNum = parseFloat(closeSize);
+      const isHip3Position = position.coin.includes(':');
+      const hip3Dex = isHip3Position ? position.coin.split(':')[0] : null;
+
+      // Calculate freed margin proportionally
+      const freedMarginRatio = closeSizeNum / totalPositionSize;
+      const freedMargin = totalMarginUsed * freedMarginRatio;
+
+      DevLogger.log('Position close details', {
+        coin: position.coin,
+        isHip3Position,
+        hip3Dex,
+        totalMarginUsed,
+        closedSize: closeSize,
+        freedMargin: freedMargin.toFixed(2),
+      });
+
+      // Execute position close
       const result = await this.placeOrder({
         coin: params.coin,
         isBuy,
@@ -1474,6 +1824,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: params.price,
         reduceOnly: true,
       });
+
+      // If close succeeded and this is a HIP-3 position, auto-transfer back
+      if (result.success && isHip3Position && hip3Dex) {
+        DevLogger.log(
+          'Position closed successfully, initiating auto-transfer back',
+        );
+
+        // Non-blocking: Transfer freed margin back to main DEX
+        await this.autoTransferBackAfterClose({
+          sourceDex: hip3Dex,
+          freedMargin,
+        });
+      }
 
       return result;
     } catch (error) {
@@ -2079,6 +2442,25 @@ export class HyperLiquidProvider implements IPerpsProvider {
         parseFloat(aggregatedAccountState.totalBalance) + spotBalance
       ).toString();
 
+      // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)
+      const subAccountBreakdown: Record<
+        string,
+        { availableBalance: string; totalBalance: string }
+      > = {};
+      perpsStateResults.forEach((result) => {
+        const { dex, data: perpsState } = result;
+        const dexAccountState = adaptAccountStateFromSDK(perpsState);
+        const subAccountKey = dex || ''; // Empty string for main DEX
+
+        subAccountBreakdown[subAccountKey] = {
+          availableBalance: dexAccountState.availableBalance,
+          totalBalance: dexAccountState.totalBalance,
+        };
+      });
+
+      // Add sub-account breakdown to result
+      aggregatedAccountState.subAccountBreakdown = subAccountBreakdown;
+
       DevLogger.log('Aggregated account state:', aggregatedAccountState);
 
       return aggregatedAccountState;
@@ -2305,6 +2687,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
       hip3Markets:
         combinedUniverse.length -
         (dexDataResults[0]?.meta?.universe?.length || 0),
+    });
+
+    // Debug: Log combinedAllMids to diagnose price lookup issues
+    const hip3Keys = Object.keys(combinedAllMids).filter((k) =>
+      k.includes(':'),
+    );
+    DevLogger.log('Combined allMids price data:', {
+      totalKeys: Object.keys(combinedAllMids).length,
+      allKeys: Object.keys(combinedAllMids),
+      hip3Keys,
+      hip3Prices: Object.fromEntries(
+        hip3Keys.map((key) => [key, combinedAllMids[key]]),
+      ),
+      samplePrices: Object.fromEntries(
+        Object.entries(combinedAllMids).slice(0, 5),
+      ),
     });
 
     // Transform to UI-friendly format using standalone utility

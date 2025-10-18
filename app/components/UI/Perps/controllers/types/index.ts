@@ -111,11 +111,18 @@ export type AccountState = {
   returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
   totalValue: string; // Based on HyperLiquid: accountValue
   /**
-   * Per-DEX balance breakdown (HIP-3 support, optional)
-   * Key: DEX identifier ('' or 'main' = main DEX, 'xyz' = HIP-3 DEX)
-   * Value: Balance details for that DEX
+   * Per-sub-account balance breakdown (protocol-specific, optional)
+   * Maps sub-account identifier to its balance details.
+   *
+   * Protocol examples:
+   * - HyperLiquid HIP-3: '' or 'main' (main DEX), 'xyz' (HIP-3 builder DEX)
+   * - dYdX: Sub-account numbers (e.g., '0', '1', '2')
+   * - Other protocols: Vault IDs, pool IDs, margin account IDs, etc.
+   *
+   * Key: Sub-account identifier (protocol-specific string)
+   * Value: Balance details for that sub-account
    */
-  dexBreakdown?: Record<
+  subAccountBreakdown?: Record<
     string,
     {
       availableBalance: string;

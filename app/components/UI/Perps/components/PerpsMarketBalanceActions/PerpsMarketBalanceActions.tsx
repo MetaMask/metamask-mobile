@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Modal, Animated, View, ActivityIndicator } from 'react-native';
+import {
+  Modal,
+  Animated,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -15,6 +21,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -212,6 +222,12 @@ const PerpsMarketBalanceActions: React.FC<
     }
   }, [navigation, isEligible, ensureArbitrumNetworkExists]);
 
+  const handleDebugPress = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.HIP3_DEBUG,
+    });
+  }, [navigation]);
+
   const availableBalance = perpsAccount?.availableBalance || '0';
   const isBalanceEmpty = BigNumber(availableBalance).isZero();
 
@@ -274,25 +290,41 @@ const PerpsMarketBalanceActions: React.FC<
               </Text>
             </Box>
 
-            {/* USDC Token Avatar with HyperLiquid Badge */}
-            <BadgeWrapper
-              style={styles.assetIconWrapper}
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={HyperLiquidLogo}
-                  name="HyperLiquid"
-                  style={styles.hyperliquidIcon}
-                />
-              }
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-3"
             >
-              <AvatarToken
-                name={USDC_SYMBOL}
-                imageSource={{ uri: USDC_TOKEN_ICON_URL }}
-                size={AvatarSize.Md}
-              />
-            </BadgeWrapper>
+              {/* Debug button - only in development */}
+              {__DEV__ && (
+                <TouchableOpacity
+                  onPress={handleDebugPress}
+                  style={styles.debugButton}
+                >
+                  <Icon name={IconName.Code} size={IconSize.Md} />
+                </TouchableOpacity>
+              )}
+
+              {/* USDC Token Avatar with HyperLiquid Badge */}
+              <BadgeWrapper
+                style={styles.assetIconWrapper}
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={HyperLiquidLogo}
+                    name="HyperLiquid"
+                    style={styles.hyperliquidIcon}
+                  />
+                }
+              >
+                <AvatarToken
+                  name={USDC_SYMBOL}
+                  imageSource={{ uri: USDC_TOKEN_ICON_URL }}
+                  size={AvatarSize.Md}
+                />
+              </BadgeWrapper>
+            </Box>
           </Box>
         </Box>
 
