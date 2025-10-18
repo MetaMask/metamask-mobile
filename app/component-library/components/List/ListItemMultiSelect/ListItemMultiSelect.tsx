@@ -1,14 +1,13 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity as RNTouchableOpacity,
   TouchableOpacityProps,
   View,
   Platform,
   GestureResponderEvent,
-  AccessibilityInfo,
 } from 'react-native';
 
 // External dependencies.
@@ -20,12 +19,7 @@ import ListItem from '../../List/ListItem/ListItem';
 import styleSheet from './ListItemMultiSelect.styles';
 import { ListItemMultiSelectProps } from './ListItemMultiSelect.types';
 import { DEFAULT_LISTITEMMULTISELECT_GAP } from './ListItemMultiSelect.constants';
-import {
-  Gesture,
-  GestureDetector,
-  type GestureStateChangeEvent,
-  type TapGestureHandlerEventPayload,
-} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 const TouchableOpacity = ({
   onPress,
@@ -37,86 +31,58 @@ const TouchableOpacity = ({
 }) => {
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Track accessibility state - start with null to indicate "unknown"
-  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<
-    boolean | null
-  >(null);
-
-  useEffect(() => {
-    // Check initial accessibility state
-    AccessibilityInfo.isScreenReaderEnabled().then(setIsAccessibilityEnabled);
-
-    // Listen for accessibility changes
-    const subscription = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      setIsAccessibilityEnabled,
-    );
-
-    return () => subscription?.remove();
-  }, []);
+  // Simple pass-through to main component coordination
+  // Main component handles ALL coordination logic
 
   // Gesture detection for ScrollView compatibility on Android
+  // Sets timestamp FIRST, then calls parent function
   const tap = Gesture.Tap()
     .runOnJS(true)
     .shouldCancelWhenOutside(false)
     .maxDeltaX(20) // Allow some movement while tapping
     .maxDeltaY(20)
-    .requireExternalGestureToFail() // Wait for other gestures to fail before activating
-    .maxDuration(300) // Tight constraint: must complete within 300ms
-    .minPointers(1)
-    .onEnd(
-      (
-        gestureEvent: GestureStateChangeEvent<TapGestureHandlerEventPayload>,
-      ) => {
-        // Only handle gesture when we KNOW accessibility is OFF
-        // When accessibility is ON or UNKNOWN, let TouchableOpacity handle the press
-        if (onPress && !isDisabled && isAccessibilityEnabled === false) {
-          // Create a proper GestureResponderEvent-like object from gesture event
-          const syntheticEvent = {
-            nativeEvent: {
-              locationX: gestureEvent.x || 0,
-              locationY: gestureEvent.y || 0,
-              pageX: gestureEvent.absoluteX || 0,
-              pageY: gestureEvent.absoluteY || 0,
-              timestamp: Date.now(),
-            },
-            persist: () => {
-              /* no-op for synthetic event */
-            },
-            preventDefault: () => {
-              /* no-op for synthetic event */
-            },
-            stopPropagation: () => {
-              /* no-op for synthetic event */
-            },
-          } as GestureResponderEvent;
+    .onEnd((gestureEvent) => {
+      if (onPress && !isDisabled) {
+        // Create a proper GestureResponderEvent-like object from gesture event
+        const syntheticEvent = {
+          nativeEvent: {
+            locationX: gestureEvent.x || 0,
+            locationY: gestureEvent.y || 0,
+            pageX: gestureEvent.absoluteX || 0,
+            pageY: gestureEvent.absoluteY || 0,
+            timestamp: Date.now(),
+          },
+          persist: () => {
+            /* no-op for synthetic event */
+          },
+          preventDefault: () => {
+            /* no-op for synthetic event */
+          },
+          stopPropagation: () => {
+            /* no-op for synthetic event */
+          },
+        } as GestureResponderEvent;
 
-          onPress(syntheticEvent);
-        }
-      },
-    );
+        // Call main component function (handles coordination)
+        onPress(syntheticEvent);
+      }
+    });
 
-  // In test environments, behave like standard TouchableOpacity
-  if (process.env.NODE_ENV === 'test') {
-    return (
-      <RNTouchableOpacity
-        disabled={isDisabled}
-        onPress={isDisabled ? undefined : onPress}
-        {...props}
-      >
-        {children}
-      </RNTouchableOpacity>
-    );
-  }
+  // Simple accessibility handler - main component handles coordination
+  const accessibilityOnPress = (pressEvent: GestureResponderEvent) => {
+    if (onPress && !isDisabled) {
+      onPress(pressEvent);
+    }
+  };
 
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={
-          isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined
-        } // Use TouchableOpacity onPress when accessibility is ON or UNKNOWN (safer for accessibility users)
+        onPress={accessibilityOnPress} // Restored for accessibility without ScrollView conflicts
         {...props}
+        // Ensure disabled prop is available to tests
+        {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
       >
         {children}
       </RNTouchableOpacity>
@@ -135,7 +101,8 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
-  // iOS checkbox coordination: For iOS/other platforms, we need coordination between checkbox and main component
+  // Android: Custom TouchableOpacity handles ALL coordination, no checkbox interaction
+  // iOS: Standard RNTouchableOpacity + checkbox coordination needed
   const lastCheckboxGestureTime = useRef(0);
   const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
 
@@ -149,8 +116,27 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       ? TouchableOpacity
       : RNTouchableOpacity;
 
+  // Both custom TouchableOpacity and main component use the same timestamp reference
+  const conditionalOnPress = isDisabled
+    ? undefined
+    : (pressEvent?: GestureResponderEvent) => {
+        // Skip coordination logic in test environments
+        if (process.env.NODE_ENV === 'test') {
+          onPress?.(pressEvent as GestureResponderEvent);
+          return;
+        }
+
+        const now = Date.now();
+        const timeSinceLastGesture = now - lastCheckboxGestureTime.current;
+
+        if (onPress && timeSinceLastGesture > COORDINATION_WINDOW) {
+          lastCheckboxGestureTime.current = now;
+          onPress(pressEvent as GestureResponderEvent);
+        }
+      };
+
   // iOS checkbox coordination: Set timestamp FIRST, then call raw parent function
-  // This ensures main component's onPress coordination sees the recent timestamp and skips
+  // This ensures main component's conditionalOnPress sees the recent timestamp and skips
   const checkboxOnPressIn = (pressEvent: GestureResponderEvent) => {
     if (onPress && !isDisabled) {
       // Skip coordination logic in test environments
@@ -166,40 +152,11 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
     }
   };
 
-  // Android: Pass onPress directly to custom TouchableOpacity (it handles coordination)
-  // iOS/other platforms: coordinate with checkbox to prevent double firing
-  const getOnPress = () => {
-    if (isDisabled) return undefined;
-
-    // Android: Pass onPress directly to custom TouchableOpacity
-    if (Platform.OS === 'android' && !isE2ETest && !isUnitTest) {
-      return onPress;
-    }
-
-    // iOS/other platforms: coordinate with checkbox
-    return (pressEvent?: GestureResponderEvent) => {
-      // Skip coordination logic in test environments
-      if (process.env.NODE_ENV === 'test') {
-        onPress?.(pressEvent as GestureResponderEvent);
-        return;
-      }
-
-      // iOS/other platforms: coordinate with checkbox
-      const now = Date.now();
-      const timeSinceLastGesture = now - lastCheckboxGestureTime.current;
-
-      if (onPress && timeSinceLastGesture > COORDINATION_WINDOW) {
-        lastCheckboxGestureTime.current = now;
-        onPress(pressEvent as GestureResponderEvent);
-      }
-    };
-  };
-
   return (
     <TouchableComponent
       style={styles.base}
       disabled={isDisabled}
-      onPress={getOnPress()}
+      onPress={conditionalOnPress}
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
