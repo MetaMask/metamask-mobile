@@ -37,8 +37,6 @@ const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
 const createStyles = (
   theme: Theme,
   isDarkMode: boolean,
-  titleFontSize?: number | null,
-  subtitleFontSize?: number | null,
   useSystemFont?: boolean,
 ) =>
   StyleSheet.create({
@@ -46,32 +44,31 @@ const createStyles = (
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
+    scrollableContent: {
+      flex: 1,
+    },
+    scrollContentContainer: {
+      flexGrow: 1,
+    },
     headerContainer: {
       alignItems: 'center',
       paddingTop: scaleVertical(50),
       paddingHorizontal: scaleHorizontal(16),
-      minHeight: '35%',
-      maxHeight: '40%',
+      marginBottom: scaleVertical(20),
     },
     contentImageContainer: {
-      flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: scaleHorizontal(20),
-      paddingVertical: scaleVertical(10),
+      marginTop: 'auto',
     },
     image: {
       width: '100%',
-      height: '100%',
+      height: scaleVertical(380),
       resizeMode: 'contain',
-      minWidth: '80%',
-      minHeight: '80%',
     },
     title: {
-      fontSize: titleFontSize || scaleFont(useSystemFont ? 44 : 47), // Slightly smaller base for system fonts
-      lineHeight: titleFontSize
-        ? titleFontSize + 1
-        : scaleFont(useSystemFont ? 46 : 48),
+      fontSize: scaleFont(useSystemFont ? 44 : 47), // Slightly smaller base for system fonts
+      lineHeight: scaleFont(useSystemFont ? 46 : 48),
       textAlign: 'center',
       paddingTop: scaleVertical(12),
       fontFamily: useSystemFont
@@ -91,8 +88,8 @@ const createStyles = (
       paddingTop: scaleVertical(10),
       paddingHorizontal: scaleHorizontal(8),
       textAlign: 'center',
-      fontSize: subtitleFontSize || scaleFont(16),
-      lineHeight: subtitleFontSize ? subtitleFontSize + 4 : scaleFont(20),
+      fontSize: scaleFont(16),
+      lineHeight: scaleFont(20),
       fontFamily: useSystemFont
         ? Platform.OS === 'ios'
           ? 'System'
