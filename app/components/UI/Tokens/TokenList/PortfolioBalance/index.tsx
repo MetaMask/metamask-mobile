@@ -71,7 +71,7 @@ export const PortfolioBalance = React.memo(() => {
             <Loader />
           </View>
         ) : hasZeroBalance ? (
-          <BalanceEmptyState />
+          <BalanceEmptyState testID="portfolio-balance-empty-state" />
         ) : (
           <TouchableOpacity
             onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}

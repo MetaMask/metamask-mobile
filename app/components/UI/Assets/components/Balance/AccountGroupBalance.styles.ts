@@ -5,7 +5,6 @@ const createStyles = () =>
       marginHorizontal: 16,
     },
     balanceContainer: {
-      paddingTop: 24,
       flexDirection: 'row',
       alignItems: 'center',
     },

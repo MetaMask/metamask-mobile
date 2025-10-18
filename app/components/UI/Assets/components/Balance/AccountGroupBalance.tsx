@@ -53,7 +53,7 @@ const AccountGroupBalance = () => {
           </View>
         ) : hasZeroBalance ? (
           <>
-            <BalanceEmptyState />
+            <BalanceEmptyState testID="account-group-balance-empty-state" />
           </>
         ) : (
           <TouchableOpacity
