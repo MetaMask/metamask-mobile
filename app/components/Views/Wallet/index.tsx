@@ -199,11 +199,8 @@ const createStyles = ({ colors }: Theme) =>
       gap: 16,
       flexDirection: 'column',
     },
-    walletAccount: { marginTop: 28 },
-
     tabContainer: {
       flex: 1,
-      marginTop: 8,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -217,7 +214,6 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
     },
     carousel: {
-      marginBottom: 16,
       overflow: 'hidden', // Allow for smooth height animations
     },
   });
