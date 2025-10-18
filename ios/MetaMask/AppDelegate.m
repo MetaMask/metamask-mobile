@@ -5,6 +5,7 @@
 
 #import <RNBranch/RNBranch.h>
 #import <Firebase.h>
+#import <IntercomModule.h>
 
 
 @implementation AppDelegate
@@ -26,6 +27,10 @@
  // Uncomment this line to use the test key instead of the live one.
   // [RNBranch useTestInstance];
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
+  
+  // Initialize Intercom
+  [IntercomModule initialize:@"KEY_HERE" withAppId:@"KEY_HERE"];
+  
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
