@@ -170,7 +170,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const isTestnet = options.isTestnet || false;
 
     // Dev-friendly defaults: Enable all DEXs by default for easier testing
-    this.equityEnabled = options.equityEnabled ?? true;
+    this.equityEnabled = options.equityEnabled ?? __DEV__;
     this.enabledDexs = options.enabledDexs ?? [];
 
     // Initialize services
