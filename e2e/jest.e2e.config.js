@@ -21,6 +21,10 @@ module.exports = {
       {
         outputDirectory: './e2e/reports',
         classNameTemplate: '{filepath}',
+        outputName: (() => {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          return `junit-${timestamp}.xml`;
+        })(),
       },
     ],
   ],

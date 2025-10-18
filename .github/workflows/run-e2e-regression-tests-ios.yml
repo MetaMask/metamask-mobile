@@ -136,7 +136,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
-  
+
   regression-ux-ios:
     name: 'UX Regression (iOS) - ${{ matrix.split }}'
     needs: [build-ios-apps]
