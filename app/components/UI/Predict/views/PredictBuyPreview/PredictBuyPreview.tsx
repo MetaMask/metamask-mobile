@@ -26,7 +26,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
@@ -87,7 +86,6 @@ const PredictBuyPreview = () => {
     });
     try {
       dispatch(StackActions.pop());
-      dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
     } catch (error) {
       // Navigation errors should not prevent the bet from being placed
       console.warn('Navigation error after placing bet:', error);
