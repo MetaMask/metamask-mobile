@@ -917,12 +917,15 @@ describe('PerpsTPSLView', () => {
     });
   });
 
-  describe('Off Button Functionality', () => {
-    it('calls take profit off button handler when off button is pressed', () => {
-      // Arrange
+  describe('Clear Button Functionality', () => {
+    it('calls take profit clear handler when clear button is pressed', () => {
       const mockOffHandler = jest.fn();
       mockUsePerpsTPSLForm.mockReturnValue({
         ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '105000',
+        },
         buttons: {
           ...defaultMockReturn.buttons,
           handleTakeProfitOff: mockOffHandler,
@@ -931,22 +934,22 @@ describe('PerpsTPSLView', () => {
 
       render(<PerpsTPSLView />);
 
-      // Get the take profit off button - there are two "Off" buttons, get all and find the first one
-      const offButtons = screen.getAllByText('perps.tpsl.off');
-      const takeProfitOffButton = offButtons[0]; // First "Off" button is for take profit
+      const clearButtons = screen.getAllByText('perps.tpsl.clear');
+      const takeProfitClearButton = clearButtons[0];
 
-      // Act
-      fireEvent.press(takeProfitOffButton);
+      fireEvent.press(takeProfitClearButton);
 
-      // Assert - Handler should be called
       expect(mockOffHandler).toHaveBeenCalled();
     });
 
-    it('calls stop loss off button handler when off button is pressed', () => {
-      // Arrange
+    it('calls stop loss clear handler when clear button is pressed', () => {
       const mockOffHandler = jest.fn();
       mockUsePerpsTPSLForm.mockReturnValue({
         ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          stopLossPrice: '95000',
+        },
         buttons: {
           ...defaultMockReturn.buttons,
           handleStopLossOff: mockOffHandler,
@@ -955,15 +958,27 @@ describe('PerpsTPSLView', () => {
 
       render(<PerpsTPSLView />);
 
-      // Get the stop loss off button - there are two "Off" buttons, get all and find the second one
-      const offButtons = screen.getAllByText('perps.tpsl.off');
-      const stopLossOffButton = offButtons[1]; // Second "Off" button is for stop loss
+      const clearButtons = screen.getAllByText('perps.tpsl.clear');
+      const stopLossClearButton = clearButtons[0];
 
-      // Act
-      fireEvent.press(stopLossOffButton);
+      fireEvent.press(stopLossClearButton);
 
-      // Assert - Handler should be called
       expect(mockOffHandler).toHaveBeenCalled();
+    });
+
+    it('does not show clear button when no value is set', () => {
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '',
+          stopLossPrice: '',
+        },
+      });
+
+      render(<PerpsTPSLView />);
+
+      expect(screen.queryByText('perps.tpsl.clear')).toBeNull();
     });
 
     it('displays values from form state correctly', () => {
@@ -1046,7 +1061,6 @@ describe('PerpsTPSLView', () => {
     });
 
     it('renders correctly when validation has errors', () => {
-      // Arrange - Mock form state with validation errors
       mockUsePerpsTPSLForm.mockReturnValueOnce({
         ...defaultMockReturn,
         validation: {
@@ -1058,12 +1072,10 @@ describe('PerpsTPSLView', () => {
 
       render(<PerpsTPSLView />);
 
-      // Assert - Component renders correctly even with validation errors
-      const confirmButton = screen.getByText('perps.tpsl.done');
-      expect(confirmButton).toBeOnTheScreen();
-
-      // Note: The actual button disable behavior depends on the component implementation
-      // This test ensures the component handles validation error state without crashing
+      const setButton = screen.getByText('perps.tpsl.set');
+      const cancelButton = screen.getByText('perps.tpsl.cancel');
+      expect(setButton).toBeOnTheScreen();
+      expect(cancelButton).toBeOnTheScreen();
     });
 
     it('displays stop loss liquidation error for long orders', () => {
@@ -1205,10 +1217,8 @@ describe('PerpsTPSLView', () => {
 
   describe('Confirm and Close Actions', () => {
     it('calls onConfirm with parsed prices when confirmed', () => {
-      // Arrange
       const mockOnConfirm = jest.fn();
 
-      // Mock form state to have values
       mockUsePerpsTPSLForm.mockReturnValue({
         ...defaultMockReturn,
         formState: {
@@ -1221,27 +1231,22 @@ describe('PerpsTPSLView', () => {
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
       render(<PerpsTPSLView />);
 
-      const confirmButton = screen.getByText('perps.tpsl.done');
+      const setButton = screen.getByText('perps.tpsl.set');
 
-      // Act
-      fireEvent.press(confirmButton);
+      fireEvent.press(setButton);
 
-      // Assert - Component should parse and clean the prices
       expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00');
     });
 
     it('calls onConfirm with undefined for empty values', () => {
-      // Arrange
       const mockOnConfirm = jest.fn();
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
       render(<PerpsTPSLView />);
 
-      const confirmButton = screen.getByText('perps.tpsl.done');
+      const setButton = screen.getByText('perps.tpsl.set');
 
-      // Act
-      fireEvent.press(confirmButton);
+      fireEvent.press(setButton);
 
-      // Assert
       expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined);
     });
   });
