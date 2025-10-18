@@ -22,7 +22,6 @@ import {
   CardTokenAllowance,
   AllowanceState,
 } from '../../../../components/UI/Card/types';
-import { ethers } from 'ethers';
 
 // Mock the multichain selectors
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -86,7 +85,7 @@ const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
   symbol: 'USDC',
   name: 'USD Coin',
   allowanceState: AllowanceState.Enabled,
-  allowance: ethers.BigNumber.from('500000000000000000'),
+  allowance: '5000000000000',
 };
 
 const testAddress = '0x1234567890123456789012345678901234567890';
@@ -99,6 +98,8 @@ const CARD_STATE_MOCK: CardSliceState = {
   lastFetchedByAddress: {
     [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
   },
+  authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+  authenticatedPriorityTokenLastFetched: new Date('2025-08-21T10:00:00Z'),
   isLoaded: true,
   hasViewedCardButton: true,
   alwaysShowCardButton: false,
@@ -110,6 +111,8 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: [],
   priorityTokensByAddress: {},
   lastFetchedByAddress: {},
+  authenticatedPriorityToken: null,
+  authenticatedPriorityTokenLastFetched: null,
   isLoaded: false,
   hasViewedCardButton: false,
   alwaysShowCardButton: false,
@@ -379,6 +382,8 @@ describe('Card Reducer', () => {
         lastFetchedByAddress: {
           '0x123': new Date(),
         },
+        authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+        authenticatedPriorityTokenLastFetched: new Date('2025-08-21T10:00:00Z'),
         isLoaded: true,
         hasViewedCardButton: true,
         alwaysShowCardButton: true,
@@ -422,7 +427,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityToken(testAddress);
+      const selector = selectCardPriorityToken(false, testAddress);
       expect(selector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
     });
 
@@ -431,7 +436,7 @@ describe('Card Caching Functionality', () => {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityToken(testAddress);
+      const selector = selectCardPriorityToken(false, testAddress);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -440,7 +445,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityToken();
+      const selector = selectCardPriorityToken(false);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -451,12 +456,14 @@ describe('Card Caching Functionality', () => {
 
       // Test with uppercase address
       const upperCaseSelector = selectCardPriorityToken(
+        false,
         testAddress.toUpperCase(),
       );
       expect(upperCaseSelector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
 
       // Test with different address that doesn't exist
       const differentAddressSelector = selectCardPriorityToken(
+        false,
         '0x9999999999999999999999999999999999999999',
       );
       expect(differentAddressSelector(mockRootState)).toBeNull();
@@ -469,7 +476,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityTokenLastFetched(testAddress);
+      const selector = selectCardPriorityTokenLastFetched(false, testAddress);
       expect(selector(mockRootState)).toEqual(new Date('2025-08-21T10:00:00Z'));
     });
 
@@ -478,7 +485,7 @@ describe('Card Caching Functionality', () => {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityTokenLastFetched(testAddress);
+      const selector = selectCardPriorityTokenLastFetched(false, testAddress);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -487,7 +494,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityTokenLastFetched();
+      const selector = selectCardPriorityTokenLastFetched(false);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -498,6 +505,7 @@ describe('Card Caching Functionality', () => {
 
       // Test with uppercase address
       const upperCaseSelector = selectCardPriorityTokenLastFetched(
+        false,
         testAddress.toUpperCase(),
       );
       expect(upperCaseSelector(mockRootState)).toEqual(
@@ -506,6 +514,7 @@ describe('Card Caching Functionality', () => {
 
       // Test with different address that doesn't exist
       const differentAddressSelector = selectCardPriorityTokenLastFetched(
+        false,
         '0x9999999999999999999999999999999999999999',
       );
       expect(differentAddressSelector(mockRootState)).toBeNull();
@@ -531,7 +540,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(true);
     });
 
@@ -550,7 +559,7 @@ describe('Card Caching Functionality', () => {
         card: stateWithOldCache,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -562,7 +571,7 @@ describe('Card Caching Functionality', () => {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -581,7 +590,7 @@ describe('Card Caching Functionality', () => {
         card: stateWithStringDate,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(true);
     });
 
@@ -593,7 +602,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid();
+      const selector = selectIsCardCacheValid(false);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -612,7 +621,7 @@ describe('Card Caching Functionality', () => {
         card: stateWithExactlyOldCache,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -624,7 +633,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(true);
     });
   });

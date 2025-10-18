@@ -350,17 +350,13 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                                   "width": 24,
                                 },
                                 undefined,
-                                {
-                                  "borderRadius": 25,
-                                  "height": 50,
-                                  "width": 50,
-                                },
+                                false,
                                 false,
                                 {
-                                  "borderRadius": 16,
-                                  "height": 32,
+                                  "borderRadius": 20,
+                                  "height": 40,
                                   "overflow": "hidden",
-                                  "width": 32,
+                                  "width": 40,
                                 },
                               ]
                             }
@@ -463,6 +459,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                           style={
                             {
                               "flexDirection": "row",
+                              "marginBottom": 8,
                             }
                           }
                         >
@@ -472,7 +469,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -504,7 +501,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                           }
                           testID="balance-test-id"
                         >
-                          1.5 ETH
+                          $3,000.00
                         </Text>
                         <Text
                           accessibilityRole="text"
@@ -520,7 +517,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                           }
                           testID="secondary-balance-test-id"
                         >
-                          $3,000.00
+                          1000000000000000000 ETH
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -878,10 +875,10 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 24,
-                                "height": 48,
+                                "borderRadius": 20,
+                                "height": 40,
                                 "overflow": "hidden",
-                                "width": 48,
+                                "width": 40,
                               }
                             }
                           >
@@ -924,66 +921,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                               ],
                             }
                           }
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "aspectRatio": 1,
-                                "height": "50%",
-                                "justifyContent": "center",
-                                "maxHeight": 24,
-                                "minHeight": 8,
-                                "opacity": 0,
-                              }
-                            }
-                            testID="badgenetwork"
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#ffffff",
-                                  "borderRadius": 16,
-                                  "borderWidth": 2,
-                                  "height": 32,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "shadowColor": "#0000001a",
-                                  "shadowOffset": {
-                                    "height": 2,
-                                    "width": 0,
-                                  },
-                                  "shadowOpacity": 1,
-                                  "shadowRadius": 4,
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                  "width": 32,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                ?
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
+                        />
                       </View>
                       <View
                         style={
@@ -998,6 +936,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                           style={
                             {
                               "flexDirection": "row",
+                              "marginBottom": 8,
                             }
                           }
                         >
@@ -1007,7 +946,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -1039,7 +978,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                           }
                           testID="balance-test-id"
                         >
-                          1.5 ETH
+                          $3,000.00
                         </Text>
                         <Text
                           accessibilityRole="text"
@@ -1055,7 +994,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                           }
                           testID="secondary-balance-test-id"
                         >
-                          $3,000.00
+                          1000000000000000000 USDC
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -1421,17 +1360,13 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                                   "width": 24,
                                 },
                                 undefined,
-                                {
-                                  "borderRadius": 25,
-                                  "height": 50,
-                                  "width": 50,
-                                },
+                                false,
                                 false,
                                 {
-                                  "borderRadius": 16,
-                                  "height": 32,
+                                  "borderRadius": 20,
+                                  "height": 40,
                                   "overflow": "hidden",
-                                  "width": 32,
+                                  "width": 40,
                                 },
                               ]
                             }
@@ -1458,66 +1393,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                               ],
                             }
                           }
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "aspectRatio": 1,
-                                "height": "50%",
-                                "justifyContent": "center",
-                                "maxHeight": 24,
-                                "minHeight": 8,
-                                "opacity": 0,
-                              }
-                            }
-                            testID="badgenetwork"
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#ffffff",
-                                  "borderRadius": 16,
-                                  "borderWidth": 2,
-                                  "height": 32,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "shadowColor": "#0000001a",
-                                  "shadowOffset": {
-                                    "height": 2,
-                                    "width": 0,
-                                  },
-                                  "shadowOpacity": 1,
-                                  "shadowRadius": 4,
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                  "width": 32,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                ?
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
+                        />
                       </View>
                       <View
                         style={
@@ -1532,6 +1408,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                           style={
                             {
                               "flexDirection": "row",
+                              "marginBottom": 8,
                             }
                           }
                         >
@@ -1541,7 +1418,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -1573,7 +1450,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                           }
                           testID="balance-test-id"
                         >
-                          1.5 ETH
+                          $3,000.00
                         </Text>
                         <Text
                           accessibilityRole="text"
@@ -1589,7 +1466,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                           }
                           testID="secondary-balance-test-id"
                         >
-                          $3,000.00
+                          1000000000000000000 ETH
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -1955,17 +1832,13 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                                   "width": 24,
                                 },
                                 undefined,
-                                {
-                                  "borderRadius": 25,
-                                  "height": 50,
-                                  "width": 50,
-                                },
+                                false,
                                 false,
                                 {
-                                  "borderRadius": 16,
-                                  "height": 32,
+                                  "borderRadius": 20,
+                                  "height": 40,
                                   "overflow": "hidden",
-                                  "width": 32,
+                                  "width": 40,
                                 },
                               ]
                             }
@@ -1992,66 +1865,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                               ],
                             }
                           }
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "aspectRatio": 1,
-                                "height": "50%",
-                                "justifyContent": "center",
-                                "maxHeight": 24,
-                                "minHeight": 8,
-                                "opacity": 0,
-                              }
-                            }
-                            testID="badgenetwork"
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#ffffff",
-                                  "borderRadius": 16,
-                                  "borderWidth": 2,
-                                  "height": 32,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "shadowColor": "#0000001a",
-                                  "shadowOffset": {
-                                    "height": 2,
-                                    "width": 0,
-                                  },
-                                  "shadowOpacity": 1,
-                                  "shadowRadius": 4,
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                  "width": 32,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                ?
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
+                        />
                       </View>
                       <View
                         style={
@@ -2066,6 +1880,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                           style={
                             {
                               "flexDirection": "row",
+                              "marginBottom": 8,
                             }
                           }
                         >
@@ -2075,7 +1890,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -2489,17 +2304,13 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                                   "width": 24,
                                 },
                                 undefined,
-                                {
-                                  "borderRadius": 25,
-                                  "height": 50,
-                                  "width": 50,
-                                },
+                                false,
                                 false,
                                 {
-                                  "borderRadius": 16,
-                                  "height": 32,
+                                  "borderRadius": 20,
+                                  "height": 40,
                                   "overflow": "hidden",
-                                  "width": 32,
+                                  "width": 40,
                                 },
                               ]
                             }
@@ -2526,66 +2337,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                               ],
                             }
                           }
-                        >
-                          <View
-                            onLayout={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "aspectRatio": 1,
-                                "height": "50%",
-                                "justifyContent": "center",
-                                "maxHeight": 24,
-                                "minHeight": 8,
-                                "opacity": 0,
-                              }
-                            }
-                            testID="badgenetwork"
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#ffffff",
-                                  "borderRadius": 16,
-                                  "borderWidth": 2,
-                                  "height": 32,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "shadowColor": "#0000001a",
-                                  "shadowOffset": {
-                                    "height": 2,
-                                    "width": 0,
-                                  },
-                                  "shadowOpacity": 1,
-                                  "shadowRadius": 4,
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                  "width": 32,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                ?
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
+                        />
                       </View>
                       <View
                         style={
@@ -2600,6 +2352,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                           style={
                             {
                               "flexDirection": "row",
+                              "marginBottom": 8,
                             }
                           }
                         >
@@ -2609,7 +2362,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Regular",
+                                "fontFamily": "Geist Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -2641,7 +2394,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                           }
                           testID="balance-test-id"
                         >
-                          1.5 ETH
+                          $3,000.00
                         </Text>
                         <Text
                           accessibilityRole="text"
@@ -2657,7 +2410,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                           }
                           testID="secondary-balance-test-id"
                         >
-                          $3,000.00
+                          1000000000000000000 ETH
                         </Text>
                       </View>
                     </TouchableOpacity>

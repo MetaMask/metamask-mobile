@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { ethers } from 'ethers';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
@@ -99,7 +98,7 @@ describe('AddFundsBottomSheet', () => {
     name: 'USD Coin',
     chainId: '0xe708',
     allowanceState: AllowanceState.Enabled,
-    allowance: ethers.BigNumber.from('1000000'), // 1 USDC
+    allowance: '1000000',
     isStaked: false,
   };
 

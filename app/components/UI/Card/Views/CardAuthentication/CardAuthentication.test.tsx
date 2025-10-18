@@ -8,6 +8,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
 
@@ -16,6 +17,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    reset: mockReset,
     dispatch: mockDispatch,
     addListener: mockAddListener,
   }),
@@ -343,9 +345,9 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith({
-          type: 'NAVIGATE',
-          routeName: Routes.CARD.HOME,
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
         });
       });
     });
@@ -370,7 +372,7 @@ describe('CardAuthentication Component', () => {
 
       // Verify that navigation doesn't happen when there's an error state
       // The component should not navigate when error exists
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
 
       // Verify error is displayed
       expect(screen.getByText('Invalid login details')).toBeOnTheScreen();
@@ -401,36 +403,41 @@ describe('CardAuthentication Component', () => {
   });
 
   describe('Loading State', () => {
-    it('shows loading state on login button when loading', () => {
-      mockUseCardProviderAuthentication.mockReturnValue({
-        login: mockLogin,
-        loading: true,
-        error: null,
-        clearError: mockClearError,
+    it('shows loading state on login button during login', async () => {
+      // Mock login to delay resolution so we can check loading state
+      let resolveLogin: (() => void) | undefined;
+      const loginPromise = new Promise<void>((resolve) => {
+        resolveLogin = resolve;
       });
+      mockLogin.mockReturnValue(loginPromise);
 
       render();
-
+      const emailInput = screen.getByPlaceholderText(
+        'Enter your email address',
+      );
+      const passwordInput = screen.getByPlaceholderText('Enter your password');
       const loginButton = screen.getByTestId(
         CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
       );
-      expect(loginButton).toHaveProp('loading', true);
-    });
 
-    it('registers beforeRemove navigation listener', () => {
-      mockUseCardProviderAuthentication.mockReturnValue({
-        login: mockLogin,
-        loading: true,
-        error: null,
-        clearError: mockClearError,
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      // Check loading state is true during login
+      await waitFor(() => {
+        expect(loginButton).toHaveProp('loading', true);
       });
 
-      render();
+      // Resolve the login
+      if (resolveLogin) {
+        resolveLogin();
+      }
 
-      expect(mockAddListener).toHaveBeenCalledWith(
-        'beforeRemove',
-        expect.any(Function),
-      );
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(loginButton).toHaveProp('loading', false);
+      });
     });
   });
 
@@ -484,21 +491,6 @@ describe('CardAuthentication Component', () => {
       expect(
         screen.getByText('Unknown error, please try again later'),
       ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Navigation Listener Cleanup', () => {
-    it('sets up navigation listener with cleanup function', () => {
-      const mockUnsubscribe = jest.fn();
-      mockAddListener.mockReturnValue(mockUnsubscribe);
-
-      render();
-
-      expect(mockAddListener).toHaveBeenCalledWith(
-        'beforeRemove',
-        expect.any(Function),
-      );
-      expect(mockAddListener).toHaveReturnedWith(mockUnsubscribe);
     });
   });
 
