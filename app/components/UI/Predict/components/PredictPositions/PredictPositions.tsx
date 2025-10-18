@@ -109,7 +109,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
       <FlashList
         testID="active-positions-list"
         ref={listRef}
-        data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
+        data={positions}
         renderItem={renderPosition}
         scrollEnabled={false}
         keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
