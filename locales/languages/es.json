@@ -884,7 +884,7 @@
     "margin_used": "Margen utilizado",
     "gtm_content": {
       "title": "LLEGARON LOS PERPS",
-      "title_description": "Tokens largos o cortos con un apalancamiento de hasta 40 veces. Deposita fondos en tu cuenta con un solo clic.",
+      "title_description": "Opera en largo o corto con un apalancamiento de hasta 40x. Deposita fondos en tu cuenta con un solo clic.",
       "not_now": "Ahora no",
       "try_now": "Comenzar"
     },
@@ -1534,7 +1534,7 @@
       "skip": "Omitir",
       "add_funds": "Agregar fondos",
       "what_are_perps": {
-        "title": "¿Qué son los contratos perpetuos?",
+        "title": "¿Qué son los perps?",
         "description": "MetaMask ahora admite futuros perpetuos, también conocidos como contratos perpetuos, lo que te permite operar con el movimiento del precio de un token sin comprarlo.",
         "subtitle": "Así es como funciona."
       },

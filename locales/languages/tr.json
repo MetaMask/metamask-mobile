@@ -1534,7 +1534,7 @@
       "skip": "Atla",
       "add_funds": "Para ekle",
       "what_are_perps": {
-        "title": "Sürekli vadeli işlem sözleşmeleri nedir?",
+        "title": "Sürekli vadeli işlemler nedir?",
         "description": "MetaMask artık bir token'ı satın almadan fiyat hareketinde işlem yapmanıza olanak sağlayan sürekli vadeli sözleşmeler piyasasını destekliyor.",
         "subtitle": "İşte çalışma şekli."
       },
