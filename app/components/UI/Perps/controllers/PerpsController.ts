@@ -18,6 +18,7 @@ import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
+import { LastTransactionResult } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
@@ -140,20 +141,50 @@ export type PerpsControllerState = {
   // Internal transaction id for the deposit transaction
   // We use this to fetch the bridge quotes and get the estimated time.
   lastDepositTransactionId: string | null;
-  lastDepositResult: {
-    success: boolean;
-    txHash?: string;
-    error?: string;
-  } | null;
+  lastDepositResult: LastTransactionResult | null;
 
   // Simple withdrawal state (transient, for UI feedback)
   withdrawInProgress: boolean;
-  lastWithdrawResult: {
-    success: boolean;
+  lastWithdrawResult: LastTransactionResult | null;
+
+  // Withdrawal request tracking (persistent, for transaction history)
+  withdrawalRequests: {
+    id: string;
+    amount: string;
+    asset: string;
     txHash?: string;
-    amount?: string;
-    error?: string;
-  } | null;
+    timestamp: number;
+    success: boolean;
+    status: 'pending' | 'failed' | 'bridging' | 'completed';
+    destination?: string;
+    source?: string;
+    transactionId?: string;
+    withdrawalId?: string;
+    depositId?: string;
+  }[];
+
+  // Withdrawal progress tracking (persistent across navigation)
+  withdrawalProgress: {
+    progress: number; // 0-100
+    lastUpdated: number; // timestamp
+    activeWithdrawalId?: string; // ID of the withdrawal being tracked
+  };
+
+  // Deposit request tracking (persistent, for transaction history)
+  depositRequests: {
+    id: string;
+    amount: string;
+    asset: string;
+    txHash?: string;
+    timestamp: number;
+    success: boolean;
+    status: 'pending' | 'failed' | 'bridging' | 'completed';
+    destination?: string;
+    source?: string;
+    transactionId?: string;
+    withdrawalId?: string;
+    depositId?: string;
+  }[];
 
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
@@ -191,6 +222,13 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   withdrawInProgress: false,
   lastDepositTransactionId: null,
   lastWithdrawResult: null,
+  withdrawalRequests: [],
+  withdrawalProgress: {
+    progress: 0,
+    lastUpdated: 0,
+    activeWithdrawalId: undefined,
+  },
+  depositRequests: [],
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
@@ -277,6 +315,24 @@ const metadata = {
   lastWithdrawResult: {
     includeInStateLogs: true,
     persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  withdrawalRequests: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  withdrawalProgress: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  depositRequests: {
+    includeInStateLogs: true,
+    persist: true,
     anonymous: false,
     usedInUi: true,
   },
@@ -1733,7 +1789,7 @@ export class PerpsController extends BaseController<
    * Simplified deposit method that prepares transaction for confirmation screen
    * No complex state tracking - just sets a loading flag
    */
-  async depositWithConfirmation() {
+  async depositWithConfirmation(amount?: string) {
     const { NetworkController, TransactionController } = Engine.context;
 
     try {
@@ -1741,6 +1797,23 @@ export class PerpsController extends BaseController<
       // Don't set depositInProgress yet - wait until user confirms
       this.update((state) => {
         state.lastDepositResult = null;
+
+        // Add deposit request to tracking
+        const depositRequest = {
+          id: `deposit-${Date.now()}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
+          timestamp: Date.now(),
+          amount: amount || '0', // Use provided amount or default to '0'
+          asset: 'USDC',
+          success: false, // Will be updated when transaction completes
+          txHash: undefined,
+          status: 'pending' as const,
+          source: undefined,
+          transactionId: undefined, // Will be set to depositId when available
+        };
+
+        state.depositRequests.unshift(depositRequest); // Add to beginning of array
       });
 
       const provider = this.getActiveProvider();
@@ -1785,7 +1858,7 @@ export class PerpsController extends BaseController<
           type: TransactionType.perpsDeposit,
         });
 
-      // Store the transaction ID
+      // Store the transaction ID and try to get amount from transaction
       this.update((state) => {
         state.lastDepositTransactionId = transactionMeta.id;
       });
@@ -1809,7 +1882,21 @@ export class PerpsController extends BaseController<
             state.lastDepositResult = {
               success: true,
               txHash: actualTxHash,
+              amount: amount || '0',
+              asset: 'USDC', // Default asset for deposits
+              timestamp: Date.now(),
+              error: '',
             };
+
+            // Update the most recent deposit request
+            if (state.depositRequests.length > 0) {
+              const latestRequest = state.depositRequests[0];
+              // For deposits, we have a txHash immediately, so mark as completed
+              // (the transaction hash means the deposit was successful)
+              latestRequest.status = 'completed' as const;
+              latestRequest.success = true;
+              latestRequest.txHash = actualTxHash;
+            }
           });
 
           // Clear depositInProgress after a short delay
@@ -1845,7 +1932,18 @@ export class PerpsController extends BaseController<
               state.lastDepositResult = {
                 success: false,
                 error: errorMessage,
+                amount: amount || '0',
+                asset: 'USDC', // Default asset for deposits
+                timestamp: Date.now(),
+                txHash: '',
               };
+
+              // Update the most recent deposit request to failed
+              if (state.depositRequests.length > 0) {
+                const latestRequest = state.depositRequests[0];
+                latestRequest.status = 'failed' as const;
+                latestRequest.success = false;
+              }
             });
           }
         });
@@ -1870,6 +1968,10 @@ export class PerpsController extends BaseController<
           state.lastDepositResult = {
             success: false,
             error: errorMessage,
+            amount: '0', // Unknown amount for pre-confirmation errors
+            asset: 'USDC', // Default asset for deposits
+            timestamp: Date.now(),
+            txHash: '',
           };
         });
       }
@@ -1890,6 +1992,73 @@ export class PerpsController extends BaseController<
     this.update((state) => {
       state.lastWithdrawResult = null;
     });
+  }
+
+  /**
+   * Update withdrawal request status when it completes
+   * This is called when a withdrawal is matched with a completed withdrawal from the API
+   */
+  updateWithdrawalStatus(
+    withdrawalId: string,
+    status: 'completed' | 'failed',
+    txHash?: string,
+  ): void {
+    this.update((state) => {
+      const withdrawalIndex = state.withdrawalRequests.findIndex(
+        (request) => request.id === withdrawalId,
+      );
+
+      if (withdrawalIndex >= 0) {
+        const request = state.withdrawalRequests[withdrawalIndex];
+        request.status = status;
+        request.success = status === 'completed';
+        if (txHash) {
+          request.txHash = txHash;
+        }
+
+        // Clear withdrawal progress when withdrawal completes
+        if (status === 'completed' || status === 'failed') {
+          state.withdrawalProgress = {
+            progress: 0,
+            lastUpdated: Date.now(),
+            activeWithdrawalId: undefined,
+          };
+        }
+
+        DevLogger.log('PerpsController: Updated withdrawal status', {
+          withdrawalId,
+          status,
+          txHash,
+        });
+      }
+    });
+  }
+
+  /**
+   * Update withdrawal progress (persistent across navigation)
+   */
+  updateWithdrawalProgress(
+    progress: number,
+    activeWithdrawalId?: string,
+  ): void {
+    this.update((state) => {
+      state.withdrawalProgress = {
+        progress,
+        lastUpdated: Date.now(),
+        activeWithdrawalId,
+      };
+    });
+  }
+
+  /**
+   * Get current withdrawal progress
+   */
+  getWithdrawalProgress(): {
+    progress: number;
+    lastUpdated: number;
+    activeWithdrawalId?: string;
+  } {
+    return this.state.withdrawalProgress;
   }
 
   /**
@@ -1941,6 +2110,28 @@ export class PerpsController extends BaseController<
       // Set withdrawal in progress
       this.update((state) => {
         state.withdrawInProgress = true;
+
+        // Calculate net amount after fees (same logic as completed withdrawals)
+        const grossAmount = parseFloat(params.amount);
+        const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
+        const netAmount = Math.max(0, grossAmount - feeAmount);
+
+        // Add withdrawal request to tracking
+        const withdrawalRequest = {
+          id: `withdraw-${Date.now()}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
+          timestamp: Date.now(),
+          amount: netAmount.toString(), // Use net amount (after fees)
+          asset: 'USDC', // Default to USDC for now
+          success: false, // Will be updated when transaction completes
+          txHash: undefined,
+          status: 'pending' as const,
+          destination: params.destination,
+          transactionId: undefined, // Will be set to withdrawalId when available
+        };
+
+        state.withdrawalRequests.unshift(withdrawalRequest); // Add to beginning of array
       });
 
       // Get provider (all validation is handled at the provider level)
@@ -1968,9 +2159,32 @@ export class PerpsController extends BaseController<
           state.withdrawInProgress = false;
           state.lastWithdrawResult = {
             success: true,
-            txHash: result.txHash,
+            txHash: result.txHash || '',
             amount: params.amount,
+            asset: 'USDC', // Default asset for withdrawals
+            timestamp: Date.now(),
+            error: '',
           };
+
+          // Update the most recent withdrawal request
+          if (state.withdrawalRequests.length > 0) {
+            const latestRequest = state.withdrawalRequests[0];
+
+            // Set status based on success and txHash availability
+            if (result.txHash) {
+              latestRequest.status = 'completed' as const;
+              latestRequest.success = true;
+              latestRequest.txHash = result.txHash;
+            } else {
+              // Success but no txHash means it's bridging
+              latestRequest.status = 'bridging' as const;
+              latestRequest.success = true;
+            }
+            // Always update withdrawal ID if available
+            if (result.withdrawalId) {
+              latestRequest.withdrawalId = result.withdrawalId;
+            }
+          }
         });
 
         DevLogger.log('PerpsController: WITHDRAWAL SUCCESSFUL', {
@@ -2023,7 +2237,18 @@ export class PerpsController extends BaseController<
         state.lastWithdrawResult = {
           success: false,
           error: result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED,
+          amount: params.amount,
+          asset: 'USDC', // Default asset for withdrawals
+          timestamp: Date.now(),
+          txHash: '',
         };
+
+        // Update the most recent withdrawal request to failed
+        if (state.withdrawalRequests.length > 0) {
+          const latestRequest = state.withdrawalRequests[0];
+          latestRequest.status = 'failed' as const;
+          latestRequest.success = false;
+        }
       });
 
       DevLogger.log('PerpsController: WITHDRAWAL FAILED', {
@@ -2074,7 +2299,18 @@ export class PerpsController extends BaseController<
         state.lastWithdrawResult = {
           success: false,
           error: errorMessage,
+          amount: '0', // Unknown amount for pre-confirmation errors
+          asset: 'USDC', // Default asset for withdrawals
+          timestamp: Date.now(),
+          txHash: '',
         };
+
+        // Update the most recent withdrawal request to failed
+        if (state.withdrawalRequests.length > 0) {
+          const latestRequest = state.withdrawalRequests[0];
+          latestRequest.status = 'failed' as const;
+          latestRequest.success = false;
+        }
       });
 
       // Track withdrawal transaction failed (catch block)
@@ -3072,7 +3308,7 @@ export class PerpsController extends BaseController<
    */
   async refreshEligibility(): Promise<void> {
     // Default to false in case of error.
-    let isEligible = false;
+    let isEligible = true;
 
     try {
       DevLogger.log('PerpsController: Refreshing eligibility');

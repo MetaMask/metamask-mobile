@@ -25,6 +25,8 @@ import {
   usePerpsFunding,
   usePerpsOrderFills,
   usePerpsOrders,
+  useWithdrawalRequests,
+  useDepositRequests,
 } from '../../hooks';
 import {
   FilterTab,
@@ -38,6 +40,8 @@ import {
   transformFillsToTransactions,
   transformFundingToTransactions,
   transformOrdersToTransactions,
+  transformWithdrawalRequestsToTransactions,
+  transformDepositRequestsToTransactions,
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -95,6 +99,35 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     params: fundingParams,
     skipInitialFetch: !isConnected,
   });
+
+  // Memoize the withdrawal params to prevent infinite re-renders
+  const withdrawalParams = useMemo(
+    () => ({
+      startTime: (() => {
+        // Get start of 30 days ago to see recent deposits/withdrawals
+        const now = new Date();
+        const thirtyDaysAgo = new Date(
+          now.getTime() - 30 * 24 * 60 * 60 * 1000,
+        );
+        return thirtyDaysAgo.getTime();
+      })(),
+    }),
+    [], // Empty dependency array since we want this to be stable
+  );
+
+  // Get withdrawal requests
+  const { withdrawalRequests, refetch: refreshWithdrawalRequests } =
+    useWithdrawalRequests({
+      startTime: withdrawalParams.startTime,
+      skipInitialFetch: !isConnected,
+    });
+
+  // Get deposit requests
+  const { depositRequests, refetch: refreshDepositRequests } =
+    useDepositRequests({
+      startTime: withdrawalParams.startTime, // Use same time range as withdrawals
+      skipInitialFetch: !isConnected,
+    });
 
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
@@ -184,20 +217,43 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [fundingData],
   );
 
+  // Transform withdrawal requests to transactions
+  const withdrawalTransactions = useMemo(() => {
+    const transformed =
+      transformWithdrawalRequestsToTransactions(withdrawalRequests);
+    return transformed;
+  }, [withdrawalRequests]);
+
+  // Transform deposit requests to transactions
+  const depositTransactions = useMemo(() => {
+    const transformed = transformDepositRequestsToTransactions(depositRequests);
+    return transformed;
+  }, [depositRequests]);
+
   // Memoized grouped transactions to avoid recalculation on every filter change
-  const allGroupedTransactions = useMemo(
-    () => ({
+  const allGroupedTransactions = useMemo(() => {
+    // Combine deposits and withdrawals into a single "Deposits" category
+    const combinedDepositsAndWithdrawals = [
+      ...depositTransactions,
+      ...withdrawalTransactions,
+    ].sort((a, b) => b.timestamp - a.timestamp); // Sort chronologically (newest first)
+
+    const grouped = {
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
       Funding: groupTransactionsByDate(fundingTransactions),
-    }),
-    [
-      fillTransactions,
-      orderTransactions,
-      fundingTransactions,
-      groupTransactionsByDate,
-    ],
-  );
+      Deposits: groupTransactionsByDate(combinedDepositsAndWithdrawals),
+    };
+
+    return grouped;
+  }, [
+    fillTransactions,
+    orderTransactions,
+    fundingTransactions,
+    depositTransactions,
+    withdrawalTransactions,
+    groupTransactionsByDate,
+  ]);
 
   // Memoized flat data for current filter - prevents re-flattening on every change
   const currentFlatListData = useMemo(() => {
@@ -219,13 +275,26 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     setRefreshing(true);
     try {
       // Refresh all data sources in parallel
-      await Promise.all([refreshFills(), refreshOrders(), refreshFunding()]);
+      await Promise.all([
+        refreshFills(),
+        refreshOrders(),
+        refreshFunding(),
+        refreshWithdrawalRequests(),
+        refreshDepositRequests(),
+      ]);
     } catch (error) {
       console.warn('Failed to refresh transaction data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [isConnected, refreshFills, refreshOrders, refreshFunding]);
+  }, [
+    isConnected,
+    refreshFills,
+    refreshOrders,
+    refreshFunding,
+    refreshWithdrawalRequests,
+    refreshDepositRequests,
+  ]);
 
   // Initial loading is handled by the hooks themselves
 
@@ -233,8 +302,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     (tab: FilterTab, index: number) => {
       const isActive = activeFilter === tab;
 
-      // Convert index to i18n key
-      const i18nKeys = ['trades', 'orders', 'funding'];
+      // Convert tab to i18n key
+      const i18nKeys = ['trades', 'orders', 'funding', 'deposits'];
       const i18nKey = i18nKeys[index];
 
       const handleTabPress = () => {
@@ -379,6 +448,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       strings('perps.transactions.tabs.trades'),
       strings('perps.transactions.tabs.orders'),
       strings('perps.transactions.tabs.funding'),
+      strings('perps.transactions.tabs.deposits'),
     ],
     [],
   );
@@ -450,7 +520,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           contentContainerStyle={styles.filterTabContainer}
           showsHorizontalScrollIndicator={false}
           pointerEvents="auto"
-          scrollEnabled={false}
+          scrollEnabled
         >
           {filterTabs.map(renderFilterTab)}
         </ScrollView>

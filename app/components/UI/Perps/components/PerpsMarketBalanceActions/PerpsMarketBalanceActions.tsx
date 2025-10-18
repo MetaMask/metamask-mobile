@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Modal, Animated, View, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, Animated, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -43,10 +43,14 @@ import {
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
+import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
+import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
 import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { PerpsProgressBar } from '../PerpsProgressBar';
+import { RootState } from '../../../../../reducers';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -107,9 +111,31 @@ const PerpsMarketBalanceActions: React.FC<
   const isEligible = useSelector(selectPerpsEligibility);
   const { isDepositInProgress } = usePerpsDepositProgress();
 
+  // Get withdrawal requests from controller state
+  const withdrawalRequests = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.withdrawalRequests || [],
+  );
+
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     React.useState(false);
+
+  // State for transaction amount
+  const [transactionAmountWei, setTransactionAmountWei] = useState<
+    string | null
+  >(null);
+
+  // Extract all transaction state logic
+  const {
+    withdrawalAmount,
+    hasActiveWithdrawals,
+    statusText,
+    isAnyTransactionInProgress,
+  } = usePerpsTransactionState({
+    withdrawalRequests,
+    isDepositInProgress,
+  });
 
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
@@ -232,24 +258,38 @@ const PerpsMarketBalanceActions: React.FC<
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
-        {/* Deposit Progress Section */}
-        {isDepositInProgress && (
+        <PerpsProgressBar
+          progressAmount={10}
+          height={4}
+          onTransactionAmountChange={setTransactionAmountWei}
+        />
+        {/* Single Progress Section */}
+        {isAnyTransactionInProgress && (
           <Box twClassName="p-4">
             <Box twClassName="w-full flex-row justify-between">
               <Text
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Default}
               >
-                {strings('perps.deposit_in_progress')}
+                {statusText}
               </Text>
-              <ActivityIndicator
-                size="small"
-                color={styles.activityIndicator.color}
-              />
+              {/* Only show dollar value when there's a single transaction in progress */}
+              {!(isDepositInProgress && hasActiveWithdrawals) && (
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Default}
+                >
+                  {isDepositInProgress && transactionAmountWei
+                    ? convertPerpsAmountToUSD(transactionAmountWei)
+                    : hasActiveWithdrawals && withdrawalAmount
+                    ? convertPerpsAmountToUSD(withdrawalAmount)
+                    : 'Processing...'}
+                </Text>
+              )}
             </Box>
           </Box>
         )}
-        {isDepositInProgress && (
+        {isAnyTransactionInProgress && (
           <Box twClassName="w-full border-b border-muted"></Box>
         )}
         {/* Balance Section */}
