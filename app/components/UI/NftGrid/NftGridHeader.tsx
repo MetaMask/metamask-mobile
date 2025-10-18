@@ -6,7 +6,7 @@ import { selectUseNftDetection } from '../../../selectors/preferencesController'
 import { MAINNET } from '../../../constants/network';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 
-const styles = StyleSheet.create({
+const style = StyleSheet.create({
   emptyView: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -22,7 +22,7 @@ const NftGridHeader = () => {
 
   return (
     isCollectionDetectionBannerVisible && (
-      <View style={styles.emptyView}>
+      <View style={style.emptyView}>
         <CollectibleDetectionModal />
       </View>
     )
