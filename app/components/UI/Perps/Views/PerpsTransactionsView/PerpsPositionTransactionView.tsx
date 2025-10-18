@@ -23,7 +23,6 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import {
@@ -104,11 +103,7 @@ const PerpsPositionTransactionView: React.FC = () => {
           transaction.fill?.action === 'Closed'
             ? strings('perps.transactions.position.close_price')
             : strings('perps.transactions.position.entry_price'),
-        value:
-          transaction.fill.entryPrice !== undefined &&
-          transaction.fill.entryPrice !== null
-            ? formatPerpsFiat(transaction.fill.entryPrice)
-            : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY,
+        value: formatPerpsFiat(transaction.fill.entryPrice),
       },
   ].filter(Boolean);
 
@@ -117,12 +112,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     transaction.fill?.fee !== undefined &&
       transaction.fill?.fee !== null && {
         label: strings('perps.transactions.position.fees'),
-        value:
-          transaction.fill.fee !== undefined && transaction.fill.fee !== null
-            ? BigNumber(transaction.fill.fee).isGreaterThan(0.01)
-              ? formatPerpsFiat(transaction.fill.fee)
-              : `$${transaction.fill.fee}`
-            : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY,
+        value: BigNumber(transaction.fill.fee).isGreaterThan(0.01)
+          ? formatPerpsFiat(transaction.fill.fee)
+          : `$${transaction.fill.fee}`,
         textColor: TextColor.Default,
       },
   ].filter(Boolean);
