@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, TouchableOpacity, View, useColorScheme } from 'react-native';
+import {
+  Image,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+  ScrollView,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -45,7 +51,6 @@ import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
-import { createFontScaleHandler } from '../../utils/textUtils';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
@@ -79,7 +84,8 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
             width: '100%',
-            flex: 1,
+            height: 350,
+            marginTop: 'auto',
           }}
           resizeMode="contain"
           testID={PerpsTutorialSelectorsIDs.CHARACTER_IMAGE}
@@ -136,12 +142,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
 
-  // Font scaling state
-  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
-  const [descriptionFontSize, setDescriptionFontSize] = useState<number | null>(
-    null,
-  );
-  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
     typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
@@ -174,34 +174,6 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
-    titleFontSize,
-    descriptionFontSize,
-    subtitleFontSize,
-  });
-
-  // Create font scale handlers with height constraints for 160px headerSection
-  const handleTitleLayout = createFontScaleHandler({
-    maxHeight: 60,
-    currentFontSize: styles.title.fontSize || 24,
-    setter: setTitleFontSize,
-    minFontSize: 20,
-    currentValue: titleFontSize,
-  });
-
-  const handleDescriptionLayout = createFontScaleHandler({
-    maxHeight: 50,
-    currentFontSize: styles.description.fontSize || 16,
-    setter: setDescriptionFontSize,
-    minFontSize: 16,
-    currentValue: descriptionFontSize,
-  });
-
-  const handleSubtitleLayout = createFontScaleHandler({
-    maxHeight: 40,
-    currentFontSize: styles.subtitle.fontSize || 16,
-    setter: setSubtitleFontSize,
-    minFontSize: 16,
-    currentValue: subtitleFontSize,
   });
 
   const PerpsOnboardingAnimation = useMemo(
@@ -461,55 +433,61 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <View key={screen.id}>
-              <View style={styles.screenContainer}>
-                {/* Header Section - Fixed height for text content */}
-                <View style={styles.headerSection}>
-                  <Text
-                    variant={TextVariant.HeadingLG}
-                    color={TextColor.Default}
-                    style={styles.title}
-                    onLayout={handleTitleLayout}
-                  >
-                    {screen.title}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.description}
-                    onLayout={handleDescriptionLayout}
-                  >
-                    {screen.description}
-                  </Text>
-                  {screen.subtitle && (
+            <View key={screen.id} style={styles.fullScreenContainer}>
+              <ScrollView
+                style={styles.scrollableContent}
+                contentContainerStyle={styles.scrollContentContainer}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.screenContainer}>
+                  {/* Header Section - Now flexible height */}
+                  <View>
+                    <Text
+                      variant={TextVariant.HeadingLG}
+                      color={TextColor.Default}
+                      style={styles.title}
+                    >
+                      {screen.title}
+                    </Text>
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
-                      style={styles.subtitle}
-                      onLayout={handleSubtitleLayout}
+                      style={styles.description}
                     >
-                      {screen.subtitle}
+                      {screen.description}
                     </Text>
-                  )}
-                </View>
+                    {screen.subtitle && (
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                        style={styles.subtitle}
+                      >
+                        {screen.subtitle}
+                      </Text>
+                    )}
+                  </View>
 
-                {/* Content Section */}
-                <View style={styles.contentSection}>
-                  {screen?.content && screen.content}
+                  {/* Content Section */}
+                  {screen?.content && (
+                    <View style={styles.contentSection}>{screen.content}</View>
+                  )}
+
                   {screen?.riveArtboardName && (
-                    <Rive
-                      key={screen.id}
-                      style={styles.animation}
-                      artboardName={screen.riveArtboardName}
-                      source={PerpsOnboardingAnimation}
-                      fit={Fit.FitWidth}
-                      alignment={Alignment.Center}
-                      autoplay
-                    />
+                    <View style={styles.animationContainer}>
+                      <Rive
+                        key={screen.id}
+                        style={styles.animation}
+                        artboardName={screen.riveArtboardName}
+                        source={PerpsOnboardingAnimation}
+                        fit={Fit.FitWidth}
+                        alignment={Alignment.Center}
+                        autoplay
+                      />
+                    </View>
                   )}
                 </View>
-                <View style={styles.footerTextContainer}>
-                  {screen.footerText && (
+                {screen.footerText && (
+                  <View style={styles.footerTextContainer}>
                     <Text
                       variant={TextVariant.BodySM}
                       color={TextColor.Alternative}
@@ -517,9 +495,9 @@ const PerpsTutorialCarousel: React.FC = () => {
                     >
                       {screen.footerText}
                     </Text>
-                  )}
-                </View>
-              </View>
+                  </View>
+                )}
+              </ScrollView>
             </View>
           ))}
         </ScrollableTabView>
