@@ -4,10 +4,18 @@ import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
-import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import { DappVariants } from './framework/Constants';
 import Assertions from './framework/Assertions';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from './api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from './api-mocking/mock-responses/feature-flags-mocks';
+
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    remoteFeatureMultichainAccountsAccountDetailsV2(true),
+  );
+};
 
 export async function withSolanaAccountEnabled(
   {
@@ -42,22 +50,22 @@ export async function withSolanaAccountEnabled(
         },
       ],
       restartDevice: true,
+      testSpecificMock,
     },
     async () => {
       await TestHelpers.reverseServerPort();
       await loginToApp();
+      await WalletView.tapCurrentMainWalletAccountActions();
 
       // Create Solana accounts through the wallet view
       for (let i = 0; i < numberOfAccounts; i++) {
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapAddSolanaAccount();
-        await AddNewHdAccountComponent.tapConfirm();
-        await Assertions.expectElementToHaveText(
-          WalletView.accountName,
-          `Solana Account ${i + 1}`,
-        );
+        // Open account list for each account creation
+
+        await AccountListBottomSheet.tapAddAccountButtonV2();
+
+        await Assertions.expectTextDisplayed(`Account ${i + 1}`);
       }
+      await AccountListBottomSheet.dismissAccountListModalV2();
 
       await test();
     },

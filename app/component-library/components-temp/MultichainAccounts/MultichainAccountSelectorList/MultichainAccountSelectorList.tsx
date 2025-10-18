@@ -60,6 +60,13 @@ const MultichainAccountSelectorList = ({
   const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
+  // eslint-disable-next-line no-console
+  // console.log('MultichainAccountSelectorList - render', {
+  //   isMultichainAccountsEnabled,
+  //   accountSections,
+  //   internalAccountsById,
+  // });
+
   const [searchText, setSearchText] = useState(selectedExternalAddress || '');
   const [debouncedSearchText, setDebouncedSearchText] = useState(
     selectedExternalAddress || '',
@@ -180,19 +187,41 @@ const MultichainAccountSelectorList = ({
     showExternalAccountOnEmptySearch,
   ]);
 
-  // Compute first selected account index for initial positioning only
-  const initialSelectedIndex = useMemo(() => {
-    const targetId = selectedAccountGroups?.[0]?.id;
-    if (!targetId) return undefined;
-    const idx = flattenedData.findIndex(
-      (item) => item.type === 'cell' && item.data.id === targetId,
-    );
-    return idx >= 0 ? idx : undefined;
-  }, [flattenedData, selectedAccountGroups]);
+  // Track if we've done the initial scroll to selected item
+  const hasScrolledToSelected = useRef(false);
+
+  // Scroll to selected item on initial mount
+  useEffect(() => {
+    if (
+      !hasScrolledToSelected.current &&
+      listRefToUse.current &&
+      flattenedData.length > 0
+    ) {
+      const targetId = selectedAccountGroups?.[0]?.id;
+      if (targetId) {
+        const idx = flattenedData.findIndex(
+          (item) => item.type === 'cell' && item.data.id === targetId,
+        );
+        if (idx >= 0) {
+          const frameId = requestAnimationFrame(() => {
+            listRefToUse.current?.scrollToIndex({
+              index: idx,
+              animated: false,
+              viewPosition: 0.5,
+            });
+          });
+          hasScrolledToSelected.current = true;
+          return () => cancelAnimationFrame(frameId);
+        }
+      }
+      hasScrolledToSelected.current = true;
+    }
+  }, [flattenedData, selectedAccountGroups, listRefToUse]);
 
   // Reset scroll to top when search text changes
   useEffect(() => {
     if (listRefToUse.current) {
+      hasScrolledToSelected.current = false;
       // Use requestAnimationFrame to ensure the list has finished re-rendering
       const animationFrameId = requestAnimationFrame(() => {
         listRefToUse.current?.scrollToOffset({ offset: 0, animated: false });
@@ -242,6 +271,8 @@ const MultichainAccountSelectorList = ({
   // Handle account selection/deselection toggle
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
+      // eslint-disable-next-line no-console
+      console.log('MultichainAccountSelectorList - onSelectAccount');
       onSelectAccount?.(accountGroup);
     },
     [onSelectAccount],
@@ -278,9 +309,10 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'external': {
-            const isSelected = selectedExternalAddress ? 
-              item.data.address.toLowerCase() ===
-              selectedExternalAddress.toLowerCase() : false;
+            const isSelected = selectedExternalAddress
+              ? item.data.address.toLowerCase() ===
+                selectedExternalAddress.toLowerCase()
+              : false;
             return (
               <ExternalAccountCell
                 address={item.data.address}
@@ -385,7 +417,6 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
-            initialScrollIndex={initialSelectedIndex}
             renderScrollComponent={
               ScrollView as React.ComponentType<ScrollViewProps>
             }

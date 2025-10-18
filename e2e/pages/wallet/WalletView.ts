@@ -128,6 +128,10 @@ class WalletView {
     );
   }
 
+  get solanaTokenName(): DetoxElement {
+    return Matchers.getElementByID('asset-SOL');
+  }
+
   get tokenNetworkFilterCurrent(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
@@ -188,10 +192,15 @@ class WalletView {
       elemDescription: 'Token',
     });
   }
+  async tapOnSolana() {
+    await Gestures.waitAndTap(this.solanaTokenName, {
+      elemDescription: 'Tapping Solana Token',
+    });
+  }
 
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
-      elemDescription: 'Top Account Icon',
+      elemDescription: 'Tap Account Icon',
       checkStability: true,
     });
   }
