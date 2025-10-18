@@ -97,26 +97,26 @@ const PerpsPositionTransactionView: React.FC = () => {
         ),
       )}`,
     },
-    transaction.fill?.entryPrice && {
-      label:
-        transaction.fill?.action === 'Closed'
-          ? strings('perps.transactions.position.close_price')
-          : strings('perps.transactions.position.entry_price'),
-      value: `${formatPerpsFiat(transaction.fill?.entryPrice || '0')}`,
-    },
+    transaction.fill?.entryPrice !== undefined &&
+      transaction.fill?.entryPrice !== null && {
+        label:
+          transaction.fill?.action === 'Closed'
+            ? strings('perps.transactions.position.close_price')
+            : strings('perps.transactions.position.entry_price'),
+        value: formatPerpsFiat(transaction.fill.entryPrice),
+      },
   ].filter(Boolean);
 
   // Secondary detail rows - only show if values exist
   const secondaryDetailRows = [
-    transaction.fill?.fee && {
-      label: strings('perps.transactions.position.fees'),
-      value: `${
-        BigNumber(transaction.fill?.fee).isGreaterThan(0.01)
-          ? formatPerpsFiat(transaction.fill?.fee || '0')
-          : `$${transaction.fill?.fee || '0'}`
-      }`,
-      textColor: TextColor.Default,
-    },
+    transaction.fill?.fee !== undefined &&
+      transaction.fill?.fee !== null && {
+        label: strings('perps.transactions.position.fees'),
+        value: BigNumber(transaction.fill.fee).isGreaterThan(0.01)
+          ? formatPerpsFiat(transaction.fill.fee)
+          : `$${transaction.fill.fee}`,
+        textColor: TextColor.Default,
+      },
   ].filter(Boolean);
 
   if (

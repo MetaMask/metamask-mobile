@@ -272,7 +272,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
       return (
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {price
+          {price !== undefined && price !== null
             ? formatPerpsFiat(price, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })
@@ -385,7 +385,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.liquidationPrice
+                  {position.liquidationPrice !== undefined &&
+                  position.liquidationPrice !== null
                     ? formatPerpsFiat(position.liquidationPrice, {
                         ranges: PRICE_RANGES_UNIVERSAL,
                       })
