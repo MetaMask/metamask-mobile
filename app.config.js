@@ -15,7 +15,9 @@ module.exports = {
             '../../node_modules/@notifee/react-native/android/libs',
           ],
         },
-        ios: {},
+        ios: {
+          jsEngine: 'hermes',
+        },
       },
     ],
     [
@@ -36,5 +38,31 @@ module.exports = {
   ios: {
     bundleIdentifier: 'io.metamask.MetaMask',
     usesAppleSignIn: true,
+    jsEngine: 'hermes',
+  },
+  expo: {
+    owner: 'metamask-test',
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
+    updates: {
+      url: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
+      channel: process.env.APP_ENV === 'rc' ? 'preview' : 'production',
+      requestHeaders: {
+        'expo-channel-name':
+          process.env.APP_ENV === 'rc' ? 'preview' : 'production',
+      },
+    },
+    extra: {
+      eas: {
+        projectId: 'fddf3e54-a014-4ba7-a695-d116a9ef9620',
+      },
+    },
+    android: {
+      package: 'io.metamask',
+    },
+    ios: {
+      bundleIdentifier: 'io.metamask.MetaMask',
+    },
   },
 };

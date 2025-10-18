@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   useNavigation,
   useRoute,
@@ -156,6 +156,7 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import OTAUpdatesBottomSheet from '../../UI/OTAUpdates/OTAUpdatesBottomSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1044,6 +1045,8 @@ const App: React.FC = () => {
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
+  const [openOTAUpdatesBottomSheet, setOpenOTAUpdatesBottomSheet] =
+    useState(true);
   const { isEnabled: checkMetricsEnabled } = useMetrics();
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
@@ -1221,6 +1224,11 @@ const App: React.FC = () => {
       <AppFlow />
       <Toast ref={toastRef} />
       <ProfilerManager />
+      {openOTAUpdatesBottomSheet && (
+        <OTAUpdatesBottomSheet
+          setOpenOTAUpdatesBottomSheet={setOpenOTAUpdatesBottomSheet}
+        />
+      )}
     </>
   );
 };
