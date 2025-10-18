@@ -50,9 +50,11 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         } else {
           DevLogger.log('Failed to update position TP/SL:', result.error);
 
+          const errorMessage = result.error || strings('perps.errors.unknown');
+
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-              result.error,
+              errorMessage,
             ),
           );
 
