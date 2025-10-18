@@ -151,7 +151,7 @@ jobs:
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: 'Android E2E Smoke Test Results'
-          path: 'all-test-results/**/*.xml'
+          path: 'all-test-results/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
           list-suites: 'failed'
@@ -192,4 +192,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-merged-test-report
-          path: all-test-results/**/*.xml
+          path: all-test-results/**/junit.xml
