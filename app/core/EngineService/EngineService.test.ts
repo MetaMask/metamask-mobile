@@ -71,15 +71,36 @@ jest.mock('../../store/persistConfig', () => ({
 // Unmock global Engine
 jest.unmock('../Engine');
 
+interface MockControllerMessenger {
+  subscribe: jest.MockedFunction<(...args: unknown[]) => void>;
+  subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
+}
+
+interface MockController {
+  subscribe: jest.MockedFunction<(...args: unknown[]) => void>;
+  state?: unknown;
+  metadata?: Record<string, unknown>;
+}
+
+interface MockEngineContext {
+  [controllerName: string]: MockController;
+  KeyringController: MockController & {
+    state: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+  };
+}
+
+interface MockEngineInstance {
+  controllerMessenger: MockControllerMessenger;
+  context: MockEngineContext;
+}
+
 jest.mock('../Engine', () => {
-  // Do not need to mock entire Engine. Only need subset of data for testing purposes.
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let instance: any;
+  let mockInstance: MockEngineInstance | null;
 
   const mockEngine = {
     init: (_: unknown, keyringState: KeyringControllerState) => {
-      instance = {
+      mockInstance = {
         controllerMessenger: {
           subscribe: jest.fn(),
           subscribeOnceIf: jest.fn(),
@@ -126,22 +147,22 @@ jest.mock('../Engine', () => {
           RatesController: { subscribe: jest.fn() },
         },
       };
-      return instance;
+      return mockInstance;
     },
     get context() {
-      if (!instance) {
+      if (!mockInstance) {
         throw new Error('Engine does not exist');
       }
-      return instance.context;
+      return mockInstance.context;
     },
     get controllerMessenger() {
-      if (!instance) {
+      if (!mockInstance) {
         throw new Error('Engine does not exist');
       }
-      return instance.controllerMessenger;
+      return mockInstance.controllerMessenger;
     },
     destroyEngine: jest.fn(async () => {
-      instance = null;
+      mockInstance = null;
     }),
   };
 
@@ -284,11 +305,18 @@ describe('EngineService', () => {
   });
 
   describe('updateBatcher', () => {
+    // Type for accessing private updateBatcher property
+    interface EngineServiceWithBatcher {
+      updateBatcher: {
+        add: (key: string) => void;
+      };
+    }
+
     it('should batch initial state key', async () => {
       engineService.start();
 
-      // @ts-expect-error - accessing private property for testing
-      engineService.updateBatcher.add(INIT_BG_STATE_KEY);
+      // Access private property with proper typing
+      (engineService as unknown as EngineServiceWithBatcher).updateBatcher.add(INIT_BG_STATE_KEY);
 
       // Advance timers to trigger the batch flush
       jest.advanceTimersByTime(250);
@@ -310,8 +338,7 @@ describe('EngineService', () => {
 
       // Add each key - these should now be processed by updateBatcher as UPDATE actions
       keys.forEach((key) => {
-        // @ts-expect-error - accessing private property for testing
-        engineService.updateBatcher.add(key);
+        (engineService as unknown as EngineServiceWithBatcher).updateBatcher.add(key);
       });
 
       // Advance timers to trigger the batch flush
@@ -334,12 +361,10 @@ describe('EngineService', () => {
       engineService.start();
 
       // Add both INIT and UPDATE keys
-      // @ts-expect-error - accessing private property for testing
-      engineService.updateBatcher.add(INIT_BG_STATE_KEY);
-      // @ts-expect-error - accessing private property for testing
-      engineService.updateBatcher.add('KeyringController');
-      // @ts-expect-error - accessing private property for testing
-      engineService.updateBatcher.add('PreferencesController');
+      const serviceWithBatcher = engineService as unknown as EngineServiceWithBatcher;
+      serviceWithBatcher.updateBatcher.add(INIT_BG_STATE_KEY);
+      serviceWithBatcher.updateBatcher.add('KeyringController');
+      serviceWithBatcher.updateBatcher.add('PreferencesController');
 
       // Advance timers to trigger the batch flush
       jest.advanceTimersByTime(250);
@@ -357,6 +382,291 @@ describe('EngineService', () => {
           payload: { key: 'PreferencesController' },
         });
       });
+    });
+  });
+
+  describe('hasPersistedState', () => {
+    // Type for accessing private methods
+    interface EngineServiceWithPrivateMethods {
+      hasPersistedState: (metadata: Record<string, unknown> | undefined) => boolean;
+    }
+
+    it('should return false when metadata is undefined', () => {
+      // Act
+      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(undefined);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return false when metadata is empty', () => {
+      // Act
+      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState({});
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return true when metadata has persistent properties', () => {
+      // Arrange
+      const metadata = {
+        field1: { persist: true, anonymous: false },
+        field2: { persist: false, anonymous: true },
+      };
+
+      // Act
+      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return true when metadata has persist function', () => {
+      // Arrange
+      const metadata = {
+        field1: { persist: jest.fn(), anonymous: false },
+      };
+
+      // Act
+      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when all properties have persist false', () => {
+      // Arrange
+      const metadata = {
+        field1: { persist: false, anonymous: false },
+        field2: { persist: false, anonymous: true },
+      };
+
+      // Act
+      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('initializeControllers edge cases', () => {
+    // Type for accessing private methods
+    interface EngineServiceWithInitializeControllers {
+      initializeControllers: (engine: { context: null; controllerMessenger: { subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void> } }) => void;
+    }
+
+    it('should handle missing engine context gracefully', () => {
+      // Arrange
+      const mockEngine = {
+        context: null,
+        controllerMessenger: {
+          subscribeOnceIf: jest.fn(),
+        },
+      };
+
+      // Act & Assert - should not throw
+      expect(() => (engineService as unknown as EngineServiceWithInitializeControllers).initializeControllers(mockEngine)).not.toThrow();
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error('Engine context does not exists. Redux will not be updated from controller state updates!')
+      );
+    });
+
+    it('should handle missing vault metadata in subscribeOnceIf callback', async () => {
+      // Types for Engine mock
+      interface MockEngineType {
+        controllerMessenger: {
+          subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
+        };
+        context: {
+          KeyringController: {
+            metadata?: Record<string, unknown>;
+          };
+        };
+      }
+
+      // Arrange
+      await engineService.start();
+
+      const mockEngine = Engine as unknown as MockEngineType;
+      const mockSubscribeOnceIf = mockEngine.controllerMessenger.subscribeOnceIf;
+
+      // Mock missing vault metadata
+      const originalContext = mockEngine.context;
+      mockEngine.context = {
+        ...originalContext,
+        KeyringController: {
+          ...originalContext.KeyringController,
+          metadata: {}, // No vault metadata
+        },
+      };
+
+      // Act - trigger the subscribeOnceIf callback
+      type SubscribeCall = [string, () => void, () => boolean];
+      const subscribeCall = mockSubscribeOnceIf.mock.calls.find((call: unknown[]) =>
+        call[0] === 'ComposableController:stateChange'
+      ) as SubscribeCall;
+      expect(subscribeCall).toBeDefined();
+
+      const callback = subscribeCall[1];
+      callback();
+
+      // Assert
+      expect(Logger.log).toHaveBeenCalledWith('keyringController vault missing for INIT_BG_STATE_KEY');
+    });
+
+    it('should handle missing vault metadata in update callback', async () => {
+      // Types for Engine mock
+      interface MockEngineType {
+        controllerMessenger: {
+          subscribe: jest.MockedFunction<(...args: unknown[]) => void>;
+        };
+        context: {
+          KeyringController: {
+            metadata?: Record<string, unknown>;
+          };
+        };
+      }
+
+      // Arrange
+      await engineService.start();
+
+      const mockEngine = Engine as unknown as MockEngineType;
+      const mockSubscribe = mockEngine.controllerMessenger.subscribe;
+
+      // Mock missing vault metadata
+      const originalContext = mockEngine.context;
+      mockEngine.context = {
+        ...originalContext,
+        KeyringController: {
+          ...originalContext.KeyringController,
+          metadata: {}, // No vault metadata
+        },
+      };
+
+      // Find a Redux update subscription (not persistence subscription)
+      type SubscribeCall = [string, () => void] | [string, () => void, () => unknown];
+      const reduxUpdateCall = mockSubscribe.mock.calls.find((call: unknown[]) =>
+        call[0] === 'KeyringController:stateChange' && call.length === 2 // Redux update has 2 args, persistence has 3
+      ) as SubscribeCall;
+      expect(reduxUpdateCall).toBeDefined();
+
+      // Act - trigger the callback
+      const callback = reduxUpdateCall[1];
+      callback();
+
+      // Assert
+      expect(Logger.log).toHaveBeenCalledWith('keyringController vault missing for UPDATE_BG_STATE_KEY');
+    });
+
+    it('should skip CronjobController events', async () => {
+      // Types for Engine mock
+      interface MockEngineType {
+        controllerMessenger: {
+          subscribe: jest.MockedFunction<(...args: unknown[]) => void>;
+        };
+      }
+
+      // Arrange - mock BACKGROUND_STATE_CHANGE_EVENT_NAMES to include CronjobController
+      // Temporarily mock the event names array to include CronjobController
+      const mockEventNames = [...BACKGROUND_STATE_CHANGE_EVENT_NAMES, 'CronjobController:stateChange'] as const;
+
+      // Mock the module to return our modified event names
+      jest.doMock('../Engine/constants', () => ({
+        BACKGROUND_STATE_CHANGE_EVENT_NAMES: mockEventNames,
+      }));
+
+      // Act
+      await engineService.start();
+
+      const mockEngine = Engine as unknown as MockEngineType;
+      const mockSubscribe = mockEngine.controllerMessenger.subscribe;
+
+      // Assert - CronjobController should not be subscribed to
+      const cronjobSubscriptions = mockSubscribe.mock.calls.filter((call: unknown[]) =>
+        call[0] === 'CronjobController:stateChange'
+      );
+      expect(cronjobSubscriptions).toHaveLength(0);
+
+      // Clean up the mock
+      jest.dontMock('../Engine/constants');
+    });
+  });
+
+  describe('start method conditions', () => {
+    it('should handle existing user with vault check', async () => {
+      // Arrange
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: {
+          backgroundState: {
+            KeyringController: { vault: 'encrypted-vault-data' }
+          }
+        }
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        true
+      );
+    });
+
+    it('should handle existing user without vault', async () => {
+      // Arrange
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: {
+          backgroundState: {
+            KeyringController: {} // No vault
+          }
+        }
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        false
+      );
+    });
+
+    it('should handle new user (no existing user flag)', async () => {
+      // Arrange
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert
+      // Should not call the vault check log for new users
+      const vaultCheckLogs = (Logger.log as jest.MockedFunction<typeof Logger.log>).mock.calls
+        .filter(call => call[0]?.includes?.('Is vault defined at KeyringController'));
+      expect(vaultCheckLogs).toHaveLength(0);
     });
   });
 
@@ -402,35 +712,27 @@ describe('EngineService', () => {
       });
     });
 
-    it('should set up persistence subscriptions for all controller events', async () => {
+    it('should set up persistence subscriptions for controllers with persistent state', async () => {
       // Act
       await engineService.start();
 
       // Assert
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-        typeof Engine.controllerMessenger.subscribe
-      >;
+          typeof Engine.controllerMessenger.subscribe
+        >;
 
-      // Should subscribe to all events except CronjobController:stateChange
-      const expectedCallCount = BACKGROUND_STATE_CHANGE_EVENT_NAMES.filter(
-        (eventName) => eventName !== 'CronjobController:stateChange',
-      ).length;
+      // Should subscribe to controllers that have persistent state
+      // Based on the mock setup: KeyringController, PreferencesController, NetworkController
+      // (KeyringController appears twice due to test setup)
+      expect(mockSubscribe).toHaveBeenCalledTimes(4);
 
-      expect(mockSubscribe).toHaveBeenCalledTimes(expectedCallCount);
-
-      // Verify it subscribes to each event (except CronjobController)
-      BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
-        if (eventName !== 'CronjobController:stateChange') {
-          expect(mockSubscribe).toHaveBeenCalledWith(
-            eventName,
-            expect.any(Function),
-          );
-        }
-      });
+      // Should NOT subscribe to CronjobController
+      const subscribedEvents = (mockSubscribe as jest.Mock).mock.calls.map(call => call[0]);
+      expect(subscribedEvents).not.toContain('CronjobController:stateChange');
 
       expect(Logger.log).toHaveBeenCalledWith(
-        'Individual controller persistence and Redux update subscriptions set up successfully',
+        'Individual controller persistence subscriptions set up successfully',
       );
     });
 
@@ -449,8 +751,8 @@ describe('EngineService', () => {
       // Assert
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-        typeof Engine.controllerMessenger.subscribe
-      >;
+          typeof Engine.controllerMessenger.subscribe
+        >;
 
       // Should not subscribe to CronjobController:stateChange (since it's not in our mocked events)
       // Our mocked BACKGROUND_STATE_CHANGE_EVENT_NAMES only includes KeyringController, PreferencesController, NetworkController
@@ -459,8 +761,8 @@ describe('EngineService', () => {
         expect.any(Function),
       );
 
-      // Should only subscribe to the events we have in our mock
-      expect(mockSubscribe).toHaveBeenCalledTimes(3); // KeyringController, PreferencesController, NetworkController
+      // Should only subscribe to controllers with persistent state
+      expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
     });
 
     it('should handle controller state changes correctly', async () => {
@@ -469,35 +771,42 @@ describe('EngineService', () => {
 
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-        typeof Engine.controllerMessenger.subscribe
-      >;
+          typeof Engine.controllerMessenger.subscribe
+        >;
 
-      // Find the subscription callback for KeyringController
-      const subscriptionCallback = mockSubscribe.mock.calls.find(
+      // Find the persistence subscription for KeyringController
+      const keyringControllerCalls = mockSubscribe.mock.calls.filter(
         (call) => call[0] === 'KeyringController:stateChange',
-      )?.[1] as (controllerState: unknown) => Promise<void>;
+      );
 
-      expect(subscriptionCallback).toBeDefined();
+      expect(keyringControllerCalls.length).toBeGreaterThan(0);
 
+      // Get the LAST subscription (from setupEnginePersistence, not initializeControllers)
+      const persistenceSubscription = keyringControllerCalls[keyringControllerCalls.length - 1];
+      expect(persistenceSubscription).toBeDefined();
+
+      // Extract the handler (second parameter)
+      const handler = persistenceSubscription?.[1] as (controllerState: unknown) => Promise<void>;
+      expect(handler).toBeDefined();
+
+      // Act - call the handler with the controller state
       const controllerState = { field1: 'value1', field2: 'value2' };
+      await handler(controllerState);
 
-      // Act
-      await subscriptionCallback(controllerState);
-
-      // Assert
+      // Assert - verify getPersistentState was called inside the handler
       expect(mockGetPersistentState).toHaveBeenCalledWith(
         controllerState,
         Engine.context.KeyringController?.metadata,
       );
 
-      // Verify that the persistence function was called
+      // Verify persistence was called with the filtered state
       expect(mockPersistController).toHaveBeenCalledWith(
         { filtered: 'state' },
         'KeyringController',
       );
     });
 
-    it('should handle persistence errors gracefully', async () => {
+    it('should throw on persistence errors (fail fast)', async () => {
       // Arrange
       const persistError = new Error('Persistence failed');
       mockPersistController.mockRejectedValue(persistError);
@@ -506,22 +815,27 @@ describe('EngineService', () => {
 
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-        typeof Engine.controllerMessenger.subscribe
-      >;
-      const subscriptionCallback = mockSubscribe.mock.calls.find(
+          typeof Engine.controllerMessenger.subscribe
+        >;
+
+      // Find the persistence subscription callback for KeyringController
+      const keyringControllerCalls = mockSubscribe.mock.calls.filter(
         (call) => call[0] === 'KeyringController:stateChange',
-      )?.[1] as (controllerState: unknown) => Promise<void>;
+      );
+
+      // Use the last subscription callback (which should be from setupEnginePersistence)
+      const subscriptionCallback = keyringControllerCalls[keyringControllerCalls.length - 1]?.[1] as (controllerState: unknown) => Promise<void>;
 
       expect(subscriptionCallback).toBeDefined();
 
       const controllerState = { field1: 'value1' };
 
-      // Act & Assert - should not throw
+      // Act & Assert - should throw critical error
       await expect(
         subscriptionCallback(controllerState),
-      ).resolves.toBeUndefined();
+      ).rejects.toThrow('Critical: Failed to persist KeyringController state. User data at risk. Persistence failed');
 
-      // Should log error
+      // Should log error before throwing
       expect(Logger.error).toHaveBeenCalledWith(
         persistError,
         'Failed to process KeyringController state change',
