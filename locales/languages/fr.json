@@ -1534,7 +1534,7 @@
       "skip": "Ignorer",
       "add_funds": "Ajouter des fonds",
       "what_are_perps": {
-        "title": "Que sont les contrats à terme perpétuels (perps) ?",
+        "title": "Que sont les perps?",
         "description": "MetaMask prend désormais en charge les contrats à terme perpétuels, également appelés « perps », qui vous permettent de spéculer sur la fluctuation du cours d’un jeton sans l’acheter.",
         "subtitle": "Voici comment ils fonctionnent."
       },
