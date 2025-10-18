@@ -40,19 +40,7 @@ const PredictSellPreview = () => {
 
   const outcomeTitle = title;
 
-  const { placeOrder, isLoading } = usePredictPlaceOrder({
-    onComplete: () => {
-      try {
-        dispatch(StackActions.pop());
-      } catch (error) {
-        // Navigation errors shouldn't prevent the order from being considered successful
-        console.warn('Navigation error after successful cash out:', error);
-      }
-    },
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-    },
-  });
+  const { placeOrder, isLoading } = usePredictPlaceOrder();
 
   const { preview, isCalculating } = usePredictOrderPreview({
     providerId: position.providerId,
@@ -76,6 +64,7 @@ const PredictSellPreview = () => {
       providerId: position.providerId,
       preview,
     });
+    dispatch(StackActions.pop());
   };
 
   return (
