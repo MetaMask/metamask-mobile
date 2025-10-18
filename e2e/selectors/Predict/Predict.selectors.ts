@@ -6,6 +6,9 @@ export const PredictTabViewSelectorsIDs = {
   // Main container
   CONTAINER: 'predict-tab-view-container',
 
+  // Scroll view
+  SCROLL_VIEW: 'predict-tab-view-scroll-view',
+
   // FlashList
   FLASH_LIST: 'predict-tab-view-flash-list',
 } as const;
@@ -54,3 +57,24 @@ export const PredictMarketDetailsSelectorsIDs = {
   POSITIONS_TAB: 'predict-market-details-positions-tab',
   OUTCOMES_TAB: 'predict-market-details-outcomes-tab',
 } as const;
+
+// ========================================
+// PREDICT POSITIONS SELECTORS
+// ========================================
+
+export const PredictPositionsSelectorsIDs = {
+  // Lists
+  ACTIVE_POSITIONS_LIST: 'predict-active-positions-list',
+  CLAIMABLE_POSITIONS_LIST: 'predict-claimable-positions-list',
+
+  // Section headers
+  RESOLVED_MARKETS_HEADER: 'predict-resolved-markets-header',
+} as const;
+
+// Helper functions for dynamic position selectors
+export const getPredictPositionSelector = {
+  currentPositionCard: (marketId: string, outcomeIndex: number) =>
+    `predict-current-position-card-${marketId}-${outcomeIndex}`,
+  resolvedPositionCard: (marketId: string, outcomeIndex: number) =>
+    `predict-resolved-position-card-${marketId}-${outcomeIndex}`,
+};
