@@ -10,7 +10,7 @@ import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
  * @param symbol - Full symbol (e.g., "BTC" or "xyz:XYZ100")
  * @returns Display symbol without DEX prefix (e.g., "BTC" or "XYZ100")
  */
-export const getDisplaySymbol = (symbol: string): string => {
+export const getPerpsDisplaySymbol = (symbol: string): string => {
   if (!symbol || typeof symbol !== 'string') {
     return symbol;
   }
@@ -34,7 +34,7 @@ export const getDisplaySymbol = (symbol: string): string => {
  * @param symbol - Full symbol (e.g., "BTC" or "xyz:XYZ100")
  * @returns DEX identifier or null if main DEX (e.g., "xyz" or null)
  */
-export const getDexFromSymbol = (symbol: string): string | null => {
+export const getPerpsDexFromSymbol = (symbol: string): string | null => {
   if (!symbol || typeof symbol !== 'string') {
     return null;
   }

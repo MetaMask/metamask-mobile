@@ -9,7 +9,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import { getDisplaySymbol, getMarketBadgeType } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  getMarketBadgeType,
+} from '../../utils/marketUtils';
 import {
   formatPercentage,
   formatPerpsFiat,
@@ -130,7 +133,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
         <View style={styles.tokenInfo}>
           <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {getDisplaySymbol(displayMarket.symbol)}
+              {getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>

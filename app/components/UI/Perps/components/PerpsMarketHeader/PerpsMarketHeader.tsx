@@ -15,7 +15,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsMarketData } from '../../controllers/types';
-import { getDisplaySymbol, getMarketBadgeType } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  getMarketBadgeType,
+} from '../../utils/marketUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsBadge from '../PerpsBadge';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -72,7 +75,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             color={TextColor.Default}
             style={styles.assetName}
           >
-            {getDisplaySymbol(market.symbol)}-USD
+            {getPerpsDisplaySymbol(market.symbol)}-USD
           </Text>
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
