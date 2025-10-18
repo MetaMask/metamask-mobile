@@ -202,7 +202,9 @@ export function transformMarketData(
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
       maxLeverage: `${asset.maxLeverage}x`,
-      price: isNaN(currentPrice) ? '0' : currentPrice.toString(),
+      price: isNaN(currentPrice)
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
       change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'

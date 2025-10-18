@@ -39,12 +39,8 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const displayMarket = useMemo(() => {
     const livePrice = livePrices[market.symbol];
     if (!livePrice) {
-      // Format the raw price for display
-      const marketPrice = parseFloat(market.price);
-      return {
-        ...market,
-        price: formatPerpsFiat(marketPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
-      };
+      // No live price available, use existing formatted price from market data
+      return market;
     }
 
     // Parse and format the price with exactly 2 decimals for consistency

@@ -2731,7 +2731,7 @@ describe('HyperLiquidProvider', () => {
         // Should gracefully handle missing price data with fallback
         const result = await provider.getMarketDataWithPrices();
         expect(Array.isArray(result)).toBe(true);
-        expect(result[0].price).toBe('$0.00'); // Fallback when allMids is null
+        expect(result[0].price).toBe('$---'); // Fallback when allMids is null
       });
 
       it('should handle meta and predictedFundings calls successfully', async () => {

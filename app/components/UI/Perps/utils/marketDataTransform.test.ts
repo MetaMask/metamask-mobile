@@ -120,7 +120,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].price).toBe('$0.00');
+      expect(result[0].price).toBe('$---');
       expect(result[0].change24h).toBe('$0.00');
       expect(result[0].change24hPercent).toBe('-100.00%');
     });
@@ -780,7 +780,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].price).toBe('$0.00');
+      expect(result[0].price).toBe('$---');
       expect(result[0].change24h).toBe('$0.00');
     });
 

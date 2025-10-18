@@ -465,13 +465,33 @@ describe('Perps Feature Flag Selectors', () => {
   describe('selectPerpsEquityEnabledFlag', () => {
     it('returns false by default when local flag is not set', () => {
       process.env.MM_PERPS_EQUITY_ENABLED = undefined;
-      const result = selectPerpsEquityEnabledFlag(mockedEmptyFlagsState);
+      const stateWithEmptyFlags = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      const result = selectPerpsEquityEnabledFlag(stateWithEmptyFlags);
       expect(result).toBe(false);
     });
 
     it('returns true when local flag is true and remote flag not present', () => {
       process.env.MM_PERPS_EQUITY_ENABLED = 'true';
-      const result = selectPerpsEquityEnabledFlag(mockedEmptyFlagsState);
+      const stateWithEmptyFlags = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      const result = selectPerpsEquityEnabledFlag(stateWithEmptyFlags);
       expect(result).toBe(true);
     });
 
@@ -542,19 +562,49 @@ describe('Perps Feature Flag Selectors', () => {
   describe('selectPerpsEnabledDexs', () => {
     it('returns empty array by default when local flag is not set', () => {
       process.env.MM_PERPS_ENABLED_DEXS = undefined;
-      const result = selectPerpsEnabledDexs(mockedEmptyFlagsState);
+      const stateWithEmptyFlags = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      const result = selectPerpsEnabledDexs(stateWithEmptyFlags);
       expect(result).toEqual([]);
     });
 
     it('parses local flag as comma-separated list', () => {
       process.env.MM_PERPS_ENABLED_DEXS = 'xyz,test-dex, another ';
-      const result = selectPerpsEnabledDexs(mockedEmptyFlagsState);
+      const stateWithEmptyFlags = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      const result = selectPerpsEnabledDexs(stateWithEmptyFlags);
       expect(result).toEqual(['xyz', 'test-dex', 'another']);
     });
 
     it('returns empty array when local flag is empty string', () => {
       process.env.MM_PERPS_ENABLED_DEXS = '';
-      const result = selectPerpsEnabledDexs(mockedEmptyFlagsState);
+      const stateWithEmptyFlags = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      const result = selectPerpsEnabledDexs(stateWithEmptyFlags);
       expect(result).toEqual([]);
     });
 
