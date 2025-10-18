@@ -4,6 +4,8 @@ import { storeCardBaanxToken } from '../util/cardTokenVault';
 import { generatePKCEPair, generateState } from '../util/pkceHelpers';
 import { CardError, CardErrorType, CardLocation } from '../types';
 import { strings } from '../../../../../locales/i18n';
+import { useDispatch } from 'react-redux';
+import { setIsAuthenticatedCard as setIsAuthenticatedAction } from '../../../../core/redux/slices/card';
 
 /**
  * Maps CardError types to user-friendly localized error messages
@@ -45,9 +47,10 @@ const useCardProviderAuthentication = (): {
   error: string | null;
   clearError: () => void;
 } => {
+  const dispatch = useDispatch();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { sdk, setIsAuthenticated } = useCardSDK();
+  const { sdk } = useCardSDK();
 
   const clearError = useCallback(() => {
     setError(null);
@@ -105,7 +108,7 @@ const useCardProviderAuthentication = (): {
         });
 
         setError(null);
-        setIsAuthenticated(true);
+        dispatch(setIsAuthenticatedAction(true));
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
@@ -115,7 +118,7 @@ const useCardProviderAuthentication = (): {
         setLoading(false);
       }
     },
-    [sdk, setIsAuthenticated],
+    [sdk, dispatch],
   );
 
   return useMemo(

@@ -16,7 +16,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -44,10 +43,7 @@ const PredictSellPreview = () => {
   const { placeOrder, isLoading } = usePredictPlaceOrder({
     onComplete: () => {
       try {
-        // TODO: fix this logic. This only seems to pop the stack once, but does not
-        // navigate to the market details screen
         dispatch(StackActions.pop());
-        dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
       } catch (error) {
         // Navigation errors shouldn't prevent the order from being considered successful
         console.warn('Navigation error after successful cash out:', error);
