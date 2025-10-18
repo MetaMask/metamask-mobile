@@ -3,6 +3,17 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsDeveloperOptionsSection } from './PerpsDeveloperOptionsSection';
 import { PerpsTestnetToggleSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
+// Mock navigation
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
 describe('PerpsDeveloperOptionsSection', () => {
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(<PerpsDeveloperOptionsSection />);

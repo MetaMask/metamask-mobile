@@ -24,11 +24,17 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
   adaptPositionFromSDK: jest.fn((assetPos: any) => ({
     coin: 'BTC',
     size: assetPos.position.szi,
-    notionalSize: '5000',
+    entryPrice: '50000',
+    positionValue: '5000',
     unrealizedPnl: '100',
-    percentagePnl: '2.0',
-    averagePrice: '50000',
-    markPrice: '52000',
+    marginUsed: '2500',
+    leverage: { type: 'isolated', value: 2 },
+    liquidationPrice: '40000',
+    maxLeverage: 100,
+    returnOnEquity: '4.0',
+    cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   })),
   adaptOrderFromSDK: jest.fn((order: any) => ({
     orderId: order.oid.toString(),
@@ -53,6 +59,10 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     unrealizedPnl: '100.00',
     returnOnEquity: '20.0',
     totalValue: '10100.00',
+  })),
+  parseAssetName: jest.fn((symbol: string) => ({
+    symbol,
+    dex: null,
   })),
 }));
 
@@ -241,9 +251,6 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = await service.subscribeToPrices(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
-        mockWalletAdapter,
-      );
       expect(mockSubscriptionClient.allMids).toHaveBeenCalled();
       expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledWith(
         { coin: 'BTC' },
@@ -343,9 +350,6 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
-        mockWalletAdapter,
-      );
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         params.accountId,
       );
@@ -381,7 +385,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should handle subscription client not available', () => {
+    it('should handle subscription client not available', async () => {
       mockClientService.getSubscriptionClient.mockReturnValue(undefined);
 
       const mockCallback = jest.fn();
@@ -391,10 +395,11 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       expect(typeof unsubscribe).toBe('function');
-      expect(
-        mockWalletService.getUserAddressWithDefault,
-      ).not.toHaveBeenCalled();
+      expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
     });
 
     it('should filter out zero-size positions', async () => {
@@ -444,9 +449,6 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToOrderFills(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
-        mockWalletAdapter,
-      );
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         params.accountId,
       );
@@ -866,7 +868,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should handle missing subscription client in position subscription', () => {
+    it('should handle missing subscription client in position subscription', async () => {
       mockClientService.getSubscriptionClient.mockReturnValue(undefined);
 
       const mockCallback = jest.fn();
@@ -874,10 +876,11 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       expect(typeof unsubscribe).toBe('function');
-      expect(
-        mockWalletService.getUserAddressWithDefault,
-      ).not.toHaveBeenCalled();
+      expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
     });
 
     it('should handle missing subscription client in order fill subscription', () => {

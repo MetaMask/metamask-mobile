@@ -56,7 +56,7 @@ describe('hyperLiquidAdapter', () => {
         p: '0', // market order price
         s: '0.1', // size
         r: false, // not reduce only
-        t: { limit: { tif: 'Ioc' } }, // market order type
+        t: { limit: { tif: 'FrontendMarket' } }, // market order type
         c: undefined, // no client order ID
       });
     });
@@ -122,7 +122,7 @@ describe('hyperLiquidAdapter', () => {
       };
 
       expect(() => adaptOrderToSDK(order, coinToAssetId)).toThrow(
-        'Unknown asset: UNKNOWN',
+        'Asset UNKNOWN not found in asset mapping',
       );
     });
   });
@@ -793,7 +793,10 @@ describe('hyperLiquidAdapter', () => {
         { name: 'SOL', szDecimals: 3, maxLeverage: 20, marginTableId: 3 },
       ];
 
-      const result = buildAssetMapping(metaUniverse);
+      const result = buildAssetMapping({
+        metaUniverse,
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.get('BTC')).toBe(0);
       expect(result.coinToAssetId.get('ETH')).toBe(1);
@@ -805,7 +808,10 @@ describe('hyperLiquidAdapter', () => {
     });
 
     it('should handle empty universe', () => {
-      const result = buildAssetMapping([]);
+      const result = buildAssetMapping({
+        metaUniverse: [],
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.size).toBe(0);
       expect(result.assetIdToCoin.size).toBe(0);

@@ -32,6 +32,18 @@ describe('perps controller init', () => {
     const baseControllerMessenger = new ExtendedControllerMessenger();
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+
+    // Mock getState to return proper Redux state structure for feature flags
+    initRequestMock.getState.mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
   });
 
   it('returns controller instance', () => {

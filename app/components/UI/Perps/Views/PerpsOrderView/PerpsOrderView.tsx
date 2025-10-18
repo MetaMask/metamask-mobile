@@ -106,6 +106,7 @@ import {
 import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 
 // Navigation params interface
@@ -807,7 +808,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <PerpsOrderHeader
-        asset={orderForm.asset}
+        asset={getPerpsDisplaySymbol(orderForm.asset)}
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderForm.type}
@@ -826,7 +827,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
-          tokenSymbol={orderForm.asset}
+          tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
         />
 
