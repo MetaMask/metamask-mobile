@@ -391,7 +391,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   {strings('perps.tpsl.entry_price')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.entryPrice &&
+                  {position.entryPrice !== undefined &&
+                  position.entryPrice !== null &&
                   position.entryPrice !== 'null' &&
                   position.entryPrice !== '0.00'
                     ? formatPerpsFiat(position.entryPrice, {
@@ -410,7 +411,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   : strings('perps.tpsl.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {currentPrice
+                {currentPrice !== undefined && currentPrice !== null
                   ? formatPerpsFiat(currentPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
@@ -422,7 +423,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 {strings('perps.tpsl.liquidation_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {displayLiquidationPrice &&
+                {displayLiquidationPrice !== undefined &&
+                displayLiquidationPrice !== null &&
                 displayLiquidationPrice !== 'null' &&
                 displayLiquidationPrice !== '0.00'
                   ? formatPerpsFiat(displayLiquidationPrice, {

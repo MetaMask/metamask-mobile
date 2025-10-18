@@ -98,28 +98,33 @@ const PerpsPositionTransactionView: React.FC = () => {
         ),
       )}`,
     },
-    transaction.fill?.entryPrice && {
-      label:
-        transaction.fill?.action === 'Closed'
-          ? strings('perps.transactions.position.close_price')
-          : strings('perps.transactions.position.entry_price'),
-      value: transaction.fill.entryPrice
-        ? formatPerpsFiat(transaction.fill.entryPrice)
-        : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY,
-    },
+    transaction.fill?.entryPrice !== undefined &&
+      transaction.fill?.entryPrice !== null && {
+        label:
+          transaction.fill?.action === 'Closed'
+            ? strings('perps.transactions.position.close_price')
+            : strings('perps.transactions.position.entry_price'),
+        value:
+          transaction.fill.entryPrice !== undefined &&
+          transaction.fill.entryPrice !== null
+            ? formatPerpsFiat(transaction.fill.entryPrice)
+            : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY,
+      },
   ].filter(Boolean);
 
   // Secondary detail rows - only show if values exist
   const secondaryDetailRows = [
-    transaction.fill?.fee && {
-      label: strings('perps.transactions.position.fees'),
-      value: transaction.fill.fee
-        ? BigNumber(transaction.fill.fee).isGreaterThan(0.01)
-          ? formatPerpsFiat(transaction.fill.fee)
-          : `$${transaction.fill.fee}`
-        : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY,
-      textColor: TextColor.Default,
-    },
+    transaction.fill?.fee !== undefined &&
+      transaction.fill?.fee !== null && {
+        label: strings('perps.transactions.position.fees'),
+        value:
+          transaction.fill.fee !== undefined && transaction.fill.fee !== null
+            ? BigNumber(transaction.fill.fee).isGreaterThan(0.01)
+              ? formatPerpsFiat(transaction.fill.fee)
+              : `$${transaction.fill.fee}`
+            : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY,
+        textColor: TextColor.Default,
+      },
   ].filter(Boolean);
 
   if (

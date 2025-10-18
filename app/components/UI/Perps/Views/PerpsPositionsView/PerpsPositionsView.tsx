@@ -173,7 +173,8 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {account?.totalBalance
+              {account?.totalBalance !== undefined &&
+              account?.totalBalance !== null
                 ? formatPerpsFiat(account.totalBalance, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
@@ -186,7 +187,8 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {account?.availableBalance
+              {account?.availableBalance !== undefined &&
+              account?.availableBalance !== null
                 ? formatPerpsFiat(account.availableBalance, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
@@ -199,7 +201,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {account?.marginUsed
+              {account?.marginUsed !== undefined && account?.marginUsed !== null
                 ? formatPerpsFiat(account.marginUsed, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
