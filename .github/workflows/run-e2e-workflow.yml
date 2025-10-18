@@ -201,26 +201,27 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
-      - name: Merge JUnit reports
-        if: always()
-        continue-on-error: true
-        run: |
-          echo "📊 Merging JUnit XML reports..."
+      # Commented out to test if dorny/test-reporter handles multiple XML files without duplicates
+      # - name: Merge JUnit reports
+      #   if: always()
+      #   continue-on-error: true
+      #   run: |
+      #     echo "📊 Merging JUnit XML reports..."
 
-          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
+      #     # Install xml2js for XML parsing (lightweight, no full yarn install needed)
+      #     mkdir -p temp-deps && cd temp-deps
+      #     npm init -y > /dev/null 2>&1
+      #     npm install xml2js@0.6.2 --no-audit --no-fund --silent
 
-          # Copy node_modules to workspace for script usage
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
+      #     # Copy node_modules to workspace for script usage
+      #     cp -r node_modules ${{ github.workspace }}/
+      #     cd ${{ github.workspace }}
 
-          # Run merge script
-          node .github/scripts/e2e-merge-junit-reports.mjs
+      #     # Run merge script
+      #     node .github/scripts/e2e-merge-junit-reports.mjs
 
-          # Clean up temporary node_modules
-          rm -rf node_modules temp-deps
+      #     # Clean up temporary node_modules
+      #     rm -rf node_modules temp-deps
 
       - name: Upload test results
         if: always()
