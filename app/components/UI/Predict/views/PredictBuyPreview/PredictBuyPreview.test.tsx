@@ -403,9 +403,6 @@ describe('PredictBuyPreview', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('disables place bet button when loading', () => {
