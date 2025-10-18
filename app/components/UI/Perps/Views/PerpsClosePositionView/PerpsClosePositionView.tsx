@@ -523,6 +523,8 @@ const PerpsClosePositionView: React.FC = () => {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}`}
             variant={TextVariant.BodyMD}
+            isDAOTokenHolder={rewardsState.isDAOTokenHolder}
+            isDAOFeeBypassActive={rewardsState.isDAOFeeBypassActive}
           />
         </View>
       </View>
