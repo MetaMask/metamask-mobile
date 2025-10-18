@@ -594,7 +594,9 @@
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
-      "title": "Deposit"
+      "title": "Deposit",
+      "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
+      "limitError": "Failed to check your deposit limits. Please try again later."
     },
     "token_modal": {
       "select_a_token": "Select a Token",
@@ -1636,7 +1638,7 @@
     },
     "add_funds_sheet": {
       "title": "Add funds",
-      "description": "You’ll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+      "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
     "transactions": {
       "title": "Predictions",
@@ -1646,7 +1648,37 @@
       "claim_title": "Claimed winnings",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
-      "claim_detail": "Claimed winnings"
+      "claim_detail": "Claimed winnings",
+      "not_available": "N/A",
+      "date": "Date",
+      "market": "Market",
+      "outcome": "Outcome",
+      "predicted_amount": "Predicted amount",
+      "shares_bought": "Shares bought",
+      "shares_sold": "Shares sold",
+      "price_per_share": "Price per share",
+      "price_impact": "Price impact",
+      "net_pnl": "Net P&L",
+      "total_net_pnl": "Total Net P&L",
+      "market_net_pnl": "Market Net P&L",
+      "activity_details": "Activity details"
+    },
+    "claim": {
+      "toasts": {
+        "pending": {
+          "title": "Claiming {{amount}}",
+          "description": "Est. {{time}} seconds"
+        },
+        "confirmed": {
+          "title": "Claimed",
+          "description": "{{amount}} added to your balance"
+        },
+        "error": {
+          "title": "Something went wrong",
+          "description": "Failed to proceed with claim",
+          "try_again": "Try again"
+        }
+      }
     }
   },
   "receive": {
@@ -3968,7 +4000,9 @@
     "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "select_provider": "Select your preferred provider",
-    "switch_network": "Please switch to mainnet or sepolia"
+    "switch_network": "Please switch to mainnet or sepolia",
+    "card_title": "Always show MetaMask Card button",
+    "card_desc": "MetaMask Card is only available to residents of select countries"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -5836,7 +5870,96 @@
     "card_onboarding": {
       "title": "Welcome to Card",
       "description": "To use card features, you’ll need to verify your account with our partner.",
-      "verify_account_button": "Verify account"
+      "verify_account_button": "Verify account",
+      "sign_up": {
+        "title": "Sign-up",
+        "description": "Register your details with Crypto Life, the provider of MetaMask Card. You'll use this account to access and manage your card.",
+        "email_label": "Email",
+        "password_label": "Password",
+        "confirm_password_label": "Confirm password",
+        "country_label": "Country of Residence",
+        "email_placeholder": "Enter your email address",
+        "password_placeholder": "Enter your password",
+        "country_placeholder": "Select your country",
+        "password_mismatch": "Passwords do not match",
+        "invalid_email": "Invalid email address"
+      },
+      "confirm_email": {
+        "title": "Confirm your email",
+        "description": "We've sent a confirmation code to: {{email}}",
+        "confirm_code_label": "Confirmation code",
+        "confirm_code_placeholder": "Enter the confirmation code"
+      },
+      "set_phone_number": {
+        "title": "Phone number",
+        "description": "Enter your phone number",
+        "phone_number_label": "Phone number",
+        "phone_number_placeholder": "Enter your phone number",
+        "country_area_code_label": "Country area code",
+        "invalid_phone_number": "Invalid phone number",
+        "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
+      },
+      "confirm_phone_number":{
+        "title": "Confirm your phone number",
+        "description": "We've sent a confirmation code to: {{phoneNumber}}",
+        "confirm_code_label": "Confirmation code"
+      },
+      "verify_identity": {
+        "title": "Verifying your identity to get your card",
+        "description": "To keep your account secure and comply with regulations, we need to verify your identity.\n\nYou'll need a government-issued ID and a proof of address (like a utility bill or bank statement).\n\nVerification usually takes 5-30 minutes, and we'll notify you as soon as it's complete.",
+        "verify_button": "Verify now with Veriff"
+      },
+      "validating_kyc": {
+        "title": "Validating your KYC..."
+      },
+      "kyc_failed": {
+        "title": "Rejected",
+        "description": "Your KYC was rejected. Please try again."
+      },
+      "personal_details": {
+        "title": "Personal details",
+        "description": "Enter your personal details",
+        "first_name_label": "First name",
+        "last_name_label": "Last name",
+        "date_of_birth_label": "Date of birth",
+        "nationality_label": "Country of Nationality",
+        "ssn_label": "Social Security Number",
+        "first_name_placeholder": "Enter your first name",
+        "last_name_placeholder": "Enter your last name",
+        "date_of_birth_placeholder": "Enter your date of birth",
+        "nationality_placeholder": "Select your nationality",
+        "ssn_placeholder": "Enter your SSN",
+        "invalid_ssn": "Invalid SSN",
+        "invalid_date_of_birth":"Invalid date of birth",
+        "invalid_date_of_birth_underage": "You must be at least 18 years old"
+      },
+      "physical_address": {
+        "title": "Physical address",
+        "description": "Please provide your physical address",
+        "address_line_1_label": "Address line 1",
+        "address_line_2_label": "Address line 2",
+        "city_label": "City",
+        "state_label": "State",
+        "zip_code_label": "ZIP code",
+        "address_line_1_placeholder": "Enter your address line 1",
+        "address_line_2_placeholder": "Enter your address line 2",
+        "city_placeholder": "Enter your city",
+        "state_placeholder": "Enter your state",
+        "zip_code_placeholder": "Enter your ZIP code",
+        "same_mailing_address_label": "Physical address is the same as mailing address",
+        "electronic_consent":"I agree to the E-Sign Act Consent and Disclosure and to receive all communictions electronically."
+      },
+      "mailing_address": {
+        "title": "Mailing address",
+        "description": "Please provide your mailing address"
+      },
+      "complete": {
+        "title": "Approved!",
+        "description": "Your KYC was approved. You can now use your Card."
+      },
+       "continue_button": "Next",
+       "confirm_button": "Confirm",
+       "retry_button":"Try again"
     },
     "card_home": {
       "error_title": "Can’t fetch data",
@@ -6195,7 +6318,8 @@
 
     "link_account_group": {
       "link_account": "Add account",
-      "linked_accounts": "Tracked addresses",
+      "tracked": "Tracked",
+      "untracked": "Untracked",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },
@@ -6242,9 +6366,10 @@
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
-      "bridge_loading": "Bridge",
       "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
+      "bridge_send_loading": "Bridge Send",
       "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
+      "bridge_receive_loading": "Bridge Receive",
       "default": "Transaction",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
