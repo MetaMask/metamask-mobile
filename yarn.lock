@@ -7024,9 +7024,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^51.0.0":
-  version: 51.0.0
-  resolution: "@metamask/bridge-controller@npm:51.0.0"
+"@metamask/bridge-controller@npm:^53.0.0":
+  version: 53.0.0
+  resolution: "@metamask/bridge-controller@npm:53.0.0"
   dependencies:
     "@ethersproject/address": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
@@ -7047,12 +7047,12 @@ __metadata:
     uuid: ^8.3.2
   peerDependencies:
     "@metamask/accounts-controller": ^33.0.0
-    "@metamask/assets-controllers": ^80.0.0
+    "@metamask/assets-controllers": ^81.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 81915ff89d163c94ec7a50223aefe23beb3d662a76a750035f2b87a1ba7da87ccb111bfb854606d656a5e412283063fbaa80cb786126460d71b746d2407e408f
+  checksum: 37717d93250c9983716ce348ed72f3e38e072ac05f4532115ab7f1ab422b07c920bbafd3cf921aa6032af76a21a777cd27ae73eb4849d3b3be5c3e8abedf12e8
   languageName: node
   linkType: hard
 
@@ -34090,8 +34090,8 @@ __metadata:
     "@metamask/assets-controllers": ^81.0.1
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.3.0
-    "@metamask/bridge-controller": ^51.0.0
-    "@metamask/bridge-status-controller": ^50.0.0
+    "@metamask/bridge-controller": ^53.0.0
+    "@metamask/bridge-status-controller": ^52.0.0
     "@metamask/browser-passworder": ^5.0.0
     "@metamask/build-utils": ^1.0.0
     "@metamask/chain-agnostic-permission": ^1.1.0
