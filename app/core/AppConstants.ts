@@ -143,7 +143,7 @@ export default {
     TESTNET_ETH_SCAMS:
       'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/',
     WHAT_IS_SRP:
-      'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
+      'https://support.metamask.io/start/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/',
     PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
     PRIVACY_BEST_PRACTICES:
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
