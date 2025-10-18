@@ -53,6 +53,7 @@ import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransa
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import TransactionActionModal from '../../UI/TransactionActionModal';
 import TransactionElement from '../../UI/TransactionElement';
+import { TransactionActivityEmptyState } from '../../UI/TransactionActivityEmptyState';
 import RetryModal from '../../UI/Transactions/RetryModal';
 import { filterDuplicateOutgoingTransactions } from '../../UI/Transactions/utils';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
@@ -534,9 +535,7 @@ const UnifiedTransactionsView = ({
 
   const renderEmptyList = () => (
     <View style={styles.emptyList}>
-      <Text style={styles.emptyListText}>
-        {strings('wallet.no_transactions')}
-      </Text>
+      <TransactionActivityEmptyState />
     </View>
   );
 
