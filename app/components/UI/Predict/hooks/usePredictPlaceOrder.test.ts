@@ -17,9 +17,17 @@ jest.mock('./usePredictBalance');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, options?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
-      'predict.prediction_placed': 'Prediction placed',
-      'predict.cashed_out': 'Cashed out',
-      'predict.cashed_out_subtitle': `You claimed $${options?.amount || '0'}`,
+      'predict.order.placing_prediction': 'Placing a prediction',
+      'predict.order.prediction_placed': 'Prediction placed',
+      'predict.order.cashed_out': 'Cashed out',
+      'predict.order.cashed_out_subtitle': `${
+        options?.amount || '0'
+      } added to your balance`,
+      'predict.order.cashing_out': `Cashing out ${options?.amount || '0'}`,
+      'predict.order.cashing_out_subtitle': `Estimated ${
+        options?.time || 5
+      } seconds`,
+      'predict.order.order_failed': 'Order failed',
     };
     return translations[key] || key;
   },
@@ -147,7 +155,22 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          labelOptions: [{ label: 'Placing a prediction' }],
+          hasNoTimeout: false,
+        }),
+      );
+
+      // Second call - success toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.Check,
@@ -179,7 +202,27 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(sellOrderParams);
       });
 
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('Cashing out'),
+              isBold: true,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
+
+      // Second call - success toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.Check,
@@ -300,7 +343,20 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith({
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hasNoTimeout: false,
+        }),
+      );
+
+      // Second call - failure toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(2, {
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
         labelOptions: [{ label: 'Order failed' }],

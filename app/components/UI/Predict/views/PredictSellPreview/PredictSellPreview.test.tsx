@@ -485,12 +485,16 @@ describe('PredictSellPreview', () => {
 
       const cashOutButton = getByTestId('button-secondary');
 
-      // Even though navigation fails, placeOrder should still be called and no error should be thrown
+      // The dispatch now throws and is not caught, so expect the error
       expect(() => {
         fireEvent.press(cashOutButton);
-      }).not.toThrow();
+      }).toThrow('Navigation error');
 
+      // PlaceOrder should still be called before dispatch throws
       expect(mockPlaceOrder).toHaveBeenCalled();
+
+      // Dispatch should have been attempted
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
 
