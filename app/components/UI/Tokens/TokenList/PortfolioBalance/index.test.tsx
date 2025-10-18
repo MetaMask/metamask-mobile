@@ -207,4 +207,44 @@ describe('PortfolioBalance', () => {
 
     expect(PreferencesController.setPrivacyMode).toHaveBeenCalledWith(true);
   });
+
+  it('displays BalanceEmptyState when balance is zero', () => {
+    // Mock zero balance
+    const mockSelectedAccountMultichainBalanceZero = {
+      displayBalance: '$0.00',
+      totalFiatBalance: 0,
+      shouldShowAggregatedPercentage: false,
+      tokenFiatBalancesCrossChains: [],
+    };
+
+    const { useSelectedAccountMultichainBalances } = jest.requireMock(
+      '../../../../hooks/useMultichainBalances',
+    );
+    useSelectedAccountMultichainBalances.mockReturnValue({
+      selectedAccountMultichainBalance:
+        mockSelectedAccountMultichainBalanceZero,
+    });
+
+    const { getByTestId, queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should render BalanceEmptyState instead of balance text
+    expect(getByTestId('portfolio-balance-empty-state')).toBeDefined();
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
+  });
+
+  it('displays loader when balance is not available', () => {
+    // Mock null balance
+    const { useSelectedAccountMultichainBalances } = jest.requireMock(
+      '../../../../hooks/useMultichainBalances',
+    );
+    useSelectedAccountMultichainBalances.mockReturnValue({
+      selectedAccountMultichainBalance: null,
+    });
+
+    const { queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should not render balance text or empty state
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
+    expect(queryByTestId('portfolio-balance-empty-state')).toBeNull();
+  });
 });

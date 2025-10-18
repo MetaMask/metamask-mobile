@@ -16,6 +16,7 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
+import BalanceEmptyState from '../../../BalanceEmptyState';
 
 const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
@@ -38,10 +39,23 @@ const AccountGroupBalance = () => {
   const userCurrency = groupBalance?.userCurrency ?? '';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
+  // Check if balance is zero (empty state) - only check when we have balance data
+  const hasZeroBalance =
+    groupBalance && groupBalance.totalBalanceInUserCurrency === 0;
+
   return (
     <View style={styles.accountGroupBalance}>
       <View>
-        {groupBalance ? (
+        {!groupBalance ? (
+          <View style={styles.skeletonContainer}>
+            <Skeleton width={100} height={40} />
+            <Skeleton width={100} height={20} />
+          </View>
+        ) : hasZeroBalance ? (
+          <>
+            <BalanceEmptyState testID="account-group-balance-empty-state" />
+          </>
+        ) : (
           <TouchableOpacity
             onPress={() => togglePrivacy(!privacyMode)}
             testID="balance-container"
@@ -66,11 +80,6 @@ const AccountGroupBalance = () => {
               />
             )}
           </TouchableOpacity>
-        ) : (
-          <View style={styles.skeletonContainer}>
-            <Skeleton width={100} height={40} />
-            <Skeleton width={100} height={20} />
-          </View>
         )}
       </View>
     </View>

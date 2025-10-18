@@ -1789,7 +1789,6 @@
     "alphabetically": "Em ordem alfabética (A-Z)",
     "add_to_get_started": "Adicione criptomoedas para começar",
     "token_is_needed_to_continue": "É necessário {{tokenSymbol}} para continuar",
-    "fund_your_wallet_to_get_started": "Deposite fundos em sua carteira para começar na web3",
     "add_funds": "Adicionar fundos",
     "next": "Avançar",
     "buy_asset": "Comprar {{asset}}",
