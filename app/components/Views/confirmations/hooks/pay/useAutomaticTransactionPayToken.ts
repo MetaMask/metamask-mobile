@@ -24,8 +24,10 @@ export interface BalanceOverride {
 
 export function useAutomaticTransactionPayToken({
   countOnly = false,
+  disable = false,
 }: {
   countOnly?: boolean;
+  disable?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
@@ -54,7 +56,7 @@ export function useAutomaticTransactionPayToken({
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
 
-  if (!isUpdated.current || countOnly) {
+  if (!disable && (!isUpdated.current || countOnly)) {
     const targetToken =
       requiredTokens.find((token) => token.address !== nativeTokenAddress) ??
       requiredTokens[0];

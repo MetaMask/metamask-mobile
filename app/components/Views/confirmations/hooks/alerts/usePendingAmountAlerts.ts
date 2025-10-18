@@ -7,6 +7,7 @@ import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredToken
 import { getNativeTokenAddress } from '../../utils/asset';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
+import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 
 export function usePendingAmountAlerts({
   pendingTokenAmount,
@@ -19,6 +20,10 @@ export function usePendingAmountAlerts({
 
   const perpsDepositMinimumAlert = usePerpsDepositMinimumAlert({
     pendingTokenAmount: pendingTokenAmount ?? '0',
+  });
+
+  const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert({
+    pendingAmount: pendingTokenAmount,
   });
 
   const tokenAddress =
@@ -38,11 +43,13 @@ export function usePendingAmountAlerts({
       ...perpsHardwareAccountAlert,
       ...perpsDepositMinimumAlert,
       ...insufficientTokenFundsAlert,
+      ...insufficientPredictBalanceAlert,
     ],
     [
       insufficientTokenFundsAlert,
       perpsDepositMinimumAlert,
       perpsHardwareAccountAlert,
+      insufficientPredictBalanceAlert,
     ],
   );
 }

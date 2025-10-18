@@ -1,7 +1,7 @@
 import React from 'react';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { CustomAmountInfo } from './custom-amount-info';
+import { CustomAmountInfo, CustomAmountInfoProps } from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
@@ -33,8 +33,8 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-function render() {
-  return renderWithProvider(<CustomAmountInfo />, {
+function render(props: CustomAmountInfoProps = {}) {
+  return renderWithProvider(<CustomAmountInfo {...props} />, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -118,6 +118,11 @@ describe('CustomAmountInfo', () => {
   it('renders payment token', () => {
     const { getByText } = render();
     expect(getByText('TST')).toBeDefined();
+  });
+
+  it('does not render payment token if disablePay', () => {
+    const { queryByText } = render({ disablePay: true });
+    expect(queryByText('TST')).toBeNull();
   });
 
   it('renders alert banner', async () => {

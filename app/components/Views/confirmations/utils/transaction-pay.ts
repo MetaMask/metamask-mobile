@@ -23,16 +23,18 @@ export function getRequiredBalance(
   return undefined;
 }
 
-export function getTokenTransferData(transactionMeta: TransactionMeta):
+export function getTokenTransferData(
+  transactionMeta: TransactionMeta | undefined,
+):
   | {
       data: Hex;
       to: Hex;
       index?: number;
     }
   | undefined {
-  const { nestedTransactions, txParams } = transactionMeta;
-  const { data: singleData } = txParams;
-  const singleTo = txParams.to as Hex | undefined;
+  const { nestedTransactions, txParams } = transactionMeta ?? {};
+  const { data: singleData } = txParams ?? {};
+  const singleTo = txParams?.to as Hex | undefined;
 
   if (singleData?.startsWith(FOUR_BYTE_TOKEN_TRANSFER) && singleTo) {
     return { data: singleData as Hex, to: singleTo, index: undefined };
