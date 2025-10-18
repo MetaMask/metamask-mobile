@@ -6,7 +6,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
-import { Alert, Image, View } from 'react-native';
+import { Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
@@ -75,14 +75,14 @@ const PredictSellPreview = () => {
       <View style={styles.container}>
         <View style={styles.cashOutContainer}>
           <Text style={styles.currentValue}>
-            {formatPrice(currentValue, { minimumDecimals: 2 })}
+            {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
           <Text
             style={styles.percentPnl}
             color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
           >
             {`${signal}${formatPrice(Math.abs(cashPnl), {
-              minimumDecimals: 2,
+              maximumDecimals: 2,
             })} (${formatPercentage(percentPnl)})`}
           </Text>
         </View>
@@ -104,7 +104,7 @@ const PredictSellPreview = () => {
                 ellipsizeMode="tail"
                 style={styles.detailsResolves}
               >
-                {formatPrice(initialValue, { minimumDecimals: 2 })} on{' '}
+                {formatPrice(initialValue, { maximumDecimals: 2 })} on{' '}
                 {outcomeSideText}
               </Text>
             </View>

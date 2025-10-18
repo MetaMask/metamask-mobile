@@ -118,7 +118,7 @@ const mockFormatPrice = jest.fn();
 const mockFormatPercentage = jest.fn();
 
 jest.mock('../../utils/format', () => ({
-  formatPrice: (value: number, options?: { minimumDecimals?: number }) =>
+  formatPrice: (value: number, options?: { maximumDecimals?: number }) =>
     mockFormatPrice(value, options),
   formatPercentage: (value: number) => mockFormatPercentage(value),
 }));
@@ -314,7 +314,7 @@ describe('PredictSellPreview', () => {
     });
 
     mockFormatPrice.mockImplementation((value, options) => {
-      if (options?.minimumDecimals === 2) {
+      if (options?.maximumDecimals === 2) {
         return `$${value.toFixed(2)}`;
       }
       return `$${value}`;
@@ -346,7 +346,7 @@ describe('PredictSellPreview', () => {
       });
 
       // Component uses preview.minAmountReceived for current value
-      expect(mockFormatPrice).toHaveBeenCalledWith(60, { minimumDecimals: 2 });
+      expect(mockFormatPrice).toHaveBeenCalledWith(60, { maximumDecimals: 2 });
       // PnL is calculated from position data, not preview
       expect(mockFormatPercentage).toHaveBeenCalledWith(20);
     });

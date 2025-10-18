@@ -111,7 +111,9 @@ export function usePredictPlaceOrder(
             labelOptions: [
               {
                 label: strings('predict.order.cashing_out', {
-                  amount: formatPrice(minAmountReceived),
+                  amount: formatPrice(minAmountReceived, {
+                    maximumDecimals: 2,
+                  }),
                 }),
                 isBold: true,
               },
@@ -150,7 +152,9 @@ export function usePredictPlaceOrder(
         if (side === Side.BUY) {
           showOrderPlacedToast();
         } else {
-          showCashedOutToast(formatPrice(minAmountReceived));
+          showCashedOutToast(
+            formatPrice(minAmountReceived, { maximumDecimals: 2 }),
+          );
         }
 
         await loadBalance({ isRefresh: true });
