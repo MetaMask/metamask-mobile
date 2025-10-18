@@ -15,10 +15,15 @@ import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { baseStyles, colors as importedColors } from '../../../styles/common';
+import {
+  baseStyles,
+  colors as importedColors,
+  fontStyles,
+} from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -35,6 +40,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import LottieView from 'lottie-react-native';
 import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
@@ -52,6 +58,7 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import fox from '../../../animations/Searching_Fox.json';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
@@ -59,11 +66,6 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
-import FastOnboarding from './FastOnboarding';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import FoxAnimation from './FoxAnimation';
-import OnboardingAnimation from './OnboardingAnimation';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -74,7 +76,7 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 16,
+      paddingVertical: Device.isMediumDevice() ? 16 : 30,
     },
     loaderWrapper: {
       flex: 1,
@@ -82,16 +84,6 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       rowGap: 32,
       marginBottom: 160,
-    },
-    loaderOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 1000,
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     image: {
       alignSelf: 'center',
@@ -106,11 +98,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       marginHorizontal: 'auto',
       padding: Device.isMediumDevice() ? 30 : 40,
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
-      marginTop: -(Device.isMediumDevice() ? 90 : 120),
+      marginTop: 16,
     },
     foxImage: {
       width: Device.isMediumDevice() ? 110 : 145,
@@ -149,16 +137,23 @@ const createStyles = (colors) =>
       marginBottom: 40,
       marginTop: -40,
     },
+    login: {
+      fontSize: 18,
+      color: colors.primary.default,
+      ...fontStyles.normal,
+    },
+    buttonDescription: {
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    importWrapper: {
+      marginVertical: 16,
+    },
     createWrapper: {
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
-      position: 'absolute',
-      top: '50%',
-      left: Device.isMediumDevice() ? 26 : 36,
-      right: Device.isMediumDevice() ? 26 : 36,
-      marginTop: 180,
-      alignItems: 'stretch',
+      width: '100%',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -178,7 +173,6 @@ const createStyles = (colors) =>
     loadingText: {
       marginTop: 30,
       textAlign: 'center',
-      color: colors.text.default,
     },
     modalTypeView: {
       position: 'absolute',
@@ -193,11 +187,37 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border.muted,
+    },
+    bottomSheetContainer: {
+      padding: 16,
+      flexDirection: 'column',
+      rowGap: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    socialBtn: {
+      borderColor: colors.border.muted,
+      borderWidth: 1,
+      color: colors.text.default,
+    },
     blackButton: {
-      backgroundColor: importedColors.white,
+      backgroundColor: importedColors.btnBlack,
+    },
+    blackButtonText: {
+      color: importedColors.btnBlackText,
     },
     inverseBlackButton: {
-      backgroundColor: importedColors.applePayBlack,
+      backgroundColor: importedColors.btnBlackInverse,
     },
   });
 
@@ -273,8 +293,6 @@ class Onboarding extends PureComponent {
     existingWallet: false,
     errorSheetVisible: false,
     errorToThrow: null,
-    startOnboardingAnimation: false,
-    startFoxAnimation: false,
   };
 
   seedwords = null;
@@ -303,10 +321,16 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { navigation } = this.props;
-    navigation.setOptions({
-      headerShown: false,
-    });
+    const { route, navigation } = this.props;
+    const colors = this.context.colors || mockTheme.colors;
+    navigation.setOptions(
+      getTransparentOnboardingNavbarOptions(
+        colors,
+        importedColors.gettingStartedPageBackgroundColor,
+        true,
+        importedColors.btnBlack,
+      ),
+    );
   };
 
   componentDidMount() {
@@ -325,9 +349,12 @@ class Onboarding extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
-        this.showNotification();
+        this.props.setLoading(strings('onboarding.delete_current'));
+        setTimeout(() => {
+          this.showNotification();
+          this.props.unsetLoading();
+        }, 2000);
       }
-      this.setState({ startOnboardingAnimation: true });
     });
   }
 
@@ -714,19 +741,26 @@ class Onboarding extends PureComponent {
     }
   };
 
-  setStartFoxAnimation = () => {
-    this.setState({ startFoxAnimation: 'Start' });
-  };
-
   renderLoader = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return (
       <View style={styles.loaderWrapper}>
+        <View style={styles.largeFoxWrapper}>
+          <LottieView
+            style={styles.image}
+            autoPlay
+            loop
+            source={fox}
+            resizeMode="contain"
+          />
+        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
+          <Text style={styles.loadingText} color={importedColors.btnBlack}>
+            {this.props.loadingMsg}
+          </Text>
         </View>
       </View>
     );
@@ -738,10 +772,27 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <OnboardingAnimation
-          startOnboardingAnimation={this.state.startOnboardingAnimation}
-          setStartFoxAnimation={this.setStartFoxAnimation}
-        >
+        <View style={styles.titleWrapper}>
+          <View style={styles.largeFoxWrapper}>
+            <LottieView
+              style={styles.image}
+              autoPlay
+              loop
+              source={fox}
+              resizeMode="contain"
+            />
+          </View>
+
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.title}
+            testID={OnboardingSelectorIDs.SCREEN_TITLE}
+          >
+            {strings('onboarding.title')}
+          </Text>
+        </View>
+
+        <View style={styles.createWrapper}>
           <Button
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
@@ -749,7 +800,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.applePayBlack}
+                color={importedColors.btnBlackText}
               >
                 {strings('onboarding.start_exploring_now')}
               </Text>
@@ -767,7 +818,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.white}
+                color={importedColors.btnBlack}
               >
                 {SEEDLESS_ONBOARDING_ENABLED
                   ? strings('onboarding.import_using_srp_social_login')
@@ -776,7 +827,7 @@ class Onboarding extends PureComponent {
             }
             style={styles.inverseBlackButton}
           />
-        </OnboardingAnimation>
+        </View>
       </View>
     );
   }
@@ -809,10 +860,9 @@ class Onboarding extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { existingUser, errorToThrow, startFoxAnimation } = this.state;
+    const { existingUser, errorToThrow } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const hasFooter = existingUser && !loading;
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
@@ -831,14 +881,11 @@ class Onboarding extends PureComponent {
         }
       >
         <ThrowErrorIfNeeded />
-        <SafeAreaView
+        <View
           style={[
             baseStyles.flexGrow,
             {
-              backgroundColor:
-                this.context.themeAppearance === 'dark'
-                  ? importedColors.gettingStartedTextColor
-                  : importedColors.gettingStartedPageBackgroundColorLightMode,
+              backgroundColor: importedColors.gettingStartedPageBackgroundColor,
             },
           ]}
           testID={OnboardingSelectorIDs.CONTAINER_ID}
@@ -848,23 +895,7 @@ class Onboarding extends PureComponent {
             contentContainerStyle={styles.scroll}
           >
             <View style={styles.wrapper}>
-              {this.renderContent()}
-
-              {loading && (
-                <View
-                  style={[
-                    styles.loaderOverlay,
-                    {
-                      backgroundColor:
-                        this.context.themeAppearance === 'dark'
-                          ? importedColors.gettingStartedTextColor
-                          : importedColors.gettingStartedPageBackgroundColorLightMode,
-                    },
-                  ]}
-                >
-                  {this.renderLoader()}
-                </View>
-              )}
+              {loading ? this.renderLoader() : this.renderContent()}
             </View>
 
             {existingUser && !loading && (
@@ -882,17 +913,8 @@ class Onboarding extends PureComponent {
 
           <FadeOutOverlay />
 
-          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
-
           <View>{this.handleSimpleNotification()}</View>
-
-          <FastOnboarding
-            onPressContinueWithGoogle={this.onPressContinueWithGoogle}
-            onPressContinueWithApple={this.onPressContinueWithApple}
-            onPressImport={this.onPressImport}
-            onPressCreate={this.onPressCreate}
-          />
-        </SafeAreaView>
+        </View>
       </ErrorBoundary>
     );
   }

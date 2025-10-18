@@ -11,10 +11,11 @@ export interface SignRewardsMessageResult {
 }
 
 export async function signSolanaRewardsMessage(
-  accountId: string,
+  address: string,
   message: string,
 ): Promise<SignRewardsMessageResult> {
   try {
+    // Method 1: Using handleSnapRequest directly
     const result = await handleSnapRequest(Engine.controllerMessenger, {
       origin: 'metamask',
       snapId: SOLANA_WALLET_SNAP_ID,
@@ -24,7 +25,9 @@ export async function signSolanaRewardsMessage(
         id: Date.now(),
         method: 'signRewardsMessage',
         params: {
-          accountId,
+          account: {
+            address,
+          },
           message,
         },
       },

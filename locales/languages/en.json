@@ -206,7 +206,9 @@
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
+    "import_description_social_login_ios": "You can log in to your wallet anytime with your {{authConnection}} account and PIN.",
     "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
+    "import_description_social_login_2_pin" : "If you forget your PIN, you won’t be able to access your wallet.",
     "done": "Done",
     "create_hint": "Create a password hint",
     "hint_title": "Password hint",
@@ -329,11 +331,13 @@
     "title": "Welcome Back!",
     "password": "Password",
     "password_placeholder": "Enter MetaMask password",
+    "pin_placeholder": "Enter MetaMask PIN",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
+    "forgot_pin": "Forgot PIN?",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
-    "invalid_password": "Password is incorrect, try again.",
+    "invalid_password": "Password/PIN is incorrect, try again.",
     "type_delete": "Type ‘%{erase}’ to confirm",
     "erase_my": "Yes, reset wallet",
     "cancel": "Cancel",
@@ -392,14 +396,17 @@
   },
   "choose_password": {
     "title": "MetaMask password",
+    "title_ios": "MetaMask PIN",
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
-    "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
-    "description_social_login_update_ios" : "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can't reset it.",
+    "description_social_login_update" : "If you lose this password, you'll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create password",
+    "pin_ios": "Create PIN",
     "confirm_password": "Confirm password",
+    "confirm_pin_ios": "Confirm PIN",
     "create_button": "Create password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
     "password_length_error": "The password needs to be at least 8 characters long",
@@ -421,8 +428,10 @@
     "confirm": "Confirm Secret Recovery Phrase",
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
     "create_password_cta": "Create password",
+    "create_pin_cta_ios": "Create PIN",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
+    "pin_error": "PINs do not match.",
     "marketing_opt_in_description" : "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
     "loose_password_description" : "If I lose this password, MetaMask can’t reset it."
   },
@@ -594,9 +603,7 @@
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
-      "title": "Deposit",
-      "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
-      "limitError": "Failed to check your deposit limits. Please try again later."
+      "title": "Deposit"
     },
     "token_modal": {
       "select_a_token": "Select a Token",
@@ -1579,10 +1586,10 @@
     "market_list": "Market List",
     "market_details": "Market Details",
     "tab": {
-      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
-      "explore": "Browse markets",
-      "new_prediction": "New prediction",
-      "resolved_markets": "Resolved markets"
+      "no_predictions": "No predictions yet",
+      "no_predictions_description": "Open a prediction to get started.",
+      "explore": "Explore markets",
+      "new_prediction": "New prediction"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
@@ -1612,74 +1619,11 @@
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
-    "available_balance": "Available balance",
+    "won_markets_text_singular": "Won {{count}} market",
+    "won_markets_text_plural": "Won {{count}} markets",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
-    "unavailable": {
-      "title": "Unavailable in your region",
-      "description": "Predictions aren't available in your region due to legal restrictions.",
-      "link": "See Polymarket terms",
-      "button": "Got it"
-    },
-    "deposit": {
-      "in_progress": "Deposit in progress",
-      "adding_funds": "Adding funds",
-      "adding_your_funds": "Adding your funds",
-      "add_funds": "Add funds",
-      "withdraw": "Withdraw",
-      "estimated_processing_time": "Est. {{time}} seconds",
-      "account_ready": "Your account is ready",
-      "account_ready_description": "{{amount}} added to your balance",
-      "error_title": "Something went wrong",
-      "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
-    },
-    "add_funds_sheet": {
-      "title": "Add funds",
-      "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
-    },
-    "transactions": {
-      "title": "Predictions",
-      "no_transactions": "No recent activity",
-      "buy_title": "Predicted",
-      "sell_title": "Cashed out",
-      "claim_title": "Claimed winnings",
-      "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
-      "sell_detail": "Sold at {{priceCents}} per share",
-      "claim_detail": "Claimed winnings",
-      "not_available": "N/A",
-      "date": "Date",
-      "market": "Market",
-      "outcome": "Outcome",
-      "predicted_amount": "Predicted amount",
-      "shares_bought": "Shares bought",
-      "shares_sold": "Shares sold",
-      "price_per_share": "Price per share",
-      "price_impact": "Price impact",
-      "net_pnl": "Net P&L",
-      "total_net_pnl": "Total Net P&L",
-      "market_net_pnl": "Market Net P&L",
-      "activity_details": "Activity details"
-    },
-    "claim": {
-      "toasts": {
-        "pending": {
-          "title": "Claiming {{amount}}",
-          "description": "Est. {{time}} seconds"
-        },
-        "confirmed": {
-          "title": "Claimed",
-          "description": "{{amount}} added to your balance"
-        },
-        "error": {
-          "title": "Something went wrong",
-          "description": "Failed to proceed with claim",
-          "try_again": "Try again"
-        }
-      }
-    }
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "Receive"
@@ -2863,13 +2807,12 @@
   },
   "gas_fee_token_modal": {
     "title": "Select a token",
+    "title_pay_eth": "Pay with ETH",
     "native_toggle_wallet": "Pay for network fee using the balance in your wallet.",
     "list_balance": "Bal:",
     "insufficient_balance": "Insufficient funds",
-    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction."
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction.",
+    "title_pay_with_other_tokens": "Pay with other tokens"
   },
   "transaction": {
     "transaction_id": "Transaction ID",
@@ -3152,8 +3095,6 @@
     "tx_review_lending_deposit": "Lending Deposit",
     "tx_review_lending_withdraw": "Lending Withdrawal",
     "tx_review_perps_deposit": "Funded Perps account",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -4000,9 +3941,7 @@
     "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "select_provider": "Select your preferred provider",
-    "switch_network": "Please switch to mainnet or sepolia",
-    "card_title": "Always show MetaMask Card button",
-    "card_desc": "MetaMask Card is only available to residents of select countries"
+    "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -5360,8 +5299,7 @@
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
       "approve": "Approve request",
-      "perps_deposit": "Add funds",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -5379,9 +5317,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -5470,12 +5405,6 @@
       "save": "Save",
       "title": "Edit approval limit"
     },
-    "predict_claim": {
-      "button_label": "Claim winnings",
-      "summary": "You won",
-      "footer_bottom": "Funds will be added to your available balance",
-      "footer_top": "Winnings from {{count}} markets"
-    },
     "unlimited": "Unlimited",
     "all": "All",
     "none": "None",
@@ -5544,9 +5473,6 @@
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
-    "recipient": "Recipient",
-    "select_recipient": "Select recipient",
-    "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "insufficient_funds": "Insufficient funds",
     "insufficient_gas": "Insufficient gas",
@@ -5848,12 +5774,6 @@
       "update_to_store_link": "Update to the latest version of MetaMask",
       "well_take_you_to_right_place": " and we'll take you to the right place."
     },
-    "unsupported": {
-      "title": "This page is not supported in current version",
-      "description": "Update to the latest version to use this feature",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
-    },
     "go_to_home_button": "Go to the home page",
     "back_button": "Back",
     "continue_button": "Continue"
@@ -5870,96 +5790,7 @@
     "card_onboarding": {
       "title": "Welcome to Card",
       "description": "To use card features, you’ll need to verify your account with our partner.",
-      "verify_account_button": "Verify account",
-      "sign_up": {
-        "title": "Sign-up",
-        "description": "Register your details with Crypto Life, the provider of MetaMask Card. You'll use this account to access and manage your card.",
-        "email_label": "Email",
-        "password_label": "Password",
-        "confirm_password_label": "Confirm password",
-        "country_label": "Country of Residence",
-        "email_placeholder": "Enter your email address",
-        "password_placeholder": "Enter your password",
-        "country_placeholder": "Select your country",
-        "password_mismatch": "Passwords do not match",
-        "invalid_email": "Invalid email address"
-      },
-      "confirm_email": {
-        "title": "Confirm your email",
-        "description": "We've sent a confirmation code to: {{email}}",
-        "confirm_code_label": "Confirmation code",
-        "confirm_code_placeholder": "Enter the confirmation code"
-      },
-      "set_phone_number": {
-        "title": "Phone number",
-        "description": "Enter your phone number",
-        "phone_number_label": "Phone number",
-        "phone_number_placeholder": "Enter your phone number",
-        "country_area_code_label": "Country area code",
-        "invalid_phone_number": "Invalid phone number",
-        "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
-      },
-      "confirm_phone_number":{
-        "title": "Confirm your phone number",
-        "description": "We've sent a confirmation code to: {{phoneNumber}}",
-        "confirm_code_label": "Confirmation code"
-      },
-      "verify_identity": {
-        "title": "Verifying your identity to get your card",
-        "description": "To keep your account secure and comply with regulations, we need to verify your identity.\n\nYou'll need a government-issued ID and a proof of address (like a utility bill or bank statement).\n\nVerification usually takes 5-30 minutes, and we'll notify you as soon as it's complete.",
-        "verify_button": "Verify now with Veriff"
-      },
-      "validating_kyc": {
-        "title": "Validating your KYC..."
-      },
-      "kyc_failed": {
-        "title": "Rejected",
-        "description": "Your KYC was rejected. Please try again."
-      },
-      "personal_details": {
-        "title": "Personal details",
-        "description": "Enter your personal details",
-        "first_name_label": "First name",
-        "last_name_label": "Last name",
-        "date_of_birth_label": "Date of birth",
-        "nationality_label": "Country of Nationality",
-        "ssn_label": "Social Security Number",
-        "first_name_placeholder": "Enter your first name",
-        "last_name_placeholder": "Enter your last name",
-        "date_of_birth_placeholder": "Enter your date of birth",
-        "nationality_placeholder": "Select your nationality",
-        "ssn_placeholder": "Enter your SSN",
-        "invalid_ssn": "Invalid SSN",
-        "invalid_date_of_birth":"Invalid date of birth",
-        "invalid_date_of_birth_underage": "You must be at least 18 years old"
-      },
-      "physical_address": {
-        "title": "Physical address",
-        "description": "Please provide your physical address",
-        "address_line_1_label": "Address line 1",
-        "address_line_2_label": "Address line 2",
-        "city_label": "City",
-        "state_label": "State",
-        "zip_code_label": "ZIP code",
-        "address_line_1_placeholder": "Enter your address line 1",
-        "address_line_2_placeholder": "Enter your address line 2",
-        "city_placeholder": "Enter your city",
-        "state_placeholder": "Enter your state",
-        "zip_code_placeholder": "Enter your ZIP code",
-        "same_mailing_address_label": "Physical address is the same as mailing address",
-        "electronic_consent":"I agree to the E-Sign Act Consent and Disclosure and to receive all communictions electronically."
-      },
-      "mailing_address": {
-        "title": "Mailing address",
-        "description": "Please provide your mailing address"
-      },
-      "complete": {
-        "title": "Approved!",
-        "description": "Your KYC was approved. You can now use your Card."
-      },
-       "continue_button": "Next",
-       "confirm_button": "Confirm",
-       "retry_button":"Try again"
+      "verify_account_button": "Verify account"
     },
     "card_home": {
       "error_title": "Can’t fetch data",
@@ -5967,36 +5798,9 @@
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
-      "change_asset": "Change asset",
       "manage_card_options": {
-        "manage_spending_limit": "Manage spending limit",
-        "manage_spending_limit_description_restricted": "Restricted spending limit is on",
-        "manage_spending_limit_description_full": "Full spending access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "Detailed transactions, freeze card, and more"
-      }
-    },
-    "card_authentication": {
-      "title": "Log in to your Card account",
-      "location_button_text": "International",
-      "location_button_text_us": "US account",
-      "email_label": "Email",
-      "password_label": "Password",
-      "email_placeholder": "Enter your email address",
-      "password_placeholder": "Enter your password",
-      "login_button": "Log in",
-      "errors": {
-        "invalid_credentials": "Invalid login details",
-        "unknown_error": "Unknown error, please try again later",
-        "email_required": "Email is required",
-        "password_required": "Password is required",
-        "email_invalid": "Invalid email address",
-        "password_invalid": "Invalid password",
-        "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
-        "network_error": "Network error. Please check your connection and try again.",
-        "timeout_error": "Request timed out. Please check your connection and try again.",
-        "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later."
+        "advanced_card_management_description": "See transactions, freeze card, and more"
       }
     }
   },
@@ -6123,7 +5927,6 @@
       "type": {
         "swap": "Swap",
         "perps": "Perps",
-        "card_spend": "Card spend",
         "referral": "Referral",
         "referral_action": "Referral action",
         "sign_up_bonus": "Sign up bonus",
@@ -6134,15 +5937,7 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      },
-      "date": "Date",
-      "account": "Account",
-      "bonus": "Bonus",
-      "details": "Details",
-      "points": "Points",
-      "points_base": "Base",
-      "points_boost": "Boost",
-      "points_total": "Total"
+      }
     },
 
     "onboarding": {
@@ -6275,12 +6070,7 @@
       },
       "referrals": {
         "title": "Refer friends",
-        "description": "10 points per 50 from friends",
-        "sheet": {
-          "title": "Refer a friend",
-          "points": "20 points per 100",
-          "cta_label": "Refer a friend"
-        }
+        "description": "10 points per 50 from friends"
       },
       "loyalty": {
         "title": "Loyalty bonus",
@@ -6290,16 +6080,6 @@
           "points": "250 points per $1250",
           "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
           "cta_label": "Add accounts"
-        }
-      },
-      "card": {
-        "title": "MetaMask Card",
-        "description": "1 point per $1 spent",
-        "sheet": {
-          "title": "MetaMask Card",
-          "points": "1 point per $1 spent",
-          "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
-          "cta_label": "Manage Card"
         }
       }
     },
@@ -6315,15 +6095,6 @@
         "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
-
-    "link_account_group": {
-      "link_account": "Add account",
-      "tracked": "Tracked",
-      "untracked": "Untracked",
-      "link_account_success": "{{accountName}} added successfully",
-      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
-    },
-
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
@@ -6352,31 +6123,25 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded Perps account",
-      "predict_deposit": "Funded Predict account",
+      "perps_deposit": "Funded perps account",
       "default": "Transaction details"
     },
     "label": {
       "bridge_fee": "Bridge fee",
       "network_fee": "Network fee",
       "paid_with": "Paid with",
-      "retry_button": "Try again",
       "total": "Total"
     },
     "summary_title": {
+      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
-      "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
-      "bridge_send_loading": "Bridge Send",
-      "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
-      "bridge_receive_loading": "Bridge Receive",
+      "bridge_loading": "Bridge",
       "default": "Transaction",
       "perps_deposit": "Add funds",
-      "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
-    },
-    "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
+    }
   },
   "sdk_connect_v2": {
     "show_loading": {
@@ -6386,10 +6151,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

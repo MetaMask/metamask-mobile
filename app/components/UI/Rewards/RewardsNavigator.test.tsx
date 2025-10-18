@@ -127,6 +127,14 @@ jest.mock('../../../../locales/i18n', () => ({
   }),
 }));
 
+// Mock selectors
+jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccount: () => ({
+    id: 'test-account-id',
+    address: '0x123',
+  }),
+}));
+
 jest.mock('../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));

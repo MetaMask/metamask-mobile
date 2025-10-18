@@ -65,8 +65,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock hooks
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: jest.fn(() => ({
-    availableBalance: '$1000.00',
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '$1000.00',
+    },
+    isInitialLoading: false,
   })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {
@@ -258,7 +261,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
-            amount: '$1,000',
+            amount: '$1,000.00',
           }),
         ),
       ).toBeOnTheScreen();

@@ -8,10 +8,10 @@ import {
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
-import { AccountGroupId } from '@metamask/account-api';
+import { CaipAccountId } from '@metamask/utils';
 
 export interface AccountOptInBannerInfoStatus {
-  accountGroupId: AccountGroupId;
+  caipAccountId: CaipAccountId;
   hide: boolean;
 }
 
@@ -293,10 +293,10 @@ const rewardsSlice = createSlice({
 
     setHideCurrentAccountNotOptedInBanner: (
       state,
-      action: PayloadAction<{ accountGroupId: AccountGroupId; hide: boolean }>,
+      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
     ) => {
       const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
-        (item) => item.accountGroupId === action.payload.accountGroupId,
+        (item) => item.caipAccountId === action.payload.accountId,
       );
 
       if (existingIndex !== -1) {
@@ -306,7 +306,7 @@ const rewardsSlice = createSlice({
       } else {
         // Add new entry
         state.hideCurrentAccountNotOptedInBanner.push({
-          accountGroupId: action.payload.accountGroupId,
+          caipAccountId: action.payload.accountId,
           hide: action.payload.hide,
         });
       }

@@ -1,93 +1,155 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { useCallback, useContext } from 'react';
-import { useSelector } from 'react-redux';
-import { createSelector } from 'reselect';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../component-library/components/Toast';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import Routes from '../../../../constants/navigation/Routes';
-import { RootState } from '../../../../reducers';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PredictNavigationParamList } from '../types/navigation';
-import { usePredictEligibility } from './usePredictEligibility';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ClaimParams } from '../types';
 import { usePredictTrading } from './usePredictTrading';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { RootState } from '../../../../reducers';
+import { createSelector } from 'reselect';
+import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 
-interface UsePredictClaimParams {
-  providerId?: string;
+interface UsePredictClaimOptions {
+  onComplete?: () => void;
+  onError?: (error: Error) => void;
 }
 
-export const usePredictClaim = ({
-  providerId = POLYMARKET_PROVIDER_ID,
-}: UsePredictClaimParams = {}) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToConfirmation } = useConfirmNavigation();
+export const usePredictClaim = (options: UsePredictClaimOptions = {}) => {
+  const { onComplete, onError } = options;
+  const [claiming, setClaiming] = useState<boolean>(false);
   const { claim: claimWinnings } = usePredictTrading();
-  const { isEligible } = usePredictEligibility({
-    providerId,
-  });
-  const theme = useAppThemeFromContext();
-  const { toastRef } = useContext(ToastContext);
 
-  const selectClaimTransaction = createSelector(
+  const selectClaimTransactions = createSelector(
     (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.claimTransaction,
+    (predictState) => predictState.claimTransactions,
   );
-  const claimTransaction = useSelector(selectClaimTransaction);
+  const claimTransactions = useSelector(selectClaimTransactions);
 
-  const claim = useCallback(async () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
+  const completed = useMemo(() => {
+    if (!claimTransactions) {
+      return false;
+    }
+
+    const transactions = Object.values(claimTransactions);
+
+    if (transactions.length === 0) {
+      return false;
+    }
+    return transactions.every((txArray) => {
+      if (!txArray || txArray.length === 0) {
+        return false;
+      }
+      return txArray.every((tx) => tx.status === 'confirmed');
+    });
+  }, [claimTransactions]);
+
+  const pending = useMemo(() => {
+    if (!claimTransactions) {
+      return false;
+    }
+    const transactions = Object.values(claimTransactions);
+    return transactions.some((txArray) =>
+      txArray?.some((tx) => tx.status === 'pending'),
+    );
+  }, [claimTransactions]);
+
+  const loading = useMemo(() => claiming || pending, [claiming, pending]);
+
+  const error = useMemo(() => {
+    if (!claimTransactions) {
+      return false;
+    }
+    const transactions = Object.values(claimTransactions);
+    return transactions.some((txArray) => {
+      if (!txArray) {
+        return false;
+      }
+      return txArray.some((tx) => tx.status === 'error');
+    });
+  }, [claimTransactions]);
+
+  const cancelled = useMemo(() => {
+    if (!claimTransactions) {
+      return false;
+    }
+    const transactions = Object.values(claimTransactions);
+    return transactions.some((txArray) => {
+      if (!txArray) {
+        return false;
+      }
+      return txArray.some((tx) => tx.status === 'cancelled');
+    });
+  }, [claimTransactions]);
+
+  // Get all positionIds from completed claim transactions
+  const completedClaimPositionIds = useMemo(() => {
+    if (!claimTransactions) {
+      return new Set<string>();
+    }
+
+    const positionIds = new Set<string>();
+    Object.values(claimTransactions).forEach((txArray) => {
+      if (txArray) {
+        txArray.forEach((tx) => {
+          if (tx.status === 'confirmed') {
+            positionIds.add(tx.positionId);
+          }
+        });
+      }
+    });
+    return positionIds;
+  }, [claimTransactions]);
+
+  useEffect(() => {
+    if (completed && claiming) {
+      setClaiming(false);
+      onComplete?.();
+    }
+  }, [completed, claiming, onComplete]);
+
+  useEffect(() => {
+    if (!claiming) {
       return;
     }
-    try {
-      navigateToConfirmation({
-        headerShown: false,
-        stack: Routes.PREDICT.ROOT,
-      });
-      await claimWinnings({ providerId });
-    } catch (err) {
-      console.error('Failed to proceed with claim:', err);
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('predict.claim.toasts.error.title'), isBold: true },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.claim.toasts.error.description'),
-            isBold: false,
-          },
-        ],
-        iconName: IconName.Error,
-        iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.accent04.normal,
-        hasNoTimeout: false,
-        linkButtonOptions: {
-          label: strings('predict.claim.toasts.error.try_again'),
-          onPress: () => {
-            claim();
-          },
-        },
-      });
+
+    if (error) {
+      setClaiming(false);
+      Engine.context.PredictController.clearClaimTransactions();
+      onError?.(new Error('Error claiming winnings'));
+      return;
     }
-  }, [
-    claimWinnings,
-    isEligible,
-    navigateToConfirmation,
-    navigation,
-    providerId,
-    theme.colors.accent04.normal,
-    theme.colors.error.default,
-    toastRef,
-  ]);
+
+    if (cancelled) {
+      setClaiming(false);
+      Engine.context.PredictController.clearClaimTransactions();
+      onError?.(new Error('Claim cancelled'));
+    }
+  }, [error, claiming, onError, cancelled]);
+
+  const claim = useCallback(
+    async (claimParams: ClaimParams) => {
+      setClaiming(true);
+      try {
+        const result = await claimWinnings(claimParams);
+        if (!result.success) {
+          throw new Error(result.error as string);
+        }
+        return result;
+      } catch (claimError) {
+        onError?.(claimError as Error);
+        setClaiming(false);
+        return {
+          success: false,
+          error: claimError as Error,
+        };
+      }
+    },
+    [claimWinnings, onError],
+  );
 
   return {
     claim,
-    status: claimTransaction?.status,
+    loading,
+    completed,
+    error,
+    cancelled,
+    completedClaimPositionIds,
   };
 };

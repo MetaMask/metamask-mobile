@@ -221,12 +221,6 @@
     "remind_later_description2": "Vous pouvez sauvegarder vos portefeuilles ou voir votre phrase secrète de récupération dans",
     "setting_security_privacy": "Paramètres > Sécurité et confidentialité"
   },
-  "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
-  },
   "onboarding_carousel": {
     "title1": "Bienvenue sur MetaMask",
     "title2": "Gérez vos actifs numériques",
@@ -395,7 +389,6 @@
     "description": "Déverrouille MetaMask sur cet appareil uniquement.",
     "description_social_login": "Utilisez-la pour restaurer votre portefeuille sur tous vos appareils.",
     "description_social_login_update": "Si vous perdez ce mot de passe, vous perdrez l’accès à votre portefeuille sur tous vos appareils. Conservez-le en lieu sûr, car",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask ne peut pas le réinitialiser.",
     "subtitle": "Ce mot de passe permettra de déverrouiller votre portefeuille MetaMask uniquement sur cet appareil.",
     "password": "Créer un mot de passe",
@@ -671,14 +664,7 @@
       "bullet_2_description": "L’USDC est conçu pour rester stable, ce qui facilite la gestion de l’épargne, des dépenses et des investissements.",
       "bullet_3_title": "Plus rapide que les banques",
       "bullet_3_description": "Envoyez et recevez des fonds en quelques minutes, sans attendre les heures d’ouverture des banques ou les délais de traitement des virements internationaux.",
-      "button": "Commencer",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "Commencer"
     },
     "enter_email": {
       "navbar_title": "Vérifier votre identité",
@@ -2863,13 +2849,12 @@
   },
   "gas_fee_token_modal": {
     "title": "Sélectionnez un jeton",
+    "title_pay_eth": "Payer avec des ETH",
     "native_toggle_wallet": "Payez les frais de réseau à l’aide du solde de votre portefeuille.",
     "list_balance": "Solde :",
     "insufficient_balance": "Fonds insuffisants",
-    "native_toggle_metamask": "MetaMask complète le solde pour finaliser cette transaction."
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "MetaMask complète le solde pour finaliser cette transaction.",
+    "title_pay_with_other_tokens": "Payer avec d’autres jetons"
   },
   "transaction": {
     "transaction_id": "ID de transaction",
@@ -5360,8 +5345,7 @@
       "transfer": "Demande de transfert",
       "switch_account_type": "Mise à jour du compte",
       "approve": "Approuver la demande",
-      "perps_deposit": "Ajouter des fonds",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "Ajouter des fonds"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
@@ -5379,9 +5363,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Frais"
@@ -5609,9 +5590,7 @@
     "account_not_found": "Portefeuille introuvable",
     "account_not_found_description": "Nous n’avons pas trouvé de portefeuille pour « {{accountName}} ». Voulez-vous en créer un nouveau avec cet identifiant ?",
     "create_new_wallet": "Créer un nouveau portefeuille",
-    "use_different_login_method": "Utilisez une autre méthode de connexion",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "use_different_login_method": "Utilisez une autre méthode de connexion"
   },
   "error_sheet": {
     "still_there_title": "Êtes-vous toujours là ?",
@@ -6338,7 +6317,6 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "Transaction",
       "perps_deposit": "Ajouter des fonds",
-      "predict_deposit": "Add funds",
       "swap": "Échanger des jetons",
       "swap_approval": "Approuver les jetons"
     },
@@ -6352,10 +6330,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

@@ -221,12 +221,6 @@
     "remind_later_description2": "ウォレットのバックアップやシークレットリカバリーフレーズの確認は、",
     "setting_security_privacy": "「設定」>「セキュリティとプライバシー」"
   },
-  "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
-  },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
     "title2": "デジタル資産の管理",
@@ -395,7 +389,6 @@
     "description": "このデバイスでのみMetaMaskのロックが解除されます。",
     "description_social_login": "これは、すべてのデバイスでのウォレットの復元に使用します。",
     "description_social_login_update": "このパスワードを紛失すると、どのデバイスでもウォレットにアクセスできなくなります。安全な場所に保管してください。",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask側でリセットすることはできません。",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
     "password": "パスワードを作成",
@@ -671,14 +664,7 @@
       "bullet_2_description": "USDCは価値が安定するよう設計されているため、計画、貯蓄、支出が容易になります。",
       "bullet_3_title": "銀行よりも高速",
       "bullet_3_description": "銀行の営業時間を待ったり、国際送金の遅延を心配したりすることなく、数分で送金・受け取りが可能です。",
-      "button": "開始",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "開始"
     },
     "enter_email": {
       "navbar_title": "本人確認を行う",
@@ -2863,13 +2849,12 @@
   },
   "gas_fee_token_modal": {
     "title": "トークンの選択",
+    "title_pay_eth": "ETHでの支払い",
     "native_toggle_wallet": "ウォレットの残高を使用してネットワーク手数料を支払います。",
     "list_balance": "残高:",
     "insufficient_balance": "資金不足",
-    "native_toggle_metamask": "このトランザクションを完了させるために、MetaMaskが残高を補完します。"
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "このトランザクションを完了させるために、MetaMaskが残高を補完します。",
+    "title_pay_with_other_tokens": "他のトークンでの支払い"
   },
   "transaction": {
     "transaction_id": "トランザクションID",
@@ -3925,7 +3910,7 @@
     "list": {
       "0": "すべて",
       "1": "ウォレット",
-      "2": "お知らせ"
+       "2": "お知らせ"
     },
     "copied_to_clipboard": "クリップボードにコピーされました",
     "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
@@ -5360,8 +5345,7 @@
       "transfer": "送金リクエスト",
       "switch_account_type": "アカウントのアップデート",
       "approve": "要求の承認",
-      "perps_deposit": "資金を追加",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "資金を追加"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -5379,9 +5363,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "手数料"
@@ -5609,9 +5590,7 @@
     "account_not_found": "ウォレットが見つかりません",
     "account_not_found_description": "「{{accountName}}」のウォレットが見つかりません。このログイン情報で新しいウォレットを作成しますか？",
     "create_new_wallet": "新規ウォレットを作成",
-    "use_different_login_method": "別のログイン方法を使用",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "use_different_login_method": "別のログイン方法を使用"
   },
   "error_sheet": {
     "still_there_title": "まだご利用になりますか？",
@@ -6338,7 +6317,6 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "トランザクション",
       "perps_deposit": "資金を追加",
-      "predict_deposit": "Add funds",
       "swap": "トークンをスワップ",
       "swap_approval": "トークンを承認"
     },
@@ -6352,10 +6330,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

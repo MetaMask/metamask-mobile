@@ -55,13 +55,11 @@ describe('useCardholderCheck', () => {
     accounts: [
       {
         type: 'eip155:eoa',
-        address: '0x123',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x123',
       },
       {
         type: 'eip155:eoa',
-        address: '0x456',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x456',
       },
     ],
   };
@@ -93,7 +91,7 @@ describe('useCardholderCheck', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(
       loadCardholderAccounts({
-        caipAccountIds: ['eip155:0:0x123', 'eip155:0:0x456'],
+        caipAccountIds: ['eip155:1:0x123', 'eip155:1:0x456'],
         cardFeatureFlag: mockCardFeatureFlag,
       }),
     );
@@ -135,18 +133,15 @@ describe('useCardholderCheck', () => {
     const accountsWithNonEOA = [
       {
         type: 'eip155:eoa',
-        address: '0x123',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x123',
       },
       {
         type: 'eip155:erc4337',
-        address: '0x456',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x456',
       },
       {
         type: 'eip155:eoa',
-        address: '0x789',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x789',
       },
     ];
 
@@ -156,7 +151,7 @@ describe('useCardholderCheck', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(
       loadCardholderAccounts({
-        caipAccountIds: ['eip155:0:0x123', 'eip155:0:0x789'],
+        caipAccountIds: ['eip155:1:0x123', 'eip155:1:0x789'],
         cardFeatureFlag: mockCardFeatureFlag,
       }),
     );
@@ -166,13 +161,11 @@ describe('useCardholderCheck', () => {
     const accountsWithoutEOA = [
       {
         type: 'eip155:erc4337',
-        address: '0x123',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x123',
       },
       {
         type: 'eip155:erc4337',
-        address: '0x456',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x456',
       },
     ];
 
@@ -230,8 +223,7 @@ describe('useCardholderCheck', () => {
     const newAccounts = [
       {
         type: 'eip155:eoa',
-        address: '0x999',
-        scopes: ['eip155:59144'],
+        caipAccountId: 'eip155:1:0x999',
       },
     ];
     setupMockSelectors({ accounts: newAccounts });
@@ -240,7 +232,7 @@ describe('useCardholderCheck', () => {
     expect(mockDispatch).toHaveBeenCalledTimes(2);
     expect(mockDispatch).toHaveBeenLastCalledWith(
       loadCardholderAccounts({
-        caipAccountIds: ['eip155:0:0x999'],
+        caipAccountIds: ['eip155:1:0x999'],
         cardFeatureFlag: mockCardFeatureFlag,
       }),
     );

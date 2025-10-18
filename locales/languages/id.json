@@ -221,12 +221,6 @@
     "remind_later_description2": "Anda dapat mencadangkan dompet atau melihat Frasa Pemulihan Rahasia di",
     "setting_security_privacy": "Pengaturan > Keamanan dan Privasi"
   },
-  "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
-  },
   "onboarding_carousel": {
     "title1": "Selamat datang di MetaMask",
     "title2": "Kelola aset digital Anda",
@@ -395,7 +389,6 @@
     "description": "Buka MetaMask hanya pada perangkat ini.",
     "description_social_login": "Gunakan ini untuk pemulihan dompet di semua perangkat.",
     "description_social_login_update": "Jika kehilangan kata sandi ini, Anda akan kehilangan akses ke dompet di semua perangkat. Simpan di tempat yang aman,",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask tidak dapat meresetnya.",
     "subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya pada perangkat ini.",
     "password": "Buat kata sandi",
@@ -671,14 +664,7 @@
       "bullet_2_description": "USDC dirancang untuk tetap stabil, menjadikannya semakin mudah untuk membuat rencana, menabung, dan berbelanja.",
       "bullet_3_title": "Lebih cepat dari bank",
       "bullet_3_description": "Kirim dan terima dalam hitungan menit, tanpa menunggu jam operasional bank atau penundaan internasional.",
-      "button": "Mulai",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "Mulai"
     },
     "enter_email": {
       "navbar_title": "Verifikasikan identitas Anda",
@@ -2863,13 +2849,12 @@
   },
   "gas_fee_token_modal": {
     "title": "Pilih token",
+    "title_pay_eth": "Bayar dengan ETH",
     "native_toggle_wallet": "Bayar biaya jaringan menggunakan saldo di dompet Anda.",
     "list_balance": "Saldo:",
     "insufficient_balance": "Dana tidak cukup",
-    "native_toggle_metamask": "MetaMask sedang menambah saldo untuk menyelesaikan transaksi ini."
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "MetaMask sedang menambah saldo untuk menyelesaikan transaksi ini.",
+    "title_pay_with_other_tokens": "Bayar dengan token lainnya"
   },
   "transaction": {
     "transaction_id": "ID Transaksi",
@@ -5360,8 +5345,7 @@
       "transfer": "Permintaan transfer",
       "switch_account_type": "Pembaruan akun",
       "approve": "Setujui permintaan",
-      "perps_deposit": "Tambahkan dana",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "Tambahkan dana"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
@@ -5379,9 +5363,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Biaya"
@@ -5609,9 +5590,7 @@
     "account_not_found": "Dompet tidak ditemukan",
     "account_not_found_description": "Kami tidak dapat menemukan dompet untuk \"{{accountName}}\". Ingin membuat yang baru dengan login ini?",
     "create_new_wallet": "Buat dompet baru",
-    "use_different_login_method": "Gunakan metode login yang berbeda",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "use_different_login_method": "Gunakan metode login yang berbeda"
   },
   "error_sheet": {
     "still_there_title": "Masih di situ?",
@@ -6338,7 +6317,6 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "Transaksi",
       "perps_deposit": "Tambahkan dana",
-      "predict_deposit": "Add funds",
       "swap": "Tukar token",
       "swap_approval": "Setujui token"
     },
@@ -6352,10 +6330,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

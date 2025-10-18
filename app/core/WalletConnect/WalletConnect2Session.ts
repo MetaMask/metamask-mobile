@@ -30,6 +30,7 @@ import {
   hideWCLoadingState,
   isSwitchingChainRequest,
   getRequestOrigin,
+  onRequestUserApproval,
   hasPermissionsToSwitchChainRequest,
   getNetworkClientIdForCaipChainId,
   getChainIdForCaipChainId,
@@ -37,11 +38,9 @@ import {
 } from './wc-utils';
 import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
-import AppConstants from '../AppConstants';
-import Engine from '../Engine';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -236,32 +235,29 @@ class WalletConnect2Session {
 
     const navigation = this.navigation;
 
-    const showReturnNotification = () => {
+    const showReturnModal = () => {
       navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
       });
     };
 
     setTimeout(() => {
-      const redirect = this.session.peer.metadata.redirect;
-
       if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
+        const redirect = this.session.peer.metadata.redirect;
         const peerLink = redirect?.native || redirect?.universal;
         if (peerLink) {
           Linking.openURL(peerLink).catch((error) => {
             DevLogger.log(
               `WC2::redirect error while opening ${peerLink} with error ${error}`,
             );
-            showReturnNotification();
+            showReturnModal();
           });
-          return;
+        } else {
+          showReturnModal();
         }
-      } else if (redirect) {
+      } else {
         Minimizer.goBack();
-        return;
       }
-
-      showReturnNotification();
     }, 100);
   };
 
@@ -543,61 +539,15 @@ class WalletConnect2Session {
         `WC::checkWCPermissions switching to network:`,
         existingNetwork,
       );
-      const [networkClientId, networkConfiguration] = existingNetwork;
-
-      const hooks = getRpcMethodMiddlewareHooks({
-        origin: this.channelId,
-        url: { current: origin },
-        title: { current: this.session.peer.metadata.name },
-        icon: {
-          current: this.session.peer.metadata.icons?.[0] as ImageSourcePropType,
-        },
-        analytics: {},
-        channelId: this.channelId,
-        getSource: () => AppConstants.REQUEST_SOURCES.WC,
-      });
-
-      const originalRequestPermittedChainsPermissionIncrementalForOrigin =
-        hooks.requestPermittedChainsPermissionIncrementalForOrigin;
-      hooks.requestPermittedChainsPermissionIncrementalForOrigin = (
-        ...args
-      ) => {
-        // Clear any pending approvals before prompting the user to permit a new chain.
-        // Unsure why this is needed, but it was previously found here before this code was refactored.
-        // https://github.com/MetaMask/metamask-mobile/blob/081e412f6680e03ad509194acd620c67a273a92b/app/core/WalletConnect/wc-utils.ts#L242
-        Engine.context.ApprovalController.clear(
-          providerErrors.userRejectedRequest(),
-        );
-        return originalRequestPermittedChainsPermissionIncrementalForOrigin(
-          ...args,
-        );
-      };
-
-      const rpcUrl =
-        networkConfiguration.rpcEndpoints[
-          networkConfiguration.defaultRpcEndpointIndex
-        ].url;
-
       // Switching to the network is allowed so try switching into it
       await switchToNetwork({
-        networkClientId,
-        nativeCurrency: networkConfiguration.nativeCurrency,
+        network: existingNetwork,
         chainId: hexChainIdString,
-        rpcUrl,
+        requestUserApproval: onRequestUserApproval(channelId),
         analytics: {},
         origin: this.channelId,
-        hooks: getRpcMethodMiddlewareHooks({
-          origin: this.channelId,
-          url: { current: origin },
-          title: { current: this.session.peer.metadata.name },
-          icon: {
-            current: this.session.peer.metadata
-              .icons?.[0] as ImageSourcePropType,
-          },
-          analytics: {},
-          channelId: this.channelId,
-          getSource: () => AppConstants.REQUEST_SOURCES.WC,
-        }),
+        dappUrl: origin,
+        hooks: getRpcMethodMiddlewareHooks(channelId),
       });
     }
   };

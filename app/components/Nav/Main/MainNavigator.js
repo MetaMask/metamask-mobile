@@ -74,7 +74,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectBrowserFullscreen } from '../../../selectors/browser';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
@@ -118,8 +117,6 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
-import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
-import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
@@ -266,15 +263,6 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-      component={RewardOptInAccountGroupModal}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
-      component={ReferralBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -524,8 +512,6 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
-  const isBrowserFullscreen = useSelector(selectBrowserFullscreen);
-
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -628,14 +614,6 @@ const HomeTabs = () => {
       return null;
     }
 
-    // Hide tab bar when browser is in fullscreen mode
-    if (
-      isBrowserFullscreen &&
-      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
-    ) {
-      return null;
-    }
-
     if (isKeyboardHidden) {
       return (
         <TabBar
@@ -697,6 +675,7 @@ const Webview = () => (
       name="SimpleWebview"
       component={SimpleWebview}
       mode={'modal'}
+      options={SimpleWebview.navigationOptions}
     />
   </Stack.Navigator>
 );

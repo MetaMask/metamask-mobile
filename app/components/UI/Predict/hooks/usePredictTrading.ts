@@ -1,13 +1,7 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
-import {
-  GetBalanceParams,
-  GetPositionsParams,
-  OrderPreview,
-  PlaceOrderParams,
-  PreviewOrderParams,
-} from '../providers/types';
-import { ClaimParams } from '../types';
+import { BuyParams, ClaimParams, SellParams } from '../types';
+import { GetPositionsParams } from '../providers/types';
 
 export function usePredictTrading() {
   const getPositions = useCallback(async (params: GetPositionsParams) => {
@@ -15,34 +9,25 @@ export function usePredictTrading() {
     return controller.getPositions(params);
   }, []);
 
+  const buy = useCallback(async (orderParams: BuyParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.buy(orderParams);
+  }, []);
+
+  const sell = useCallback(async (orderParams: SellParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.sell(orderParams);
+  }, []);
+
   const claim = useCallback(async (claimParams: ClaimParams) => {
     const controller = Engine.context.PredictController;
-    return controller.claimWithConfirmation(claimParams);
-  }, []);
-
-  const placeOrder = useCallback(async (params: PlaceOrderParams) => {
-    const controller = Engine.context.PredictController;
-    return controller.placeOrder(params);
-  }, []);
-
-  const previewOrder = useCallback(
-    async (params: PreviewOrderParams): Promise<OrderPreview> => {
-      const controller = Engine.context.PredictController;
-      return controller.previewOrder(params);
-    },
-    [],
-  );
-
-  const getBalance = useCallback(async (params: GetBalanceParams) => {
-    const controller = Engine.context.PredictController;
-    return controller.getBalance(params);
+    return controller.claim(claimParams);
   }, []);
 
   return {
     getPositions,
-    placeOrder,
+    buy,
+    sell,
     claim,
-    getBalance,
-    previewOrder,
   };
 }

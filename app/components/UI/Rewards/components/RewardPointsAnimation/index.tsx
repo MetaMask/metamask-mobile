@@ -26,8 +26,6 @@ const RewardsIconAnimation = require('../../../../../animations/rewards_icon_ani
  * Refer to app/components/UI/Rewards/components/RewardPointsAnimation/index.stories.tsx for usage examples
  *
  * @param value - Points value to display
- * @param bonusBips - Bonus multiplier in basis points (100 = 1%)
- * @param shouldShow - Whether to show the animation (default: true)
  * @param duration - Animation duration in ms (default: 1000)
  * @param variant - Text variant for the points number
  * @param height - Rive icon height (default: 20)
@@ -39,8 +37,6 @@ const RewardsIconAnimation = require('../../../../../animations/rewards_icon_ani
  */
 interface RewardPointsAnimationProps {
   value: number;
-  bonusBips?: number;
-  shouldShow?: boolean;
   duration?: number;
   variant?: TextVariant;
   height?: number;
@@ -57,7 +53,6 @@ const noop = () => {
 
 const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
   value,
-  shouldShow = true,
   duration = 1000,
   variant = TextVariant.BodyMd,
   height = 16,
@@ -108,10 +103,6 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
     duration,
     state,
   });
-
-  if (!shouldShow) {
-    return null;
-  }
 
   return (
     <View style={styles.outerContainer}>

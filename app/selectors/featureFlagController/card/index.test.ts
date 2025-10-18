@@ -1,31 +1,20 @@
 import {
   CardFeatureFlag,
-  CardSupportedCountries,
   SupportedChain,
   SupportedToken,
   selectCardFeatureFlag,
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-  selectCardExperimentalSwitch,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
-import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-jest.mock('../../../util/remoteFeatureFlag', () => ({
-  validatedVersionGatedFeatureFlag: jest.fn(),
-}));
-
 const originalEnv = process.env;
-
 beforeEach(() => {
   jest.resetModules();
   process.env = { ...originalEnv };
-  jest.clearAllMocks();
 });
 
 afterEach(() => {
@@ -105,29 +94,20 @@ const mockedStateWithPartialCardFeatureFlag = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
-describe('selectCardFeatureFlag', () => {
-  it('returns default card feature flag when feature flag state is empty', () => {
-    const result = selectCardFeatureFlag(
-      mockedEmptyFlagsState,
-    ) as CardFeatureFlag;
+describe('Card Feature Flag Selector', () => {
+  it('returns null when feature flag state is empty', () => {
+    const result = selectCardFeatureFlag(mockedEmptyFlagsState);
 
-    expect(result).toBeDefined();
-    expect(result.constants).toBeDefined();
-    expect(result.chains).toBeDefined();
-    expect(result.isBaanxLoginEnabled).toBe(false);
+    expect(result).toEqual(null);
   });
 
-  it('returns default card feature flag when RemoteFeatureFlagController state is undefined', () => {
-    const result = selectCardFeatureFlag(
-      mockedUndefinedFlagsState,
-    ) as CardFeatureFlag;
+  it('returns null when RemoteFeatureFlagController state is undefined', () => {
+    const result = selectCardFeatureFlag(mockedUndefinedFlagsState);
 
-    expect(result).toBeDefined();
-    expect(result.constants).toBeDefined();
-    expect(result.chains).toBeDefined();
+    expect(result).toEqual(null);
   });
 
-  it('returns default card feature flag when cardFeature is null', () => {
+  it('returns null when cardFeature is null', () => {
     const stateWithNullCardFlag = {
       engine: {
         backgroundState: {
@@ -141,13 +121,9 @@ describe('selectCardFeatureFlag', () => {
       },
     };
 
-    const result = selectCardFeatureFlag(
-      stateWithNullCardFlag,
-    ) as CardFeatureFlag;
+    const result = selectCardFeatureFlag(stateWithNullCardFlag);
 
-    expect(result).toBeDefined();
-    expect(result.constants).toBeDefined();
-    expect(result.chains).toBeDefined();
+    expect(result).toBeNull();
   });
 
   it('returns card feature flag when properly configured', () => {
@@ -243,13 +219,11 @@ describe('selectCardFeatureFlag', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const result = selectCardFeatureFlag(
-      stateWithMultipleTokens,
-    ) as CardFeatureFlag;
+    const result = selectCardFeatureFlag(stateWithMultipleTokens);
 
-    expect(result.chains?.['1']?.tokens).toHaveLength(2);
-    expect(result.chains?.['1']?.tokens?.[0]).toEqual(mockedSupportedToken);
-    expect(result.chains?.['1']?.tokens?.[1]).toEqual({
+    expect(result?.chains?.['1']?.tokens).toHaveLength(2);
+    expect(result?.chains?.['1']?.tokens?.[0]).toEqual(mockedSupportedToken);
+    expect(result?.chains?.['1']?.tokens?.[1]).toEqual({
       address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       decimals: 6,
       enabled: false,
@@ -277,312 +251,12 @@ describe('selectCardFeatureFlag', () => {
           },
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardFeatureFlag(
-      stateWithDisabledChain,
-    ) as CardFeatureFlag;
-
-    expect(result.chains?.['1']?.enabled).toBe(false);
-    expect(result.chains?.['1']?.tokens).toBeNull();
-  });
-});
-
-describe('selectCardSupportedCountries', () => {
-  it('returns default supported countries when feature flag state is empty', () => {
-    const result = selectCardSupportedCountries(
-      mockedEmptyFlagsState,
-    ) as CardSupportedCountries;
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-    expect(result.GB).toBe(true);
-    expect(result.US).toBeUndefined();
-  });
-
-  it('returns default supported countries when RemoteFeatureFlagController state is undefined', () => {
-    const result = selectCardSupportedCountries(
-      mockedUndefinedFlagsState,
-    ) as CardSupportedCountries;
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-  });
-
-  it('returns custom supported countries when defined in remote flags', () => {
-    const customCountries: CardSupportedCountries = {
-      US: true,
-      CA: true,
-      GB: false,
     };
 
-    const stateWithCustomCountries = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardSupportedCountries: customCountries,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = selectCardFeatureFlag(stateWithDisabledChain as any);
 
-    const result = selectCardSupportedCountries(
-      stateWithCustomCountries,
-    ) as CardSupportedCountries;
-
-    expect(result).toEqual(customCountries);
-    expect(result.US).toBe(true);
-    expect(result.CA).toBe(true);
-    expect(result.GB).toBe(false);
-  });
-
-  it('handles null cardSupportedCountries by returning default', () => {
-    const stateWithNullCountries = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardSupportedCountries: null,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardSupportedCountries(stateWithNullCountries);
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-  });
-});
-
-describe('selectDisplayCardButtonFeatureFlag', () => {
-  const mockedValidatedVersionGatedFeatureFlag =
-    validatedVersionGatedFeatureFlag as jest.MockedFunction<
-      typeof validatedVersionGatedFeatureFlag
-    >;
-
-  it('returns false when feature flag state is empty', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectDisplayCardButtonFeatureFlag(mockedEmptyFlagsState);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when RemoteFeatureFlagController state is undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectDisplayCardButtonFeatureFlag(
-      mockedUndefinedFlagsState,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true when feature flag is enabled and version requirement is met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
-
-    const stateWithDisplayCardButton = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: true,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(
-      stateWithDisplayCardButton,
-    );
-
-    expect(result).toBe(true);
-    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
-      enabled: true,
-      minimumVersion: '7.0.0',
-    });
-  });
-
-  it('returns false when feature flag is disabled', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithDisabledFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: false,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(stateWithDisabledFlag);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when version requirement is not met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithVersionGate = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: true,
-                minimumVersion: '99.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(stateWithVersionGate);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const stateWithMalformedFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: 'true', // Invalid type
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(stateWithMalformedFlag);
-
-    expect(result).toBe(false);
-  });
-});
-
-describe('selectCardExperimentalSwitch', () => {
-  it('returns false when feature flag state is empty', () => {
-    const result = selectCardExperimentalSwitch(mockedEmptyFlagsState);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when RemoteFeatureFlagController state is undefined', () => {
-    const result = selectCardExperimentalSwitch(mockedUndefinedFlagsState);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true when cardExperimentalSwitch is enabled', () => {
-    const stateWithExperimentalSwitch = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch: true,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithExperimentalSwitch);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when cardExperimentalSwitch is disabled', () => {
-    const stateWithDisabledSwitch = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch: false,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithDisabledSwitch);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when cardExperimentalSwitch is null', () => {
-    const stateWithNullSwitch = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch: null,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithNullSwitch);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when cardExperimentalSwitch is undefined', () => {
-    const stateWithUndefinedSwitch = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch: undefined,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithUndefinedSwitch);
-
-    expect(result).toBe(false);
+    expect(result?.chains?.['1']?.enabled).toBe(false);
+    expect(result?.chains?.['1']?.tokens).toBeNull();
   });
 });

@@ -1,14 +1,15 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
+  ActivityIndicator,
   Alert,
   View,
+  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   Platform,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -67,7 +68,8 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/index';
+import fox from '../../../animations/Searching_Fox.json';
+import LottieView from 'lottie-react-native';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -723,10 +725,39 @@ class ChoosePassword extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+      <SafeAreaView style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <FoxRiveLoaderAnimation />
+            <View style={styles.foxWrapper}>
+              <LottieView
+                style={styles.image}
+                autoPlay
+                loop
+                source={fox}
+                resizeMode="contain"
+              />
+            </View>
+            <ActivityIndicator size="large" color={colors.text.default} />
+            <View style={styles.loadingTextContainer}>
+              <Text
+                variant={TextVariant.HeadingLG}
+                color={colors.text.default}
+                adjustsFontSizeToFit
+                numberOfLines={1}
+              >
+                {strings(
+                  previousScreen === ONBOARDING
+                    ? 'create_wallet.title'
+                    : 'secure_your_wallet.creating_password',
+                )}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={colors.text.alternative}
+              >
+                {strings('create_wallet.subtitle')}
+              </Text>
+            </View>
           </View>
         ) : (
           <KeyboardAwareScrollView
@@ -755,7 +786,13 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.DisplayMD}
                     color={TextColor.Default}
                   >
-                    {strings('choose_password.title')}
+                    {strings(
+                      previousScreen === ONBOARDING
+                        ? Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                          ? 'choose_password.title_ios'
+                          : 'choose_password.title'
+                        : 'choose_password.title',
+                    )}
                   </Text>
                   <Text
                     variant={TextVariant.BodyMD}
@@ -766,7 +803,7 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                        {Platform.OS === 'ios'
                           ? strings(
                               'choose_password.description_social_login_update_ios',
                             )
@@ -797,7 +834,11 @@ class ChoosePassword extends PureComponent {
                     color={TextColor.Default}
                     style={styles.label}
                   >
-                    {strings('choose_password.password')}
+                    {strings(
+                      Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                        ? 'choose_password.pin_ios'
+                        : 'choose_password.password',
+                    )}
                   </Label>
                   <TextField
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
@@ -843,7 +884,11 @@ class ChoosePassword extends PureComponent {
                     color={TextColor.Default}
                     style={styles.label}
                   >
-                    {strings('choose_password.confirm_password')}
+                    {strings(
+                      Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                        ? 'choose_password.confirm_pin_ios'
+                        : 'choose_password.confirm_password',
+                    )}
                   </Label>
                   <TextField
                     ref={this.confirmPasswordInput}
@@ -880,7 +925,11 @@ class ChoosePassword extends PureComponent {
                   />
                   {this.checkError() && (
                     <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                      {strings('choose_password.password_error')}
+                      {strings(
+                        Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                          ? 'choose_password.pin_error'
+                          : 'choose_password.password_error',
+                      )}
                     </Text>
                   )}
                 </View>
@@ -939,7 +988,11 @@ class ChoosePassword extends PureComponent {
                   <Button
                     variant={ButtonVariants.Primary}
                     onPress={this.onPressCreate}
-                    label={strings('choose_password.create_password_cta')}
+                    label={strings(
+                      Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                        ? 'choose_password.create_pin_cta_ios'
+                        : 'choose_password.create_password_cta',
+                    )}
                     disabled={!canSubmit}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}

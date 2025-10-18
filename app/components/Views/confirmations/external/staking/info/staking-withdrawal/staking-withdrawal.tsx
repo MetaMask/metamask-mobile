@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
@@ -16,7 +17,6 @@ import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-
 import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
 import { TraceName } from '../../../../../../../util/trace';
 import { useStakingTransactionTracing } from '../../../../../../UI/Stake/hooks/useStakingTransactionTracing';
-import { ScrollView } from 'react-native-gesture-handler';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   const amountWei = route?.params?.amountWei;
@@ -46,14 +46,14 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   useStakingTransactionTracing();
 
   return (
-    <ScrollView testID={ConfirmationInfoComponentIDs.STAKING_WITHDRAWAL}>
+    <View testID={ConfirmationInfoComponentIDs.STAKING_WITHDRAWAL}>
       <HeroRow amountWei={amountWei} />
       <UnstakingTimeSection />
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
       <GasFeesDetailsRow disableUpdate />
-    </ScrollView>
+    </View>
   );
 };
 export default StakingWithdrawal;

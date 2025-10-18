@@ -45,20 +45,6 @@ jest.mock('react-native-device-info', () => ({
   getBuildNumber: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/card', () => ({
-  selectCardExperimentalSwitch: jest.fn(() => false),
-}));
-
-jest.mock('../../../../core/redux/slices/card', () => ({
-  selectAlwaysShowCardButton: jest.fn(
-    (state) => state.card.alwaysShowCardButton,
-  ),
-  setAlwaysShowCardButton: jest.fn((value) => ({
-    type: 'card/setAlwaysShowCardButton',
-    payload: value,
-  })),
-}));
-
 const mockStore = configureMockStore();
 
 const initialState = {
@@ -77,11 +63,6 @@ const initialState = {
     },
     activeTraceBySessionId: {},
     isInitialized: true,
-  },
-  card: {
-    alwaysShowCardButton: false,
-    isAuthenticatedCard: false,
-    cardholderAccounts: [],
   },
   engine: {
     backgroundState,

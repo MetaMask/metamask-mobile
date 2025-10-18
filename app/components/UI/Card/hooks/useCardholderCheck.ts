@@ -1,10 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import {
-  CardFeatureFlag,
-  selectCardFeatureFlag,
-} from '../../../../selectors/featureFlagController/card';
+import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { loadCardholderAccounts } from '../../../../core/redux/slices/card';
 import {
   selectAppServicesReady,
@@ -43,7 +40,7 @@ export const useCardholderCheck = () => {
     dispatch(
       loadCardholderAccounts({
         caipAccountIds,
-        cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
+        cardFeatureFlag,
       }),
     );
   }, [cardFeatureFlag, dispatch, internalAccounts]);

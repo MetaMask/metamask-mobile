@@ -1,1 +1,0 @@
-export const PREDICT_MINIMUM_DEPOSIT = 0.01;

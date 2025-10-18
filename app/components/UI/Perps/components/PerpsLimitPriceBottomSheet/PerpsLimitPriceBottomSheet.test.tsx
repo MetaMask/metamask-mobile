@@ -117,7 +117,7 @@ jest.mock('../../utils/formatUtils', () => ({
       formatted: `$${num.toFixed(significantDigits || 2)}`,
     };
   }),
-  PRICE_RANGES_UNIVERSAL: [
+  PRICE_RANGES_POSITION_VIEW: [
     {
       condition: () => true,
       minimumDecimals: 2,

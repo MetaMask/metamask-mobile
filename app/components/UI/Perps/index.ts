@@ -8,4 +8,4 @@ export {
 } from './selectors/featureFlags';
 export { PERPS_CONSTANTS } from './constants/perpsConfig';
 
-export * from './types/perps-types';
+export * from './types';

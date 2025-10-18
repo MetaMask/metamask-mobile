@@ -1,4 +1,4 @@
-import { RegressionConfirmations } from '../../tags';
+import { SmokeConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -18,7 +18,7 @@ import WalletView from '../../pages/wallet/WalletView';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(RegressionConfirmations('ERC20 - Increase Allowance'), () => {
+describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
   it('from a dApp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(

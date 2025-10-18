@@ -17,7 +17,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   it('should enable notifications and toggle feature announcements and account notifications', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withDefaultFixture().build(),
+        fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
         permissions: {
           notifications: 'YES',

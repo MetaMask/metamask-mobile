@@ -221,12 +221,6 @@
     "remind_later_description2": "Bạn có thể sao lưu ví hoặc xem Cụm từ khôi phục bí mật trong phần",
     "setting_security_privacy": "Cài đặt > Bảo mật & Quyền riêng tư"
   },
-  "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
-  },
   "onboarding_carousel": {
     "title1": "Chào mừng bạn đến với MetaMask",
     "title2": "Quản lý các tài sản kỹ thuật số của bạn",
@@ -395,7 +389,6 @@
     "description": "Chỉ mở khóa MetaMask trên thiết bị này.",
     "description_social_login": "Sử dụng cụm từ này để khôi phục ví trên tất cả các thiết bị.",
     "description_social_login_update": "Nếu bạn làm mất mật khẩu này, bạn sẽ mất quyền truy cập vào ví của mình trên tất cả các thiết bị. Hãy lưu trữ mật khẩu ở nơi an toàn,",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask không thể đặt lại mật khẩu này.",
     "subtitle": "Mật khẩu này sẽ chỉ mở khóa ví MetaMask của bạn trên thiết bị này.",
     "password": "Tạo mật khẩu",
@@ -671,14 +664,7 @@
       "bullet_2_description": "USDC được thiết kế để duy trì tính ổn định, giúp việc lập kế hoạch, tiết kiệm và chi tiêu dễ dàng hơn.",
       "bullet_3_title": "Nhanh hơn ngân hàng",
       "bullet_3_description": "Gửi và nhận trong vài phút, không cần chờ đến giờ làm việc của ngân hàng hoặc sự chậm trễ do giao dịch quốc tế.",
-      "button": "Bắt đầu",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "Bắt đầu"
     },
     "enter_email": {
       "navbar_title": "Xác minh danh tính của bạn",
@@ -2863,13 +2849,12 @@
   },
   "gas_fee_token_modal": {
     "title": "Chọn token",
+    "title_pay_eth": "Thanh toán bằng ETH",
     "native_toggle_wallet": "Thanh toán phí mạng bằng số dư trong ví của bạn.",
     "list_balance": "Số dư:",
     "insufficient_balance": "Không đủ tiền",
-    "native_toggle_metamask": "MetaMask đang bổ sung số dư để hoàn tất giao dịch này."
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "MetaMask đang bổ sung số dư để hoàn tất giao dịch này.",
+    "title_pay_with_other_tokens": "Thanh toán bằng token khác"
   },
   "transaction": {
     "transaction_id": "ID giao dịch",
@@ -5360,8 +5345,7 @@
       "transfer": "Yêu cầu chuyển tiền",
       "switch_account_type": "Cập nhật tài khoản",
       "approve": "Phê duyệt yêu cầu",
-      "perps_deposit": "Nạp tiền",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "Nạp tiền"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
@@ -5379,9 +5363,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Phí"
@@ -5609,9 +5590,7 @@
     "account_not_found": "Không tìm thấy ví",
     "account_not_found_description": "Chúng tôi không thể tìm thấy ví cho \"{{accountName}}\". Bạn có muốn tạo ví mới với thông tin đăng nhập này không?",
     "create_new_wallet": "Tạo ví mới",
-    "use_different_login_method": "Sử dụng phương thức đăng nhập khác",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "use_different_login_method": "Sử dụng phương thức đăng nhập khác"
   },
   "error_sheet": {
     "still_there_title": "Bạn vẫn ở đó chứ?",
@@ -6338,7 +6317,6 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "Giao dịch",
       "perps_deposit": "Nạp tiền",
-      "predict_deposit": "Add funds",
       "swap": "Hoán đổi token",
       "swap_approval": "Phê duyệt token"
     },
@@ -6352,10 +6330,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

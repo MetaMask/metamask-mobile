@@ -4,18 +4,8 @@ import {
   CardFeatureFlag,
   SupportedToken,
 } from '../../../../selectors/featureFlagController/card/index';
-import {
-  CardToken,
-  CardError,
-  CardErrorType,
-  CardLocation,
-  CardLoginInitiateResponse,
-  CardLoginResponse,
-  CardAuthorizeResponse,
-  CardExchangeTokenResponse,
-} from '../types';
+import { CardToken } from '../types';
 import Logger from '../../../../util/Logger';
-import { getCardBaanxToken } from '../util/cardTokenVault';
 
 // Mock ethers
 jest.mock('ethers', () => ({
@@ -49,11 +39,6 @@ jest.mock('ethers', () => ({
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
-}));
-
-// Mock cardTokenVault
-jest.mock('../util/cardTokenVault', () => ({
-  getCardBaanxToken: jest.fn(),
 }));
 
 // Mock network utilities
@@ -90,9 +75,6 @@ describe('CardSDK', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Set up environment variable for API key
-    process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
-
     mockCardFeatureFlag = {
       constants: {
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
@@ -128,15 +110,8 @@ describe('CardSDK', () => {
       value.padStart(length * 2, '0'),
     );
 
-    // Create CardSDK instance AFTER environment variable is set
     cardSDK = new CardSDK({
       cardFeatureFlag: mockCardFeatureFlag,
-    });
-
-    // Setup default mock for getCardBaanxToken
-    (getCardBaanxToken as jest.Mock).mockResolvedValue({
-      success: true,
-      tokenData: { accessToken: 'mock-token' },
     });
   });
 
@@ -455,9 +430,9 @@ describe('CardSDK', () => {
 
       const result = await cardSDK.isCardHolder([mockTestAddress]);
       expect(result).toEqual([]);
-      expect(Logger.log).toHaveBeenCalledWith(
+      expect(Logger.error).toHaveBeenCalledWith(
         expect.any(Error),
-        'CardSDK: Failed to check if address is a card holder',
+        'Failed to check if address is a card holder',
       );
     });
 
@@ -467,9 +442,9 @@ describe('CardSDK', () => {
 
       const result = await cardSDK.isCardHolder([mockTestAddress]);
       expect(result).toEqual([]);
-      expect(Logger.log).toHaveBeenCalledWith(
+      expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'CardSDK: Failed to check if address is a card holder',
+        'Failed to check if address is a card holder',
       );
     });
 
@@ -492,7 +467,7 @@ describe('CardSDK', () => {
         mockTestAddress,
       ]);
       expect(result).toEqual([]);
-      expect(Logger.log).toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalled();
     });
 
     it('should construct correct API request with proper parameters', async () => {
@@ -525,83 +500,43 @@ describe('CardSDK', () => {
   });
 
   describe('getGeoLocation', () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-
-    afterEach(() => {
-      // Restore original NODE_ENV
-      if (originalNodeEnv === undefined) {
-        delete (process.env as { NODE_ENV?: string }).NODE_ENV;
-      } else {
-        (process.env as { NODE_ENV?: string }).NODE_ENV = originalNodeEnv;
-      }
-      jest.clearAllMocks();
-    });
-
-    it('should return UNKNOWN when API call fails', async () => {
-      const error = new Error('Network error');
-      (global.fetch as jest.Mock).mockRejectedValueOnce(error);
-
-      const result = await cardSDK.getGeoLocation();
-
-      expect(result).toBe('UNKNOWN');
-      expect(Logger.log).toHaveBeenCalledWith(
-        error,
-        'CardSDK: Failed to get geolocation',
-      );
-    });
-
-    it('should return UNKNOWN when fetch throws an error', async () => {
-      const fetchError = new Error('Fetch failed');
-      (global.fetch as jest.Mock).mockRejectedValueOnce(fetchError);
-
-      const result = await cardSDK.getGeoLocation();
-
-      expect(result).toBe('UNKNOWN');
-      expect(Logger.log).toHaveBeenCalledWith(
-        fetchError,
-        'CardSDK: Failed to get geolocation',
-      );
-    });
-
-    it('should return UNKNOWN when response.text() throws an error', async () => {
-      const textError = new Error('Failed to read response text');
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+    it('should return geolocation on successful API call', async () => {
+      const mockGeolocation = 'US';
+      (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
-        text: jest.fn().mockRejectedValue(textError),
+        text: jest.fn().mockResolvedValue(mockGeolocation),
       });
 
       const result = await cardSDK.getGeoLocation();
-
-      expect(result).toBe('UNKNOWN');
-      expect(Logger.log).toHaveBeenCalledWith(
-        textError,
-        'CardSDK: Failed to get geolocation',
+      expect(result).toBe(mockGeolocation);
+      expect(global.fetch).toHaveBeenCalledWith(
+        new URL(
+          'geolocation',
+          mockCardFeatureFlag.constants?.onRampApiUrl || '',
+        ),
       );
     });
 
-    it('should handle different country codes correctly', async () => {
-      const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'UNKNOWN'];
-
-      for (const code of countryCodes) {
-        (global.fetch as jest.Mock).mockResolvedValueOnce({
-          ok: true,
-          text: jest.fn().mockResolvedValue(code),
-        });
-
-        const result = await cardSDK.getGeoLocation();
-        expect(result).toBe(code);
-      }
-    });
-
-    it('should handle empty string response from API', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        text: jest.fn().mockResolvedValue(''),
+    it('should handle API errors and return empty string', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
       });
 
       const result = await cardSDK.getGeoLocation();
-
       expect(result).toBe('');
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('should handle network errors and return empty string', async () => {
+      const error = new Error('Network error');
+      (global.fetch as jest.Mock).mockRejectedValue(error);
+
+      const result = await cardSDK.getGeoLocation();
+      expect(result).toBe('');
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'Failed to get geolocation',
+      );
     });
   });
 
@@ -859,539 +794,6 @@ describe('CardSDK', () => {
         decimals: supportedToken.decimals,
         symbol: supportedToken.symbol,
         name: supportedToken.name,
-      });
-    });
-  });
-
-  describe('initiateCardProviderAuthentication', () => {
-    const mockQueryParams = {
-      state: 'test-state',
-      codeChallenge: 'test-challenge',
-      location: 'us' as CardLocation,
-    };
-
-    it('should initiate authentication successfully', async () => {
-      const mockResponse: CardLoginInitiateResponse = {
-        token: 'initiate-token',
-        url: 'https://example.com/auth',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.initiateCardProviderAuthentication(
-        mockQueryParams,
-      );
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/oauth/authorize/initiate'),
-        expect.objectContaining({
-          method: 'GET',
-          credentials: 'omit',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'true',
-            'x-client-key': 'test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('should handle server error response', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: jest.fn().mockResolvedValue('Internal server error'),
-      });
-
-      await expect(
-        cardSDK.initiateCardProviderAuthentication(mockQueryParams),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.initiateCardProviderAuthentication(mockQueryParams),
-      ).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Failed to initiate authentication. Please try again.',
-      });
-
-      expect(Logger.log).toHaveBeenCalled();
-    });
-
-    it('should handle network error', async () => {
-      const networkError = new Error('Network failure');
-      (global.fetch as jest.Mock).mockRejectedValue(networkError);
-
-      await expect(
-        cardSDK.initiateCardProviderAuthentication(mockQueryParams),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.initiateCardProviderAuthentication(mockQueryParams),
-      ).rejects.toMatchObject({
-        type: CardErrorType.NETWORK_ERROR,
-        message: 'Network error. Please check your connection.',
-      });
-    });
-
-    it('should handle timeout error', async () => {
-      const timeoutError = new Error('AbortError');
-      timeoutError.name = 'AbortError';
-      (global.fetch as jest.Mock).mockRejectedValue(timeoutError);
-
-      await expect(
-        cardSDK.initiateCardProviderAuthentication(mockQueryParams),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.initiateCardProviderAuthentication(mockQueryParams),
-      ).rejects.toMatchObject({
-        type: CardErrorType.TIMEOUT_ERROR,
-        message: 'Request timed out. Please check your connection.',
-      });
-    });
-  });
-
-  describe('login', () => {
-    const mockLoginData = {
-      email: 'test@example.com',
-      password: 'password123',
-      location: 'us' as CardLocation,
-    };
-
-    it('should login successfully', async () => {
-      const mockResponse: CardLoginResponse = {
-        phase: 'verified',
-        userId: 'user-123',
-        isOtpRequired: false,
-        phoneNumber: null,
-        accessToken: 'login-token',
-        verificationState: 'verified',
-        isLinked: true,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.login(mockLoginData);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/login'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            email: mockLoginData.email,
-            password: mockLoginData.password,
-          }),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'true',
-            'x-client-key': 'test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('should handle invalid credentials error', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 401,
-        text: jest.fn().mockResolvedValue('Unauthorized'),
-      });
-
-      await expect(cardSDK.login(mockLoginData)).rejects.toThrow(CardError);
-
-      await expect(cardSDK.login(mockLoginData)).rejects.toMatchObject({
-        type: CardErrorType.INVALID_CREDENTIALS,
-        message: 'Invalid login details',
-      });
-    });
-
-    it('should handle server error', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: jest.fn().mockResolvedValue('Server error'),
-      });
-
-      await expect(cardSDK.login(mockLoginData)).rejects.toThrow(CardError);
-
-      await expect(cardSDK.login(mockLoginData)).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Server error. Please try again later.',
-      });
-    });
-
-    it('should handle unknown error status', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        text: jest.fn().mockResolvedValue('Bad request'),
-      });
-
-      await expect(cardSDK.login(mockLoginData)).rejects.toThrow(CardError);
-
-      await expect(cardSDK.login(mockLoginData)).rejects.toMatchObject({
-        type: CardErrorType.UNKNOWN_ERROR,
-        message: 'Login failed. Please try again.',
-      });
-    });
-  });
-
-  describe('authorize', () => {
-    const mockAuthorizeData = {
-      initiateAccessToken: 'initiate-token',
-      loginAccessToken: 'login-token',
-      location: 'us' as CardLocation,
-    };
-
-    it('should authorize successfully', async () => {
-      const mockResponse: CardAuthorizeResponse = {
-        state: 'auth-state',
-        url: 'https://example.com/callback',
-        code: 'auth-code-123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.authorize(mockAuthorizeData);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/oauth/authorize'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            token: mockAuthorizeData.initiateAccessToken,
-          }),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'true',
-            'x-client-key': 'test-api-key',
-            Authorization: `Bearer ${mockAuthorizeData.loginAccessToken}`,
-          }),
-        }),
-      );
-    });
-
-    it('should handle authorization failure with invalid credentials', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 403,
-        text: jest.fn().mockResolvedValue('Forbidden'),
-      });
-
-      await expect(cardSDK.authorize(mockAuthorizeData)).rejects.toThrow(
-        CardError,
-      );
-
-      await expect(cardSDK.authorize(mockAuthorizeData)).rejects.toMatchObject({
-        type: CardErrorType.INVALID_CREDENTIALS,
-        message: 'Authorization failed. Please try logging in again.',
-      });
-    });
-
-    it('should handle server error during authorization', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: jest.fn().mockResolvedValue('Server error'),
-      });
-
-      await expect(cardSDK.authorize(mockAuthorizeData)).rejects.toThrow(
-        CardError,
-      );
-
-      await expect(cardSDK.authorize(mockAuthorizeData)).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Authorization failed. Please try again.',
-      });
-    });
-  });
-
-  describe('exchangeToken', () => {
-    const mockAuthCodeExchangeData = {
-      code: 'auth-code',
-      codeVerifier: 'code-verifier',
-      grantType: 'authorization_code' as const,
-      location: 'us' as CardLocation,
-    };
-
-    const mockRefreshTokenExchangeData = {
-      code: 'refresh-token-123',
-      grantType: 'refresh_token' as const,
-      location: 'international' as CardLocation,
-    };
-
-    it('should exchange authorization code successfully', async () => {
-      const mockRawResponse = {
-        access_token: 'new-access-token',
-        token_type: 'Bearer',
-        expires_in: 3600,
-        refresh_token: 'new-refresh-token',
-        refresh_token_expires_in: 7200,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockRawResponse),
-      });
-
-      const result = await cardSDK.exchangeToken(mockAuthCodeExchangeData);
-
-      const expectedResponse: CardExchangeTokenResponse = {
-        accessToken: 'new-access-token',
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        refreshToken: 'new-refresh-token',
-        refreshTokenExpiresIn: 7200,
-      };
-
-      expect(result).toEqual(expectedResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/oauth/token'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            code: mockAuthCodeExchangeData.code,
-            code_verifier: mockAuthCodeExchangeData.codeVerifier,
-            grant_type: mockAuthCodeExchangeData.grantType,
-            redirect_uri: 'https://example.com',
-          }),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'true',
-            'x-client-key': 'test-api-key',
-            'x-secret-key': 'test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('should exchange refresh token successfully', async () => {
-      const mockRawResponse = {
-        access_token: 'refreshed-access-token',
-        token_type: 'Bearer',
-        expires_in: 3600,
-        refresh_token: 'new-refresh-token',
-        refresh_token_expires_in: 7200,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockRawResponse),
-      });
-
-      const result = await cardSDK.exchangeToken(mockRefreshTokenExchangeData);
-
-      const expectedResponse: CardExchangeTokenResponse = {
-        accessToken: 'refreshed-access-token',
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        refreshToken: 'new-refresh-token',
-        refreshTokenExpiresIn: 7200,
-      };
-
-      expect(result).toEqual(expectedResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/oauth/token'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            grant_type: mockRefreshTokenExchangeData.grantType,
-            refresh_token: mockRefreshTokenExchangeData.code,
-          }),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'false',
-            'x-client-key': 'test-api-key',
-            'x-secret-key': 'test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('should handle token exchange failure with invalid credentials', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 401,
-        text: jest.fn().mockResolvedValue('Invalid code'),
-      });
-
-      await expect(
-        cardSDK.exchangeToken(mockAuthCodeExchangeData),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.exchangeToken(mockAuthCodeExchangeData),
-      ).rejects.toMatchObject({
-        type: CardErrorType.INVALID_CREDENTIALS,
-        message: 'Token exchange failed. Please try logging in again.',
-      });
-    });
-
-    it('should handle server error during token exchange', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: jest.fn().mockResolvedValue('Server error'),
-      });
-
-      await expect(
-        cardSDK.exchangeToken(mockAuthCodeExchangeData),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.exchangeToken(mockAuthCodeExchangeData),
-      ).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Token exchange failed. Please try again.',
-      });
-    });
-  });
-
-  describe('refreshLocalToken', () => {
-    it('should refresh token successfully', async () => {
-      const mockRefreshToken = 'refresh-token-123';
-      const mockLocation: CardLocation = 'international';
-
-      const mockResponse = {
-        access_token: 'refreshed-access-token',
-        token_type: 'Bearer',
-        expires_in: 3600,
-        refresh_token: 'new-refresh-token',
-        refresh_token_expires_in: 7200,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.refreshLocalToken(
-        mockRefreshToken,
-        mockLocation,
-      );
-
-      const expectedResponse: CardExchangeTokenResponse = {
-        accessToken: 'refreshed-access-token',
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        refreshToken: 'new-refresh-token',
-        refreshTokenExpiresIn: 7200,
-      };
-
-      expect(result).toEqual(expectedResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/oauth/token'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            grant_type: 'refresh_token',
-            refresh_token: mockRefreshToken,
-          }),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'false',
-            'x-client-key': 'test-api-key',
-            'x-secret-key': 'test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('should handle refresh token failure', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 401,
-        text: jest.fn().mockResolvedValue('Invalid refresh token'),
-      });
-
-      await expect(
-        cardSDK.refreshLocalToken('invalid-token', 'us'),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.refreshLocalToken('invalid-token', 'us'),
-      ).rejects.toMatchObject({
-        type: CardErrorType.INVALID_CREDENTIALS,
-        message: 'Token exchange failed. Please try logging in again.',
-      });
-    });
-  });
-
-  describe('isBaanxLoginEnabled', () => {
-    it('should return true when Baanx login is enabled', () => {
-      const enabledFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-        isBaanxLoginEnabled: true,
-      };
-
-      const enabledSDK = new CardSDK({
-        cardFeatureFlag: enabledFeatureFlag,
-      });
-
-      expect(enabledSDK.isBaanxLoginEnabled).toBe(true);
-    });
-
-    it('should return false when Baanx login is disabled', () => {
-      const disabledFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-        isBaanxLoginEnabled: false,
-      };
-
-      const disabledSDK = new CardSDK({
-        cardFeatureFlag: disabledFeatureFlag,
-      });
-
-      expect(disabledSDK.isBaanxLoginEnabled).toBe(false);
-    });
-
-    it('should return false when Baanx login flag is undefined', () => {
-      const undefinedFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-      };
-      delete undefinedFeatureFlag.isBaanxLoginEnabled;
-
-      const undefinedSDK = new CardSDK({
-        cardFeatureFlag: undefinedFeatureFlag,
-      });
-
-      expect(undefinedSDK.isBaanxLoginEnabled).toBe(false);
-    });
-  });
-
-  describe('makeRequest error scenarios', () => {
-    it('should handle unknown error type', async () => {
-      const unknownError = 'string error';
-      (global.fetch as jest.Mock).mockRejectedValue(unknownError);
-
-      await expect(
-        cardSDK.login({
-          email: 'test@example.com',
-          password: 'password',
-          location: 'us',
-        }),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.login({
-          email: 'test@example.com',
-          password: 'password',
-          location: 'us',
-        }),
-      ).rejects.toMatchObject({
-        type: CardErrorType.UNKNOWN_ERROR,
-        message: 'An unexpected error occurred.',
       });
     });
   });

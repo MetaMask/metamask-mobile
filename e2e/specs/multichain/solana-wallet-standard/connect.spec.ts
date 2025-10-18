@@ -11,7 +11,6 @@ import { withSolanaAccountEnabled } from '../../../common-solana';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import { Utilities } from '../../../framework';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
@@ -104,21 +103,10 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
       // Refresh the page
       await SolanaTestDApp.reloadSolanaTestDApp();
 
-      await Utilities.executeWithRetry(
-        async () => {
-          // Should still be connected after refresh
-          const headerAfterRefresh = SolanaTestDApp.getHeader();
-          const accountAfterRefresh = await headerAfterRefresh.getAccount();
-          await Assertions.checkIfTextMatches(
-            accountAfterRefresh,
-            account1Short,
-          );
-        },
-        {
-          timeout: 10000,
-          interval: 1500,
-        },
-      );
+      // Should still be connected after refresh
+      const headerAfterRefresh = SolanaTestDApp.getHeader();
+      const accountAfterRefresh = await headerAfterRefresh.getAccount();
+      await Assertions.checkIfTextMatches(accountAfterRefresh, account1Short);
     });
   });
 });

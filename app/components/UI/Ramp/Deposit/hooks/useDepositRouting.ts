@@ -90,12 +90,6 @@ export const useDepositRouting = () => {
     throws: true,
   });
 
-  const [, getUserLimits] = useDepositSdkMethod({
-    method: 'getUserLimits',
-    onMount: false,
-    throws: true,
-  });
-
   const popToBuildQuote = useCallback(() => {
     navigation.dispatch((state) => {
       const buildQuoteIndex = state.routes.findIndex(
@@ -113,64 +107,6 @@ export const useDepositRouting = () => {
       };
     });
   }, [navigation]);
-
-  const checkUserLimits = useCallback(
-    async (quote: BuyQuote, kycType: string) => {
-      const userLimits = await getUserLimits(
-        selectedRegion?.currency || '',
-        selectedPaymentMethod?.id || '',
-        kycType,
-      );
-
-      if (!userLimits?.remaining) {
-        throw new Error(strings('deposit.buildQuote.limitError'));
-      }
-
-      const { remaining } = userLimits;
-      const dailyLimit = remaining['1'];
-      const monthlyLimit = remaining['30'];
-      const yearlyLimit = remaining['365'];
-
-      if (
-        dailyLimit === undefined ||
-        monthlyLimit === undefined ||
-        yearlyLimit === undefined
-      ) {
-        throw new Error(strings('deposit.buildQuote.limitError'));
-      }
-
-      const depositAmount = quote.fiatAmount;
-      const currency = selectedRegion?.currency || '';
-
-      if (depositAmount > dailyLimit) {
-        throw new Error(
-          strings('deposit.buildQuote.limitExceeded', {
-            period: 'daily',
-            remaining: `${dailyLimit} ${currency}`,
-          }),
-        );
-      }
-
-      if (depositAmount > monthlyLimit) {
-        throw new Error(
-          strings('deposit.buildQuote.limitExceeded', {
-            period: 'monthly',
-            remaining: `${monthlyLimit} ${currency}`,
-          }),
-        );
-      }
-
-      if (depositAmount > yearlyLimit) {
-        throw new Error(
-          strings('deposit.buildQuote.limitExceeded', {
-            period: 'yearly',
-            remaining: `${yearlyLimit} ${currency}`,
-          }),
-        );
-      }
-    },
-    [getUserLimits, selectedRegion?.currency, selectedPaymentMethod?.id],
-  );
 
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote }: { quote: BuyQuote }) => {
@@ -413,8 +349,6 @@ export const useDepositRouting = () => {
                 throw new Error('Missing user details');
               }
 
-              await checkUserLimits(quote, requirements.kycType);
-
               if (selectedPaymentMethod?.isManualBankTransfer) {
                 const order = await createOrder(
                   quote,
@@ -555,7 +489,6 @@ export const useDepositRouting = () => {
       createOrder,
       requestOtt,
       generatePaymentUrl,
-      checkUserLimits,
       selectedWalletAddress,
       themeAppearance,
       colors,

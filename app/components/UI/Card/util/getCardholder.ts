@@ -10,16 +10,10 @@ export const getCardholder = async ({
 }: {
   caipAccountIds: `${string}:${string}:${string}`[];
   cardFeatureFlag: CardFeatureFlag | null;
-}): Promise<{
-  cardholderAddresses: string[];
-  geoLocation: string;
-}> => {
+}) => {
   try {
     if (!cardFeatureFlag || !caipAccountIds?.length) {
-      return {
-        cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
-      };
+      return [];
     }
 
     const cardSDK = new CardSDK({
@@ -27,7 +21,6 @@ export const getCardholder = async ({
     });
 
     const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
-    const geoLocation = await cardSDK.getGeoLocation();
 
     const cardholderAddresses = cardCaipAccountIds.map((cardCaipAccountId) => {
       if (!isCaipAccountId(cardCaipAccountId)) return null;
@@ -39,18 +32,12 @@ export const getCardholder = async ({
       return address.toLowerCase();
     });
 
-    return {
-      cardholderAddresses: cardholderAddresses.filter(Boolean) as string[],
-      geoLocation,
-    };
+    return cardholderAddresses.filter(Boolean) as string[];
   } catch (error) {
     Logger.error(
       error instanceof Error ? error : new Error(String(error)),
       'getCardholder::Error loading cardholder accounts',
     );
-    return {
-      cardholderAddresses: [],
-      geoLocation: 'UNKNOWN',
-    };
+    return [];
   }
 };

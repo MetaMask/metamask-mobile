@@ -221,12 +221,6 @@
     "remind_later_description2": "您可以备份钱包或者在下方查看您的私钥助记词：",
     "setting_security_privacy": "“设置”>“安全和隐私”"
   },
-  "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
-  },
   "onboarding_carousel": {
     "title1": "欢迎使用 MetaMask",
     "title2": "管理您的数字资产",
@@ -395,7 +389,6 @@
     "description": "仅在当前设备上解锁 MetaMask。",
     "description_social_login": "使用此助记词即可在所有设备上恢复钱包。",
     "description_social_login_update": "若丢失此密码，将无法访问所有设备上的钱包。请将其妥善保存在安全的地方，",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask 无法重设该密码。",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
     "password": "创建密码",
@@ -671,14 +664,7 @@
       "bullet_2_description": "USDC 旨在保持价值稳定，让您的规划、储蓄和消费更加轻松。",
       "bullet_3_title": "比银行更快",
       "bullet_3_description": "几分钟即可完成收发，无需等待银行工作时间，同时避免跨境延迟。",
-      "button": "开始",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "button": "开始"
     },
     "enter_email": {
       "navbar_title": "验证您的身份",
@@ -2863,13 +2849,12 @@
   },
   "gas_fee_token_modal": {
     "title": "选择代币",
+    "title_pay_eth": "使用 ETH 支付",
     "native_toggle_wallet": "使用钱包中的余额支付网络费用。",
     "list_balance": "余额：",
     "insufficient_balance": "资金不足",
-    "native_toggle_metamask": "MetaMask 正在补充余额以完成此交易。"
-  },
-  "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "native_toggle_metamask": "MetaMask 正在补充余额以完成此交易。",
+    "title_pay_with_other_tokens": "使用其他代币支付"
   },
   "transaction": {
     "transaction_id": "交易 ID",
@@ -5360,8 +5345,7 @@
       "transfer": "转账请求",
       "switch_account_type": "账户更新",
       "approve": "批准请求",
-      "perps_deposit": "充值",
-      "predict_deposit": "Add Predict funds"
+      "perps_deposit": "充值"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
@@ -5379,9 +5363,6 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
-      },
-      "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "费用"
@@ -5609,9 +5590,7 @@
     "account_not_found": "未找到钱包",
     "account_not_found_description": "我们未找到与 “{{accountName}}” 关联的钱包。您是否想使用当前登录信息创建一个新的钱包？",
     "create_new_wallet": "创建新钱包",
-    "use_different_login_method": "使用其他登录方式",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "use_different_login_method": "使用其他登录方式"
   },
   "error_sheet": {
     "still_there_title": "还在线吗？",
@@ -6338,7 +6317,6 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "交易",
       "perps_deposit": "充值",
-      "predict_deposit": "Add funds",
       "swap": "兑换代币",
       "swap_approval": "批准代币"
     },
@@ -6352,10 +6330,6 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
-    },
-    "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

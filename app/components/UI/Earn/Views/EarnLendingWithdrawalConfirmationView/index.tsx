@@ -47,7 +47,6 @@ import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
-import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -93,9 +92,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-
-  const activeAccountGroup = useSelector(selectSelectedAccountGroup);
-
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
@@ -502,10 +498,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   label: (
                     <AccountTag
                       accountAddress={selectedAccount?.address}
-                      accountName={
-                        activeAccountGroup?.metadata?.name ||
-                        selectedAccount.metadata.name
-                      }
+                      accountName={selectedAccount.metadata.name}
                       avatarAccountType={avatarAccountType}
                     />
                   ),

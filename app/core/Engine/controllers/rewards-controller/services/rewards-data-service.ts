@@ -177,10 +177,6 @@ export type RewardsDataServiceMessenger = RestrictedMessenger<
  * Data service for rewards API endpoints
  */
 export class RewardsDataService {
-  readonly name: typeof SERVICE_NAME = SERVICE_NAME;
-
-  readonly state: null = null;
-
   readonly #messenger: RewardsDataServiceMessenger;
 
   readonly #fetch: typeof fetch;

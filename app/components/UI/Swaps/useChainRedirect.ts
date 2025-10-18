@@ -7,7 +7,7 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
-import { getNativeSourceToken } from '../Bridge/utils/tokenUtils';
+import { getNativeSourceToken } from '../Bridge/hooks/useInitialSourceToken';
 
 /**
  * Hook to handle chain-specific redirection logic
