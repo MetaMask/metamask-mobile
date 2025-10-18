@@ -2432,7 +2432,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Add spot balance to totalBalance (spot is global, not per-DEX)
       let spotBalance = 0;
-      if (spotState?.balances) {
+      if (spotState?.balances && Array.isArray(spotState.balances)) {
         spotBalance = spotState.balances.reduce(
           (sum, balance) => sum + parseFloat(balance.total || '0'),
           0,
@@ -2605,6 +2605,78 @@ export class HyperLiquidProvider implements IPerpsProvider {
           dex: params?.dex,
           symbolCount: params?.symbols?.length,
         }),
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Get list of available HIP-3 DEXs that have markets
+   * Useful for debugging and manual DEX selection
+   * @returns Array of DEX names (excluding main DEX)
+   */
+  async getAvailableHip3Dexs(): Promise<string[]> {
+    try {
+      await this.ensureReady();
+
+      if (!this.equityEnabled) {
+        DevLogger.log('HIP-3 disabled, no DEXs available');
+        return [];
+      }
+
+      const infoClient = this.clientService.getInfoClient();
+
+      // Get all DEXs from API
+      const allDexs = await infoClient.perpDexs();
+
+      if (!allDexs || !Array.isArray(allDexs)) {
+        DevLogger.log('perpDexs() returned invalid data');
+        return [];
+      }
+
+      // Extract HIP-3 DEX names (filter out null which is main DEX)
+      const hip3DexNames: string[] = [];
+      allDexs.forEach((dex) => {
+        if (dex !== null && 'name' in dex) {
+          hip3DexNames.push(dex.name);
+        }
+      });
+
+      DevLogger.log(
+        `Found ${hip3DexNames.length} HIP-3 DEXs from perpDexs() API`,
+      );
+
+      // Filter to only DEXs that have markets
+      const dexsWithMarkets: string[] = [];
+      await Promise.all(
+        hip3DexNames.map(async (dexName) => {
+          try {
+            const meta = await infoClient.meta({ dex: dexName });
+            if (
+              meta.universe &&
+              Array.isArray(meta.universe) &&
+              meta.universe.length > 0
+            ) {
+              dexsWithMarkets.push(dexName);
+              DevLogger.log(`  ✅ ${dexName}: ${meta.universe.length} markets`);
+            } else {
+              DevLogger.log(`  ⚠️ ${dexName}: no markets`);
+            }
+          } catch (error) {
+            DevLogger.log(`  ❌ ${dexName}: error querying`, error);
+          }
+        }),
+      );
+
+      DevLogger.log(
+        `${dexsWithMarkets.length} DEXs have markets:`,
+        dexsWithMarkets,
+      );
+      return dexsWithMarkets.sort();
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getAvailableHip3Dexs'),
       );
       return [];
     }

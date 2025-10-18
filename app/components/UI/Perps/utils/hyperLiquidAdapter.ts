@@ -286,7 +286,7 @@ export function adaptAccountStateFromSDK(
 
   // Get Spot balance (if available)
   let spotBalance = 0;
-  if (spotState?.balances) {
+  if (spotState?.balances && Array.isArray(spotState.balances)) {
     spotBalance = spotState.balances.reduce(
       (sum: number, balance: { total?: string }) =>
         sum + parseFloat(balance.total || '0'),

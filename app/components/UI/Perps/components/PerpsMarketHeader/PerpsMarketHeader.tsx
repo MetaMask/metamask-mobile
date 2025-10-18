@@ -39,7 +39,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  // Determine badge type using centralized utility
   const badgeType = getMarketBadgeType(market);
 
   return (

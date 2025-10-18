@@ -37,6 +37,11 @@ const HIP3DebugView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const provider = getHyperLiquidProvider();
 
+  // DEX selection state
+  const [availableDexs, setAvailableDexs] = useState<string[]>([]);
+  const [selectedDex, setSelectedDex] = useState<string | null>(null);
+  const [loadingDexs, setLoadingDexs] = useState(false);
+
   // Market selection state
   const [markets, setMarkets] = useState<MarketInfo[]>([]);
   const [selectedMarket, setSelectedMarket] = useState<string | null>(null);
@@ -66,26 +71,72 @@ const HIP3DebugView: React.FC = () => {
     status: 'idle',
   });
 
-  // Load HIP-3 markets on mount
+  // Load available DEXs using the provider's getAvailableHip3Dexs method
+  useEffect(() => {
+    const loadDexs = async () => {
+      if (!provider) return;
+
+      setLoadingDexs(true);
+      try {
+        DevLogger.log('🔍 Fetching HIP-3 DEXs with markets...');
+
+        // Use the provider's method to get DEXs that have markets
+        const dexsWithMarkets = await provider.getAvailableHip3Dexs();
+
+        if (dexsWithMarkets.length > 0) {
+          setAvailableDexs(dexsWithMarkets);
+          setSelectedDex(dexsWithMarkets[0]); // Select first DEX by default
+          DevLogger.log(
+            `✅ Loaded ${dexsWithMarkets.length} HIP-3 DEXs with markets`,
+          );
+        } else {
+          DevLogger.log('⚠️ No HIP-3 DEXs with markets found');
+          DevLogger.log('This might mean:');
+          DevLogger.log('  1. HIP-3 feature is disabled (check equity flag)');
+          DevLogger.log('  2. All testnet DEXs have empty universes');
+          DevLogger.log('  3. API connectivity issues');
+        }
+      } catch (error) {
+        const errorInfo =
+          error instanceof Error
+            ? { message: error.message, stack: error.stack }
+            : String(error);
+        DevLogger.log(
+          '❌ Failed to load DEXs:\n' + JSON.stringify(errorInfo, null, 2),
+        );
+      }
+      setLoadingDexs(false);
+    };
+
+    loadDexs();
+  }, [provider]);
+
+  // Load markets for selected DEX
   useEffect(() => {
     const loadMarkets = async () => {
-      if (!provider) return;
+      if (!provider || !selectedDex) return;
 
       setLoadingMarkets(true);
       try {
         const allMarkets = await provider.getMarkets();
-        // Filter only HIP-3 markets (have ":" in name, e.g., "xyz:XYZ100")
-        const hip3Markets = allMarkets.filter((m) => m.name.includes(':'));
-        setMarkets(hip3Markets);
-        if (hip3Markets.length > 0) {
-          setSelectedMarket(hip3Markets[0].name); // Select first by default
+        // Filter markets for selected DEX only
+        const dexMarkets = allMarkets.filter((m) =>
+          m.name.startsWith(`${selectedDex}:`),
+        );
+        setMarkets(dexMarkets);
+        if (dexMarkets.length > 0) {
+          setSelectedMarket(dexMarkets[0].name); // Select first market by default
+        } else {
+          setSelectedMarket(null);
         }
-        DevLogger.log(`✅ Loaded ${hip3Markets.length} HIP-3 markets`);
-        if (hip3Markets.length > 0) {
+        DevLogger.log(
+          `✅ Loaded ${dexMarkets.length} markets for DEX "${selectedDex}"`,
+        );
+        if (dexMarkets.length > 0) {
           DevLogger.log(
             'Available markets:\n' +
               JSON.stringify(
-                hip3Markets.map((m) => m.name),
+                dexMarkets.map((m) => m.name),
                 null,
                 2,
               ),
@@ -104,7 +155,7 @@ const HIP3DebugView: React.FC = () => {
     };
 
     loadMarkets();
-  }, [provider]);
+  }, [provider, selectedDex]);
 
   const checkBalance = async () => {
     if (!provider) return;
@@ -170,21 +221,23 @@ const HIP3DebugView: React.FC = () => {
     }
   };
 
-  const testTransferToXyz = async () => {
-    if (!provider) return;
+  const testTransferToSelectedDex = async () => {
+    if (!provider || !selectedDex) return;
 
     setTransferResult({ status: 'loading' });
-    DevLogger.log('=== TESTING TRANSFER TO XYZ DEX ===');
+    DevLogger.log(
+      `=== TESTING TRANSFER TO ${selectedDex.toUpperCase()} DEX ===`,
+    );
 
     try {
       const result = await provider.transferBetweenDexs({
         sourceDex: '',
-        destinationDex: 'xyz',
+        destinationDex: selectedDex,
         amount: '10',
       });
 
       if (result.success) {
-        const message = `✅ Transferred $10 from main to xyz DEX`;
+        const message = `✅ Transferred $10 from main to ${selectedDex} DEX`;
         DevLogger.log(message);
         setTransferResult({
           status: 'success',
@@ -210,21 +263,23 @@ const HIP3DebugView: React.FC = () => {
     }
   };
 
-  const testTransferFromXyz = async () => {
-    if (!provider) return;
+  const testTransferFromSelectedDex = async () => {
+    if (!provider || !selectedDex) return;
 
     setTransferResult({ status: 'loading' });
-    DevLogger.log('=== TESTING TRANSFER FROM XYZ DEX ===');
+    DevLogger.log(
+      `=== TESTING TRANSFER FROM ${selectedDex.toUpperCase()} DEX ===`,
+    );
 
     try {
       const result = await provider.transferBetweenDexs({
-        sourceDex: 'xyz',
+        sourceDex: selectedDex,
         destinationDex: '',
         amount: '10',
       });
 
       if (result.success) {
-        const message = `✅ Transferred $10 from xyz to main DEX`;
+        const message = `✅ Transferred $10 from ${selectedDex} to main DEX`;
         DevLogger.log(message);
         setTransferResult({
           status: 'success',
@@ -347,30 +402,30 @@ const HIP3DebugView: React.FC = () => {
   };
 
   const testCloseWithAutoTransferBack = async () => {
-    if (!provider) return;
+    if (!provider || !selectedDex) return;
 
     setCloseResult({ status: 'loading' });
     DevLogger.log('=== TESTING CLOSE WITH AUTO-TRANSFER BACK ===');
 
     try {
-      // Get all positions and filter for xyz DEX
+      // Get all positions and filter for selected DEX
       // HIP-3 positions have format: dex:coin (e.g., "xyz:XYZ100")
       const allPositions = await provider.getPositions();
-      const xyzPositions = allPositions.filter((p) =>
-        p.coin.startsWith('xyz:'),
+      const dexPositions = allPositions.filter((p) =>
+        p.coin.startsWith(`${selectedDex}:`),
       );
 
-      if (xyzPositions.length === 0) {
+      if (dexPositions.length === 0) {
         setCloseResult({
           status: 'error',
-          error: 'No positions on xyz DEX to close',
+          error: `No positions on ${selectedDex} DEX to close`,
         });
-        DevLogger.log('⚠️ No positions on xyz DEX to close');
+        DevLogger.log(`⚠️ No positions on ${selectedDex} DEX to close`);
         return;
       }
 
-      // Close first xyz position
-      const position = xyzPositions[0];
+      // Close first position on selected DEX
+      const position = dexPositions[0];
       DevLogger.log('Closing position:\n' + JSON.stringify(position, null, 2));
 
       const result = await provider.closePosition({
@@ -434,52 +489,102 @@ const HIP3DebugView: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView style={styles.scrollView}>
-        {/* Market Selector Section */}
+        {/* DEX Selector Section */}
         <View style={styles.section}>
           <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-            Select HIP-3 Market
+            Step 1: Select HIP-3 DEX
           </Text>
           <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-            Choose a market for testing order placement
+            Choose a DEX to test (avoids querying all {availableDexs.length}{' '}
+            DEXs)
           </Text>
 
-          {loadingMarkets ? (
+          {loadingDexs ? (
             <ActivityIndicator style={styles.loader} />
-          ) : markets.length === 0 ? (
+          ) : availableDexs.length === 0 ? (
             <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-              No HIP-3 markets available
+              No HIP-3 DEXs available
             </Text>
           ) : (
             <View>
               <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-                Selected: {selectedMarket || 'None'}
+                Selected: {selectedDex || 'None'}
               </Text>
-              {markets.slice(0, 5).map((market) => (
+              {availableDexs.slice(0, 10).map((dex) => (
                 <TouchableOpacity
-                  key={market.name}
+                  key={dex}
                   style={[
                     styles.button,
-                    selectedMarket === market.name
+                    selectedDex === dex
                       ? styles.button
                       : styles.buttonSecondary,
                   ]}
-                  onPress={() => setSelectedMarket(market.name)}
+                  onPress={() => setSelectedDex(dex)}
                 >
                   <Text
                     variant={TextVariant.BodyMD}
                     style={
-                      selectedMarket === market.name
+                      selectedDex === dex
                         ? styles.buttonText
                         : styles.buttonTextSecondary
                     }
                   >
-                    {market.name}
+                    {dex}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
           )}
         </View>
+
+        {/* Market Selector Section */}
+        {selectedDex && (
+          <View style={styles.section}>
+            <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+              Step 2: Select Market
+            </Text>
+            <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+              Choose a market on {selectedDex} DEX for testing
+            </Text>
+
+            {loadingMarkets ? (
+              <ActivityIndicator style={styles.loader} />
+            ) : markets.length === 0 ? (
+              <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+                No markets available for {selectedDex}
+              </Text>
+            ) : (
+              <View>
+                <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+                  Selected: {selectedMarket || 'None'}
+                </Text>
+                {markets.slice(0, 5).map((market) => (
+                  <TouchableOpacity
+                    key={market.name}
+                    style={[
+                      styles.button,
+                      selectedMarket === market.name
+                        ? styles.button
+                        : styles.buttonSecondary,
+                    ]}
+                    onPress={() => setSelectedMarket(market.name)}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      style={
+                        selectedMarket === market.name
+                          ? styles.buttonText
+                          : styles.buttonTextSecondary
+                      }
+                    >
+                      {market.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Balance Check Section */}
         <View style={styles.section}>
@@ -566,21 +671,26 @@ const HIP3DebugView: React.FC = () => {
             Manual Transfer Testing
           </Text>
 
-          <TouchableOpacity style={styles.button} onPress={testTransferToXyz}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={testTransferToSelectedDex}
+            disabled={!selectedDex}
+          >
             <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
-              Transfer $10 → xyz DEX
+              Transfer $10 → {selectedDex || '(select DEX)'} DEX
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.button, styles.buttonSecondary]}
-            onPress={testTransferFromXyz}
+            onPress={testTransferFromSelectedDex}
+            disabled={!selectedDex}
           >
             <Text
               variant={TextVariant.BodyMD}
               style={[styles.buttonText, styles.buttonTextSecondary]}
             >
-              Transfer $10 ← xyz DEX
+              Transfer $10 ← {selectedDex || '(select DEX)'} DEX
             </Text>
           </TouchableOpacity>
 

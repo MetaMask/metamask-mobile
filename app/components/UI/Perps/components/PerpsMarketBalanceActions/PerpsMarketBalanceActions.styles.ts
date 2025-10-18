@@ -25,10 +25,6 @@ const styleSheet = ({ theme }: { theme: Theme }) => {
     activityIndicator: {
       color: colors.icon.default,
     },
-    debugButton: {
-      padding: 8,
-      opacity: 0.6,
-    },
   });
 };
 
