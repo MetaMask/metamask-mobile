@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { debounce } from 'lodash';
+// @ts-expect-error - react-navigation types
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -31,8 +32,8 @@ import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
-import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -63,6 +64,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
     balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
   });
+
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
       dispatch(setDestToken(token));
@@ -99,20 +101,19 @@ export const BridgeDestTokenSelector: React.FC = () => {
         networkConfigurations,
       );
 
-      // Open the asset details screen as a bottom sheet
-      // Use dispatch with unique key to force new modal instance
+      // Open the token insights bottom sheet
       const handleInfoButtonPress = () => {
-        navigation.dispatch({
-          type: 'NAVIGATE',
-          payload: {
-            name: 'Asset',
-            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
-            params: { ...item },
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.TOKEN_INSIGHTS,
+          params: {
+            token: item,
+            networkName,
           },
         });
 
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-          UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+          // @ts-expect-error - Event name type mismatch
+          'Unified SwapBridge Asset Detail Tooltip Clicked',
           {
             token_name: item.name ?? 'Unknown',
             token_symbol: item.symbol,
