@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 import {
@@ -41,6 +42,7 @@ export const createFiatSelectorModalNavigationDetails =
 function FiatSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<FiatCurrency>>(null);
+  const navigation = useNavigation();
 
   const { currencies } = useParams<FiatSelectorModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
@@ -75,9 +77,11 @@ function FiatSelectorModal() {
   const handleSelectCurrency = useCallback(
     (currency: FiatCurrency) => {
       setSelectedFiatCurrencyId(currency?.id);
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.goBack();
+      });
     },
-    [setSelectedFiatCurrencyId],
+    [setSelectedFiatCurrencyId, navigation],
   );
 
   const renderItem = useCallback(
@@ -134,8 +138,14 @@ function FiatSelectorModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          sheetRef.current?.onCloseBottomSheet(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp_aggregator.select_region_currency')}
         </Text>

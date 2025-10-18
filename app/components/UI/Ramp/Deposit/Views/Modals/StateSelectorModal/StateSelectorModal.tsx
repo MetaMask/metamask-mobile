@@ -102,7 +102,9 @@ function StateSelectorModal() {
         });
       } else {
         onStateSelect(state.code);
-        sheetRef.current?.onCloseBottomSheet();
+        sheetRef.current?.onCloseBottomSheet(() => {
+          navigation.goBack();
+        });
       }
     },
     [navigation, onStateSelect],
@@ -155,8 +157,14 @@ function StateSelectorModal() {
   }, [scrollToTop]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          sheetRef.current?.onCloseBottomSheet(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.state_modal.select_a_state')}
         </Text>

@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
+import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -44,6 +45,7 @@ export const createRegionSelectorModalNavigationDetails =
 function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<DepositRegion>>(null);
+  const navigation = useNavigation();
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
@@ -105,10 +107,12 @@ function RegionSelectorModal() {
         });
 
         setSelectedRegion(region);
-        sheetRef.current?.onCloseBottomSheet();
+        sheetRef.current?.onCloseBottomSheet(() => {
+          navigation.goBack();
+        });
       }
     },
-    [setSelectedRegion, isAuthenticated, trackEvent],
+    [setSelectedRegion, isAuthenticated, trackEvent, navigation],
   );
 
   const renderRegionItem = useCallback(
@@ -180,8 +184,14 @@ function RegionSelectorModal() {
   }, [scrollToTop]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          sheetRef.current?.onCloseBottomSheet(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.region_modal.select_a_region')}
         </Text>

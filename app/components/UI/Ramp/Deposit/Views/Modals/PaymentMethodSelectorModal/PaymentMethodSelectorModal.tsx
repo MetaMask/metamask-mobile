@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
@@ -42,6 +43,7 @@ export const createPaymentMethodSelectorModalNavigationDetails =
 function PaymentMethodSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
   const { height: screenHeight } = useWindowDimensions();
   const { themeAppearance } = useTheme();
   const { styles } = useStyles(styleSheet, {
@@ -71,7 +73,9 @@ function PaymentMethodSelectorModal() {
         });
         setSelectedPaymentMethod(foundPaymentMethod);
       }
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.goBack();
+      });
     },
     [
       paymentMethods,
@@ -79,6 +83,7 @@ function PaymentMethodSelectorModal() {
       selectedRegion?.isoCode,
       isAuthenticated,
       setSelectedPaymentMethod,
+      navigation,
     ],
   );
 
@@ -121,8 +126,14 @@ function PaymentMethodSelectorModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          sheetRef.current?.onCloseBottomSheet(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.payment_modal.select_a_payment_method')}
         </Text>
