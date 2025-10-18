@@ -78,4 +78,50 @@ describe('buildTokenIconUrl', () => {
     const result = buildTokenIconUrl(chainId, address);
     expect(result).toBe(expected);
   });
+
+  describe('Solana chains', () => {
+    it('returns correct URL for Solana mainnet', () => {
+      const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const address = 'So11111111111111111111111111111111111111112';
+
+      const result = buildTokenIconUrl(chainId, address);
+
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/So11111111111111111111111111111111111111112.png',
+      );
+    });
+
+    it('preserves original case for Solana token address', () => {
+      const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const address = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+      const result = buildTokenIconUrl(chainId, address);
+
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+      );
+    });
+
+    it('uses solana network prefix and token type for Solana chains', () => {
+      const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const address = 'So11111111111111111111111111111111111111112';
+
+      const result = buildTokenIconUrl(chainId, address);
+
+      expect(result).toContain('/solana/');
+      expect(result).toContain('/token/');
+      expect(result).not.toContain('/eip155/');
+      expect(result).not.toContain('/erc20/');
+    });
+
+    it('removes solana prefix from chainId in URL', () => {
+      const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const address = 'So11111111111111111111111111111111111111112';
+
+      const result = buildTokenIconUrl(chainId, address);
+
+      expect(result).toContain('/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/');
+      expect(result).not.toContain('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+    });
+  });
 });

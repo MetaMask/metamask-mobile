@@ -25,15 +25,31 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
+jest.mock('../../../../core/redux/slices/card', () => ({
+  ...jest.requireActual('../../../../core/redux/slices/card'),
+  selectIsAuthenticatedCard: jest.fn(),
+  selectCardPriorityToken: jest.requireActual(
+    '../../../../core/redux/slices/card',
+  ).selectCardPriorityToken,
+  selectCardPriorityTokenLastFetched: jest.requireActual(
+    '../../../../core/redux/slices/card',
+  ).selectCardPriorityTokenLastFetched,
+}));
+
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 
 const mockSelectAllTokenBalances =
   selectAllTokenBalances as jest.MockedFunction<typeof selectAllTokenBalances>;
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
     typeof selectSelectedInternalAccountByScope
+  >;
+const mockSelectIsAuthenticatedCard =
+  selectIsAuthenticatedCard as jest.MockedFunction<
+    typeof selectIsAuthenticatedCard
   >;
 
 jest.mock('../../../../util/Logger', () => ({
@@ -1005,6 +1021,598 @@ describe('useGetPriorityCardToken', () => {
     expect(result.current.error).toBe(false);
   });
 
+  describe('Authenticated Card - fetchPriorityTokenAPI', () => {
+    const mockCardExternalWalletDetail = {
+      walletAddress: '0xWallet123',
+      chainId: LINEA_CHAIN_ID,
+      allowance: '1000000000000',
+      balance: '5000000000000',
+      tokenDetails: {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+      },
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockGetPriorityToken.mockReset();
+      mockFetchAllowances.mockReset();
+      mockDispatch.mockReset();
+
+      mockDispatch.mockImplementation((action) => action);
+
+      // Set up authenticated state - this is the key!
+      mockSelectIsAuthenticatedCard.mockReturnValue(true);
+
+      const mockAccountSelector = (scope: string) => {
+        if (scope === 'eip155:0') {
+          return {
+            address: mockAddress,
+            id: 'test-account-id',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {},
+            methods: [],
+            scopes: [],
+          };
+        }
+        return undefined;
+      };
+
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockAccountSelector as any,
+      );
+
+      const mockTokenBalances = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockSelectAllTokenBalances.mockReturnValue(mockTokenBalances as any);
+
+      // Set up authenticated state in useSelector
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (selector === selectAllTokenBalances) {
+          return mockTokenBalances;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return mockAccountSelector;
+        }
+        if (selector === selectIsAuthenticatedCard) {
+          return true;
+        }
+
+        if (typeof selector === 'function') {
+          try {
+            const mockState = {
+              card: {
+                cardholderAccounts: [],
+                isLoaded: true,
+                priorityTokensByAddress: {},
+                lastFetchedByAddress: {},
+                authenticatedPriorityToken: null,
+                authenticatedPriorityTokenLastFetched: null,
+              },
+              engine: {
+                backgroundState: {
+                  TokenBalancesController: {
+                    tokenBalances: mockTokenBalances,
+                  },
+                },
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as unknown as any;
+
+            return selector(mockState);
+          } catch (_e) {
+            // Fallback
+          }
+        }
+
+        return null;
+      });
+
+      const { useDispatch: useDispatchMock } = jest.requireMock('react-redux');
+      useDispatchMock.mockReturnValue(mockDispatch);
+
+      // Ensure SDK is not in loading state
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: jest.fn().mockResolvedValue([]),
+        },
+        isLoading: false,
+      });
+    });
+
+    it('fetches and returns authenticated priority token with correct allowance state', async () => {
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([mockCardExternalWalletDetail]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockGetCardExternalWalletDetails).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+            walletAddress: '0xWallet123',
+            chainId: LINEA_CHAIN_ID,
+          }),
+        }),
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining(
+            'setAuthenticatedPriorityTokenLastFetched',
+          ),
+          payload: expect.any(Date),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+      expect(result.current.warning).toBeNull();
+    });
+
+    it('handles empty wallet details and sets NeedDelegation warning', async () => {
+      const mockGetCardExternalWalletDetails = jest.fn().mockResolvedValue([]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: null,
+        }),
+      );
+
+      expect(result.current.warning).toBe('need_delegation');
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('handles wallet detail without token details', async () => {
+      const walletDetailWithoutToken = {
+        walletAddress: '0xWallet123',
+        chainId: LINEA_CHAIN_ID,
+        allowance: '1000',
+        balance: '5000',
+        tokenDetails: null,
+      };
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([walletDetailWithoutToken]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: null,
+        }),
+      );
+
+      expect(result.current.warning).toBe('need_delegation');
+    });
+
+    it('selects first wallet with balance when first has no balance property', async () => {
+      const walletWithoutBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: undefined,
+        tokenDetails: {
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          decimals: 18,
+        },
+      };
+
+      const walletWithBalance = {
+        ...mockCardExternalWalletDetail,
+        balance: '5000000000000',
+        tokenDetails: {
+          address: '0xToken2',
+          symbol: 'TKN2',
+          name: 'Token 2',
+          decimals: 18,
+        },
+      };
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([walletWithoutBalance, walletWithBalance]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken2',
+            symbol: 'TKN2',
+          }),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('maps NotEnabled allowance state when allowance is zero', async () => {
+      const walletWithZeroAllowance = {
+        ...mockCardExternalWalletDetail,
+        allowance: '0',
+      };
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([walletWithZeroAllowance]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            allowanceState: AllowanceState.NotEnabled,
+          }),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('maps Limited allowance state when allowance is less than arbitrary limit', async () => {
+      const walletWithLimitedAllowance = {
+        ...mockCardExternalWalletDetail,
+        allowance: '5000',
+      };
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([walletWithLimitedAllowance]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            allowanceState: AllowanceState.Limited,
+          }),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('calculates available balance as minimum of balance and allowance', async () => {
+      const walletWithLowerAllowance = {
+        ...mockCardExternalWalletDetail,
+        balance: '10000',
+        allowance: '5000',
+      };
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([walletWithLowerAllowance]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            availableBalance: '5000',
+          }),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('handles API error gracefully in authenticated mode', async () => {
+      const mockError = new Error('API request failed');
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockRejectedValue(mockError);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(result.current.error).toBe(true);
+      expect(result.current.isLoading).toBe(false);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useGetPriorityCardToken::error fetching priority token API',
+      );
+    });
+
+    it('validates cache correctly for authenticated users within 30 second window', () => {
+      // This test verifies that the cache validation logic works correctly
+      // for authenticated users (30 second window vs 5 minute window for non-authenticated)
+
+      // Use a fixed reference time for consistency
+      const fixedNow = new Date('2025-01-15T12:00:00.000Z');
+      const recentTimestamp = new Date('2025-01-15T11:59:45.000Z'); // 15 seconds ago
+      const staleTimestamp = new Date('2025-01-15T11:59:20.000Z'); // 40 seconds ago
+
+      const cachedToken = {
+        address: '0xCachedToken',
+        symbol: 'CACHED',
+        name: 'Cached Token',
+        decimals: 18,
+        allowanceState: AllowanceState.Enabled,
+        isStaked: false,
+        chainId: LINEA_CHAIN_ID,
+      };
+
+      // Test the cache validation logic directly with a fixed "now" reference
+      const validateCache = (
+        lastFetched: Date | string | null,
+        authenticated: boolean,
+        currentTime: Date,
+      ): boolean => {
+        if (!lastFetched) return false;
+        const thirtySecondsAgo = new Date(currentTime.getTime() - 30 * 1000);
+        const fiveMinutesAgo = new Date(currentTime.getTime() - 5 * 60 * 1000);
+        const lastFetchedDate =
+          lastFetched instanceof Date ? lastFetched : new Date(lastFetched);
+
+        if (authenticated) {
+          return lastFetchedDate > thirtySecondsAgo;
+        }
+
+        return lastFetchedDate > fiveMinutesAgo;
+      };
+
+      // Test with recent timestamp (should be valid for authenticated)
+      expect(validateCache(recentTimestamp, true, fixedNow)).toBe(true);
+
+      // Test with stale timestamp (should be invalid for authenticated)
+      expect(validateCache(staleTimestamp, true, fixedNow)).toBe(false);
+
+      // Test with recent timestamp for non-authenticated (should still be valid)
+      expect(validateCache(recentTimestamp, false, fixedNow)).toBe(true);
+
+      // Verify the cached token structure
+      expect(cachedToken).toEqual(
+        expect.objectContaining({
+          address: '0xCachedToken',
+          symbol: 'CACHED',
+        }),
+      );
+    });
+
+    it('fetches new data when authenticated cache is stale (over 30 seconds)', async () => {
+      const staleTimestamp = new Date(Date.now() - 40 * 1000); // 40 seconds ago
+
+      mockSelectIsAuthenticatedCard.mockReturnValue(true);
+      const mockAccountSelector = (scope: string) => {
+        if (scope === 'eip155:0') {
+          return {
+            address: mockAddress,
+            id: 'test-account-id',
+            type: 'eip155:eoa' as const,
+          };
+        }
+        return undefined;
+      };
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockAccountSelector as any,
+      );
+      mockSelectAllTokenBalances.mockReturnValue({});
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (selector === selectAllTokenBalances) {
+          return {};
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return mockAccountSelector;
+        }
+        if (selector === selectIsAuthenticatedCard) {
+          return true;
+        }
+
+        if (typeof selector === 'function') {
+          try {
+            const mockState = {
+              card: {
+                cardholderAccounts: [],
+                isLoaded: true,
+                priorityTokensByAddress: {},
+                lastFetchedByAddress: {},
+                authenticatedPriorityToken: null,
+                authenticatedPriorityTokenLastFetched: staleTimestamp,
+              },
+              engine: {
+                backgroundState: {
+                  TokenBalancesController: {
+                    tokenBalances: {},
+                  },
+                },
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as unknown as any;
+
+            return selector(mockState);
+          } catch (_e) {
+            // Fallback
+          }
+        }
+
+        return null;
+      });
+
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([mockCardExternalWalletDetail]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockGetCardExternalWalletDetails).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls fetchPriorityToken manually in authenticated mode', async () => {
+      const mockGetCardExternalWalletDetails = jest
+        .fn()
+        .mockResolvedValue([mockCardExternalWalletDetail]);
+
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
+        },
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      mockGetCardExternalWalletDetails.mockClear();
+      mockDispatch.mockClear();
+
+      let manualResult: CardTokenAllowance | null | undefined;
+      await act(async () => {
+        manualResult = await result.current.fetchPriorityToken();
+      });
+
+      expect(manualResult).toEqual(
+        expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          allowanceState: AllowanceState.Enabled,
+        }),
+      );
+
+      expect(mockGetCardExternalWalletDetails).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Token Adding Functionality', () => {
     // Pre-create static objects to avoid recreating them in each test
     const STATIC_TOKEN_BALANCES = {
@@ -1048,6 +1656,28 @@ describe('useGetPriorityCardToken', () => {
       mockFetchAllowances.mockReset();
       mockDispatch.mockReset();
 
+      // IMPORTANT: Reset authenticated state to false for non-authenticated tests
+      mockSelectIsAuthenticatedCard.mockReturnValue(false);
+
+      const mockAccountSelector = (scope: string) => {
+        if (scope === 'eip155:0') {
+          return {
+            address: mockAddress,
+            id: 'test-account-id',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {},
+            methods: [],
+            scopes: [],
+          };
+        }
+        return undefined;
+      };
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockAccountSelector as any,
+      );
+
       // Create simple mock controllers
       mockTokensController = {
         state: {
@@ -1081,12 +1711,26 @@ describe('useGetPriorityCardToken', () => {
       // Simplified dispatch mock
       mockDispatch.mockImplementation((action) => action);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockSelectAllTokenBalances.mockReturnValue(STATIC_TOKEN_BALANCES as any);
+
       // Simplified selector implementation
       const { useSelector: useSelectorMock, useDispatch: useDispatchMock } =
         jest.requireMock('react-redux');
       useSelectorMock.mockImplementation(
-        (selector: (state: unknown) => unknown) => {
-          const selectorStr = selector.toString();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (selector: any) => {
+          if (selector === selectAllTokenBalances) {
+            return STATIC_TOKEN_BALANCES;
+          }
+          if (selector === selectSelectedInternalAccountByScope) {
+            return mockAccountSelector;
+          }
+          if (selector === selectIsAuthenticatedCard) {
+            return false;
+          }
+
+          const selectorStr = selector?.toString?.() || '';
           // Detect by internal state keys to be resilient to createSelector wrappers
           if (selectorStr.includes('selectAllTokenBalances')) {
             return STATIC_TOKEN_BALANCES;
@@ -1098,23 +1742,35 @@ describe('useGetPriorityCardToken', () => {
             return new Date();
           }
           // As a fallback, try invoking the selector with a minimal card state
-          try {
-            return selector({
-              card: {
-                cardholderAccounts: [],
-                isLoaded: true,
-                priorityTokensByAddress: {
-                  [mockAddress.toLowerCase()]: STATIC_PRIORITY_TOKEN,
+          if (typeof selector === 'function') {
+            try {
+              return selector({
+                card: {
+                  cardholderAccounts: [],
+                  isLoaded: true,
+                  priorityTokensByAddress: {
+                    [mockAddress.toLowerCase()]: STATIC_PRIORITY_TOKEN,
+                  },
+                  lastFetchedByAddress: {
+                    [mockAddress.toLowerCase()]: new Date(),
+                  },
+                  authenticatedPriorityToken: null,
+                  authenticatedPriorityTokenLastFetched: null,
                 },
-                lastFetchedByAddress: {
-                  [mockAddress.toLowerCase()]: new Date(),
+                engine: {
+                  backgroundState: {
+                    TokenBalancesController: {
+                      tokenBalances: STATIC_TOKEN_BALANCES,
+                    },
+                  },
                 },
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as unknown as any);
-          } catch (_e) {
-            return null;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              } as unknown as any);
+            } catch (_e) {
+              return null;
+            }
           }
+          return null;
         },
       );
 

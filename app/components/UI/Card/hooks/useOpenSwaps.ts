@@ -11,10 +11,7 @@ import { BridgeToken } from '../../Bridge/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
-import {
-  setDestAddress,
-  setDestToken,
-} from '../../../../core/redux/slices/bridge';
+import { setDestToken } from '../../../../core/redux/slices/bridge';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
@@ -65,10 +62,6 @@ export const useOpenSwaps = ({
   const openSwaps = useCallback(
     ({ chainId, beforeNavigate }: OpenSwapsParams) => {
       if (!priorityToken) return;
-
-      if (priorityToken.walletAddress) {
-        dispatch(setDestAddress(priorityToken.walletAddress));
-      }
 
       const destToken: BridgeToken = {
         ...priorityToken,

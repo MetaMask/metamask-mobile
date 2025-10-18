@@ -733,10 +733,239 @@ describe('useAssetBalance', () => {
     });
   });
 
+  describe('availableBalance handling (authenticated card scenario)', () => {
+    beforeEach(() => {
+      const { isSolanaChainId } = jest.requireMock(
+        '@metamask/bridge-controller',
+      );
+      // Reset isSolanaChainId to false for EVM tests
+      isSolanaChainId.mockReturnValue(false);
+      // Clear the mock to ensure clean state for each test
+      mockDeriveBalanceFromAssetMarketDetails.mockClear();
+    });
+
+    it('returns calculated balance for EVM token with availableBalance', () => {
+      const tokenWithAvailableBalance: CardTokenAllowance = {
+        ...mockToken,
+        availableBalance: '500.50',
+        chainId: '0x1',
+      };
+
+      mockSelectAsset.mockReturnValue(mockEvmAsset);
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balance: '500.50',
+        balanceFiat: '$1,001.00',
+        balanceValueFormatted: '500.50 TEST',
+        balanceFiatCalculation: 1001,
+      });
+
+      const { result } = renderHook(() =>
+        useAssetBalance(tokenWithAvailableBalance),
+      );
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.asset?.balance).toBe('500.50');
+      expect(result.current.balanceFiat).toBe('$1,001.00');
+      expect(result.current.rawTokenBalance).toBe(500.5);
+      expect(result.current.rawFiatNumber).toBe(1001);
+    });
+
+    it('calculates balance for Solana token with availableBalance and conversion rate', () => {
+      const { isSolanaChainId } = jest.requireMock(
+        '@metamask/bridge-controller',
+      );
+      isSolanaChainId.mockReturnValue(true);
+
+      const solanaToken: CardTokenAllowance = {
+        ...mockToken,
+        availableBalance: '100.5',
+        chainId: 'solana:mainnet',
+        address: '0xSolanaToken',
+      };
+
+      const mockEngine = jest.requireMock('../../../../core/Engine');
+      mockEngine.context.MultichainAssetsRatesController.state.conversionRates =
+        {
+          'solana:mainnet/token:0xSolanaToken': {
+            rate: '50',
+          },
+        };
+
+      const { balanceToFiatNumber } = jest.requireMock(
+        '../../../../util/number',
+      );
+      balanceToFiatNumber.mockReturnValue('5025');
+
+      mockSelectAsset.mockReturnValue({
+        ...mockEvmAsset,
+        address: '0xSolanaToken',
+        chainId: 'solana:mainnet',
+        symbol: 'SOL',
+      });
+
+      const { result } = renderHook(() => useAssetBalance(solanaToken));
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.balanceFiat).toBe('$5025');
+      expect(result.current.rawFiatNumber).toBeUndefined();
+      expect(balanceToFiatNumber).toHaveBeenCalledWith('100.5', 50, 1);
+    });
+
+    it('falls back to balance + symbol for Solana token without conversion rate', () => {
+      const { isSolanaChainId } = jest.requireMock(
+        '@metamask/bridge-controller',
+      );
+      isSolanaChainId.mockReturnValue(true);
+
+      const solanaToken: CardTokenAllowance = {
+        ...mockToken,
+        availableBalance: '100.5',
+        chainId: 'solana:mainnet',
+        address: '0xSolanaTokenNoRate',
+        symbol: 'SOLTKN',
+      };
+
+      const mockEngine = jest.requireMock('../../../../core/Engine');
+      mockEngine.context.MultichainAssetsRatesController.state.conversionRates =
+        {};
+
+      mockSelectAsset.mockReturnValue({
+        ...mockEvmAsset,
+        address: '0xSolanaTokenNoRate',
+        chainId: 'solana:mainnet',
+        symbol: 'SOLTKN',
+      });
+
+      const { result } = renderHook(() => useAssetBalance(solanaToken));
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.balanceFiat).toBe('100.5 SOLTKN');
+      expect(result.current.rawFiatNumber).toBeUndefined();
+    });
+
+    it('parses rawTokenBalance correctly when balance has currency symbols', () => {
+      const tokenWithAvailableBalance: CardTokenAllowance = {
+        ...mockToken,
+        availableBalance: '1,234.56',
+        chainId: '0x1',
+      };
+
+      mockSelectAsset.mockReturnValue(mockEvmAsset);
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balance: '1234.56',
+        balanceFiat: '$2,469.12',
+        balanceValueFormatted: '1,234.56 TEST',
+        balanceFiatCalculation: 2469.12,
+      });
+
+      const { result } = renderHook(() =>
+        useAssetBalance(tokenWithAvailableBalance),
+      );
+
+      // rawTokenBalance should strip non-numeric characters except decimal point
+      expect(result.current.rawTokenBalance).toBe(1234.56);
+      expect(result.current.rawFiatNumber).toBe(2469.12);
+    });
+
+    it('handles non-numeric balance in derived balance calculation', () => {
+      const tokenWithAvailableBalance: CardTokenAllowance = {
+        ...mockToken,
+        availableBalance: '100',
+        chainId: '0x1',
+      };
+
+      mockSelectAsset.mockReturnValue(mockEvmAsset);
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balance: 'N/A',
+        balanceFiat: '$200.00',
+        balanceValueFormatted: '100 TEST',
+        balanceFiatCalculation: 200,
+      });
+
+      const { result } = renderHook(() =>
+        useAssetBalance(tokenWithAvailableBalance),
+      );
+
+      // When balance is non-numeric after regex, parseFloat returns NaN
+      expect(result.current.rawTokenBalance).toBeNaN();
+      expect(result.current.rawFiatNumber).toBe(200);
+    });
+
+    it('resets balanceFiat and recalculates when availableBalance is set', () => {
+      const tokenWithAvailableBalance: CardTokenAllowance = {
+        ...mockToken,
+        availableBalance: '250.75',
+        chainId: '0x1',
+      };
+
+      const assetWithOldBalance = {
+        ...mockEvmAsset,
+        balance: '1000',
+        balanceFiat: '$1000.00',
+      };
+
+      mockSelectAsset.mockReturnValue(assetWithOldBalance);
+
+      // Clear previous calls and set new return value
+      mockDeriveBalanceFromAssetMarketDetails.mockClear();
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balance: '250.75',
+        balanceFiat: '$501.50',
+        balanceValueFormatted: '250.75 TEST',
+        balanceFiatCalculation: 501.5,
+      });
+
+      const { result } = renderHook(() =>
+        useAssetBalance(tokenWithAvailableBalance),
+      );
+
+      // The asset balance should be updated to availableBalance
+      expect(result.current.asset?.balance).toBe('250.75');
+      // The new balanceFiat should be from the recalculation
+      expect(result.current.balanceFiat).toBe('$501.50');
+      // deriveBalanceFromAssetMarketDetails should be called to recalculate fiat
+      expect(mockDeriveBalanceFromAssetMarketDetails).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles zero availableBalance correctly', () => {
+      const tokenWithZeroBalance: CardTokenAllowance = {
+        ...mockToken,
+        availableBalance: '0',
+        chainId: '0x1',
+      };
+
+      mockSelectAsset.mockReturnValue(mockEvmAsset);
+      mockDeriveBalanceFromAssetMarketDetails.mockClear();
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balance: '0',
+        balanceFiat: '$0.00',
+        balanceValueFormatted: '0 TEST',
+        balanceFiatCalculation: 0,
+      });
+
+      const { result } = renderHook(() =>
+        useAssetBalance(tokenWithZeroBalance),
+      );
+
+      expect(result.current.asset?.balance).toBe('0');
+      expect(result.current.balanceFiat).toBe('$0.00');
+      expect(result.current.rawTokenBalance).toBe(0);
+      expect(result.current.rawFiatNumber).toBe(0);
+    });
+  });
+
   describe('Edge cases and branch coverage', () => {
     it('should handle test network with fiat disabled and no balanceFiat', () => {
+      // Reset mocks to ensure clean state
+      jest.clearAllMocks();
+      useSelectorCallCount = 0;
+
       mockIsTestNet.mockReturnValue(true);
-      const assetWithoutFiat = { ...mockEvmAsset, balanceFiat: undefined };
+      const assetWithoutFiat = {
+        ...mockEvmAsset,
+        balanceFiat: undefined,
+        balance: '1000000000000000000',
+      };
       mockSelectAsset.mockReturnValue(assetWithoutFiat);
       mockUseSelector.mockImplementation(
         createMockSelector({
