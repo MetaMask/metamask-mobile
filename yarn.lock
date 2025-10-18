@@ -34078,8 +34078,8 @@ __metadata:
     "@metamask/assets-controllers": ^79.0.0
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.3.0
-    "@metamask/bridge-controller": ^51.0.0
-    "@metamask/bridge-status-controller": ^50.0.0
+    "@metamask/bridge-controller": ^53.0.0
+    "@metamask/bridge-status-controller": ^52.0.0
     "@metamask/browser-passworder": ^5.0.0
     "@metamask/build-utils": ^1.0.0
     "@metamask/chain-agnostic-permission": ^1.1.0
