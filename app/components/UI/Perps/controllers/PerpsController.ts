@@ -1067,63 +1067,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * TEMPORARY MINIMAL POC: Test HIP-3 order placement with $10 market order
-   * Bypasses all abstraction to validate core SDK functionality
-   * TODO: Remove this method before merging to main
-   */
-  async placeOrderMinimalPoC(params: {
-    dex: string;
-    assetIndex: number;
-    coin: string;
-    isBuy: boolean;
-  }): Promise<{ success: boolean; error?: string; orderId?: string }> {
-    try {
-      DevLogger.log(
-        'PerpsController: Forwarding $10 market order PoC to provider',
-        {
-          ...params,
-        },
-      );
-
-      const provider = this.getActiveProvider();
-
-      // Check if provider supports the PoC method
-      if (!('placeOrderMinimalPoC' in provider)) {
-        return {
-          success: false,
-          error: 'Active provider does not support placeOrderMinimalPoC',
-        };
-      }
-
-      // Call the provider's PoC method
-      const result = await (
-        provider as unknown as {
-          placeOrderMinimalPoC: (params: {
-            dex: string;
-            assetIndex: number;
-            coin: string;
-            isBuy: boolean;
-          }) => Promise<{ success: boolean; error?: string; orderId?: string }>;
-        }
-      ).placeOrderMinimalPoC(params);
-
-      DevLogger.log('PerpsController: Minimal PoC result', result);
-
-      return result;
-    } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('placeOrderMinimalPoC', params),
-      );
-
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
-  /**
    * Edit an existing order
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {

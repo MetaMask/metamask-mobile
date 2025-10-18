@@ -145,12 +145,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private equityEnabled: boolean;
   private enabledDexs: string[];
 
-  // Track feature flags used in last asset map build to detect changes
-  private lastBuildFlags: {
-    equityEnabled: boolean;
-    enabledDexs: string[];
-  } | null = null;
-
   // Cache for validated DEXs to avoid redundant perpDexs() API calls
   private cachedValidatedDexs: (string | null)[] | null = null;
   private cachedAllPerpDexs: Awaited<
@@ -203,37 +197,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Ensure clients are initialized and asset mapping is loaded
+   * Asset mapping is built once on first call and reused for the provider's lifetime
+   * since HIP-3 configuration is immutable after construction
    */
   private async ensureReady(): Promise<void> {
     this.clientService.ensureInitialized();
 
-    // Check if feature flags changed since last build
-    const flagsChanged =
-      !this.lastBuildFlags ||
-      this.lastBuildFlags.equityEnabled !== this.equityEnabled ||
-      this.lastBuildFlags.enabledDexs.length !== this.enabledDexs.length ||
-      !this.lastBuildFlags.enabledDexs.every(
-        (dex, i) => dex === this.enabledDexs[i],
-      );
-
-    const willRebuild = this.coinToAssetId.size === 0 || flagsChanged;
-
-    DevLogger.log('HyperLiquidProvider: ensureReady() called', {
-      currentMapSize: this.coinToAssetId.size,
-      willRebuild,
-      flagsChanged,
-      equityEnabled: this.equityEnabled,
-      enabledDexs: this.enabledDexs,
-      lastBuildFlags: this.lastBuildFlags,
-    });
-
-    if (willRebuild) {
-      await this.buildAssetMapping();
-      // Store current flags for next comparison
-      this.lastBuildFlags = {
+    // Build asset mapping on first call only (flags are immutable)
+    if (this.coinToAssetId.size === 0) {
+      DevLogger.log('HyperLiquidProvider: Building asset mapping', {
         equityEnabled: this.equityEnabled,
-        enabledDexs: [...this.enabledDexs],
-      };
+        enabledDexs: this.enabledDexs,
+      });
+      await this.buildAssetMapping();
     }
   }
 
