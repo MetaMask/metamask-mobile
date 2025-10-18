@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -336,21 +336,14 @@ describe('PredictMarketList', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders the component with title and search icon', () => {
-      render(<PredictMarketList />);
-
-      expect(screen.getByText('Predictions')).toBeOnTheScreen();
-      expect(screen.getByTestId('icon-Search')).toBeOnTheScreen();
-    });
-
-    it('renders the scrollable tab view', () => {
-      render(<PredictMarketList />);
+    it('renders the scrollable tab view when search is not visible', () => {
+      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
       expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
     });
 
-    it('renders the tab bar', () => {
-      render(<PredictMarketList />);
+    it('renders the tab bar when search is not visible', () => {
+      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
       expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
     });
@@ -358,7 +351,7 @@ describe('PredictMarketList', () => {
 
   describe('Tab Content', () => {
     it('renders all market list content components for each category', () => {
-      render(<PredictMarketList />);
+      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
       expect(
         screen.getByTestId('market-list-content-trending'),
@@ -376,7 +369,7 @@ describe('PredictMarketList', () => {
     });
 
     it('displays correct category labels', () => {
-      render(<PredictMarketList />);
+      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
       expect(screen.getByTestId('category-trending')).toHaveTextContent(
         'trending markets',
@@ -397,17 +390,15 @@ describe('PredictMarketList', () => {
   });
 
   describe('Component Structure', () => {
-    it('renders with correct component hierarchy', () => {
-      render(<PredictMarketList />);
+    it('renders with correct component hierarchy when search is not visible', () => {
+      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
-      expect(screen.getByText('Predictions')).toBeOnTheScreen();
-      expect(screen.getByTestId('icon-Search')).toBeOnTheScreen();
       expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
       expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
     });
 
     it('renders all required market categories', () => {
-      render(<PredictMarketList />);
+      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
       const categories = ['trending', 'new', 'sports', 'crypto', 'politics'];
       categories.forEach((category) => {
@@ -419,86 +410,40 @@ describe('PredictMarketList', () => {
   });
 
   describe('Search Functionality', () => {
-    it('shows search box when search icon is pressed', () => {
-      const { getByTestId, queryByText } = render(<PredictMarketList />);
+    it('hides main tab view when search is visible without query', () => {
+      const { queryByTestId } = render(
+        <PredictMarketList isSearchVisible searchQuery="" />,
+      );
 
-      // Initially search box should not be visible
-      expect(queryByText('Search Box Visible: true')).not.toBeOnTheScreen();
-
-      // Press search icon
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Search box should now be visible
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
-      expect(screen.getByText('Search Box Visible: true')).toBeOnTheScreen();
+      // Main tab content should not be visible when search is active
+      expect(queryByTestId('scrollable-tab-view')).not.toBeOnTheScreen();
     });
 
-    it('hides search box when cancel button is pressed', () => {
-      const { getByTestId } = render(<PredictMarketList />);
-
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
-
-      // Cancel search
-      const cancelButton = getByTestId('search-cancel-button');
-      fireEvent.press(cancelButton);
-
-      // Search box should be hidden and title should be visible again
-      expect(screen.queryByTestId('search-box')).not.toBeOnTheScreen();
-      expect(screen.getByText('Predictions')).toBeOnTheScreen();
-    });
-
-    it('handles search query input', () => {
-      const { getByTestId } = render(<PredictMarketList />);
-
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Input search query
-      const searchInputButton = getByTestId('search-input-button');
-      fireEvent.press(searchInputButton);
+    it('shows search results when search query is provided', () => {
+      render(<PredictMarketList isSearchVisible searchQuery="test" />);
 
       // Search results should be displayed
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
+      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('market-list-content-trending'),
+      ).toBeOnTheScreen();
     });
 
-    it('clears search query when cancel is pressed', () => {
-      const { getByTestId } = render(<PredictMarketList />);
+    it('shows main tab view when search is not visible', () => {
+      render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
 
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Input search query
-      const searchInputButton = getByTestId('search-input-button');
-      fireEvent.press(searchInputButton);
-
-      // Cancel search
-      const cancelButton = getByTestId('search-cancel-button');
-      fireEvent.press(cancelButton);
-
-      // Should return to normal view
-      expect(screen.getByText('Predictions')).toBeOnTheScreen();
-      expect(screen.queryByTestId('search-box')).not.toBeOnTheScreen();
+      // Main tab content should be visible
+      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
     });
 
-    it('hides main tab view when search is visible', () => {
-      const { getByTestId, queryByTestId } = render(<PredictMarketList />);
+    it('hides tab bar when search is active with query', () => {
+      const { queryByTestId } = render(
+        <PredictMarketList isSearchVisible searchQuery="test" />,
+      );
 
-      // Initially main tab content should be visible
-      expect(queryByTestId('predict-balance')).toBeOnTheScreen();
-
-      // Open search
-      const searchIcon = getByTestId('icon-Search');
-      fireEvent.press(searchIcon);
-
-      // Main content should be hidden when search is active
-      expect(screen.getByTestId('search-box')).toBeOnTheScreen();
+      // Tab bar should not be visible during search
+      expect(queryByTestId('tab-bar')).not.toBeOnTheScreen();
     });
   });
 });

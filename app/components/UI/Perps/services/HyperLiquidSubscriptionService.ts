@@ -1,14 +1,12 @@
 import {
   type Subscription,
-  type WsAllMids,
-  type WsWebData2,
-  type WsUserFills,
-  type WsActiveAssetCtx,
-  type WsActiveSpotAssetCtx,
-  type PerpsAssetCtx,
-  type Book,
-} from '@deeeed/hyperliquid-node20';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+  type WsAllMidsEvent,
+  type WsWebData2Event,
+  type WsUserFillsEvent,
+  type WsActiveAssetCtxEvent,
+  type WsActiveSpotAssetCtxEvent,
+  type L2BookResponse,
+} from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import type {
@@ -31,7 +29,9 @@ import {
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
-import { TP_SL_CONFIG } from '../constants/perpsConfig';
+import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { ensureError } from '../utils/perpsErrorHandler';
+import { processL2BookData } from '../utils/hyperLiquidOrderBookProcessor';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions
@@ -39,21 +39,27 @@ import { TP_SL_CONFIG } from '../constants/perpsConfig';
  */
 export class HyperLiquidSubscriptionService {
   // Service dependencies
-  private clientService: HyperLiquidClientService;
-  private walletService: HyperLiquidWalletService;
+  private readonly clientService: HyperLiquidClientService;
+  private readonly walletService: HyperLiquidWalletService;
 
   // Subscriber collections
-  private priceSubscribers = new Map<
+  private readonly priceSubscribers = new Map<
     string,
     Set<(prices: PriceUpdate[]) => void>
   >();
-  private positionSubscribers = new Set<(positions: Position[]) => void>();
-  private orderFillSubscribers = new Set<(fills: OrderFill[]) => void>();
-  private orderSubscribers = new Set<(orders: Order[]) => void>();
-  private accountSubscribers = new Set<(account: AccountState) => void>();
+  private readonly positionSubscribers = new Set<
+    (positions: Position[]) => void
+  >();
+  private readonly orderFillSubscribers = new Set<
+    (fills: OrderFill[]) => void
+  >();
+  private readonly orderSubscribers = new Set<(orders: Order[]) => void>();
+  private readonly accountSubscribers = new Set<
+    (account: AccountState) => void
+  >();
 
   // Track which subscribers want market data
-  private marketDataSubscribers = new Map<
+  private readonly marketDataSubscribers = new Map<
     string,
     Set<(prices: PriceUpdate[]) => void>
   >();
@@ -61,9 +67,12 @@ export class HyperLiquidSubscriptionService {
   // Global singleton subscriptions
   private globalAllMidsSubscription?: Subscription;
   private globalAllMidsPromise?: Promise<void>; // Track in-progress subscription
-  private globalActiveAssetSubscriptions = new Map<string, Subscription>();
-  private globalL2BookSubscriptions = new Map<string, Subscription>();
-  private symbolSubscriberCounts = new Map<string, number>();
+  private readonly globalActiveAssetSubscriptions = new Map<
+    string,
+    Subscription
+  >();
+  private readonly globalL2BookSubscriptions = new Map<string, Subscription>();
+  private readonly symbolSubscriberCounts = new Map<string, number>();
 
   // Shared webData2 subscription for positions and orders
   private sharedWebData2Subscription?: Subscription;
@@ -79,7 +88,7 @@ export class HyperLiquidSubscriptionService {
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
   // Order book data cache
-  private orderBookCache = new Map<
+  private readonly orderBookCache = new Map<
     string,
     {
       bestBid?: string;
@@ -90,7 +99,7 @@ export class HyperLiquidSubscriptionService {
   >();
 
   // Market data caching for multi-channel consolidation
-  private marketDataCache = new Map<
+  private readonly marketDataCache = new Map<
     string,
     {
       prevDayPx?: number;
@@ -108,6 +117,22 @@ export class HyperLiquidSubscriptionService {
   ) {
     this.clientService = clientService;
     this.walletService = walletService;
+  }
+
+  /**
+   * Generate standardized error context for Sentry logging
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+      context: `HyperLiquidSubscriptionService.${method}`,
+      provider: 'hyperliquid',
+      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      ...extra,
+    };
   }
 
   // updateFundingRatesCache method removed - funding rates now come directly from assetCtx
@@ -276,7 +301,7 @@ export class HyperLiquidSubscriptionService {
 
     return new Promise((resolve, reject) => {
       subscriptionClient
-        .webData2({ user: userAddress }, (data: WsWebData2) => {
+        .webData2({ user: userAddress }, (data: WsWebData2Event) => {
           // Extract and process positions with TP/SL data
           const positions = data.clearinghouseState.assetPositions
             .filter((assetPos) => assetPos.position.szi !== '0')
@@ -401,7 +426,7 @@ export class HyperLiquidSubscriptionService {
             data.spotState,
           );
 
-          //TODO: @abretonc7s - We need to revisit this logic for increased performance.
+          // Performance optimization: Consider replacing JSON.stringify() with shallow equality checks
           // Check if data actually changed
           const positionsChanged =
             JSON.stringify(positionsWithTPSL) !==
@@ -444,13 +469,10 @@ export class HyperLiquidSubscriptionService {
         })
         .catch((error) => {
           Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
-            {
-              context:
-                'HyperLiquidSubscriptionService.createWebData2Subscription',
-            },
+            ensureError(error),
+            this.getErrorContext('createWebData2Subscription'),
           );
-          reject(error instanceof Error ? error : new Error(String(error)));
+          reject(ensureError(error));
         });
     });
   }
@@ -467,11 +489,8 @@ export class HyperLiquidSubscriptionService {
     if (totalSubscribers <= 0 && this.sharedWebData2Subscription) {
       this.sharedWebData2Subscription.unsubscribe().catch((error: Error) => {
         Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            context:
-              'HyperLiquidSubscriptionService.cleanupSharedWebData2Subscription',
-          },
+          ensureError(error),
+          this.getErrorContext('cleanupSharedWebData2Subscription'),
         );
       });
       this.sharedWebData2Subscription = undefined;
@@ -506,9 +525,10 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active
     this.ensureSharedWebData2Subscription(accountId).catch((error) => {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'HyperLiquidSubscriptionService.subscribeToPositions',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToPositions'),
+      );
     });
 
     return () => {
@@ -539,14 +559,10 @@ export class HyperLiquidSubscriptionService {
     if (subscriptionClient) {
       this.walletService
         .getUserAddressWithDefault(accountId)
-        .then((userAddress) => {
-          if (!subscriptionClient) {
-            throw new Error('Subscription client not initialized');
-          }
-
-          return subscriptionClient.userFills(
+        .then((userAddress) =>
+          subscriptionClient.userFills(
             { user: userAddress },
-            (data: WsUserFills) => {
+            (data: WsUserFillsEvent) => {
               const orderFills: OrderFill[] = data.fills.map((fill) => ({
                 orderId: fill.oid.toString(),
                 symbol: fill.coin,
@@ -570,18 +586,15 @@ export class HyperLiquidSubscriptionService {
 
               callback(orderFills);
             },
-          );
-        })
+          ),
+        )
         .then((sub) => {
           // If cleanup was called before subscription completed, immediately unsubscribe
           if (cancelled) {
             sub.unsubscribe().catch((error: Error) => {
               Logger.error(
-                error instanceof Error ? error : new Error(String(error)),
-                {
-                  context:
-                    'HyperLiquidSubscriptionService.subscribeToOrderFills.cleanup',
-                },
+                ensureError(error),
+                this.getErrorContext('subscribeToOrderFills.cleanup'),
               );
             });
           } else {
@@ -590,10 +603,8 @@ export class HyperLiquidSubscriptionService {
         })
         .catch((error) => {
           Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
-            {
-              context: 'HyperLiquidSubscriptionService.subscribeToOrderFills',
-            },
+            ensureError(error),
+            this.getErrorContext('subscribeToOrderFills'),
           );
         });
     }
@@ -605,11 +616,8 @@ export class HyperLiquidSubscriptionService {
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
           Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
-            {
-              context:
-                'HyperLiquidSubscriptionService.subscribeToOrderFills.unsubscribe',
-            },
+            ensureError(error),
+            this.getErrorContext('subscribeToOrderFills.unsubscribe'),
           );
         });
       }
@@ -637,9 +645,10 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active
     this.ensureSharedWebData2Subscription(accountId).catch((error) => {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'HyperLiquidSubscriptionService.subscribeToOrders',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrders'),
+      );
     });
 
     return () => {
@@ -670,9 +679,10 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active (reuses existing connection)
     this.ensureSharedWebData2Subscription(accountId).catch((error) => {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'HyperLiquidSubscriptionService.subscribeToAccount',
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToAccount'),
+      );
     });
 
     return () => {
@@ -777,16 +787,13 @@ export class HyperLiquidSubscriptionService {
 
     // Store the promise immediately to prevent duplicate calls
     this.globalAllMidsPromise = subscriptionClient
-      .allMids((data: WsAllMids) => {
+      .allMids((data: WsAllMidsEvent) => {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
         // Update cache for ALL available symbols
         Object.entries(data.mids).forEach(([symbol, price]) => {
-          // Initialize the Map if it doesn't exist
-          if (!this.cachedPriceData) {
-            this.cachedPriceData = new Map<string, PriceUpdate>();
-          }
+          this.cachedPriceData ??= new Map<string, PriceUpdate>();
 
           const priceUpdate = this.createPriceUpdate(symbol, price.toString());
           this.cachedPriceData.set(symbol, priceUpdate);
@@ -810,22 +817,9 @@ export class HyperLiquidSubscriptionService {
         this.globalAllMidsPromise = undefined;
 
         Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            context:
-              'HyperLiquidSubscriptionService.ensureGlobalAllMidsSubscription',
-          },
+          ensureError(error),
+          this.getErrorContext('ensureGlobalAllMidsSubscription'),
         );
-
-        // Trace WebSocket error
-        trace({
-          name: TraceName.PerpsWebSocketDisconnected,
-          op: TraceOperation.PerpsMarketData,
-          tags: {
-            subscription_type: 'allMids',
-            error: error.message,
-          },
-        });
       });
   }
 
@@ -856,39 +850,39 @@ export class HyperLiquidSubscriptionService {
     subscriptionClient
       .activeAssetCtx(
         { coin: symbol },
-        (data: WsActiveAssetCtx | WsActiveSpotAssetCtx) => {
+        (data: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent) => {
           subscriptionMetrics.messagesReceived++;
 
           if (data.coin === symbol && data.ctx) {
-            const ctx = data.ctx;
-
-            // Type guard to determine if this is perps or spot context
+            // Type guard using SDK types: check if this is perps (has funding) or spot (no funding)
             const isPerpsContext = (
-              context: typeof data.ctx,
-            ): context is PerpsAssetCtx =>
-              'funding' in context &&
-              'openInterest' in context &&
-              'oraclePx' in context;
+              event: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent,
+            ): event is WsActiveAssetCtxEvent =>
+              'funding' in event.ctx &&
+              'openInterest' in event.ctx &&
+              'oraclePx' in event.ctx;
+
+            const ctx = data.ctx;
 
             // Cache market data for consolidation with price updates
             const marketData = {
               prevDayPx: parseFloat(ctx.prevDayPx?.toString() || '0'),
               // Cache funding rate from activeAssetCtx for real-time updates
-              funding:
-                isPerpsContext(ctx) && ctx.funding !== undefined
-                  ? parseFloat(ctx.funding.toString())
-                  : undefined,
+              // SDK defines funding as string (not nullable) in ActiveAssetCtxEvent
+              funding: isPerpsContext(data)
+                ? parseFloat(data.ctx.funding.toString())
+                : undefined,
               // Convert openInterest from token units to USD by multiplying by current price
               // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
-              openInterest: isPerpsContext(ctx)
-                ? parseFloat(ctx.openInterest?.toString() || '0') *
+              openInterest: isPerpsContext(data)
+                ? parseFloat(data.ctx.openInterest.toString()) *
                   parseFloat(
                     ctx.midPx?.toString() || ctx.markPx?.toString() || '0',
                   )
                 : 0,
               volume24h: parseFloat(ctx.dayNtlVlm?.toString() || '0'),
-              oraclePrice: isPerpsContext(ctx)
-                ? parseFloat(ctx.oraclePx?.toString() || '0')
+              oraclePrice: isPerpsContext(data)
+                ? parseFloat(data.ctx.oraclePx.toString())
                 : 0,
               lastUpdated: Date.now(),
             };
@@ -903,11 +897,7 @@ export class HyperLiquidSubscriptionService {
                 currentCachedPrice.price,
               );
 
-              // Ensure the Map exists
-              if (!this.cachedPriceData) {
-                this.cachedPriceData = new Map<string, PriceUpdate>();
-              }
-
+              this.cachedPriceData ??= new Map<string, PriceUpdate>();
               this.cachedPriceData.set(symbol, updatedPrice);
               this.notifyAllPriceSubscribers();
             }
@@ -922,24 +912,9 @@ export class HyperLiquidSubscriptionService {
       })
       .catch((error) => {
         Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            context:
-              'HyperLiquidSubscriptionService.ensureActiveAssetSubscription',
-            symbol,
-          },
+          ensureError(error),
+          this.getErrorContext('ensureActiveAssetSubscription', { symbol }),
         );
-
-        // Trace WebSocket error
-        trace({
-          name: TraceName.PerpsWebSocketDisconnected,
-          op: TraceOperation.PerpsMarketData,
-          tags: {
-            subscription_type: 'activeAssetCtx',
-            symbol,
-            error: error.message,
-          },
-        });
       });
   }
 
@@ -980,46 +955,15 @@ export class HyperLiquidSubscriptionService {
     }
 
     subscriptionClient
-      .l2Book({ coin: symbol, nSigFigs: 5 }, (data: Book) => {
-        if (data.coin === symbol && data.levels) {
-          // Extract best bid and ask from order book
-          const bestBid = data.levels[0]?.[0]; // First bid level
-          const bestAsk = data.levels[1]?.[0]; // First ask level
-
-          if (bestBid || bestAsk) {
-            const bidPrice = bestBid ? parseFloat(bestBid.px) : 0;
-            const askPrice = bestAsk ? parseFloat(bestAsk.px) : 0;
-            const spread =
-              bidPrice > 0 && askPrice > 0
-                ? (askPrice - bidPrice).toFixed(5)
-                : undefined;
-
-            // Update order book cache
-            this.orderBookCache.set(symbol, {
-              bestBid: bestBid?.px,
-              bestAsk: bestAsk?.px,
-              spread,
-              lastUpdated: Date.now(),
-            });
-
-            // Update cached price data with new order book data
-            const currentCachedPrice = this.cachedPriceData?.get(symbol);
-            if (currentCachedPrice) {
-              const updatedPrice = this.createPriceUpdate(
-                symbol,
-                currentCachedPrice.price,
-              );
-
-              // Ensure the Map exists
-              if (!this.cachedPriceData) {
-                this.cachedPriceData = new Map<string, PriceUpdate>();
-              }
-
-              this.cachedPriceData.set(symbol, updatedPrice);
-              this.notifyAllPriceSubscribers();
-            }
-          }
-        }
+      .l2Book({ coin: symbol, nSigFigs: 5 }, (data: L2BookResponse) => {
+        processL2BookData({
+          symbol,
+          data,
+          orderBookCache: this.orderBookCache,
+          cachedPriceData: this.cachedPriceData,
+          createPriceUpdate: this.createPriceUpdate.bind(this),
+          notifySubscribers: this.notifyAllPriceSubscribers.bind(this),
+        });
       })
       .then((sub) => {
         this.globalL2BookSubscriptions.set(symbol, sub);
@@ -1029,11 +973,8 @@ export class HyperLiquidSubscriptionService {
       })
       .catch((error) => {
         Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            context: 'HyperLiquidSubscriptionService.ensureL2BookSubscription',
-            symbol,
-          },
+          ensureError(error),
+          this.getErrorContext('ensureL2BookSubscription', { symbol }),
         );
       });
   }

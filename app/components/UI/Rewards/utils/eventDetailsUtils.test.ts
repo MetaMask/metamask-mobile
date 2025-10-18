@@ -75,7 +75,7 @@ describe('eventDetailsUtils', () => {
       expect(result).toBe('1.5');
     });
 
-    it('formats asset amount with many decimal places and rounds to 3', () => {
+    it('formats asset amount with many decimal places and rounds to 5', () => {
       // Given an amount with many decimal places
       const amount = '1234560000000000000'; // 1.23456 ETH with 18 decimals
       const decimals = 18;
@@ -83,8 +83,8 @@ describe('eventDetailsUtils', () => {
       // When formatting the asset amount
       const result = formatAssetAmount(amount, decimals);
 
-      // Then it should round to 3 decimal places
-      expect(result).toBe('1.235');
+      // Then it should round to 5 decimal places
+      expect(result).toBe('1.23456');
     });
 
     it('formats asset amount with 6 decimals', () => {
@@ -417,8 +417,8 @@ describe('eventDetailsUtils', () => {
       // When formatting swap details with destination amount
       const result = formatSwapDetails(payload, true);
 
-      // Then it should return formatted large amounts
-      expect(result).toBe('1000000 ETH to 1000000 USDC');
+      // Then it should return formatted large amounts with thousand separators
+      expect(result).toBe('1,000,000 ETH to 1,000,000 USDC');
     });
 
     it('formats swap details with zero amounts', () => {
@@ -893,7 +893,7 @@ describe('eventDetailsUtils', () => {
 
         expect(result).toEqual({
           title: 'Opened position',
-          details: 'Long 1000000 ETH',
+          details: 'Long 1,000,000 ETH',
           icon: IconName.Candlestick,
         });
       });
@@ -925,7 +925,7 @@ describe('eventDetailsUtils', () => {
           direction: 'LONG',
           asset: {
             symbol: 'ETH',
-            amount: '0012345600000000000', // 1.23456 ETH with 18 decimals
+            amount: '12345600000000000', // 0.0123456 ETH with 18 decimals
             decimals: 18,
             type: 'eip155:1/slip44:60',
           },
@@ -961,7 +961,7 @@ describe('eventDetailsUtils', () => {
         });
       });
 
-      it('formats SWAP event amounts to at most 3 decimal places', () => {
+      it('formats SWAP event amounts to at most 5 decimal places', () => {
         const event = createMockEvent('SWAP', {
           srcAsset: {
             symbol: 'ETH',
@@ -981,7 +981,7 @@ describe('eventDetailsUtils', () => {
 
         expect(result).toEqual({
           title: 'Swap',
-          details: '1.235 ETH to USDC',
+          details: '1.23456 ETH to USDC',
           icon: IconName.SwapVertical,
         });
       });

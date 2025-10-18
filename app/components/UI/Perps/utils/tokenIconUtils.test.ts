@@ -1,5 +1,5 @@
 import { enhanceTokenWithIcon } from './tokenIconUtils';
-import type { PerpsToken } from '../types';
+import type { PerpsToken } from '../types/perps-types';
 import type {
   TokenListMap,
   TokenListToken,

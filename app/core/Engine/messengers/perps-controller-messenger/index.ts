@@ -22,6 +22,7 @@ export function getPerpsControllerMessenger(
       'AccountsController:getSelectedAccount',
       'NetworkController:getState',
       'AuthenticationController:getBearerToken',
+      'RemoteFeatureFlagController:getState',
     ],
   });
 }

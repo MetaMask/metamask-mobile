@@ -46,6 +46,7 @@ import {
   getIsApprovedForAll,
 } from '../utils';
 import { PredictPosition } from '../../..';
+import { TransactionType } from '@metamask/transaction-controller';
 
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
@@ -660,9 +661,13 @@ export const getClaimTransaction = async ({
     safeAddress,
     txn: safeTxn,
   });
-  return {
-    from: signer.address as Hex,
-    to: safeAddress as Hex,
-    data: callData as Hex,
-  };
+  return [
+    {
+      params: {
+        to: safeAddress as Hex,
+        data: callData as Hex,
+      },
+      type: TransactionType.predictClaim,
+    },
+  ];
 };

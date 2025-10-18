@@ -1,5 +1,5 @@
 import { calculateFundingCountdown, calculate24hHighLow } from './marketUtils';
-import type { CandleData } from '../types';
+import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
 
 describe('marketUtils', () => {

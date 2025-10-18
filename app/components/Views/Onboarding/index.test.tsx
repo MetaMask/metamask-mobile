@@ -219,6 +219,16 @@ jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
 
+// Mock React Navigation hooks
+const mockRoute = {
+  params: {},
+};
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNav,
+  useRoute: () => mockRoute,
+}));
+
 describe('Onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();

@@ -9,6 +9,7 @@ import PredictPositions, {
 } from '../../components/PredictPositions/PredictPositions';
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
+import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 
 interface PredictTabViewProps {}
 
@@ -20,6 +21,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
 
   usePredictDepositToasts();
+  usePredictClaimToasts();
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);

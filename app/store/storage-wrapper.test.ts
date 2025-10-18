@@ -97,6 +97,51 @@ describe('StorageWrapper', () => {
     expect(result).toBe('test-value');
   });
 
+  it('returns all keys from storage', async () => {
+    await StorageWrapper.setItem('key1', 'value1');
+    await StorageWrapper.setItem('key2', 'value2');
+    await StorageWrapper.setItem('key3', 'value3');
+
+    const keys = await StorageWrapper.getAllKeys();
+
+    expect(keys).toContain('key1');
+    expect(keys).toContain('key2');
+    expect(keys).toContain('key3');
+    expect(keys.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('retrieves multiple items at once using multiGet', async () => {
+    await StorageWrapper.setItem('user-name', 'John Doe');
+    await StorageWrapper.setItem('user-email', 'john@example.com');
+    await StorageWrapper.setItem('user-age', '30');
+
+    const items = await StorageWrapper.multiGet([
+      'user-name',
+      'user-email',
+      'user-age',
+    ]);
+
+    expect(items).toEqual([
+      ['user-name', 'John Doe'],
+      ['user-email', 'john@example.com'],
+      ['user-age', '30'],
+    ]);
+  });
+
+  it('returns null for missing keys in multiGet', async () => {
+    await StorageWrapper.setItem('existing-key', 'existing-value');
+
+    const items = await StorageWrapper.multiGet([
+      'existing-key',
+      'non-existing-key',
+    ]);
+
+    expect(items).toEqual([
+      ['existing-key', 'existing-value'],
+      ['non-existing-key', null],
+    ]);
+  });
+
   describe('Event Emitter Functionality', () => {
     it('emits key-specific change event when setItem is called', async () => {
       const mockCallback = jest.fn();

@@ -102,7 +102,7 @@ function TransactionSummary({
     bridgeHistory?.bridgeTxHistoryItem?.completionTime ?? time;
 
   const receiveChainIdNumber =
-    bridgeHistory?.bridgeTxHistoryItem?.status?.destChain?.chainId;
+    bridgeHistory?.bridgeTxHistoryItem?.quote?.destChainId;
 
   const receiveChainId = receiveChainIdNumber
     ? toHex(receiveChainIdNumber)
@@ -282,7 +282,7 @@ function getLineTitle(
           targetSymbol,
           targetChain: networkName,
         })
-      : strings('transaction_details.summary_title.bridge_loading');
+      : strings('transaction_details.summary_title.bridge_receive_loading');
   }
 
   switch (type) {
@@ -292,7 +292,7 @@ function getLineTitle(
             sourceSymbol,
             sourceChain: networkName,
           })
-        : strings('transaction_details.summary_title.bridge_loading');
+        : strings('transaction_details.summary_title.bridge_send_loading');
     case TransactionType.bridgeApproval:
       return approveSymbol
         ? strings('transaction_details.summary_title.bridge_approval', {

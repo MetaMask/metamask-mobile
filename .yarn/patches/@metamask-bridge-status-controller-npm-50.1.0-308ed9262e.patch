@@ -1,0 +1,13 @@
+diff --git a/dist/utils/swap-received-amount.cjs b/dist/utils/swap-received-amount.cjs
+index 4c01024e3ebba952b0bbded0aa7bb7e2690629f1..4809ec09ab2b94fc0dbb5160d464da4dab61c57e 100644
+--- a/dist/utils/swap-received-amount.cjs
++++ b/dist/utils/swap-received-amount.cjs
+@@ -28,7 +28,7 @@ const getReceivedERC20Amount = (historyItem, txMeta) => {
+     const TOKEN_TRANSFER_LOG_TOPIC_HASH = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+     const tokenTransferLog = txReceipt.logs.find((txReceiptLog) => {
+         const isTokenTransfer = txReceiptLog.topics &&
+-            txReceiptLog.topics[0].startsWith(TOKEN_TRANSFER_LOG_TOPIC_HASH);
++            txReceiptLog.topics[0]?.startsWith(TOKEN_TRANSFER_LOG_TOPIC_HASH);
+         const isTransferFromGivenToken = txReceiptLog.address?.toLowerCase() ===
+             quote.destAsset.address?.toLowerCase();
+         const isTransferFromGivenAddress = txReceiptLog.topics &&

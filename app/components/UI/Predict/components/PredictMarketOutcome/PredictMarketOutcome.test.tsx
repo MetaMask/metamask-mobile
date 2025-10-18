@@ -116,7 +116,7 @@ describe('PredictMarketOutcome', () => {
 
     fireEvent.press(yesButton);
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictPlaceBet',
+      screen: 'PredictBuyPreview',
       params: {
         market: mockMarket,
         outcome: mockOutcome,
@@ -126,7 +126,7 @@ describe('PredictMarketOutcome', () => {
 
     fireEvent.press(noButton);
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictPlaceBet',
+      screen: 'PredictBuyPreview',
       params: {
         market: mockMarket,
         outcome: mockOutcome,

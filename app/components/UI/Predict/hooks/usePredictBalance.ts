@@ -42,8 +42,8 @@ export function usePredictBalance(
 ): UsePredictBalanceReturn {
   const {
     providerId = POLYMARKET_PROVIDER_ID,
-    loadOnMount = true,
-    refreshOnFocus = true,
+    loadOnMount = false,
+    refreshOnFocus = false,
   } = options;
 
   const { getBalance } = usePredictTrading();
@@ -53,6 +53,7 @@ export function usePredictBalance(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
+  const isLoadingRef = useRef(false);
 
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
@@ -65,9 +66,16 @@ export function usePredictBalance(
 
   const loadBalance = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
+      // Prevent multiple simultaneous calls
+      if (isLoadingRef.current) {
+        DevLogger.log('usePredictBalance: Skipping load - already in progress');
+        return;
+      }
+
       const { isRefresh = false } = loadOptions || {};
 
       try {
+        isLoadingRef.current = true;
         if (isRefresh) {
           setIsRefreshing(true);
         } else {
@@ -93,6 +101,7 @@ export function usePredictBalance(
         setError(errorMessage);
         DevLogger.log('usePredictBalance: Error loading balance', err);
       } finally {
+        isLoadingRef.current = false;
         setIsLoading(false);
         setIsRefreshing(false);
       }
