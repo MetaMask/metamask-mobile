@@ -5,12 +5,12 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
-import PredictMarketList from '../views/PredictMarketList';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
+import PredictFeed from '../views/PredictFeed/PredictFeed';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
@@ -62,7 +62,7 @@ const PredictScreenStack = () => (
   <Stack.Navigator initialRouteName={Routes.PREDICT.MARKET_LIST}>
     <Stack.Screen
       name={Routes.PREDICT.MARKET_LIST}
-      component={PredictMarketList}
+      component={PredictFeed}
       options={{
         title: strings('predict.markets.title'),
         headerShown: false,
