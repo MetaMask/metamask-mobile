@@ -141,11 +141,11 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Download all test results
+      - name: Download JUnit XML result files
         uses: actions/download-artifact@v4
         with:
           path: all-test-results/
-          pattern: '*-ios-*-test-results'
+          pattern: '*-ios-*-test-junit-results'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
@@ -157,7 +157,13 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Create mobile test report
+      - name: Upload merged JUnit XML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-merged-test-report
+          path: all-test-results/**/junit.xml
+      
+      - name: Create mobile JSON test report
         id: create-json-report
         continue-on-error: true
         run: |
@@ -176,20 +182,14 @@ jobs:
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-          node .github/scripts/e2e-create-test-report.mjs
+          node .github/scripts/e2e-create-json-test-report.mjs
 
           # Clean up temporary node_modules
           rm -rf node_modules
 
-      - name: Upload test runs JSON
+      - name: Upload JSON test report
         if: steps.create-json-report.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: test-e2e-ios-report
           path: test/test-results/test-runs-ios.json
-
-      - name: Upload merged XML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-merged-test-report
-          path: all-test-results/**/junit.xml

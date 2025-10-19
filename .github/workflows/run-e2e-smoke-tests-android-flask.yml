@@ -73,52 +73,21 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Download all test results
+      - name: Download JUnit XML result files
         uses: actions/download-artifact@v4
         with:
           path: all-test-results/
-          pattern: '*-android-*-test-results'
+          pattern: '*-android-*-test-junit-results'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
-          name: 'Android E2E Smoke Test Results'
+          name: 'Android Flask E2E Smoke Test Results'
           path: 'all-test-results/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
           list-suites: 'failed'
           list-tests: 'failed'
-
-      - name: Create mobile test report
-        id: create-json-report
-        continue-on-error: true
-        run: |
-          # Create a temporary directory for xml2js to avoid conflicts
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y
-          npm install xml2js@0.5.0 --no-audit --no-fund
-
-          # Copy node_modules to workspace
-          cp -r node_modules ${{ github.workspace }}/
-
-          # Run the mobile test report generator
-          cd ${{ github.workspace }}
-          TEST_RESULTS_PATH=all-test-results \
-          TEST_RUNS_PATH=test/test-results/test-runs-android.json \
-          RUN_ID=${{ github.run_id }} \
-          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-          node .github/scripts/e2e-create-test-report.mjs
-
-          # Clean up temporary node_modules
-          rm -rf node_modules
-
-      - name: Upload test runs JSON
-        if: steps.create-json-report.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-e2e-android-report
-          path: test/test-results/test-runs-android.json
 
       - name: Upload merged XML report
         uses: actions/upload-artifact@v4
