@@ -1,0 +1,131 @@
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { Alert } from 'react-native';
+import { strings } from '../../../../locales/i18n';
+import { PROTOCOLS } from '../../../constants/deeplinks';
+import { deeplinkService } from '../UnifiedDeeplinkService';
+import DeeplinkManager from '../DeeplinkManager';
+import SDKConnect from '../../SDKConnect/SDKConnect';
+import extractURLParams from './extractURLParams';
+import handleEthereumUrl from '../Handlers/handleEthereumUrl';
+import { connectWithWC } from './connectWithWC';
+
+/**
+ * Unified deeplink parser that uses the new DeeplinkService
+ * This replaces the original parseDeeplink function
+ */
+async function parseDeeplinkUnified({
+  deeplinkManager: instance,
+  url,
+  origin,
+  browserCallBack,
+  onHandled,
+}: {
+  deeplinkManager: DeeplinkManager;
+  url: string;
+  origin: string;
+  browserCallBack?: (url: string) => void;
+  onHandled?: () => void;
+}) {
+  try {
+    DevLogger.log('parseDeeplinkUnified: Processing URL', url);
+
+    // Special handling for SDKConnectV2 fast path
+    // This needs to happen immediately without waiting for service initialization
+    if (SDKConnect.getInstance().isConnectDeeplink?.(url)) {
+      DevLogger.log('parseDeeplinkUnified: SDKConnectV2 fast path');
+      SDKConnect.getInstance().handleConnectDeeplink?.(url);
+      onHandled?.();
+      return true;
+    }
+
+    // Extract protocol for special cases
+    const validatedUrl = new URL(url);
+    const protocol = validatedUrl.protocol.replace(':', '');
+
+    // Handle special protocols that aren't action-based
+    switch (protocol) {
+      case PROTOCOLS.WC:
+        // WalletConnect protocol - handled specially
+        DevLogger.log('parseDeeplinkUnified: Handling WC protocol');
+        {
+          onHandled?.();
+          const { params } = extractURLParams(url);
+          const wcURL = params?.uri || url;
+          await connectWithWC({
+            handled: () => {
+              // Empty handler for WalletConnect
+            },
+            wcURL,
+            origin,
+            params,
+          });
+        }
+        return true;
+
+      case PROTOCOLS.ETHEREUM:
+        // Ethereum protocol - handled specially
+        DevLogger.log('parseDeeplinkUnified: Handling Ethereum protocol');
+        onHandled?.();
+        await handleEthereumUrl({
+          deeplinkManager: instance,
+          url,
+          origin,
+        });
+        return true;
+
+      default:
+        // All other protocols go through the unified service
+        break;
+    }
+
+    // Use the unified deeplink service for all other URLs
+    const result = await deeplinkService.handleDeeplink(url, {
+      navigation: instance.navigation,
+      browserCallBack,
+      origin,
+      onHandled,
+    });
+
+    if (!result.success) {
+      DevLogger.log(
+        'parseDeeplinkUnified: Failed to handle deeplink',
+        result.error,
+      );
+
+      // Show user-friendly error for certain cases
+      if (result.error && !result.shouldProceed) {
+        // User declined modal or invalid link
+        return false;
+      }
+
+      // For other errors, show alert
+      if (result.error) {
+        Alert.alert(strings('deeplink.invalid'), result.error);
+      }
+
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.toString() : 'Unknown error';
+
+    if (error) {
+      DevLogger.log('parseDeeplinkUnified: Error', error);
+      Alert.alert(strings('deeplink.invalid'), message);
+    }
+
+    return false;
+  }
+}
+
+/**
+ * Initialize the deeplink service with all default actions
+ * This should be called once during app initialization
+ */
+export function initializeDeeplinkService() {
+  DevLogger.log('Initializing unified deeplink service');
+  deeplinkService.registerDefaultActions();
+}
+
+export default parseDeeplinkUnified;
