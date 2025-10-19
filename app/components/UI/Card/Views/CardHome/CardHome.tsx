@@ -33,10 +33,12 @@ import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
+import { useSpendingLimit } from '../../hooks/useSpendingLimit';
 import { AllowanceState } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
+import SpendingLimitProgress from '../../components/SpendingLimitProgress/SpendingLimitProgress';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import {
@@ -93,6 +95,7 @@ const CardHome = () => {
   const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
     useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const { spendingLimit, navigateToSpendingLimit } = useSpendingLimit();
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
   });
@@ -144,16 +147,13 @@ const CardHome = () => {
     ],
   );
 
-  // Track event only once after priorityToken and balances are loaded
   const hasTrackedCardHomeView = useRef(false);
 
   useEffect(() => {
-    // Early return if already tracked to prevent any possibility of duplicate tracking
     if (hasTrackedCardHomeView.current) {
       return;
     }
 
-    // Don't track while SDK is still loading to prevent premature tracking
     if (isSDKLoading) {
       return;
     }
@@ -173,7 +173,6 @@ const CardHome = () => {
       !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
 
     if (isLoaded) {
-      // Set flag immediately to prevent race conditions
       hasTrackedCardHomeView.current = true;
 
       trackEvent(
@@ -226,7 +225,7 @@ const CardHome = () => {
 
   const changeAssetAction = useCallback(() => {
     if (isAuthenticated) {
-      // open asset bottom sheet
+      // TODO: Implement change asset functionality
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
@@ -234,11 +233,11 @@ const CardHome = () => {
 
   const manageSpendingLimitAction = useCallback(() => {
     if (isAuthenticated) {
-      // open spending limit screen
+      navigateToSpendingLimit();
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, navigateToSpendingLimit, navigation]);
 
   const logoutAction = () => {
     logoutFromProvider();
@@ -377,6 +376,39 @@ const CardHome = () => {
           )}
         </View>
 
+        {spendingLimit.limitAmount && priorityToken && (
+          <View
+            style={[
+              styles.buttonsContainerBase,
+              styles.defaultHorizontalPadding,
+            ]}
+          >
+            <View style={styles.divider} />
+          </View>
+        )}
+
+        {spendingLimit.limitAmount && priorityToken && (
+          <View
+            style={[
+              styles.buttonsContainerBase,
+              styles.defaultHorizontalPadding,
+              styles.spendingLimitContainer,
+            ]}
+          >
+            <SpendingLimitProgress
+              currentAmount="650"
+              limitAmount={spendingLimit.limitAmount}
+              currency={priorityToken.symbol || 'USDC'}
+              onPress={manageSpendingLimitAction}
+              showWarning={false}
+              onSetNewLimit={navigateToSpendingLimit}
+              onDismiss={() => {
+                // TODO: Implement dismiss functionality
+              }}
+            />
+          </View>
+        )}
+
         <View
           style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
         >
@@ -428,21 +460,19 @@ const CardHome = () => {
         </View>
       </View>
 
-      {isBaanxLoginEnabled && (
-        <ManageCardListItem
-          title={strings(
-            'card.card_home.manage_card_options.manage_spending_limit',
-          )}
-          description={strings(
-            priorityToken?.allowanceState === AllowanceState.Enabled
-              ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-              : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-          )}
-          rightIcon={IconName.ArrowRight}
-          onPress={manageSpendingLimitAction}
-          testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-        />
-      )}
+      <ManageCardListItem
+        title={strings(
+          'card.card_home.manage_card_options.manage_spending_limit',
+        )}
+        description={strings(
+          priorityToken?.allowanceState === AllowanceState.Enabled
+            ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+            : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+        )}
+        rightIcon={IconName.ArrowRight}
+        onPress={manageSpendingLimitAction}
+        testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+      />
 
       <ManageCardListItem
         title={strings('card.card_home.manage_card_options.manage_card')}

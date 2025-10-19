@@ -5962,10 +5962,11 @@
        "retry_button":"Try again"
     },
     "card_home": {
-      "error_title": "Can’t fetch data",
+      "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
       "manage_card_options": {
@@ -5976,6 +5977,22 @@
         "advanced_card_management_description": "Detailed transactions, freeze card, and more"
       }
     },
+      "card_spending_limit": {
+        "title": "Spending Limit",
+        "full_access_title": "Full spending access",
+        "full_access_description": "Your card can use your funds automatically, without asking for approval each time.",
+        "restricted_limit_title": "Restricted spending limit",
+        "restricted_limit_description": "You'll need to come back and pay a network fee every time you want to increase the limit.",
+        "edit_limit": "Edit limit",
+        "confirm_new_limit": "Confirm new limit",
+        "cancel": "Cancel",
+        "set_new_limit": "Set new limit",
+        "dismiss": "Dismiss",
+        "spending_limit_updated": "Spending limit updated"
+      },
+      "select_asset": "Select asset",
+      "search_tokens": "Search tokens",
+      "no_tokens_found": "No tokens found",
     "card_authentication": {
       "title": "Log in to your Card account",
       "location_button_text": "International",

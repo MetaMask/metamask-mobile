@@ -552,6 +552,8 @@ enum EVENT_NAME {
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
+  CARD_SPENDING_LIMIT_CLICKED = 'Card Spending Limit Clicked',
+  CARD_SPENDING_LIMIT_UPDATED = 'Card Spending Limit Updated',
 
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
@@ -1404,6 +1406,12 @@ const events = {
   ),
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
+  ),
+  CARD_SPENDING_LIMIT_CLICKED: generateOpt(
+    EVENT_NAME.CARD_SPENDING_LIMIT_CLICKED,
+  ),
+  CARD_SPENDING_LIMIT_UPDATED: generateOpt(
+    EVENT_NAME.CARD_SPENDING_LIMIT_UPDATED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(

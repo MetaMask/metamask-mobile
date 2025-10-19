@@ -18,6 +18,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import OnboardingNavigator from './OnboardingNavigator';
 
 const Stack = createStackNavigator();
@@ -77,6 +78,31 @@ export const cardAuthenticationNavigationOptions = ({
   headerRight: () => <View />,
 });
 
+export const cardSpendingLimitNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'spending-limit-title'}
+    >
+      {strings('card.card_spending_limit.title')}
+    </Text>
+  ),
+  headerRight: () => <View />,
+});
+
 const CardRoutes = () => (
   <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
     <Stack.Screen
@@ -93,6 +119,11 @@ const CardRoutes = () => (
       name={Routes.CARD.AUTHENTICATION}
       component={CardAuthentication}
       options={cardAuthenticationNavigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.CARD.SPENDING_LIMIT}
+      component={SpendingLimit}
+      options={cardSpendingLimitNavigationOptions}
     />
     <Stack.Screen
       name={Routes.CARD.ONBOARDING.ROOT}

@@ -71,11 +71,6 @@ const createStyles = (theme: Theme) =>
     limitedAllowanceManageCardText: {
       fontWeight: 'bold',
     },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.background.default,
-      width: '100%',
-    },
     defaultMarginTop: {
       marginTop: 16,
     },
@@ -91,6 +86,14 @@ const createStyles = (theme: Theme) =>
     },
     halfWidthButton: {
       width: '50%',
+    },
+    spendingLimitContainer: {
+      marginVertical: 8,
+      width: '100%',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.border.muted,
     },
   });
 
