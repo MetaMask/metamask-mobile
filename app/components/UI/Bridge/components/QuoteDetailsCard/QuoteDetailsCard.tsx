@@ -29,6 +29,7 @@ import {
   selectDestToken,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
@@ -77,6 +78,13 @@ const QuoteDetailsCard: React.FC = () => {
     isQuoteLoading,
   });
 
+  const nativeTokenName = useMemo(() => {
+    const chainId = sourceToken?.chainId;
+    if (!chainId) return undefined;
+    const native = getNativeSourceToken(chainId);
+    return native.symbol;
+  }, [sourceToken?.chainId]);
+
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
@@ -95,6 +103,8 @@ const QuoteDetailsCard: React.FC = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
+  // TODO: remove this once controller types are updated
+  // @ts-expect-error: controller types are not up to date yet
   const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
 
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
@@ -153,7 +163,9 @@ const QuoteDetailsCard: React.FC = () => {
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
-                content: strings('bridge.network_fee_info_content_sponsored'),
+                content: strings('bridge.network_fee_info_content_sponsored', {
+                  nativeToken: nativeTokenName,
+                }),
                 size: TooltipSizes.Sm,
               },
             }}
