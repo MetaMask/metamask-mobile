@@ -24,6 +24,8 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 };
 
 describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
+  const itif = (condition: boolean) => (condition ? it : it.skip);
+
   it('should import account with SRP', async () => {
     await withFixtures(
       {
@@ -49,7 +51,35 @@ describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
     );
   });
 
-  it('should import account with SRP TO TRY OUT', async () => {
+  itif(device.getPlatform() === 'android')(
+    'should import account with SRP TO TRY OUT',
+    async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+            .build(),
+          restartDevice: true,
+          testSpecificMock,
+        },
+        async () => {
+          await loginToApp();
+          await goToImportSrp();
+          await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
+          await ImportSrpView.tapImportButton();
+          await Assertions.expectElementToHaveText(
+            WalletView.accountName,
+            IMPORTED_ACCOUNT_NAME_2,
+            {
+              description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME_2}`,
+            },
+          );
+        },
+      );
+    },
+  );
+
+  it('should import account with SRP TRY NEW APPROACH', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
