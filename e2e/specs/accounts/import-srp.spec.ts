@@ -14,6 +14,7 @@ import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 // We now have account indexes "per wallets", thus the new account for that new SRP (wallet), will
 // be: "Account 1".
 const IMPORTED_ACCOUNT_NAME = 'Account 1';
+const IMPORTED_ACCOUNT_NAME_2 = 'Account 2';
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
@@ -42,6 +43,31 @@ describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
           IMPORTED_ACCOUNT_NAME,
           {
             description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME}`,
+          },
+        );
+      },
+    );
+  });
+
+  it('should import account with SRP TO TRY OUT', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+          .build(),
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await goToImportSrp();
+        await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
+        await ImportSrpView.tapImportButton();
+        await Assertions.expectElementToHaveText(
+          WalletView.accountName,
+          IMPORTED_ACCOUNT_NAME_2,
+          {
+            description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME_2}`,
           },
         );
       },

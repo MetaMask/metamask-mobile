@@ -155,7 +155,7 @@ jobs:
           path: 'all-test-artifacts/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
-          list-suites: 'failed'
+          list-suites: 'all'
           list-tests: 'failed'
 
       - name: Upload all test artifacts (XMLs + Screenshots)

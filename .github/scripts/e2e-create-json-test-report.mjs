@@ -3,6 +3,9 @@ import path from 'path';
 import xml2js from 'xml2js';
 import https from 'https';
 
+// Converts JUnit XML test reports into a structured JSON report with GitHub job metadata 
+// and retry tracking. These JSON reports are later on analyzed by the Flaky tests bot daily.
+
 const env = {
   TEST_RESULTS_PATH: process.env.TEST_RESULTS_PATH || 'e2e-smoke-android-all-test-artifacts',
   TEST_RUNS_PATH: process.env.TEST_RUNS_PATH || 'test/test-results/json-test-report.json',
