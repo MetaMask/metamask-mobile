@@ -34,6 +34,7 @@ describe('perps controller init', () => {
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
 
     // Mock getState to return proper Redux state structure for feature flags
+    // Using Partial since we only need RemoteFeatureFlagController for this test
     initRequestMock.getState.mockReturnValue({
       engine: {
         backgroundState: {
@@ -41,9 +42,13 @@ describe('perps controller init', () => {
             remoteFeatureFlags: {},
             cacheTimestamp: 0,
           },
-        },
+        } as Partial<
+          ReturnType<
+            typeof initRequestMock.getState
+          >['engine']['backgroundState']
+        >,
       },
-    });
+    } as ReturnType<typeof initRequestMock.getState>);
   });
 
   it('returns controller instance', () => {
