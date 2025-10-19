@@ -21,6 +21,8 @@
  * 5) Write merged report to junit.xml
  */
 
+// The final xml report just have the results of the latest retry for each test case.
+
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import xml2js from 'xml2js';
