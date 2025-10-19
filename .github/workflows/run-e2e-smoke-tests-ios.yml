@@ -141,28 +141,29 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Download JUnit XML result files
+      - name: Download shards test artifacts (XMLs + Screenshots)
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
-          path: all-test-results/
-          pattern: '*-ios-*-test-junit-results'
+          path: all-test-artifacts/
+          pattern: '*-ios-*-test-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: 'iOS E2E Smoke Test Results'
-          path: 'all-test-results/**/junit.xml'
+          path: 'all-test-artifacts/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Upload merged JUnit XML report
+      - name: Upload all test artifacts (XMLs + Screenshots)
         uses: actions/upload-artifact@v4
         with:
-          name: ios-merged-test-report
-          path: all-test-results/**/junit.xml
-      
+          name: e2e-smoke-ios-all-test-artifacts
+          path: all-test-artifacts/
+
       - name: Create mobile JSON test report
         id: create-json-report
         continue-on-error: true
@@ -177,8 +178,8 @@ jobs:
 
           # Run the mobile test report generator
           cd ${{ github.workspace }}
-          TEST_RESULTS_PATH=all-test-results \
-          TEST_RUNS_PATH=test/test-results/test-runs-ios.json \
+          TEST_RESULTS_PATH=all-test-artifacts \
+          TEST_RUNS_PATH=test/test-results/json-test-report.json \
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
@@ -191,5 +192,5 @@ jobs:
         if: steps.create-json-report.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: test-e2e-ios-report
-          path: test/test-results/test-runs-ios.json
+          name: e2e-ios-json-report
+          path: test/test-results/json-test-report.json

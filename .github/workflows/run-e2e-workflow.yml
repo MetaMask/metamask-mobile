@@ -234,6 +234,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-screenshots
+          name: ${{ inputs.test-suite-name }}-test-screenshots
           path: e2e/artifacts/
           retention-days: 7
