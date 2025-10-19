@@ -1249,6 +1249,15 @@ describe('PerpsTPSLView', () => {
 
       expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined);
     });
+
+    it('navigates back when back button is pressed', () => {
+      render(<PerpsTPSLView />);
+
+      const backButton = screen.getByTestId('back-button');
+      fireEvent.press(backButton);
+
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
   });
 
   describe('Direction-based Logic', () => {
