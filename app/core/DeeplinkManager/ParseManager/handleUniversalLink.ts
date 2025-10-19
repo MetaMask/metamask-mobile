@@ -36,6 +36,7 @@ enum SUPPORTED_ACTIONS {
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
   REWARDS = ACTIONS.REWARDS,
   WC = ACTIONS.WC,
+  ONBOARDING = ACTIONS.ONBOARDING,
 }
 
 /**
@@ -226,6 +227,9 @@ async function handleUniversalLink({
       instance.parse(wcURL, { origin: source });
     }
     return;
+  } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
+    const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleFastOnboarding(onboardingPath);
   }
 }
 

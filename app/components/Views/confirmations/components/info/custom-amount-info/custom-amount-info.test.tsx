@@ -77,6 +77,8 @@ describe('CustomAmountInfo', () => {
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '123.45',
       amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
       isInputChanged: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,

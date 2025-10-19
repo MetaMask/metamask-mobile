@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
-import { Hex } from '@metamask/utils';
-
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -162,6 +160,31 @@ export interface PredictActivityClaimWinnings {
   amount: number;
 }
 
+export enum PredictActivityType {
+  BUY = 'BUY',
+  SELL = 'SELL',
+  CLAIM = 'CLAIM',
+}
+
+export interface PredictActivityItem {
+  id: string;
+  type: PredictActivityType;
+  marketTitle: string;
+  detail: string;
+  amountUsd: number;
+  icon?: string;
+  outcome?: string;
+  percentChange?: number;
+  providerId?: string;
+  priceImpactPercentage?: number;
+  metamaskFeeUsd?: number;
+  providerFeeUsd?: number;
+  totalUsd?: number;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
+  entry: PredictActivityEntry;
+}
+
 export interface PredictPriceHistoryPoint {
   timestamp: number;
   price: number;
@@ -207,7 +230,6 @@ export type PredictPosition = {
 };
 
 export interface ClaimParams {
-  positions: PredictPosition[];
   providerId: string;
 }
 
@@ -228,14 +250,9 @@ export interface UnrealizedPnL {
 }
 
 export type PredictClaim = {
-  transactionId: string;
+  batchId: string;
   chainId: number;
   status: PredictClaimStatus;
-  txParams: {
-    to: Hex;
-    data: Hex;
-    value: Hex;
-  };
 };
 
 export type PredictDeposit = {
