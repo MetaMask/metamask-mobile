@@ -52,7 +52,8 @@ const createWrapper = () => {
     },
   });
   return function TestWrapper({ children }: { children: React.ReactNode }) {
-    return React.createElement(Provider, { store: mockStore }, children);
+    // eslint-disable-next-line react/no-children-prop
+    return React.createElement(Provider, { store: mockStore, children });
   };
 };
 
