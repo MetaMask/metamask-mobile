@@ -19,7 +19,8 @@ import {
 } from './network-controller/messenger-action-handlers';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 import { MetaMetrics } from '../../Analytics';
-import { Hex } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
+import Logger from '../../../util/Logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -186,6 +187,32 @@ export const networkControllerInit: ControllerInitFunction<
   );
 
   controller.initializeProvider();
+
+  // TODO: Move this to `network-controller`
+  const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
+    if (isRpcFailoverEnabled) {
+      Logger.log('Enabling RPC failover.');
+      controller.enableRpcFailover();
+    } else {
+      Logger.log('Disabling RPC failover.');
+      controller.disableRpcFailover();
+    }
+  };
+
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    toggleRpcFailover,
+    (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
+  );
+
+  const remoteFeatureFlagControllerState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+
+  toggleRpcFailover(
+    remoteFeatureFlagControllerState.remoteFeatureFlags
+      .walletFrameworkRpcFailoverEnabled,
+  );
 
   return {
     controller,

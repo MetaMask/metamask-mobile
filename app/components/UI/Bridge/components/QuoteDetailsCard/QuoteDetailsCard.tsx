@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -28,10 +28,15 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectBridgeFeatureFlags,
+  selectDestAddress,
+  selectIsSwap,
 } from '../../../../../core/redux/slices/bridge';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
+import { areAddressesEqual } from '../../../../../util/address';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
@@ -43,7 +48,7 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QuoteDetailsCard = () => {
+const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -57,11 +62,18 @@ const QuoteDetailsCard = () => {
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
+    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const destAddress = useSelector(selectDestAddress);
+  const isSwap = useSelector(selectIsSwap);
+  const internalAccounts = useSelector(selectInternalAccounts);
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -72,9 +84,39 @@ const QuoteDetailsCard = () => {
     isQuoteLoading,
   });
 
+  // Get the display name for the destination account
+  const destinationDisplayName = useMemo(() => {
+    if (!destAddress) return undefined;
+
+    const internalAccount = internalAccounts.find((account) =>
+      areAddressesEqual(account.address, destAddress),
+    );
+
+    if (!internalAccount) return undefined;
+
+    // Use account group name if available, otherwise use account name
+    if (isMultichainAccountsState2Enabled) {
+      const accountGroup = accountToGroupMap[internalAccount.id];
+      return accountGroup?.metadata.name || internalAccount.metadata.name;
+    }
+
+    return internalAccount.metadata.name;
+  }, [
+    destAddress,
+    internalAccounts,
+    accountToGroupMap,
+    isMultichainAccountsState2Enabled,
+  ]);
+
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
+    });
+  };
+
+  const handleRecipientPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL,
     });
   };
 
@@ -90,18 +132,7 @@ const QuoteDetailsCard = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
-  // Check if price impact warning should be shown
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
-  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
-  const shouldShowPriceImpactWarning =
-    rawPriceImpact !== undefined &&
-    bridgeFeatureFlags?.priceImpactThreshold &&
-    ((gasIncluded &&
-      Number(rawPriceImpact) >=
-        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-      (!gasIncluded &&
-        Number(rawPriceImpact) >=
-          bridgeFeatureFlags.priceImpactThreshold.normal));
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
@@ -211,29 +242,10 @@ const QuoteDetailsCard = () => {
 
         <KeyValueRow
           field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={4}
-              >
-                <TouchableOpacity
-                  onPress={handleSlippagePress}
-                  activeOpacity={0.6}
-                  testID="edit-slippage-button"
-                  style={styles.slippageButton}
-                >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge.slippage')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              </Box>
-            ),
+            label: {
+              text: strings('bridge.slippage'),
+              variant: TextVariant.BodyMDMedium,
+            },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
@@ -241,12 +253,61 @@ const QuoteDetailsCard = () => {
             },
           }}
           value={{
-            label: {
-              text: slippage,
-              variant: TextVariant.BodyMD,
-            },
+            label: (
+              <TouchableOpacity
+                onPress={handleSlippagePress}
+                activeOpacity={0.6}
+                testID="edit-slippage-button"
+                style={styles.slippageButton}
+              >
+                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
+                <Icon
+                  name={IconName.Edit}
+                  size={IconSize.Sm}
+                  color={IconColor.Muted}
+                />
+              </TouchableOpacity>
+            ),
           }}
         />
+
+        {!isSwap && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.recipient'),
+                variant: TextVariant.BodyMDMedium,
+              },
+            }}
+            value={{
+              label: (
+                <TouchableOpacity
+                  onPress={handleRecipientPress}
+                  activeOpacity={0.6}
+                  testID="recipient-selector-button"
+                  style={styles.slippageButton}
+                >
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={styles.recipientText}
+                  >
+                    {destAddress
+                      ? destinationDisplayName ||
+                        strings('bridge.external_account')
+                      : strings('bridge.select_recipient')}
+                  </Text>
+                  <Icon
+                    name={IconName.Edit}
+                    size={IconSize.Sm}
+                    color={IconColor.Muted}
+                  />
+                </TouchableOpacity>
+              ),
+            }}
+          />
+        )}
 
         {activeQuote?.minToTokenAmount && (
           <KeyValueRow

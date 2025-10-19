@@ -931,13 +931,6 @@ export function getWalletNavbarOptions(
   isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
-    headerContainer: {
-      height: 72,
-      backgroundColor: themeColors.background,
-      borderBottomWidth: 1,
-      borderBottomColor: themeColors.border.muted,
-      alignItems: 'center',
-    },
     headerIcon: {
       color: themeColors.primary.default,
     },
@@ -1082,7 +1075,6 @@ export function getWalletNavbarOptions(
       <HeaderBase
         includesTopInset
         variant={HeaderBaseVariant.Display}
-        style={innerStyles.headerContainer}
         startAccessory={
           !isFeatureFlagEnabled && (
             <View style={innerStyles.startAccessoryContainer}>

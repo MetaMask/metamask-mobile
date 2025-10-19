@@ -14,7 +14,6 @@ interface MockBalance {
   lastUpdated: number;
 }
 
-// Mock dependencies
 jest.mock('react-redux');
 jest.mock('../../../../core/Engine', () => ({
   context: {

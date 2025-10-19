@@ -59,6 +59,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import TransactionTypes from '../../../../../core/TransactionTypes';
+import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
 
 /**
  * CardHome Component
@@ -78,11 +79,8 @@ const CardHome = () => {
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const {
-    isAuthenticated,
-    logoutFromProvider,
-    isLoading: isSDKLoading,
-  } = useCardSDK();
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
 
   const { trackEvent, createEventBuilder } = useMetrics();

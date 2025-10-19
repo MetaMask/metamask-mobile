@@ -193,6 +193,18 @@ export const useBridgeQuoteData = ({
     !bestQuote && quotesLastFetched && !isLoading,
   );
 
+  // Check if price impact warning should be shown
+  const shouldShowPriceImpactWarning = Boolean(
+    activeQuote?.quote.priceData?.priceImpact !== undefined &&
+      bridgeFeatureFlags?.priceImpactThreshold &&
+      ((activeQuote?.quote.gasIncluded &&
+        Number(activeQuote?.quote.priceData?.priceImpact) >=
+          bridgeFeatureFlags.priceImpactThreshold.gasless) ||
+        (!activeQuote?.quote.gasIncluded &&
+          Number(activeQuote?.quote.priceData?.priceImpact) >=
+            bridgeFeatureFlags.priceImpactThreshold.normal)),
+  );
+
   const validateQuote = useCallback(async () => {
     // Increment validation ID for this request
     const validationId = ++currentValidationIdRef.current;
@@ -252,5 +264,6 @@ export const useBridgeQuoteData = ({
     willRefresh,
     isExpired,
     blockaidError,
+    shouldShowPriceImpactWarning,
   };
 };

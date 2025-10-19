@@ -84,3 +84,43 @@ export class CardError extends Error {
     this.originalError = originalError;
   }
 }
+
+// Country type definition
+export interface CountriesOutput {
+  countries: {
+    id: string;
+    name: string;
+    iso3166alpha2: string;
+    callingCode: string;
+    canSignUp: boolean;
+  }[];
+  usStates: {
+    id: string;
+    name: string;
+    postalAbbreviation: string;
+    canSignUp: boolean;
+  }[];
+  links: {
+    us: {
+      termsAndConditions: string;
+      accountOpeningDisclosure: string;
+      noticeOfPrivacy: string;
+    };
+    intl: {
+      termsAndConditions: string;
+      rightToInformation: string;
+    };
+  };
+  config: {
+    us: {
+      emailSpecialCharactersDomainsException: string;
+      consentSmsNumber: string;
+      supportEmail: string;
+    };
+    intl: {
+      emailSpecialCharactersDomainsException: string;
+      consentSmsNumber: string;
+      supportEmail: string;
+    };
+  };
+}

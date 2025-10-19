@@ -6,8 +6,11 @@ import {
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { PlaceOrderParams } from '../providers/types';
-import type { Result } from '../types';
+import { Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
+import { strings } from '../../../../../locales/i18n';
+import { formatPrice } from '../utils/format';
+import { usePredictBalance } from './usePredictBalance';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -37,11 +40,45 @@ export function usePredictPlaceOrder(
 ): UsePredictPlaceOrderReturn {
   const { onError, onComplete } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
+  const { loadBalance } = usePredictBalance();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
   const { toastRef } = useContext(ToastContext);
+
+  const showCashedOutToast = useCallback(
+    (amount: string) =>
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Check,
+        labelOptions: [
+          { label: strings('predict.cashed_out'), isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: strings('predict.cashed_out_subtitle', {
+              amount,
+            }),
+            isBold: false,
+          },
+        ],
+        hasNoTimeout: false,
+      }),
+    [toastRef],
+  );
+
+  const showOrderPlacedToast = useCallback(
+    () =>
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Check,
+        labelOptions: [
+          { label: strings('predict.prediction_placed'), isBold: true },
+        ],
+        hasNoTimeout: false,
+      }),
+    [toastRef],
+  );
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {
@@ -52,6 +89,9 @@ export function usePredictPlaceOrder(
 
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
+        const {
+          preview: { minAmountReceived, side },
+        } = orderParams;
 
         if (!orderResult.success) {
           toastRef?.current?.showToast({
@@ -70,12 +110,15 @@ export function usePredictPlaceOrder(
 
         setResult(orderResult as Result);
 
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Check,
-          labelOptions: [{ label: 'Order placed' }],
-          hasNoTimeout: false,
-        });
+        if (side === Side.SELL) {
+          showCashedOutToast(formatPrice(minAmountReceived));
+        }
+
+        if (side === Side.BUY) {
+          showOrderPlacedToast();
+        }
+
+        await loadBalance({ isRefresh: true });
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
       } catch (err) {
@@ -92,7 +135,15 @@ export function usePredictPlaceOrder(
         setIsLoading(false);
       }
     },
-    [toastRef, controllerPlaceOrder, onComplete, onError],
+    [
+      controllerPlaceOrder,
+      onComplete,
+      loadBalance,
+      toastRef,
+      showCashedOutToast,
+      showOrderPlacedToast,
+      onError,
+    ],
   );
 
   return {

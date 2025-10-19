@@ -67,3 +67,97 @@ describe('browserReducer STORE_FAVICON_URL', () => {
     expect(newState).toEqual(expectedState);
   });
 });
+
+describe('browserReducer TOGGLE_FULLSCREEN', () => {
+  it('toggles isFullscreen from false to true', () => {
+    // Arrange
+    const initialState = {
+      history: [],
+      whitelist: [],
+      tabs: [],
+      favicons: [],
+      activeTab: null,
+      isFullscreen: false,
+    };
+
+    const action = {
+      type: 'TOGGLE_FULLSCREEN',
+      isFullscreen: true,
+    };
+
+    const expectedState = {
+      history: [],
+      whitelist: [],
+      tabs: [],
+      favicons: [],
+      activeTab: null,
+      isFullscreen: true,
+    };
+
+    // Act
+    const newState = browserReducer(initialState, action);
+
+    // Assert
+    expect(newState).toEqual(expectedState);
+  });
+
+  it('toggles isFullscreen from true to false', () => {
+    // Arrange
+    const initialState = {
+      history: [],
+      whitelist: [],
+      tabs: [],
+      favicons: [],
+      activeTab: null,
+      isFullscreen: true,
+    };
+
+    const action = {
+      type: 'TOGGLE_FULLSCREEN',
+      isFullscreen: false,
+    };
+
+    const expectedState = {
+      history: [],
+      whitelist: [],
+      tabs: [],
+      favicons: [],
+      activeTab: null,
+      isFullscreen: false,
+    };
+
+    // Act
+    const newState = browserReducer(initialState, action);
+
+    // Assert
+    expect(newState).toEqual(expectedState);
+  });
+
+  it('preserves all other state properties when toggling fullscreen', () => {
+    // Arrange
+    const initialState = {
+      history: [{ url: 'https://example.com', name: 'Example' }],
+      whitelist: ['https://trusted.com'],
+      tabs: [{ id: 'tab1', url: 'https://example.com' }],
+      favicons: [{ origin: 'example.com', url: 'favicon.ico' }],
+      activeTab: 'tab1',
+      isFullscreen: false,
+    };
+
+    const action = {
+      type: 'TOGGLE_FULLSCREEN',
+      isFullscreen: true,
+    };
+
+    // Act
+    const newState = browserReducer(initialState, action);
+
+    // Assert
+    expect(newState.history).toEqual(initialState.history);
+    expect(newState.whitelist).toEqual(initialState.whitelist);
+    expect(newState.tabs).toEqual(initialState.tabs);
+    expect(newState.favicons).toEqual(initialState.favicons);
+    expect(newState.activeTab).toEqual(initialState.activeTab);
+    expect(newState.isFullscreen).toBe(true);
+  });
+});

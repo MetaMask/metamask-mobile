@@ -34,7 +34,7 @@ import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
 import {
   formatPerpsFiat,
-  PRICE_RANGES_POSITION_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 
 // Quick percentage buttons constants - RoE percentages
@@ -395,7 +395,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   position.entryPrice !== 'null' &&
                   position.entryPrice !== '0.00'
                     ? formatPerpsFiat(position.entryPrice, {
-                        ranges: PRICE_RANGES_POSITION_VIEW,
+                        ranges: PRICE_RANGES_UNIVERSAL,
                       })
                     : '--'}
                 </Text>
@@ -412,7 +412,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {currentPrice
                   ? formatPerpsFiat(currentPrice, {
-                      ranges: PRICE_RANGES_POSITION_VIEW,
+                      ranges: PRICE_RANGES_UNIVERSAL,
                     })
                   : '--'}
               </Text>
@@ -426,7 +426,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 displayLiquidationPrice !== 'null' &&
                 displayLiquidationPrice !== '0.00'
                   ? formatPerpsFiat(displayLiquidationPrice, {
-                      ranges: PRICE_RANGES_POSITION_VIEW,
+                      ranges: PRICE_RANGES_UNIVERSAL,
                     })
                   : '--'}
               </Text>

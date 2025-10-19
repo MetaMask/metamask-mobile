@@ -69,7 +69,6 @@ import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import PerpsOrderView from './PerpsOrderView';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
@@ -102,6 +101,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.tpsl.below': 'below',
       'perps.tpsl.above': 'above',
       'perps.points': 'Points',
+      'perps.estimated_points': 'perps.estimated_points',
+      'perps.points_error': 'Points Error',
+      'perps.points_error_content': 'Unable to load points at this time',
     };
 
     if (params && translations[key]) {
@@ -1954,6 +1956,122 @@ describe('PerpsOrderView', () => {
       // Assert - Points text and tooltip should be present
       expect(screen.getByText('perps.estimated_points')).toBeTruthy();
     });
+
+    it('should render RewardsAnimations component with correct props when rewards shown', async () => {
+      // Arrange - Enable rewards with specific values
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 1000,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 250,
+        feeDiscountPercentage: 15,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row and animation component render
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        // The RewardsAnimations component should display the formatted points value
+        expect(screen.getByText('1,000')).toBeTruthy();
+      });
+    });
+
+    it('should render RewardsAnimations in loading state', async () => {
+      // Arrange - Enable rewards in loading state
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: true,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row renders even in loading state
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+      });
+    });
+
+    it('should render RewardsAnimations in error state', async () => {
+      // Arrange - Enable rewards in error state
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: false,
+        hasError: true,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row renders in error state
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        // RewardsAnimations component renders with hasError state
+      });
+    });
+
+    it('should render RewardsAnimations with bonus bips when provided', async () => {
+      // Arrange - Enable rewards with bonus
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 2500,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 500, // 5% bonus
+        feeDiscountPercentage: 25,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row renders with bonus
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        expect(screen.getByText('2,500')).toBeTruthy();
+      });
+    });
   });
 
   describe('Info icon tooltip interactions', () => {
@@ -2836,7 +2954,7 @@ describe('PerpsOrderView', () => {
 
       // Assert - Should display asset in header title and price
       expect(getByText('Long BTC')).toBeOnTheScreen();
-      expect(getByText('$3,000.00')).toBeOnTheScreen(); // Price from mock data
+      expect(getByText('$3,000')).toBeOnTheScreen(); // Price from mock data
     });
   });
 });

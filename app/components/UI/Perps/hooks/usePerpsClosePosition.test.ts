@@ -16,7 +16,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock dependencies
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../../locales/i18n', () => ({

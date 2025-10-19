@@ -2230,6 +2230,7 @@ describe('RewardsController', () => {
       Date.now = jest.fn().mockReturnValue(mockTimestamp);
 
       const mockSolanaAccount = {
+        id: 'test-id',
         address: 'solana123',
         type: 'solana:pubkey' as const,
       };
@@ -2258,13 +2259,13 @@ describe('RewardsController', () => {
 
       // Call the function directly
       const result = await signSolanaRewardsMessage(
-        mockSolanaAccount.address,
+        mockSolanaAccount.id,
         base64Message,
       );
 
       // Assert
       expect(mockSignSolanaRewardsMessage).toHaveBeenCalledWith(
-        mockSolanaAccount.address,
+        mockSolanaAccount.id,
         expect.any(String),
       );
       expect(result).toEqual({

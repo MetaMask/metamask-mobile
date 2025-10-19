@@ -13,7 +13,6 @@ import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),

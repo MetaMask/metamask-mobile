@@ -14,7 +14,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../utils/formatUtils', () => ({
   formatPrice: (price: string) => price, // Simple pass-through for testing
   formatPerpsFiat: (price: string) => price, // Simple pass-through for testing
-  PRICE_RANGES_POSITION_VIEW: {}, // Mock the constant
+  PRICE_RANGES_UNIVERSAL: {}, // Mock the constant
 }));
 
 // Mock i18n strings

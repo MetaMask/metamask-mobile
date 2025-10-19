@@ -7,6 +7,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { getEventDetails } from '../../../../utils/eventDetailsUtils';
 import { GenericEventDetails } from './GenericEventDetails';
 import { SwapEventDetails } from './SwapEventDetails';
+import { CardEventDetails } from './CardEventDetails';
 import { PointsEventDto } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
 
 interface ActivityDetailsSheetProps {
@@ -23,6 +24,8 @@ export const ActivityDetailsSheet: React.FC<ActivityDetailsSheetProps> = ({
   switch (event.type) {
     case 'SWAP':
       return <SwapEventDetails event={event} accountName={accountName} />;
+    case 'CARD':
+      return <CardEventDetails event={event} accountName={accountName} />;
     default:
       return <GenericEventDetails event={event} accountName={accountName} />;
   }

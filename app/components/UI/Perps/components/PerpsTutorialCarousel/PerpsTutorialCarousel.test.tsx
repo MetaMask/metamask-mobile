@@ -60,7 +60,6 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),

@@ -28,7 +28,7 @@ describe('useTopTokens', () => {
     address: ethToken1Address,
     symbol: 'TOKEN1',
     name: 'Token One',
-    image: 'https://token1.com/logo.png',
+    image: `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${ethToken1Address.toLowerCase()}.png`,
     decimals: 18,
     chainId: ethChainId,
   };
@@ -37,7 +37,7 @@ describe('useTopTokens', () => {
     address: ethToken2Address,
     symbol: 'HELLO',
     name: 'Hello Token',
-    image: 'https://token2.com/logo.png',
+    image: `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${ethToken2Address.toLowerCase()}.png`,
     decimals: 18,
     chainId: ethChainId,
   };
@@ -166,6 +166,7 @@ describe('useTopTokens', () => {
         BridgeClientId.MOBILE,
         handleFetch,
         BRIDGE_PROD_API_BASE_URL,
+        expect.stringMatching(/^\d+\.\d+\.\d+$/), // Version from package.json
       );
     });
 

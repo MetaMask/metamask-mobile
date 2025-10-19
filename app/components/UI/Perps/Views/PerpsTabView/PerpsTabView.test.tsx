@@ -13,7 +13,6 @@ import type { Position } from '../../controllers/types';
 import PerpsTabView from './PerpsTabView';
 import { PerpsEventValues } from '../../constants/eventNames';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));

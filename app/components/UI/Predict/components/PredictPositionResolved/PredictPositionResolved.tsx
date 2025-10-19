@@ -68,8 +68,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       <View>
         {percentPnl > 0 ? (
           <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-            Won{' '}
-            {formatPrice(currentValue - initialValue, { maximumDecimals: 2 })}
+            Won {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
         ) : (
           <Text variant={TextVariant.BodyMD} color={TextColor.Error}>

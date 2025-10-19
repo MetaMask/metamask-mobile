@@ -183,25 +183,31 @@ app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamas
 app/selectors/assets @MetaMask/metamask-assets
 
 # UX Team
-app/components/Views/AccountActions @MetaMask/mobile-core-ux
-app/components/Views/AccountSelector @MetaMask/mobile-core-ux
-app/components/Views/AddressQRCode @MetaMask/mobile-core-ux
-app/components/Views/EditAccountName @MetaMask/mobile-core-ux
-app/components/Views/LockScreen @MetaMask/mobile-core-ux
-app/components/Views/Login @MetaMask/mobile-core-ux
-app/components/Views/NetworkConnect @MetaMask/mobile-core-ux
-app/components/Views/NetworkSelector @MetaMask/mobile-core-ux
-app/components/Views/OnboardingCarousel @MetaMask/mobile-core-ux
-app/components/Views/OnboardingSuccess @MetaMask/mobile-core-ux
-app/components/Views/QRAccountDisplay @MetaMask/mobile-core-ux
-app/components/Views/QRScanner @MetaMask/mobile-core-ux
-app/components/Views/Settings @MetaMask/mobile-core-ux
-app/components/Views/TermsAndConditions @MetaMask/mobile-core-ux
-app/reducers/experimentalSettings @MetaMask/mobile-core-ux
-app/reducers/modals @MetaMask/mobile-core-ux
-app/reducers/navigation @MetaMask/mobile-core-ux
-app/reducers/privacy @MetaMask/mobile-core-ux
-app/reducers/settings @MetaMask/mobile-core-ux
+app/components/Views/AccountActions              @MetaMask/mobile-core-ux
+app/components/Views/AccountSelector             @MetaMask/mobile-core-ux
+app/components/Views/AddressQRCode               @MetaMask/mobile-core-ux
+app/components/Views/EditAccountName             @MetaMask/mobile-core-ux
+app/components/Views/LockScreen                  @MetaMask/mobile-core-ux
+app/components/Views/Login                       @MetaMask/mobile-core-ux
+app/components/Views/NetworkConnect              @MetaMask/mobile-core-ux
+app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux
+app/components/Views/OnboardingCarousel          @MetaMask/mobile-core-ux
+app/components/Views/OnboardingSuccess           @MetaMask/mobile-core-ux
+app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
+app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
+app/components/Views/Settings                    @MetaMask/mobile-core-ux
+app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
+app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
+app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
+app/components/UI/MultichainTransactionListItem  @MetaMask/mobile-core-ux
+app/components/UI/TransactionActionModal         @MetaMask/mobile-core-ux
+app/components/UI/TransactionElement             @MetaMask/mobile-core-ux
+app/components/UI/Transactions                   @MetaMask/mobile-core-ux
+app/reducers/experimentalSettings                @MetaMask/mobile-core-ux
+app/reducers/modals                              @MetaMask/mobile-core-ux
+app/reducers/navigation                          @MetaMask/mobile-core-ux
+app/reducers/privacy                             @MetaMask/mobile-core-ux
+app/reducers/settings                            @MetaMask/mobile-core-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions

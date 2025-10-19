@@ -119,7 +119,7 @@ describe('BridgeController Init', () => {
   });
 
   describe('BridgeController constructor options', () => {
-    it('correctly sets up messenger and clientId', () => {
+    it('correctly sets up messenger, clientId, and clientVersion', () => {
       // Arrange
       const requestMock = buildInitRequestMock();
 
@@ -132,6 +132,11 @@ describe('BridgeController Init', () => {
         requestMock.controllerMessenger,
       );
       expect(constructorOptions.clientId).toBe('mobile');
+      // clientVersion should come from package.json
+      expect(constructorOptions.clientVersion).toBeDefined();
+      expect(typeof constructorOptions.clientVersion).toBe('string');
+      // Should match the version from package.json (7.58.0 currently)
+      expect(constructorOptions.clientVersion).toMatch(/^\d+\.\d+\.\d+$/);
     });
 
     it('correctly sets up fetchFn', () => {

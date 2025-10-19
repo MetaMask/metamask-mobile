@@ -5,7 +5,6 @@ import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 
-// Mock dependencies
 jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsToasts');
 jest.mock('../../../../../locales/i18n', () => ({

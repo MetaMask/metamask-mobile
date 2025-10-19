@@ -79,6 +79,16 @@ jest.mock('react-native', () => {
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
+  // Mock deprecated prop types for third-party packages that haven't been updated
+  originalModule.Text.propTypes = {
+    allowFontScaling: true,
+    style: true,
+  };
+
+  originalModule.ViewPropTypes = {
+    style: true,
+  };
+
   // Mock unstable_batchedUpdates directly in the react-native module
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
 

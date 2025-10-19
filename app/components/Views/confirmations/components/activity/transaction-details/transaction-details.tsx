@@ -22,6 +22,7 @@ import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
 import { hasTransactionType } from '../../../utils/transaction';
 import { ScrollView } from 'react-native';
+import { TransactionDetailsRetry } from '../transaction-details-retry';
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -51,6 +52,7 @@ export function TransactionDetails() {
         <TransactionDetailsTotalRow />
         <TransactionDetailDivider />
         <TransactionDetailsSummary />
+        <TransactionDetailsRetry />
       </Box>
     </ScrollView>
   );

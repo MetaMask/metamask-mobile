@@ -13,6 +13,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
+    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 
@@ -20,6 +21,12 @@ jest.mock('@react-navigation/native', () => {
 const mockUsePredictEligibility = jest.fn();
 jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => mockUsePredictEligibility(),
+}));
+
+// Mock usePredictBalance hook
+const mockUsePredictBalance = jest.fn();
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => mockUsePredictBalance(),
 }));
 
 const mockMarket: PredictMarket = {
@@ -64,6 +71,10 @@ describe('PredictMarketMultiple', () => {
     mockUsePredictEligibility.mockReturnValue({
       isEligible: true,
     });
+    // Default mock implementation - user has balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: false,
+    });
   });
 
   afterEach(() => {
@@ -97,7 +108,7 @@ describe('PredictMarketMultiple', () => {
     // Press the "Yes" button
     fireEvent.press(buttons[0]);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
@@ -108,7 +119,7 @@ describe('PredictMarketMultiple', () => {
     // Press the "No" button
     fireEvent.press(buttons[1]);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
@@ -233,6 +244,10 @@ describe('PredictMarketMultiple', () => {
     // Mock user as not eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+    });
+    // Mock user has balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: false,
     });
 
     const { UNSAFE_getAllByType } = renderWithProvider(

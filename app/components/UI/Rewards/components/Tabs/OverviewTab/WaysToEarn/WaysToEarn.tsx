@@ -258,9 +258,10 @@ export const WaysToEarn = () => {
         });
         break;
       }
-      case WayToEarnType.REFERRALS:
-        navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
+      case WayToEarnType.REFERRALS: {
+        navigation.navigate(Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL);
         break;
+      }
     }
   };
 

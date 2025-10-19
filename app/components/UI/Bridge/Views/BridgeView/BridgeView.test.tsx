@@ -810,6 +810,42 @@ describe('BridgeView', () => {
       });
     });
 
+    it('does not navigate to QuoteExpiredModal when RecipientSelectorModal is open', async () => {
+      // Set the Redux state to indicate user is selecting recipient
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSelectingRecipient: true,
+        },
+      };
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          willRefresh: false,
+        }));
+
+      renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+          },
+        );
+      });
+    });
+
     it('blurs input when opening QuoteExpiredModal', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)

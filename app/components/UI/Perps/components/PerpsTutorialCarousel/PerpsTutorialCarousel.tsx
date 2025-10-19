@@ -79,7 +79,6 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
             width: '100%',
-            minHeight: 400,
             flex: 1,
           }}
           resizeMode="contain"
@@ -509,17 +508,17 @@ const PerpsTutorialCarousel: React.FC = () => {
                     />
                   )}
                 </View>
-              </View>
-              <View style={styles.footerTextContainer}>
-                {screen.footerText && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles.footerText}
-                  >
-                    {screen.footerText}
-                  </Text>
-                )}
+                <View style={styles.footerTextContainer}>
+                  {screen.footerText && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                      style={styles.footerText}
+                    >
+                      {screen.footerText}
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
           ))}

@@ -3,6 +3,7 @@
  */
 export const PERPS_CONSTANTS = {
   FEATURE_FLAG_KEY: 'perpsEnabled',
+  FEATURE_NAME: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
   WEBSOCKET_TIMEOUT: 5000, // 5 seconds
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
   BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
@@ -11,6 +12,8 @@ export const PERPS_CONSTANTS = {
 
   // Connection timing constants
   CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
+  CONNECTION_ATTEMPT_TIMEOUT_MS: 30_000, // 30 seconds timeout for connection attempts to prevent indefinite hanging
+  WEBSOCKET_PING_TIMEOUT_MS: 5_000, // 5 seconds timeout for WebSocket health check ping
   RECONNECTION_CLEANUP_DELAY_MS: 500, // Platform-agnostic delay to ensure WebSocket is ready
   RECONNECTION_DELAY_ANDROID_MS: 300, // Android-specific reconnection delay for better reliability on slower devices
   RECONNECTION_DELAY_IOS_MS: 100, // iOS-specific reconnection delay for optimal performance
@@ -231,6 +234,16 @@ export const FUNDING_RATE_CONFIG = {
   ZERO_DISPLAY: '0.0000%',
   // Multiplier to convert decimal funding rate to percentage
   PERCENTAGE_MULTIPLIER: 100,
+} as const;
+
+/**
+ * Decimal precision configuration
+ * Controls maximum decimal places for price and input validation
+ */
+export const DECIMAL_PRECISION_CONFIG = {
+  // Maximum decimal places for price input (matches Hyperliquid limit)
+  // Used in TP/SL forms, limit price inputs, and price validation
+  MAX_PRICE_DECIMALS: 6,
 } as const;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';

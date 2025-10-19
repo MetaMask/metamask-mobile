@@ -11,7 +11,6 @@ import { toCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-// Mock dependencies
 jest.mock('@metamask/utils');
 jest.mock('@metamask/bridge-controller');
 jest.mock('@metamask/controller-utils');

@@ -50,6 +50,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const {
       amountFiat,
       amountHuman,
+      amountHumanDebounced,
+      hasInput,
       isInputChanged,
       updatePendingAmount,
       updatePendingAmountPercentage,
@@ -59,7 +61,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { alertMessage, keyboardAlertMessage, excludeBannerKeys } =
       useTransactionCustomAmountAlerts({
         isInputChanged,
-        pendingTokenAmount: amountHuman,
+        pendingTokenAmount: amountHumanDebounced,
       });
 
     useEffect(() => {
@@ -114,6 +116,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onChange={updatePendingAmount}
             onDonePress={handleDone}
             onPercentagePress={updatePendingAmountPercentage}
+            hasInput={hasInput}
           />
         )}
       </Box>

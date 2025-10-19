@@ -1,15 +1,7 @@
 import {
-  RemoteFeatureFlagController,
-  ClientConfigApiService,
-  ClientType,
   DistributionType,
   EnvironmentType,
 } from '@metamask/remote-feature-flag-controller';
-
-import Logger from '../../../../util/Logger';
-
-import { RemoteFeatureFlagInitParamTypes } from './types';
-import AppConstants from '../../../AppConstants';
 
 // Points to the LaunchDarkly environment based on the METAMASK_ENVIRONMENT environment variable
 export const getFeatureFlagAppEnvironment = () => {
@@ -52,41 +44,3 @@ export const getFeatureFlagAppDistribution = () => {
 
 export const isRemoteFeatureFlagOverrideActivated =
   process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
-
-export const createRemoteFeatureFlagController = ({
-  state,
-  messenger,
-  disabled,
-  getMetaMetricsId,
-  fetchInterval = AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
-}: RemoteFeatureFlagInitParamTypes) => {
-  const remoteFeatureFlagController = new RemoteFeatureFlagController({
-    messenger,
-    state,
-    disabled,
-    getMetaMetricsId,
-    clientConfigApiService: new ClientConfigApiService({
-      fetch,
-      config: {
-        client: ClientType.Mobile,
-        environment: getFeatureFlagAppEnvironment(),
-        distribution: getFeatureFlagAppDistribution(),
-      },
-    }),
-    fetchInterval,
-  });
-
-  if (disabled) {
-    Logger.log('Feature flag controller disabled');
-  } else if (isRemoteFeatureFlagOverrideActivated) {
-    Logger.log('Remote feature flags override activated');
-  } else {
-    remoteFeatureFlagController
-      .updateRemoteFeatureFlags()
-      .then(() => {
-        Logger.log('Feature flags updated');
-      })
-      .catch((error) => Logger.log(error));
-  }
-  return remoteFeatureFlagController;
-};

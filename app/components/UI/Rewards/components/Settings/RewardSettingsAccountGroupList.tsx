@@ -17,7 +17,6 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -36,7 +35,6 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   // Move all expensive operations to parent component
   const avatarAccountType = useSelector(selectAvatarAccountType);
-  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
 
   const {
     byWallet,
@@ -91,14 +89,11 @@ const RewardSettingsAccountGroupList: React.FC = () => {
               </Box>
             );
           case 'accountGroup': {
-            const isSelected =
-              selectedAccountGroup?.id === item.accountGroup?.id;
             return (
               <RewardSettingsAccountGroup
                 testID={`account-group-${item.accountGroup?.id || 'unknown'}`}
                 item={item}
                 avatarAccountType={avatarAccountType}
-                isSelected={isSelected}
               />
             );
           }
@@ -106,7 +101,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
             return null;
         }
       },
-      [avatarAccountType, selectedAccountGroup?.id],
+      [avatarAccountType],
     );
 
   const getItemType = useCallback(

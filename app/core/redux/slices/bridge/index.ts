@@ -55,6 +55,7 @@ export interface BridgeState {
   slippage: string | undefined;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
+  isSelectingRecipient: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -68,6 +69,7 @@ export const initialState: BridgeState = {
   slippage: '0.5',
   isSubmittingTx: false,
   bridgeViewMode: undefined,
+  isSelectingRecipient: false,
 };
 
 const name = 'bridge';
@@ -124,6 +126,9 @@ const slice = createSlice({
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
+    },
+    setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
+      state.isSelectingRecipient = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -490,6 +495,11 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
+export const selectIsSelectingRecipient = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSelectingRecipient,
+);
+
 export const selectIsGaslessSwapEnabled = createSelector(
   selectIsSwap,
   selectBridgeFeatureFlags,
@@ -555,4 +565,5 @@ export const {
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,
+  setIsSelectingRecipient,
 } = actions;

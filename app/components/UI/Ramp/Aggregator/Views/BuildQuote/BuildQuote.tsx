@@ -319,7 +319,7 @@ const BuildQuote = () => {
     hexChainIdForBalance,
   );
 
-  const { balanceFiat, balanceBN } = useBalance(
+  const { balanceFiat, balanceBN, balance } = useBalance(
     selectedAsset && selectedAddress && selectedAsset.network
       ? {
           chainId: selectedAsset.network.chainId,
@@ -396,6 +396,17 @@ const BuildQuote = () => {
 
     return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
   }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
+
+  const displayBalance = useMemo(() => {
+    if (!selectedAddress) {
+      return null;
+    }
+
+    const isNonEvm = isNonEvmAddress(selectedAddress);
+    const balanceValue = isNonEvm ? balance : addressBalance;
+
+    return balanceValue ?? null;
+  }, [selectedAddress, balance, addressBalance]);
 
   const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
 
@@ -934,14 +945,12 @@ const BuildQuote = () => {
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {addressBalance !== undefined && selectedAddress !== null ? (
+                  {displayBalance !== null && (
                     <>
                       {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                      {addressBalance}
+                      {displayBalance}
                       {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                     </>
-                  ) : (
-                    ''
                   )}
                 </Text>
               )}

@@ -101,6 +101,10 @@ export const useOptin = (): UseOptinResult => {
         if (subscriptionId) {
           addTraitsToUser({
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
+            ...(referralCode && {
+              [UserProfileProperty.REWARDS_REFERRED]: true,
+              [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]: referralCode,
+            }),
           });
           trackEvent(
             createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED)

@@ -16,6 +16,9 @@ import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
+import packageJSON from '../../../../../package.json';
+
+const { version: clientVersion } = packageJSON;
 
 export const bridgeControllerInit: ControllerInitFunction<
   BridgeController,
@@ -29,6 +32,7 @@ export const bridgeControllerInit: ControllerInitFunction<
     const bridgeController = new BridgeController({
       messenger: controllerMessenger,
       clientId: BridgeClientId.MOBILE,
+      clientVersion,
       // TODO: change getLayer1GasFee type to match transactionController.getLayer1GasFee
       getLayer1GasFee: async ({
         transactionParams,
