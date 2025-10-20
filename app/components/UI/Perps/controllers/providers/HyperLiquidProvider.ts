@@ -2648,7 +2648,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         `${dexsWithMarkets.length} DEXs have markets:`,
         dexsWithMarkets,
       );
-      return dexsWithMarkets.sort();
+      return dexsWithMarkets.sort((a, b) => a.localeCompare(b));
     } catch (error) {
       Logger.error(
         ensureError(error),
