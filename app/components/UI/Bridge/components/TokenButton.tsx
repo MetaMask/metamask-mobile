@@ -54,7 +54,7 @@ const createStyles = (params: StylesParams) => {
       fontSize: 24,
     },
     networkBadge: {
-      borderColor: theme.colors.background.section,
+      borderColor: theme.colors.background.muted,
     },
   });
 };
