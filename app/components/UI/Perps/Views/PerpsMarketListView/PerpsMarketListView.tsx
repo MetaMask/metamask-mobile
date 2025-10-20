@@ -494,7 +494,6 @@ const PerpsMarketListView = ({
               onPress={() => {
                 navigation.navigate(Routes.PERPS.HIP3_DEBUG);
               }}
-              testID="perps-hip3-debug-button"
             >
               <Icon name={IconName.Setting} size={IconSize.Lg} />
             </TouchableOpacity>

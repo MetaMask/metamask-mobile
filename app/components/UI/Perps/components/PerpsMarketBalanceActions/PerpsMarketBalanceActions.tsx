@@ -279,31 +279,25 @@ const PerpsMarketBalanceActions: React.FC<
               </Text>
             </Box>
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-3"
-            >
-              {/* USDC Token Avatar with HyperLiquid Badge */}
-              <BadgeWrapper
-                style={styles.assetIconWrapper}
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={HyperLiquidLogo}
-                    name="HyperLiquid"
-                    style={styles.hyperliquidIcon}
-                  />
-                }
-              >
-                <AvatarToken
-                  name={USDC_SYMBOL}
-                  imageSource={{ uri: USDC_TOKEN_ICON_URL }}
-                  size={AvatarSize.Md}
+            {/* USDC Token Avatar with HyperLiquid Badge */}
+            <BadgeWrapper
+              style={styles.assetIconWrapper}
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={HyperLiquidLogo}
+                  name="HyperLiquid"
+                  style={styles.hyperliquidIcon}
                 />
-              </BadgeWrapper>
-            </Box>
+              }
+            >
+              <AvatarToken
+                name={USDC_SYMBOL}
+                imageSource={{ uri: USDC_TOKEN_ICON_URL }}
+                size={AvatarSize.Md}
+              />
+            </BadgeWrapper>
           </Box>
         </Box>
 
