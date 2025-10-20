@@ -55,17 +55,34 @@ jest.mock('./Balance', () => {
   /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
   const React = require('react');
   const { View, Text } = require('react-native');
+  const {
+    BALANCE_TEST_ID,
+    TOKEN_AMOUNT_BALANCE_TEST_ID,
+  } = require('../AssetElement/index.constants');
   /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
   return {
     __esModule: true,
     default: ({
       asset,
+      mainBalance,
+      secondaryBalance,
+      hidePercentageChange,
     }: {
       asset: { name?: string; balance?: string | number };
+      mainBalance?: string;
+      secondaryBalance?: string;
+      hidePercentageChange?: boolean;
     }) => (
       <View>
         <Text testID="tokenDetailsName">{asset.name}</Text>
         <Text testID="tokenDetailsBalance">{asset.balance}</Text>
+
+        {mainBalance != null && (
+          <Text testID={BALANCE_TEST_ID}>{mainBalance}</Text>
+        )}
+        {!hidePercentageChange && secondaryBalance ? (
+          <Text testID={TOKEN_AMOUNT_BALANCE_TEST_ID}>{secondaryBalance}</Text>
+        ) : null}
       </View>
     ),
   };
@@ -73,7 +90,7 @@ jest.mock('./Balance', () => {
 
 jest.mock('../../../selectors/assets/assets-list', () => ({
   ...jest.requireActual('../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(),
+  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue([]),
 }));
 
 const MOCK_CHAIN_ID = '0x1';
