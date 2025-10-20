@@ -69,6 +69,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
+import { useDepositUser } from '../../hooks/useDepositUser';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -89,7 +90,15 @@ const BuildQuote = () => {
     isFetching: isFetchingRegions,
     error: regionsError,
     retryFetchRegions,
+    userRegionLocked,
   } = useRegions();
+
+  const {
+    userDetails,
+    isFetching: isFetchingUserDetails,
+    error: userDetailsError,
+    fetchUserDetails,
+  } = useDepositUser();
 
   const {
     cryptoCurrencies,
@@ -116,7 +125,7 @@ const BuildQuote = () => {
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const [error, setError] = useState<string | null>();
+  const [quoteError, setError] = useState<string | null>();
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
@@ -175,14 +184,14 @@ const BuildQuote = () => {
   }, []);
 
   const handleRegionPress = useCallback(() => {
-    if (regionsError || !regions || regions.length === 0) {
+    if (regionsError || !regions || regions.length === 0 || userRegionLocked) {
       return;
     }
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({ regions }),
     );
-  }, [navigation, regions, regionsError]);
+  }, [navigation, regions, regionsError, userRegionLocked]);
 
   useFocusEffect(
     useCallback(() => {
@@ -418,12 +427,35 @@ const BuildQuote = () => {
 
   useEffect(() => {
     if (shouldRouteImmediately) {
+      if (isAuthenticated && (isFetchingUserDetails || !userDetails)) {
+        return;
+      }
+
       navigation.setParams({
         shouldRouteImmediately: false,
       });
+
+      if (
+        userDetails?.address?.countryCode &&
+        selectedRegion?.isoCode?.toLowerCase() !==
+          userDetails?.address?.countryCode?.toLowerCase()
+      ) {
+        setIsLoading(false);
+        return;
+      }
+
       handleOnPressContinue();
     }
-  }, [shouldRouteImmediately, handleOnPressContinue, navigation]);
+  }, [
+    shouldRouteImmediately,
+    handleOnPressContinue,
+    navigation,
+    selectedRegion?.isoCode,
+    userDetails?.address?.countryCode,
+    isAuthenticated,
+    isFetchingUserDetails,
+    userDetails,
+  ]);
 
   return (
     <ScreenLayout>
@@ -479,7 +511,7 @@ const BuildQuote = () => {
                 )}
               </Text>
 
-              {!error && (
+              {!quoteError && (
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
@@ -574,9 +606,15 @@ const BuildQuote = () => {
               isRetrying={isFetchingPaymentMethods}
               errorType="paymentMethods"
             />
-            {error && (
+            <SdkErrorAlert
+              error={userDetailsError}
+              onRetry={fetchUserDetails}
+              isRetrying={isFetchingUserDetails}
+              errorType="userDetails"
+            />
+            {quoteError && (
               <View style={styles.errorContainer}>
-                <TruncatedError error={error} />
+                <TruncatedError error={quoteError} />
               </View>
             )}
           </View>
@@ -642,6 +680,7 @@ const BuildQuote = () => {
               !!regionsError ||
               !!cryptosError ||
               !!paymentMethodsError ||
+              !!userDetailsError ||
               !selectedRegion ||
               !selectedCryptoCurrency ||
               !selectedPaymentMethod
