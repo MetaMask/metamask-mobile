@@ -130,10 +130,7 @@ const createStyles = (colors: Colors) =>
       marginLeft: 2,
     },
     portfolioBalance: {
-      flexDirection: 'row',
-      alignItems: 'center',
       marginHorizontal: 16,
-      justifyContent: 'space-between',
       paddingTop: 24,
     },
     portfolioLink: { marginLeft: 8 },
