@@ -870,17 +870,23 @@ export function usePerpsTPSLForm(
   );
 
   // Calculate position size for expected P&L calculations
-  const positionSizeForPnL = position
-    ? Math.abs(parseFloat(position.size || '0'))
-    : amount && entryPrice && entryPrice > 0 && szDecimals !== undefined
-    ? parseFloat(
-        calculatePositionSize({
-          amount,
-          price: entryPrice,
-          szDecimals,
-        }),
-      )
-    : 0;
+  let positionSizeForPnL = 0;
+  if (position) {
+    positionSizeForPnL = Math.abs(parseFloat(position.size || '0'));
+  } else if (
+    amount &&
+    entryPrice &&
+    entryPrice > 0 &&
+    szDecimals !== undefined
+  ) {
+    positionSizeForPnL = parseFloat(
+      calculatePositionSize({
+        amount,
+        price: entryPrice,
+        szDecimals,
+      }),
+    );
+  }
 
   // Calculate expected P&L for Take Profit
   // Use fee hook for accurate closing fees

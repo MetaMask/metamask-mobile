@@ -459,7 +459,7 @@ const PerpsTPSLView: React.FC = () => {
                   ? strings('perps.tpsl.take_profit_short')
                   : strings('perps.tpsl.take_profit_long')}
               </Text>
-              {takeProfitPrice && (
+              {Boolean(takeProfitPrice) && (
                 <TouchableOpacity
                   onPress={handleTakeProfitOff}
                   disabled={inputsDisabled || !!focusedInput}
@@ -575,37 +575,45 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Expected Profit/Loss for Take Profit */}
-            {takeProfitPrice && expectedTakeProfitPnL !== undefined && (
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.expectedPnLText}
-              >
-                {expectedTakeProfitPnL >= 0
-                  ? strings('perps.tpsl.expected_profit', {
-                      amount: formatPerpsFiat(Math.abs(expectedTakeProfitPnL), {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      }),
-                    })
-                  : strings('perps.tpsl.expected_loss', {
-                      amount: formatPerpsFiat(Math.abs(expectedTakeProfitPnL), {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      }),
-                    })}
-              </Text>
-            )}
-            {takeProfitPrice && expectedTakeProfitPnL === undefined && (
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.expectedPnLText}
-              >
-                {PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
-              </Text>
-            )}
+            {Boolean(takeProfitPrice) &&
+              expectedTakeProfitPnL !== undefined && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.expectedPnLText}
+                >
+                  {expectedTakeProfitPnL >= 0
+                    ? strings('perps.tpsl.expected_profit', {
+                        amount: formatPerpsFiat(
+                          Math.abs(expectedTakeProfitPnL),
+                          {
+                            ranges: PRICE_RANGES_MINIMAL_VIEW,
+                          },
+                        ),
+                      })
+                    : strings('perps.tpsl.expected_loss', {
+                        amount: formatPerpsFiat(
+                          Math.abs(expectedTakeProfitPnL),
+                          {
+                            ranges: PRICE_RANGES_MINIMAL_VIEW,
+                          },
+                        ),
+                      })}
+                </Text>
+              )}
+            {Boolean(takeProfitPrice) &&
+              expectedTakeProfitPnL === undefined && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.expectedPnLText}
+                >
+                  {PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
+                </Text>
+              )}
 
             {/* Error message */}
-            {!isValid && takeProfitError && (
+            {!isValid && Boolean(takeProfitError) && (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {takeProfitError}
               </Text>
@@ -621,7 +629,7 @@ const PerpsTPSLView: React.FC = () => {
                   ? strings('perps.tpsl.stop_loss_short')
                   : strings('perps.tpsl.stop_loss_long')}
               </Text>
-              {stopLossPrice && (
+              {Boolean(stopLossPrice) && (
                 <TouchableOpacity
                   onPress={handleStopLossOff}
                   disabled={inputsDisabled || !!focusedInput}
@@ -737,7 +745,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Expected Profit/Loss for Stop Loss */}
-            {stopLossPrice && expectedStopLossPnL !== undefined && (
+            {Boolean(stopLossPrice) && expectedStopLossPnL !== undefined && (
               <Text
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
@@ -756,7 +764,7 @@ const PerpsTPSLView: React.FC = () => {
                     })}
               </Text>
             )}
-            {stopLossPrice && expectedStopLossPnL === undefined && (
+            {Boolean(stopLossPrice) && expectedStopLossPnL === undefined && (
               <Text
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
