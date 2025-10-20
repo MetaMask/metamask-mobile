@@ -1163,7 +1163,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessible={true}
                                       activeOpacity={1}
                                       disabled={true}
-                                      onPressIn={[Function]}
                                       onPressOut={[Function]}
                                       style={
                                         {

@@ -401,7 +401,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               activeOpacity={1}
               disabled={true}
               loading={false}
-              onPressIn={[Function]}
               onPressOut={[Function]}
               style={
                 {
@@ -733,7 +732,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
           accessible={true}
           activeOpacity={1}
           disabled={true}
-          onPressIn={[Function]}
           onPressOut={[Function]}
           style={
             {
@@ -993,7 +991,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={true}
-        onPressIn={[Function]}
         onPressOut={[Function]}
         style={
           {
