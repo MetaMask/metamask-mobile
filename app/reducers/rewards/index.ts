@@ -45,6 +45,7 @@ export interface RewardsState {
 
   // Onboarding state
   onboardingActiveStep: OnboardingStep;
+  onboardingReferralCode: string | null;
 
   // Candidate subscription state
   candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
@@ -98,6 +99,7 @@ export const initialState: RewardsState = {
   balanceUpdatedAt: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
+  onboardingReferralCode: null,
   candidateSubscriptionId: 'pending',
   geoLocation: null,
   optinAllowedForGeo: null,
@@ -222,6 +224,14 @@ const rewardsSlice = createSlice({
 
     resetOnboarding: (state) => {
       state.onboardingActiveStep = OnboardingStep.INTRO;
+      state.onboardingReferralCode = null;
+    },
+
+    setOnboardingReferralCode: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.onboardingReferralCode = action.payload;
     },
 
     setCandidateSubscriptionId: (
@@ -394,6 +404,7 @@ export const {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setOnboardingReferralCode,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
