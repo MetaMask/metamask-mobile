@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.56.5]
 
 ### Fixed
-* fix: use SharedDeeplinkManager to parse instead of Linking API ([#20960](https://github.com/MetaMask/metamask-mobile/pull/20960))
+- fix: use SharedDeeplinkManager to parse instead of Linking API ([#20960](https://github.com/MetaMask/metamask-mobile/pull/20960))
 
 ## [7.56.4]
 
