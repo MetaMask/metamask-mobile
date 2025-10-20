@@ -47,7 +47,9 @@ const TempTouchableOpacity = ({
   const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState(false);
 
   // Tap emulator state for ScrollView compatibility
-  const touchStartRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const touchStartRef = useRef<{ time: number; x: number; y: number } | null>(
+    null,
+  );
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -101,16 +103,25 @@ const TempTouchableOpacity = ({
       // Set a delay to allow ScrollView to win if user is scrolling
       timeoutRef.current = setTimeout(() => {
         // This will be cancelled by onPressOut if it's a real tap
-      }, 100); // 100ms delay to let ScrollView pan gesture win
+      }, 50); // 50ms delay to let ScrollView pan gesture win (reduced for responsiveness)
     }
   };
 
   const handlePressOut = (pressEvent: GestureResponderEvent) => {
-    if (shouldApplyAndroidPressHandling && !isAccessibilityEnabled && onPress && touchStartRef.current) {
+    if (
+      shouldApplyAndroidPressHandling &&
+      !isAccessibilityEnabled &&
+      onPress &&
+      touchStartRef.current
+    ) {
       const now = Date.now();
       const duration = now - touchStartRef.current.time;
-      const deltaX = Math.abs(pressEvent.nativeEvent.locationX - touchStartRef.current.x);
-      const deltaY = Math.abs(pressEvent.nativeEvent.locationY - touchStartRef.current.y);
+      const deltaX = Math.abs(
+        pressEvent.nativeEvent.locationX - touchStartRef.current.x,
+      );
+      const deltaY = Math.abs(
+        pressEvent.nativeEvent.locationY - touchStartRef.current.y,
+      );
 
       // Clear the timeout since we're handling it here
       if (timeoutRef.current) {
@@ -118,11 +129,24 @@ const TempTouchableOpacity = ({
         timeoutRef.current = null;
       }
 
-      // Only fire if it's a real tap (short duration, small movement)
-      const MAX_DURATION = 300; // 300ms max duration
-      const MAX_MOVEMENT = 20; // 20px max movement
+      // Stricter tap detection to prevent scroll interference
+      const MAX_DURATION = 200; // 200ms max duration (reduced for stricter detection)
+      const MAX_MOVEMENT = 10; // 10px max movement (reduced for stricter detection)
 
-      if (duration < MAX_DURATION && deltaX < MAX_MOVEMENT && deltaY < MAX_MOVEMENT) {
+      // Calculate velocity to better distinguish taps from scrolls
+      const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY) / duration;
+      const MAX_VELOCITY = 0.5; // 0.5 px/ms max velocity for taps
+
+      if (
+        duration < MAX_DURATION &&
+        deltaX < MAX_MOVEMENT &&
+        deltaY < MAX_MOVEMENT &&
+        velocity < MAX_VELOCITY
+      ) {
+        onPress(pressEvent);
+      } else if (duration < 500 && velocity < 1.0) {
+        // Fallback: if tap detection fails but it's still a reasonable gesture,
+        // fire onPress to ensure responsiveness (but with longer duration and velocity check)
         onPress(pressEvent);
       }
 
@@ -131,27 +155,33 @@ const TempTouchableOpacity = ({
   };
 
   // Cleanup timeout on unmount
-  useEffect(() => () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
 
-  // Determine onPress and onPressIn handlers based on conditions
+  // Determine onPress, onPressIn, and onPressOut handlers based on conditions
   let finalOnPress: ((event: GestureResponderEvent) => void) | undefined =
     onPress;
   let finalOnPressIn: ((event: GestureResponderEvent) => void) | undefined =
     onPressIn;
+  let finalOnPressOut: ((event: GestureResponderEvent) => void) | undefined;
 
   if (shouldApplyAndroidPressHandling) {
     if (isAccessibilityEnabled) {
       // If accessibility is enabled, use normal handlers
       finalOnPress = onPress;
       finalOnPressIn = onPressIn;
+      finalOnPressOut = undefined; // No special onPressOut handling needed
     } else {
       // If accessibility is disabled, use tap emulator
       finalOnPress = undefined; // We handle this in onPressOut
       finalOnPressIn = handlePressIn;
+      finalOnPressOut = handlePressOut;
     }
   }
 
@@ -160,7 +190,7 @@ const TempTouchableOpacity = ({
       disabled={disabled}
       onPress={disabled ? undefined : finalOnPress}
       onPressIn={disabled ? undefined : finalOnPressIn}
-      onPressOut={disabled ? undefined : handlePressOut}
+      onPressOut={disabled ? undefined : finalOnPressOut}
       {...props}
     >
       {children}
