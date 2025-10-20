@@ -135,8 +135,8 @@ describe('PerpsController Selectors', () => {
         availableBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
-        returnOnEquity: '10.0',
-        totalBalance: '5500',
+        returnOnEquity: '0',
+        totalBalance: '0',
       };
 
       const mockState = createMockState({
