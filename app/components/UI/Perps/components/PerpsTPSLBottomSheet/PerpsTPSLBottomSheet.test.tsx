@@ -580,11 +580,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('renders without crashing when margin is provided', () => {
       // Arrange & Act
-      render(
-        <PerpsTPSLBottomSheet {...defaultProps} marginRequired="500.00" />,
-      );
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      // Assert - Component should render successfully with margin prop
+      // Assert - Component should render successfully
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
     });
   });
