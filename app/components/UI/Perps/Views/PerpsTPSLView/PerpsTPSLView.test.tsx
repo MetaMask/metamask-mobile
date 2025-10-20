@@ -219,8 +219,14 @@ describe('PerpsTPSLView', () => {
   const getTakeProfitPriceInput = () =>
     screen.getAllByPlaceholderText('perps.tpsl.trigger_price_placeholder')[0];
 
+  const getTakeProfitPercentageInput = () =>
+    screen.getByPlaceholderText('perps.tpsl.profit_roe_placeholder');
+
   const getStopLossPriceInput = () =>
     screen.getAllByPlaceholderText('perps.tpsl.trigger_price_placeholder')[1];
+
+  const getStopLossPercentageInput = () =>
+    screen.getByPlaceholderText('perps.tpsl.loss_roe_placeholder');
 
   // ==================== User Interactions ====================
 
@@ -283,6 +289,90 @@ describe('PerpsTPSLView', () => {
 
       expect(screen.queryByText('perps.tpsl.clear')).toBeNull();
     });
+
+    it.each([
+      [
+        'take profit price',
+        () => getTakeProfitPriceInput(),
+        'handleTakeProfitPriceChange',
+      ],
+      [
+        'take profit percentage',
+        () => getTakeProfitPercentageInput(),
+        'handleTakeProfitPercentageChange',
+      ],
+      [
+        'stop loss price',
+        () => getStopLossPriceInput(),
+        'handleStopLossPriceChange',
+      ],
+      [
+        'stop loss percentage',
+        () => getStopLossPercentageInput(),
+        'handleStopLossPercentageChange',
+      ],
+    ])(
+      'prevents %s input exceeding 9 digits',
+      (_description, getInput, handlerName) => {
+        const mockHandler = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [handlerName]: mockHandler,
+          },
+        });
+
+        fireEvent.changeText(getInput(), '1234567890');
+
+        expect(mockHandler).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      [
+        'take profit price',
+        () => getTakeProfitPriceInput(),
+        'handleTakeProfitPriceFocus',
+        'handleTakeProfitPriceBlur',
+      ],
+      [
+        'take profit percentage',
+        () => getTakeProfitPercentageInput(),
+        'handleTakeProfitPercentageFocus',
+        'handleTakeProfitPercentageBlur',
+      ],
+      [
+        'stop loss price',
+        () => getStopLossPriceInput(),
+        'handleStopLossPriceFocus',
+        'handleStopLossPriceBlur',
+      ],
+      [
+        'stop loss percentage',
+        () => getStopLossPercentageInput(),
+        'handleStopLossPercentageFocus',
+        'handleStopLossPercentageBlur',
+      ],
+    ])(
+      'handles focus and blur events for %s input',
+      (_description, getInput, focusHandler, blurHandler) => {
+        const mockFocusHandler = jest.fn();
+        const mockBlurHandler = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [focusHandler]: mockFocusHandler,
+            [blurHandler]: mockBlurHandler,
+          },
+        });
+
+        fireEvent(getInput(), 'focus');
+        fireEvent(getInput(), 'blur');
+
+        expect(mockFocusHandler).toHaveBeenCalled();
+        expect(mockBlurHandler).toHaveBeenCalled();
+      },
+    );
   });
 
   // ==================== Display Hook Data ====================
@@ -369,6 +459,31 @@ describe('PerpsTPSLView', () => {
       fireEvent.press(setButton);
 
       expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined);
+    });
+
+    it('dismisses keypad before confirming when input is focused', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3150',
+        },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      const doneButton = screen.getByText('perps.tpsl.done');
+      fireEvent.press(doneButton);
+
+      const setButton = screen.getByText('perps.tpsl.set');
+      fireEvent.press(setButton);
+
+      expect(mockOnConfirm).toHaveBeenCalled();
     });
   });
 
