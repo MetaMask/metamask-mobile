@@ -27,8 +27,6 @@ const ButtonBase = ({
   startIconName,
   endIconName,
   size = DEFAULT_BUTTONBASE_SIZE,
-  onPress,
-  onPressIn,
   style,
   width = DEFAULT_BUTTONBASE_WIDTH,
   isDisabled,
@@ -45,8 +43,6 @@ const ButtonBase = ({
     <TempTouchableOpacity
       disabled={isDisabled}
       activeOpacity={1}
-      onPress={onPress}
-      onPressIn={onPressIn}
       style={styles.base}
       accessibilityRole="button"
       accessible

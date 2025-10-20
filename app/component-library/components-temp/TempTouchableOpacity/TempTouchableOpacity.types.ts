@@ -27,6 +27,3 @@ export interface TempTouchableOpacityProps extends TouchableOpacityProps {
    */
   children?: React.ReactNode;
 }
-
-// Re-export the interface for external use
-export type { TempTouchableOpacityProps };
