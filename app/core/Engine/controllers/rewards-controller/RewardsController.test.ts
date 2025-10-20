@@ -2038,8 +2038,80 @@ describe('RewardsController', () => {
   });
 
   describe('performSilentAuth', () => {
+    let subscribeCallback: any;
+    const mockInternalAccount: InternalAccount = {
+      id: 'mock-id',
+      address: '0x123',
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+      metadata: {
+        name: 'mock-account',
+        keyring: {
+          type: 'HD Key Tree',
+        },
+        importTime: 0,
+      },
+      scopes: [],
+    };
+
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      mockMessenger = {
+        call: jest.fn(),
+        subscribe: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        publish: jest.fn(),
+        unsubscribe: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+      // Mock Date.now to return a consistent timestamp
+      jest.spyOn(Date, 'now').mockReturnValue(1000000);
+
+      // Mock RewardsDataService:login to route through our mockRewardsDataService.getJwt
+      mockMessenger.call.mockImplementation(((...args: any[]) => {
+        const [method, payload] = args;
+        if (method === 'AccountsController:getSelectedMultichainAccount') {
+          return Promise.resolve(mockInternalAccount);
+        }
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockInternalAccount];
+        }
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xmockSignature');
+        }
+        if (method === 'RewardsDataService:login') {
+          // Mimic the controller calling into data service; delegate to getJwt
+          const { timestamp, signature } = payload || {};
+          // Make sure to pass the account address correctly
+          return mockRewardsDataService
+            .getJwt(signature, timestamp, mockInternalAccount.address)
+            .then((jwt: string) => ({
+              subscription: { id: 'sub-123' },
+              sessionId: jwt,
+            }));
+        }
+        return Promise.resolve(undefined);
+      }) as any);
+
+      new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Find the callback function for the 'AccountTreeController:selectedAccountGroupChange' event
+      subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
+      )?.[1] as (_current?: any, _previous?: any) => void;
     });
 
     it('should format and convert authentication message to hex correctly', async () => {
@@ -2063,8 +2135,7 @@ describe('RewardsController', () => {
         '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex');
 
       // Mock Date.now to return predictable timestamp
-      const originalDateNow = Date.now;
-      Date.now = jest.fn(() => mockTimestamp * 1000);
+      jest.spyOn(Date, 'now').mockImplementation(() => mockTimestamp * 1000);
 
       // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
       mockMessenger.call
@@ -2093,9 +2164,6 @@ describe('RewardsController', () => {
           from: mockInternalAccount.address,
         },
       );
-
-      // Restore Date.now
-      Date.now = originalDateNow;
     });
 
     it('should handle CAIP account ID conversion from internal account scopes', async () => {
@@ -2144,26 +2212,6 @@ describe('RewardsController', () => {
           timestamp: expect.any(Number),
         }),
       );
-    });
-
-    let subscribeCallback: any;
-
-    beforeEach(() => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsSolanaAddress.mockReturnValue(false);
-
-      // Mock Date.now for consistent testing
-      Date.now = jest.fn(() => 1000000); // Fixed timestamp
-
-      // Get the account group change subscription callback
-      const subscribeCalls = mockMessenger.subscribe.mock.calls.find(
-        (call) =>
-          call[0] === 'AccountTreeController:selectedAccountGroupChange',
-      );
-      subscribeCallback = subscribeCalls
-        ? subscribeCalls[1]
-        : async (_current?: any, _previous?: any) => undefined;
     });
 
     it('should skip silent auth for hardware accounts', async () => {
@@ -2245,7 +2293,7 @@ describe('RewardsController', () => {
     it('should handle Solana message signing', async () => {
       // Arrange
       const mockTimestamp = 1234567890;
-      Date.now = jest.fn().mockReturnValue(mockTimestamp);
+      jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
 
       const mockSolanaAccount = {
         id: 'test-id',
@@ -2380,85 +2428,6 @@ describe('RewardsController', () => {
         expect(updatedAccountState.hasOptedIn).toBeUndefined(); // Should be undefined due to error
         expect(updatedAccountState.subscriptionId).toBeNull();
       }
-    });
-
-    const mockInternalAccount: InternalAccount = {
-      id: 'mock-id',
-      address: '0x123',
-      options: {},
-      methods: [],
-      type: 'eip155:eoa',
-      metadata: {
-        name: 'mock-account',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-        importTime: 0,
-      },
-      scopes: [],
-    };
-
-    let originalDateNow: () => number;
-
-    beforeEach(() => {
-      mockMessenger = {
-        call: jest.fn(),
-        subscribe: jest.fn(),
-        registerActionHandler: jest.fn(),
-        registerInitialEventPayload: jest.fn(),
-        publish: jest.fn(),
-        unsubscribe: jest.fn(),
-        clearEventSubscriptions: jest.fn(),
-        unregisterActionHandler: jest.fn(),
-      } as unknown as jest.Mocked<RewardsControllerMessenger>;
-
-      // Mock Date.now to return a consistent timestamp
-      originalDateNow = Date.now;
-      Date.now = jest.fn().mockReturnValue(1000000);
-
-      // Mock RewardsDataService:login to route through our mockRewardsDataService.getJwt
-      mockMessenger.call.mockImplementation(((...args: any[]) => {
-        const [method, payload] = args;
-        if (method === 'AccountsController:getSelectedMultichainAccount') {
-          return Promise.resolve(mockInternalAccount);
-        }
-        if (
-          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [mockInternalAccount];
-        }
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xmockSignature');
-        }
-        if (method === 'RewardsDataService:login') {
-          // Mimic the controller calling into data service; delegate to getJwt
-          const { timestamp, signature } = payload || {};
-          // Make sure to pass the account address correctly
-          return mockRewardsDataService
-            .getJwt(signature, timestamp, mockInternalAccount.address)
-            .then((jwt: string) => ({
-              subscription: { id: 'sub-123' },
-              sessionId: jwt,
-            }));
-        }
-        return Promise.resolve(undefined);
-      }) as any);
-
-      new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      // Find the callback function for the 'AccountTreeController:selectedAccountGroupChange' event
-      subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) =>
-          call[0] === 'AccountTreeController:selectedAccountGroupChange',
-      )?.[1] as (_current?: any, _previous?: any) => void;
-    });
-
-    afterEach(() => {
-      // Restore original Date.now
-      Date.now = originalDateNow;
     });
 
     it('should log errors that do not include "Engine does not exist"', async () => {
@@ -2892,6 +2861,7 @@ describe('RewardsController', () => {
 
     it('should handle 403 error, reauth, and fetch status again', async () => {
       // Arrange
+      jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
       );
@@ -3147,6 +3117,7 @@ describe('RewardsController', () => {
 
     it('should handle 403 error, reauth with active account, and fetch status again', async () => {
       // Arrange
+      jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
       );
@@ -3300,6 +3271,7 @@ describe('RewardsController', () => {
 
     it('should handle 403 error, reauth with non-active account, and fetch status again', async () => {
       // Arrange
+      jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
       );
@@ -11304,6 +11276,7 @@ describe('RewardsController', () => {
     }
 
     beforeEach(() => {
+      // Undo mocks set in top-level `beforeEach`
       jest.resetAllMocks();
 
       // Setup global mocks
@@ -12199,7 +12172,7 @@ describe('RewardsController', () => {
       jest.clearAllMocks();
       mockLogger.log.mockClear();
       const mockTimestamp = 1234567890;
-      Date.now = jest.fn().mockReturnValue(mockTimestamp);
+      jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
     });
 
     describe('cache behavior', () => {
