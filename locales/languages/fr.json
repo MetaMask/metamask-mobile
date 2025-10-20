@@ -869,6 +869,7 @@
       "fetch_regions": "Un problème est survenu lors de la récupération de la liste des régions.",
       "fetch_tokens": "Un problème est survenu lors de la récupération de la liste des jetons.",
       "fetch_payment_methods": "Un problème est survenu lors de la récupération de la liste des modes de paiement.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Réessayer",
       "error_details_title": "Détails de l’erreur",
       "see_more": "Afficher plus"
@@ -1534,7 +1535,7 @@
       "skip": "Ignorer",
       "add_funds": "Ajouter des fonds",
       "what_are_perps": {
-        "title": "Que sont les contrats à terme perpétuels (perps) ?",
+        "title": "Que sont les perps?",
         "description": "MetaMask prend désormais en charge les contrats à terme perpétuels, également appelés « perps », qui vous permettent de spéculer sur la fluctuation du cours d’un jeton sans l’acheter.",
         "subtitle": "Voici comment ils fonctionnent."
       },
@@ -1679,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1789,6 +1799,8 @@
     "alphabetically": "Par ordre alphabétique (de A à Z)",
     "add_to_get_started": "Ajoutez un crypto-actif pour commencer",
     "token_is_needed_to_continue": "{{tokenSymbol}} est requis pour continuer",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Approvisionnez votre portefeuille pour vous lancer dans le web3",
     "add_funds": "Ajouter des fonds",
     "next": "Suivant",
@@ -3151,9 +3163,10 @@
     "tx_review_staking_unstake": "Déstaker",
     "tx_review_lending_deposit": "Dépôt de prêt",
     "tx_review_lending_withdraw": "Retrait de prêt",
-    "tx_review_perps_deposit": "Compte approvisionné par des contrats à terme perpétuels (perps)",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Ether envoyé(s)",
     "self_sent_ether": "Ether envoyé(s) à vous-même",
     "received_ether": "Ether reçu(s)",
@@ -3227,6 +3240,7 @@
     "network_fee": "Frais de réseau",
     "network_fee_tooltip": "Montant payé pour traiter la transaction sur le réseau.",
     "confirm_gas_fee_token_tooltip": "Ce montant est versé au réseau pour traiter votre transaction. Il comprend des frais MetaMask de {{metamaskFeeFiat}} pour les jetons non-ETH ou les ETH préfinancés.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Frais de {{metamaskFeeFiat}} inclus",
     "smart_account_upgrade": "Passer à un compte intelligent",
     "smart_account_downgrade": "Passer à un compte standard",
@@ -5361,7 +5375,8 @@
       "switch_account_type": "Mise à jour du compte",
       "approve": "Approuver la demande",
       "perps_deposit": "Ajouter des fonds",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
@@ -5967,6 +5982,18 @@
       "limited_spending_warning": "Votre capacité de dépense réelle pourrait être limitée. Pour ajuster votre limite, accédez à {{manageCard}}",
       "add_funds": "Ajouter des fonds",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
