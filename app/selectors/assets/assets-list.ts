@@ -342,3 +342,30 @@ function assetToToken(
     accountType: asset.accountType,
   };
 }
+
+// This is used to select Tron resources (Energy & Bandwidth)
+export const selectTronResourcesBySelectedAccountGroup =
+  createDeepEqualSelector(
+    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
+    (bip44Assets, enabledNetworks) => {
+      const tronResourceNames = [
+        'energy',
+        'bandwidth',
+        'max-energy',
+        'max-bandwidth',
+        'strx-energy',
+        'strx-bandwidth',
+      ];
+
+      const assets = Object.entries(bip44Assets)
+        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
+        .flatMap(([_, chainAssets]) => chainAssets)
+        .filter(
+          (asset) =>
+            asset.chainId?.includes('tron:') &&
+            tronResourceNames.includes(asset.symbol?.toLowerCase()),
+        );
+
+      return assets;
+    },
+  );

@@ -88,6 +88,10 @@ import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
+///: END:ONLY_INCLUDE_IF
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -141,6 +145,17 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const multichainAssetRates =
     multichainAssetsRates?.[asset.address as CaipAssetType];
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+
+  const strxEnergy = tronResources.find(
+    (a) => a.name.toLowerCase() === 'strx-energy',
+  );
+  const strxBandwidth = tronResources.find(
+    (a) => a.name.toLowerCase() === 'strx-bandwidth',
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
@@ -448,6 +463,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTronNative =
+    asset.ticker === 'TRX' && String(asset.chainId).startsWith('tron:');
+
+  // create Staked TRX derived asset (same as native TRX but with a new name and balance)
+  const stakedTrxAsset = isTronNative
+    ? createStakedTrxAsset(asset, strxEnergy?.balance, strxBandwidth?.balance)
+    : undefined;
+  ///: END:ONLY_INCLUDE_IF
+
   if (isMultichainAccountsState2Enabled) {
     balance = asset.balance;
   } else if (isMultichainAsset) {
@@ -564,6 +589,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
+            {
+              ///: BEGIN:ONLY_INCLUDE_IF(tron)
+              isTronNative && stakedTrxAsset && (
+                <TokenDetails asset={stakedTrxAsset} />
+              )
+              ///: END:ONLY_INCLUDE_IF
+            }
           </View>
           {networkModal}
         </View>

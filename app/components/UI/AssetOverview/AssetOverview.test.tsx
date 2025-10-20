@@ -51,6 +51,31 @@ jest.mock(
   }),
 );
 
+jest.mock('./TokenDetails', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  const React = require('react');
+  const { View, Text } = require('react-native');
+  /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  return {
+    __esModule: true,
+    default: ({
+      asset,
+    }: {
+      asset: { name?: string; balance?: string | number };
+    }) => (
+      <View>
+        <Text testID="tokenDetailsName">{asset.name}</Text>
+        <Text testID="tokenDetailsBalance">{asset.balance}</Text>
+      </View>
+    ),
+  };
+});
+
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../selectors/assets/assets-list'),
+  selectTronResourcesBySelectedAccountGroup: jest.fn(),
+}));
+
 const MOCK_CHAIN_ID = '0x1';
 
 const mockInitialState = {
@@ -721,6 +746,49 @@ describe('AssetOverview', () => {
     );
 
     expect(container).toMatchSnapshot();
+  });
+
+  it('renders staked TRX details when viewing TRX on Tron', () => {
+    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/assets/assets-list',
+    );
+
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue([
+      { name: 'strx-energy', balance: '10' },
+      { name: 'strx-bandwidth', balance: '20' },
+    ]);
+
+    const tronAsset = {
+      address: 'tron:mainnet/slip44:195',
+      chainId: 'tron:mainnet',
+      symbol: 'TRX',
+      ticker: 'TRX',
+      name: 'Tron',
+      isNative: true,
+      balance: '0',
+      balanceFiat: '0',
+      decimals: 6,
+      image: '',
+      logo: '',
+      aggregators: [],
+      isETH: false,
+      hasBalanceError: false,
+    };
+
+    const { getAllByTestId } = renderWithProvider(
+      <AssetOverview asset={tronAsset} />,
+      { state: mockInitialState },
+    );
+
+    const names = getAllByTestId('tokenDetailsName').map(
+      (n) => n.props.children,
+    );
+    const balances = getAllByTestId('tokenDetailsBalance').map(
+      (n) => n.props.children,
+    );
+
+    expect(names).toEqual(expect.arrayContaining(['Tron', 'Staked TRX']));
+    expect(balances).toEqual(expect.arrayContaining(['30']));
   });
 
   it('should swap into the asset when coming from search', async () => {
