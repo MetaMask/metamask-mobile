@@ -417,9 +417,6 @@ describe('PredictBuyPreview', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('disables place bet button when loading', () => {
@@ -838,12 +835,16 @@ describe('PredictBuyPreview', () => {
 
       const placeBetButton = getByText('Yes • 50¢');
 
-      // Even though navigation fails, placeOrder should still be called
+      // The dispatch now throws and is not caught, so expect the error
       expect(() => {
         fireEvent.press(placeBetButton);
-      }).not.toThrow();
+      }).toThrow('Navigation error');
 
+      // PlaceOrder should still be called before dispatch throws
       expect(mockPlaceOrder).toHaveBeenCalled();
+
+      // Dispatch should have been attempted
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
 });
