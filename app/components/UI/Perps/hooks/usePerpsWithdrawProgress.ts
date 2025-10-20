@@ -37,11 +37,11 @@ export const usePerpsWithdrawProgress = () => {
       setIsWithdrawInProgress(true);
       prevAvailableBalanceRef.current =
         liveAccountRef.current?.availableBalance || '0';
-    } else if (isWithdrawInProgress) {
+    } else {
       // Withdrawal completed or failed - clear progress state
       setIsWithdrawInProgress(false);
     }
-  }, [withdrawInProgress, isWithdrawInProgress]);
+  }, [withdrawInProgress]);
 
   // Watch for balance decreases when expecting a withdrawal
   useEffect(() => {

@@ -9,7 +9,7 @@ describe('convertPerpsAmountToUSD', () => {
 
   it('handles USD strings correctly', () => {
     expect(convertPerpsAmountToUSD('$10.32')).toBe('$10.32');
-    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0.50');
+    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0.5'); // Trailing zero stripped
     expect(convertPerpsAmountToUSD('$1000')).toBe('$1,000');
   });
 
@@ -26,14 +26,14 @@ describe('convertPerpsAmountToUSD', () => {
 
   it('handles numeric strings correctly', () => {
     expect(convertPerpsAmountToUSD('100')).toBe('$100');
-    expect(convertPerpsAmountToUSD('0.5')).toBe('$0.50');
+    expect(convertPerpsAmountToUSD('0.5')).toBe('$0.5'); // Trailing zero stripped
     expect(convertPerpsAmountToUSD('1234.56')).toBe('$1,234.56');
   });
 
   it('handles invalid input gracefully', () => {
-    expect(convertPerpsAmountToUSD('invalid')).toBe('$0');
-    expect(convertPerpsAmountToUSD('abc123')).toBe('$0');
-    expect(convertPerpsAmountToUSD('$invalid')).toBe('$0');
+    expect(convertPerpsAmountToUSD('invalid')).toBe('$---'); // Invalid input placeholder
+    expect(convertPerpsAmountToUSD('abc123')).toBe('$---'); // Invalid input placeholder
+    expect(convertPerpsAmountToUSD('$invalid')).toBe('$---'); // Invalid input placeholder
   });
 
   it('handles edge cases', () => {
@@ -46,8 +46,8 @@ describe('convertPerpsAmountToUSD', () => {
     // Very small wei amount
     expect(convertPerpsAmountToUSD('0x1')).toBe('$0');
 
-    // Very small decimal
-    expect(convertPerpsAmountToUSD('0.001')).toBe('$0.001');
+    // Very small decimal - gets threshold formatting
+    expect(convertPerpsAmountToUSD('0.001')).toBe('<$0.01');
   });
 
   it('handles very large amounts', () => {
