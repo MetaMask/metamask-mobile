@@ -869,6 +869,7 @@
       "fetch_regions": "Beim Abrufen der Regionen gab es ein Problem.",
       "fetch_tokens": "Beim Abrufen der Tokens gab es ein Problem.",
       "fetch_payment_methods": "Beim Abrufen der Zahlungsmethoden gab es ein Problem.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Erneut versuchen",
       "error_details_title": "Fehlerdetails",
       "see_more": "Mehr sehen"
@@ -1681,6 +1682,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1791,6 +1801,8 @@
     "alphabetically": "Alphabetisch (A-Z)",
     "add_to_get_started": "Zum Anfangen Krypto hinzufügen",
     "token_is_needed_to_continue": "{{tokenSymbol}} ist erforderlich, um fortzufahren",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Zahlen Sie Gelder auf Ihre Wallet ein, um bei web3 loszulegen.",
     "add_funds": "Gelder hinzufügen",
     "next": "Weiter",
@@ -3153,9 +3165,10 @@
     "tx_review_staking_unstake": "Unstaken",
     "tx_review_lending_deposit": "Krediteinzahlung",
     "tx_review_lending_withdraw": "Kreditauszahlung",
-    "tx_review_perps_deposit": "Perps-Konto finanziert",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Ether senden",
     "self_sent_ether": "Senden Sie sich selbst Ether",
     "received_ether": "Ether empfangen",
@@ -3229,6 +3242,7 @@
     "network_fee": "Netzwerkgebühr",
     "network_fee_tooltip": "Der für die Bearbeitung der Transaktion im Netzwerk gezahlte Betrag.",
     "confirm_gas_fee_token_tooltip": "Diese Gebühr wird für die Bearbeitung Ihrer Transaktion an das Netzwerk gezahlt. Sie schließt eine {{metamaskFeeFiat}}-MetaMask-Gebühr für Nicht-ETH-Token oder vorfinanzierte ETH ein.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Beinhaltet {{metamaskFeeFiat}} Gebühr",
     "smart_account_upgrade": "Auf Smart-Konto upgraden",
     "smart_account_downgrade": "Zum Standardkonto wechseln",
@@ -5363,7 +5377,8 @@
       "switch_account_type": "Konto-Update",
       "approve": "Anfrage genehmigen",
       "perps_deposit": "Gelder hinzufügen",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -5969,6 +5984,18 @@
       "limited_spending_warning": "Ihre tatsächliche Ausgabenkapazität ist möglicherweise begrenzt. Um Ihr Limit anzupassen, gehen Sie zu {{manageCard}}.",
       "add_funds": "Gelder hinzufügen",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
