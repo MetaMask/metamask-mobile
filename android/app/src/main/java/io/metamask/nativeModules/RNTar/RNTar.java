@@ -77,7 +77,7 @@ public class RNTar extends ReactContextBaseJavaModule {
         throw new IOException("The output directory is not readable and/or writable.");
       }
 
-      File outPathFile = new File(outPathFile);
+      File outPathFile = new File(outputPath);
       String outPathCanonical = outPathFile.getCanonicalPath() + File.seperator;
 
       // Set up the input streams for reading the .tgz file
