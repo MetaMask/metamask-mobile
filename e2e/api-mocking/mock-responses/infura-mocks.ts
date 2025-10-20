@@ -11,38 +11,6 @@ const createJsonRpcResponse = (id: number, result: unknown) => ({
   result,
 });
 
-// Mock responses for common Ethereum methods
-const ETH_METHODS = {
-  eth_blockNumber: () => createJsonRpcResponse(1, '0x1234567'),
-  eth_getBalance: () => createJsonRpcResponse(1, '0x1bc16d674ec80000'), // 2 ETH in wei
-  eth_getTransactionCount: () => createJsonRpcResponse(1, '0x1a'),
-  eth_gasPrice: () => createJsonRpcResponse(1, '0x3b9aca00'), // 1 gwei
-  eth_estimateGas: () => createJsonRpcResponse(1, '0x5208'), // 21000 gas
-  eth_sendRawTransaction: () => createJsonRpcResponse(1, '0x1234567890abcdef'),
-  eth_getTransactionReceipt: () =>
-    createJsonRpcResponse(1, {
-      transactionHash: '0x1234567890abcdef',
-      blockNumber: '0x1234567',
-      blockHash: '0xabcdef1234567890',
-      transactionIndex: '0x0',
-      status: '0x1',
-      gasUsed: '0x5208',
-      effectiveGasPrice: '0x3b9aca00',
-    }),
-  eth_getBlockByNumber: () =>
-    createJsonRpcResponse(1, {
-      number: '0x1234567',
-      hash: '0xabcdef1234567890',
-      parentHash: '0x1234567890abcdef',
-      timestamp: '0x64a1b2c3',
-      gasLimit: '0x1c9c380',
-      gasUsed: '0x1234567',
-      transactions: [],
-    }),
-  net_version: () => createJsonRpcResponse(1, '1'),
-  eth_chainId: () => createJsonRpcResponse(1, '0x1'),
-};
-
 // Create mock responses for all Infura endpoints
 const createInfuraMocks = () => {
   const mocks: {
@@ -125,6 +93,10 @@ const createInfuraMocks = () => {
 };
 
 export const INFURA_MOCKS: MockEventsObject = {
-  GET: createInfuraMocks().filter(mock => mock.urlEndpoint.toString().includes('ipfs')),
-  POST: createInfuraMocks().filter(mock => !mock.urlEndpoint.toString().includes('ipfs')),
+  GET: createInfuraMocks().filter((mock) =>
+    mock.urlEndpoint.toString().includes('ipfs'),
+  ),
+  POST: createInfuraMocks().filter(
+    (mock) => !mock.urlEndpoint.toString().includes('ipfs'),
+  ),
 };
