@@ -8,7 +8,6 @@ import { ImageSourcePropType } from 'react-native';
 import { ConnectionInfo } from '../types/connection-info';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
-import { whenStoreReady } from '../utils/when-store-ready';
 
 export class RPCBridgeAdapter
   extends EventEmitter
@@ -57,11 +56,7 @@ export class RPCBridgeAdapter
     if (this.initialized) return this.initialized;
 
     this.initialized = (async () => {
-      await Promise.all([
-        whenEngineReady(),
-        whenStoreReady(),
-        whenOnboardingComplete(),
-      ]);
+      await Promise.all([whenEngineReady(), whenOnboardingComplete()]);
       this.messenger = Engine.controllerMessenger;
       this.messenger.subscribe('KeyringController:unlock', this.processQueue);
       this.client = this.createClient();

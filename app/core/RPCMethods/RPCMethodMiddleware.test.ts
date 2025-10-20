@@ -1725,21 +1725,7 @@ describe('getRpcMethodMiddleware', () => {
 
 describe('getRpcMethodMiddlewareHooks', () => {
   const testOrigin = 'https://test.com';
-  const mockUrl = { current: 'https://test.com' };
-  const mockTitle = { current: 'Test Site' };
-  const mockIcon = { current: undefined };
-  const mockAnalytics = { test: true };
-  const mockGetSource = jest.fn(() => 'test-source');
-
-  const hooks = getRpcMethodMiddlewareHooks({
-    origin: testOrigin,
-    url: mockUrl,
-    title: mockTitle,
-    icon: mockIcon,
-    analytics: mockAnalytics,
-    channelId: 'test-channel',
-    getSource: mockGetSource,
-  });
+  const hooks = getRpcMethodMiddlewareHooks(testOrigin);
 
   beforeEach(() => {
     jest.clearAllMocks();

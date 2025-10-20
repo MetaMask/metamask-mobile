@@ -135,12 +135,8 @@ const selectStakedAssets = createDeepEqualSelector(
                 internalAccount.address === address.toLowerCase(),
             );
 
-            if (!account) {
-              return undefined;
-            }
-
             const stakedAsset = {
-              accountType: account.type,
+              type: account?.type,
               assetId: nativeToken.address,
               isNative: true,
               isStaked: true,
@@ -148,7 +144,7 @@ const selectStakedAssets = createDeepEqualSelector(
               image: '',
               name: 'Staked Ethereum',
               symbol: nativeToken.symbol,
-              accountId: account.id,
+              accountId: account?.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
               balance: fromWei(stakedBalance),
@@ -164,11 +160,10 @@ const selectStakedAssets = createDeepEqualSelector(
 
             return {
               chainId,
-              accountId: account.id,
+              accountId: account?.id as string,
               stakedAsset,
             };
-          })
-          .filter((item): item is NonNullable<typeof item> => Boolean(item)),
+          }),
       );
 
     return stakedAssets;
@@ -328,17 +323,16 @@ function assetToToken(
         })
       : undefined,
     logo:
-      asset.accountType.startsWith('eip155') && asset.isNative
+      asset.type.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
         : asset.image,
     isETH:
-      asset.accountType.startsWith('eip155') &&
+      asset.type.startsWith('eip155') &&
       asset.isNative &&
       asset.symbol === 'ETH',
     isStaked: asset.isStaked || false,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
-    accountType: asset.accountType,
   };
 }

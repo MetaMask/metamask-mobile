@@ -1,13 +1,13 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isNonEvmChainId,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
 import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
-import { getNativeSourceToken } from '../../utils/tokenUtils';
+import { getNativeSourceToken } from '../useInitialSourceToken';
 import { BigNumber } from 'bignumber.js';
 import { isNumberValue } from '../../../../../util/number';
 
@@ -25,7 +25,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
   if (sourceChainId && !gasIncluded) {
-    if (isNonEvmChainId(sourceChainId)) {
+    if (isSolanaChainId(sourceChainId)) {
       hexOrCaipChainId = formatChainIdToCaip(sourceChainId);
     } else {
       hexOrCaipChainId = formatChainIdToHex(sourceChainId);

@@ -792,21 +792,60 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
-                                  Slippage
-                                </Text>
+                                  <TouchableOpacity
+                                    activeOpacity={0.6}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "gap": 4,
+                                      }
+                                    }
+                                    testID="edit-slippage-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Slippage
+                                    </Text>
+                                    <SvgMock
+                                      color="#b7bbc8"
+                                      fill="currentColor"
+                                      height={16}
+                                      name="Edit"
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />
+                                  </TouchableOpacity>
+                                </View>
                                 <TouchableOpacity
                                   accessibilityLabel="Slippage tooltip"
                                   accessibilityRole="button"
@@ -869,96 +908,12 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                <TouchableOpacity
-                                  activeOpacity={0.6}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "gap": 4,
-                                    }
-                                  }
-                                  testID="edit-slippage-button"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    0.5%
-                                  </Text>
-                                  <SvgMock
-                                    color="#b7bbc8"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Edit"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
-                              [
-                                undefined,
-                              ],
-                            ]
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
                                 <Text
                                   accessibilityRole="text"
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -966,79 +921,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Recipient
+                                  0.5%
                                 </Text>
-                              </View>
-                            </View>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "alignItems": "flex-end",
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <TouchableOpacity
-                                  activeOpacity={0.6}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "gap": 4,
-                                    }
-                                  }
-                                  testID="recipient-selector-button"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    ellipsizeMode="tail"
-                                    numberOfLines={1}
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "flexShrink": 1,
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Select recipient
-                                  </Text>
-                                  <SvgMock
-                                    color="#b7bbc8"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Edit"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
                               </View>
                             </View>
                           </View>

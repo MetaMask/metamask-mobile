@@ -59,8 +59,8 @@ const createStyles = (colors: Colors) =>
     socialBtn: {
       borderColor: colors.border.muted,
       borderWidth: 1,
-      color: colors.background.default,
-      backgroundColor: colors.text.default,
+      color: colors.text.default,
+      backgroundColor: colors.background.default,
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -172,7 +172,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
                 />
                 <Text
                   variant={TextVariant.BodyMDMedium}
-                  style={{ color: colors.background.default }}
+                  color={TextColor.Default}
                 >
                   {createWallet
                     ? strings('onboarding.continue_with_google')
@@ -191,23 +191,23 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             label={
               <View style={styles.buttonLabel}>
                 {isDark ? (
-                  <AppleIcon
-                    fill="currentColor"
-                    width={24}
-                    height={24}
-                    name={'apple'}
-                  />
-                ) : (
                   <AppleWhiteIcon
                     fill="currentColor"
                     width={24}
                     height={24}
                     name={'apple-white'}
                   />
+                ) : (
+                  <AppleIcon
+                    fill="currentColor"
+                    width={24}
+                    height={24}
+                    name={'apple'}
+                  />
                 )}
                 <Text
                   variant={TextVariant.BodyMDMedium}
-                  style={{ color: colors.background.default }}
+                  color={TextColor.Default}
                 >
                   {createWallet
                     ? strings('onboarding.continue_with_apple')

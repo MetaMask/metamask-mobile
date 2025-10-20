@@ -31,7 +31,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
-  selectIsEvmNonEvmBridge,
+  selectIsEvmSolanaBridge,
   selectIsSubmittingTx,
   setIsSubmittingTx,
   selectDestAddress,
@@ -39,8 +39,6 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectNoFeeAssets,
-  selectIsNonEvmNonEvmBridge,
-  selectIsSelectingRecipient,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -59,6 +57,7 @@ import ButtonIcon, {
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -76,12 +75,10 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
-import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
-import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -95,7 +92,6 @@ const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -127,8 +123,7 @@ const BridgeView = () => {
     selectNoFeeAssets(state, destToken?.chainId),
   );
 
-  const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
-  const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
+  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -143,10 +138,6 @@ const BridgeView = () => {
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
 
-  // Initialize recipient account
-  const hasInitializedRecipient = useRef(false);
-  useRecipientInitialization(hasInitializedRecipient);
-
   useEffect(() => {
     if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
       dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
@@ -160,7 +151,7 @@ const BridgeView = () => {
 
   useInitialSlippage();
 
-  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
+  const hasDestinationPicker = isEvmSolanaBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -177,7 +168,6 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
     blockaidError,
-    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -192,8 +182,8 @@ const BridgeView = () => {
     !!sourceToken &&
     !!destToken &&
     // Prevent quote fetching when destination address is not set
-    // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
-    (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
+    // Destinations address is only needed for EVM <> Solana bridges
+    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
@@ -203,22 +193,6 @@ const BridgeView = () => {
   });
 
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
-
-  const isSubmitDisabled =
-    hasInsufficientBalance ||
-    isSubmittingTx ||
-    (isHardwareAddress && isSolanaSourced) ||
-    !!blockaidError ||
-    !hasSufficientGas;
-
-  useBridgeQuoteEvents({
-    hasInsufficientBalance,
-    hasNoQuotesAvailable: isNoQuotesAvailable,
-    hasInsufficientGas: !hasSufficientGas,
-    hasTxAlert: Boolean(blockaidError),
-    isSubmitDisabled,
-    isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
-  });
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
@@ -343,20 +317,23 @@ const BridgeView = () => {
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    return strings('bridge.confirm_swap');
+    const isSwap = sourceToken?.chainId === destToken?.chainId;
+    return isSwap
+      ? strings('bridge.confirm_swap')
+      : strings('bridge.confirm_bridge');
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh && !isSelectingRecipient) {
+    if (isExpired && !willRefresh) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
+  }, [isExpired, willRefresh, navigation]);
 
-  const renderBottomContent = (submitDisabled: boolean) => {
+  const renderBottomContent = () => {
     if (shouldDisplayKeypad && !isLoading) {
       return (
         <Box style={styles.buttonContainer}>
@@ -430,7 +407,13 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             testID="bridge-confirm-button"
-            isDisabled={submitDisabled}
+            isDisabled={
+              hasInsufficientBalance ||
+              isSubmittingTx ||
+              (isHardwareAddress && isSolanaSourced) ||
+              !!blockaidError ||
+              !hasSufficientGas
+            }
           />
           {hasFee ? (
             <Text
@@ -529,12 +512,22 @@ const BridgeView = () => {
           showsVerticalScrollIndicator={false}
         >
           <Box style={styles.dynamicContent}>
+            <Box style={styles.destinationAccountSelectorContainer}>
+              {hasDestinationPicker && <DestinationAccountSelector />}
+            </Box>
+
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
             ) : shouldDisplayKeypad ? (
-              <Box style={styles.keypadContainer}>
+              <Box
+                style={[
+                  styles.keypadContainer,
+                  hasDestinationPicker &&
+                    styles.keypadContainerWithDestinationPicker,
+                ]}
+              >
                 <Keypad
                   style={styles.keypad}
                   value={sourceAmount || '0'}
@@ -546,7 +539,7 @@ const BridgeView = () => {
             ) : null}
           </Box>
         </ScrollView>
-        {renderBottomContent(isSubmitDisabled)}
+        {renderBottomContent()}
       </Box>
     </ScreenView>
   );

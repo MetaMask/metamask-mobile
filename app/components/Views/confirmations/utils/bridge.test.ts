@@ -28,7 +28,6 @@ const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
   bufferInitial: 1,
   bufferStep: 1,
   bufferSubsequent: 2,
-  featureId: FeatureId.PERPS,
   from: '0x123',
   slippage: 0.005,
   sourceBalanceRaw: '10000000000000000000',
@@ -42,7 +41,6 @@ const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
 
 const QUOTE_REQUEST_2_MOCK: BridgeQuoteRequest = {
   ...QUOTE_REQUEST_1_MOCK,
-  featureId: undefined,
   targetTokenAddress: '0x456',
 };
 
@@ -185,7 +183,7 @@ describe('Confirmations Bridge Utils', () => {
           insufficientBal: false,
         }),
         undefined,
-        undefined,
+        FeatureId.PERPS,
       );
     });
 
@@ -583,7 +581,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: '1000000000000000000',
         }),
         undefined,
-        undefined,
+        expect.any(String),
       );
     });
 
@@ -658,7 +656,7 @@ describe('Confirmations Bridge Utils', () => {
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
         }),
         undefined,
-        undefined,
+        expect.any(String),
       );
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(

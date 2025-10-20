@@ -28,4 +28,3 @@ public class DetoxTest {
          Detox.runTests(mActivityRule, detoxConfig);
      }
 }
-

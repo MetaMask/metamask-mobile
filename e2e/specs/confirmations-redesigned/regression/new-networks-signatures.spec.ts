@@ -47,7 +47,7 @@ const SIGNATURE_LIST = [
   },
 ];
 
-describe.skip(RegressionConfirmations('Signature Requests'), () => {
+describe(RegressionConfirmations('Signature Requests'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });

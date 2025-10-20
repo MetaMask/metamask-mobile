@@ -36,7 +36,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
   ];
 
   const handleTokenClick = useCallback(
-    (token: GasFeeToken) => {
+    async (token: GasFeeToken) => {
       const selectedAddress =
         token.tokenAddress === NATIVE_TOKEN_ADDRESS
           ? undefined

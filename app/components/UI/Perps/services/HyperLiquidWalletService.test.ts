@@ -138,122 +138,164 @@ describe('HyperLiquidWalletService', () => {
 
   describe('Wallet Adapter Creation', () => {
     let walletAdapter: {
-      signTypedData: (params: {
-        domain: {
-          name: string;
-          version: string;
-          chainId: number;
-          verifyingContract: `0x${string}`;
-        };
-        types: {
-          [key: string]: { name: string; type: string }[];
-        };
-        primaryType: string;
-        message: Record<string, unknown>;
-      }) => Promise<`0x${string}`>;
-      getChainId?: () => Promise<number>;
+      request: (args: {
+        method: string;
+        params: unknown[];
+      }) => Promise<unknown>;
     };
 
     beforeEach(() => {
       walletAdapter = service.createWalletAdapter();
     });
 
-    it('should create wallet adapter with signTypedData method', () => {
-      expect(walletAdapter).toHaveProperty('signTypedData');
-      expect(typeof walletAdapter.signTypedData).toBe('function');
+    it('should create wallet adapter with request method', () => {
+      expect(walletAdapter).toHaveProperty('request');
+      expect(typeof walletAdapter.request).toBe('function');
     });
 
-    it('should have getChainId method', () => {
-      expect(walletAdapter).toHaveProperty('getChainId');
-      expect(typeof walletAdapter.getChainId).toBe('function');
-    });
+    describe('eth_requestAccounts method', () => {
+      it('should return selected account address', async () => {
+        const result = await walletAdapter.request({
+          method: 'eth_requestAccounts',
+          params: [],
+        });
 
-    describe('getChainId method', () => {
-      it('should return mainnet chain ID', async () => {
-        expect(walletAdapter.getChainId).toBeDefined();
-        const chainId = await walletAdapter.getChainId?.();
-
-        expect(chainId).toBe(42161);
+        expect(result).toEqual(['0x1234567890123456789012345678901234567890']);
       });
 
-      it('should return testnet chain ID when in testnet mode', async () => {
+      it('should throw error when no account selected', async () => {
+        // Mock selector to return null for this test
+        jest
+          .mocked(selectSelectedInternalAccountByScope)
+          .mockReturnValueOnce(() => undefined);
+
+        await expect(
+          walletAdapter.request({
+            method: 'eth_requestAccounts',
+            params: [],
+          }),
+        ).rejects.toThrow('No account selected');
+      });
+    });
+
+    describe('eth_chainId method', () => {
+      it('should return mainnet chain ID in hex format', async () => {
+        const result = await walletAdapter.request({
+          method: 'eth_chainId',
+          params: [],
+        });
+
+        expect(result).toBe('0xa4b1'); // 42161 in hex
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'HyperLiquidWalletService: eth_chainId requested',
+          {
+            isTestnet: false,
+            decimalChainId: '42161',
+            hexChainId: '0xa4b1',
+          },
+        );
+      });
+
+      it('should return testnet chain ID in hex format when in testnet mode', async () => {
         const testnetService = new HyperLiquidWalletService({
           isTestnet: true,
         });
         const testnetAdapter = testnetService.createWalletAdapter();
 
-        expect(testnetAdapter.getChainId).toBeDefined();
-        const chainId = await testnetAdapter.getChainId?.();
+        const result = await testnetAdapter.request({
+          method: 'eth_chainId',
+          params: [],
+        });
 
-        expect(chainId).toBe(421614);
+        expect(result).toBe('0x66eee'); // 421614 in hex
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'HyperLiquidWalletService: eth_chainId requested',
+          {
+            isTestnet: true,
+            decimalChainId: '421614',
+            hexChainId: '0x66eee',
+          },
+        );
       });
     });
 
-    describe('signTypedData method', () => {
-      const mockTypedDataParams = {
-        domain: {
-          name: 'HyperLiquid',
-          version: '1',
-          chainId: 42161,
-          verifyingContract:
-            '0x0000000000000000000000000000000000000000' as `0x${string}`,
-        },
+    describe('eth_signTypedData_v4 method', () => {
+      const mockTypedData = {
         types: {
-          Order: [
-            { name: 'asset', type: 'uint32' },
-            { name: 'isBuy', type: 'bool' },
-            { name: 'limitPx', type: 'uint64' },
-            { name: 'sz', type: 'uint64' },
-            { name: 'reduceOnly', type: 'bool' },
-            { name: 'timestamp', type: 'uint64' },
+          EIP712Domain: [
+            { name: 'name', type: 'string' },
+            { name: 'version', type: 'string' },
           ],
         },
-        primaryType: 'Order',
-        message: {
-          asset: 0,
-          isBuy: true,
-          limitPx: '30000',
-          sz: '1',
-          reduceOnly: false,
-          timestamp: Date.now(),
-        },
+        primaryType: 'Message',
+        domain: { name: 'Test', version: '1' },
+        message: { content: 'Hello World' },
       };
 
       it('should sign typed data successfully', async () => {
-        const result = await walletAdapter.signTypedData(mockTypedDataParams);
+        const result = await walletAdapter.request({
+          method: 'eth_signTypedData_v4',
+          params: ['0x1234567890123456789012345678901234567890', mockTypedData],
+        });
 
         expect(result).toBe('0xSignatureResult');
-        expect(DevLogger.log).toHaveBeenCalledWith(
-          'HyperLiquidWalletService: Signing typed data',
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            primaryType: 'Order',
-            domain: mockTypedDataParams.domain,
-          },
-        );
         expect(
           Engine.context.KeyringController.signTypedMessage,
         ).toHaveBeenCalledWith(
           {
             from: '0x1234567890123456789012345678901234567890',
-            data: {
-              domain: mockTypedDataParams.domain,
-              types: mockTypedDataParams.types,
-              primaryType: mockTypedDataParams.primaryType,
-              message: mockTypedDataParams.message,
-            },
+            data: mockTypedData,
+          },
+          SignTypedDataVersion.V4,
+        );
+      });
+
+      it('should handle JSON string typed data', async () => {
+        const jsonString = JSON.stringify(mockTypedData);
+
+        const result = await walletAdapter.request({
+          method: 'eth_signTypedData_v4',
+          params: ['0x1234567890123456789012345678901234567890', jsonString],
+        });
+
+        expect(result).toBe('0xSignatureResult');
+        expect(
+          Engine.context.KeyringController.signTypedMessage,
+        ).toHaveBeenCalledWith(
+          {
+            from: '0x1234567890123456789012345678901234567890',
+            data: mockTypedData,
           },
           SignTypedDataVersion.V4,
         );
       });
 
       it('should throw error when no account selected', async () => {
+        // Mock selector to return null for this test
         jest
           .mocked(selectSelectedInternalAccountByScope)
           .mockReturnValueOnce(() => undefined);
 
         await expect(
-          walletAdapter.signTypedData(mockTypedDataParams),
+          walletAdapter.request({
+            method: 'eth_signTypedData_v4',
+            params: [
+              '0x1234567890123456789012345678901234567890',
+              mockTypedData,
+            ],
+          }),
+        ).rejects.toThrow('No account selected');
+      });
+
+      it('should throw error when signing address does not match selected account', async () => {
+        await expect(
+          walletAdapter.request({
+            method: 'eth_signTypedData_v4',
+            params: [
+              '0x9999999999999999999999999999999999999999',
+              mockTypedData,
+            ],
+          }),
         ).rejects.toThrow('No account selected');
       });
 
@@ -263,8 +305,25 @@ describe('HyperLiquidWalletService', () => {
         ).mockRejectedValueOnce(new Error('Signing failed'));
 
         await expect(
-          walletAdapter.signTypedData(mockTypedDataParams),
+          walletAdapter.request({
+            method: 'eth_signTypedData_v4',
+            params: [
+              '0x1234567890123456789012345678901234567890',
+              mockTypedData,
+            ],
+          }),
         ).rejects.toThrow('Signing failed');
+      });
+    });
+
+    describe('Unsupported methods', () => {
+      it('should throw error for unsupported methods', async () => {
+        await expect(
+          walletAdapter.request({
+            method: 'unsupported_method',
+            params: [],
+          }),
+        ).rejects.toThrow('Unsupported method: unsupported_method');
       });
     });
   });
@@ -392,24 +451,12 @@ describe('HyperLiquidWalletService', () => {
         Engine.context.KeyringController.signTypedMessage as jest.Mock
       ).mockRejectedValueOnce(new Error('Keyring not initialized'));
 
-      const mockTypedData = {
-        domain: {
-          name: 'Test',
-          version: '1',
-          chainId: 42161,
-          verifyingContract:
-            '0x0000000000000000000000000000000000000000' as `0x${string}`,
-        },
-        types: {
-          Test: [{ name: 'value', type: 'string' }],
-        },
-        primaryType: 'Test',
-        message: { value: 'test' },
-      };
-
-      await expect(walletAdapter.signTypedData(mockTypedData)).rejects.toThrow(
-        'Keyring not initialized',
-      );
+      await expect(
+        walletAdapter.request({
+          method: 'eth_signTypedData_v4',
+          params: ['0x1234567890123456789012345678901234567890', {}],
+        }),
+      ).rejects.toThrow('Keyring not initialized');
     });
   });
 
@@ -417,47 +464,38 @@ describe('HyperLiquidWalletService', () => {
     it('should handle full wallet adapter workflow', async () => {
       const walletAdapter = service.createWalletAdapter();
 
-      // Get chain ID
-      expect(walletAdapter.getChainId).toBeDefined();
-      const chainId = await (
-        walletAdapter.getChainId as () => Promise<number>
-      )();
-      expect(chainId).toBe(42161);
+      // Request accounts
+      const accounts = await walletAdapter.request({
+        method: 'eth_requestAccounts',
+        params: [],
+      });
+
+      expect(accounts).toEqual(['0x1234567890123456789012345678901234567890']);
 
       // Sign typed data
-      const mockTypedData = {
-        domain: {
-          name: 'Test',
-          version: '1',
-          chainId,
-          verifyingContract:
-            '0x0000000000000000000000000000000000000000' as `0x${string}`,
-        },
-        types: {
-          Test: [{ name: 'value', type: 'string' }],
-        },
-        primaryType: 'Test',
-        message: { value: 'test' },
-      };
+      const signature = await walletAdapter.request({
+        method: 'eth_signTypedData_v4',
+        params: [(accounts as string[])[0], { test: 'data' }],
+      });
 
-      const signature = await walletAdapter.signTypedData(mockTypedData);
       expect(signature).toBe('0xSignatureResult');
     });
 
     it('should maintain consistency between wallet adapter and service methods', async () => {
       const walletAdapter = service.createWalletAdapter();
 
-      // Get chain ID through wallet adapter
-      expect(walletAdapter.getChainId).toBeDefined();
-      const chainId = await walletAdapter.getChainId?.();
+      // Get account through wallet adapter
+      const accounts = await walletAdapter.request({
+        method: 'eth_requestAccounts',
+        params: [],
+      });
 
       // Get account through service method
       const accountId = await service.getCurrentAccountId();
       const serviceAddress = service.getUserAddress(accountId);
 
-      // Chain ID should match
-      expect(accountId).toContain(`eip155:${chainId}:`);
-      expect(accountId).toContain(serviceAddress);
+      const accountsArray = accounts as string[];
+      expect(accountsArray[0]).toBe(serviceAddress);
     });
   });
 });

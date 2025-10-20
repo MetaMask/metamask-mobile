@@ -15,10 +15,8 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { TransactionBridgeQuote } from '../../utils/bridge';
 import { strings } from '../../../../../../locales/i18n';
-import { useIsTransactionPayLoading } from '../pay/useIsTransactionPayLoading';
 
 jest.mock('../pay/useTransactionPayToken');
-jest.mock('../pay/useIsTransactionPayLoading');
 
 const STATE_MOCK = merge(
   {},
@@ -31,8 +29,10 @@ const CHAIN_ID_MOCK = '0x123' as Hex;
 
 function runHook({
   quotes,
+  isQuotesLoading,
 }: {
   quotes?: Partial<TransactionBridgeQuote>[];
+  isQuotesLoading?: boolean;
 } = {}) {
   const state = cloneDeep(STATE_MOCK);
 
@@ -40,6 +40,9 @@ function runHook({
     metricsById: {},
     transactionBridgeQuotesById: {
       [transactionIdMock]: quotes ?? undefined,
+    },
+    isTransactionBridgeQuotesLoadingById: {
+      [transactionIdMock]: isQuotesLoading ?? false,
     },
   } as unknown as ConfirmationMetricsState;
 
@@ -50,9 +53,6 @@ function runHook({
 
 describe('useNoPayTokenQuotesAlert', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useIsTransactionPayLoadingMock = jest.mocked(
-    useIsTransactionPayLoading,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -63,8 +63,6 @@ describe('useNoPayTokenQuotesAlert', () => {
         chainId: CHAIN_ID_MOCK,
       },
     } as ReturnType<typeof useTransactionPayToken>);
-
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -87,10 +85,7 @@ describe('useNoPayTokenQuotesAlert', () => {
   });
 
   it('returns no alerts if quotes loading', () => {
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
-
-    const { result } = runHook();
-
+    const { result } = runHook({ isQuotesLoading: true });
     expect(result.current).toStrictEqual([]);
   });
 

@@ -1,10 +1,6 @@
 import { calculateScryptKey } from './calculate-scrypt-key';
 import { scrypt } from 'react-native-fast-crypto';
-import {
-  getGenericPassword,
-  setGenericPassword,
-  STORAGE_TYPE,
-} from 'react-native-keychain';
+import { getGenericPassword, setGenericPassword } from 'react-native-keychain';
 import Logger from '../../../../util/Logger';
 
 // we are using this node import for testing purposes
@@ -18,14 +14,6 @@ jest.mock('react-native-quick-crypto', () => ({
 jest.mock('react-native-keychain', () => ({
   ACCESSIBLE: {
     WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'MOCK_AccessibleWhenUnlockedThisDeviceOnly',
-  },
-  STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
-    AES_CBC: 'KeystoreAESCBC',
-    AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
-    AES_GCM: 'KeystoreAESGCM',
-    RSA: 'KeystoreRSAECB',
   },
   setGenericPassword: jest.fn().mockResolvedValue({
     service: 'mockService',
@@ -106,7 +94,7 @@ describe('calculateScryptKey', () => {
       mocks.mockGetGenericPassword.mockResolvedValue({
         password: cachedResultStr,
         service: 'mockService',
-        storage: STORAGE_TYPE.AES_GCM,
+        storage: 'MOCK_keychain',
         username: 'mockUser',
       });
     });

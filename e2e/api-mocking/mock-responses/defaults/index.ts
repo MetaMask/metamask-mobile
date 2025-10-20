@@ -263,11 +263,6 @@ export const DEFAULT_MOCKS = {
       },
     },
     {
-      urlEndpoint: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/',
-      responseCode: 200,
-      response: {},
-    },
-    {
       urlEndpoint:
         /^https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[a-fA-F0-9]+$/,
       responseCode: 200,

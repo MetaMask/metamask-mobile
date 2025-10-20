@@ -35,8 +35,9 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
+  formatPrice,
   PRICE_RANGES_MINIMAL_VIEW,
-  PRICE_RANGES_UNIVERSAL,
+  PRICE_RANGES_POSITION_VIEW,
 } from '../../utils/formatUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -226,7 +227,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           return (
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {formatPerpsFiat(price, {
-                ranges: PRICE_RANGES_UNIVERSAL,
+                ranges: PRICE_RANGES_POSITION_VIEW,
               })}
             </Text>
           );
@@ -274,7 +275,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {price
             ? formatPerpsFiat(price, {
-                ranges: PRICE_RANGES_UNIVERSAL,
+                ranges: PRICE_RANGES_POSITION_VIEW,
               })
             : strings('perps.position.card.not_set')}
         </Text>
@@ -338,8 +339,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerRight}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPerpsFiat(position.positionValue, {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                {formatPrice(position.positionValue, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
                 })}
               </Text>
             </View>
@@ -373,7 +375,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {formatPerpsFiat(position.entryPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
+                    ranges: PRICE_RANGES_POSITION_VIEW,
                   })}
                 </Text>
               </View>
@@ -387,7 +389,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.liquidationPrice
                     ? formatPerpsFiat(position.liquidationPrice, {
-                        ranges: PRICE_RANGES_UNIVERSAL,
+                        ranges: PRICE_RANGES_POSITION_VIEW,
                       })
                     : 'N/A'}
                 </Text>

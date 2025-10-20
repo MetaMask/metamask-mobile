@@ -31,7 +31,7 @@ import { useNetworkInfo } from '../../../../../selectors/selectedNetworkControll
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import { getNativeSourceToken } from '../../utils/tokenUtils';
+import { getNativeSourceToken } from '../../hooks/useInitialSourceToken';
 
 const createStyles = () =>
   StyleSheet.create({

@@ -4,7 +4,6 @@ import {
   defaultState,
   Controller as NotificationServicesPushController,
 } from '@metamask/notification-services-controller/push-services';
-import I18n from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import {
   createRegToken,
@@ -29,7 +28,6 @@ export const createNotificationServicesPushController = (props: {
           deleteRegToken,
           subscribeToPushNotifications: createSubscribeToPushNotifications(),
         },
-        getLocale: () => I18n.locale,
       },
     });
 

@@ -3,7 +3,7 @@ import {
   InfoClient,
   SubscriptionClient,
   WebSocketTransport,
-} from '@nktkas/hyperliquid';
+} from '@deeeed/hyperliquid-node20';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   getWebSocketEndpoint,
@@ -11,12 +11,9 @@ import {
 } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
 import { strings } from '../../../../../locales/i18n';
-import type { CandleData } from '../types/perps-types';
+import type { CandleData } from '../types';
 
 import { CandlePeriod } from '../constants/chartConfig';
-import { ensureError } from '../utils/perpsErrorHandler';
-import Logger from '../../../../util/Logger';
-import { Hex } from '@metamask/utils';
 
 /**
  * Valid time intervals for historical candle data
@@ -56,29 +53,16 @@ export class HyperLiquidClientService {
    * Initialize all HyperLiquid SDK clients
    */
   public initialize(wallet: {
-    signTypedData: (params: {
-      domain: {
-        name: string;
-        version: string;
-        chainId: number;
-        verifyingContract: Hex;
-      };
-      types: {
-        [key: string]: { name: string; type: string }[];
-      };
-      primaryType: string;
-      message: Record<string, unknown>;
-    }) => Promise<Hex>;
-    getChainId?: () => Promise<number>;
+    request: (args: { method: string; params: unknown[] }) => Promise<unknown>;
   }): void {
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
       this.transport = this.createTransport();
 
-      // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
       this.exchangeClient = new ExchangeClient({
-        wallet: wallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
+        wallet,
         transport: this.transport,
+        isTestnet: this.isTestnet,
       });
 
       this.infoClient = new InfoClient({ transport: this.transport });
@@ -116,9 +100,6 @@ export class HyperLiquidClientService {
     return new WebSocketTransport({
       url: wsUrl,
       ...HYPERLIQUID_TRANSPORT_CONFIG,
-      reconnect: {
-        WebSocket, // Use React Native's global WebSocket
-      },
     });
   }
 
@@ -126,20 +107,7 @@ export class HyperLiquidClientService {
    * Toggle testnet mode and reinitialize clients
    */
   public async toggleTestnet(wallet: {
-    signTypedData: (params: {
-      domain: {
-        name: string;
-        version: string;
-        chainId: number;
-        verifyingContract: Hex;
-      };
-      types: {
-        [key: string]: { name: string; type: string }[];
-      };
-      primaryType: string;
-      message: Record<string, unknown>;
-    }) => Promise<Hex>;
-    getChainId?: () => Promise<number>;
+    request: (args: { method: string; params: unknown[] }) => Promise<unknown>;
   }): Promise<HyperLiquidNetwork> {
     this.isTestnet = !this.isTestnet;
     this.initialize(wallet);
@@ -170,20 +138,7 @@ export class HyperLiquidClientService {
    * Recreate subscription client if needed (for reconnection scenarios)
    */
   public ensureSubscriptionClient(wallet: {
-    signTypedData: (params: {
-      domain: {
-        name: string;
-        version: string;
-        chainId: number;
-        verifyingContract: Hex;
-      };
-      types: {
-        [key: string]: { name: string; type: string }[];
-      };
-      primaryType: string;
-      message: Record<string, unknown>;
-    }) => Promise<Hex>;
-    getChainId?: () => Promise<number>;
+    request: (args: { method: string; params: unknown[] }) => Promise<unknown>;
   }): void {
     if (!this.subscriptionClient) {
       DevLogger.log(
@@ -366,16 +321,23 @@ export class HyperLiquidClientService {
         connectionState: this.connectionState,
       });
 
-      // Close the WebSocket connection via transport
-      if (this.transport) {
+      // Properly close the WebSocket connection using SDK's AsyncDisposable
+      if (this.subscriptionClient) {
         try {
-          await this.transport.close();
-          DevLogger.log('HyperLiquid: Closed WebSocket transport', {
-            timestamp: new Date().toISOString(),
-          });
+          await this.subscriptionClient[Symbol.asyncDispose]();
+          DevLogger.log(
+            'HyperLiquid: Properly closed WebSocket connection via asyncDispose',
+            {
+              timestamp: new Date().toISOString(),
+            },
+          );
         } catch (error) {
-          Logger.error(ensureError(error), {
-            context: 'HyperLiquidClientService.performDisconnection',
+          DevLogger.log('HyperLiquid: Error closing WebSocket connection', {
+            error:
+              error instanceof Error
+                ? error.message
+                : strings('perps.errors.unknownError'),
+            timestamp: new Date().toISOString(),
           });
         }
       }
@@ -394,9 +356,7 @@ export class HyperLiquidClientService {
       });
     } catch (error) {
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
-      Logger.error(ensureError(error), {
-        context: 'HyperLiquidClientService.performDisconnection',
-      });
+      DevLogger.log('HyperLiquid: Error during client disconnect:', error);
       throw error;
     }
   }

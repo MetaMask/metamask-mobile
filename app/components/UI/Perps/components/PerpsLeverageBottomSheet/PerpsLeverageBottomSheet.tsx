@@ -60,7 +60,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
   formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
+  formatPrice,
+  PRICE_RANGES_DETAILED_VIEW,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 
@@ -653,7 +654,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     style={{ color: warningStyles.priceColor }}
                   >
                     {formatPerpsFiat(dynamicLiquidationPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
+                      ranges: PRICE_RANGES_DETAILED_VIEW,
                     })}
                   </Text>
                 )}
@@ -664,9 +665,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 {strings('perps.order.leverage_modal.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPerpsFiat(currentPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })}
+                {formatPrice(currentPrice)}
               </Text>
             </View>
           </View>

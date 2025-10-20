@@ -26,17 +26,13 @@ import {
 } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { TransactionDetailsStatusIcon } from '../transaction-details-status-icon';
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
-import { hasTransactionType } from '../../../utils/transaction';
-import { Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
-import { useNetworkName } from '../../../hooks/useNetworkName';
-import { TransactionDetailsStatus } from '../transaction-details-status';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -70,7 +66,7 @@ export function TransactionDetailsSummary() {
       <Text color={TextColor.Alternative}>Summary</Text>
       <Box gap={1} style={styles.lineContainer}>
         {transactions.map((item, index) => (
-          <TransactionSummary
+          <SummaryLine
             key={index}
             transaction={item}
             isLast={index === transactions.length - 1}
@@ -81,14 +77,16 @@ export function TransactionDetailsSummary() {
   );
 }
 
-function TransactionSummary({
+function SummaryLine({
   isLast,
   transaction,
 }: {
   isLast: boolean;
   transaction: TransactionMeta;
 }) {
+  const { styles } = useStyles(styleSheet, { isLast });
   const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
+  const navigation = useNavigation();
   const allBridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const approvalBridgeHistory = Object.values(allBridgeHistory).find(
@@ -96,94 +94,12 @@ function TransactionSummary({
   );
 
   const { chainId: chainIdHex, hash: txHash } = transaction;
-  const time = transaction.submittedTime ?? transaction.time;
-
-  const receiveTime =
-    bridgeHistory?.bridgeTxHistoryItem?.completionTime ?? time;
-
-  const receiveChainIdNumber =
-    bridgeHistory?.bridgeTxHistoryItem?.status?.destChain?.chainId;
-
-  const receiveChainId = receiveChainIdNumber
-    ? toHex(receiveChainIdNumber)
-    : undefined;
-
-  const receiveHash =
-    bridgeHistory?.bridgeTxHistoryItem?.status?.destChain?.txHash;
-
-  const sourceChainName = useNetworkName(chainIdHex);
-  const targetChainName = useNetworkName(receiveChainId);
-
-  const title = getLineTitle(
-    transaction,
-    bridgeHistory.bridgeTxHistoryItem,
-    approvalBridgeHistory,
-    sourceChainName,
-  );
-
-  const receiveTitle =
-    getLineTitle(
-      transaction,
-      bridgeHistory.bridgeTxHistoryItem,
-      approvalBridgeHistory,
-      targetChainName,
-      true,
-    ) ?? '';
-
-  if (!title) {
-    return null;
-  }
-
-  return (
-    <>
-      <SummaryLine
-        chainId={chainIdHex}
-        isLast={isLast}
-        time={time}
-        title={title}
-        transaction={transaction}
-        transactionHash={txHash}
-      />
-      {receiveChainId && (
-        <SummaryLine
-          chainId={receiveChainId}
-          isBridgeReceive
-          isLast={isLast}
-          time={receiveTime}
-          title={receiveTitle}
-          transaction={transaction}
-          transactionHash={receiveHash}
-        />
-      )}
-    </>
-  );
-}
-
-function SummaryLine({
-  chainId,
-  isBridgeReceive,
-  isLast,
-  time,
-  title,
-  transaction,
-  transactionHash,
-}: {
-  chainId: Hex;
-  isBridgeReceive?: boolean;
-  isLast: boolean;
-  time: number;
-  title: string;
-  transaction: TransactionMeta;
-  transactionHash: string | undefined;
-}) {
-  const { styles } = useStyles(styleSheet, { isLast });
-  const navigation = useNavigation();
-  const chainIdNumber = parseInt(chainId, 16);
+  const chainId = parseInt(chainIdHex, 16);
 
   const { explorerTxUrl, explorerName } =
     useMultichainBlockExplorerTxUrl({
-      chainId: chainIdNumber,
-      txHash: transactionHash,
+      chainId,
+      txHash,
     }) ?? {};
 
   const handleExplorerClick = useCallback(() => {
@@ -197,7 +113,15 @@ function SummaryLine({
     });
   }, [explorerName, explorerTxUrl, navigation]);
 
-  const dateString = getDateString(time);
+  const dateString = getDateString(
+    transaction.submittedTime ?? transaction.time,
+  );
+
+  const title = getLineTitle(
+    transaction,
+    bridgeHistory.bridgeTxHistoryItem,
+    approvalBridgeHistory,
+  );
 
   if (!title) {
     return null;
@@ -210,12 +134,14 @@ function SummaryLine({
         justifyContent={JustifyContent.spaceBetween}
         alignItems={AlignItems.center}
       >
-        <TransactionDetailsStatus
-          transactionMeta={transaction}
-          isBridgeReceive={isBridgeReceive}
-          text={title}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
           gap={12}
-        />
+        >
+          <TransactionDetailsStatusIcon transactionMeta={transaction} />
+          <Text variant={TextVariant.BodyMD}>{title}</Text>
+        </Box>
         {explorerTxUrl && (
           <ButtonIcon
             testID="block-explorer-button"
@@ -258,39 +184,20 @@ function getDateString(timestamp: number): string {
 
 function getLineTitle(
   transactionMeta: TransactionMeta,
-  bridgeHistory: BridgeHistoryItem | undefined,
-  approvalBridgeHistory: BridgeHistoryItem | undefined,
-  networkName: string | undefined,
-  isReceive = false,
+  bridgeHistory?: BridgeHistoryItem,
+  approvalBridgeHistory?: BridgeHistoryItem,
 ): string | undefined {
   const { type } = transactionMeta;
   const sourceSymbol = bridgeHistory?.quote?.srcAsset?.symbol;
   const targetSymbol = bridgeHistory?.quote?.destAsset?.symbol;
   const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
 
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    return strings('transaction_details.summary_title.perps_deposit');
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    return strings('transaction_details.summary_title.predict_deposit');
-  }
-
-  if (isReceive && type === TransactionType.bridge) {
-    return targetSymbol && networkName
-      ? strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol,
-          targetChain: networkName,
-        })
-      : strings('transaction_details.summary_title.bridge_loading');
-  }
-
   switch (type) {
     case TransactionType.bridge:
-      return sourceSymbol && networkName
-        ? strings('transaction_details.summary_title.bridge_send', {
+      return sourceSymbol && targetSymbol
+        ? strings('transaction_details.summary_title.bridge', {
             sourceSymbol,
-            sourceChain: networkName,
+            targetSymbol,
           })
         : strings('transaction_details.summary_title.bridge_loading');
     case TransactionType.bridgeApproval:
@@ -299,6 +206,8 @@ function getLineTitle(
             approveSymbol,
           })
         : strings('transaction_details.summary_title.bridge_approval_loading');
+    case TransactionType.perpsDeposit:
+      return strings('transaction_details.summary_title.perps_deposit');
     case TransactionType.swap:
       return strings('transaction_details.summary_title.swap');
     case TransactionType.swapApproval:

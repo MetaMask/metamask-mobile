@@ -7,7 +7,6 @@ export enum DeepLinkModalLinkType {
   PUBLIC = 'public',
   PRIVATE = 'private',
   INVALID = 'invalid',
-  UNSUPPORTED = 'unsupported',
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -32,18 +31,13 @@ type InvalidLinkParams = CommonLinkParams & {
   linkType: DeepLinkModalLinkType.INVALID;
 };
 
-type UnsupportedLinkParams = CommonLinkParams & {
-  linkType: DeepLinkModalLinkType.UNSUPPORTED;
-};
-
 /**
  * Deeplink Modal Params
  */
 export type DeepLinkModalParams =
   | PublicLinkParams
   | PrivateLinkParams
-  | InvalidLinkParams
-  | UnsupportedLinkParams;
+  | InvalidLinkParams;
 
 /**
  * Modal Image Props

@@ -1182,9 +1182,6 @@ export class NetworkSettings extends PureComponent {
    */
   validateSymbol = (chainToMatch = null) => {
     const { ticker, networkList, chainId } = this.state;
-    const { networkConfigurations } = this.props;
-    const networkConfiguration = networkConfigurations[chainId];
-    const networkConfigurationSymbol = networkConfiguration?.nativeCurrency;
 
     if (isWhitelistedSymbol(chainId, ticker)) {
       return this.setState({
@@ -1199,9 +1196,7 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    const symbol = networkConfigurationSymbol
-      ? networkConfigurationSymbol
-      : chainToMatch
+    const symbol = chainToMatch
       ? chainToMatch?.nativeCurrency?.symbol ?? null
       : networkList?.nativeCurrency?.symbol ?? null;
 
@@ -1482,11 +1477,9 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
-  onTickerChange = (ticker) => {
-    this.setState({ ticker, validatedSymbol: false }, () => {
-      this.getCurrentState();
-      this.validateSymbol();
-    });
+  onTickerChange = async (ticker) => {
+    await this.setState({ ticker, validatedSymbol: false });
+    this.getCurrentState();
   };
 
   // this function will autofill the symbol field with the value in parameter
@@ -2263,7 +2256,7 @@ export class NetworkSettings extends PureComponent {
                       this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.BodyMD}
+                    labelTextVariant={TextVariant.DisplayMD}
                     isDisabled={!!warningRpcUrl}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
@@ -2332,7 +2325,7 @@ export class NetworkSettings extends PureComponent {
                       this.onBlockExplorerItemAdd(blockExplorerUrlForm);
                     }}
                     width={ButtonWidthTypes.Full}
-                    labelTextVariant={TextVariant.BodyMD}
+                    labelTextVariant={TextVariant.DisplayMD}
                     isDisabled={
                       !blockExplorerUrl ||
                       !blockExplorerUrlForm ||
@@ -2408,7 +2401,7 @@ export class NetworkSettings extends PureComponent {
                     }}
                     testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.BodyMD}
+                    labelTextVariant={TextVariant.DisplayMD}
                   />
                 </View>
               </ScrollView>
@@ -2516,7 +2509,7 @@ export class NetworkSettings extends PureComponent {
                       this.closeRpcModal();
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.BodyMD}
+                    labelTextVariant={TextVariant.DisplayMD}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
                 </View>

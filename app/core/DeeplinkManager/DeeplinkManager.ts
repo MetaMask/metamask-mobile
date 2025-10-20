@@ -24,7 +24,6 @@ import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
 import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
-import handleFastOnboarding from './Handlers/handleFastOnboarding';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -140,10 +139,6 @@ class DeeplinkManager {
   // NOTE: keeping this for backwards compatibility
   _handleOpenSwap() {
     this.navigation.navigate(Routes.SWAPS);
-  }
-
-  _handleFastOnboarding(onboardingPath: string) {
-    handleFastOnboarding({ onboardingPath });
   }
 
   async parse(

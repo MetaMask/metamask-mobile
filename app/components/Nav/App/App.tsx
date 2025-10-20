@@ -212,7 +212,7 @@ const OnboardingSuccessFlow = () => (
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName={'Onboarding'}>
+  <Stack.Navigator initialRouteName="Onboarding">
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen
       name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}

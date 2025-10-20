@@ -1,28 +1,17 @@
-import EventEmitter2 from 'eventemitter2';
 import type { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
-const previewTokenEventEmitter = new EventEmitter2();
-const PREVIEW_TOKEN_UPDATE_EVENT = 'previewTokenUpdate';
 let previewToken: string | undefined;
 
 export function setContentPreviewToken(newPreviewToken?: string | null) {
   if (typeof newPreviewToken === 'string') {
     previewToken = newPreviewToken;
-    previewTokenEventEmitter.emit(PREVIEW_TOKEN_UPDATE_EVENT, previewToken);
   }
 }
 
 export function getContentPreviewToken() {
   return previewToken;
-}
-
-export function subscribeToContentPreviewToken(
-  callback: (token: string) => void,
-) {
-  const sub = previewTokenEventEmitter.on(PREVIEW_TOKEN_UPDATE_EVENT, callback);
-  return () => sub.off(PREVIEW_TOKEN_UPDATE_EVENT, callback);
 }
 
 export const assertIsFeatureEnabled = () => {
