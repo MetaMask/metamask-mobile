@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.56.5]
+
+### Fixed
+- fix: use SharedDeeplinkManager to parse instead of Linking API ([#20960](https://github.com/MetaMask/metamask-mobile/pull/20960))
+
 ## [7.56.4]
 
 ### Fixed
@@ -1177,8 +1182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.54.1]
 
 ### Added
-- Added auto-create-release-pr workflow to automatically create release ([#19254](https://github.com/MetaMask/metamask-mobile/pull/19254)) 
-- fix: add logging to get more info around blocking login biometrics: ([#19274](https://github.com/MetaMask/metamask-mobile/pull/19274)) 
+- Added auto-create-release-pr workflow to automatically create release ([#19254](https://github.com/MetaMask/metamask-mobile/pull/19254))
+- fix: add logging to get more info around blocking login biometrics: ([#19274](https://github.com/MetaMask/metamask-mobile/pull/19274))
 
 ### Fixed
 - update solana to 2.3.6 ([#19241](https://github.com/MetaMask/metamask-mobile/pull/19241))
@@ -1200,7 +1205,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(deposit): prefill personal details form with user data ([#17770](https://github.com/MetaMask/metamask-mobile/pull/17770))
 - feat(deposit): route to build quote after otp authentication ([#17776](https://github.com/MetaMask/metamask-mobile/pull/17776))
 - feat(deposit): submit basic info and address kyc forms separately ([#17873](https://github.com/MetaMask/metamask-mobile/pull/17873))
-- feat(gh-action):  add reusable workflow for Android and iOS build change detection ([#18142](https://github.com/MetaMask/metamask-mobile/pull/18142))
+- feat(gh-action): add reusable workflow for Android and iOS build change detection ([#18142](https://github.com/MetaMask/metamask-mobile/pull/18142))
 - feat(qa-build): update pipeline for generating ios and android builds ([#17601](https://github.com/MetaMask/metamask-mobile/pull/17601))
 - feat: AccountConnect and AccountApproval use dapp scanning ([#14514](https://github.com/MetaMask/metamask-mobile/pull/14514))
 - feat: Add more E2E tests for the Browser: ([#17460](https://github.com/MetaMask/metamask-mobile/pull/17460))
@@ -1275,7 +1280,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: SDK Deeplink Hotfix ([#17370](https://github.com/MetaMask/metamask-mobile/pull/17370))
 - fix(deposit): start dob picker with value ([#18031](https://github.com/MetaMask/metamask-mobile/pull/18031))
 - fix(snaps): Patch `CronjobController` ([#17266](https://github.com/MetaMask/metamask-mobile/pull/17266))
-- fix:  cp fix(14255): invalid url on account list ([#14420](https://github.com/MetaMask/metamask-mobile/pull/14420))
+- fix: cp fix(14255): invalid url on account list ([#14420](https://github.com/MetaMask/metamask-mobile/pull/14420))
 - fix: 15108 create a wrapper for toChecksumAddress to prevent app crash ([#15202](https://github.com/MetaMask/metamask-mobile/pull/15202))
 - fix: Fix flickering alert trigger in batched transaction confirmation ([#18084](https://github.com/MetaMask/metamask-mobile/pull/18084))
 - fix: Fix padding issue of transactions view ([#17804](https://github.com/MetaMask/metamask-mobile/pull/17804))
@@ -1323,7 +1328,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: WC universal links ([#18843](https://github.com/MetaMask/metamask-mobile/pull/18843))
-- fix: Updated MainActionItem and bottom nav's TabItem to reduce padding for small screens  ([#18821](https://github.com/MetaMask/metamask-mobile/pull/18821))
+- fix: Updated MainActionItem and bottom nav's TabItem to reduce padding for small screens ([#18821](https://github.com/MetaMask/metamask-mobile/pull/18821))
 - chore: Additional polish for Homepage Redesign ([#18787](https://github.com/MetaMask/metamask-mobile/pull/18787))
 
 ## [7.53.0]
@@ -2264,6 +2269,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
+
 - fix(bridge): keyboard not appearing when error banner is displayed ([#14862](https://github.com/MetaMask/metamask-mobile/pull/14862))
 - fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
 - fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
@@ -7629,7 +7635,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.4...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.5...HEAD
+[7.56.5]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.4...v7.56.5
 [7.56.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.3...v7.56.4
 [7.56.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.2...v7.56.3
 [7.56.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.1...v7.56.2
@@ -7641,13 +7648,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [7.54.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.0...v7.54.1
 [7.54.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.53.1...v7.54.0
 [7.53.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.53.0...v7.53.1
-[7.53.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...v7.53.0
-[7.51.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.3...v7.51.4  
-[7.51.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.2...v7.51.3  
-[7.51.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...v7.51.2  
-[7.51.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.0...v7.51.1  
-[7.51.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.2...v7.51.0  
-[7.50.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.1...v7.50.2  
+[7.53.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.4...v7.53.0
+[7.51.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.3...v7.51.4
+[7.51.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.2...v7.51.3
+[7.51.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...v7.51.2
+[7.51.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.0...v7.51.1
+[7.51.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.2...v7.51.0
+[7.50.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.1...v7.50.2
 [7.50.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...v7.50.1
 [7.50.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.3...v7.50.0
 [7.47.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.2...v7.47.3
