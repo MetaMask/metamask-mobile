@@ -484,11 +484,10 @@ describe('PerpsController', () => {
     it('should get account state successfully', async () => {
       const mockAccountState = {
         availableBalance: '1000',
-        totalBalance: '1500',
         marginUsed: '500',
         unrealizedPnl: '100',
         returnOnEquity: '20.0',
-        totalValue: '1600',
+        totalBalance: '1600',
       };
 
       (controller as any).isInitialized = true;

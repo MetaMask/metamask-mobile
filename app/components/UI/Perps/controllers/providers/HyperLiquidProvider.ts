@@ -2343,7 +2343,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
           // Log each DEX contribution
           DevLogger.log(`DEX ${dex || 'main'} account state:`, {
-            totalValue: dexAccountState.totalValue,
+            totalBalance: dexAccountState.totalBalance,
             availableBalance: dexAccountState.availableBalance,
             marginUsed: dexAccountState.marginUsed,
             unrealizedPnl: dexAccountState.unrealizedPnl,
@@ -2373,10 +2373,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
               parseFloat(acc.unrealizedPnl) +
               parseFloat(dexAccountState.unrealizedPnl)
             ).toString(),
-            totalValue: (
-              parseFloat(acc.totalValue) +
-              parseFloat(dexAccountState.totalValue)
-            ).toString(),
             // Return on equity is weighted average, but for simplicity we'll recalculate
             // ROE = (unrealizedPnl / marginUsed) * 100
             returnOnEquity: '0', // Will recalculate below
@@ -2388,7 +2384,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
         } as AccountState,
       );
 

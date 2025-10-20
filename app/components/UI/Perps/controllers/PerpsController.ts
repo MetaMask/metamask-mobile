@@ -126,7 +126,7 @@ export type PerpsControllerState = {
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
     [provider: string]: {
-      totalValue: string; // Current total account value (cash + positions) in USD
+      totalBalance: string; // Current total account value (cash + positions) in USD
       unrealizedPnl: string; // Current P&L from open positions in USD
       accountValue1dAgo: string; // Account value 24h ago for daily change calculation in USD
       lastUpdated: number; // Timestamp of last update
@@ -2437,7 +2437,7 @@ export class PerpsController extends BaseController<
       // fallback to the current account total value if possible
       const historicalPortfolioToUse: HistoricalPortfolioResult =
         historicalPortfolio ?? {
-          accountValue1dAgo: accountState.totalValue || '0',
+          accountValue1dAgo: accountState.totalBalance || '0',
           timestamp: 0,
         };
 

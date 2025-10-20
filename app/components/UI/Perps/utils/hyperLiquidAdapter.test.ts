@@ -668,11 +668,10 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '700.25',
-        totalBalance: '1000.5', // Perps only
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
         returnOnEquity: '8.0', // Calculated from weighted return and margin
-        totalValue: '1000.50',
+        totalBalance: '1000.50',
       });
     });
 
@@ -712,11 +711,10 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '350.0',
-        totalBalance: '1000.5', // 500.0 + 200.0 + 300.5
         marginUsed: '150.0',
         unrealizedPnl: '100',
         returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
-        totalValue: '500.0',
+        totalBalance: '500.0',
       });
     });
 
@@ -751,11 +749,10 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '800.0',
-        totalBalance: '1000', // Spot balances default to 0
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0.0',
-        totalValue: '1000.0',
+        totalBalance: '1000.0',
       });
     });
 

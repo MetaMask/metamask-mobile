@@ -303,7 +303,6 @@ export function adaptAccountStateFromSDK(
     marginUsed: perpsState.marginSummary.totalMarginUsed || '0', // margin used including cross margin
     unrealizedPnl: totalUnrealizedPnl.toString() || '0',
     returnOnEquity: totalReturnOnEquityPercentage || '0',
-    totalValue: perpsState.marginSummary.accountValue || '0', // vaults + margin + pnl + perps balance
   };
 
   return accountState;

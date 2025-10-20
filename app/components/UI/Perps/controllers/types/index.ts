@@ -109,7 +109,6 @@ export type AccountState = {
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
   returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
-  totalValue: string; // Based on HyperLiquid: accountValue
   /**
    * Per-sub-account balance breakdown (protocol-specific, optional)
    * Maps sub-account identifier to its balance details.
