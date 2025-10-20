@@ -14,8 +14,6 @@ import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors
 import ResourceRing from './ResourceRing';
 
 const TronEnergyBandwidthDetail = () => {
-  // const tw = useTailwind();
-
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
 
   const energy = tronResources.find((a) => a.name.toLowerCase() === 'energy');
@@ -45,10 +43,10 @@ const TronEnergyBandwidthDetail = () => {
   const strxEnergyValue = parseNum(strxEnergy?.balance);
   const strxBandwidthValue = parseNum(strxBandwidth?.balance);
 
-  const BANDWIDTH_MAX = maxBandwidthValue + strxBandwidthValue;
+  const BANDWIDTH_MAX = Math.max(1, maxBandwidthValue + strxBandwidthValue);
   const bandwidthProgress = Math.min(1, (bandwidthValue || 0) / BANDWIDTH_MAX);
 
-  const ENERGY_MAX = maxEnergyValue + strxEnergyValue;
+  const ENERGY_MAX = Math.max(1, maxEnergyValue + strxEnergyValue);
   const energyProgress = Math.min(1, (energyValue || 0) / ENERGY_MAX);
 
   // Info about how much energy and bandwidth is needed for a TRC20 transfer and a TRX transfer
