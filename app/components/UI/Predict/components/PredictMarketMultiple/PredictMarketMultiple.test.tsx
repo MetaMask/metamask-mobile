@@ -108,7 +108,7 @@ describe('PredictMarketMultiple', () => {
     // Press the "Yes" button
     fireEvent.press(buttons[0]);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
@@ -119,7 +119,7 @@ describe('PredictMarketMultiple', () => {
     // Press the "No" button
     fireEvent.press(buttons[1]);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],

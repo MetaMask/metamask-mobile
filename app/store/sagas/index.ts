@@ -36,6 +36,8 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { RootState } from '../../reducers';
+import { selectExistingUser } from '../../reducers/user';
+import UrlParser from 'url-parse';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -175,6 +177,22 @@ export function* handleDeeplinkSaga() {
       completedOnboarding = yield select(selectCompletedOnboarding);
     }
 
+    const existingUser: boolean = yield select(selectExistingUser);
+
+    if (AppStateEventProcessor.pendingDeeplink) {
+      const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
+      // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
+      if (!existingUser && url.pathname === '/onboarding') {
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(url.href, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }, 200);
+        AppStateEventProcessor.clearPendingDeeplink();
+        continue;
+      }
+    }
+
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
 
@@ -234,14 +252,22 @@ export function* startAppServices() {
 
   // Get the performance state to access store init duration
   const state: RootState = yield select();
-  const activeTrace = state.performance?.activeTraceBySessionId?.[PerformanceEventNames.AppStartupComplete];
-  const storeInitDurationMs = (activeTrace?.metadata?.storeInitDurationMs as number) || 0;
+  const activeTrace =
+    state.performance?.activeTraceBySessionId?.[
+      PerformanceEventNames.AppStartupComplete
+    ];
+  const storeInitDurationMs =
+    (activeTrace?.metadata?.storeInitDurationMs as number) || 0;
 
   // Calculate TOTAL app startup time (store init + app services)
   const totalAppStartupMs = storeInitDurationMs + appServicesDurationMs;
 
-  Logger.log(`📊 [PERFORMANCE] App Services initialization completed in ${appServicesDurationMs}ms`);
-  Logger.log(`📊 [PERFORMANCE] TOTAL App Startup time: ${totalAppStartupMs}ms (Store: ${storeInitDurationMs}ms + Services: ${appServicesDurationMs}ms)`);
+  Logger.log(
+    `📊 [PERFORMANCE] App Services initialization completed in ${appServicesDurationMs}ms`,
+  );
+  Logger.log(
+    `📊 [PERFORMANCE] TOTAL App Startup time: ${totalAppStartupMs}ms (Store: ${storeInitDurationMs}ms + Services: ${appServicesDurationMs}ms)`,
+  );
 
   // END app startup performance trace with combined metrics
   yield put(
