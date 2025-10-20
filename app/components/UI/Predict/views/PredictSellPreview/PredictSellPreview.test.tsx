@@ -415,7 +415,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-cash-out-button');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
@@ -439,7 +439,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-cash-out-button');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       expect(cashOutButton.props['data-disabled']).toBe(true);
 
       // Reset loading state for other tests
@@ -453,7 +453,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-cash-out-button');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       expect(cashOutButton.props['data-disabled']).toBe(true);
 
       // Reset loading state for other tests
@@ -483,7 +483,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-cash-out-button');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
       // The dispatch now throws and is not caught, so expect the error
       expect(() => {
@@ -508,7 +508,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-cash-out-button');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       fireEvent.press(cashOutButton);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
@@ -531,7 +531,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-cash-out-button');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       // Button should have the primary color background
       expect(cashOutButton.props.style).toBeDefined();
     });

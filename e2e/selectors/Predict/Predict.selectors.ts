@@ -47,6 +47,7 @@ export const getPredictMarketListSelector = {
 export const PredictMarketDetailsSelectorsIDs = {
   // Main screen
   SCREEN: 'predict-market-details-screen',
+  SCROLLABLE_TAB_VIEW: 'predict-market-details-scrollable-tab-view',
 
   // Header
   BACK_BUTTON: 'predict-market-details-back-button',
@@ -101,5 +102,5 @@ export const PredictCashOutSelectorsIDs = {
   CONTAINER: 'predict-cash-out-container',
 
   // Cash out buttons
-  CASH_OUT_BUTTON: 'predict-cash-out-button',
+  SELL_PREVIEW_CASH_OUT_BUTTON: 'predict-sell-preview-cash-out-button',
 } as const;

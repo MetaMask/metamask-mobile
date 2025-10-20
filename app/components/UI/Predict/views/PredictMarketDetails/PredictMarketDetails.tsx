@@ -25,10 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice, formatVolume, formatAddress } from '../../utils/format';
-import {
-  PredictCashOutSelectorsIDs,
-  PredictMarketDetailsSelectorsIDs,
-} from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import {
   Box,
   BoxFlexDirection,
@@ -394,7 +391,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             </Box>
           </Box>
           <Button
-            testID={PredictCashOutSelectorsIDs.CASH_OUT_BUTTON}
+            testID={
+              PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON
+            }
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -581,7 +580,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       edges={['left', 'right', 'bottom']}
-      testID="predict-market-details-screen"
+      testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
       <Box twClassName="flex-1">
         <Box twClassName="px-3 gap-4" style={{ paddingTop: insets.top + 12 }}>
@@ -597,7 +596,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           />
         </Box>
         <ScrollableTabView
-          testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+          testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
           renderTabBar={() => (
             <TabBar
               textStyle={tw.style('text-base font-bold text-center')}

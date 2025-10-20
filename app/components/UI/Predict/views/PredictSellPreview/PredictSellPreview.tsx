@@ -115,7 +115,7 @@ const PredictSellPreview = () => {
           </View>
           <View style={styles.cashOutButtonContainer}>
             <Button
-              testID={PredictCashOutSelectorsIDs.CASH_OUT_BUTTON}
+              testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
               label="Cash out"
               variant={ButtonVariants.Secondary}
               disabled={!preview || isCalculating || isLoading}
