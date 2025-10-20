@@ -30,7 +30,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
 
     it('should return DEV URL for rc environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('rc');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
     it('should return DEV URL for pre-release environment', () => {
@@ -107,7 +107,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     const environmentMappings = [
       { env: 'e2e', expectedUrl: 'DEV' },
       { env: 'exp', expectedUrl: 'DEV' },
-      { env: 'rc', expectedUrl: 'DEV' },
+      { env: 'rc', expectedUrl: 'PRD' },
       { env: 'pre-release', expectedUrl: 'DEV' },
       { env: 'production', expectedUrl: 'PRD' },
       { env: 'beta', expectedUrl: 'PRD' },

@@ -11,7 +11,7 @@ interface SdkErrorAlertProps {
   error: string | null;
   onRetry?: () => void;
   isRetrying?: boolean;
-  errorType: 'regions' | 'tokens' | 'paymentMethods';
+  errorType: 'regions' | 'tokens' | 'paymentMethods' | 'userDetails';
 }
 
 const SdkErrorAlert: React.FC<SdkErrorAlertProps> = ({
@@ -30,6 +30,8 @@ const SdkErrorAlert: React.FC<SdkErrorAlertProps> = ({
         return strings('deposit.errors.fetch_tokens');
       case 'paymentMethods':
         return strings('deposit.errors.fetch_payment_methods');
+      case 'userDetails':
+        return strings('deposit.errors.fetch_user_details');
       default:
         return error;
     }
