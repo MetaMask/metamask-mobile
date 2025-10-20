@@ -869,6 +869,7 @@
       "fetch_regions": "Παρουσιάστηκε πρόβλημα κατά την ανάκτηση των περιοχών.",
       "fetch_tokens": "Παρουσιάστηκε πρόβλημα κατά την ανάκτηση των tokens.",
       "fetch_payment_methods": "Παρουσιάστηκε πρόβλημα κατά την ανάκτηση των μεθόδων πληρωμής.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Προσπαθήστε ξανά",
       "error_details_title": "Λεπτομέρειες σφάλματος",
       "see_more": "Δείτε περισσότερα"
@@ -1534,7 +1535,7 @@
       "skip": "Παράλειψη",
       "add_funds": "Προσθήκη κεφαλαίων",
       "what_are_perps": {
-        "title": "Τι είναι τα συμβόλαια αόριστου διάρκειας;",
+        "title": "What are perps?",
         "description": "Το MetaMask υποστηρίζει πλέον συμβόλαια μελλοντικής εκπλήρωσης—γνωστά και ως \"perps\"—επιτρέποντάς σας να κάνετε συναλλαγές βασισμένες στην τιμή ενός token χωρίς να το αγοράσετε.",
         "subtitle": "Να πώς λειτουργούν."
       },
@@ -1679,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1789,6 +1799,8 @@
     "alphabetically": "Αλφαβητικά (Α-Ω)",
     "add_to_get_started": "Προσθέστε κρυπτονομίσματα για να ξεκινήσετε",
     "token_is_needed_to_continue": "Απαιτείται τo {{tokenSymbol}} για να συνεχίσετε",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Χρηματοδοτήστε το πορτοφόλι σας για να ξεκινήσετε στο web3",
     "add_funds": "Προσθήκη κεφαλαίων",
     "next": "Επόμενο",
@@ -3151,9 +3163,10 @@
     "tx_review_staking_unstake": "Ακύρωση πονταρίσματος",
     "tx_review_lending_deposit": "Κατάθεση Δανεισμού",
     "tx_review_lending_withdraw": "Ανάληψη Δανεισμού",
-    "tx_review_perps_deposit": "Χρηματοδοτημένος λογαριασμός με συμβόλαια αορίστου διάρκειας",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Αποστολή Ether",
     "self_sent_ether": "Στείλτε Ether στον εαυτό σας",
     "received_ether": "Ληφθέντα Ether",
@@ -3227,6 +3240,7 @@
     "network_fee": "Τέλη δικτύου",
     "network_fee_tooltip": "Ποσό που καταβλήθηκε για τη διεκπεραίωση της συναλλαγής στο δίκτυο.",
     "confirm_gas_fee_token_tooltip": "Αυτό καταβάλλεται στο δίκτυο για την επεξεργασία της συναλλαγής σας. Περιλαμβάνει μια χρέωση {{metamaskFeeFiat}} στο MetaMask για token εκτός ETH ή για προ-χρηματοδοτημένα ETH.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Περιλαμβάνει προμήθεια {{metamaskFeeFiat}}",
     "smart_account_upgrade": "Αναβάθμιση σε έξυπνο λογαριασμό",
     "smart_account_downgrade": "Αλλαγή σε βασικό λογαριασμό",
@@ -5361,7 +5375,8 @@
       "switch_account_type": "Ενημέρωση λογαριασμού",
       "approve": "Έγκριση αιτήματος",
       "perps_deposit": "Προσθήκη κεφαλαίων",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
@@ -5967,6 +5982,18 @@
       "limited_spending_warning": "Η πραγματική δυνατότητα δαπανών σας ενδέχεται να είναι περιορισμένη. Για να προσαρμόσετε το όριό σας, μεταβείτε στη {{manageCard}}",
       "add_funds": "Προσθήκη κεφαλαίων",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",

@@ -869,6 +869,7 @@
       "fetch_regions": "Đã xảy ra sự cố khi tìm nạp khu vực.",
       "fetch_tokens": "Đã xảy ra sự cố khi tìm nạp token.",
       "fetch_payment_methods": "Đã xảy ra sự cố khi tìm nạp phương thức thanh toán.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Thử lại",
       "error_details_title": "Chi tiết lỗi",
       "see_more": "Xem thêm"
@@ -1679,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1789,6 +1799,8 @@
     "alphabetically": "Thứ tự bảng chữ cái (A – Z)",
     "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
     "token_is_needed_to_continue": "Cần {{tokenSymbol}} để tiếp tục",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Nạp tiền vào ví để bắt đầu trong web3",
     "add_funds": "Nạp tiền",
     "next": "Tiếp theo",
@@ -3151,9 +3163,10 @@
     "tx_review_staking_unstake": "Hủy ký gửi",
     "tx_review_lending_deposit": "Nạp tiền cho vay",
     "tx_review_lending_withdraw": "Rút tiền cho vay",
-    "tx_review_perps_deposit": "Tài khoản hợp đồng vĩnh cửu đã được nạp tiền",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Đã gửi Ether",
     "self_sent_ether": "Đã gửi Ether cho chính bạn",
     "received_ether": "Đã nhận Ether",
@@ -3227,6 +3240,7 @@
     "network_fee": "Phí mạng",
     "network_fee_tooltip": "Số tiền đã thanh toán để xử lý giao dịch trên mạng.",
     "confirm_gas_fee_token_tooltip": "Số tiền này được trả cho mạng để xử lý giao dịch của bạn. Bao gồm phí {{metamaskFeeFiat}} của MetaMask đối với các token không phải ETH hoặc ETH được nạp sẵn.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Bao gồm phí {{metamaskFeeFiat}}",
     "smart_account_upgrade": "Nâng cấp lên tài khoản thông minh",
     "smart_account_downgrade": "Chuyển sang tài khoản tiêu chuẩn",
@@ -5361,7 +5375,8 @@
       "switch_account_type": "Cập nhật tài khoản",
       "approve": "Phê duyệt yêu cầu",
       "perps_deposit": "Nạp tiền",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
@@ -5967,6 +5982,18 @@
       "limited_spending_warning": "Khả năng chi tiêu thực tế của bạn có thể bị giới hạn. Để điều chỉnh hạn mức, hãy vào {{manageCard}}",
       "add_funds": "Thêm tiền",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
