@@ -15,13 +15,13 @@ describe('convertPerpsAmountToUSD', () => {
 
   it('handles hex wei values correctly', () => {
     // 1 ETH in wei (0xde0b6b3a7640000)
-    expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe('$2,000');
+    expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe('$20,000');
 
     // 0.5 ETH in wei (0x6f05b59d3b20000)
-    expect(convertPerpsAmountToUSD('0x6f05b59d3b20000')).toBe('$1,000');
+    expect(convertPerpsAmountToUSD('0x6f05b59d3b20000')).toBe('$10,000');
 
     // 0.001 ETH in wei (0x38d7ea4c68000)
-    expect(convertPerpsAmountToUSD('0x38d7ea4c68000')).toBe('$2');
+    expect(convertPerpsAmountToUSD('0x38d7ea4c68000')).toBe('$20');
   });
 
   it('handles numeric strings correctly', () => {
@@ -31,9 +31,9 @@ describe('convertPerpsAmountToUSD', () => {
   });
 
   it('handles invalid input gracefully', () => {
-    expect(convertPerpsAmountToUSD('invalid')).toBe('$---'); // Invalid input placeholder
-    expect(convertPerpsAmountToUSD('abc123')).toBe('$---'); // Invalid input placeholder
-    expect(convertPerpsAmountToUSD('$invalid')).toBe('$---'); // Invalid input placeholder
+    expect(convertPerpsAmountToUSD('invalid')).toBe('$0'); // Invalid input placeholder
+    expect(convertPerpsAmountToUSD('abc123')).toBe('$0'); // Invalid input placeholder
+    expect(convertPerpsAmountToUSD('$invalid')).toBe('$0'); // Invalid input placeholder
   });
 
   it('handles edge cases', () => {

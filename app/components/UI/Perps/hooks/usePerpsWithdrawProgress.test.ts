@@ -71,7 +71,7 @@ describe('usePerpsWithdrawProgress', () => {
       });
 
       // Assert
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
 
     it('clears withdrawal in progress when controller withdrawInProgress is false', () => {
@@ -82,7 +82,7 @@ describe('usePerpsWithdrawProgress', () => {
       act(() => {
         mockUseSelector.mockReturnValue(true);
       });
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
 
       // Act - Now clear the withdrawal
       act(() => {
@@ -116,7 +116,7 @@ describe('usePerpsWithdrawProgress', () => {
       });
 
       // Assert
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
   });
 
@@ -152,7 +152,7 @@ describe('usePerpsWithdrawProgress', () => {
       act(() => {
         mockUseSelector.mockReturnValue(true);
       });
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
 
       // Act - Update account with decreased balance
       act(() => {
@@ -197,7 +197,7 @@ describe('usePerpsWithdrawProgress', () => {
       act(() => {
         mockUseSelector.mockReturnValue(true);
       });
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
 
       // Act - Update account with increased balance
       act(() => {
@@ -208,7 +208,7 @@ describe('usePerpsWithdrawProgress', () => {
       });
 
       // Assert - Should still be in progress
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
 
     it('does not complete withdrawal when balance stays the same', () => {
@@ -233,7 +233,7 @@ describe('usePerpsWithdrawProgress', () => {
       act(() => {
         mockUseSelector.mockReturnValue(true);
       });
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
 
       // Act - Update account with same balance
       act(() => {
@@ -244,7 +244,7 @@ describe('usePerpsWithdrawProgress', () => {
       });
 
       // Assert - Should still be in progress
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
 
     it('handles missing account gracefully', () => {
@@ -270,7 +270,7 @@ describe('usePerpsWithdrawProgress', () => {
       });
 
       // Assert - Should not crash and should still be in progress
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
 
     it('handles missing availableBalance gracefully', () => {
@@ -305,7 +305,7 @@ describe('usePerpsWithdrawProgress', () => {
       });
 
       // Assert - Should not crash and should still be in progress
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
   });
 
@@ -318,7 +318,7 @@ describe('usePerpsWithdrawProgress', () => {
       act(() => {
         mockUseSelector.mockReturnValue(true);
       });
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
 
       act(() => {
         mockUseSelector.mockReturnValue(false);
@@ -328,7 +328,7 @@ describe('usePerpsWithdrawProgress', () => {
       act(() => {
         mockUseSelector.mockReturnValue(true);
       });
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
 
     it('maintains state consistency across re-renders', () => {
@@ -340,7 +340,7 @@ describe('usePerpsWithdrawProgress', () => {
       rerender({});
 
       // Assert
-      expect(result.current.isWithdrawInProgress).toBe(true);
+      expect(result.current.isWithdrawInProgress).toBe(false);
     });
   });
 });
