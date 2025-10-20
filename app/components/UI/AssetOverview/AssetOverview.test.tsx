@@ -51,7 +51,7 @@ jest.mock(
   }),
 );
 
-jest.mock('./TokenDetails', () => {
+jest.mock('./Balance', () => {
   /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
   const React = require('react');
   const { View, Text } = require('react-native');
@@ -754,8 +754,8 @@ describe('AssetOverview', () => {
     );
 
     selectTronResourcesBySelectedAccountGroup.mockReturnValue([
-      { name: 'strx-energy', balance: '10' },
-      { name: 'strx-bandwidth', balance: '20' },
+      { symbol: 'strx-energy', balance: '10' },
+      { symbol: 'strx-bandwidth', balance: '20' },
     ]);
 
     const tronAsset = {
