@@ -177,6 +177,7 @@ import {
   WebSocketService,
   WebSocketServiceActions,
   WebSocketServiceEvents,
+  MultichainRouter,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -316,7 +317,10 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
-import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
+import type {
+  ErrorReportingService,
+  ErrorReportingServiceActions,
+} from '@metamask/error-reporting-service';
 import {
   AccountTreeController,
   AccountTreeControllerState,
@@ -346,7 +350,11 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
  */
 type RequiredControllers = Omit<
   Controllers,
-  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
+  | 'ErrorReportingService'
+  | 'MultichainRouter'
+  | 'PPOMController'
+  | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -354,7 +362,11 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
-  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
+  | 'ErrorReportingService'
+  | 'MultichainRouter'
+  | 'PPOMController'
+  | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -532,6 +544,7 @@ export type Controllers = {
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
+  ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
@@ -579,6 +592,7 @@ export type Controllers = {
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
+  MultichainRouter: MultichainRouter;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapKeyringBuilder: SnapKeyringBuilder;
@@ -698,6 +712,7 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  */
 export type ControllersToInitialize =
   | 'AccountTrackerController'
+  | 'AddressBookController'
   | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
@@ -719,12 +734,15 @@ export type ControllersToInitialize =
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
+  | 'MultichainRouter'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
   | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
+  | 'ErrorReportingService'
+  | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
@@ -736,6 +754,7 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'NftController'
   | 'NftDetectionController'
+  | 'PhishingController'
   | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'

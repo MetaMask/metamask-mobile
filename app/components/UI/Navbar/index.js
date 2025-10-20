@@ -148,6 +148,9 @@ const styles = StyleSheet.create({
   iconButton: {
     marginHorizontal: 24,
   },
+  hidden: {
+    opacity: 0,
+  },
 });
 
 const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
@@ -547,7 +550,7 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(
+export function getSendFlowTitle({
   title,
   navigation,
   route,
@@ -557,7 +560,7 @@ export function getSendFlowTitle(
   disableNetwork = true,
   showSelectedNetwork = false,
   globalChainId = '',
-) {
+} = {}) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -988,7 +991,7 @@ export function getWalletNavbarOptions(
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
-              } catch (e) {
+              } catch {
                 Alert.alert(
                   strings('import_private_key.error_title'),
                   strings('import_private_key.error_message'),
@@ -1850,7 +1853,19 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: null,
+    // Render an empty left header action that matches the dimensions of the close button.
+    // This allows us to center align the title on Android devices.
+    headerLeft: Device.isAndroid()
+      ? () => (
+          <View style={[styles.closeButton, styles.hidden]}>
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Lg}
+              color={IconColor.Muted}
+            />
+          </View>
+        )
+      : null,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -2185,7 +2200,7 @@ export const getSettingsNavigationOptions = (
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Close}
-          onPress={() => navigation && navigation.goBack()}
+          onPress={() => navigation?.goBack()}
           style={innerStyles.accessories}
           testID={NetworksViewSelectorsIDs.CLOSE_ICON}
         />
