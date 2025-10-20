@@ -8189,6 +8189,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/phishing-controller@npm:^14.1.2":
+  version: 14.1.2
+  resolution: "@metamask/phishing-controller@npm:14.1.2"
+  dependencies:
+    "@metamask/base-controller": ^8.4.1
+    "@metamask/controller-utils": ^11.14.1
+    "@noble/hashes": ^1.8.0
+    "@types/punycode": ^2.1.0
+    ethereum-cryptography: ^2.1.2
+    fastest-levenshtein: ^1.0.16
+    punycode: ^2.1.1
+  peerDependencies:
+    "@metamask/transaction-controller": ^60.4.0
+  checksum: d1a808cfb7cbb1957d32f127b071003273b26263f2a3ddc4ce2f17cd70abd501cb3c941d3df6a7af8c9bbc51f87d327c527918f842d2a017430ec423f2a6240c
+  languageName: node
+  linkType: hard
+
 "@metamask/polling-controller@npm:^14.0.0, @metamask/polling-controller@npm:^14.0.1":
   version: 14.0.1
   resolution: "@metamask/polling-controller@npm:14.0.1"
@@ -34134,7 +34151,7 @@ __metadata:
     "@metamask/notification-services-controller": ^18.2.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
-    "@metamask/phishing-controller": ^13.1.0
+    "@metamask/phishing-controller": ^14.1.2
     "@metamask/post-message-stream": ^10.0.0
     "@metamask/ppom-validator": ^0.38.0
     "@metamask/preferences-controller": ^20.0.1
