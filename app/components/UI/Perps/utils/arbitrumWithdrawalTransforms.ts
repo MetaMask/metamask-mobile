@@ -19,30 +19,28 @@ interface ArbitrumWithdrawal {
  */
 export const transformArbitrumWithdrawalToHistoryItem = (
   withdrawal: ArbitrumWithdrawal,
-): UserHistoryItem => {
-  return {
-    id: withdrawal.id,
-    timestamp: withdrawal.timestamp,
-    type: 'withdrawal',
-    amount: withdrawal.amount,
-    asset: 'USDC',
-    txHash: withdrawal.txHash,
-    status:
-      withdrawal.status === 'completed'
-        ? 'completed'
-        : withdrawal.status === 'failed'
-        ? 'failed'
-        : 'pending',
-    details: {
-      source: 'arbitrum_blockchain',
-      bridgeContract: withdrawal.from,
-      recipient: withdrawal.to,
-      blockNumber: withdrawal.blockNumber,
-      chainId: '0xa4b1', // Arbitrum mainnet
-      synthetic: false, // This is real blockchain data
-    },
-  };
-};
+): UserHistoryItem => ({
+  id: withdrawal.id,
+  timestamp: withdrawal.timestamp,
+  type: 'withdrawal',
+  amount: withdrawal.amount,
+  asset: 'USDC',
+  txHash: withdrawal.txHash,
+  status:
+    withdrawal.status === 'completed'
+      ? 'completed'
+      : withdrawal.status === 'failed'
+      ? 'failed'
+      : 'pending',
+  details: {
+    source: 'arbitrum_blockchain',
+    bridgeContract: withdrawal.from,
+    recipient: withdrawal.to,
+    blockNumber: withdrawal.blockNumber,
+    chainId: '0xa4b1', // Arbitrum mainnet
+    synthetic: false, // This is real blockchain data
+  },
+});
 
 /**
  * Transform multiple Arbitrum withdrawals into UserHistoryItem array
@@ -52,6 +50,5 @@ export const transformArbitrumWithdrawalToHistoryItem = (
  */
 export const transformArbitrumWithdrawalsToHistoryItems = (
   withdrawals: ArbitrumWithdrawal[],
-): UserHistoryItem[] => {
-  return withdrawals.map(transformArbitrumWithdrawalToHistoryItem);
-};
+): UserHistoryItem[] =>
+  withdrawals.map(transformArbitrumWithdrawalToHistoryItem);

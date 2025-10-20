@@ -229,20 +229,6 @@ export const useWithdrawalRequests = (
     // Sort by timestamp (newest first)
     const sorted = uniqueWithdrawals.sort((a, b) => b.timestamp - a.timestamp);
 
-    console.log('Final combined withdrawals:', {
-      count: sorted.length,
-      withdrawals: sorted.map((w) => ({
-        id: w.id,
-        timestamp: new Date(w.timestamp).toISOString(),
-        amount: w.amount,
-        asset: w.asset,
-        status: w.status,
-        txHash: w.txHash
-          ? `${w.txHash.slice(0, 8)}...${w.txHash.slice(-6)}`
-          : 'none',
-      })),
-    });
-
     return sorted;
   }, [pendingWithdrawals, completedWithdrawals]);
 

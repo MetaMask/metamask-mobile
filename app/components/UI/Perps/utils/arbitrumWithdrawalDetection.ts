@@ -215,11 +215,10 @@ export const detectHyperLiquidWithdrawal = (
  * @param chainId - Current chain ID
  * @returns Bridge contract address
  */
-export const getBridgeContractAddress = (chainId: string): string => {
-  return chainId === ARBITRUM_MAINNET_CHAIN_ID
+export const getBridgeContractAddress = (chainId: string): string =>
+  chainId === ARBITRUM_MAINNET_CHAIN_ID
     ? HYPERLIQUID_BRIDGE_CONTRACTS.mainnet
     : HYPERLIQUID_BRIDGE_CONTRACTS.testnet;
-};
 
 /**
  * Get the appropriate USDC contract address for the current network
@@ -227,8 +226,7 @@ export const getBridgeContractAddress = (chainId: string): string => {
  * @param chainId - Current chain ID
  * @returns USDC contract address
  */
-export const getUSDCContractAddress = (chainId: string): string => {
-  return chainId === ARBITRUM_MAINNET_CHAIN_ID
+export const getUSDCContractAddress = (chainId: string): string =>
+  chainId === ARBITRUM_MAINNET_CHAIN_ID
     ? USDC_CONTRACTS.mainnet
     : USDC_CONTRACTS.testnet;
-};
