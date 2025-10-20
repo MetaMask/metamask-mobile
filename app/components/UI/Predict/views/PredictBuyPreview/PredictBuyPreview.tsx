@@ -77,19 +77,14 @@ const PredictBuyPreview = () => {
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
 
-  const onPlaceBet = async () => {
+  const onPlaceBet = () => {
     if (!preview) return;
 
-    await placeOrder({
+    placeOrder({
       providerId: outcome.providerId,
       preview,
     });
-    try {
-      dispatch(StackActions.pop());
-    } catch (error) {
-      // Navigation errors should not prevent the bet from being placed
-      console.warn('Navigation error after placing bet:', error);
-    }
+    dispatch(StackActions.pop());
   };
 
   const renderHeader = () => (

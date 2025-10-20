@@ -6,7 +6,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
-import { Alert, Image, View } from 'react-native';
+import { Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
@@ -40,19 +40,7 @@ const PredictSellPreview = () => {
 
   const outcomeTitle = title;
 
-  const { placeOrder, isLoading } = usePredictPlaceOrder({
-    onComplete: () => {
-      try {
-        dispatch(StackActions.pop());
-      } catch (error) {
-        // Navigation errors shouldn't prevent the order from being considered successful
-        console.warn('Navigation error after successful cash out:', error);
-      }
-    },
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-    },
-  });
+  const { placeOrder, isLoading } = usePredictPlaceOrder();
 
   const { preview, isCalculating } = usePredictOrderPreview({
     providerId: position.providerId,
@@ -76,6 +64,7 @@ const PredictSellPreview = () => {
       providerId: position.providerId,
       preview,
     });
+    dispatch(StackActions.pop());
   };
 
   return (
@@ -86,14 +75,14 @@ const PredictSellPreview = () => {
       <View style={styles.container}>
         <View style={styles.cashOutContainer}>
           <Text style={styles.currentValue}>
-            {formatPrice(currentValue, { minimumDecimals: 2 })}
+            {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
           <Text
             style={styles.percentPnl}
             color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
           >
             {`${signal}${formatPrice(Math.abs(cashPnl), {
-              minimumDecimals: 2,
+              maximumDecimals: 2,
             })} (${formatPercentage(percentPnl)})`}
           </Text>
         </View>
@@ -115,7 +104,7 @@ const PredictSellPreview = () => {
                 ellipsizeMode="tail"
                 style={styles.detailsResolves}
               >
-                {formatPrice(initialValue, { minimumDecimals: 2 })} on{' '}
+                {formatPrice(initialValue, { maximumDecimals: 2 })} on{' '}
                 {outcomeSideText}
               </Text>
             </View>
