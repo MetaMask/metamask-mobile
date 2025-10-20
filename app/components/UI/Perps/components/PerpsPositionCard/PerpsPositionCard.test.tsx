@@ -554,8 +554,8 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithEmptyLiquidation} />);
 
-      // Assert
-      expect(screen.getByText('N/A')).toBeOnTheScreen();
+      // Assert - Empty string gets parsed as NaN and displays fallback
+      expect(screen.getByText('$---')).toBeOnTheScreen();
     });
 
     it('renders all body items in correct order', () => {
