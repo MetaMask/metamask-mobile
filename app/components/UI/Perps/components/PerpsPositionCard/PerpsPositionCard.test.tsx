@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
@@ -319,8 +320,10 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithoutLiquidation} />);
 
-      // Assert
-      expect(screen.getByText('N/A')).toBeOnTheScreen();
+      // Assert - Displays standardized price fallback
+      expect(
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+      ).toBeOnTheScreen();
     });
 
     it('renders with icon when showIcon is true and not expanded', () => {
@@ -555,7 +558,9 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={positionWithEmptyLiquidation} />);
 
       // Assert - Empty string gets parsed as NaN and displays fallback
-      expect(screen.getByText('$---')).toBeOnTheScreen();
+      expect(
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+      ).toBeOnTheScreen();
     });
 
     it('renders all body items in correct order', () => {

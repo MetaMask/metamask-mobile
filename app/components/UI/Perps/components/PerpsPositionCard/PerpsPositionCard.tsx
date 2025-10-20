@@ -24,7 +24,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { TP_SL_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS, TP_SL_CONFIG } from '../../constants/perpsConfig';
 import type {
   PerpsNavigationParamList,
   Position,
@@ -390,7 +390,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                     ? formatPerpsFiat(position.liquidationPrice, {
                         ranges: PRICE_RANGES_UNIVERSAL,
                       })
-                    : 'N/A'}
+                    : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
                 </Text>
               </View>
               <View style={styles.bodyItem}>
