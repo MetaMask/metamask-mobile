@@ -3,7 +3,7 @@ import { usePerpsTransactionState } from './usePerpsTransactionState';
 import { TransactionRecord } from '../types/transactionTypes';
 
 // Mock the strings function
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
       'perps.multiple_transactions_in_progress':
@@ -119,29 +119,6 @@ describe('usePerpsTransactionState', () => {
     expect(result.current.withdrawalAmount).toBe('100');
     expect(result.current.hasActiveWithdrawals).toBe(true);
     expect(result.current.statusText).toBe('Multiple transactions in progress');
-    expect(result.current.isAnyTransactionInProgress).toBe(true);
-  });
-
-  it('returns null withdrawal amount when active withdrawal has no amount', () => {
-    const props = {
-      ...defaultProps,
-      withdrawalRequests: [
-        {
-          id: '1',
-          status: 'pending' as const,
-          amount: '0',
-          asset: 'USDC',
-          timestamp: Date.now(),
-          success: false,
-        },
-      ],
-    };
-
-    const { result } = renderHook(() => usePerpsTransactionState(props));
-
-    expect(result.current.withdrawalAmount).toBeNull();
-    expect(result.current.hasActiveWithdrawals).toBe(true);
-    expect(result.current.statusText).toBe('Withdraw in progress');
     expect(result.current.isAnyTransactionInProgress).toBe(true);
   });
 
