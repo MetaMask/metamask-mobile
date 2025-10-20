@@ -678,7 +678,7 @@ export class HyperLiquidSubscriptionService {
     }
 
     // HIP-3: Establish clearinghouseState subscriptions for HIP-3 DEXs
-    const hip3Dexs = enabledDexs.filter((dex) => dex !== null);
+    const hip3Dexs = enabledDexs.filter((dex): dex is string => dex !== null);
     await Promise.all(
       hip3Dexs.map(async (dex) => {
         const dexName = dex;
@@ -856,7 +856,9 @@ export class HyperLiquidSubscriptionService {
       // HIP-3: Cleanup clearinghouseState subscriptions (HIP-3 DEXs)
       if (this.clearinghouseStateSubscriptions.size > 0) {
         const enabledDexs = this.getEnabledDexs();
-        const hip3Dexs = enabledDexs.filter((dex) => dex !== null);
+        const hip3Dexs = enabledDexs.filter(
+          (dex): dex is string => dex !== null,
+        );
         hip3Dexs.forEach((dex) => {
           this.cleanupClearinghouseStateSubscription(dex);
         });
