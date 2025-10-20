@@ -2,7 +2,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Arbitrum chain IDs
 export const ARBITRUM_MAINNET_CHAIN_ID = '0xa4b1'; // 42161
-export const ARBITRUM_TESTNET_CHAIN_ID = '0x66eed'; // 421614
+export const ARBITRUM_TESTNET_CHAIN_ID = '0x66eee'; // 421614
 
 // HyperLiquid bridge contracts (from hyperLiquidConfig.ts)
 export const HYPERLIQUID_BRIDGE_CONTRACTS = {
