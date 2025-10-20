@@ -35,6 +35,7 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       flexGrow: 1,
+      paddingBottom: 32,
     },
     defaultHorizontalPadding: {
       paddingHorizontal: 16,
@@ -57,7 +58,6 @@ const createStyles = (theme: Theme) =>
     },
     cardImageContainer: {
       width: '100%',
-      marginTop: 8,
     },
     cardAssetItemContainer: {
       height: 80,
@@ -70,6 +70,16 @@ const createStyles = (theme: Theme) =>
     },
     limitedAllowanceManageCardText: {
       fontWeight: 'bold',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.background.default,
+      width: '100%',
+    },
+    spendingLimitDivider: {
+      height: 1,
+      backgroundColor: theme.colors.border.muted,
+      width: '100%',
     },
     defaultMarginTop: {
       marginTop: 16,
@@ -87,13 +97,8 @@ const createStyles = (theme: Theme) =>
     halfWidthButton: {
       width: '50%',
     },
-    spendingLimitContainer: {
-      marginVertical: 8,
-      width: '100%',
-    },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
+    shouldBeHidden: {
+      display: 'none',
     },
   });
 
