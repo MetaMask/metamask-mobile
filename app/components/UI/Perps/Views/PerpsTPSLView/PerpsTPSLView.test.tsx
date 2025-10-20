@@ -181,7 +181,6 @@ describe('PerpsTPSLView', () => {
       hasChanges: false,
       takeProfitError: '',
       stopLossError: '',
-      takeProfitLiquidationError: '',
       stopLossLiquidationError: '',
     },
     display: {
