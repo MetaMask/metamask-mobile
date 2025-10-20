@@ -87,6 +87,9 @@ jest.mock('../Engine', () => {
         context: {
           AddressBookController: { subscribe: jest.fn() },
           KeyringController: {
+            metadata: {
+              vault: {},
+            },
             subscribe: jest.fn(),
             state: { ...keyringState },
           },
