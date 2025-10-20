@@ -374,9 +374,10 @@ export class PolymarketProvider implements PredictProvider {
 
     // Introduce slippage into minAmountReceived to reduce failure rate
     const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
+    const decimals = roundConfig.amount ?? 4;
     const minAmountWithSlippage = roundOrderAmount({
       amount: minAmountReceived * (1 - slippage),
-      decimals: roundConfig.amount,
+      decimals,
     });
 
     const makerAmount = parseUnits(maxAmountSpent.toString(), 6).toString();
