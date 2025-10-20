@@ -94,7 +94,7 @@ describe('handleLocalAuthentication', () => {
       const expiringTokenData = {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000, // 30 minutes
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000, // 30 minutes
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000, // Expires in 30 minutes
         location: 'us' as const,
       };
@@ -119,7 +119,7 @@ describe('handleLocalAuthentication', () => {
       const expiredTokenData = {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP - 30 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP - 30 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP - 30 * 60 * 1000, // Already expired
         location: 'international' as const,
       };
@@ -144,7 +144,7 @@ describe('handleLocalAuthentication', () => {
       const tokenData = {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 60 * 60 * 1000, // Exactly 1 hour
         location: 'us' as const,
       };
@@ -182,7 +182,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'old-access-token',
         refreshToken: 'old-refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 24 * 60 * 60 * 1000, // Valid for 24 hours
         location: 'us' as const,
       };
@@ -213,7 +213,7 @@ describe('handleLocalAuthentication', () => {
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
-        acessTokenExpiresAt: 3600,
+        accessTokenExpiresAt: 3600,
         refreshTokenExpiresAt: 86400,
         location: 'us',
       });
@@ -227,7 +227,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'old-access-token',
         refreshToken: 'old-refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 24 * 60 * 60 * 1000,
         location: 'international' as const,
       };
@@ -258,7 +258,7 @@ describe('handleLocalAuthentication', () => {
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
-        acessTokenExpiresAt: 3600,
+        accessTokenExpiresAt: 3600,
         refreshTokenExpiresAt: 86400,
         location: 'international',
       });
@@ -274,7 +274,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'old-access-token',
         refreshToken: 'old-refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 24 * 60 * 60 * 1000,
         location: 'us' as const,
       };
@@ -303,7 +303,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'old-access-token',
         refreshToken: 'old-refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 24 * 60 * 60 * 1000,
         location: 'us' as const,
       };
@@ -340,7 +340,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'old-access-token',
         refreshToken: 'old-refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 24 * 60 * 60 * 1000,
         location: 'international' as const,
       };
@@ -377,7 +377,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'old-access-token',
         refreshToken: 'old-refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 24 * 60 * 60 * 1000,
         location: 'us' as const,
       };
@@ -428,7 +428,7 @@ describe('handleLocalAuthentication', () => {
       const expiringTokenData = {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 30 * 60 * 1000,
         location: 'us' as const,
       };
@@ -456,7 +456,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'old-access-token',
         refreshToken: 'old-refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 24 * 60 * 60 * 1000,
         location: 'us' as const,
       };
@@ -495,7 +495,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 61 * 60 * 1000, // 61 minutes
         location: 'us' as const,
       };
@@ -531,7 +531,7 @@ describe('handleLocalAuthentication', () => {
       const validTokenData = {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 2 * 60 * 60 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 365 * 24 * 60 * 60 * 1000, // 1 year
         location: 'international' as const,
       };

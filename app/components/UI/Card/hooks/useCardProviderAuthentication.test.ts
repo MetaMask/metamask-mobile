@@ -177,7 +177,7 @@ describe('useCardProviderAuthentication', () => {
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: mockExchangeTokenResponse.accessToken,
         refreshToken: mockExchangeTokenResponse.refreshToken,
-        acessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
+        accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
         refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
         location: loginParams.location,
       });

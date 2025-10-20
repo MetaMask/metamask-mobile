@@ -27,7 +27,7 @@ export interface CardToken {
 export interface CardTokenData {
   accessToken: string;
   refreshToken: string;
-  acessTokenExpiresAt: number;
+  accessTokenExpiresAt: number;
   refreshTokenExpiresAt: number;
   location: CardLocation;
 }

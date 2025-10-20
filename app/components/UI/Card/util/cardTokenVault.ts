@@ -22,13 +22,14 @@ export async function storeCardBaanxToken(
   params: CardTokenData,
 ): Promise<TokenResponse> {
   try {
-    const acessTokenExpiresAt = Date.now() + params.acessTokenExpiresAt * 1000;
+    const accessTokenExpiresAt =
+      Date.now() + params.accessTokenExpiresAt * 1000;
     const refreshTokenExpiresAt =
       Date.now() + params.refreshTokenExpiresAt * 1000;
 
     const stringifiedTokens = JSON.stringify({
       ...params,
-      acessTokenExpiresAt,
+      accessTokenExpiresAt,
       refreshTokenExpiresAt,
     });
 
@@ -66,7 +67,7 @@ const validateTokenData = (tokenData: Partial<CardTokenData>): boolean =>
   Boolean(
     tokenData.accessToken &&
       tokenData.refreshToken &&
-      tokenData.acessTokenExpiresAt &&
+      tokenData.accessTokenExpiresAt &&
       tokenData.refreshTokenExpiresAt &&
       tokenData.location,
   );

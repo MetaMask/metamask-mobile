@@ -49,7 +49,7 @@ export const handleLocalAuthentication = async ({
       await storeCardBaanxToken({
         accessToken: newTokens.accessToken,
         refreshToken: newTokens.refreshToken,
-        acessTokenExpiresAt: newTokens.expiresIn,
+        accessTokenExpiresAt: newTokens.expiresIn,
         refreshTokenExpiresAt: newTokens.refreshTokenExpiresIn,
         location,
       });

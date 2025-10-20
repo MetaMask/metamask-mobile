@@ -102,7 +102,7 @@ const useCardProviderAuthentication = (): {
         await storeCardBaanxToken({
           accessToken: exchangeTokenResponse.accessToken,
           refreshToken: exchangeTokenResponse.refreshToken,
-          acessTokenExpiresAt: exchangeTokenResponse.expiresIn,
+          accessTokenExpiresAt: exchangeTokenResponse.expiresIn,
           refreshTokenExpiresAt: exchangeTokenResponse.refreshTokenExpiresIn,
           location: params.location,
         });

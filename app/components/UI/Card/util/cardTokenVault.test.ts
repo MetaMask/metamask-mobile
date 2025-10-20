@@ -22,7 +22,7 @@ describe('cardTokenVault', () => {
   const mockTokenData = {
     accessToken: 'access-token-123',
     refreshToken: 'refresh-token-456',
-    acessTokenExpiresAt: 3600, // 1 hour in seconds
+    accessTokenExpiresAt: 3600, // 1 hour in seconds
     refreshTokenExpiresAt: 86400, // 24 hours in seconds
     location: 'us' as const,
   };
@@ -45,7 +45,7 @@ describe('cardTokenVault', () => {
       const expectedStoredData = {
         accessToken: 'access-token-123',
         refreshToken: 'refresh-token-456',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000, // Converted to milliseconds
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000, // Converted to milliseconds
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000, // Converted to milliseconds
         location: 'us',
       };
@@ -95,7 +95,7 @@ describe('cardTokenVault', () => {
       const expectedStoredData = {
         accessToken: 'access-token-123',
         refreshToken: 'refresh-token-456',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
         location: 'international',
       };
@@ -114,7 +114,7 @@ describe('cardTokenVault', () => {
       const storedTokenData = {
         accessToken: 'access-token-123',
         refreshToken: 'refresh-token-456',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
         location: 'us' as const,
       };
@@ -183,7 +183,7 @@ describe('cardTokenVault', () => {
       const internationalTokenData = {
         accessToken: 'access-token-123',
         refreshToken: 'refresh-token-456',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
         location: 'international' as const,
       };
@@ -206,7 +206,7 @@ describe('cardTokenVault', () => {
     it('returns error for invalid token data missing required fields', async () => {
       const invalidTokenData = {
         accessToken: 'access-token-123',
-        // Missing refreshToken, acessTokenExpiresAt, refreshTokenExpiresAt, location
+        // Missing refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, location
       };
       const mockSecureItem = {
         key: 'CARD_BAANX_TOKENS',
@@ -285,7 +285,7 @@ describe('cardTokenVault', () => {
       const storedTokenData = {
         accessToken: 'access-token-123',
         refreshToken: 'refresh-token-456',
-        acessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
         refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
         location: 'us' as const,
       };
@@ -313,7 +313,7 @@ describe('cardTokenVault', () => {
     it('rejects malformed token data structure missing required fields', async () => {
       const malformedTokenData = {
         accessToken: 'token',
-        // Missing required fields: refreshToken, acessTokenExpiresAt, refreshTokenExpiresAt, location
+        // Missing required fields: refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, location
       };
       const mockSecureItem = {
         key: 'CARD_BAANX_TOKENS',
@@ -336,7 +336,7 @@ describe('cardTokenVault', () => {
       const futureTokenData = {
         accessToken: 'access-token-123',
         refreshToken: 'refresh-token-456',
-        acessTokenExpiresAt: Number.MAX_SAFE_INTEGER,
+        accessTokenExpiresAt: Number.MAX_SAFE_INTEGER,
         refreshTokenExpiresAt: Number.MAX_SAFE_INTEGER,
         location: 'us' as const,
       };
