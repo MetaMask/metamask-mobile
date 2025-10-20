@@ -204,9 +204,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
-      // TODO: Validate that this argument is needed.
-      includeOrderBook: true,
-      includeMarketData: true,
+      includeOrderBook: true, // include bid/ask data from L2 book
       callback: (updates: PriceUpdate[]) => {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
@@ -313,9 +311,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       // Subscribe to all market prices
       this.prewarmUnsubscribe = controller.subscribeToPrices({
         symbols: this.allMarketSymbols,
-        // TODO: Validate that this argument is needed.
-        // TODO: Understand different between this prewarm and regular subscribeToPrices.
-        includeOrderBook: true,
+        includeOrderBook: true, // include bid/ask data from L2 book
         callback: (updates: PriceUpdate[]) => {
           // Update cache and build price map
           const priceMap: Record<string, PriceUpdate> = {};
