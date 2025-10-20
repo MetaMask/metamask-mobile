@@ -207,7 +207,6 @@ const PerpsClosePositionView: React.FC = () => {
     currentBidPrice: positionPriceData?.bestBid
       ? Number.parseFloat(positionPriceData.bestBid)
       : undefined,
-    priceTimestamp: positionPriceData?.timestamp,
   });
 
   // Simple boolean calculation for rewards state

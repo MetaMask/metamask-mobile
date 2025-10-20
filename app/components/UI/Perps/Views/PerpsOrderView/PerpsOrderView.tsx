@@ -311,7 +311,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     currentBidPrice: currentPrice?.bestBid
       ? Number.parseFloat(currentPrice.bestBid)
       : undefined,
-    priceTimestamp: currentPrice?.timestamp,
   });
 
   const estimatedFees = feeResults.totalFee;

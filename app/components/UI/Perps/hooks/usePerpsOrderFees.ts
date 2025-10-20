@@ -7,8 +7,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { selectChainId } from '../../../../selectors/networkController';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
-const PRICE_STALENESS_THRESHOLD_MS = 5000;
-
 import {
   EstimatePointsDto,
   EstimatedPointsDto,
@@ -84,8 +82,6 @@ interface UsePerpsOrderFeesParams {
   currentAskPrice?: number;
   /** Real bid price from L2 order book */
   currentBidPrice?: number;
-  /** Price data timestamp for staleness check */
-  priceTimestamp?: number;
 }
 
 /**
@@ -106,37 +102,12 @@ function determineMakerStatus(params: {
   direction: 'long' | 'short';
   bestAsk?: number;
   bestBid?: number;
-  priceTimestamp?: number;
   coin?: string;
 }): boolean {
-  const {
-    orderType,
-    limitPrice,
-    direction,
-    bestAsk,
-    bestBid,
-    priceTimestamp,
-    coin,
-  } = params;
+  const { orderType, limitPrice, direction, bestAsk, bestBid, coin } = params;
   // Market orders are always taker
   if (orderType === 'market') {
     return false;
-  }
-
-  // Default to taker if price is stale
-  if (priceTimestamp) {
-    const age = Date.now() - priceTimestamp;
-    if (age > PRICE_STALENESS_THRESHOLD_MS) {
-      DevLogger.log(
-        'Fee Calculation: Stale price data detected, using conservative taker fee',
-        {
-          age,
-          threshold: PRICE_STALENESS_THRESHOLD_MS,
-          coin,
-        },
-      );
-      return false;
-    }
   }
 
   // Default to taker when limit price is not specified
@@ -150,7 +121,6 @@ function determineMakerStatus(params: {
     return false;
   }
 
-  // Use bid/ask data if available
   if (bestBid !== undefined && bestAsk !== undefined) {
     if (direction === 'long') {
       return limitPriceNum < bestAsk;
@@ -194,7 +164,6 @@ export function usePerpsOrderFees({
   direction,
   currentAskPrice,
   currentBidPrice,
-  priceTimestamp,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
   const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
@@ -214,7 +183,6 @@ export function usePerpsOrderFees({
       direction,
       bestAsk: currentAskPrice,
       bestBid: currentBidPrice,
-      priceTimestamp,
       coin,
     });
   }, [
@@ -223,7 +191,6 @@ export function usePerpsOrderFees({
     direction,
     currentAskPrice,
     currentBidPrice,
-    priceTimestamp,
     coin,
   ]);
 
