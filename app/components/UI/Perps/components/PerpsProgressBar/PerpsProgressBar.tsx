@@ -19,6 +19,10 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import {
+  ZERO_BALANCE,
+  HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS,
+} from '../../constants/hyperLiquidConfig';
 
 interface PerpsProgressBarProps {
   /**
@@ -183,7 +187,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
           onTransactionAmountChange?.(transactionMeta.metamaskPay.totalFiat);
         } else if (
           transactionMeta.txParams?.value &&
-          transactionMeta.txParams.value !== '0x0'
+          transactionMeta.txParams.value !== ZERO_BALANCE
         ) {
           // Fallback for native ETH transfers
 
@@ -267,7 +271,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
           }
           clearInterval(progressInterval);
         }
-      }, 30000); // Progress every 30 seconds
+      }, HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS); // Progress every 30 seconds
 
       return () => clearInterval(progressInterval);
     }

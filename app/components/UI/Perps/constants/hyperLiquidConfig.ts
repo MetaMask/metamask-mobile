@@ -167,6 +167,7 @@ export const DEPOSIT_CONFIG = {
 
 // Withdrawal constants (HyperLiquid-specific)
 export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
+export const HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS = 30000; // 30 seconds progress update interval
 
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
