@@ -210,4 +210,21 @@ describe('GasFeesDetailsRow', () => {
     expect(getByText('0.0001')).toBeDefined();
     expect(getByText('ETH')).toBeDefined();
   });
+
+  it(`shows 'Paid by MetaMask' when gas is sponsored`, async () => {
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored =
+      true;
+    const { getByText, queryByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      {
+        state: clonedStakingDepositConfirmationState,
+      },
+    );
+
+    expect(getByText('Paid by MetaMask')).toBeDefined();
+    expect(queryByText('ETH')).toBeNull();
+  });
 });
