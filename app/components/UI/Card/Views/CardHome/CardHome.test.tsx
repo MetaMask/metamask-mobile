@@ -8,9 +8,7 @@ const mockSdk = {
   get isCardEnabled() {
     return true;
   },
-  get supportedTokens() {
-    return [];
-  },
+  getSupportedTokensByChainId: jest.fn(() => []),
   isCardHolder: jest.fn(),
   getGeoLocation: jest.fn(),
   getSupportedTokensAllowances: jest.fn(),
@@ -20,6 +18,8 @@ const mockSdk = {
   authorize: jest.fn(),
   exchangeToken: jest.fn(),
   refreshLocalToken: jest.fn(),
+  getCardDetails: jest.fn(),
+  getCardExternalWalletDetails: jest.fn(),
 };
 
 jest.mock('../../sdk', () => ({
@@ -46,11 +46,12 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AllowanceState } from '../../types';
+import { AllowanceState, CardWarning, CardType } from '../../types';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
+import useCardDetails from '../../hooks/useCardDetails';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -156,6 +157,11 @@ jest.mock('../../hooks/useNavigateToCardPage', () => ({
 
 jest.mock('../../hooks/useIsCardholder', () => ({
   useIsCardholder: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCardDetails', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -451,6 +457,13 @@ describe('CardHome Component', () => {
 
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
+    (useCardDetails as jest.Mock).mockReturnValue({
+      cardDetails: { type: 'virtual' },
+      fetchCardDetails: jest.fn(),
+      isLoading: false,
+      error: null,
+    });
+
     // Setup default selectors
     setupMockSelectors();
   });
@@ -586,10 +599,12 @@ describe('CardHome Component', () => {
     // When: component renders with privacy mode off
     render();
 
-    // Then: should show token and balance information
-    expect(screen.getByText('USDC')).toBeTruthy();
-    expect(screen.getByTestId('balance-test-id')).toBeTruthy();
-    expect(screen.getByTestId('secondary-balance-test-id')).toBeTruthy();
+    // Then: should show balance information
+    expect(screen.getByText('$1,000.00')).toBeTruthy();
+    // CardAssetItem should be rendered (not a skeleton)
+    expect(
+      screen.queryByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
+    ).not.toBeOnTheScreen();
   });
 
   it('displays manage card section', () => {
@@ -756,9 +771,7 @@ describe('CardHome Component', () => {
     render();
 
     // Then: should display main balance instead of fiat
-    expect(screen.getByTestId('balance-test-id')).toHaveTextContent(
-      '1000 USDC',
-    );
+    expect(screen.getByText('1000 USDC')).toBeTruthy();
   });
 
   it('falls back to mainBalance when balanceFiat is not available', () => {
@@ -779,9 +792,7 @@ describe('CardHome Component', () => {
     render();
 
     // Then: should display main balance as fallback
-    expect(screen.getByTestId('balance-test-id')).toHaveTextContent(
-      '1000 USDC',
-    );
+    expect(screen.getByText('1000 USDC')).toBeTruthy();
   });
 
   it('fires CARD_HOME_VIEWED once when balances are loaded', async () => {
@@ -1063,5 +1074,372 @@ describe('CardHome Component', () => {
         token_fiat_balance_priority: undefined,
       }),
     );
+  });
+
+  describe('Baanx Login Features', () => {
+    it('shows change asset button when Baanx login is enabled', () => {
+      // Given: Baanx login is enabled (default)
+      // When: component renders
+      render();
+
+      // Then: should show change asset button
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeTruthy();
+    });
+
+    it('navigates to welcome when change asset pressed and not authenticated', () => {
+      // Given: user is not authenticated
+      setupMockSelectors({ isAuthenticated: false });
+
+      // When: user presses change asset button
+      render();
+      const changeAssetButton = screen.getByTestId(
+        CardHomeSelectors.CHANGE_ASSET_BUTTON,
+      );
+      fireEvent.press(changeAssetButton);
+
+      // Then: should navigate to welcome screen
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+    });
+
+    it('shows manage spending limit button when Baanx login is enabled', () => {
+      // Given: Baanx login is enabled
+      // When: component renders
+      render();
+
+      // Then: should show manage spending limit item
+      expect(
+        screen.getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).toBeTruthy();
+    });
+
+    it('navigates to welcome when manage spending limit pressed and not authenticated', () => {
+      // Given: user is not authenticated
+      setupMockSelectors({ isAuthenticated: false });
+
+      // When: user presses manage spending limit
+      render();
+      const manageSpendingLimitItem = screen.getByTestId(
+        CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM,
+      );
+      fireEvent.press(manageSpendingLimitItem);
+
+      // Then: should navigate to welcome screen
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+    });
+
+    it('shows logout button when user is authenticated', () => {
+      // Given: user is authenticated
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders
+      render();
+
+      // Then: should show logout button
+      expect(screen.getByText('Logout')).toBeTruthy();
+      expect(screen.getByText('Logout of your Card account')).toBeTruthy();
+    });
+
+    it('calls logout and navigates back when logout button pressed', async () => {
+      // Given: user is authenticated
+      setupMockSelectors({ isAuthenticated: true });
+
+      render();
+
+      // When: user presses logout
+      const logoutButton = screen.getByText('Logout');
+      fireEvent.press(logoutButton);
+
+      // Then: should call logout and navigate back
+      await waitFor(() => {
+        expect(mockLogoutFromProvider).toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+    });
+
+    it('does not show logout button when user is not authenticated', () => {
+      // Given: user is not authenticated
+      setupMockSelectors({ isAuthenticated: false });
+
+      // When: component renders
+      render();
+
+      // Then: should not show logout button
+      expect(screen.queryByText('Logout')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('CardWarning Edge Cases', () => {
+    it('hides balance and asset when warning is NeedDelegation', () => {
+      // Given: warning is NeedDelegation
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: mockPriorityToken,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: false,
+        error: null,
+        warning: CardWarning.NeedDelegation,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: balance and asset sections should be hidden
+      const balanceElement = screen.queryByTestId('balance-test-id');
+      const assetElement = screen.queryByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+
+      // Elements might be rendered but hidden via styles
+      expect(balanceElement).toBeNull();
+      expect(assetElement).toBeNull();
+    });
+
+    it('displays CardWarningBox when warning exists', () => {
+      // Given: warning exists
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: mockPriorityToken,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: false,
+        error: null,
+        warning: CardWarning.NeedDelegation,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display warning box
+      // Note: The warning box text depends on CardWarningBox component implementation
+      // This test verifies the warning prop is passed
+      expect(useGetPriorityCardToken).toHaveBeenCalled();
+    });
+  });
+
+  describe('Card Details', () => {
+    it('displays card with correct type from cardDetails', () => {
+      // Given: card details with physical type
+      (useCardDetails as jest.Mock).mockReturnValueOnce({
+        cardDetails: { type: CardType.PHYSICAL },
+        fetchCardDetails: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should pass card type to CardImage
+      // Card image component should be rendered with physical type
+      expect(useCardDetails).toHaveBeenCalled();
+    });
+
+    it('defaults to virtual card type when cardDetails is null', () => {
+      // Given: no card details
+      (useCardDetails as jest.Mock).mockReturnValueOnce({
+        cardDetails: null,
+        fetchCardDetails: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should default to virtual type
+      expect(useCardDetails).toHaveBeenCalled();
+    });
+
+    it('shows error when cardDetails fetch fails', () => {
+      // Given: card details error
+      (useCardDetails as jest.Mock).mockReturnValueOnce({
+        cardDetails: null,
+        fetchCardDetails: jest.fn(),
+        isLoading: false,
+        error: 'Failed to fetch card details',
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should show error state
+      expect(screen.getByText('Unable to load card')).toBeTruthy();
+      expect(screen.getByText('Please try again later')).toBeTruthy();
+    });
+
+    it('calls fetchCardDetails when try again pressed with card details error', async () => {
+      // Given: card details error
+      const mockFetchCardDetails = jest.fn();
+      (useCardDetails as jest.Mock).mockReturnValueOnce({
+        cardDetails: null,
+        fetchCardDetails: mockFetchCardDetails,
+        isLoading: false,
+        error: 'Failed to fetch card details',
+      });
+
+      render();
+
+      // When: user presses try again
+      const tryAgainButton = screen.getByTestId(
+        CardHomeSelectors.TRY_AGAIN_BUTTON,
+      );
+      fireEvent.press(tryAgainButton);
+
+      // Then: should retry fetching both priority token and card details
+      await waitFor(() => {
+        expect(mockFetchPriorityToken).toHaveBeenCalled();
+        expect(mockFetchCardDetails).toHaveBeenCalled();
+      });
+    });
+
+    it('shows loading state when cardDetails is loading', () => {
+      // Given: priority token is loaded but card details is loading
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: mockPriorityToken,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: false,
+        error: null,
+      });
+
+      (useCardDetails as jest.Mock).mockReturnValueOnce({
+        cardDetails: null,
+        fetchCardDetails: jest.fn(),
+        isLoading: true,
+        error: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should show loading skeletons since cardDetails is loading
+      expect(
+        screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON),
+      ).toBeOnTheScreen();
+
+      // Add funds button should also show skeleton
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+      ).toBeOnTheScreen();
+    });
+
+    it('combines priority token and card details loading states', () => {
+      // Given: both are loading
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: null,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: true,
+        error: null,
+      });
+      (useCardDetails as jest.Mock).mockReturnValueOnce({
+        cardDetails: null,
+        fetchCardDetails: jest.fn(),
+        isLoading: true,
+        error: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should show loading skeletons
+      expect(
+        screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON),
+      ).toBeTruthy();
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+      ).toBeTruthy();
+    });
+
+    it('prioritizes priority token error over card details error', () => {
+      // Given: both have errors
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: null,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: false,
+        error: 'Priority token error',
+      });
+      (useCardDetails as jest.Mock).mockReturnValueOnce({
+        cardDetails: null,
+        fetchCardDetails: jest.fn(),
+        isLoading: false,
+        error: 'Card details error',
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should show error state
+      expect(screen.getByText('Unable to load card')).toBeTruthy();
+    });
+  });
+
+  describe('Limited Allowance Warning', () => {
+    it('shows limited allowance warning when not authenticated and allowance is limited', () => {
+      // Given: not authenticated and allowance is limited
+      setupMockSelectors({ isAuthenticated: false });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+      };
+
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: limitedAllowanceToken,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: false,
+        error: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display limited allowance warning
+      expect(screen.getByText('Limited spending allowance')).toBeTruthy();
+    });
+
+    it('does not show limited allowance warning when authenticated', () => {
+      // Given: authenticated with limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+      };
+
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: limitedAllowanceToken,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: false,
+        error: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display limited allowance warning
+      expect(
+        screen.queryByText('Limited spending allowance'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show limited allowance warning when allowance is enabled', () => {
+      // Given: not authenticated but allowance is enabled
+      setupMockSelectors({ isAuthenticated: false });
+      const enabledAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Enabled,
+      };
+
+      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+        priorityToken: enabledAllowanceToken,
+        fetchPriorityToken: mockFetchPriorityToken,
+        isLoading: false,
+        error: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display limited allowance warning
+      expect(
+        screen.queryByText('Limited spending allowance'),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

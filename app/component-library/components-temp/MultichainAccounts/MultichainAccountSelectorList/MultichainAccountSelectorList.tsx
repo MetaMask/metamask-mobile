@@ -278,9 +278,10 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'external': {
-            const isSelected = selectedExternalAddress ?
-              item.data.address.toLowerCase() ===
-              selectedExternalAddress.toLowerCase() : false;
+            const isSelected = selectedExternalAddress
+              ? item.data.address.toLowerCase() ===
+                selectedExternalAddress.toLowerCase()
+              : false;
             return (
               <ExternalAccountCell
                 address={item.data.address}
