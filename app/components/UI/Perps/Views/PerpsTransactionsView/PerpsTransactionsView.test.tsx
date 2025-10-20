@@ -7,6 +7,8 @@ import {
   usePerpsOrderFills,
   usePerpsOrders,
   usePerpsTrading,
+  useWithdrawalRequests,
+  useDepositRequests,
 } from '../../hooks';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
@@ -29,6 +31,8 @@ jest.mock('../../hooks', () => ({
   usePerpsOrderFills: jest.fn(),
   usePerpsOrders: jest.fn(),
   usePerpsFunding: jest.fn(),
+  useWithdrawalRequests: jest.fn(),
+  useDepositRequests: jest.fn(),
 }));
 
 // Mock the asset metadata hook to avoid network calls
@@ -105,6 +109,11 @@ describe('PerpsTransactionsView', () => {
   const mockUsePerpsFunding = usePerpsFunding as jest.MockedFunction<
     typeof usePerpsFunding
   >;
+  const mockUseWithdrawalRequests =
+    useWithdrawalRequests as jest.MockedFunction<typeof useWithdrawalRequests>;
+  const mockUseDepositRequests = useDepositRequests as jest.MockedFunction<
+    typeof useDepositRequests
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -168,6 +177,22 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUseWithdrawalRequests.mockReturnValue({
+      withdrawalRequests: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUseDepositRequests.mockReturnValue({
+      depositRequests: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
       isRefreshing: false,
     });
   });
