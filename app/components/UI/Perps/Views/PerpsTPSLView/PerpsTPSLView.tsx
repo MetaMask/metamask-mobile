@@ -48,7 +48,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
+import {
+  TP_SL_VIEW_CONFIG,
+  PERPS_CONSTANTS,
+} from '../../constants/perpsConfig';
 
 const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation();
@@ -65,6 +68,8 @@ const PerpsTPSLView: React.FC = () => {
     leverage: propLeverage,
     orderType,
     limitPrice,
+    amount,
+    szDecimals,
     onConfirm,
   } = route.params;
 
@@ -154,6 +159,8 @@ const PerpsTPSLView: React.FC = () => {
     isVisible: true,
     liquidationPrice: displayLiquidationPrice,
     orderType,
+    amount,
+    szDecimals,
   });
 
   // Extract form state and handlers for easier access
@@ -407,7 +414,7 @@ const PerpsTPSLView: React.FC = () => {
                     ? formatPerpsFiat(position.entryPrice, {
                         ranges: PRICE_RANGES_UNIVERSAL,
                       })
-                    : '--'}
+                    : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
                 </Text>
               </View>
             )}
@@ -424,7 +431,7 @@ const PerpsTPSLView: React.FC = () => {
                   ? formatPerpsFiat(currentPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
-                  : '--'}
+                  : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
               </Text>
             </View>
             <View style={styles.priceInfoRow}>
@@ -438,7 +445,7 @@ const PerpsTPSLView: React.FC = () => {
                   ? formatPerpsFiat(displayLiquidationPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
-                  : '--'}
+                  : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
               </Text>
             </View>
           </View>
@@ -568,7 +575,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Expected Profit/Loss for Take Profit */}
-            {expectedTakeProfitPnL !== undefined && takeProfitPrice && (
+            {takeProfitPrice && expectedTakeProfitPnL !== undefined && (
               <Text
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
@@ -585,6 +592,15 @@ const PerpsTPSLView: React.FC = () => {
                         ranges: PRICE_RANGES_MINIMAL_VIEW,
                       }),
                     })}
+              </Text>
+            )}
+            {takeProfitPrice && expectedTakeProfitPnL === undefined && (
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.expectedPnLText}
+              >
+                {PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
               </Text>
             )}
 
@@ -721,7 +737,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Expected Profit/Loss for Stop Loss */}
-            {expectedStopLossPnL !== undefined && stopLossPrice && (
+            {stopLossPrice && expectedStopLossPnL !== undefined && (
               <Text
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
@@ -738,6 +754,15 @@ const PerpsTPSLView: React.FC = () => {
                         ranges: PRICE_RANGES_MINIMAL_VIEW,
                       }),
                     })}
+              </Text>
+            )}
+            {stopLossPrice && expectedStopLossPnL === undefined && (
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.expectedPnLText}
+              >
+                {PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
               </Text>
             )}
 
