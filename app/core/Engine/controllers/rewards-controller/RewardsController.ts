@@ -489,9 +489,6 @@ export class RewardsController extends BaseController<
     this.messagingSystem.subscribe('KeyringController:unlock', () =>
       this.handleAuthenticationTrigger('KeyringController unlocked'),
     );
-
-    // Initialize silent authentication on startup
-    this.handleAuthenticationTrigger('Controller initialized');
   }
 
   /**
