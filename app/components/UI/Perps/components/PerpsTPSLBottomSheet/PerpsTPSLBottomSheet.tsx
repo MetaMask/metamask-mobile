@@ -59,7 +59,10 @@ const calculateEffectiveEntryPrice = (
       : 0;
   const fallbackPrice =
     spotPrice > 0 ? spotPrice : livePrice || initialCurrentPrice || 0;
-  return hasPositionEntry || limitPriceValue || fallbackPrice;
+  // Use proper precedence checking instead of || operator to avoid treating 0 as falsy
+  if (hasPositionEntry > 0) return hasPositionEntry;
+  if (limitPriceValue > 0) return limitPriceValue;
+  return fallbackPrice;
 };
 
 interface PerpsTPSLBottomSheetProps {
