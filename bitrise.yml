@@ -137,11 +137,10 @@ pipelines:
       build_android_rc_and_upload_sourcemaps:
         depends_on:
         - bump_version_code
-  #App launch times pipeline. Runs on browserstack
-  app_launch_times_and_expo_pipeline:
+  expo_dev_pipeline:
     stages:
       - create_build_qa_and_expo: {}
-      - app_launch_times_test_stage: {}
+      # - app_launch_times_test_stage: {}
   #Main expo pipeline
   expo_main_pipeline:
     stages:
@@ -300,11 +299,11 @@ stages:
       - build_android_main_exp: {}
       - build_android_main_test: {}
       - build_android_main_e2e: {}
-      - build_android_main_local: {}
+      - build_android_main_dev: {}
       - build_android_flask_prod: {}
       - build_android_flask_test: {}
       - build_android_flask_e2e: {}
-      - build_android_flask_local: {}
+      - build_android_flask_dev: {}
   create_build_qa_android:
     workflows:
       - build_android_qa: {}
@@ -359,8 +358,7 @@ stages:
       - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
@@ -381,7 +379,6 @@ stages:
       # - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       # - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
       # - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
@@ -413,7 +410,6 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
-      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -424,7 +420,6 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
-      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
@@ -434,7 +429,6 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
-      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -445,7 +439,6 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
-      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
       - run_ios_api_specs: {}
@@ -457,8 +450,7 @@ stages:
       - run_network_abstraction_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
@@ -559,15 +551,19 @@ workflows:
       - prep_environment
     steps:
       # - restore-cocoapods-cache@2: {}
+      - yarn@0:
+          inputs:
+            - command: install --immutable
+          title: Yarn Install
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+                envman add --key METAMASK_YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - yarn@0:
           inputs:
-            - command: setup
+            - command: setup:github-ci
           title: Yarn Setup
   prep_environment:
     steps:
@@ -943,11 +939,6 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionPerformance'
     after_run:
       - ios_e2e_test
-  ios_run_regression_identity_tests:
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
-    after_run:
-      - ios_e2e_test
   ios_run_regression_accounts_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionAccounts'
@@ -1024,15 +1015,6 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionPerformance'
     after_run:
       - android_e2e_test
-  android_run_regression_identity_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
-    after_run:
-      - android_e2e_test
   android_run_regression_accounts_tests:
     meta:
       bitrise.io:
@@ -1088,7 +1070,7 @@ workflows:
       - android_e2e_test
   build_flask_e2e_ios:
     envs:
-      - YARN_COMMAND: 'build:ios:flask:e2e'
+      - COMMAND_YARN: 'build:ios:flask:e2e'
     after_run:
       - ios_e2e_build
   # TODO: Remove this workflow since it's not used anymore
@@ -1184,10 +1166,6 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
-    meta:
-      bitrise.io:
-        stack: osx-xcode-15.0.x
-        machine_type_id: g2.mac.large
     after_run:
       - wdio_ios_e2e_test
 
@@ -1259,18 +1237,13 @@ workflows:
   run_ios_api_specs:
     after_run:
       - ios_api_specs
-  run_tag_smoke_confirmations_ios:
-    envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations '
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_confirmations_android:
+  run_tag_smoke_confirmations_redesigned_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations '
+      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned '
     after_run:
       - android_e2e_test
   run_tag_smoke_confirmations_redesigned_ios:
@@ -1475,7 +1448,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_ENVIRONMENT='dev'
                  node -v
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
@@ -1683,6 +1656,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - code_setup
       - install_applesimutils
       - prep_environment
     after_run:
@@ -1933,10 +1907,10 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                if [ -n "$YARN_COMMAND" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                if [ -n "$COMMAND_YARN" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
                 else
-                    echo "No YARN_COMMAND provided. Running yarn build:ios:main:e2e..."
+                    echo "No COMMAND_YARN provided. Running yarn build:ios:main:e2e..."
                     yarn build:ios:main:e2e
                 fi
       - save-cocoapods-cache@1: {}
@@ -1984,6 +1958,7 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
+      - code_setup
       - install_applesimutils
       - prep_environment
     after_run:
@@ -2083,7 +2058,7 @@ workflows:
                 #!/usr/bin/env bash
 
                 # node -v
-                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_ENVIRONMENT='dev'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                 # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
@@ -2353,10 +2328,10 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                if [ -n "$YARN_COMMAND" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                if [ -n "$COMMAND_YARN" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:local
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:dev
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -2391,8 +2366,8 @@ workflows:
                 fi
 
                 # Generate new names based on build type and version
-                if [ -n "$YARN_COMMAND" ]; then
-                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                if [ -n "$COMMAND_YARN" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$COMMAND_YARN" | sed 's/:/-/g')"
                   NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
                   NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
@@ -2559,7 +2534,7 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'local'}
+                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'dev'}
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" $BUILD_COMMAND
       - save-gradle-cache@1: {}
@@ -2662,7 +2637,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
-      - YARN_COMMAND: 'build:android:flask:prod'
+      - COMMAND_YARN: 'build:android:flask:prod'
     after_run:
       - _android_build_template
     meta:
@@ -2677,7 +2652,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
-      - YARN_COMMAND: 'build:android:flask:test'
+      - COMMAND_YARN: 'build:android:flask:test'
     after_run:
       - _android_build_template
     meta:
@@ -2686,7 +2661,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_flask_e2e:
     envs:
-      - YARN_COMMAND: 'build:android:flask:e2e'
+      - COMMAND_YARN: 'build:android:flask:e2e'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
@@ -2708,7 +2683,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
-      - YARN_COMMAND: 'build:android:main:prod'
+      - COMMAND_YARN: 'build:android:main:prod'
     after_run:
       - _android_build_template
     meta:
@@ -2717,7 +2692,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_beta:
     envs:
-      - YARN_COMMAND: 'build:android:main:beta'
+      - COMMAND_YARN: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
@@ -2732,7 +2707,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_rc:
     envs:
-      - YARN_COMMAND: 'build:android:main:rc'
+      - COMMAND_YARN: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
@@ -2747,7 +2722,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_test:
     envs:
-      - YARN_COMMAND: 'build:android:main:test'
+      - COMMAND_YARN: 'build:android:main:test'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -2762,7 +2737,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_e2e:
     envs:
-      - YARN_COMMAND: 'build:android:main:e2e'
+      - COMMAND_YARN: 'build:android:main:e2e'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -2778,7 +2753,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_exp:
     envs:
-      - YARN_COMMAND: 'build:android:main:exp'
+      - COMMAND_YARN: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -2833,13 +2808,13 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_main_local:
+  build_android_main_dev:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
-      - BUILD_COMMAND: 'yarn build:android:main:local'
+      - BUILD_COMMAND: 'yarn build:android:main:dev'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2849,18 +2824,18 @@ workflows:
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_devbuild:
     after_run:
-      - build_android_main_local
+      - build_android_main_dev
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_flask_local:
+  build_android_flask_dev:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
-      - BUILD_COMMAND: 'yarn build:android:flask:local'
+      - BUILD_COMMAND: 'yarn build:android:flask:dev'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2870,18 +2845,18 @@ workflows:
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_flask_devbuild:
     after_run:
-      - build_android_flask_local
+      - build_android_flask_dev
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_qa_local:
+  build_android_qa_dev:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'qa'
-      - BUILD_COMMAND: 'yarn build:android:qa:local'
+      - BUILD_COMMAND: 'yarn build:android:qa:dev'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2891,7 +2866,7 @@ workflows:
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_qa_devbuild:
     after_run:
-      - build_android_qa_local
+      - build_android_qa_dev
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2904,7 +2879,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'qa'
       - OUTPUT_PATH: 'qaRelease'
-      - YARN_COMMAND: 'build:android:qa:prod'
+      - COMMAND_YARN: 'build:android:qa:prod'
     after_run:
       - _android_build_template
     meta:
@@ -3185,8 +3160,8 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
-                if [ -n "$YARN_COMMAND" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                if [ -n "$COMMAND_YARN" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
@@ -3195,7 +3170,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:main:local
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:main:dev
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
@@ -3235,8 +3210,8 @@ workflows:
                 fi
 
                 # Generate new name based on build type and version
-                if [ -n "$YARN_COMMAND" ]; then
-                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                if [ -n "$COMMAND_YARN" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$COMMAND_YARN" | sed 's/:/-/g')"
                   NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
                   NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
@@ -3306,6 +3281,10 @@ workflows:
           inputs:
             - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
             - paths: /tmp/last-build-commit
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.3.x
+        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
     after_run:
@@ -3317,13 +3296,13 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
-      - YARN_COMMAND: 'build:ios:main:prod'
+      - COMMAND_YARN: 'build:ios:main:prod'
     after_run:
       - _ios_build_template
   build_ios_main_beta:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:beta'
+      - COMMAND_YARN: 'build:ios:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3333,7 +3312,7 @@ workflows:
   build_ios_main_rc:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:rc'
+      - COMMAND_YARN: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3343,7 +3322,7 @@ workflows:
   build_ios_main_exp:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:exp'
+      - COMMAND_YARN: 'build:ios:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3353,7 +3332,7 @@ workflows:
   build_ios_main_test:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:test'
+      - COMMAND_YARN: 'build:ios:main:test'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3369,7 +3348,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
-      - YARN_COMMAND: 'build:ios:main:e2e'
+      - COMMAND_YARN: 'build:ios:main:e2e'
     after_run:
       - _ios_build_template
   build_ios_main_e2e_gns_disabled:
@@ -3381,7 +3360,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
-      - YARN_COMMAND: 'build:ios:main:e2e'
+      - COMMAND_YARN: 'build:ios:main:e2e'
       - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
     after_run:
       - _ios_build_template
@@ -3417,7 +3396,7 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:prod'
+      - COMMAND_YARN: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
   build_ios_flask_test:
@@ -3427,7 +3406,7 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:test'
+      - COMMAND_YARN: 'build:ios:flask:test'
     after_run:
       - _ios_build_template
   build_ios_flask_e2e:
@@ -3439,17 +3418,17 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:e2e'
+      - COMMAND_YARN: 'build:ios:flask:e2e'
     after_run:
       - _ios_build_template
-  build_ios_main_local:
+  build_ios_main_dev:
     envs:
       - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
       - INFO_PLIST_NAME: 'Info.plist'
-      - YARN_COMMAND: 'build:ios:main:local'
+      - COMMAND_YARN: 'build:ios:main:dev'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
@@ -3457,49 +3436,49 @@ workflows:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
-      - build_ios_main_local
+      - build_ios_main_dev
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_devbuild:
     after_run:
-      - build_ios_main_local
-  build_ios_flask_local:
+      - build_ios_main_dev
+  build_ios_flask_dev:
     envs:
       - CONFIGURATION: 'Debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:local'
+      - COMMAND_YARN: 'build:ios:flask:dev'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_flask_devbuild:
     after_run:
-      - build_ios_flask_local
+      - build_ios_flask_dev
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
-      - build_ios_flask_local
-  build_ios_qa_local:
+      - build_ios_flask_dev
+  build_ios_qa_dev:
     envs:
       - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
-      - YARN_COMMAND: 'build:ios:qa:local'
+      - COMMAND_YARN: 'build:ios:qa:dev'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_qa_devbuild:
     after_run:
-      - build_ios_qa_local
+      - build_ios_qa_dev
   build_ios_qa_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
-      - build_ios_qa_local
+      - build_ios_qa_dev
   build_ios_qa_prod:
     envs:
       - CONFIGURATION: 'Release'
@@ -3507,7 +3486,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
-      - YARN_COMMAND: 'build:ios:qa:prod'
+      - COMMAND_YARN: 'build:ios:qa:prod'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
@@ -3714,12 +3693,6 @@ app:
       BRIDGE_USE_DEV_APIS: false
     - opts:
         is_expand: false
-      MM_BRIDGE_ENABLED: true
-    - opts:
-        is_expand: false
-      MM_UNIFIED_SWAPS_ENABLED: true
-    - opts:
-        is_expand: false
       MM_PERPS_ENABLED: false
     - opts:
         is_expand: false
@@ -3756,16 +3729,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.56.5
+      VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2686
+      VERSION_NUMBER: 2633
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.56.5
+      FLASK_VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2686
+      FLASK_VERSION_NUMBER: 2633
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3786,7 +3759,7 @@ app:
       NODE_VERSION: 20.18.0
     - opts:
         is_expand: false
-      YARN_VERSION: 1.22.22
+      YARN_VERSION: 3.8.7
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
@@ -3798,14 +3771,14 @@ app:
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
 meta:
   bitrise.io:
-    stack: osx-xcode-16.2.x
+    stack: osx-xcode-16.3.x
     machine_type_id: g2.mac.4large
 trigger_map:
   # Disable auto RC generation 
   # - push_branch: release/*
   #   pipeline: pr_rc_rwy_pipeline
   - push_branch: main
-    pipeline: app_launch_times_and_expo_pipeline
+    pipeline: expo_dev_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
