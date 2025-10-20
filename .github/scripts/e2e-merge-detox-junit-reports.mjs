@@ -1,27 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Merges multiple junit XML reports into a single deduplicated report.
- * 
- * For test cases that appear in multiple reports (retries), keeps only the 
- * LAST run result based on file timestamp. This means:
- * - If a test fails initially but passes on retry, it shows as PASSED
- * - If a test passes initially but fails on retry, it shows as FAILED
- * - Only the most recent result is included in the final report
+ * Merges multiple Detox junit XML reports into a single deduplicated report.
  * 
  * This is useful when Detox retries failed tests, creating multiple XML 
  * files per test run, and we want the final report to reflect the actual
  * outcome after all retries.
- * 
- * Process:
- * 1) Find all junit-*.xml files in e2e/reports directory
- * 2) Parse and group test cases by unique key (suiteName::testName::className)
- * 3) Keep only the latest result for each test case (overwrites earlier results)
- * 4) Recalculate suite statistics based on deduplicated results
- * 5) Write merged report to junit.xml
  */
-
-// The final xml report just have the results of the latest retry for each test case.
 
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -262,9 +247,7 @@ async function parseAndMergeReports() {
   return mergedReport;
 }
 
-/**
- * Main execution
- */
+
 async function main() {
   console.log('🚀 Starting JUnit report merge...\n');
 
@@ -287,7 +270,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('\n❌ Error merging reports:', error);
+  console.error('\n❌ Error merging XML reports:', error);
   process.exit(1);
 });
 
