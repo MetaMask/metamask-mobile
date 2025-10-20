@@ -200,7 +200,7 @@ describe('PerpsTPSLView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue({ theme: mockTheme });
+    mockUseTheme.mockReturnValue(mockTheme);
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
     mockRouteParams = { ...defaultRouteParams };
   });
