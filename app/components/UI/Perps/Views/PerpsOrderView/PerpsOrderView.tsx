@@ -304,7 +304,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     coin: orderForm.asset,
     isClosing: false,
     limitPrice: orderForm.limitPrice,
-    currentPrice: assetData.price,
     direction: orderForm.direction,
     // TODO: We're passing in several sub-properties of currentPrice. Consider passing in the entire currentPrice object instead.
     currentAskPrice: currentPrice?.bestAsk

@@ -78,8 +78,6 @@ interface UsePerpsOrderFeesParams {
   isClosing?: boolean;
   /** User's limit price */
   limitPrice?: string;
-  /** Current market price (mid price) */
-  currentPrice?: number;
   /** Order direction */
   direction?: 'long' | 'short';
   /** Real ask price from L2 order book */
@@ -102,11 +100,9 @@ interface UsePerpsOrderFeesParams {
  * @param params Order parameters
  * @returns boolean - true if maker, false if taker
  */
-// eslint-disable-next-line complexity
 function determineMakerStatus(params: {
   orderType: 'market' | 'limit';
   limitPrice?: string;
-  currentPrice: number;
   direction: 'long' | 'short';
   bestAsk?: number;
   bestBid?: number;
@@ -122,7 +118,6 @@ function determineMakerStatus(params: {
     priceTimestamp,
     coin,
   } = params;
-
   // Market orders are always taker
   if (orderType === 'market') {
     return false;
@@ -196,7 +191,6 @@ export function usePerpsOrderFees({
   coin = 'ETH',
   isClosing = false,
   limitPrice,
-  currentPrice,
   direction,
   currentAskPrice,
   currentBidPrice,
@@ -210,14 +204,13 @@ export function usePerpsOrderFees({
   const currentChainId = useSelector(selectChainId);
 
   const isMaker = useMemo(() => {
-    if (!currentPrice || !direction) {
+    if (!direction) {
       return false;
     }
 
     return determineMakerStatus({
       orderType,
       limitPrice,
-      currentPrice,
       direction,
       bestAsk: currentAskPrice,
       bestBid: currentBidPrice,
@@ -227,7 +220,6 @@ export function usePerpsOrderFees({
   }, [
     orderType,
     limitPrice,
-    currentPrice,
     direction,
     currentAskPrice,
     currentBidPrice,

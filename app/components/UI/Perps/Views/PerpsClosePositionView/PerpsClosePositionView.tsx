@@ -197,7 +197,6 @@ const PerpsClosePositionView: React.FC = () => {
     coin: position.coin,
     isClosing: true,
     limitPrice,
-    currentPrice: effectivePrice,
     direction: isLong ? 'short' : 'long',
     currentAskPrice: priceData[position.coin]?.bestAsk
       ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
