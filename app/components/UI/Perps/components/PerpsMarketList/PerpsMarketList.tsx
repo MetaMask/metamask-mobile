@@ -78,7 +78,6 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       data={markets}
       renderItem={renderItem}
       keyExtractor={(item: PerpsMarketData) => item.symbol}
-      estimatedItemSize={80}
       contentContainerStyle={styles.contentContainer}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}

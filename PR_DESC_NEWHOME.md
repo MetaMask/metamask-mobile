@@ -8,7 +8,7 @@ Replaced the previous market-only list view with a comprehensive trading dashboa
 
 - **Positions Carousel**: Horizontal scrollable list of open positions with quick access to position details
 - **Orders Carousel**: Horizontal scrollable list of open limit orders with quick navigation
-- **Trending Markets Carousel**: Top 5 markets by 24h trading volume with "See all" navigation
+- **Trending Markets List**: Top 5 markets by 24h trading volume with "See all" navigation
 - **Recent Activity List**: Last 3 trade executions with "See All" link to full activity tab
 - **Learn More Component**: Educational component for new users (moved from individual market pages)
 
@@ -51,7 +51,7 @@ Implemented batch order cancellation following the same UX pattern as Close All 
 
 ## **Changelog**
 
-CHANGELOG entry: Added Perps home screen with positions/orders carousels, trending markets, recent activity, market sorting/filtering, and batch close all positions/cancel all orders functionality
+CHANGELOG entry: Added Perps home screen with positions/orders carousels, trending markets list, recent activity, market sorting/filtering, and batch close all positions/cancel all orders functionality
 
 ## **Related issues**
 
@@ -73,7 +73,7 @@ Feature: Perps Home Screen v2
     When user navigates to Perps home screen
     Then user sees positions carousel with position cards
     And user sees orders carousel with order cards
-    And user sees trending markets carousel with top 5 markets
+    And user sees trending markets list with top 5 markets
     And user sees recent activity list with last 3 trades
     And user sees "Learn more about perps" component
 
@@ -222,7 +222,7 @@ Feature: Perps Home Screen v2
 - `PerpsHomeView/` - Main home screen (replaced PerpsMarketListView)
 - `PerpsSearchBar/` - Market search input component
 - `PerpsMarketList/` - Reusable market list component
-- `PerpsTrendingCarousel/` - Trending markets horizontal carousel
+- `PerpsTrendingMarkets/` - Trending markets vertical list (top 5, non-scrollable)
 - `PerpsRecentActivityList/` - Recent trades list
 - `PerpsMarketSortDropdowns/` - Sort field/direction dropdowns
 - `PerpsMarketSortFieldBottomSheet/` - Sort field selector bottom sheet

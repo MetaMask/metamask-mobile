@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import { NotificationFeedbackType } from 'expo-haptics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -15,11 +16,15 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import createStyles from './PerpsCancelAllOrdersModal.styles';
-import usePerpsToasts from '../../hooks/usePerpsToasts';
+import usePerpsToasts, {
+  type PerpsToastOptions,
+} from '../../hooks/usePerpsToasts';
 import type { Order } from '../../controllers/types';
 
 interface PerpsCancelAllOrdersModalProps {
@@ -38,7 +43,51 @@ const PerpsCancelAllOrdersModal: React.FC<PerpsCancelAllOrdersModalProps> = ({
   const { styles, theme } = useStyles(createStyles, {});
   const bottomSheetRef = React.useRef<BottomSheetRef>(null);
   const [isCanceling, setIsCanceling] = useState(false);
-  const { showSuccessToast, showErrorToast } = usePerpsToasts();
+  const { showToast } = usePerpsToasts();
+
+  const showSuccessToast = useCallback(
+    (title: string, message?: string) => {
+      const toastConfig: PerpsToastOptions = {
+        variant: ToastVariants.Icon,
+        iconName: IconName.CheckBold,
+        backgroundColor: theme.colors.accent03.normal,
+        iconColor: theme.colors.accent03.dark,
+        hapticsType: NotificationFeedbackType.Success,
+        hasNoTimeout: false,
+        labelOptions: message
+          ? [
+              { label: title, isBold: true },
+              { label: '\n', isBold: false },
+              { label: message, isBold: false },
+            ]
+          : [{ label: title, isBold: true }],
+      };
+      showToast(toastConfig);
+    },
+    [showToast, theme.colors.accent03],
+  );
+
+  const showErrorToast = useCallback(
+    (title: string, message?: string) => {
+      const toastConfig: PerpsToastOptions = {
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        backgroundColor: theme.colors.accent01.light,
+        iconColor: theme.colors.accent01.dark,
+        hapticsType: NotificationFeedbackType.Error,
+        hasNoTimeout: false,
+        labelOptions: message
+          ? [
+              { label: title, isBold: true },
+              { label: '\n', isBold: false },
+              { label: message, isBold: false },
+            ]
+          : [{ label: title, isBold: true }],
+      };
+      showToast(toastConfig);
+    },
+    [showToast, theme.colors.accent01],
+  );
 
   const handleConfirm = useCallback(async () => {
     setIsCanceling(true);

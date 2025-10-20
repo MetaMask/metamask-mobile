@@ -43,7 +43,7 @@ import { usePerpsHomeData } from '../../hooks/usePerpsHomeData';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsSearchBar from '../../components/PerpsSearchBar';
 import PerpsCard from '../../components/PerpsCard';
-import PerpsTrendingCarousel from '../../components/PerpsTrendingCarousel/PerpsTrendingCarousel';
+import PerpsTrendingMarkets from '../../components/PerpsTrendingMarkets/PerpsTrendingMarkets';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -379,8 +379,8 @@ const PerpsHomeView = () => {
           </View>
         )}
 
-        {/* Trending Markets Carousel */}
-        <PerpsTrendingCarousel
+        {/* Trending Markets List */}
+        <PerpsTrendingMarkets
           markets={trendingMarkets}
           isLoading={isLoading.markets}
         />

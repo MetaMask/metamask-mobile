@@ -13,14 +13,14 @@ import type {
 } from '../../controllers/types';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PerpsTrendingCarousel.styles';
+import styleSheet from './PerpsTrendingMarkets.styles';
 
-interface PerpsTrendingCarouselProps {
+interface PerpsTrendingMarketsProps {
   markets: PerpsMarketData[];
   isLoading?: boolean;
 }
 
-const PerpsTrendingCarousel: React.FC<PerpsTrendingCarouselProps> = ({
+const PerpsTrendingMarkets: React.FC<PerpsTrendingMarketsProps> = ({
   markets,
   isLoading,
 }) => {
@@ -99,4 +99,4 @@ const PerpsTrendingCarousel: React.FC<PerpsTrendingCarouselProps> = ({
   );
 };
 
-export default PerpsTrendingCarousel;
+export default PerpsTrendingMarkets;

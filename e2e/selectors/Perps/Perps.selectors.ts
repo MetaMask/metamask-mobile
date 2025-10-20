@@ -107,9 +107,13 @@ export const PerpsMarketListViewSelectorsIDs = {
   CLOSE_BUTTON: 'perps-market-list-close-button',
   BACK_HEADER_BUTTON: 'perps-market-header-back-button',
   BACK_LIST_BUTTON: 'perps-market-list-back-button',
+  BACK_BUTTON: 'perps-market-list-back-button',
   SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
+  SEARCH_BAR: 'perps-market-list-search-bar',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
   LIST_HEADER: 'perps-market-list-header',
+  MARKET_LIST: 'perps-market-list',
+  SORT_FILTERS: 'perps-market-list-sort-filters',
 };
 
 // ========================================
