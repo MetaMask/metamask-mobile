@@ -6,15 +6,16 @@ import {
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
-import { Json } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { BigNumber } from 'bignumber.js';
 import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
+import { getNativeTokenAddress } from '../../utils/asset';
+import { hasTransactionType } from '../../utils/transaction';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -28,7 +29,7 @@ export function useTransactionPayMetrics() {
   });
 
   const transactionId = transactionMeta?.id ?? '';
-  const { type } = transactionMeta ?? {};
+  const { chainId, type } = transactionMeta ?? {};
 
   const quotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
@@ -64,8 +65,18 @@ export function useTransactionPayMetrics() {
     properties.simulation_sending_assets_total_value = amountPrecise ?? null;
   }
 
+  if (
+    payToken &&
+    hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
+  ) {
+    properties.mm_pay_use_case = 'predict_deposit';
+    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+  }
+
+  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
+
   const nonGasQuote = quotes?.find(
-    (q) => q.request?.targetTokenAddress !== NATIVE_TOKEN_ADDRESS,
+    (q) => q.request?.targetTokenAddress !== nativeTokenAddress,
   );
 
   if (nonGasQuote) {

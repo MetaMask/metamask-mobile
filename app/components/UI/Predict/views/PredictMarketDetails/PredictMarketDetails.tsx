@@ -25,6 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice, formatVolume, formatAddress } from '../../utils/format';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import {
   Box,
   BoxFlexDirection,
@@ -44,8 +45,8 @@ import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { PredictPosition, PredictPriceHistoryInterval } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import TabBar from '../../../../Base/TabBar';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -82,6 +83,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const insets = useSafeAreaInsets();
+  const { hasNoBalance } = usePredictBalance();
 
   const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
@@ -176,7 +178,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       (o) => o.id === currentPosition?.outcomeId,
     );
     navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.CASH_OUT,
+      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
       params: { position: currentPosition, outcome },
     });
   };
@@ -196,6 +198,40 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       return Math.round(firstOutcomePrice * 100);
     }
     return 0;
+  };
+
+  const handleYesPress = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome: market?.outcomes?.[0],
+        outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
+      },
+    });
+  };
+
+  const handleNoPress = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome: market?.outcomes?.[0],
+        outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
+      },
+    });
   };
 
   const renderHeader = () => (
@@ -355,6 +391,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             </Box>
           </Box>
           <Button
+            testID={
+              PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON
+            }
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -520,17 +559,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             Yes • {getYesPercentage()}¢
           </Text>
         }
-        onPress={() => {
-          // Navigate to buy flow
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.MODALS.PLACE_BET,
-            params: {
-              market,
-              outcome: market?.outcomes?.[0],
-              outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
-            },
-          });
-        }}
+        onPress={handleYesPress}
       />
       <Button
         variant={ButtonVariants.Secondary}
@@ -542,17 +571,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             No • {100 - getYesPercentage()}¢
           </Text>
         }
-        onPress={() => {
-          // Navigate to buy flow
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.MODALS.PLACE_BET,
-            params: {
-              market,
-              outcome: market?.outcomes?.[0],
-              outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
-            },
-          });
-        }}
+        onPress={handleNoPress}
       />
     </Box>
   );
@@ -561,7 +580,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       edges={['left', 'right', 'bottom']}
-      testID="predict-market-details-screen"
+      testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
       <Box twClassName="flex-1">
         <Box twClassName="px-3 gap-4" style={{ paddingTop: insets.top + 12 }}>
@@ -577,6 +596,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           />
         </Box>
         <ScrollableTabView
+          testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
           renderTabBar={() => (
             <TabBar
               textStyle={tw.style('text-base font-bold text-center')}

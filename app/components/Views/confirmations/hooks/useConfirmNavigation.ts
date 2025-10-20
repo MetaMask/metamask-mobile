@@ -7,8 +7,11 @@ import {
 } from '../components/confirm/confirm-component';
 
 const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
+const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
 export type ConfirmNavigateOptions = {
+  amount?: string;
+  headerShown?: boolean;
   stack?: string;
 } & ConfirmationParams;
 
@@ -17,19 +20,21 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { stack, ...params } = options;
+      const { headerShown, stack, ...params } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
         params.loader = ConfirmationLoader.CustomAmount;
       }
 
+      const route = headerShown === false ? ROUTE_NO_HEADER : ROUTE;
+
       if (stack) {
-        navigate(stack, { screen: ROUTE, params });
+        navigate(stack, { screen: route, params });
         return;
       }
 
-      navigate(ROUTE, { params });
+      navigate(route, params);
     },
     [navigate],
   );

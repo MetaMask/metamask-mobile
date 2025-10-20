@@ -8,10 +8,10 @@ import {
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
-import { CaipAccountId } from '@metamask/utils';
+import { AccountGroupId } from '@metamask/account-api';
 
 export interface AccountOptInBannerInfoStatus {
-  caipAccountId: CaipAccountId;
+  accountGroupId: AccountGroupId;
   hide: boolean;
 }
 
@@ -45,6 +45,7 @@ export interface RewardsState {
 
   // Onboarding state
   onboardingActiveStep: OnboardingStep;
+  onboardingReferralCode: string | null;
 
   // Candidate subscription state
   candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
@@ -98,6 +99,7 @@ export const initialState: RewardsState = {
   balanceUpdatedAt: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
+  onboardingReferralCode: null,
   candidateSubscriptionId: 'pending',
   geoLocation: null,
   optinAllowedForGeo: null,
@@ -222,6 +224,14 @@ const rewardsSlice = createSlice({
 
     resetOnboarding: (state) => {
       state.onboardingActiveStep = OnboardingStep.INTRO;
+      state.onboardingReferralCode = null;
+    },
+
+    setOnboardingReferralCode: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.onboardingReferralCode = action.payload;
     },
 
     setCandidateSubscriptionId: (
@@ -293,10 +303,10 @@ const rewardsSlice = createSlice({
 
     setHideCurrentAccountNotOptedInBanner: (
       state,
-      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
+      action: PayloadAction<{ accountGroupId: AccountGroupId; hide: boolean }>,
     ) => {
       const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
-        (item) => item.caipAccountId === action.payload.accountId,
+        (item) => item.accountGroupId === action.payload.accountGroupId,
       );
 
       if (existingIndex !== -1) {
@@ -306,7 +316,7 @@ const rewardsSlice = createSlice({
       } else {
         // Add new entry
         state.hideCurrentAccountNotOptedInBanner.push({
-          caipAccountId: action.payload.accountId,
+          accountGroupId: action.payload.accountGroupId,
           hide: action.payload.hide,
         });
       }
@@ -394,6 +404,7 @@ export const {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setOnboardingReferralCode,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,

@@ -396,14 +396,14 @@ class Confirm extends PureComponent {
     const { navigation, route, resetTransaction, transaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle(
-        'send.confirm',
+      getSendFlowTitle({
+        title: 'send.confirm',
         navigation,
         route,
-        colors,
+        themeColors: colors,
         resetTransaction,
         transaction,
-      ),
+      }),
     );
   };
 
@@ -1154,7 +1154,6 @@ class Confirm extends PureComponent {
       params: {
         isSelectOnly: true,
         onSelectAccount: this.onSelectAccount,
-        checkBalanceError: this.getBalanceError,
         isEvmOnly: true,
       },
     });

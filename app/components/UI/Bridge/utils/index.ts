@@ -14,7 +14,10 @@ import {
   SEI_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ETH_CHAIN_ID,
@@ -48,10 +51,26 @@ export const wipeBridgeStatus = (
     ignoreNetwork: false,
   });
   // Solana addresses are case-sensitive, so we can only do this for EVM
-  if (!isSolanaChainId(chainId)) {
+  if (!isNonEvmChainId(chainId)) {
     Engine.context.BridgeStatusController.wipeBridgeStatus({
       address: address.toLowerCase(),
       ignoreNetwork: false,
     });
   }
+};
+
+export const getTokenIconUrl = (
+  address: string,
+  chainId: Hex | CaipChainId,
+) => {
+  const isEvmChain = !isNonEvmChainId(chainId);
+  const formattedAddress = isEvmChain ? address.toLowerCase() : address;
+
+  const assetId = formatAddressToAssetId(formattedAddress, chainId);
+  if (!assetId) {
+    return undefined;
+  }
+  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
+    .split(':')
+    .join('/')}.png`;
 };
