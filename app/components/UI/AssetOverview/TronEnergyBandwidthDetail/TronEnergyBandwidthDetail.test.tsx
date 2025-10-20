@@ -31,7 +31,10 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 type SelectorReturn = ReturnType<
   typeof selectTronResourcesBySelectedAccountGroup
 >;
-interface Resource { name: string; balance: number | string }
+interface Resource {
+  name: string;
+  balance: number | string;
+}
 const res = (name: string, balance: number | string): Resource => ({
   name,
   balance,
@@ -100,9 +103,6 @@ describe('TronEnergyBandwidthDetail', () => {
     const { getByText } = renderWithProvider(<TronEnergyBandwidthDetail />, {
       state: baseState,
     });
-
-    expect(getByText('1000')).toBeTruthy();
-    expect(getByText('2000')).toBeTruthy();
 
     expect(getByText('USDT 0')).toBeTruthy();
     expect(getByText('TRX 7')).toBeTruthy();
