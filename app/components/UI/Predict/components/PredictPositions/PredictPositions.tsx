@@ -20,6 +20,7 @@ import PredictNewButton from '../PredictNewButton';
 import PredictPosition from '../PredictPosition/PredictPosition';
 import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
+import { PredictPositionsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
@@ -107,7 +108,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   return (
     <>
       <FlashList
-        testID="active-positions-list"
+        testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}
         ref={listRef}
         data={positions}
         renderItem={renderPosition}
@@ -129,7 +130,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             </Text>
           </Box>
           <FlashList
-            testID="claimable-positions-list"
+            testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}
             data={claimablePositions.sort(
               (a, b) =>
                 new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),

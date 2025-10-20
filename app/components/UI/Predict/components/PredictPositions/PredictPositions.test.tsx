@@ -145,10 +145,12 @@ describe('PredictPositions', () => {
     renderWithProvider(<PredictPositions />);
 
     // Assert - FlashList should be rendered
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
     // Claimable list should not be rendered when there are no claimable positions
     expect(
-      screen.queryByTestId('claimable-positions-list'),
+      screen.queryByTestId('predict-claimable-positions-list'),
     ).not.toBeOnTheScreen();
   });
 
@@ -168,10 +170,12 @@ describe('PredictPositions', () => {
     renderWithProvider(<PredictPositions />);
 
     // Assert
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
     // Claimable list should not be rendered when there are no claimable positions
     expect(
-      screen.queryByTestId('claimable-positions-list'),
+      screen.queryByTestId('predict-claimable-positions-list'),
     ).not.toBeOnTheScreen();
   });
 
@@ -198,8 +202,12 @@ describe('PredictPositions', () => {
     renderWithProvider(<PredictPositions />);
 
     // Assert
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
-    expect(screen.getByTestId('claimable-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-claimable-positions-list'),
+    ).toBeOnTheScreen();
   });
 
   it('exposes refresh method via ref', () => {
