@@ -20,7 +20,7 @@ export interface ListItemSelectProps
   isDisabled?: boolean;
   /**
    * Optional prop to enable Android press handling.
-   * @default true
+   * @default false
    */
   shouldEnableAndroidPressIn?: boolean;
 }

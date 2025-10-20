@@ -15,7 +15,7 @@ export interface TempTouchableOpacityProps extends TouchableOpacityProps {
   onPressIn?: (event: GestureResponderEvent) => void;
   /**
    * Optional prop to enable Android press handling.
-   * @default true
+   * @default false
    */
   shouldEnableAndroidPressIn?: boolean;
   /**

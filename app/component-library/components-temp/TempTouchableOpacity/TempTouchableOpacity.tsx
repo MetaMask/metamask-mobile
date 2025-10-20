@@ -7,33 +7,10 @@ import {
   Platform,
   AccessibilityInfo,
   GestureResponderEvent,
-  TouchableOpacityProps,
 } from 'react-native';
 
 // Internal dependencies.
-interface TempTouchableOpacityProps extends TouchableOpacityProps {
-  /**
-   * Function to trigger when pressing the button.
-   */
-  onPress?: (event: GestureResponderEvent) => void;
-  /**
-   * Function to trigger when pressing in the button.
-   */
-  onPressIn?: (event: GestureResponderEvent) => void;
-  /**
-   * Optional prop to enable Android press handling.
-   * @default true
-   */
-  shouldEnableAndroidPressIn?: boolean;
-  /**
-   * Optional param to disable the button.
-   */
-  disabled?: boolean;
-  /**
-   * Child components to render inside the touchable.
-   */
-  children?: React.ReactNode;
-}
+import { TempTouchableOpacityProps } from './TempTouchableOpacity.types';
 
 const TempTouchableOpacity = ({
   onPress,
