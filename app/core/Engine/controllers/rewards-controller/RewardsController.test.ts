@@ -363,7 +363,9 @@ const createTestSeasonStatusState = (
 describe('RewardsController', () => {
   let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
   let controller: RewardsController;
-  let mockRewardsDataService: InstanceType<typeof RewardsDataService>;
+  let mockRewardsDataService: jest.Mocked<
+    InstanceType<typeof RewardsDataService>
+  >;
 
   beforeEach(() => {
     // Mock Date.now to return a consistent timestamp
@@ -382,6 +384,7 @@ describe('RewardsController', () => {
     });
     // @ts-expect-error TODO: Resolve type mismatch
     MockRewardsDataServiceClass.mockImplementation(() => ({
+      // TODO: Remove this mock, there is no `getJwt` method
       getJwt: jest.fn(),
       linkAccount: jest.fn(),
       getReferralCode: jest.fn(),
@@ -2092,12 +2095,16 @@ describe('RewardsController', () => {
           // Mimic the controller calling into data service; delegate to getJwt
           const { timestamp, signature } = payload || {};
           // Make sure to pass the account address correctly
-          return mockRewardsDataService
-            .getJwt(signature, timestamp, mockInternalAccount.address)
-            .then((jwt: string) => ({
-              subscription: { id: 'sub-123' },
-              sessionId: jwt,
-            }));
+          return (
+            mockRewardsDataService
+              // @ts-expect-error TODO: There is no `getJwt` method. We should remove it from the
+              // RewardsDataService mock, and fix this mock
+              .getJwt(signature, timestamp, mockInternalAccount.address)
+              .then((jwt: string) => ({
+                subscription: { id: 'sub-123' },
+                sessionId: jwt,
+              }))
+          );
         }
         return Promise.resolve(undefined);
       }) as any);
@@ -4213,6 +4220,7 @@ describe('RewardsController', () => {
       mockRewardsDataService.login
         .mockRejectedValueOnce(new Error('First account auth failed'))
         .mockResolvedValueOnce({
+          // @ts-expect-error TODO: Fix type mismatch
           subscription: { id: 'subscription-id-123' },
           jwt: 'mock-jwt-token',
         });
