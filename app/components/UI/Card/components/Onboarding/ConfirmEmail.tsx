@@ -19,6 +19,7 @@ import { CardError } from '../../types';
 import {
   selectContactVerificationId,
   selectSelectedCountry,
+  setContactVerificationId,
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
@@ -42,7 +43,6 @@ const ConfirmEmail = () => {
     isLoading: emailVerificationIsLoading,
     isError: emailVerificationIsError,
     error: emailVerificationError,
-    reset: resetEmailVerificationSend,
   } = useEmailVerificationSend();
 
   const {
@@ -78,22 +78,16 @@ const ConfirmEmail = () => {
     if (resendCooldown > 0 || !email || !selectedCountry) return;
 
     try {
-      await sendEmailVerification(
+      const { contactVerificationId } = await sendEmailVerification(
         email,
         selectedCountry === 'US' ? 'us' : 'international',
       );
+      dispatch(setContactVerificationId(contactVerificationId));
       setResendCooldown(60); // 1 minute cooldown
-      resetEmailVerificationSend();
-    } catch (error) {
-      // Error handling is managed by the hook
+    } catch {
+      // Allow error message to display
     }
-  }, [
-    email,
-    resendCooldown,
-    resetEmailVerificationSend,
-    selectedCountry,
-    sendEmailVerification,
-  ]);
+  }, [dispatch, email, resendCooldown, selectedCountry, sendEmailVerification]);
 
   const handleContinue = useCallback(async () => {
     if (
@@ -106,7 +100,7 @@ const ConfirmEmail = () => {
       return;
     }
     try {
-      const { onboardingId } = await verifyEmailVerification(
+      const { onboardingId, hasAccount } = await verifyEmailVerification(
         {
           email,
           password,
@@ -119,7 +113,12 @@ const ConfirmEmail = () => {
         selectedCountry === 'US' ? 'us' : 'international',
       );
       dispatch(setOnboardingId(onboardingId));
-      navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+
+      if (onboardingId) {
+        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+      } else if (hasAccount) {
+        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+      }
     } catch (error) {
       if (
         error instanceof CardError &&

@@ -21,11 +21,13 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
 import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
+  selectContactVerificationId,
   selectOnboardingId,
   selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
+import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 
 const CELL_COUNT = 6;
 
@@ -61,7 +63,7 @@ const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(createStyles, {});
   const inputRef = useRef<TextInput>(null);
-
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -74,6 +76,14 @@ const ConfirmPhoneNumber = () => {
 
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const contactVerificationId = useSelector(selectContactVerificationId);
+
+  const {
+    sendPhoneVerification,
+    isLoading: phoneVerificationIsLoading,
+    isError: phoneVerificationIsError,
+    error: phoneVerificationError,
+  } = usePhoneVerificationSend();
 
   const {
     verifyPhoneVerification,
@@ -83,7 +93,7 @@ const ConfirmPhoneNumber = () => {
     reset: resetVerifyPhoneVerification,
   } = usePhoneVerificationVerify();
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     if (
       !confirmCode ||
       confirmCode.length !== CELL_COUNT ||
@@ -94,7 +104,7 @@ const ConfirmPhoneNumber = () => {
       return;
     }
     try {
-      verifyPhoneVerification(
+      const { success } = await verifyPhoneVerification(
         {
           onboardingId,
           phoneNumber,
@@ -103,7 +113,9 @@ const ConfirmPhoneNumber = () => {
         },
         selectedCountry === 'US' ? 'us' : 'international',
       );
-      navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+      if (success) {
+        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+      }
     } catch (error) {
       if (
         error instanceof CardError &&
@@ -111,6 +123,12 @@ const ConfirmPhoneNumber = () => {
       ) {
         // navigate back and reset phone
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+      } else if (
+        error instanceof CardError &&
+        error.message.includes('Invalid or expired contact verification ID')
+      ) {
+        // navigate back and restart the flow
+        navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
     }
   }, [
@@ -131,6 +149,50 @@ const ConfirmPhoneNumber = () => {
     },
     [resetVerifyPhoneVerification],
   );
+
+  const handleResendVerification = useCallback(async () => {
+    if (
+      resendCooldown > 0 ||
+      !phoneNumber ||
+      !phoneCountryCode ||
+      !contactVerificationId
+    ) {
+      return;
+    }
+    try {
+      await sendPhoneVerification(
+        {
+          phoneCountryCode,
+          phoneNumber,
+          contactVerificationId,
+        },
+        selectedCountry === 'US' ? 'us' : 'international',
+      );
+      setResendCooldown(30);
+    } catch {
+      // Allow error message to display
+    }
+  }, [
+    resendCooldown,
+    phoneNumber,
+    phoneCountryCode,
+    contactVerificationId,
+    sendPhoneVerification,
+    selectedCountry,
+  ]);
+
+  // Cooldown timer effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => {
+        setResendCooldown(resendCooldown - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [resendCooldown]);
 
   // Auto-submit when all digits are entered
   useEffect(() => {
@@ -163,43 +225,81 @@ const ConfirmPhoneNumber = () => {
     !phoneCountryCode;
 
   const renderFormFields = () => (
-    <Box>
-      <Label>
-        {strings(
-          'card.card_onboarding.confirm_phone_number.confirm_code_label',
-        )}
-      </Label>
-      <CodeField
-        ref={inputRef}
-        {...props}
-        value={confirmCode}
-        onChangeText={handleValueChange}
-        cellCount={CELL_COUNT}
-        rootStyle={styles.codeFieldRoot}
-        keyboardType="number-pad"
-        textContentType="oneTimeCode"
-        autoComplete="one-time-code"
-        renderCell={({ index, symbol, isFocused }) => (
-          <View
-            onLayout={getCellOnLayoutHandler(index)}
-            key={index}
-            style={[styles.cellRoot, isFocused && styles.focusCell]}
-          >
-            <Text
-              variant={TextVariant.BodyLg}
-              twClassName="text-text-default font-bold text-center"
+    <>
+      <Box>
+        <Label>
+          {strings(
+            'card.card_onboarding.confirm_phone_number.confirm_code_label',
+          )}
+        </Label>
+        <CodeField
+          ref={inputRef}
+          {...props}
+          value={confirmCode}
+          onChangeText={handleValueChange}
+          cellCount={CELL_COUNT}
+          rootStyle={styles.codeFieldRoot}
+          keyboardType="number-pad"
+          textContentType="oneTimeCode"
+          autoComplete="one-time-code"
+          renderCell={({ index, symbol, isFocused }) => (
+            <View
+              onLayout={getCellOnLayoutHandler(index)}
+              key={index}
+              style={[styles.cellRoot, isFocused && styles.focusCell]}
             >
-              {symbol || (isFocused ? <Cursor /> : null)}
-            </Text>
-          </View>
+              <Text
+                variant={TextVariant.BodyLg}
+                twClassName="text-text-default font-bold text-center"
+              >
+                {symbol || (isFocused ? <Cursor /> : null)}
+              </Text>
+            </View>
+          )}
+        />
+        {verifyIsError && (
+          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            {verifyError}
+          </Text>
         )}
-      />
-      {verifyIsError && (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
-          {verifyError}
+      </Box>
+
+      {/* Resend verification */}
+      <Box>
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName={`${
+            resendCooldown > 0
+              ? 'text-text-muted'
+              : 'text-primary-default cursor-pointer'
+          }`}
+          onPress={resendCooldown > 0 ? undefined : handleResendVerification}
+          disabled={
+            resendCooldown > 0 ||
+            !phoneNumber ||
+            !phoneCountryCode ||
+            !contactVerificationId ||
+            phoneVerificationIsLoading
+          }
+        >
+          {resendCooldown > 0
+            ? strings(
+                'card.card_onboarding.confirm_phone_number.resend_cooldown',
+                {
+                  seconds: resendCooldown,
+                },
+              )
+            : strings(
+                'card.card_onboarding.confirm_phone_number.resend_verification',
+              )}
         </Text>
-      )}
-    </Box>
+        {phoneVerificationIsError && (
+          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            {phoneVerificationError}
+          </Text>
+        )}
+      </Box>
+    </>
   );
 
   const renderActions = () => (
@@ -218,7 +318,7 @@ const ConfirmPhoneNumber = () => {
       title={strings('card.card_onboarding.confirm_phone_number.title')}
       description={strings(
         'card.card_onboarding.confirm_phone_number.description',
-        { phoneNumber: `+${phoneCountryCode} ${phoneNumber}` },
+        { phoneNumber: `${phoneCountryCode} ${phoneNumber}` },
       )}
       formFields={renderFormFields()}
       actions={renderActions()}

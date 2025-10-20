@@ -5946,7 +5946,9 @@
       "confirm_phone_number":{
         "title": "Confirm your phone number",
         "description": "We've sent a confirmation code to: {{phoneNumber}}",
-        "confirm_code_label": "Confirmation code"
+        "confirm_code_label": "Confirmation code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
         "title": "Verifying your identity to get your card",

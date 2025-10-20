@@ -55,11 +55,13 @@ const SignUp = () => {
     if (!registrationSettings?.countries) {
       return [];
     }
-    return registrationSettings.countries.map((country) => ({
-      key: country.iso3166alpha2,
-      value: country.iso3166alpha2,
-      label: country.name,
-    }));
+    return [...registrationSettings.countries]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((country) => ({
+        key: country.iso3166alpha2,
+        value: country.iso3166alpha2,
+        label: country.name,
+      }));
   }, [registrationSettings]);
 
   useEffect(() => {
@@ -137,12 +139,18 @@ const SignUp = () => {
         debouncedEmail,
         selectedCountry === 'US' ? 'us' : 'international',
       );
+
       dispatch(setContactVerificationId(contactVerificationId));
 
-      navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
-        email: debouncedEmail,
-        password: debouncedConfirmPassword,
-      });
+      if (contactVerificationId) {
+        navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
+          email: debouncedEmail,
+          password: debouncedConfirmPassword,
+        });
+      } else {
+        // If no contactVerificationId, assume user is registered or email not valid
+        setIsEmailError(true);
+      }
     } catch {
       // Allow error message to display
     }

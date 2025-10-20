@@ -1196,7 +1196,7 @@ export class CardSDK {
       const isUSEnv = location === 'us';
 
       const response = await this.makeRequest(
-        '/phone-verification/verify',
+        '/v1/auth/register/phone/verify',
         {
           method: 'POST',
           headers: {

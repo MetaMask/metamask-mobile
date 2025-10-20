@@ -22,6 +22,7 @@ import {
   selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
+import { CardError } from '../../types';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
@@ -35,18 +36,13 @@ const SetPhoneNumber = () => {
     if (!registrationSettings?.countries) {
       return [];
     }
-    return Array.from(
-      new Map(
-        registrationSettings.countries.map((country) => [
-          country.callingCode,
-          {
-            key: country.iso3166alpha2,
-            value: `+${country.callingCode}`,
-            label: `+${country.callingCode}`,
-          },
-        ]),
-      ).values(),
-    );
+    return [...registrationSettings.countries]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((country) => ({
+        key: country.iso3166alpha2,
+        value: `+${country.callingCode}`,
+        label: `+${country.callingCode} ${country.name}`,
+      }));
   }, [registrationSettings]);
 
   const initialSelectedCountryAreaCode = useMemo(() => {
@@ -84,19 +80,31 @@ const SetPhoneNumber = () => {
       return;
     }
 
-    await sendPhoneVerification(
-      {
-        phoneCountryCode: selectedCountryAreaCode,
-        phoneNumber: debouncedPhoneNumber,
-        contactVerificationId,
-      },
-      selectedCountry === 'US' ? 'us' : 'international',
-    );
-
-    navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
-      phoneCountryCode: selectedCountryAreaCode,
-      phoneNumber: debouncedPhoneNumber,
-    });
+    try {
+      const { success } = await sendPhoneVerification(
+        {
+          phoneCountryCode: selectedCountryAreaCode,
+          phoneNumber: debouncedPhoneNumber,
+          contactVerificationId,
+        },
+        selectedCountry === 'US' ? 'us' : 'international',
+      );
+      if (success) {
+        navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
+          phoneCountryCode: selectedCountryAreaCode,
+          phoneNumber: debouncedPhoneNumber,
+        });
+      }
+    } catch (error) {
+      if (
+        error instanceof CardError &&
+        error.message.includes('Invalid or expired contact verification ID')
+      ) {
+        // navigate back and restart the flow
+        navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
+      }
+      return;
+    }
   };
 
   const handleCountrySelect = (areaCode: string) => {
