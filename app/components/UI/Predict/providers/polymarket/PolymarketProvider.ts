@@ -453,9 +453,21 @@ export class PolymarketProvider implements PredictProvider {
       feeAuthorization,
     });
 
+    if (!response) {
+      return {
+        success,
+        error,
+      } as OrderResult;
+    }
+
     return {
       success,
-      response,
+      response: {
+        id: response.orderID,
+        spentAmount: response.makingAmount,
+        receivedAmount: response.takingAmount,
+        txHashes: response.transactionsHashes,
+      },
       error,
     } as OrderResult;
   }
