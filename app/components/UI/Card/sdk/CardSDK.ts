@@ -521,8 +521,9 @@ export class CardSDK {
     email: string;
     password: string;
     location: CardLocation;
+    otpCode?: string;
   }): Promise<CardLoginResponse> => {
-    const { email, password, location } = body;
+    const { email, password, location, otpCode } = body;
 
     const response = await this.makeRequest(
       '/v1/auth/login',
@@ -531,6 +532,7 @@ export class CardSDK {
         body: JSON.stringify({
           email,
           password,
+          ...(otpCode ? { otpCode } : {}),
         }),
       },
       false,
@@ -543,19 +545,6 @@ export class CardSDK {
         responseBody = await response.json();
       } catch {
         // If we can't parse response, continue without it
-      }
-
-      if (response.status === 422) {
-        const error = new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid email or password, check your credentials and try again.',
-        );
-        Logger.log(
-          error,
-          `CardSDK: Invalid email or password during login. Status: ${response.status}`,
-          JSON.stringify(responseBody, null, 2),
-        );
-        throw error;
       }
 
       // Handle specific HTTP status codes
@@ -603,6 +592,44 @@ export class CardSDK {
 
     const data = await response.json();
     return data as CardLoginResponse;
+  };
+
+  sendOtpLogin = async (body: {
+    userId: string;
+    location: CardLocation;
+  }): Promise<void> => {
+    const { userId, location } = body;
+    const response = await this.makeRequest(
+      '/v1/auth/login/otp',
+      {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+      },
+      false,
+      location === 'us',
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to send OTP login. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to send OTP login. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    return;
   };
 
   authorize = async (body: {

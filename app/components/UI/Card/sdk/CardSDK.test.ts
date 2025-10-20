@@ -1032,12 +1032,12 @@ describe('CardSDK', () => {
 
     it('should login successfully', async () => {
       const mockResponse: CardLoginResponse = {
-        phase: 'verified',
+        phase: null,
         userId: 'user-123',
         isOtpRequired: false,
         phoneNumber: null,
         accessToken: 'login-token',
-        verificationState: 'verified',
+        verificationState: 'VERIFIED',
         isLinked: true,
       };
 
@@ -1056,6 +1056,48 @@ describe('CardSDK', () => {
           body: JSON.stringify({
             email: mockLoginData.email,
             password: mockLoginData.password,
+          }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-us-env': 'true',
+            'x-client-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('should login successfully with OTP code', async () => {
+      const mockLoginDataWithOtp = {
+        ...mockLoginData,
+        otpCode: '123456',
+      };
+
+      const mockResponse: CardLoginResponse = {
+        phase: null,
+        userId: 'user-123',
+        isOtpRequired: false,
+        phoneNumber: '+1234567890',
+        accessToken: 'login-token',
+        verificationState: 'VERIFIED',
+        isLinked: true,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.login(mockLoginDataWithOtp);
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/login'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            email: mockLoginDataWithOtp.email,
+            password: mockLoginDataWithOtp.password,
+            otpCode: mockLoginDataWithOtp.otpCode,
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
@@ -1109,6 +1151,144 @@ describe('CardSDK', () => {
         type: CardErrorType.UNKNOWN_ERROR,
         message: 'Login failed. Please try again.',
       });
+    });
+  });
+
+  describe('sendOtpLogin', () => {
+    const mockOtpData = {
+      userId: 'user-123',
+      location: 'us' as CardLocation,
+    };
+
+    it('sends OTP login request successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        text: jest.fn().mockResolvedValue(''),
+      });
+
+      await cardSDK.sendOtpLogin(mockOtpData);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/login/otp'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            userId: mockOtpData.userId,
+          }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-us-env': 'true',
+            'x-client-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('sends OTP login request for international location', async () => {
+      const internationalOtpData = {
+        userId: 'user-456',
+        location: 'international' as CardLocation,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        text: jest.fn().mockResolvedValue(''),
+      });
+
+      await cardSDK.sendOtpLogin(internationalOtpData);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/login/otp'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            userId: internationalOtpData.userId,
+          }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-us-env': 'false',
+            'x-client-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('handles server error when sending OTP fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockResolvedValue('Internal server error'),
+      });
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to send OTP login. Please try again.',
+      });
+
+      expect(Logger.log).toHaveBeenCalled();
+    });
+
+    it('handles server error when response text parsing fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockRejectedValue(new Error('Parse error')),
+      });
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to send OTP login. Please try again.',
+      });
+
+      expect(Logger.log).toHaveBeenCalled();
+    });
+
+    it('handles network error when sending OTP', async () => {
+      const networkError = new Error('Network failure');
+      (global.fetch as jest.Mock).mockRejectedValue(networkError);
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+        message: 'Network error. Please check your connection.',
+      });
+    });
+
+    it('handles timeout error when sending OTP', async () => {
+      const timeoutError = new Error('AbortError');
+      timeoutError.name = 'AbortError';
+      (global.fetch as jest.Mock).mockRejectedValue(timeoutError);
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.TIMEOUT_ERROR,
+        message: 'Request timed out. Please check your connection.',
+      });
+    });
+
+    it('returns void on successful OTP send', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        text: jest.fn().mockResolvedValue(''),
+      });
+
+      const result = await cardSDK.sendOtpLogin(mockOtpData);
+
+      expect(result).toBeUndefined();
     });
   });
 
