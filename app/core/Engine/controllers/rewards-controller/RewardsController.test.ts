@@ -11286,6 +11286,13 @@ describe('RewardsController', () => {
       (global as any).Logger = mockLogger;
     });
 
+    afterEach(() => {
+      delete (global as any).isSolanaAddress;
+      delete (global as any).isNonEvmAddress;
+      delete (global as any).signSolanaRewardsMessage;
+      delete (global as any).Logger;
+    });
+
     it('should sign EVM message correctly', async () => {
       // Arrange
       const mockInternalAccount = {
