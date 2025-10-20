@@ -366,9 +366,6 @@ describe('RewardsController', () => {
   let mockRewardsDataService: InstanceType<typeof RewardsDataService>;
 
   beforeEach(() => {
-    jest.resetAllMocks();
-    jest.restoreAllMocks();
-
     // Mock Date.now to return a consistent timestamp
     jest.spyOn(Date, 'now').mockReturnValue(123);
 
@@ -416,6 +413,11 @@ describe('RewardsController', () => {
     controller = new RewardsController({
       messenger: mockMessenger,
     });
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('initialization', () => {
