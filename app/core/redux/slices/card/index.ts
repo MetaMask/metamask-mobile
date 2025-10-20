@@ -20,6 +20,7 @@ export interface OnboardingState {
   onboardingId: string | null;
   selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
   contactVerificationId: string | null;
+  userId: string | null;
 }
 
 export interface CacheState {
@@ -59,6 +60,7 @@ export const initialState: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
+    userId: null,
   },
   cache: {
     data: {},
@@ -140,11 +142,15 @@ const slice = createSlice({
     setContactVerificationId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.contactVerificationId = action.payload;
     },
+    setUserId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.userId = action.payload;
+    },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         selectedCountry: null,
         contactVerificationId: null,
+        userId: null,
       };
     },
     setCacheData: (
@@ -353,6 +359,11 @@ export const selectContactVerificationId = createSelector(
   (card) => card.onboarding.contactVerificationId,
 );
 
+export const selectUserId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.userId,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -367,6 +378,7 @@ export const {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
+  setUserId,
   resetOnboardingState,
   setCacheData,
   clearCacheData,

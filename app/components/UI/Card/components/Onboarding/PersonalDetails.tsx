@@ -18,26 +18,21 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
   selectOnboardingId,
   selectSelectedCountry,
+  setUserId,
 } from '../../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SelectComponent from '../../../SelectComponent';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
-
-// Utility function to format timestamp to YYYY-MM-DD
-const formatDateOfBirth = (timestamp: string): string => {
-  if (!timestamp || timestamp.trim() === '') {
-    return '';
-  }
-  const date = new Date(Number(timestamp));
-  if (isNaN(date.getTime())) {
-    return '';
-  }
-  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
-};
+import {
+  formatDateOfBirth,
+  validateDateOfBirth,
+} from '../../util/validateDateOfBirth';
+import { CardError } from '../../types';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
 
@@ -57,11 +52,13 @@ const PersonalDetails = () => {
     if (!registrationSettings?.countries) {
       return [];
     }
-    return registrationSettings.countries.map((country) => ({
-      key: country.iso3166alpha2,
-      value: country.iso3166alpha2,
-      label: country.name,
-    }));
+    return [...registrationSettings.countries]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((country) => ({
+        key: country.iso3166alpha2,
+        value: country.iso3166alpha2,
+        label: country.name,
+      }));
   }, [registrationSettings]);
 
   const {
@@ -125,34 +122,9 @@ const PersonalDetails = () => {
       return;
     }
 
-    const birthDate = new Date(birthTimestamp);
-    const today = new Date();
-
-    if (birthDate > today) {
+    if (!validateDateOfBirth(birthTimestamp)) {
       setDateError(
         strings('card.card_onboarding.personal_details.invalid_date_of_birth'),
-      );
-      return;
-    }
-
-    // Calculate age in years
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    // Adjust age if birthday hasn't occurred this year yet
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    // Set error if user is under 18
-    if (age < 18) {
-      setDateError(
-        strings(
-          'card.card_onboarding.personal_details.invalid_date_of_birth_underage',
-        ),
       );
     }
   }, [dateOfBirth]);
@@ -170,7 +142,7 @@ const PersonalDetails = () => {
     }
 
     try {
-      await registerPersonalDetails(
+      const { user } = await registerPersonalDetails(
         {
           onboardingId,
           firstName,
@@ -181,10 +153,21 @@ const PersonalDetails = () => {
         },
         selectedCountry === 'US' ? 'us' : 'international',
       );
-      navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
+
+      if (user?.id) {
+        dispatch(setUserId(user.id));
+        navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
+      }
     } catch (error) {
-      console.error('Error registering personal details:', error);
-      return;
+      if (
+        error instanceof CardError &&
+        error.message.includes('Onboarding ID not found')
+      ) {
+        // Onboarding ID not found, navigate back and restart the flow
+        navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
+        return;
+      }
+      // Allow error message to display
     }
   };
 
@@ -198,7 +181,8 @@ const PersonalDetails = () => {
       !nationality ||
       (!debouncedSSN && selectedCountry === 'US') ||
       isSSNError ||
-      !!dateError,
+      !!dateError ||
+      !onboardingId,
     [
       registerLoading,
       registerIsError,
@@ -210,6 +194,7 @@ const PersonalDetails = () => {
       selectedCountry,
       isSSNError,
       dateError,
+      onboardingId,
     ],
   );
 

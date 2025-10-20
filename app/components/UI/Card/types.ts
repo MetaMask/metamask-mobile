@@ -241,7 +241,10 @@ export interface RegisterPersonalDetailsRequest {
 }
 
 export interface RegisterPersonalDetailsResponse {
-  success: boolean;
+  onboardingId: string;
+  user: {
+    id: string;
+  };
 }
 
 export interface RegisterPhysicalAddressRequest {
@@ -310,4 +313,36 @@ export interface RegistrationSettingsResponse {
       supportEmail: string;
     };
   };
+}
+
+export interface ConsentMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp?: string;
+}
+
+export interface CreateOnboardingConsentRequest {
+  onboardingId: string;
+  policy: string;
+  consents: {
+    eSignAct?: string;
+    termsAndPrivacy: string;
+    marketingNotifications: string;
+    smsNotifications: string;
+    emailNotifications: string;
+  };
+  metadata?: ConsentMetadata;
+}
+
+export interface CreateOnboardingConsentResponse {
+  consentSetId: string;
+}
+
+export interface LinkUserToConsentRequest {
+  userId: string;
+}
+
+export interface LinkUserToConsentResponse {
+  useId: string;
+  consentSetId: string;
 }

@@ -5977,8 +5977,7 @@
         "nationality_placeholder": "Select your nationality",
         "ssn_placeholder": "Enter your SSN",
         "invalid_ssn": "Invalid SSN",
-        "invalid_date_of_birth":"Invalid date of birth",
-        "invalid_date_of_birth_underage": "You must be at least 18 years old"
+        "invalid_date_of_birth":"Invalid date of birth. User must be at least 18 years old."
       },
       "physical_address": {
         "title": "Physical address",
@@ -6012,12 +6011,14 @@
         "invalid_email_format": "Invalid email format. Please check your email and try again.",
         "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
         "verification_code_expired": "Verification code has expired. Please request a new code.",
-        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
         "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
         "phone_already_exists": "Phone number already exists. Please use a different phone number.",
         "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
         "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
-        "us_state_required": "US state is required for US residents. Please provide a valid state and try again."
+        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process."
       }
     },
     "card_home": {

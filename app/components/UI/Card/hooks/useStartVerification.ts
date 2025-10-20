@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import {
   CardLocation,
@@ -7,6 +7,8 @@ import {
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getErrorMessage } from '../util/getErrorMessage';
+import { selectSelectedCountry } from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 interface UseStartVerificationReturn {
   startVerification: (
@@ -31,16 +33,15 @@ export const useStartVerification = (): UseStartVerificationReturn => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const selectedCountry = useSelector(selectSelectedCountry);
 
   const clearError = useCallback(() => {
     setError(null);
     setIsError(false);
   }, []);
 
-  const startVerification = useCallback(
-    async (
-      location: CardLocation,
-    ): Promise<StartUserVerificationResponse | null> => {
+  const startVerification =
+    useCallback(async (): Promise<StartUserVerificationResponse | null> => {
       if (!sdk) {
         const errorMessage = 'Card SDK not initialized';
         setError(errorMessage);
@@ -58,7 +59,9 @@ export const useStartVerification = (): UseStartVerificationReturn => {
         setError(null);
         setIsSuccess(false);
 
-        const response = await sdk.startUserVerification(location);
+        const response = await sdk.startUserVerification(
+          selectedCountry === 'US' ? 'us' : 'international',
+        );
 
         setData(response);
         setIsSuccess(true);
@@ -86,9 +89,14 @@ export const useStartVerification = (): UseStartVerificationReturn => {
 
         return null;
       }
-    },
-    [sdk],
-  );
+    }, [sdk, selectedCountry]);
+
+  // Automatically fetch verification data on mount
+  useEffect(() => {
+    if (sdk && selectedCountry) {
+      startVerification();
+    }
+  }, [sdk, selectedCountry, startVerification]);
 
   return {
     startVerification,

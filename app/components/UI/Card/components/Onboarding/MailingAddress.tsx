@@ -16,6 +16,7 @@ import {
 import { useSelector } from 'react-redux';
 import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { CardError } from '../../types';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
@@ -128,7 +129,15 @@ const MailingAddress = () => {
 
       // Something is wrong. We need to display the registerError or restart the flow
     } catch (error) {
-      return;
+      if (
+        error instanceof CardError &&
+        error.message.includes('Onboarding ID not found')
+      ) {
+        // Onboarding ID not found, navigate back and restart the flow
+        navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
+        return;
+      }
+      // Allow error message to display
     }
   };
 

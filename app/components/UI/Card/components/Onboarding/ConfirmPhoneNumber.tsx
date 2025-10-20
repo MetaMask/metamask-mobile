@@ -125,7 +125,8 @@ const ConfirmPhoneNumber = () => {
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (
         error instanceof CardError &&
-        error.message.includes('Invalid or expired contact verification ID')
+        (error.message.includes('Invalid or expired contact verification ID') ||
+          error.message.includes('Onboarding ID not found'))
       ) {
         // navigate back and restart the flow
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);

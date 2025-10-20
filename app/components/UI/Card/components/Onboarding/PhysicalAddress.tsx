@@ -20,7 +20,10 @@ import { useSelector } from 'react-redux';
 import {
   selectOnboardingId,
   selectSelectedCountry,
+  selectUserId,
 } from '../../../../../core/redux/slices/card';
+import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
+import { CardError } from '../../types';
 
 export const AddressFields = ({
   addressLine1,
@@ -159,6 +162,7 @@ const PhysicalAddress = () => {
   const tw = useTailwind();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const userId = useSelector(selectUserId);
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -175,6 +179,13 @@ const PhysicalAddress = () => {
     error: registerError,
     reset: resetRegisterAddress,
   } = useRegisterPhysicalAddress();
+
+  const {
+    registerUserConsent,
+    isLoading: registerUserConsentLoading,
+    isError: registerUserConsentIsError,
+    error: registerUserConsentError,
+  } = useRegisterUserConsent();
 
   const handleSameMailingAddressToggle = useCallback(() => {
     setIsSameMailingAddress(!isSameMailingAddress);
@@ -228,7 +239,10 @@ const PhysicalAddress = () => {
     () =>
       registerLoading ||
       registerIsError ||
+      registerUserConsentLoading ||
+      registerUserConsentIsError ||
       !onboardingId ||
+      !userId ||
       !addressLine1 ||
       !city ||
       (!state && selectedCountry === 'US') ||
@@ -237,7 +251,10 @@ const PhysicalAddress = () => {
     [
       registerLoading,
       registerIsError,
+      registerUserConsentLoading,
+      registerUserConsentIsError,
       onboardingId,
+      userId,
       addressLine1,
       city,
       state,
@@ -250,6 +267,7 @@ const PhysicalAddress = () => {
   const handleContinue = async () => {
     if (
       !onboardingId ||
+      !userId ||
       !addressLine1 ||
       !city ||
       (!state && selectedCountry === 'US') ||
@@ -259,6 +277,8 @@ const PhysicalAddress = () => {
       return;
     }
     try {
+      await registerUserConsent(onboardingId, userId);
+
       const { accessToken } = await registerAddress(
         {
           onboardingId,
@@ -284,7 +304,15 @@ const PhysicalAddress = () => {
 
       // Something is wrong. We need to display the registerError or restart the flow
     } catch (error) {
-      return;
+      if (
+        error instanceof CardError &&
+        error.message.includes('Onboarding ID not found')
+      ) {
+        // Onboarding ID not found, navigate back and restart the flow
+        navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
+        return;
+      }
+      // Allow error message to display
     }
   };
 
@@ -304,14 +332,16 @@ const PhysicalAddress = () => {
       />
 
       {/* Check box 1: Same Mailing Address */}
-      <Checkbox
-        isChecked={isSameMailingAddress}
-        onPress={handleSameMailingAddressToggle}
-        label={strings(
-          'card.card_onboarding.physical_address.same_mailing_address_label',
-        )}
-        style={tw.style('h-auto')}
-      />
+      {selectedCountry === 'US' && (
+        <Checkbox
+          isChecked={isSameMailingAddress}
+          onPress={handleSameMailingAddressToggle}
+          label={strings(
+            'card.card_onboarding.physical_address.same_mailing_address_label',
+          )}
+          style={tw.style('h-auto')}
+        />
+      )}
 
       {/* Check box 2: Electronic Consent */}
       <Checkbox
@@ -335,11 +365,15 @@ const PhysicalAddress = () => {
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
       />
-      {!!registerError && (
+      {registerIsError ? (
         <Text variant={TextVariant.BodySm} twClassName="text-error-default">
           {registerError}
         </Text>
-      )}
+      ) : registerUserConsentIsError ? (
+        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          {registerUserConsentError}
+        </Text>
+      ) : null}
     </Box>
   );
 

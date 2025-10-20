@@ -41,11 +41,17 @@ const VerifyIdentity = () => {
   const renderFormFields = () => (
     <>
       {startVerificationIsError ? (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="text-error-default text-center"
+        >
           {startVeriricationErr}
         </Text>
       ) : !sessionUrl ? (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="text-error-default text-center"
+        >
           {strings(
             'card.card_onboarding.verify_identity.start_verification_error',
           )}

@@ -38,6 +38,10 @@ import {
   RegisterMailingAddressRequest,
   RegistrationSettingsResponse,
   StartUserVerificationResponse,
+  CreateOnboardingConsentRequest,
+  CreateOnboardingConsentResponse,
+  LinkUserToConsentRequest,
+  LinkUserToConsentResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -973,20 +977,6 @@ export class CardSDK {
         } catch {
           // If we can't parse response, continue without it
         }
-        if (responseBody?.message?.includes('Email already exists')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Email already exists. Please use a different email.',
-          );
-        }
-
-        if (responseBody?.message?.includes('Invalid email format')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Invalid email format. Please check your email and try again.',
-          );
-        }
-
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
             CardErrorType.CONFLICT_ERROR,
@@ -1054,30 +1044,6 @@ export class CardSDK {
         } catch {
           // If we can't parse response, continue without it
         }
-        if (responseBody?.message?.includes('no valid verification code')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Invalid verification code. Please check your code and try again.',
-          );
-        }
-
-        if (responseBody?.message?.includes('Verification code has expired')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Verification code has expired. Please request a new code.',
-          );
-        }
-
-        if (
-          responseBody?.message?.includes(
-            'Invalid or expired contact verification ID',
-          )
-        ) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Invalid or expired contact verification ID.',
-          );
-        }
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
             CardErrorType.CONFLICT_ERROR,
@@ -1140,19 +1106,6 @@ export class CardSDK {
         } catch {
           // If we can't parse response, continue without it
         }
-        if (responseBody?.message?.includes('Invalid phone number format')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Invalid phone number format. Please check your phone number and try again.',
-          );
-        }
-        if (responseBody?.message?.includes('Phone number already exists')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Phone number already exists. Please use a different phone number and try again.',
-          );
-        }
-
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
             CardErrorType.CONFLICT_ERROR,
@@ -1215,23 +1168,6 @@ export class CardSDK {
           responseBody = await response.json();
         } catch {
           // If we can't parse response, continue without it
-        }
-        if (responseBody?.message?.includes('Invalid verification code')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Invalid verification code. Please check your code and try again.',
-          );
-        }
-
-        if (
-          responseBody?.message?.includes(
-            'Phone number does not match verification session',
-          )
-        ) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Phone number does not match verification session. Please check your phone number and try again.',
-          );
         }
 
         if (response.status >= 400 && response.status < 500) {
@@ -1358,23 +1294,6 @@ export class CardSDK {
         } catch {
           // If we can't parse response, continue without it
         }
-        if (
-          responseBody?.message?.includes('User must be at least 18 years old')
-        ) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'User must be at least 18 years old. Please provide a valid date of birth and try again.',
-          );
-        }
-
-        if (
-          responseBody?.message?.includes('SSN is required for US residents')
-        ) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'SSN is required for US residents. Please provide a valid SSN and try again.',
-          );
-        }
 
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
@@ -1442,19 +1361,7 @@ export class CardSDK {
         } catch {
           // If we can't parse response, continue without it
         }
-        if (responseBody?.message?.includes('Invalid zip code format')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Invalid zip code. Please provide a valid zip code and try again.',
-          );
-        }
 
-        if (responseBody?.message?.includes('US State is required')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'US State is required for US residents. Please provide a valid state and try again.',
-          );
-        }
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
             CardErrorType.CONFLICT_ERROR,
@@ -1521,19 +1428,7 @@ export class CardSDK {
         } catch {
           // If we can't parse response, continue without it
         }
-        if (responseBody?.message?.includes('Invalid zip code format')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'Invalid zip code. Please provide a valid zip code and try again.',
-          );
-        }
 
-        if (responseBody?.message?.includes('US state is required')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            'US state is required for US residents. Please provide a valid state and try again.',
-          );
-        }
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
             CardErrorType.CONFLICT_ERROR,
@@ -1622,6 +1517,146 @@ export class CardSDK {
       throw new CardError(
         CardErrorType.UNKNOWN_ERROR,
         'Failed to get registration settings',
+        error as Error,
+      );
+    }
+  };
+
+  createOnboardingConsent = async (
+    request: CreateOnboardingConsentRequest & { location: CardLocation },
+  ): Promise<CreateOnboardingConsentResponse> => {
+    const { location, ...requestBody } = request;
+    const isUSEnv = location === 'us';
+
+    this.logDebugInfo('createOnboardingConsent', { location, requestBody });
+
+    try {
+      const response = await this.makeRequest(
+        '/v2/consent/onboarding',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+        false, // not authenticated
+        isUSEnv,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.BAD_REQUEST,
+            responseBody?.message || 'Failed to create onboarding consent',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while creating onboarding consent',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('createOnboardingConsent response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('createOnboardingConsent error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to create onboarding consent',
+        error as Error,
+      );
+    }
+  };
+
+  linkUserToConsent = async (
+    consentSetId: string,
+    request: LinkUserToConsentRequest & { location: CardLocation },
+  ): Promise<LinkUserToConsentResponse> => {
+    const { location, ...requestBody } = request;
+    const isUSEnv = location === 'us';
+
+    this.logDebugInfo('linkUserToConsent', {
+      consentSetId,
+      location,
+      requestBody,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        `/v2/consent/onboarding/${consentSetId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+        false, // not authenticated
+        isUSEnv,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (responseBody?.message?.includes('already linked to a user')) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'User is already linked to a consent set',
+          );
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.BAD_REQUEST,
+            responseBody?.message || 'Failed to link user to consent',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while linking user to consent',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('linkUserToConsent response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('linkUserToConsent error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to link user to consent',
         error as Error,
       );
     }

@@ -50,6 +50,13 @@ export const getErrorMessage = (error: unknown): string => {
         if (error.message.includes('US state is required')) {
           return strings('card.card_onboarding.errors.us_state_required');
         }
+        if (error.message.includes('already linked to a user')) {
+          return strings('card.card_onboarding.errors.consent_already_linked');
+        }
+
+        if (error.message.includes('Onboarding ID not found')) {
+          return strings('card.card_onboarding.errors.invalid_onboarding_id');
+        }
 
         return error.message;
       case CardErrorType.BAD_REQUEST:
