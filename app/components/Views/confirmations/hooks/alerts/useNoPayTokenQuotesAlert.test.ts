@@ -1,24 +1,23 @@
 import { cloneDeep, merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import {
-  simpleSendTransactionControllerMock,
-  transactionIdMock,
-} from '../../__mocks__/controllers/transaction-controller-mock';
+import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { Severity } from '../../types/alerts';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { Hex } from '@metamask/utils';
-import { ConfirmationMetricsState } from '../../../../../core/redux/slices/confirmationMetrics';
+import { Hex, Json } from '@metamask/utils';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { TransactionBridgeQuote } from '../../utils/bridge';
 import { strings } from '../../../../../../locales/i18n';
-import { useIsTransactionPayLoading } from '../pay/useIsTransactionPayLoading';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+} from '../pay/useTransactionPayData';
+import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 
 jest.mock('../pay/useTransactionPayToken');
-jest.mock('../pay/useIsTransactionPayLoading');
+jest.mock('../pay/useTransactionPayData');
 
 const STATE_MOCK = merge(
   {},
@@ -29,19 +28,8 @@ const STATE_MOCK = merge(
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678' as Hex;
 const CHAIN_ID_MOCK = '0x123' as Hex;
 
-function runHook({
-  quotes,
-}: {
-  quotes?: Partial<TransactionBridgeQuote>[];
-} = {}) {
+function runHook() {
   const state = cloneDeep(STATE_MOCK);
-
-  state.confirmationMetrics = {
-    metricsById: {},
-    transactionBridgeQuotesById: {
-      [transactionIdMock]: quotes ?? undefined,
-    },
-  } as unknown as ConfirmationMetricsState;
 
   return renderHookWithProvider(useNoPayTokenQuotesAlert, {
     state,
@@ -50,6 +38,7 @@ function runHook({
 
 describe('useNoPayTokenQuotesAlert', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
@@ -64,7 +53,8 @@ describe('useNoPayTokenQuotesAlert', () => {
       },
     } as ReturnType<typeof useTransactionPayToken>);
 
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesMock.mockReturnValue(undefined);
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -82,12 +72,16 @@ describe('useNoPayTokenQuotesAlert', () => {
   });
 
   it('returns no alerts if quotes available', () => {
-    const { result } = runHook({ quotes: [{}] });
+    useTransactionPayQuotesMock.mockReturnValue([
+      {} as TransactionPayQuote<Json>,
+    ]);
+
+    const { result } = runHook();
     expect(result.current).toStrictEqual([]);
   });
 
   it('returns no alerts if quotes loading', () => {
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const { result } = runHook();
 
@@ -95,7 +89,8 @@ describe('useNoPayTokenQuotesAlert', () => {
   });
 
   it('returns no alerts if quotes is empty array', () => {
-    const { result } = runHook({ quotes: [] });
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    const { result } = runHook();
     expect(result.current).toStrictEqual([]);
   });
 });

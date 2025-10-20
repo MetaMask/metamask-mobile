@@ -29,14 +29,11 @@ import {
   CustomAmount,
   CustomAmountSkeleton,
 } from '../../transactions/custom-amount';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../reducers';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
-  selectIsTransactionPayLoadingByTransactionId,
-  selectTransactionPayQuotesByTransactionId,
-  selectTransactionPaySourceAmountsByTransactionId,
-} from '../../../../../../selectors/transactionPayController';
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
+} from '../../../hooks/pay/useTransactionPayData';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -159,20 +156,9 @@ function useIsResultReady({
 }: {
   isKeyboardVisible: boolean;
 }) {
-  const transactionMeta = useTransactionMetadataRequest();
-  const transactionId = transactionMeta?.id ?? '';
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionPayQuotesByTransactionId(state, transactionId),
-  );
-
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
-  );
-
-  const sourceAmounts = useSelector((state: RootState) =>
-    selectTransactionPaySourceAmountsByTransactionId(state, transactionId),
-  );
+  const quotes = useTransactionPayQuotes();
+  const isQuotesLoading = useIsTransactionPayLoading();
+  const sourceAmounts = useTransactionPaySourceAmounts();
 
   return (
     !isKeyboardVisible &&

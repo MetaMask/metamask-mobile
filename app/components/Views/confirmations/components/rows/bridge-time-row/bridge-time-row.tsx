@@ -1,34 +1,24 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import InfoRow from '../../UI/info-row';
-import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../reducers';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { SkeletonRow } from '../skeleton-row';
 import {
-  selectIsTransactionPayLoadingByTransactionId,
-  selectTransactionPayQuotesByTransactionId,
-  selectTransactionPayTotalsByTransactionId,
-} from '../../../../../../selectors/transactionPayController';
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 const SAME_CHAIN_DURATION_SECONDS = 2;
 
 export function BridgeTimeRow() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
-
-  const isLoading = useSelector((state: RootState) =>
-    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
-  );
-
-  const { estimatedDuration } =
-    useSelector((state: RootState) =>
-      selectTransactionPayTotalsByTransactionId(state, transactionId),
-    ) ?? {};
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionPayQuotesByTransactionId(state, transactionId),
-  );
+  const isLoading = useIsTransactionPayLoading();
+  const { estimatedDuration } = useTransactionPayTotals() ?? {};
+  const quotes = useTransactionPayQuotes();
+  const { payToken } = useTransactionPayToken();
+  const { chainId } = useTransactionMetadataRequest() ?? {};
 
   const showEstimate = isLoading || Boolean(quotes?.length);
 
@@ -36,11 +26,12 @@ export function BridgeTimeRow() {
     return null;
   }
 
-  if (isLoading || estimatedDuration === undefined) {
+  if (isLoading) {
     return <SkeletonRow testId="bridge-time-row-skeleton" />;
   }
 
-  const formattedSeconds = formatSeconds(estimatedDuration, false);
+  const isSameChain = payToken?.chainId === chainId;
+  const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (
     <InfoRow label={strings('confirm.label.bridge_estimated_time')}>

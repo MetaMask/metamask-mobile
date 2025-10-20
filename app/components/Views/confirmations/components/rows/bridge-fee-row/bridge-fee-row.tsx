@@ -1,8 +1,6 @@
 import React, { ReactNode, useMemo } from 'react';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../reducers';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -17,33 +15,19 @@ import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
 import { SkeletonRow } from '../skeleton-row';
 import { hasTransactionType } from '../../../utils/transaction';
-import {
-  selectIsTransactionPayLoadingByTransactionId,
-  selectTransactionPayQuotesByTransactionId,
-  selectTransactionPayTotalsByTransactionId,
-} from '../../../../../../selectors/transactionPayController';
 import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
 
 export function BridgeFeeRow() {
-  const fiatFormatter = useFiatFormatter();
-  const { totalTransactionFeeFormatted } = useTransactionTotalFiat();
-  const { isLoading } = useIsTransactionPayLoading();
-
   const transactionMetadata = useTransactionMetadataOrThrow();
-  const { id: transactionId } = transactionMetadata;
   const formatFiat = useFiatFormatter();
-
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
-  );
-
-  const totals = useSelector((state: RootState) =>
-    selectTransactionPayTotalsByTransactionId(state, transactionId),
-  );
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionPayQuotesByTransactionId(state, transactionId),
-  );
+  const isLoading = useIsTransactionPayLoading();
+  const quotes = useTransactionPayQuotes();
+  const totals = useTransactionPayTotals();
 
   const feeTotalUsd = useMemo(() => {
     if (!totals?.fees) return '';

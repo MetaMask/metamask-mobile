@@ -11,22 +11,19 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayFiat } from './useTransactionPayFiat';
 import { getRequiredBalance } from '../../utils/transaction-pay';
 import { getNativeTokenAddress } from '../../utils/asset';
-import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
-import { RootState } from '../../../../../reducers';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 export function useTransactionPayAvailableTokens() {
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { payToken } = useTransactionPayToken();
   const { convertFiat, formatFiat } = useTransactionPayFiat();
 
+  const requiredTokens = useTransactionPayRequiredTokens();
+
   const transactionMeta =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);
 
-  const { chainId: transactionChainId, id: transactionId } = transactionMeta;
-
-  const requiredTokens = useSelector((state: RootState) =>
-    selectTransactionPayTokensByTransactionId(state, transactionId ?? ''),
-  );
+  const { chainId: transactionChainId } = transactionMeta;
 
   const chainIds = useMemo(
     () => supportedChains.map((c) => c.chainId),

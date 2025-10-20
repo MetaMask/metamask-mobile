@@ -16,14 +16,15 @@ import { act } from '@testing-library/react-native';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
-import { selectTransactionPayQuotesByTransactionId } from '../../../../../selectors/transactionPayController';
 import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
+import { useTransactionPayQuotes } from './useTransactionPayData';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../selectors/transactionPayController');
+jest.mock('../pay/useTransactionPayData');
 
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/confirmationMetrics'),
@@ -66,13 +67,10 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
 
   const useAutomaticTransactionPayTokenMock = jest.mocked(
     useAutomaticTransactionPayToken,
-  );
-
-  const selectTransactionPayQuotesByTransactionIdMock = jest.mocked(
-    selectTransactionPayQuotesByTransactionId,
   );
 
   beforeEach(() => {
@@ -91,7 +89,7 @@ describe('useTransactionPayMetrics', () => {
       type: 'test',
     } as never);
 
-    selectTransactionPayQuotesByTransactionIdMock.mockReturnValue([]);
+    useTransactionPayQuotesMock.mockReturnValue([]);
 
     useAutomaticTransactionPayTokenMock.mockReturnValue({
       count: 5,
@@ -143,7 +141,7 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    selectTransactionPayQuotesByTransactionIdMock.mockReturnValue([
+    useTransactionPayQuotesMock.mockReturnValue([
       QUOTE_MOCK,
       QUOTE_MOCK,
       QUOTE_MOCK,
@@ -171,7 +169,7 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    selectTransactionPayQuotesByTransactionIdMock.mockReturnValue([
+    useTransactionPayQuotesMock.mockReturnValue([
       QUOTE_MOCK,
       QUOTE_MOCK,
       QUOTE_MOCK,
@@ -199,7 +197,7 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    selectTransactionPayQuotesByTransactionIdMock.mockReturnValue([
+    useTransactionPayQuotesMock.mockReturnValue([
       QUOTE_MOCK,
       QUOTE_MOCK,
       QUOTE_MOCK,
@@ -227,10 +225,7 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    selectTransactionPayQuotesByTransactionIdMock.mockReturnValue([
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-    ]);
+    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK, QUOTE_MOCK]);
 
     runHook();
 

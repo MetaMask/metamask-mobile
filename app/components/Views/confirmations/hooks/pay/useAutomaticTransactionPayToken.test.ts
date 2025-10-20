@@ -9,14 +9,15 @@ import { selectEnabledSourceChains } from '../../../../../core/redux/slices/brid
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
-import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
 import { TransactionToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 jest.mock('../../../../../util/address');
 jest.mock('../../../../../selectors/transactionPayController');
+jest.mock('./useTransactionPayData');
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -63,9 +64,8 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
   const selectEnabledSourceChainsMock = jest.mocked(selectEnabledSourceChains);
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
-
-  const selectTransactionPayTokensByTransactionIdMock = jest.mocked(
-    selectTransactionPayTokensByTransactionId,
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
   );
 
   const setPayTokenMock: jest.MockedFn<
@@ -82,7 +82,7 @@ describe('useAutomaticTransactionPayToken', () => {
       setPayToken: setPayTokenMock,
     });
 
-    selectTransactionPayTokensByTransactionIdMock.mockReturnValue([
+    useTransactionPayRequiredTokensMock.mockReturnValue([
       {
         address: TOKEN_ADDRESS_1_MOCK as Hex,
       } as TransactionToken,
@@ -243,7 +243,7 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     ] as unknown as ReturnType<typeof useTokensWithBalance>);
 
-    selectTransactionPayTokensByTransactionIdMock.mockReturnValue([]);
+    useTransactionPayRequiredTokensMock.mockReturnValue([]);
 
     runHook();
 

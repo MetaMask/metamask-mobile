@@ -27,13 +27,9 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
 import { Hex } from '@metamask/utils';
-<<<<<<< HEAD
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
-=======
 import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
->>>>>>> c727dac668 (Fix types)
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -141,12 +137,8 @@ describe('Transaction Controller Init', () => {
   const handleTransactionAddedEventForMetricsMock = jest.mocked(
     handleTransactionAddedEventForMetrics,
   );
-<<<<<<< HEAD
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
-  const payHookClassMock = jest.mocked(PayHook);
-=======
   const payHookClassMock = jest.mocked(TransactionPayPublishHook);
->>>>>>> c727dac668 (Fix types)
   const payHookMock: jest.MockedFn<PublishHook> = jest.fn();
 
   /**

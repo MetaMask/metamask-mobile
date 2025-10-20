@@ -2,6 +2,7 @@ import { merge } from 'lodash';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { createSelector } from 'reselect';
+import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
 
 export interface ConfirmationMetrics {
   properties?: Record<string, unknown>;
@@ -9,11 +10,23 @@ export interface ConfirmationMetrics {
 }
 export interface ConfirmationMetricsState {
   metricsById: Record<string, ConfirmationMetrics>;
+
+  /** @deprecated */
+  transactionBridgeQuotesById: Record<string, unknown>;
+
+  /** @deprecated */
+  transactionPayTokenById: Record<string, unknown>;
+
+  /** @deprecated */
+  isTransactionBridgeQuotesLoadingById: Record<string, boolean>;
+
+  /** @deprecated */
+  isTransactionUpdating: Record<string, boolean>;
 }
 
 export const initialState: ConfirmationMetricsState = {
   metricsById: {},
-};
+} as ConfirmationMetricsState;
 
 const name = 'confirmationMetrics';
 
@@ -57,3 +70,9 @@ export const selectConfirmationMetricsById = createSelector(
   [selectConfirmationMetrics, (_: RootState, id: string) => id],
   (metricsById, id) => metricsById[id],
 );
+
+/**
+ * @deprecated Use `useTransactionPayQuotes` instead
+ */
+export const selectTransactionBridgeQuotesById =
+  selectTransactionPayQuotesByTransactionId;

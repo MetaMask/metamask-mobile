@@ -16,9 +16,9 @@ import {
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { createProjectLogger } from '@metamask/utils';
-import { selectTransactionPayQuotesByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { cloneDeep } from 'lodash';
+import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -28,17 +28,14 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
-  const { chainId, id: transactionId, type } = transactionMetadata ?? {};
+  const { chainId, type } = transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const quotes = useTransactionPayQuotes();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, chainId),
-  );
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionPayQuotesByTransactionId(state, transactionId ?? ''),
   );
 
   const waitForResult =
@@ -95,7 +92,7 @@ export function useTransactionConfirm() {
           handleErrors: false,
           waitForResult,
         },
-        { txMeta: transactionMetadata },
+        { txMeta: updatedMetadata },
       );
     } catch (error) {
       log('Error confirming transaction', error);

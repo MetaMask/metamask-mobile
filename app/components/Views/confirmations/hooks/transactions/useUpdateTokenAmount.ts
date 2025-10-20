@@ -15,7 +15,6 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { getTokenTransferData } from '../../utils/transaction-pay';
-import { setTransactionUpdating } from '../../../../../core/redux/slices/confirmationMetrics';
 
 export function useUpdateTokenAmount() {
   const dispatch = useDispatch();
@@ -44,12 +43,13 @@ export function useUpdateTokenAmount() {
     Boolean(previousAmountRaw) && amountRaw === previousAmountRaw;
 
   useEffect(() => {
-    dispatch(
-      setTransactionUpdating({
-        transactionId,
-        isUpdating,
-      }),
-    );
+    // MATT TODO
+    // dispatch(
+    //   setTransactionUpdating({
+    //     transactionId,
+    //     isUpdating,
+    //   }),
+    // );
 
     if (!isUpdating) {
       setPreviousAmountRaw(undefined);

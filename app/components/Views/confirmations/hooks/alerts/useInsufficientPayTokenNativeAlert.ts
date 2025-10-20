@@ -10,19 +10,13 @@ import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { getNativeTokenAddress } from '../../utils/asset';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectTransactionPayTotalsByTransactionId } from '../../../../../selectors/transactionPayController';
+import { useTransactionPayTotals } from '../pay/useTransactionPayData';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
-  const { id: transactionId } = useTransactionMetadataRequest() ?? { id: '' };
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
   const nativeTokenAddress = getNativeTokenAddress(chainId ?? '0x0');
-
-  const { fees, total } =
-    useSelector((state: RootState) =>
-      selectTransactionPayTotalsByTransactionId(state, transactionId),
-    ) ?? {};
+  const { fees, total } = useTransactionPayTotals() ?? {};
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, chainId ?? '0x0'),

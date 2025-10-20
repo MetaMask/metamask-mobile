@@ -1,31 +1,20 @@
-import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { RootState } from '../../../../../reducers';
 import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  selectIsTransactionPayLoadingByTransactionId,
-  selectTransactionPayQuotesByTransactionId,
-} from '../../../../../selectors/transactionPayController';
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+} from '../pay/useTransactionPayData';
 
 export function useNoPayTokenQuotesAlert() {
-  const transactionMeta = useTransactionMetadataRequest();
-  const transactionId = transactionMeta?.id ?? '';
   const { payToken } = useTransactionPayToken();
+  const quotes = useTransactionPayQuotes();
+  const isQuotesLoading = useIsTransactionPayLoading();
 
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionPayQuotesByTransactionId(state, transactionId),
-  );
-
-  const quotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionPayLoadingByTransactionId(state, transactionId),
-  );
-
-  const showAlert = payToken && !quotesLoading && quotes === undefined;
+  const showAlert = payToken && !isQuotesLoading && quotes === undefined;
 
   return useMemo(() => {
     if (!showAlert) {

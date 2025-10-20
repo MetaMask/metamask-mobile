@@ -2,7 +2,9 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 
 const selectTransactionPayControllerState = (state: RootState) =>
-  state.engine.backgroundState.TransactionPayController;
+  state.engine.backgroundState.TransactionPayController ?? {
+    transactionData: {},
+  };
 
 export const selectTransactionDataByTransactionId = createSelector(
   selectTransactionPayControllerState,
@@ -18,7 +20,7 @@ export const selectTransactionPayTotalsByTransactionId = createSelector(
 
 export const selectIsTransactionPayLoadingByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  (transactionData) => transactionData.isLoading,
+  (transactionData) => transactionData?.isLoading ?? false,
 );
 
 export const selectTransactionPayQuotesByTransactionId = createSelector(

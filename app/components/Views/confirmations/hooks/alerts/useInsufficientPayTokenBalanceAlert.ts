@@ -4,25 +4,17 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
-import { Hex } from '@metamask/utils';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import { selectTransactionPayTokensByTransactionId } from '../../../../../selectors/transactionPayController';
 import { BigNumber } from 'bignumber.js';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
 
 export function useInsufficientPayTokenBalanceAlert({
   amountFiatOverride,
 }: {
   amountFiatOverride?: string;
 } = {}): Alert[] {
-  const { id: transactionId } = useTransactionMetadataRequest() ?? { id: '' };
   const { payToken } = useTransactionPayToken();
   const { balanceUsd, symbol } = payToken ?? {};
-
-  const requiredTokens = useSelector((state: RootState) =>
-    selectTransactionPayTokensByTransactionId(state, transactionId as Hex),
-  );
+  const requiredTokens = useTransactionPayRequiredTokens();
 
   const totalAmountUsd = (requiredTokens ?? []).reduce<BigNumber>(
     (total, token) => total.plus(token.amountUsd),
