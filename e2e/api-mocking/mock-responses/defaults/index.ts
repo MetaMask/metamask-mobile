@@ -44,6 +44,7 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_BRIDGE_API_MOCKS.GET || []),
     ...(DEFAULT_IPFS_GATEWAY_MOCKS.GET || []),
     ...(POLYMARKET_API_MOCKS.GET || []),
+    ...(INFURA_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',
