@@ -46,7 +46,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       //   );
       // }
 
-      await AccountListBottomSheet.tapAccountByNameV2('Account 4');
+      await AccountListBottomSheet.tapAccountByName('Account 4');
       await AccountDetails.tapNetworksLink();
 
       const visibleNetworks = [
@@ -65,7 +65,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       await completeSrpQuiz(defaultGanacheOptions.mnemonic);
 
       await WalletView.tapIdenticon();
-      await AccountListBottomSheet.tapAccountByNameV2('Account 4');
+      await AccountListBottomSheet.tapAccountByName('Account 4');
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should be visible',
       });
