@@ -180,22 +180,25 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
   const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
   const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
+  const fundingColorForZero = TextColor.Default;
+  const fundingColorForPositive = TextColor.Error;
+  const fundingColorForNegative = TextColor.Success;
   const fundingColor = isNearZeroFunding
-    ? TextColor.Default
+    ? fundingColorForZero
     : fundingSinceOpen === 0
-    ? TextColor.Default
+    ? fundingColorForZero
     : fundingSinceOpen > 0
-    ? TextColor.Error
-    : TextColor.Success;
+    ? fundingColorForPositive
+    : fundingColorForNegative;
+
+  const fundingSign = fundingSinceOpen >= 0 ? '-' : '+';
   const fundingDisplay = isNearZeroFunding
     ? '$0.00'
-    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
-        Math.abs(fundingSinceOpen),
-        {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        },
-      )}`;
+    : `${fundingSign}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      })}`;
 
   const positionTakeProfitCount = position.takeProfitCount || 0;
   const positionStopLossCount = position.stopLossCount || 0;

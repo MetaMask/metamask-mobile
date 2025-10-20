@@ -41,6 +41,27 @@ import {
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
 const STOP_LOSS_PERCENTAGES = [-5, -10, -25, -50]; // -5%, -10%, -25%, -50% RoE
 
+// Helper function to calculate effective entry price
+const calculateEffectiveEntryPrice = (
+  position: Position | undefined,
+  orderType: 'market' | 'limit' | undefined,
+  limitPrice: string | undefined,
+  spotPrice: number,
+  livePrice: number | undefined,
+  initialCurrentPrice: number | undefined,
+): number => {
+  const hasPositionEntry = position?.entryPrice
+    ? parseFloat(position.entryPrice)
+    : 0;
+  const limitPriceValue =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+      ? parseFloat(limitPrice)
+      : 0;
+  const fallbackPrice =
+    spotPrice > 0 ? spotPrice : livePrice || initialCurrentPrice || 0;
+  return hasPositionEntry || limitPriceValue || fallbackPrice;
+};
+
 interface PerpsTPSLBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
@@ -54,7 +75,6 @@ interface PerpsTPSLBottomSheetProps {
   initialStopLossPrice?: string;
   isUpdating?: boolean;
   leverage?: number; // For new orders
-  marginRequired?: string; // For new orders
   orderType?: 'market' | 'limit'; // Order type for new orders
   limitPrice?: string; // Limit price for limit orders
 }
@@ -107,22 +127,22 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
   // For display purposes, use limit price for limit orders, otherwise use spot price
-  const currentPrice =
-    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-      ? parseFloat(limitPrice)
-      : spotPrice;
+  const hasValidLimitPrice =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
+  const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
   // For market orders or when limit price is not set, use spot price
   // Ensure we always have a valid price > 0 for calculations
-  const effectiveEntryPrice = position?.entryPrice
-    ? parseFloat(position.entryPrice)
-    : orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-    ? parseFloat(limitPrice)
-    : spotPrice > 0
-    ? spotPrice
-    : livePrice || initialCurrentPrice || 0;
+  const effectiveEntryPrice = calculateEffectiveEntryPrice(
+    position,
+    orderType,
+    limitPrice,
+    spotPrice,
+    livePrice,
+    initialCurrentPrice,
+  );
 
   // Determine direction for tracking events
   const actualDirection = position
@@ -455,7 +475,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   !takeProfitPrice && styles.percentageButtonOff,
                 ]}
                 onPress={handleTakeProfitOff}
-                disabled={inputsDisabled || !!focusedInput}
+                disabled={inputsDisabled || Boolean(focusedInput)}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {strings('perps.tpsl.off')}
@@ -729,15 +749,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             />
             <View style={styles.keypadContainer}>
               <Keypad
-                value={
-                  focusedInput === 'takeProfitPrice'
-                    ? takeProfitPrice
-                    : focusedInput === 'takeProfitPercentage'
-                    ? formattedTakeProfitPercentage
-                    : focusedInput === 'stopLossPrice'
-                    ? stopLossPrice
-                    : formattedStopLossPercentage
-                }
+                value={(() => {
+                  if (focusedInput === 'takeProfitPrice')
+                    return takeProfitPrice;
+                  if (focusedInput === 'takeProfitPercentage')
+                    return formattedTakeProfitPercentage;
+                  if (focusedInput === 'stopLossPrice') return stopLossPrice;
+                  return formattedStopLossPercentage;
+                })()}
                 onChange={handleKeypadChange}
                 // USD_PERPS is not a real currency - it's a custom configuration
                 // that allows 5 decimal places for crypto prices, overriding the
