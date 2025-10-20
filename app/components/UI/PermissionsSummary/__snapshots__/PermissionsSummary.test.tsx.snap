@@ -164,7 +164,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -1299,7 +1299,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -2019,7 +2019,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -3259,7 +3259,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,
@@ -4394,7 +4394,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
                           "borderRadius": 8,
                           "borderWidth": 2,
                           "height": 32,

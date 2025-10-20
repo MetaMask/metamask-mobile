@@ -375,7 +375,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#f3f5f9",
+                            "borderColor": "#ffffff",
                             "borderRadius": 8,
                             "borderWidth": 2,
                             "height": 32,
@@ -1004,7 +1004,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#f3f5f9",
+                            "borderColor": "#ffffff",
                             "borderRadius": 8,
                             "borderWidth": 2,
                             "height": 32,
@@ -1544,7 +1544,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#f3f5f9",
+                            "borderColor": "#ffffff",
                             "borderRadius": 8,
                             "borderWidth": 2,
                             "height": 32,

@@ -113,7 +113,7 @@ exports[`NotificationBadge should renders correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#f3f5f9",
+            "borderColor": "#ffffff",
             "borderRadius": 8,
             "borderWidth": 2,
             "height": 32,

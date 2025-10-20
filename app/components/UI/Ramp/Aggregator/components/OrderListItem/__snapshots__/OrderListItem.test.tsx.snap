@@ -111,7 +111,7 @@ exports[`OrderListItem should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -360,7 +360,7 @@ exports[`OrderListItem should render correctly 2`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -609,7 +609,7 @@ exports[`OrderListItem should render correctly 3`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -858,7 +858,7 @@ exports[`OrderListItem should render correctly 4`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -1107,7 +1107,7 @@ exports[`OrderListItem should render correctly 5`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -1356,7 +1356,7 @@ exports[`OrderListItem should render correctly 6`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -1605,7 +1605,7 @@ exports[`OrderListItem should render correctly 7`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -1854,7 +1854,7 @@ exports[`OrderListItem should render correctly 8`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -2487,7 +2487,7 @@ exports[`OrderListItem should render correctly 11`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,

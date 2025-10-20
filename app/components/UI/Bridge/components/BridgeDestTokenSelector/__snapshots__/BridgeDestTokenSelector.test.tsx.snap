@@ -1091,7 +1091,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#f3f5f9",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1402,7 +1402,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#f3f5f9",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1743,7 +1743,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#f3f5f9",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,

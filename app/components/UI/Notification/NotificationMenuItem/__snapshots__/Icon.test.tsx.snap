@@ -27,7 +27,7 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
         <View
           style={
             {
-              "borderColor": "#f3f5f9",
+              "borderColor": "#ffffff",
               "borderRadius": 16,
               "borderWidth": 0.5,
               "height": 32,

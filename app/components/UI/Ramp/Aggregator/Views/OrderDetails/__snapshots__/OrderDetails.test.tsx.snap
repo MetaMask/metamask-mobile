@@ -3387,7 +3387,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f3f5f9",
+                                            "borderColor": "#ffffff",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -6272,7 +6272,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f3f5f9",
+                                            "borderColor": "#ffffff",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -8745,7 +8745,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f3f5f9",
+                                            "borderColor": "#ffffff",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -11774,7 +11774,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f3f5f9",
+                                            "borderColor": "#ffffff",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -13207,7 +13207,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f3f5f9",
+                                            "borderColor": "#ffffff",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,

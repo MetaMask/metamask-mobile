@@ -133,7 +133,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -616,7 +616,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -1099,7 +1099,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -1582,7 +1582,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -2065,7 +2065,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -2537,7 +2537,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -3009,7 +3009,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -3492,7 +3492,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -3975,7 +3975,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
@@ -4458,7 +4458,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#f3f5f9",
+                  "borderColor": "#ffffff",
                   "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,

@@ -23,7 +23,7 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
     <View
       style={
         {
-          "borderColor": "#f3f5f9",
+          "borderColor": "#ffffff",
           "borderRadius": 64,
           "borderWidth": 3.5,
           "height": 36,

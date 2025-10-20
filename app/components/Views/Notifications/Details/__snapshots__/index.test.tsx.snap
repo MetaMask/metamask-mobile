@@ -561,7 +561,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                 placeholderStyle={
                   {
                     "backgroundColor": "#f3f5f9",
-                    "borderColor": "#f3f5f9",
+                    "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 0.5,
                     "height": 32,
@@ -575,7 +575,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                 }
                 style={
                   {
-                    "borderColor": "#f3f5f9",
+                    "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 0.5,
                     "height": 32,
@@ -626,7 +626,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#f3f5f9",
+                      "borderColor": "#ffffff",
                       "borderRadius": 8,
                       "borderWidth": 2,
                       "height": 32,

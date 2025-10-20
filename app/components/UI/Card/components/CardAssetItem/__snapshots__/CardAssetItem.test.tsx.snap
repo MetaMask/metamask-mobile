@@ -408,7 +408,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#ffffff",
-                                  "borderColor": "#f3f5f9",
+                                  "borderColor": "#ffffff",
                                   "borderRadius": 8,
                                   "borderWidth": 2,
                                   "height": 32,
@@ -945,7 +945,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#f3f5f9",
+                                  "borderColor": "#ffffff",
                                   "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,
@@ -1479,7 +1479,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#f3f5f9",
+                                  "borderColor": "#ffffff",
                                   "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,
@@ -2013,7 +2013,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#f3f5f9",
+                                  "borderColor": "#ffffff",
                                   "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,
@@ -2547,7 +2547,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#f3f5f9",
-                                  "borderColor": "#f3f5f9",
+                                  "borderColor": "#ffffff",
                                   "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,

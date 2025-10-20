@@ -1001,7 +1001,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#f3f5f9",
+                    "borderColor": "#ffffff",
                     "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
@@ -2161,7 +2161,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   {
                     "alignItems": "center",
                     "backgroundColor": "#f3f5f9",
-                    "borderColor": "#f3f5f9",
+                    "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
@@ -3268,7 +3268,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#f3f5f9",
+                    "borderColor": "#ffffff",
                     "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,

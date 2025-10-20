@@ -132,7 +132,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#f3f5f9",
+                "borderColor": "#ffffff",
                 "borderRadius": 8,
                 "borderWidth": 2,
                 "height": 32,
@@ -925,7 +925,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#f3f5f9",
+                "borderColor": "#ffffff",
                 "borderRadius": 8,
                 "borderWidth": 2,
                 "height": 32,
