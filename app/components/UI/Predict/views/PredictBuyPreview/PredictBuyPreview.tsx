@@ -103,6 +103,7 @@ const PredictBuyPreview = () => {
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
       [PredictEventProperties.SHARE_PRICE]: outcomeToken?.price,
+      [PredictEventProperties.VOLUME]: analyticsProperties.volume,
     };
 
     DevLogger.log('📊 [Analytics] PREDICT_ACTION_INITIATED', {
