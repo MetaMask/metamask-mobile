@@ -368,14 +368,6 @@ type OptionalControllers = Pick<
   | 'SnapKeyringBuilder'
 >;
 
-/**
- * Controllers that are defined with state.
- */
-export type StatefulControllers = Omit<
-  Controllers,
-  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
->;
-
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 

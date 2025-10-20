@@ -92,16 +92,8 @@ import {
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
-import {
-  BaseControllerMessenger,
-  EngineState,
-  EngineContext,
-  StatefulControllers,
-} from './types';
-import {
-  BACKGROUND_STATE_CHANGE_EVENT_NAMES,
-  STATELESS_NON_CONTROLLER_NAMES,
-} from './constants';
+import { BaseControllerMessenger, EngineState, EngineContext } from './types';
+import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
@@ -1283,7 +1275,8 @@ export default {
       AuthenticationController: AuthenticationController.state,
       UserStorageController: UserStorageController.state,
       NotificationServicesController: NotificationServicesController.state,
-      NotificationServicesPushController: NotificationServicesPushController.state,
+      NotificationServicesPushController:
+        NotificationServicesPushController.state,
       ///: END:ONLY_INCLUDE_IF
       PermissionController: PermissionController.state,
       SelectedNetworkController: SelectedNetworkController.state,
@@ -1299,7 +1292,8 @@ export default {
       MultichainAssetsRatesController: MultichainAssetsRatesController.state,
       MultichainTransactionsController: MultichainTransactionsController.state,
       ///: END:ONLY_INCLUDE_IF
-      TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController.state,
+      TokenSearchDiscoveryDataController:
+        TokenSearchDiscoveryDataController.state,
       MultichainNetworkController: MultichainNetworkController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
