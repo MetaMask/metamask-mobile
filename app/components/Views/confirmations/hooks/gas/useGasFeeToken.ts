@@ -36,11 +36,14 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
     gasFeeToken = nativeFeeToken;
   }
 
-  const { amount, decimals } = gasFeeToken ?? { amount: '0x0', decimals: 0 };
+  const { amount, decimals, fee } = gasFeeToken ?? {
+    amount: '0x0',
+    decimals: 0,
+  };
 
-  const metaMaskFee = add0x(
-    new BigNumber(amount).times(METAMASK_FEE_PERCENTAGE).toString(16),
-  );
+  const metaMaskFee =
+    fee ??
+    add0x(new BigNumber(amount).times(METAMASK_FEE_PERCENTAGE).toString(16));
 
   const amountFormatted = formatAmount(
     locale,
