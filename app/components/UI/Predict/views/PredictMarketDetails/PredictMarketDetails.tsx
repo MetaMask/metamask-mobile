@@ -26,6 +26,10 @@ import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice, formatVolume, formatAddress } from '../../utils/format';
 import {
+  PredictCashOutSelectorsIDs,
+  PredictMarketDetailsSelectorsIDs,
+} from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -44,7 +48,6 @@ import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { PredictPosition, PredictPriceHistoryInterval } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import TabBar from '../../../../Base/TabBar';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 
@@ -391,6 +394,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             </Box>
           </Box>
           <Button
+            testID={PredictCashOutSelectorsIDs.CASH_OUT_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -593,6 +597,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           />
         </Box>
         <ScrollableTabView
+          testID={PredictMarketDetailsSelectorsIDs.SCREEN}
           renderTabBar={() => (
             <TabBar
               textStyle={tw.style('text-base font-bold text-center')}

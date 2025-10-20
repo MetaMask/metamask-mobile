@@ -33,7 +33,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   return (
     <TouchableOpacity
       testID={getPredictPositionSelector.currentPositionCard(
-        position.marketId,
         position.outcomeIndex,
       )}
       style={styles.positionContainer}

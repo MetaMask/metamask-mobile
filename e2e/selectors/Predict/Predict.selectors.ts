@@ -56,6 +56,19 @@ export const PredictMarketDetailsSelectorsIDs = {
   ABOUT_TAB: 'predict-market-details-about-tab',
   POSITIONS_TAB: 'predict-market-details-positions-tab',
   OUTCOMES_TAB: 'predict-market-details-outcomes-tab',
+
+  // Tab content containers
+  ABOUT_TAB_CONTENT: 'about-tab-content',
+  POSITIONS_TAB_CONTENT: 'positions-tab-content',
+  OUTCOMES_TAB_CONTENT: 'outcomes-tab-content',
+  MARKET_DETAILS_CASH_OUT_BUTTON: 'predict-market-details-cash-out-button',
+} as const;
+
+export const PredictMarketDetailsSelectorsText = {
+  // Tab content containers
+  ABOUT_TAB_TEXT: 'About',
+  POSITIONS_TAB_TEXT: 'Positions',
+  OUTCOMES_TAB_TEXT: 'Outcomes',
 } as const;
 
 // ========================================
@@ -71,10 +84,22 @@ export const PredictPositionsSelectorsIDs = {
   RESOLVED_MARKETS_HEADER: 'predict-resolved-markets-header',
 } as const;
 
-// Helper functions for dynamic position selectors
+// Helper functions for position selectors with index
 export const getPredictPositionSelector = {
-  currentPositionCard: (marketId: string, outcomeIndex: number) =>
-    `predict-current-position-card-${marketId}-${outcomeIndex}`,
-  resolvedPositionCard: (marketId: string, outcomeIndex: number) =>
-    `predict-resolved-position-card-${marketId}-${outcomeIndex}`,
+  currentPositionCard: (outcomeIndex: number) =>
+    `predict-current-position-card-${outcomeIndex}`,
+  resolvedPositionCard: (outcomeIndex: number) =>
+    `predict-resolved-position-card-${outcomeIndex}`,
 };
+
+// ========================================
+// PREDICT CASH OUT SELECTORS
+// ========================================
+
+export const PredictCashOutSelectorsIDs = {
+  // Container
+  CONTAINER: 'predict-cash-out-container',
+
+  // Cash out buttons
+  CASH_OUT_BUTTON: 'predict-cash-out-button',
+} as const;
