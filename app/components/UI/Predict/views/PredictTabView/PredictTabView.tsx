@@ -9,6 +9,8 @@ import PredictPositions, {
 } from '../../components/PredictPositions/PredictPositions';
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
+import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
+import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface PredictTabViewProps {}
 
@@ -20,6 +22,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
 
   usePredictDepositToasts();
+  usePredictClaimToasts();
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -36,6 +39,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   return (
     <View style={tw.style('flex-1 bg-default')}>
       <ScrollView
+        testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
