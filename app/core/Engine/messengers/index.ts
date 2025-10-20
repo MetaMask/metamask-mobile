@@ -12,6 +12,11 @@ import {
   getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
 } from './defi-positions-controller-messenger/defi-positions-controller-messenger';
+import {
+  getBackendWebSocketServiceMessenger,
+  getBackendWebSocketServiceInitMessenger,
+  getAccountActivityServiceMessenger,
+} from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   getCronjobControllerMessenger,
@@ -102,11 +107,16 @@ import {
 } from './earn-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getSwapsControllerMessenger } from './swaps-controller-messenger';
-
 import {
   getDelegationControllerInitMessenger,
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
+import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
+import {
+  getPPOMControllerInitMessenger,
+  getPPOMControllerMessenger,
+} from './ppom-controller-messenger';
+
 /**
  * The messengers for the controllers that have been.
  */
@@ -307,6 +317,14 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainAccountServiceMessenger,
     getInitMessenger: getMultichainAccountServiceInitMessenger,
   },
+  PPOMController: {
+    getMessenger: getPPOMControllerMessenger,
+    getInitMessenger: getPPOMControllerInitMessenger,
+  },
+  RemoteFeatureFlagController: {
+    getMessenger: getRemoteFeatureFlagControllerMessenger,
+    getInitMessenger: noop,
+  },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
     getInitMessenger: noop,
@@ -342,5 +360,13 @@ export const CONTROLLER_MESSENGERS = {
   DelegationController: {
     getMessenger: getDelegationControllerMessenger,
     getInitMessenger: getDelegationControllerInitMessenger,
+  },
+  BackendWebSocketService: {
+    getMessenger: getBackendWebSocketServiceMessenger,
+    getInitMessenger: getBackendWebSocketServiceInitMessenger,
+  },
+  AccountActivityService: {
+    getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
   },
 } as const;
