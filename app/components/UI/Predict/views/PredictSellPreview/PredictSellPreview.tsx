@@ -25,6 +25,7 @@ import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictSellPreview.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
@@ -72,7 +73,10 @@ const PredictSellPreview = () => {
       <BottomSheetHeader onClose={() => goBack()}>
         <Text variant={TextVariant.HeadingMD}>Cash Out</Text>
       </BottomSheetHeader>
-      <View style={styles.container}>
+      <View
+        testID={PredictCashOutSelectorsIDs.CONTAINER}
+        style={styles.container}
+      >
         <View style={styles.cashOutContainer}>
           <Text style={styles.currentValue}>
             {formatPrice(currentValue, { maximumDecimals: 2 })}
@@ -111,6 +115,7 @@ const PredictSellPreview = () => {
           </View>
           <View style={styles.cashOutButtonContainer}>
             <Button
+              testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
               label="Cash out"
               variant={ButtonVariants.Secondary}
               disabled={!preview || isCalculating || isLoading}
