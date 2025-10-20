@@ -50,7 +50,7 @@ public extension FileManager {
       case "0": // File
         let name = self.name(object: tarObject, offset: location)
         let filePath = URL(fileURLWithPath: path).appendingPathComponent(name).resolvingSymlinksInPath().path
-        guard filePath.hasPrefix(rootPath) {
+        guard filePath.hasPrefix(rootPath) else {
           throw UntarError.invalidPaths()
         }
         let size = self.size(object: tarObject, offset: location)
@@ -62,7 +62,7 @@ public extension FileManager {
       case "5": // Directory
         let name = self.name(object: tarObject, offset: location)
         let directoryPath = URL(fileURLWithPath: path).appendingPathComponent(name).resolvingSymlinksInPath().path
-        guard directoryPath.hasPrefix(rootPath) {
+        guard directoryPath.hasPrefix(rootPath) else {
           throw UntarError.invalidPaths()
         }
         try createDirectory(atPath: directoryPath, withIntermediateDirectories: true,
