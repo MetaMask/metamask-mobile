@@ -1965,14 +1965,7 @@ export class PerpsController extends BaseController<
         // Only track actual errors, not user cancellations
         this.update((state) => {
           state.lastDepositTransactionId = null;
-          state.lastDepositResult = {
-            success: false,
-            error: errorMessage,
-            amount: '0', // Unknown amount for pre-confirmation errors
-            asset: 'USDC', // Default asset for deposits
-            timestamp: Date.now(),
-            txHash: '',
-          };
+          // Note: lastDepositResult is already set in the catch block above
         });
       }
       throw error;
