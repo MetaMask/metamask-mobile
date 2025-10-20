@@ -207,7 +207,6 @@ const PerpsClosePositionView: React.FC = () => {
       ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         parseFloat(priceData[position.coin].bestBid!)
       : undefined,
-    cachedSpread: priceData[position.coin]?.spread,
     priceTimestamp: priceData[position.coin]?.timestamp,
   });
 

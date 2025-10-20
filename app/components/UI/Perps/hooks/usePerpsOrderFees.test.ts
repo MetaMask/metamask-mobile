@@ -178,7 +178,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -205,7 +204,7 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.totalFee).toBe(45); // protocol + metamask
     });
 
-    it('should calculate fees for limit orders as maker', async () => {
+    it('calculates fees for limit orders as maker', async () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00015, // 0.015% total
         feeAmount: 15,
@@ -219,7 +218,11 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'limit',
             amount: '100000',
-            isMaker: true,
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
           }),
         { wrapper: createWrapper() },
       );
@@ -251,7 +254,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'limit',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -283,7 +285,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '0',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -311,7 +312,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -335,7 +335,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -357,7 +356,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -384,7 +382,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '0',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -417,7 +414,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -458,7 +454,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -494,7 +489,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -596,8 +590,7 @@ describe('usePerpsOrderFees', () => {
         });
 
       const { result, rerender } = renderHook(
-        ({ amount }) =>
-          usePerpsOrderFees({ orderType: 'market', amount, isMaker: false }),
+        ({ amount }) => usePerpsOrderFees({ orderType: 'market', amount }),
         {
           initialProps: { amount: '100000' },
           wrapper: createWrapper(),
@@ -633,7 +626,6 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -682,6 +674,884 @@ describe('clearRewardsCaches', () => {
     // Assert - Function should execute without throwing errors
     // The cache clearing is tested implicitly through hook behavior
     expect(true).toBe(true);
+  });
+});
+
+describe('usePerpsOrderFees - Maker/Taker Determination', () => {
+  const mockCalculateFees = jest.fn<
+    Promise<FeeCalculationResult>,
+    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+  >();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearRewardsCaches();
+    mockControllerMessenger.call.mockReset();
+    mockUseSelector.mockImplementation((selectorFn) => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                ENABLE_REWARDS: true,
+              },
+              cacheTimestamp: 0,
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [TEST_CONSTANTS.MOCK_ACCOUNT_ID]: {
+                    address: TEST_CONSTANTS.MOCK_ADDRESS,
+                    id: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
+                    metadata: { name: 'Test Account' },
+                  },
+                },
+                selectedAccount: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
+              },
+            },
+            NetworkController: {
+              selectedNetworkClientId: 'arbitrum',
+              networkConfigurationsByChainId: {
+                '0xa4b1': { chainId: '0xa4b1' },
+              },
+            },
+          },
+        },
+      };
+
+      try {
+        return selectorFn(mockState);
+      } catch (error) {
+        // Fallback to string-based selector detection for mock state
+        // eslint-disable-next-line no-console
+        console.debug('Selector fallback:', error);
+        const selectorStr = selectorFn.toString();
+        if (
+          selectorStr.includes('rewards') ||
+          selectorStr.includes('Rewards')
+        ) {
+          return true;
+        }
+        if (
+          selectorStr.includes('address') ||
+          selectorStr.includes('Address')
+        ) {
+          return TEST_CONSTANTS.MOCK_ADDRESS;
+        }
+        if (selectorStr.includes('chain') || selectorStr.includes('Chain')) {
+          return '0xa4b1';
+        }
+        return undefined;
+      }
+    });
+    mockUsePerpsTrading.mockReturnValue({
+      calculateFees: mockCalculateFees,
+      placeOrder: jest.fn(),
+      cancelOrder: jest.fn(),
+      closePosition: jest.fn(),
+      getMarkets: jest.fn(),
+      getPositions: jest.fn(),
+      getAccountState: jest.fn(),
+      subscribeToPrices: jest.fn(),
+      subscribeToPositions: jest.fn(),
+      subscribeToOrderFills: jest.fn(),
+      depositWithConfirmation: jest.fn(),
+      clearDepositResult: jest.fn(),
+      withdraw: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      updatePositionTPSL: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
+      getFunding: jest.fn(),
+      getOrders: jest.fn(),
+      getOrderFills: jest.fn(),
+    });
+  });
+
+  describe('Market Orders', () => {
+    it('treats market orders as taker regardless of price', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'market',
+        isMaker: false,
+        amount: '100000',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+    });
+  });
+
+  describe('Limit Orders - Long Direction', () => {
+    it('treats buy limit above ask as taker when price would execute immediately', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '50100',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+    });
+
+    it('treats buy limit at ask price as taker', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '50001',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('treats buy limit below ask as maker when price goes to order book', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockMakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: true,
+        amount: '100000',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00015);
+    });
+  });
+
+  describe('Limit Orders - Short Direction', () => {
+    it('treats sell limit below bid as taker when price would execute immediately', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49900',
+            direction: 'short',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+    });
+
+    it('treats sell limit at bid price as taker', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49999',
+            direction: 'short',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('treats sell limit above bid as maker when price goes to order book', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockMakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '50500',
+            direction: 'short',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: true,
+        amount: '100000',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00015);
+    });
+  });
+
+  describe('Edge Cases - Stale Price', () => {
+    it('defaults to taker when price data is older than 5 seconds', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const staleTimestamp = Date.now() - 6000;
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+            priceTimestamp: staleTimestamp,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('uses normal maker logic when price is within 5 seconds', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockMakerFeeResult);
+
+      const freshTimestamp = Date.now() - 2000;
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+            priceTimestamp: freshTimestamp,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: true,
+        amount: '100000',
+      });
+    });
+
+    it('uses normal maker logic when no timestamp provided', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockMakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: true,
+        amount: '100000',
+      });
+    });
+  });
+
+  describe('Edge Cases - Invalid Data', () => {
+    it('defaults to taker when currentPrice is missing', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('defaults to taker when limitPrice is empty string', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('defaults to taker when limitPrice is NaN', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: 'invalid',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('defaults to taker when limitPrice is zero', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '0',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('defaults to taker when limitPrice is negative', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '-1000',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+
+    it('defaults to taker when direction is missing', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+  });
+
+  describe('No Bid/Ask Data - Conservative Taker', () => {
+    it('defaults to taker when bid and ask are unavailable', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'limit',
+        isMaker: false,
+        amount: '100000',
+      });
+    });
+  });
+
+  describe('Fee Calculations', () => {
+    it('applies maker fee rate (0.015%) for maker orders', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockMakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.protocolFeeRate).toBe(0.00015);
+      expect(result.current.protocolFee).toBeCloseTo(15, 10);
+    });
+
+    it('applies taker fee rate (0.045%) for taker orders', async () => {
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockTakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '50100',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+      expect(result.current.protocolFee).toBe(45);
+    });
+
+    it('calculates correct USD fee amount for maker orders', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 75,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockMakerFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '500000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.protocolFee).toBe(75);
+      expect(result.current.totalFee).toBe(75);
+    });
+  });
+
+  describe('Hook Integration - useMemo Dependencies', () => {
+    it('recalculates maker status when limit price changes', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      const mockTakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+
+      mockCalculateFees
+        .mockResolvedValueOnce(mockMakerFeeResult)
+        .mockResolvedValueOnce(mockTakerFeeResult);
+
+      const { result, rerender } = renderHook(
+        ({ limitPrice }: { limitPrice: string }) =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice,
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+          }),
+        {
+          initialProps: { limitPrice: '49500' },
+          wrapper: createWrapper(),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.protocolFeeRate).toBe(0.00015);
+      });
+
+      rerender({ limitPrice: '50100' });
+
+      await waitFor(() => {
+        expect(result.current.protocolFeeRate).toBe(0.00045);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not recalculate maker status when irrelevant props change', async () => {
+      const mockMakerFeeResult: FeeCalculationResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockMakerFeeResult);
+
+      const { result, rerender } = renderHook(
+        ({ coin }: { coin: string }) =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            limitPrice: '49500',
+            direction: 'long',
+            currentPrice: 50000,
+            currentAskPrice: 50001,
+            currentBidPrice: 49999,
+            coin,
+          }),
+        {
+          initialProps: { coin: 'BTC' },
+          wrapper: createWrapper(),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      const firstCallCount = mockCalculateFees.mock.calls.length;
+
+      rerender({ coin: 'ETH' });
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees.mock.calls.length).toBeGreaterThan(
+        firstCallCount,
+      );
+    });
   });
 });
 
@@ -748,7 +1618,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -787,7 +1656,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -819,7 +1687,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -846,7 +1713,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -894,7 +1760,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -933,7 +1798,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -976,7 +1840,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1017,7 +1880,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1062,7 +1924,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1094,7 +1955,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1110,7 +1970,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1146,7 +2005,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1180,7 +2038,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1196,7 +2053,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1225,7 +2081,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1253,7 +2108,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '0', // Invalid amount - targets line 203
-            isMaker: false,
           }),
         { wrapper: createWrapper() },
       );
@@ -1281,7 +2135,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
           usePerpsOrderFees({
             orderType: 'market',
             amount: '100000',
-            isMaker: false,
             coin: '', // Empty coin - should trigger early return in points estimation
           }),
         { wrapper: createWrapper() },

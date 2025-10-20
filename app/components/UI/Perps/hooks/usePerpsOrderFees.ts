@@ -8,6 +8,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 const PRICE_STALENESS_THRESHOLD_MS = 5000;
+
 import {
   EstimatePointsDto,
   EstimatedPointsDto,
@@ -15,7 +16,6 @@ import {
 import {
   DEVELOPMENT_CONFIG,
   PERFORMANCE_CONFIG,
-  FEE_CALCULATION_CONFIG,
 } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
@@ -86,8 +86,6 @@ interface UsePerpsOrderFeesParams {
   currentAskPrice?: number;
   /** Real bid price from L2 order book */
   currentBidPrice?: number;
-  /** Real spread from order book */
-  cachedSpread?: string;
   /** Price data timestamp for staleness check */
   priceTimestamp?: number;
 }
@@ -104,6 +102,7 @@ interface UsePerpsOrderFeesParams {
  * @param params Order parameters
  * @returns boolean - true if maker, false if taker
  */
+// eslint-disable-next-line complexity
 function determineMakerStatus(params: {
   orderType: 'market' | 'limit';
   limitPrice?: string;
@@ -112,22 +111,24 @@ function determineMakerStatus(params: {
   bestAsk?: number;
   bestBid?: number;
   priceTimestamp?: number;
-  cachedSpread?: string;
   coin?: string;
 }): boolean {
   const {
     orderType,
     limitPrice,
-    currentPrice,
     direction,
     bestAsk,
     bestBid,
     priceTimestamp,
-    cachedSpread,
     coin,
   } = params;
 
-  // TODO: Consider adding event tracking to determine how often price staleness is detected.
+  // Market orders are always taker
+  if (orderType === 'market') {
+    return false;
+  }
+
+  // Default to taker if price is stale
   if (priceTimestamp) {
     const age = Date.now() - priceTimestamp;
     if (age > PRICE_STALENESS_THRESHOLD_MS) {
@@ -143,35 +144,19 @@ function determineMakerStatus(params: {
     }
   }
 
-  if (orderType === 'market') {
-    return false;
-  }
-
+  // Default to taker when limit price is not specified
   if (!limitPrice || limitPrice === '') {
     return false;
   }
 
-  const limitPriceNum = parseFloat(limitPrice);
+  const limitPriceNum = Number.parseFloat(limitPrice);
 
-  if (isNaN(limitPriceNum) || limitPriceNum <= 0) {
+  if (Number.isNaN(limitPriceNum) || limitPriceNum <= 0) {
     return false;
   }
 
-  // TODO: Consider adding event tracking to determine how often crossed market is detected.
+  // Use bid/ask data if available
   if (bestBid !== undefined && bestAsk !== undefined) {
-    if (bestBid >= bestAsk) {
-      DevLogger.log(
-        'Fee Calculation: Crossed market detected, using conservative taker fee',
-        {
-          bestBid,
-          bestAsk,
-          spread: bestAsk - bestBid,
-          coin,
-        },
-      );
-      return false;
-    }
-
     if (direction === 'long') {
       return limitPriceNum < bestAsk;
     }
@@ -180,35 +165,12 @@ function determineMakerStatus(params: {
     return limitPriceNum > bestBid;
   }
 
-  // Fallback used when bestBid and bestAsk are not available.
-  let spreadPercent = FEE_CALCULATION_CONFIG.DEFAULT_SPREAD_FALLBACK_PERCENT;
-
-  if (cachedSpread !== undefined) {
-    const spreadValue = parseFloat(cachedSpread);
-    if (!isNaN(spreadValue) && spreadValue > 0) {
-      spreadPercent = spreadValue / (2 * currentPrice);
-      DevLogger.log('Fee Calculation: Using cached spread from order book', {
-        coin,
-        cachedSpread: spreadValue,
-        spreadPercent: (spreadPercent * 100).toFixed(4) + '%',
-      });
-    }
-  } else {
-    DevLogger.log('Fee Calculation: Using default spread estimate', {
-      coin,
-      spreadPercent: (spreadPercent * 100).toFixed(4) + '%',
-    });
-  }
-
-  const askPrice = currentPrice * (1 + spreadPercent);
-  const bidPrice = currentPrice * (1 - spreadPercent);
-
-  if (direction === 'long') {
-    return limitPriceNum < askPrice;
-  }
-
-  // Short direction
-  return limitPriceNum > bidPrice;
+  // Default to taker when no bid/ask data is available
+  DevLogger.log(
+    'Fee Calculation: No bid/ask data available, using conservative taker fee',
+    { coin },
+  );
+  return false;
 }
 
 /**
@@ -238,7 +200,6 @@ export function usePerpsOrderFees({
   direction,
   currentAskPrice,
   currentBidPrice,
-  cachedSpread,
   priceTimestamp,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
@@ -261,7 +222,6 @@ export function usePerpsOrderFees({
       bestAsk: currentAskPrice,
       bestBid: currentBidPrice,
       priceTimestamp,
-      cachedSpread,
       coin,
     });
   }, [
@@ -271,13 +231,9 @@ export function usePerpsOrderFees({
     direction,
     currentAskPrice,
     currentBidPrice,
-    cachedSpread,
     priceTimestamp,
     coin,
   ]);
-
-  // eslint-disable-next-line no-console
-  console.log('[usePerpsOrderFees] isMaker:', isMaker);
 
   // Clear stale cache on component mount to force fresh API call
   useEffect(() => {
@@ -796,7 +752,7 @@ export function usePerpsOrderFees({
  * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
  */
 export function formatFeeRate(rate: number | undefined | null): string {
-  if (rate === undefined || rate === null || isNaN(rate)) {
+  if (rate === undefined || rate === null || Number.isNaN(rate)) {
     return 'N/A';
   }
   return `${(rate * 100).toFixed(3)}%`;

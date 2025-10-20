@@ -297,9 +297,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     };
   }, [currentPrice]);
 
-  // eslint-disable-next-line no-console
-  console.log('[PerpsOrderView] currentPrice: ', currentPrice);
-
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -316,7 +313,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     currentBidPrice: currentPrice?.bestBid
       ? parseFloat(currentPrice.bestBid)
       : undefined,
-    cachedSpread: currentPrice?.spread,
     priceTimestamp: currentPrice?.timestamp,
   });
   const estimatedFees = feeResults.totalFee;

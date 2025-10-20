@@ -246,33 +246,6 @@ export const DECIMAL_PRECISION_CONFIG = {
   MAX_PRICE_DECIMALS: 6,
 } as const;
 
-/**
- * Fee calculation configuration
- * Constants used for determining maker/taker status and fee estimation
- */
-export const FEE_CALCULATION_CONFIG = {
-  /**
-   * Default spread estimate for maker/taker determination when real bid/ask unavailable
-   *
-   * Value: 0.0005 (0.05% or 5 basis points)
-   *
-   * This fallback is used during WebSocket reconnection, data loading, or network issues
-   * when real bid/ask prices from L2 order book are temporarily unavailable.
-   *
-   * Rationale:
-   * - BTC: ~0.01-0.03% spread (very tight)
-   * - ETH: ~0.02-0.05% spread
-   * - Major altcoins: ~0.05-0.15% spread
-   * - Less liquid assets: 0.2%+ spread
-   *
-   * The 0.05% default is a conservative middle ground that:
-   * ✅ Reasonable for major assets (ETH, BTC)
-   * ✅ Conservative (defaults to taker fee when uncertain)
-   * ✅ Temporary fallback until real data available within seconds
-   */
-  DEFAULT_SPREAD_FALLBACK_PERCENT: 0.0005,
-} as const;
-
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
