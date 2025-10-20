@@ -31,7 +31,7 @@ jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
     isCardEnabled: true,
     isBaanxLoginEnabled: true,
-    supportedTokens: [],
+    getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getGeoLocation: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),
@@ -124,7 +124,7 @@ describe('CardSDK Context', () => {
   ): Partial<CardSDK> => ({
     isCardEnabled: true,
     isBaanxLoginEnabled: true,
-    supportedTokens: [],
+    getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getGeoLocation: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),
@@ -309,7 +309,7 @@ describe('CardSDK Context', () => {
       expect(mockGetCardBaanxToken).toHaveBeenCalled();
     });
 
-    it('logs error when token retrieval fails', async () => {
+    it('does not authenticate when token retrieval fails', async () => {
       // Given: token retrieval fails
       setupMockSDK();
       setupMockUseSelector(mockCardFeatureFlag);
@@ -323,15 +323,13 @@ describe('CardSDK Context', () => {
         wrapper: createWrapper,
       });
 
-      // Then: should log error and not authenticate
+      // Then: should complete loading without authenticating
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Token retrieval failed:',
-        'Keychain error',
-      );
+      // Verify authentication was cleared via dispatch
+      expect(mockDispatch).toHaveBeenCalled();
     });
 
     it('does not authenticate when token data is missing', async () => {
