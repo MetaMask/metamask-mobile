@@ -270,7 +270,8 @@ describe('EngineService', () => {
     it('should skip CronjobController state change events', async () => {
       await engineService.start();
 
-      const subscribeCalls = Engine.controllerMessenger.subscribe.mock.calls;
+      const subscribeCalls = (Engine.controllerMessenger.subscribe as jest.Mock)
+        .mock.calls;
       const cronjobCalls = subscribeCalls.filter(
         (call: unknown[]) => call[0] === 'CronjobController:stateChange',
       );
