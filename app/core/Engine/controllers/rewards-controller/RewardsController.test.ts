@@ -22,12 +22,10 @@ import { base58 } from 'ethers/lib/utils';
 // Mock dependencies
 jest.mock('./utils/multi-subscription-token-vault', () => ({
   ...jest.requireActual('./utils/multi-subscription-token-vault'),
-  storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
-  removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
-  resetAllSubscriptionTokens: jest.fn().mockResolvedValue(undefined),
-  getSubscriptionToken: jest
-    .fn()
-    .mockResolvedValue({ token: null, success: false }),
+  storeSubscriptionToken: jest.fn(),
+  removeSubscriptionToken: jest.fn(),
+  resetAllSubscriptionTokens: jest.fn(),
+  getSubscriptionToken: jest.fn(),
 }));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -55,24 +53,12 @@ jest.mock('@metamask/controller-utils', () => ({
   toHex: jest.fn(),
 }));
 jest.mock('./utils/solana-snap', () => ({
-  signSolanaRewardsMessage: jest
-    .fn()
-    .mockResolvedValue({ signature: 'solanaSignature123' }),
+  signSolanaRewardsMessage: jest.fn(),
 }));
 jest.mock('./services/rewards-data-service', () => {
   const actual = jest.requireActual('./services/rewards-data-service');
   return {
-    RewardsDataService: jest.fn().mockImplementation(() => ({
-      getJwt: jest.fn(),
-      linkAccount: jest.fn(),
-      getReferralCode: jest.fn(),
-      getSeasonStatus: jest.fn(),
-      getReferralDetails: jest.fn(),
-      optIn: jest.fn(),
-      validateReferralCode: jest.fn(),
-      claimReward: jest.fn(),
-      login: jest.fn(),
-    })),
+    RewardsDataService: jest.fn(),
     InvalidTimestampError: actual.InvalidTimestampError,
     AuthorizationFailedError: actual.AuthorizationFailedError,
   };
@@ -134,11 +120,14 @@ const mockResetAllSubscriptionTokens =
   resetAllSubscriptionTokens as jest.MockedFunction<
     typeof resetAllSubscriptionTokens
   >;
+const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
+  typeof getSubscriptionToken
+>;
 const mockSignSolanaRewardsMessage =
   signSolanaRewardsMessage as jest.MockedFunction<
     typeof signSolanaRewardsMessage
   >;
-const mockRewardsDataService = new (RewardsDataService as jest.Mock)();
+const MockRewardsDataServiceClass = jest.mocked(RewardsDataService);
 
 // Test constants - CAIP-10 format addresses
 const CAIP_ACCOUNT_1: CaipAccountId = 'eip155:1:0x123' as CaipAccountId;
@@ -374,9 +363,38 @@ const createTestSeasonStatusState = (
 describe('RewardsController', () => {
   let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
   let controller: RewardsController;
+  let mockRewardsDataService: InstanceType<typeof RewardsDataService>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
+
+    // Reset import mocks
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockStoreSubscriptionToken.mockResolvedValue(undefined);
+    mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+    mockResetAllSubscriptionTokens.mockResolvedValue(undefined);
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockGetSubscriptionToken.mockResolvedValue({ token: null, success: false });
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockSignSolanaRewardsMessage.mockResolvedValue({
+      signature: 'solanaSignature123',
+    });
+    // @ts-expect-error TODO: Resolve type mismatch
+    MockRewardsDataServiceClass.mockImplementation(() => ({
+      getJwt: jest.fn(),
+      linkAccount: jest.fn(),
+      getReferralCode: jest.fn(),
+      getSeasonStatus: jest.fn(),
+      getReferralDetails: jest.fn(),
+      optIn: jest.fn(),
+      validateReferralCode: jest.fn(),
+      claimReward: jest.fn(),
+      login: jest.fn(),
+    }));
+
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockRewardsDataService = new MockRewardsDataServiceClass();
 
     mockMessenger = {
       subscribe: jest.fn(),
