@@ -5,7 +5,7 @@
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
-    "audit:ci": "yarn npm audit --environment production --severity moderate --no-deprecations",
+    "audit:ci": "yarn npm audit --environment production --severity moderate --no-deprecations --recursive",
     "watch": "./scripts/build.sh watcher main dev --watcher",
     "watch:clean": "./scripts/build.sh watcher main dev --watcher --clean",
     "watch:flask": "METAMASK_BUILD_TYPE=flask ./scripts/build.sh watcher flask dev --watcher",
