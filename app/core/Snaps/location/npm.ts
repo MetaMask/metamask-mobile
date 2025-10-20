@@ -1,12 +1,13 @@
 /* eslint-disable import/prefer-default-export */
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
-import { stringToBytes } from '@metamask/utils';
+import { assert, stringToBytes } from '@metamask/utils';
 import { NativeModules } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import {
   BaseNpmLocation,
   getNpmCanonicalBasePath,
+  TARBALL_SIZE_SAFETY_LIMIT,
 } from '@metamask/snaps-controllers';
 
 const { RNTar } = NativeModules;
@@ -40,6 +41,27 @@ export class NpmLocation extends BaseNpmLocation {
         fileCache: true,
         appendExt: 'tgz',
       }).fetch('GET', tarballUrl.toString());
+
+      const responseInfo = response.respInfo;
+
+      assert(
+        responseInfo.status !== 404,
+        `"${this.meta.packageName}" was not found in the NPM registry`,
+      );
+
+      assert(
+        responseInfo.status === 200,
+        `Failed to fetch tarball for package "${this.meta.packageName}"`,
+      );
+
+      // We assume that NPM is a good actor and provides us with a valid `content-length` header.
+      const tarballSizeString = responseInfo.headers.get('content-length');
+      assert(tarballSizeString, 'Snap tarball has invalid content-length');
+      const tarballSize = parseInt(tarballSizeString, 10);
+      assert(
+        tarballSize <= TARBALL_SIZE_SAFETY_LIMIT,
+        'Snap tarball exceeds size limit',
+      );
 
       // Returns the path where the file is cached
       const dataPath = response.data;
@@ -78,7 +100,9 @@ export class NpmLocation extends BaseNpmLocation {
 
       return map;
     } catch {
-      throw new Error('Failed to fetch and unpack NPM tarball.');
+      throw new Error(
+        `Failed to fetch and unpack NPM tarball for "${this.meta.packageName}"`,
+      );
     } finally {
       response?.flush();
     }
