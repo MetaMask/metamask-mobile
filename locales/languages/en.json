@@ -1473,6 +1473,64 @@
         "days": "Days"
       }
     },
+    "home": {
+      "close_all": "Close all",
+      "cancel_all": "Cancel all",
+      "no_markets": "No markets available",
+      "recent_activity": "Recent Activity",
+      "loading": "Loading...",
+      "no_activity": "No recent activity",
+      "see_all": "See all",
+      "positions": "Positions",
+      "orders": "Orders",
+      "trending": "Trending"
+    },
+    "learn_more": {
+      "title": "Learn more about Perps",
+      "description": "Discover how perpetual trading works and how to get started",
+      "cta": "Learn more"
+    },
+    "support": {
+      "title": "Need help?",
+      "description": "Contact MetaMask Support for assistance"
+    },
+    "close_all_modal": {
+      "title": "Close all positions",
+      "description": "We'll close all your open positions at current market price.",
+      "margin": "Margin",
+      "includes_pnl": "includes {{pnlAmount}}",
+      "fees": "Fees",
+      "you_will_receive": "You'll receive",
+      "keep_positions": "Keep positions",
+      "close_all": "Close all",
+      "closing": "Closing...",
+      "success_title": "Positions closed",
+      "success_message": "Successfully closed {{count}} position(s)",
+      "partial_success": "Closed {{successCount}} of {{totalCount}} positions",
+      "error_title": "Failed to close positions",
+      "error_message": "Failed to close {{count}} position(s)"
+    },
+    "cancel_all_modal": {
+      "title": "Cancel all orders",
+      "description": "We'll cancel all your open orders.",
+      "keep_orders": "Keep orders",
+      "confirm": "Confirm",
+      "canceling": "Canceling...",
+      "success_title": "Orders canceled",
+      "success_message": "Successfully canceled {{count}} order(s)",
+      "partial_success": "Canceled {{successCount}} of {{totalCount}} orders",
+      "error_title": "Failed to cancel orders",
+      "error_message": "Failed to cancel {{count}} order(s)"
+    },
+    "sort": {
+      "volume": "Volume",
+      "price_change": "Price Change",
+      "funding_rate": "Funding Rate",
+      "high_to_low": "High to Low",
+      "low_to_high": "Low to High",
+      "sort_by": "Sort by",
+      "sort_direction": "Sort direction"
+    },
     "perps_markets": "Perps markets",
     "volume": "Volume",
     "price_24h_change": "Price / 24h change",

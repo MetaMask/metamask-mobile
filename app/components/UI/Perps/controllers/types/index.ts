@@ -118,6 +118,22 @@ export type ClosePositionParams = {
   trackingData?: TrackingData;
 };
 
+export type ClosePositionsParams = {
+  coins?: string[]; // Optional: specific coins to close (omit or empty array to close all)
+  closeAll?: boolean; // Explicitly close all positions
+};
+
+export type ClosePositionsResult = {
+  success: boolean; // Overall success (true if at least one position closed)
+  successCount: number; // Number of positions closed successfully
+  failureCount: number; // Number of positions that failed to close
+  results: {
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
+
 export interface InitializeResult {
   success: boolean;
   error?: string;
@@ -231,6 +247,24 @@ export interface CancelOrderResult {
   orderId?: string; // Cancelled order ID
   error?: string;
 }
+
+export type CancelOrdersParams = {
+  coins?: string[]; // Optional: specific coins (omit to cancel all orders)
+  orderIds?: string[]; // Optional: specific order IDs (omit to cancel all orders for specified coins)
+  cancelAll?: boolean; // Explicitly cancel all orders
+};
+
+export type CancelOrdersResult = {
+  success: boolean; // Overall success (true if at least one order cancelled)
+  successCount: number; // Number of orders cancelled successfully
+  failureCount: number; // Number of orders that failed to cancel
+  results: {
+    orderId: string;
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
 
 export interface EditOrderParams {
   orderId: string | number; // Order ID or client order ID to modify

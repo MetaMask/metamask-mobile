@@ -81,8 +81,14 @@ interface UsePerpsOrderFeesParams {
  * Hook to calculate order fees (protocol + MetaMask)
  * Protocol-agnostic - each provider determines its own fee structure
  *
- * @param params Order parameters for fee calculation
- * @returns Fee calculation results with loading states
+ * Supports both single position and multiple positions:
+ * - Single: usePerpsOrderFees({ orderType: 'market', amount: '100', ... })
+ * - Multiple: usePerpsOrderFees([{ orderType: 'market', amount: '100', ... }, { ... }])
+ *
+ * When multiple positions are provided, returns aggregated results (sums and averages)
+ *
+ * @param params Single order params or array of order params
+ * @returns Aggregated fee calculation results with loading states
  */
 /**
  * Clear all rewards-related caches
@@ -94,13 +100,27 @@ export function clearRewardsCaches(): void {
   DevLogger.log('Rewards: Cleared all caches');
 }
 
-export function usePerpsOrderFees({
-  orderType,
-  amount,
-  isMaker = false,
-  coin = 'ETH',
-  isClosing = false,
-}: UsePerpsOrderFeesParams): OrderFeesResult {
+export function usePerpsOrderFees(
+  params: UsePerpsOrderFeesParams | UsePerpsOrderFeesParams[],
+): OrderFeesResult {
+  // Normalize input to array for uniform processing - memoized to avoid dependency changes
+  const paramsArray = useMemo(
+    () => (Array.isArray(params) ? params : [params]),
+    [params],
+  );
+  const isMultiPosition = Array.isArray(params);
+
+  // For single position, extract params directly
+  const singleParams = isMultiPosition
+    ? paramsArray[0]
+    : (params as UsePerpsOrderFeesParams);
+  const {
+    orderType = 'market',
+    amount = '0',
+    isMaker = false,
+    coin = 'ETH',
+    isClosing = false,
+  } = singleParams || {};
   const { calculateFees } = usePerpsTrading();
   const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const selectedAddress = useSelector(
@@ -505,51 +525,154 @@ export function usePerpsOrderFees({
         setIsLoadingFees(true);
         setError(null);
 
-        // Step 1: Get core fees from provider
-        const coreFeesResult = await calculateFees({
-          orderType,
-          isMaker,
-          amount,
-        });
+        if (isMultiPosition) {
+          // Multi-position: calculate fees for each position and aggregate
+          let totalProtocolRate = 0;
+          let totalOriginalMetamaskRate = 0;
+          let totalAdjustedMetamaskRate = 0;
+          let totalDiscountPercentage = 0;
+          let totalPoints = 0;
+          let totalBonusBips = 0;
+          let validDiscountCount = 0;
+          let validBonusCount = 0;
+          let anyError: string | null = null;
 
-        if (!isComponentMounted) return;
+          for (const positionParams of paramsArray) {
+            try {
+              // Step 1: Get core fees from provider
+              const coreFeesResult = await calculateFees({
+                orderType: positionParams.orderType,
+                isMaker: positionParams.isMaker ?? false,
+                amount: positionParams.amount,
+              });
 
-        // Step 2: Apply fee discount if rewards are enabled
-        const { adjustedRate, discountPercentage } = await applyFeeDiscount(
-          coreFeesResult.metamaskFeeRate,
-        );
+              if (!isComponentMounted) return;
 
-        if (!isComponentMounted) return;
+              // Step 2: Apply fee discount if rewards are enabled
+              const { adjustedRate, discountPercentage } =
+                await applyFeeDiscount(coreFeesResult.metamaskFeeRate);
 
-        // Step 3: Handle points estimation if user has address and valid amount
-        let pointsResult: { points?: number; bonusBips?: number } = {};
-        if (selectedAddress && parseFloat(amount) > 0) {
-          const actualFeeUSD = parseFloat(amount) * adjustedRate;
-          DevLogger.log('Rewards: Calculating points with discounted fee', {
-            originalRate: coreFeesResult.metamaskFeeRate,
-            discountPercentage,
-            adjustedRate,
-            amount: parseFloat(amount),
-            actualFeeUSD,
+              if (!isComponentMounted) return;
+
+              // Step 3: Handle points estimation
+              let pointsResult: { points?: number; bonusBips?: number } = {};
+              if (selectedAddress && parseFloat(positionParams.amount) > 0) {
+                const actualFeeUSD =
+                  parseFloat(positionParams.amount) * adjustedRate;
+                pointsResult = await handlePointsEstimation(
+                  selectedAddress,
+                  actualFeeUSD,
+                );
+              }
+
+              if (!isComponentMounted) return;
+
+              // Aggregate results
+              totalProtocolRate += coreFeesResult.protocolFeeRate;
+              totalOriginalMetamaskRate += coreFeesResult.metamaskFeeRate;
+              totalAdjustedMetamaskRate += adjustedRate;
+
+              if (discountPercentage !== undefined) {
+                totalDiscountPercentage += discountPercentage;
+                validDiscountCount++;
+              }
+
+              if (pointsResult.points !== undefined) {
+                totalPoints += pointsResult.points;
+              }
+
+              if (pointsResult.bonusBips !== undefined) {
+                totalBonusBips += pointsResult.bonusBips;
+                validBonusCount++;
+              }
+            } catch (positionError) {
+              // Capture first error but continue processing other positions
+              if (!anyError) {
+                anyError =
+                  positionError instanceof Error
+                    ? positionError.message
+                    : 'Failed to fetch fees';
+              }
+            }
+          }
+
+          if (!isComponentMounted) return;
+
+          // Calculate averages
+          const positionCount = paramsArray.length;
+          const avgProtocolRate = totalProtocolRate / positionCount;
+          const avgOriginalMetamaskRate =
+            totalOriginalMetamaskRate / positionCount;
+          const avgAdjustedMetamaskRate =
+            totalAdjustedMetamaskRate / positionCount;
+          const avgDiscountPercentage =
+            validDiscountCount > 0
+              ? totalDiscountPercentage / validDiscountCount
+              : undefined;
+          const avgBonusBips =
+            validBonusCount > 0 ? totalBonusBips / validBonusCount : undefined;
+
+          // Update state with aggregated results
+          updateFeeState(
+            avgProtocolRate,
+            avgOriginalMetamaskRate,
+            avgAdjustedMetamaskRate,
+            avgDiscountPercentage,
+            totalPoints > 0 ? totalPoints : undefined,
+            avgBonusBips,
+          );
+
+          if (anyError) {
+            setError(anyError);
+          }
+        } else {
+          // Single position: original logic
+          // Step 1: Get core fees from provider
+          const coreFeesResult = await calculateFees({
+            orderType,
+            isMaker,
+            amount,
           });
 
-          pointsResult = await handlePointsEstimation(
-            selectedAddress,
-            actualFeeUSD,
+          if (!isComponentMounted) return;
+
+          // Step 2: Apply fee discount if rewards are enabled
+          const { adjustedRate, discountPercentage } = await applyFeeDiscount(
+            coreFeesResult.metamaskFeeRate,
+          );
+
+          if (!isComponentMounted) return;
+
+          // Step 3: Handle points estimation if user has address and valid amount
+          let pointsResult: { points?: number; bonusBips?: number } = {};
+          if (selectedAddress && parseFloat(amount) > 0) {
+            const actualFeeUSD = parseFloat(amount) * adjustedRate;
+            DevLogger.log('Rewards: Calculating points with discounted fee', {
+              originalRate: coreFeesResult.metamaskFeeRate,
+              discountPercentage,
+              adjustedRate,
+              amount: parseFloat(amount),
+              actualFeeUSD,
+            });
+
+            pointsResult = await handlePointsEstimation(
+              selectedAddress,
+              actualFeeUSD,
+            );
+          }
+
+          if (!isComponentMounted) return;
+
+          // Step 4: Update all state
+          updateFeeState(
+            coreFeesResult.protocolFeeRate,
+            coreFeesResult.metamaskFeeRate,
+            adjustedRate,
+            discountPercentage,
+            pointsResult.points,
+            pointsResult.bonusBips,
           );
         }
-
-        if (!isComponentMounted) return;
-
-        // Step 4: Update all state
-        updateFeeState(
-          coreFeesResult.protocolFeeRate,
-          coreFeesResult.metamaskFeeRate,
-          adjustedRate,
-          discountPercentage,
-          pointsResult.points,
-          pointsResult.bonusBips,
-        );
       } catch (fetchError) {
         if (isComponentMounted) {
           const errorMessage =
@@ -581,9 +704,41 @@ export function usePerpsOrderFees({
     clearFeeState,
     selectedAddress,
     currentChainId,
+    isMultiPosition,
+    paramsArray,
   ]);
 
   return useMemo(() => {
+    if (isMultiPosition) {
+      // Multi-position: calculate total fees across all positions
+      let totalProtocolFee = 0;
+      let totalMetamaskFee = 0;
+      let totalAllFees = 0;
+
+      for (const positionParams of paramsArray) {
+        const positionAmount = parseFloat(positionParams.amount || '0');
+        totalProtocolFee += positionAmount * protocolFeeRate;
+        totalMetamaskFee += positionAmount * metamaskFeeRate;
+        totalAllFees += positionAmount * totalFeeRate;
+      }
+
+      return {
+        totalFee: totalAllFees,
+        protocolFee: totalProtocolFee,
+        metamaskFee: totalMetamaskFee,
+        protocolFeeRate, // Average rate
+        metamaskFeeRate, // Average rate
+        isLoadingMetamaskFee: isLoadingFees,
+        error,
+        // Rewards data (aggregated)
+        originalMetamaskFeeRate, // Average rate
+        feeDiscountPercentage, // Average discount
+        estimatedPoints, // Total points
+        bonusBips, // Average bonus
+      };
+    }
+
+    // Single position: original calculation
     const amountNum = parseFloat(amount || '0');
 
     // Calculate fee amounts based on rates
@@ -616,6 +771,8 @@ export function usePerpsOrderFees({
     feeDiscountPercentage,
     estimatedPoints,
     bonusBips,
+    isMultiPosition,
+    paramsArray,
   ]);
 }
 

@@ -3,11 +3,9 @@ import {
   View,
   TouchableOpacity,
   Animated,
-  TextInput,
   Pressable,
   Keyboard,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
@@ -19,9 +17,15 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
+import PerpsSearchBar from '../../components/PerpsSearchBar';
+import PerpsMarketSortDropdowns from '../../components/PerpsMarketSortDropdowns';
+import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
+import PerpsMarketSortDirectionBottomSheet from '../../components/PerpsMarketSortDirectionBottomSheet';
+import PerpsMarketList from '../../components/PerpsMarketList';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsSearch } from '../../hooks/usePerpsSearch';
+import { usePerpsSorting } from '../../hooks/usePerpsSorting';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type { PerpsMarketData } from '../../controllers/types';
@@ -117,29 +121,90 @@ const PerpsMarketListHeader = () => {
 const PerpsMarketListView = ({
   onMarketSelect,
   protocolId: _protocolId,
+  variant: propVariant,
+  title: propTitle,
+  showBalanceActions: propShowBalanceActions,
+  showBottomNav: propShowBottomNav,
+  defaultSearchVisible: propDefaultSearchVisible,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const route =
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+
+  // Merge route params with props (route params take precedence)
+  const variant = route.params?.variant ?? propVariant ?? 'full';
+  const title = route.params?.title ?? propTitle;
+  const showBalanceActions =
+    route.params?.showBalanceActions ?? propShowBalanceActions ?? true;
+  const showBottomNav =
+    route.params?.showBottomNav ?? propShowBottomNav ?? true;
+  const defaultSearchVisible =
+    route.params?.defaultSearchVisible ?? propDefaultSearchVisible ?? false;
+
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const hiddenButtonStyle = {
     position: 'absolute' as const,
     opacity: 0,
     pointerEvents: 'box-none' as const,
   };
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
+  const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
+  const [isSortDirectionSheetVisible, setIsSortDirectionSheetVisible] =
+    useState(false);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const {
     markets,
     isLoading: isLoadingMarkets,
     error,
-    refresh: refreshMarkets,
-    isRefreshing: isRefreshingMarkets,
   } = usePerpsMarkets({
     enablePolling: false,
   });
+
+  // Filter out markets with no volume
+  const marketsWithVolume = useMemo(
+    () =>
+      markets.filter((market: PerpsMarketData) => {
+        if (
+          !market.volume ||
+          market.volume === '$0' ||
+          market.volume === '$0.00'
+        ) {
+          return false;
+        }
+        if (market.volume === '$---' || market.volume === '---') {
+          return false;
+        }
+        return true;
+      }),
+    [markets],
+  );
+
+  // Use search hook for search state and filtering
+  const {
+    searchQuery,
+    setSearchQuery,
+    isSearchVisible,
+    toggleSearchVisibility,
+    filteredMarkets: searchedMarkets,
+    clearSearch,
+  } = usePerpsSearch({
+    markets: marketsWithVolume,
+    initialSearchVisible: defaultSearchVisible,
+  });
+
+  // Use sorting hook for sort state and sorting logic
+  const {
+    sortBy,
+    direction,
+    handleSortChange,
+    handleDirectionToggle,
+    sortMarketsList,
+  } = usePerpsSorting();
+
+  // Apply sorting to searched markets
+  const filteredMarkets = sortMarketsList(searchedMarkets);
 
   useEffect(() => {
     if (markets.length > 0) {
@@ -152,8 +217,6 @@ const PerpsMarketListView = ({
   }, [markets.length, fadeAnimation]);
 
   const { track } = usePerpsEventTracking();
-  const route =
-    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
   const handleMarketPress = (market: PerpsMarketData) => {
     if (onMarketSelect) {
@@ -165,11 +228,6 @@ const PerpsMarketListView = ({
       });
     }
   };
-  const handleRefresh = () => {
-    refreshMarkets().catch((err) => {
-      console.error('Failed to refresh markets:', err);
-    });
-  };
 
   const handleBackPressed = () => {
     // Navigate back to the main Perps tab
@@ -178,53 +236,14 @@ const PerpsMarketListView = ({
     }
   };
 
-  const filteredMarkets = useMemo(() => {
-    // First filter out markets with no volume or $0 volume
-    const marketsWithVolume = markets.filter((market: PerpsMarketData) => {
-      // Check if volume exists and is not zero
-      if (
-        !market.volume ||
-        market.volume === '$0' ||
-        market.volume === '$0.00'
-      ) {
-        return false;
-      }
-      // Also filter out fallback display values
-      if (market.volume === '$---' || market.volume === '---') {
-        return false;
-      }
-      return true;
-    });
-
-    // If search is not visible, show all markets
-    if (!isSearchVisible) {
-      return marketsWithVolume;
-    }
-
-    // If search is visible but query is empty, show no markets
-    if (!searchQuery.trim()) {
-      return [];
-    }
-
-    // Filter based on search query
-    const query = searchQuery.toLowerCase().trim();
-    return marketsWithVolume.filter(
-      (market: PerpsMarketData) =>
-        market.symbol.toLowerCase().includes(query) ||
-        market.name.toLowerCase().includes(query),
-    );
-  }, [markets, searchQuery, isSearchVisible]);
-
   const handleSearchToggle = () => {
-    setIsSearchVisible(!isSearchVisible);
+    toggleSearchVisibility();
 
     if (isSearchVisible) {
-      // Clear search when hiding search bar
-      setSearchQuery('');
+      clearSearch();
       setShouldShowNavbar(true);
     } else {
       setShouldShowNavbar(false);
-      // Track search bar clicked event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
           PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
@@ -291,11 +310,9 @@ const PerpsMarketListView = ({
           >
             {strings('perps.failed_to_load_market_data')}
           </Text>
-          <TouchableOpacity onPress={handleRefresh}>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
-              {strings('perps.tap_to_retry')}
-            </Text>
-          </TouchableOpacity>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.data_updates_automatically')}
+          </Text>
         </View>
       );
     }
@@ -330,28 +347,18 @@ const PerpsMarketListView = ({
       );
     }
 
+    // Use reusable PerpsMarketList component
     return (
       <>
         <PerpsMarketListHeader />
         <Animated.View
           style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
         >
-          <FlashList
-            data={filteredMarkets}
-            renderItem={({ item }) => (
-              <PerpsMarketRowItem market={item} onPress={handleMarketPress} />
-            )}
-            keyExtractor={(item: PerpsMarketData) => item.symbol}
-            contentContainerStyle={styles.flashListContent}
-            refreshing={isRefreshingMarkets}
-            onRefresh={handleRefresh}
-            /**
-             * Fixes "double-tap" UX issue where the first tap dismissed the keyboard
-             * and the second tap selects a list item.
-             *
-             * This allows users to directly select a list item with a single tap.
-             */
-            keyboardShouldPersistTaps="handled"
+          <PerpsMarketList
+            markets={filteredMarkets}
+            onMarketPress={handleMarketPress}
+            sortBy={sortBy}
+            testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
           />
         </Animated.View>
       </>
@@ -478,13 +485,22 @@ const PerpsMarketListView = ({
       />
       {/* Header */}
       <Pressable style={styles.header} onPress={() => Keyboard.dismiss()}>
+        {/* Back Button */}
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleBackPressed}
+          testID={PerpsMarketListViewSelectorsIDs.BACK_BUTTON}
+        >
+          <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
+        </TouchableOpacity>
+
         <View style={styles.headerTitleContainer}>
           <Text
             variant={TextVariant.HeadingLG}
             color={TextColor.Default}
             style={styles.headerTitle}
           >
-            {strings('perps.title')}
+            {title || strings('perps.title')}
           </Text>
         </View>
         <View style={styles.titleButtonsRightContainer}>
@@ -501,47 +517,61 @@ const PerpsMarketListView = ({
         </View>
       </Pressable>
 
+      {/* Search Bar - Use reusable component */}
       {isSearchVisible && (
         <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Lg}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={strings('perps.search_by_token_symbol')}
-              placeholderTextColor={theme.colors.text.muted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onPressIn={() => setShouldShowNavbar(false)}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery('')}
-                style={styles.clearButton}
-                testID={PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON}
-              >
-                <Icon name={IconName.Close} size={IconSize.Sm} />
-              </TouchableOpacity>
-            )}
-          </View>
+          <PerpsSearchBar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
+          />
         </View>
       )}
 
-      {/* Balance Actions Component */}
-      {!isSearchVisible && <PerpsMarketBalanceActions />}
+      {/* Balance Actions Component - Only show in full variant when search not visible */}
+      {!isSearchVisible && showBalanceActions && variant === 'full' && (
+        <PerpsMarketBalanceActions />
+      )}
+
+      {/* Sort Dropdowns - Only visible when search is NOT active */}
+      {!isSearchVisible &&
+        !isLoadingMarkets &&
+        !error &&
+        filteredMarkets.length > 0 && (
+          <PerpsMarketSortDropdowns
+            sortBy={sortBy}
+            direction={direction}
+            onSortPress={() => setIsSortFieldSheetVisible(true)}
+            onDirectionPress={() => setIsSortDirectionSheetVisible(true)}
+            testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
+          />
+        )}
 
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
-      {/* Bottom navbar - hidden when search is visible */}
-      {shouldShowNavbar && (
+      {/* Bottom navbar - only show in full variant, hidden when search visible */}
+      {showBottomNav && variant === 'full' && shouldShowNavbar && (
         <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
       )}
+
+      {/* Sort Field Bottom Sheet */}
+      <PerpsMarketSortFieldBottomSheet
+        isVisible={isSortFieldSheetVisible}
+        onClose={() => setIsSortFieldSheetVisible(false)}
+        selectedSort={sortBy}
+        onSortSelect={handleSortChange}
+        testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
+      />
+
+      {/* Sort Direction Bottom Sheet */}
+      <PerpsMarketSortDirectionBottomSheet
+        isVisible={isSortDirectionSheetVisible}
+        onClose={() => setIsSortDirectionSheetVisible(false)}
+        selectedDirection={direction}
+        onDirectionSelect={handleDirectionToggle}
+        testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-direction-sheet`}
+      />
     </SafeAreaView>
   );
 };

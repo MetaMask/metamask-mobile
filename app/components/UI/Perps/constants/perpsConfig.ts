@@ -266,3 +266,74 @@ export const DEVELOPMENT_CONFIG = {
 
   // Future: Add other development helpers as needed
 } as const;
+
+/**
+ * Home screen configuration
+ * Controls carousel limits and display settings for the main Perps home screen
+ */
+export const HOME_SCREEN_CONFIG = {
+  // Maximum number of items to show in each carousel
+  POSITIONS_CAROUSEL_LIMIT: 10,
+  ORDERS_CAROUSEL_LIMIT: 10,
+  TRENDING_MARKETS_LIMIT: 5,
+  RECENT_ACTIVITY_LIMIT: 3,
+
+  // Carousel display behavior
+  CAROUSEL_SNAP_ALIGNMENT: 'start' as const,
+  CAROUSEL_VISIBLE_ITEMS: 1.2, // Show 1 full item + 20% of next
+
+  // Icon sizes for consistent display across sections
+  DEFAULT_ICON_SIZE: 40, // Default token icon size for cards and rows
+} as const;
+
+/**
+ * Market sorting configuration
+ * Controls sorting behavior and presets for the trending markets view
+ */
+export const MARKET_SORTING_CONFIG = {
+  // Default sort settings
+  DEFAULT_SORT_FIELD: 'volume' as const,
+  DEFAULT_TIME_FRAME: '24h' as const,
+  DEFAULT_DIRECTION: 'desc' as const,
+
+  // Available sort fields (only includes fields supported by PerpsMarketData)
+  SORT_FIELDS: {
+    VOLUME: 'volume',
+    PRICE_CHANGE: 'priceChange',
+    FUNDING_RATE: 'fundingRate',
+  } as const,
+
+  // Available time frames for time-dependent metrics
+  // Note: Only 24h is supported, 1h data not available from API
+  TIME_FRAMES: {
+    TWENTY_FOUR_HOURS: '24h',
+  } as const,
+
+  // Sort button presets (displayed as chips similar to TP/SL percentage buttons)
+  SORT_BUTTON_PRESETS: [
+    { field: 'volume', labelKey: 'perps.sort.volume' },
+    { field: 'priceChange', labelKey: 'perps.sort.price_change' },
+    { field: 'fundingRate', labelKey: 'perps.sort.funding_rate' },
+  ] as const,
+} as const;
+
+/**
+ * Learn more card configuration
+ * External resources and content for Perps education
+ */
+export const LEARN_MORE_CONFIG = {
+  EXTERNAL_URL: 'https://metamask.io/perps',
+  TITLE_KEY: 'perps.learn_more.title',
+  DESCRIPTION_KEY: 'perps.learn_more.description',
+  CTA_KEY: 'perps.learn_more.cta',
+} as const;
+
+/**
+ * Support configuration
+ * Contact support button configuration (matches Settings behavior)
+ */
+export const SUPPORT_CONFIG = {
+  URL: 'https://support.metamask.io',
+  TITLE_KEY: 'perps.support.title',
+  DESCRIPTION_KEY: 'perps.support.description',
+} as const;

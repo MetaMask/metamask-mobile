@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import { Modal, ScrollView, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
@@ -14,6 +14,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -114,6 +115,19 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     handleNewTrade();
   }, [handleNewTrade]);
 
+  // Modal handlers - now using navigation to modal stack
+  const handleCloseAllPress = useCallback(() => {
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
+    });
+  }, [navigation]);
+
+  const handleCancelAllPress = useCallback(() => {
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+    });
+  }, [navigation]);
+
   const renderStartTradeCTA = () => (
     <TouchablePerpsComponent
       style={styles.startTradeCTA}
@@ -147,6 +161,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.order.open_orders')}
           </Text>
+          <TouchableOpacity onPress={handleCancelAllPress}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('perps.home.cancel_all')}
+            </Text>
+          </TouchableOpacity>
         </View>
         <View>
           {orders.map((order) => (
@@ -184,6 +203,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           >
             {strings('perps.position.title')}
           </Text>
+          <TouchableOpacity onPress={handleCloseAllPress}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('perps.home.close_all')}
+            </Text>
+          </TouchableOpacity>
         </View>
         <View>
           {positions.map((position, index) => {
