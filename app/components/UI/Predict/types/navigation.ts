@@ -1,5 +1,6 @@
 import { ParamListBase } from '@react-navigation/native';
 import {
+  PredictActivityItem,
   PredictMarket,
   PredictOutcome,
   PredictOutcomeToken,
@@ -12,13 +13,16 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictMarketDetails: {
     marketId?: string;
   };
-  PredictCashOut: {
+  PredictSellPreview: {
     position: PredictPosition;
     outcome: PredictOutcome;
   };
-  PredictPlaceBet: {
+  PredictBuyPreview: {
     market: PredictMarket;
     outcome: PredictOutcome;
     outcomeToken: PredictOutcomeToken;
+  };
+  PredictActivityDetail: {
+    activity: PredictActivityItem;
   };
 }

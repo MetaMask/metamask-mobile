@@ -889,34 +889,37 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               data={
                                 [
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000002",
                                     "balance": "2.0",
                                     "balanceFiat": "$200000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token2.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                     "name": "Hello Token",
                                     "symbol": "HELLO",
                                     "tokenFiatAmount": 200000,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000001",
                                     "balance": "1.0",
                                     "balanceFiat": "$20000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token1.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                     "name": "Token One",
                                     "symbol": "TOKEN1",
                                     "tokenFiatAmount": 20000,
                                   },
                                   {
+                                    "accountType": undefined,
                                     "address": "0x0000000000000000000000000000000000000000",
                                     "balance": "3.0",
                                     "balanceFiat": "$6000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png",
                                     "name": "Ethereum",
                                     "symbol": "ETH",
                                     "tokenFiatAmount": 6000,
@@ -1033,7 +1036,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token2.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                                   }
                                                 }
                                                 style={
@@ -1145,11 +1148,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -1342,7 +1347,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token1.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                                   }
                                                 }
                                                 style={
@@ -1454,11 +1459,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
@@ -1793,11 +1800,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           <View
                                             alignItems="center"
                                             flexDirection="row"
+                                            gap={4}
                                             style={
                                               [
                                                 {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
+                                                  "gap": 4,
                                                 },
                                                 undefined,
                                               ]
