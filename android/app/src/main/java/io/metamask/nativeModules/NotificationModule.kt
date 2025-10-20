@@ -121,3 +121,5 @@ class NotificationModule(context: ReactApplicationContext) : ReactContextBaseJav
     return result
   }
 }
+
+
