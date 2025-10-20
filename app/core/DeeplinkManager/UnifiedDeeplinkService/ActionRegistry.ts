@@ -90,12 +90,10 @@ export class ActionRegistry {
       return false;
     }
 
-    // Check if the scheme is supported for this action
-    const schemeWithoutColon = params.scheme.replace(':', '');
     if (
       !action.supportedSchemes.includes('*') &&
-      !action.supportedSchemes.some((scheme) =>
-        scheme.includes(schemeWithoutColon),
+      !action.supportedSchemes.some((supportedScheme) =>
+        supportedScheme.startsWith(params.scheme),
       )
     ) {
       DevLogger.log(
