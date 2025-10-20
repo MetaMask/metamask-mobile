@@ -30,7 +30,10 @@ import { parseChainId } from '@walletconnect/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
 import { AccountGroupId } from '@metamask/account-api';
-import { getNetworkImageSource , isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
+import {
+  getNetworkImageSource,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../../util/networks';
 import {
   AvatarAccountType,
   AvatarSize,
