@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
 import { Modal, Animated, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -137,6 +143,29 @@ const PerpsMarketBalanceActions: React.FC<
     isDepositInProgress,
   });
 
+  // Memoized conditions for cleaner logic
+  const isOnlyDepositInProgress = useMemo(
+    () => isDepositInProgress && !hasActiveWithdrawals,
+    [isDepositInProgress, hasActiveWithdrawals],
+  );
+
+  const isOnlyWithdrawalInProgress = useMemo(
+    () => !isDepositInProgress && hasActiveWithdrawals,
+    [isDepositInProgress, hasActiveWithdrawals],
+  );
+
+  const shouldShowDollarAmount = useMemo(
+    () =>
+      (isOnlyDepositInProgress && transactionAmountWei) ||
+      (isOnlyWithdrawalInProgress && withdrawalAmount),
+    [
+      isOnlyDepositInProgress,
+      isOnlyWithdrawalInProgress,
+      transactionAmountWei,
+      withdrawalAmount,
+    ],
+  );
+
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
     throttleMs: 1000,
@@ -274,16 +303,16 @@ const PerpsMarketBalanceActions: React.FC<
                 {statusText}
               </Text>
               {/* Only show dollar value when there's a single transaction in progress */}
-              {!(isDepositInProgress && hasActiveWithdrawals) && (
+              {shouldShowDollarAmount && (
                 <Text
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Default}
                 >
-                  {isDepositInProgress && transactionAmountWei
+                  {isOnlyDepositInProgress && transactionAmountWei
                     ? convertPerpsAmountToUSD(transactionAmountWei)
-                    : hasActiveWithdrawals && withdrawalAmount
+                    : isOnlyWithdrawalInProgress && withdrawalAmount
                     ? convertPerpsAmountToUSD(withdrawalAmount)
-                    : 'Processing...'}
+                    : null}
                 </Text>
               )}
             </Box>
