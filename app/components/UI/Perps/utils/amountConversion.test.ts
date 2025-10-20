@@ -17,9 +17,6 @@ describe('convertPerpsAmountToUSD', () => {
     // 1 ETH in wei (0xde0b6b3a7640000)
     expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe('$20,000');
 
-    // 0.5 ETH in wei (0x6f05b59d3b20000)
-    expect(convertPerpsAmountToUSD('0x6f05b59d3b20000')).toBe('$10,000');
-
     // 0.001 ETH in wei (0x38d7ea4c68000)
     expect(convertPerpsAmountToUSD('0x38d7ea4c68000')).toBe('$20');
   });

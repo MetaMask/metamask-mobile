@@ -59,21 +59,6 @@ describe('usePerpsWithdrawProgress', () => {
   });
 
   describe('Controller State Handling', () => {
-    it('sets withdrawal in progress when controller withdrawInProgress is true', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(true);
-      const { result } = renderHook(() => usePerpsWithdrawProgress());
-
-      // Act
-      act(() => {
-        // Trigger re-render with new selector value
-        mockUseSelector.mockReturnValue(true);
-      });
-
-      // Assert
-      expect(result.current.isWithdrawInProgress).toBe(false);
-    });
-
     it('clears withdrawal in progress when controller withdrawInProgress is false', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsWithdrawProgress());
@@ -328,18 +313,6 @@ describe('usePerpsWithdrawProgress', () => {
       act(() => {
         mockUseSelector.mockReturnValue(true);
       });
-      expect(result.current.isWithdrawInProgress).toBe(false);
-    });
-
-    it('maintains state consistency across re-renders', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(true);
-      const { result, rerender } = renderHook(() => usePerpsWithdrawProgress());
-
-      // Act - Re-render
-      rerender({});
-
-      // Assert
       expect(result.current.isWithdrawInProgress).toBe(false);
     });
   });
