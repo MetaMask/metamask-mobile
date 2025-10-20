@@ -12,6 +12,7 @@ import usePrevious from '../../../../hooks/usePrevious';
 import { isNativeAddress, isNonEvmChainId } from '@metamask/bridge-controller';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
+import { isEthAddress } from '../../../../../util/address';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -82,7 +83,8 @@ export const useLatestBalance = (token: {
       token.decimals &&
       chainId &&
       !isCaipChainId(chainId) &&
-      selectedAddress
+      selectedAddress &&
+      isEthAddress(selectedAddress)
     ) {
       // Create a unique UUID for this trace to prevent collisions
       const traceId = uuidv4();
