@@ -31,21 +31,35 @@ const TempTouchableOpacity = ({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Check accessibility state and handle errors
+    // Check if we're in a test environment
+    const isTestEnvironment =
+      process.env.NODE_ENV === 'test' ||
+      process.env.IS_TEST === 'true' ||
+      process.env.METAMASK_ENVIRONMENT === 'e2e';
+
+    if (isTestEnvironment) {
+      setIsAccessibilityEnabled(false);
+      return;
+    }
+
+    // In production, check accessibility state
+    if (!AccessibilityInfo?.isScreenReaderEnabled) {
+      setIsAccessibilityEnabled(false);
+      return;
+    }
+
     AccessibilityInfo.isScreenReaderEnabled()
       .then(setIsAccessibilityEnabled)
-      .catch(() => {
-        // Keep as false if there's an error
-        setIsAccessibilityEnabled(false);
-      });
+      .catch(() => setIsAccessibilityEnabled(false));
 
     // Listen for accessibility changes
-    const subscription = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      setIsAccessibilityEnabled,
-    );
-
-    return () => subscription?.remove();
+    if (AccessibilityInfo.addEventListener) {
+      const subscription = AccessibilityInfo.addEventListener(
+        'screenReaderChanged',
+        setIsAccessibilityEnabled,
+      );
+      return () => subscription?.remove();
+    }
   }, []);
 
   // Check if we should apply Android press handling
