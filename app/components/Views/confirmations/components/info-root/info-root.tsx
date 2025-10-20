@@ -22,6 +22,8 @@ import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfo } from '../info/predict-claim-info';
+import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -89,8 +91,25 @@ const Info = ({ route }: InfoProps) => {
     return <QRInfo />;
   }
 
-  if (transactionMetadata && hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])) {
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
+  ) {
     return <PredictDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
+  ) {
+    return <PredictClaimInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
+  ) {
+    return <PredictWithdrawInfo />;
   }
 
   const { requestData } = approvalRequest ?? {

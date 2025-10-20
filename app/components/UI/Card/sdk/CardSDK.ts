@@ -7,8 +7,23 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
 import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
-import { CardToken } from '../types';
+import {
+  CardAuthorizeResponse,
+  CardError,
+  CardErrorType,
+  CardExchangeTokenRawResponse,
+  CardExchangeTokenResponse,
+  CardLocation,
+  CardLoginInitiateResponse,
+  CardLoginResponse,
+  CardToken,
+} from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
+import { getCardBaanxToken } from '../util/cardTokenVault';
+
+// Default timeout for all API requests (10 seconds)
+const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
 // The CardSDK class provides methods to interact with the Card feature
 // and check if an address is a card holder, get supported tokens, and more.
@@ -18,6 +33,8 @@ export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
   private chainId: string | number;
   private enableLogs: boolean;
+  private cardBaanxApiBaseUrl: string;
+  private cardBaanxApiKey: string | undefined;
 
   constructor({
     cardFeatureFlag,
@@ -29,6 +46,12 @@ export class CardSDK {
     this.cardFeatureFlag = cardFeatureFlag;
     this.chainId = getDecimalChainId(LINEA_CHAIN_ID);
     this.enableLogs = enableLogs;
+    this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
+    this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
+  }
+
+  get isBaanxLoginEnabled(): boolean {
+    return this.cardFeatureFlag?.isBaanxLoginEnabled ?? false;
   }
 
   get isCardEnabled(): boolean {
@@ -96,16 +119,6 @@ export class CardSDK {
       BALANCE_SCANNER_ABI,
       this.ethersProvider,
     );
-  }
-
-  private get rampApiUrl() {
-    const onRampApi = this.cardFeatureFlag.constants?.onRampApiUrl;
-
-    if (!onRampApi) {
-      throw new Error('On Ramp API URL is not defined for the current chain');
-    }
-
-    return onRampApi;
   }
 
   private get accountsApiUrl() {
@@ -176,9 +189,9 @@ export class CardSDK {
       this.logDebugInfo('performCardholderRequest', data);
       return data.is || [];
     } catch (error) {
-      Logger.error(
+      Logger.log(
         error as Error,
-        'Failed to check if address is a card holder',
+        'CardSDK: Failed to check if address is a card holder',
       );
       return [];
     }
@@ -241,17 +254,24 @@ export class CardSDK {
 
   getGeoLocation = async (): Promise<string> => {
     try {
-      const url = new URL('geolocation', this.rampApiUrl);
+      const env = process.env.NODE_ENV ?? 'production';
+      const environment = env === 'production' ? 'PROD' : 'DEV';
+
+      const GEOLOCATION_URLS = {
+        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+      };
+      const url = GEOLOCATION_URLS[environment];
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch geolocation');
+        throw new Error(`Failed to get geolocation: ${response.statusText}`);
       }
 
       return await response.text();
     } catch (error) {
-      Logger.error(error as Error, 'Failed to get geolocation');
-      return '';
+      Logger.log(error as Error, 'CardSDK: Failed to get geolocation');
+      return 'UNKNOWN';
     }
   };
 
@@ -343,6 +363,397 @@ export class CardSDK {
       address,
       nonZeroBalanceTokens,
     );
+  };
+
+  private getBaanxApiBaseUrl() {
+    // always using url from env var if set
+    if (process.env.BAANX_API_URL) return process.env.BAANX_API_URL;
+    // otherwise using default per-env url
+    return getDefaultBaanxApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
+  }
+
+  private async makeRequest(
+    endpoint: string,
+    options: RequestInit & { query?: string } = {},
+    authenticated: boolean = false,
+    isUSEnv: boolean = false,
+    timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
+  ): Promise<Response> {
+    const apiKey = this.cardBaanxApiKey;
+
+    if (!apiKey) {
+      throw new CardError(
+        CardErrorType.API_KEY_MISSING,
+        'Card API key is not configured',
+      );
+    }
+
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      'x-us-env': isUSEnv ? 'true' : 'false',
+      'x-client-key': apiKey,
+    };
+
+    // Add bearer token for authenticated requests
+    try {
+      if (authenticated) {
+        const tokenResult = await getCardBaanxToken();
+        if (tokenResult.success && tokenResult.tokenData?.accessToken) {
+          headers.Authorization = `Bearer ${tokenResult.tokenData.accessToken}`;
+        }
+      }
+    } catch (error) {
+      // Continue without bearer token if retrieval fails
+      Logger.log('Failed to retrieve Card bearer token:', error);
+    }
+
+    const url = `${this.cardBaanxApiBaseUrl}${endpoint}${
+      options.query ? `?${options.query}` : ''
+    }`;
+
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        credentials: 'omit',
+        ...options,
+        headers: {
+          ...headers,
+          ...options.headers,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      // Check if the error is due to timeout
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new CardError(
+          CardErrorType.TIMEOUT_ERROR,
+          'Request timed out. Please check your connection.',
+          error,
+        );
+      }
+
+      // Network or other fetch errors
+      if (error instanceof Error) {
+        throw new CardError(
+          CardErrorType.NETWORK_ERROR,
+          'Network error. Please check your connection.',
+          error,
+        );
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'An unexpected error occurred.',
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  initiateCardProviderAuthentication = async (queryParams: {
+    state: string;
+    codeChallenge: string;
+    location: CardLocation;
+  }): Promise<CardLoginInitiateResponse> => {
+    if (!this.cardBaanxApiKey) {
+      throw new CardError(
+        CardErrorType.API_KEY_MISSING,
+        'Card API key is not configured',
+      );
+    }
+
+    const { state, codeChallenge, location } = queryParams;
+    const queryParamsString = new URLSearchParams();
+    queryParamsString.set('client_id', this.cardBaanxApiKey);
+    // Redirect URI is required but not used by this flow
+    queryParamsString.set('redirect_uri', 'https://example.com');
+    queryParamsString.set('state', state);
+    queryParamsString.set('code_challenge', codeChallenge);
+    queryParamsString.set('code_challenge_method', 'S256');
+    queryParamsString.set('mode', 'api');
+    queryParamsString.set('client_secret', this.cardBaanxApiKey);
+    queryParamsString.set('response_type', 'code');
+
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/authorize/initiate',
+      {
+        method: 'GET',
+        query: queryParamsString.toString(),
+      },
+      false,
+      location === 'us',
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to initiate authentication. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to initiate card provider authentication. Status: ${response.status}, Response: ${responseBody}`,
+      );
+      throw error;
+    }
+
+    const data = await response.json();
+    return data as CardLoginInitiateResponse;
+  };
+
+  login = async (body: {
+    email: string;
+    password: string;
+    location: CardLocation;
+  }): Promise<CardLoginResponse> => {
+    const { email, password, location } = body;
+
+    const response = await this.makeRequest(
+      '/v1/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      },
+      false,
+      location === 'us',
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.json();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 422) {
+        const error = new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid email or password, check your credentials and try again.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Invalid email or password during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      // Handle specific HTTP status codes
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        response.status === 404
+      ) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Invalid login details',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Invalid credentials during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      if (response.status >= 500) {
+        const error = new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Server error. Please try again later.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Server error during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Login failed. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Unknown error during login. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const data = await response.json();
+    return data as CardLoginResponse;
+  };
+
+  authorize = async (body: {
+    initiateAccessToken: string;
+    loginAccessToken: string;
+    location: CardLocation;
+  }): Promise<CardAuthorizeResponse> => {
+    const { initiateAccessToken, loginAccessToken, location } = body;
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/authorize',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          token: initiateAccessToken,
+        }),
+        headers: {
+          Authorization: `Bearer ${loginAccessToken}`,
+        },
+      },
+      false,
+      location === 'us',
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Authorization failed. Please try logging in again.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Authorization failed - invalid credentials. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Authorization failed. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Authorization failed. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const data = await response.json();
+    return data as CardAuthorizeResponse;
+  };
+
+  exchangeToken = async (body: {
+    code?: string;
+    codeVerifier?: string;
+    grantType: 'authorization_code' | 'refresh_token';
+    location: CardLocation;
+  }): Promise<CardExchangeTokenResponse> => {
+    let requestBody = null;
+
+    if (body.grantType === 'authorization_code') {
+      requestBody = {
+        code: body.code,
+        code_verifier: body.codeVerifier,
+        grant_type: body.grantType,
+        redirect_uri: 'https://example.com',
+      };
+    } else {
+      requestBody = {
+        grant_type: body.grantType,
+        refresh_token: body.code,
+      };
+    }
+
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/token',
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'x-secret-key': this.cardBaanxApiKey || '',
+        },
+      },
+      false,
+      body.location === 'us',
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Token exchange failed. Please try logging in again.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Token exchange failed - invalid credentials. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Token exchange failed. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Token exchange failed. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const data = (await response.json()) as CardExchangeTokenRawResponse;
+
+    return {
+      accessToken: data.access_token,
+      tokenType: data.token_type,
+      expiresIn: data.expires_in,
+      refreshToken: data.refresh_token,
+      refreshTokenExpiresIn: data.refresh_token_expires_in,
+    } as CardExchangeTokenResponse;
+  };
+
+  refreshLocalToken = async (
+    refreshToken: string,
+    location: CardLocation,
+  ): Promise<CardExchangeTokenResponse> => {
+    const tokenResponse = await this.exchangeToken({
+      code: refreshToken,
+      grantType: 'refresh_token',
+      location,
+    });
+
+    return tokenResponse;
   };
 
   private getFirstSupportedTokenOrNull(): CardToken | null {

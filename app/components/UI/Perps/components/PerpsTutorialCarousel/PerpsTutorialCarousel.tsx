@@ -508,17 +508,17 @@ const PerpsTutorialCarousel: React.FC = () => {
                     />
                   )}
                 </View>
-              </View>
-              <View style={styles.footerTextContainer}>
-                {screen.footerText && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles.footerText}
-                  >
-                    {screen.footerText}
-                  </Text>
-                )}
+                <View style={styles.footerTextContainer}>
+                  {screen.footerText && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                      style={styles.footerText}
+                    >
+                      {screen.footerText}
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
           ))}
