@@ -39,7 +39,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
         <View
           style={
             {
-              "borderColor": "#ffffff",
+              "borderColor": "#f3f5f9",
               "borderRadius": 64,
               "borderWidth": 3.5,
               "height": 36,
@@ -232,7 +232,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
         <View
           style={
             {
-              "borderColor": "#ffffff",
+              "borderColor": "#f3f5f9",
               "borderRadius": 64,
               "borderWidth": 3.5,
               "height": 36,
@@ -425,7 +425,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
         <View
           style={
             {
-              "borderColor": "#ffffff",
+              "borderColor": "#f3f5f9",
               "borderRadius": 64,
               "borderWidth": 3.5,
               "height": 36,

@@ -561,7 +561,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                 placeholderStyle={
                   {
                     "backgroundColor": "#f3f5f9",
-                    "borderColor": "#ffffff",
+                    "borderColor": "#f3f5f9",
                     "borderRadius": 16,
                     "borderWidth": 0.5,
                     "height": 32,
@@ -575,7 +575,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                 }
                 style={
                   {
-                    "borderColor": "#ffffff",
+                    "borderColor": "#f3f5f9",
                     "borderRadius": 16,
                     "borderWidth": 0.5,
                     "height": 32,
