@@ -7,6 +7,7 @@ import { View } from 'react-native';
 
 // Internal dependencies.
 import ListItemSelect from './ListItemSelect';
+import { VerticalAlignment } from '../ListItem/ListItem.types';
 
 // Test the real TempTouchableOpacity component - no mocking needed
 
@@ -147,7 +148,7 @@ describe('ListItemSelect', () => {
     const { getByTestId } = render(
       <ListItemSelect
         onPress={() => null}
-        verticalAlignment="center"
+        verticalAlignment={VerticalAlignment.Center}
         testID="list-item-select"
       >
         <View testID="test-content">Test Content</View>
