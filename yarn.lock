@@ -7117,13 +7117,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/build-utils@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/build-utils@npm:1.0.0"
+"@metamask/build-utils@npm:^3.0.0":
+  version: 3.0.4
+  resolution: "@metamask/build-utils@npm:3.0.4"
   dependencies:
-    "@metamask/utils": ^8.2.0
+    "@metamask/utils": ^11.8.1
     "@types/eslint": ^8.44.7
-  checksum: 3e70fc1b72948d0d5466b96e329fb80f2e08f70dcb801aa3cbb903bdc490245ed77e107ffa4da6c9ea6f6feb0551bb18f38da5d6467b1b35cc9de90e007ef451
+  checksum: bb9b25777c0b4f30a9f50de513000084b0d74b3961f0040f328c8a20751b96c567d90c9bf061ab584c23a2e9c97626f99849ced18caf42fef49f88708c3396c8
   languageName: node
   linkType: hard
 
@@ -34078,7 +34078,7 @@ __metadata:
     "@metamask/bridge-controller": ^50.0.0
     "@metamask/bridge-status-controller": ^50.0.0
     "@metamask/browser-passworder": ^5.0.0
-    "@metamask/build-utils": ^1.0.0
+    "@metamask/build-utils": ^3.0.0
     "@metamask/chain-agnostic-permission": ^1.1.0
     "@metamask/composable-controller": ^11.0.0
     "@metamask/controller-utils": ^11.11.0
