@@ -104,7 +104,8 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const totalClaimableAmount = useMemo(
       () =>
         wonPositions.reduce(
-          (sum: number, position: PredictPosition) => sum + position.cashPnl,
+          (sum: number, position: PredictPosition) =>
+            sum + position.currentValue,
           0,
         ),
       [wonPositions],
@@ -201,7 +202,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
                       twClassName="text-primary mr-1"
                       testID="claimable-amount"
                     >
-                      {formatPrice(balance)}
+                      {formatPrice(balance, { maximumDecimals: 2 })}
                     </Text>
                     <Icon
                       name={IconName.ArrowRight}
