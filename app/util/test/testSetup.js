@@ -197,8 +197,6 @@ jest.mock('react-native-blob-util', () => ({
   },
 }));
 
-Date.now = jest.fn(() => 123);
-
 jest.mock('../../core/NotificationManager', () => ({
   init: jest.fn(),
   watchSubmittedTransaction: jest.fn(),
