@@ -96,22 +96,35 @@ const createInfuraMocks = () => {
     'starknet-mainnet.infura.io',
     'starknet-goerli.infura.io',
     'starknet-sepolia.infura.io',
+    'ipfs.infura.io',
   ];
 
   endpoints.forEach((endpoint) => {
-    // Single mock per endpoint with generic JSON-RPC response
-    mocks.push({
-      urlEndpoint: new RegExp(
-        `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
-      ),
-      responseCode: 200,
-      response: createJsonRpcResponse(1, '0x0'),
-    });
+    if (endpoint === 'ipfs.infura.io') {
+      // IPFS endpoints are GET requests, not JSON-RPC
+      mocks.push({
+        urlEndpoint: new RegExp(
+          `^https://${endpoint.replace(/\./g, '\\.')}/ipfs/[a-zA-Z0-9]+.*$`,
+        ),
+        responseCode: 200,
+        response: 'Mock IPFS content',
+      });
+    } else {
+      // Regular Infura endpoints are POST requests with JSON-RPC
+      mocks.push({
+        urlEndpoint: new RegExp(
+          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
+        ),
+        responseCode: 200,
+        response: createJsonRpcResponse(1, '0x0'),
+      });
+    }
   });
 
   return mocks;
 };
 
 export const INFURA_MOCKS: MockEventsObject = {
-  POST: createInfuraMocks(),
+  GET: createInfuraMocks().filter(mock => mock.urlEndpoint.toString().includes('ipfs')),
+  POST: createInfuraMocks().filter(mock => !mock.urlEndpoint.toString().includes('ipfs')),
 };
