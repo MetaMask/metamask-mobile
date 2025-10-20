@@ -73,22 +73,33 @@ const createInfuraMocks = () => {
     'base-goerli.infura.io',
     'base-sepolia.infura.io',
     'avalanche-mainnet.infura.io',
+    'avalanche-fuji.infura.io',
+    'bsc-mainnet.infura.io',
+    'bsc-testnet.infura.io',
+    'celo-mainnet.infura.io',
+    'celo-alfajores.infura.io',
+    'gnosis-mainnet.infura.io',
+    'gnosis-chiado.infura.io',
+    'aurora-mainnet.infura.io',
+    'aurora-testnet.infura.io',
+    'fantom-mainnet.infura.io',
+    'fantom-testnet.infura.io',
+    'harmony-mainnet.infura.io',
+    'harmony-testnet.infura.io',
+    'moonbeam-mainnet.infura.io',
+    'moonbeam-moonbase.infura.io',
+    'moonriver-mainnet.infura.io',
+    'near-mainnet.infura.io',
+    'near-testnet.infura.io',
+    'palm-mainnet.infura.io',
+    'palm-testnet.infura.io',
+    'starknet-mainnet.infura.io',
+    'starknet-goerli.infura.io',
+    'starknet-sepolia.infura.io',
   ];
 
   endpoints.forEach((endpoint) => {
-    // Create method-specific mocks using requestBody matching
-    Object.entries(ETH_METHODS).forEach(([method, responseFn]) => {
-      mocks.push({
-        urlEndpoint: new RegExp(
-          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
-        ),
-        requestBody: { method },
-        responseCode: 200,
-        response: responseFn(),
-      });
-    });
-
-    // Generic fallback for any other JSON-RPC method
+    // Single mock per endpoint with generic JSON-RPC response
     mocks.push({
       urlEndpoint: new RegExp(
         `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
