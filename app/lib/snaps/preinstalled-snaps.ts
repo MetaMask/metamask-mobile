@@ -15,20 +15,20 @@ import TronWalletSnap from '@metamask/tron-wallet-snap/dist/preinstalled-snap.js
 ///: END:ONLY_INCLUDE_IF
 
 const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
-  ENSResolverSnap as unknown as PreinstalledSnap,
-  MessageSigningSnap as unknown as PreinstalledSnap,
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  SolanaWalletSnap as unknown as PreinstalledSnap,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  BitcoinWalletSnap as unknown as PreinstalledSnap,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(flask)
-  PreinstalledExampleSnap as unknown as PreinstalledSnap,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TronWalletSnap as unknown as PreinstalledSnap,
-  ///: END:ONLY_INCLUDE_IF
+  // ENSResolverSnap as unknown as PreinstalledSnap,
+  // MessageSigningSnap as unknown as PreinstalledSnap,
+  // ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  // SolanaWalletSnap as unknown as PreinstalledSnap,
+  // ///: END:ONLY_INCLUDE_IF
+  // ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  // BitcoinWalletSnap as unknown as PreinstalledSnap,
+  // ///: END:ONLY_INCLUDE_IF
+  // ///: BEGIN:ONLY_INCLUDE_IF(flask)
+  // PreinstalledExampleSnap as unknown as PreinstalledSnap,
+  // ///: END:ONLY_INCLUDE_IF
+  // ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  // TronWalletSnap as unknown as PreinstalledSnap,
+  // ///: END:ONLY_INCLUDE_IF
 ]);
 
 export default PREINSTALLED_SNAPS;
