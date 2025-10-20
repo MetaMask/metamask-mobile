@@ -65,6 +65,7 @@ export const CardSDKProvider = ({
   // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
     if (cardFeatureFlag) {
+      setIsLoading(true);
       const cardSDK = new CardSDK({
         cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
         userCardLocation,
@@ -72,6 +73,7 @@ export const CardSDKProvider = ({
       setSdk(cardSDK);
     } else {
       setSdk(null);
+      setIsLoading(false);
     }
 
     setIsLoading(false);
