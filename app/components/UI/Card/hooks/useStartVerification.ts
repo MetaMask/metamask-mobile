@@ -46,10 +46,6 @@ export const useStartVerification = (): UseStartVerificationReturn => {
         const errorMessage = 'Card SDK not initialized';
         setError(errorMessage);
         setIsError(true);
-        Logger.error(
-          new Error(errorMessage),
-          'useStartVerification::SDK not initialized',
-        );
         return null;
       }
 

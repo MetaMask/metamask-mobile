@@ -161,7 +161,6 @@ export enum CardErrorType {
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
   CONFLICT_ERROR = 'CONFLICT_ERROR',
-  BAD_REQUEST = 'BAD_REQUEST',
 }
 
 export class CardError extends Error {
@@ -198,11 +197,7 @@ export interface EmailVerificationVerifyRequest {
 export interface EmailVerificationVerifyResponse {
   hasAccount: boolean;
   onboardingId: string;
-  user: {
-    id: string;
-    email: string;
-    verificationState: string;
-  };
+  user: UserResponse;
 }
 
 // Phone verification interfaces
@@ -242,9 +237,7 @@ export interface RegisterPersonalDetailsRequest {
 
 export interface RegisterPersonalDetailsResponse {
   onboardingId: string;
-  user: {
-    id: string;
-  };
+  user: UserResponse;
 }
 
 export interface RegisterPhysicalAddressRequest {
@@ -268,12 +261,38 @@ export interface RegisterMailingAddressRequest {
 
 export interface RegisterAddressResponse {
   accessToken: string | null;
-  user?: {
-    id: string;
-    email: string;
-    verificationState: string;
-  };
+  onboardingId: string;
+  user?: UserResponse;
 }
+
+export interface UserResponse {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string; // Format: YYYY-MM-DD
+  email?: string;
+  verificationState?: VERIFICATION_STATUS;
+  phoneNumber?: string; // Format: 2345678901
+  phoneCountryCode?: string; // Format: +1
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  zip?: string;
+  usState?: string; // Required for US users
+  countryOfResidence?: string; // ISO 3166-1 alpha-2 country code
+  ssn?: string; // Required for US users only
+  mailingAddressLine1?: string;
+  mailingAddressLine2?: string;
+  mailingCity?: string;
+  mailingZip?: string;
+  mailingUsState?: string; // Required for US users
+}
+
+export type VERIFICATION_STATUS =
+  | 'PENDING'
+  | 'VERIFIED'
+  | 'REJECTED'
+  | 'UNVERIFIED';
 
 // Country type definition
 export interface RegistrationSettingsResponse {

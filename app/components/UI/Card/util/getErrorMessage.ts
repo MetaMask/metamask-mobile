@@ -59,8 +59,6 @@ export const getErrorMessage = (error: unknown): string => {
         }
 
         return error.message;
-      case CardErrorType.BAD_REQUEST:
-        return error.message;
       case CardErrorType.NETWORK_ERROR:
         return strings('card.card_authentication.errors.network_error');
       case CardErrorType.TIMEOUT_ERROR:

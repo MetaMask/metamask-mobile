@@ -42,6 +42,7 @@ import {
   CreateOnboardingConsentResponse,
   LinkUserToConsentRequest,
   LinkUserToConsentResponse,
+  UserResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -1212,7 +1213,7 @@ export class CardSDK {
     this.logDebugInfo('startUserVerification', { location });
     try {
       const response = await this.makeRequest(
-        '/v1/user/verification',
+        '/v1/auth/register/verification',
         {
           method: 'GET',
           headers: {
@@ -1232,7 +1233,7 @@ export class CardSDK {
 
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
-            CardErrorType.BAD_REQUEST,
+            CardErrorType.CONFLICT_ERROR,
             responseBody?.message || 'Failed to get registration settings',
           );
         }
@@ -1490,7 +1491,7 @@ export class CardSDK {
 
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
-            CardErrorType.BAD_REQUEST,
+            CardErrorType.CONFLICT_ERROR,
             responseBody?.message || 'Failed to get registration settings',
           );
         }
@@ -1517,6 +1518,65 @@ export class CardSDK {
       throw new CardError(
         CardErrorType.UNKNOWN_ERROR,
         'Failed to get registration settings',
+        error as Error,
+      );
+    }
+  };
+
+  getRegistrationStatus = async (
+    location: CardLocation,
+  ): Promise<UserResponse> => {
+    const isUSEnv = location === 'us';
+
+    this.logDebugInfo('getRegistrationStatus', { location });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register',
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+        isUSEnv,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to get registration status',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration status',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getRegistrationStatus response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getRegistrationStatus error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get registration status',
         error as Error,
       );
     }
@@ -1554,7 +1614,7 @@ export class CardSDK {
 
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
-            CardErrorType.BAD_REQUEST,
+            CardErrorType.CONFLICT_ERROR,
             responseBody?.message || 'Failed to create onboarding consent',
           );
         }
@@ -1621,16 +1681,9 @@ export class CardSDK {
           // If we can't parse response, continue without it
         }
 
-        if (responseBody?.message?.includes('already linked to a user')) {
-          throw new CardError(
-            CardErrorType.CONFLICT_ERROR,
-            responseBody?.message || 'User is already linked to a consent set',
-          );
-        }
-
         if (response.status >= 400 && response.status < 500) {
           throw new CardError(
-            CardErrorType.BAD_REQUEST,
+            CardErrorType.CONFLICT_ERROR,
             responseBody?.message || 'Failed to link user to consent',
           );
         }
