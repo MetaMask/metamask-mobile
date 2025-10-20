@@ -10,6 +10,7 @@ import { completeSrpQuiz } from '../multisrp/utils';
 
 describe(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
+  const LAST = 2;
 
   it('should be able to add a new account and verify it is working', async () => {
     await withMultichainAccountDetailsV2EnabledFixtures(async () => {
@@ -21,32 +22,20 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       );
       await AccountListBottomSheet.tapCreateAccount(FIRST);
 
-      // FIXME: tapAccountEllipsisButtonV2 seems to click wrong account, so we create
-      // 2nd account to use click the account by name
-      // We need to create "Account 4", as "Account 3" is already there from the beginning
-      await AccountListBottomSheet.tapCreateAccount(FIRST);
-
       // Account names are now per wallet, thus other accounts from the fixture (that are not associated
       // with the primary HD keyring) are not considered for account index. Current fixture uses 2 HD
       // accounts, thus the next one is: "Account 3".
-      // FIXME: this has been commented just to check if the test will work without it
-      // There was an issue with getAccountElementByAccountNameV2 not seeing newly created accounts
-      // const visibleAccounts = [
-      //   'Account 1',
-      //   'Account 2',
-      //   'Account 3',
-      //   'Account 4',
-      // ];
-      // for (const accountName of visibleAccounts) {
-      //   await Assertions.expectElementToBeVisible(
-      //     AccountListBottomSheet.getAccountElementByAccountNameV2(accountName),
-      //     {
-      //       description: `Account ${accountName} should be visible`,
-      //     },
-      //   );
-      // }
+      const visibleAccounts = ['Account 1', 'Account 2', 'Account 3'];
+      for (const accountName of visibleAccounts) {
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.getAccountElementByAccountNameV2(accountName),
+          {
+            description: `Account ${accountName} should be visible`,
+          },
+        );
+      }
 
-      await AccountListBottomSheet.tapAccountByName('Account 4');
+      await AccountListBottomSheet.tapAccountEllipsisButtonV2(LAST);
       await AccountDetails.tapNetworksLink();
 
       const visibleNetworks = [
@@ -65,16 +54,16 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       await completeSrpQuiz(defaultGanacheOptions.mnemonic);
 
       await WalletView.tapIdenticon();
-      await AccountListBottomSheet.tapAccountByName('Account 4');
+      await AccountListBottomSheet.tapAccountByNameV2(visibleAccounts[LAST]);
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should be visible',
       });
 
       await Assertions.expectElementToHaveText(
         WalletView.accountName,
-        'Account 4',
+        visibleAccounts[LAST],
         {
-          description: `Expect selected account to be Account 4`,
+          description: `Expect selected account to be ${visibleAccounts[LAST]}`,
         },
       );
     });
