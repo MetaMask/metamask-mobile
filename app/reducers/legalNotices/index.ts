@@ -35,9 +35,7 @@ export const shouldShowNewPrivacyToastSelector = (
 
   if (newPrivacyPolicyToastClickedOrClosed) return false;
 
-  const shownDate = newPrivacyPolicyToastShownDate
-    ? new Date(newPrivacyPolicyToastShownDate)
-    : new Date();
+  const shownDate = new Date(newPrivacyPolicyToastShownDate || 0);
 
   const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
   const isRecent =
