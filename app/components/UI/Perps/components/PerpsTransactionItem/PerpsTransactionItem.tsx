@@ -16,6 +16,15 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
+
+export enum FillType {
+  Standard = 'standard',
+  Liquidation = 'liquidation',
+  TakeProfit = 'take_profit',
+  StopLoss = 'stop_loss',
+  AutoDeleveraging = 'auto_deleveraging',
+}
+
 interface PerpsTransactionItemProps {
   item: PerpsTransaction;
   styles: {
@@ -51,40 +60,44 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
       return null;
     }
 
-    const tagConfig = [
-      {
-        condition: fill.isAutoDeleveraging,
+    if (fill.fillType === FillType.Standard) {
+      return null;
+    }
+
+    const tagConfig = {
+      [FillType.AutoDeleveraging]: {
         label: strings('perps.transactions.order.auto_deleveraging'),
         severity: TagSeverity.Info,
         textColor: TextColor.Default,
         includesBorder: false,
       },
-      {
+      [FillType.Liquidation]: {
+        // Only show if liquidated user is current user
         condition:
-          fill.isLiquidation &&
           fill.liquidation?.liquidatedUser === selectedAccount?.address,
         label: strings('perps.transactions.order.liquidated'),
         severity: TagSeverity.Danger,
         textColor: TextColor.Error,
         includesBorder: false,
       },
-      {
-        condition: fill.isTakeProfit,
+      [FillType.TakeProfit]: {
         label: strings('perps.transactions.order.take_profit'),
         severity: TagSeverity.Default,
         textColor: TextColor.Alternative,
         includesBorder: true,
       },
-      {
-        condition: fill.isStopLoss,
+      [FillType.StopLoss]: {
         label: strings('perps.transactions.order.stop_loss'),
         severity: TagSeverity.Default,
         textColor: TextColor.Alternative,
         includesBorder: true,
       },
-    ].find((config) => config.condition);
+    }[fill.fillType];
 
-    if (!tagConfig) {
+    if (
+      !tagConfig ||
+      (tagConfig.condition !== undefined && !tagConfig.condition)
+    ) {
       return null;
     }
 

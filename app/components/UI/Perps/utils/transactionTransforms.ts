@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import { Funding, Order, OrderFill } from '../controllers/types';
 import {
+  FillType,
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
@@ -114,6 +115,17 @@ export function transformFillsToTransactions(
       title = `${action} ${part2?.toLowerCase() || ''}`;
     }
 
+    let fillType = FillType.Standard;
+    if (isAutoDeleveraging) {
+      fillType = FillType.AutoDeleveraging;
+    } else if (isLiquidation) {
+      fillType = FillType.Liquidation;
+    } else if (isTakeProfit) {
+      fillType = FillType.TakeProfit;
+    } else if (isStopLoss) {
+      fillType = FillType.StopLoss;
+    }
+
     acc.push({
       id: orderId || `fill-${timestamp}`,
       type: 'trade',
@@ -141,11 +153,7 @@ export function transformFillsToTransactions(
         feeToken,
         action,
         liquidation,
-        // TODO: Consider consolidating these into a single value/object
-        isLiquidation,
-        isTakeProfit,
-        isStopLoss,
-        isAutoDeleveraging,
+        fillType,
       },
     });
     return acc;
