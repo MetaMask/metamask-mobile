@@ -71,7 +71,7 @@ jobs:
 
   build-android-dual:
     name: Build Android Dual Versions
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     needs: [check-builds-needed]
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
