@@ -55,7 +55,7 @@ export class NpmLocation extends BaseNpmLocation {
       );
 
       // We assume that NPM is a good actor and provides us with a valid `content-length` header.
-      const tarballSizeString = responseInfo.headers.get('content-length');
+      const tarballSizeString = responseInfo.headers['content-length'];
       assert(tarballSizeString, 'Snap tarball has invalid content-length');
       const tarballSize = parseInt(tarballSizeString, 10);
       assert(
