@@ -458,7 +458,7 @@ export class HyperLiquidSubscriptionService {
    * @private
    */
   private aggregateAccountStates(): AccountState {
-    const dexBreakdown: Record<
+    const subAccountBreakdown: Record<
       string,
       { availableBalance: string; totalBalance: string }
     > = {};
@@ -469,7 +469,7 @@ export class HyperLiquidSubscriptionService {
 
     this.dexAccountCache.forEach((state, currentDex) => {
       const dexKey = currentDex === '' ? 'main' : currentDex;
-      dexBreakdown[dexKey] = {
+      subAccountBreakdown[dexKey] = {
         availableBalance: state.availableBalance,
         totalBalance: state.totalBalance,
       };
@@ -489,7 +489,7 @@ export class HyperLiquidSubscriptionService {
       totalBalance: totalBalance.toString(),
       marginUsed: totalMarginUsed.toString(),
       unrealizedPnl: totalUnrealizedPnl.toString(),
-      dexBreakdown,
+      subAccountBreakdown,
     };
   }
 
@@ -1658,7 +1658,6 @@ export class HyperLiquidSubscriptionService {
             // Extract account state for this DEX
             const accountState = adaptAccountStateFromSDK(
               data.clearinghouseState,
-              undefined, // No spot state in clearinghouseState event
             );
 
             // Store per-DEX data in caches (with TP/SL data merged!)
