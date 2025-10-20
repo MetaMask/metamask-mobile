@@ -22,7 +22,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
-  shouldEnableAndroidPressIn = true,
+  shouldEnableAndroidPressIn = false,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });

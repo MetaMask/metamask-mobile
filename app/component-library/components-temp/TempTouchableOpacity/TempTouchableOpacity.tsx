@@ -40,7 +40,7 @@ const TempTouchableOpacity = ({
   onPressIn,
   onPressOut,
   disabled,
-  shouldEnableAndroidPressIn = true,
+  shouldEnableAndroidPressIn = false,
   children,
   ...props
 }: TempTouchableOpacityProps) => {

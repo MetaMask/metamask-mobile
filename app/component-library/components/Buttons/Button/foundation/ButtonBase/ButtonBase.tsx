@@ -30,7 +30,7 @@ const ButtonBase = ({
   style,
   width = DEFAULT_BUTTONBASE_WIDTH,
   isDisabled,
-  shouldEnableAndroidPressIn = true,
+  shouldEnableAndroidPressIn = false,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {
