@@ -105,7 +105,6 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
 
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
-  // Determine badge type using centralized utility
   const badgeType = getMarketBadgeType(displayMarket);
 
   return (
