@@ -47,6 +47,7 @@ const ETH_METHODS = {
 const createInfuraMocks = () => {
   const mocks: {
     urlEndpoint: string | RegExp;
+    requestBody?: unknown;
     responseCode: number;
     response: unknown;
   }[] = [];
@@ -75,30 +76,22 @@ const createInfuraMocks = () => {
   ];
 
   endpoints.forEach((endpoint) => {
-    // POST requests for JSON-RPC calls with specific project IDs
-    Object.entries(ETH_METHODS).forEach(([, responseFn]) => {
+    // Create method-specific mocks using requestBody matching
+    Object.entries(ETH_METHODS).forEach(([method, responseFn]) => {
       mocks.push({
         urlEndpoint: new RegExp(
-          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]+$`,
+          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
         ),
+        requestBody: { method },
         responseCode: 200,
         response: responseFn(),
       });
     });
 
-    // Generic fallback for any other JSON-RPC method with project ID
+    // Generic fallback for any other JSON-RPC method
     mocks.push({
       urlEndpoint: new RegExp(
-        `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]+$`,
-      ),
-      responseCode: 200,
-      response: createJsonRpcResponse(1, '0x0'),
-    });
-
-    // Additional fallback for URLs ending with just /v3/ (no project ID)
-    mocks.push({
-      urlEndpoint: new RegExp(
-        `^https://${endpoint.replace(/\./g, '\\.')}/v3/$`,
+        `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
       ),
       responseCode: 200,
       response: createJsonRpcResponse(1, '0x0'),
