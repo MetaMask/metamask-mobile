@@ -127,6 +127,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market?.status, market?.outcomes]);
 
+  // Determine the winning outcome (the outcome that contains the winning token)
+  const winningOutcome = useMemo(
+    () =>
+      winningOutcomeToken
+        ? market?.outcomes.find((outcome) =>
+            outcome.tokens.some((token) => token.id === winningOutcomeToken.id),
+          )
+        : undefined,
+    [market?.outcomes, winningOutcomeToken],
+  );
+
   const position: PredictPosition[] = positions;
   const currentPosition = position[0];
 
@@ -716,7 +727,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 <Box>
                   <PredictMarketOutcome
                     market={market}
-                    outcome={market?.outcomes[0]}
+                    outcome={winningOutcome || market?.outcomes[0]}
                     outcomeToken={winningOutcomeToken}
                     isClosed
                   />
