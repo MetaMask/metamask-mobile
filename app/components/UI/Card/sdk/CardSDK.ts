@@ -1053,7 +1053,7 @@ export class CardSDK {
         } catch {
           // If we can't parse response, continue without it
         }
-        if (responseBody?.message?.includes('Invalid verification code')) {
+        if (responseBody?.message?.includes('no valid verification code')) {
           throw new CardError(
             CardErrorType.CONFLICT_ERROR,
             'Invalid verification code. Please check your code and try again.',
@@ -1074,7 +1074,7 @@ export class CardSDK {
         ) {
           throw new CardError(
             CardErrorType.CONFLICT_ERROR,
-            'Invalid or expired contact verification ID. Please request a new code.',
+            'Invalid or expired contact verification ID.',
           );
         }
         if (response.status >= 400 && response.status < 500) {

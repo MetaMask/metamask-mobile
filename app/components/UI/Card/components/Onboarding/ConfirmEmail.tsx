@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -22,11 +22,13 @@ import {
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
+import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
 
@@ -34,6 +36,14 @@ const ConfirmEmail = () => {
     email: string;
     password: string;
   }>();
+
+  const {
+    sendEmailVerification,
+    isLoading: emailVerificationIsLoading,
+    isError: emailVerificationIsError,
+    error: emailVerificationError,
+    reset: resetEmailVerificationSend,
+  } = useEmailVerificationSend();
 
   const {
     verifyEmailVerification,
@@ -51,7 +61,41 @@ const ConfirmEmail = () => {
     [resetVerifyEmailVerification],
   );
 
-  const handleContinue = async () => {
+  // Cooldown timer effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => {
+        setResendCooldown(resendCooldown - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [resendCooldown]);
+
+  const handleResendVerification = useCallback(async () => {
+    if (resendCooldown > 0 || !email || !selectedCountry) return;
+
+    try {
+      await sendEmailVerification(
+        email,
+        selectedCountry === 'US' ? 'us' : 'international',
+      );
+      setResendCooldown(60); // 1 minute cooldown
+      resetEmailVerificationSend();
+    } catch (error) {
+      // Error handling is managed by the hook
+    }
+  }, [
+    email,
+    resendCooldown,
+    resetEmailVerificationSend,
+    selectedCountry,
+    sendEmailVerification,
+  ]);
+
+  const handleContinue = useCallback(async () => {
     if (
       !selectedCountry ||
       !email ||
@@ -79,14 +123,22 @@ const ConfirmEmail = () => {
     } catch (error) {
       if (
         error instanceof CardError &&
-        (error.message.includes('Invalid or expired contact verification ID') ||
-          error.message.includes('Verification code has expired'))
+        error.message.includes('Invalid or expired contact verification ID')
       ) {
         // navigate back and restart the flow
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
     }
-  };
+  }, [
+    confirmCode,
+    contactVerificationId,
+    dispatch,
+    email,
+    navigation,
+    password,
+    selectedCountry,
+    verifyEmailVerification,
+  ]);
 
   const isDisabled =
     verifyLoading ||
@@ -98,31 +150,63 @@ const ConfirmEmail = () => {
     !contactVerificationId;
 
   const renderFormFields = () => (
-    <Box>
-      <Label>
-        {strings('card.card_onboarding.confirm_email.confirm_code_label')}
-      </Label>
-      <TextField
-        autoCapitalize={'none'}
-        onChangeText={handleConfirmCodeChange}
-        placeholder={strings(
-          'card.card_onboarding.confirm_email.confirm_code_placeholder',
+    <>
+      <Box>
+        <Label>
+          {strings('card.card_onboarding.confirm_email.confirm_code_label')}
+        </Label>
+        <TextField
+          autoCapitalize={'none'}
+          onChangeText={handleConfirmCodeChange}
+          placeholder={strings(
+            'card.card_onboarding.confirm_email.confirm_code_placeholder',
+          )}
+          numberOfLines={1}
+          size={TextFieldSize.Lg}
+          value={confirmCode}
+          keyboardType="numeric"
+          maxLength={255}
+          accessibilityLabel={strings(
+            'card.card_onboarding.confirm_email.confirm_code_label',
+          )}
+        />
+        {verifyIsError && (
+          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            {verifyError}
+          </Text>
         )}
-        numberOfLines={1}
-        size={TextFieldSize.Lg}
-        value={confirmCode}
-        keyboardType="numeric"
-        maxLength={255}
-        accessibilityLabel={strings(
-          'card.card_onboarding.confirm_email.confirm_code_label',
-        )}
-      />
-      {verifyIsError && (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
-          {verifyError}
+      </Box>
+
+      {/* Resend verification */}
+      <Box>
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName={`${
+            resendCooldown > 0
+              ? 'text-text-muted'
+              : 'text-primary-default cursor-pointer'
+          }`}
+          onPress={resendCooldown > 0 ? undefined : handleResendVerification}
+          disabled={
+            resendCooldown > 0 ||
+            !email ||
+            !selectedCountry ||
+            emailVerificationIsLoading
+          }
+        >
+          {resendCooldown > 0
+            ? strings('card.card_onboarding.confirm_email.resend_cooldown', {
+                seconds: resendCooldown,
+              })
+            : strings('card.card_onboarding.confirm_email.resend_verification')}
         </Text>
-      )}
-    </Box>
+        {emailVerificationIsError && (
+          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            {emailVerificationError}
+          </Text>
+        )}
+      </Box>
+    </>
   );
 
   const renderActions = () => (

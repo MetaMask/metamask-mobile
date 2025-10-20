@@ -5923,13 +5923,16 @@
         "password_placeholder": "Enter your password",
         "country_placeholder": "Select your country",
         "password_mismatch": "Passwords do not match",
-        "invalid_email": "Invalid email address"
+        "invalid_email": "Invalid email address",
+        "invalid_password": "Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters"
       },
       "confirm_email": {
         "title": "Confirm your email",
         "description": "We've sent a confirmation code to: {{email}}",
         "confirm_code_label": "Confirmation code",
-        "confirm_code_placeholder": "Enter the confirmation code"
+        "confirm_code_placeholder": "Enter the confirmation code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "set_phone_number": {
         "title": "Phone number",

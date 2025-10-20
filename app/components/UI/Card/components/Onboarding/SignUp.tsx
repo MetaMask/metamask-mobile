@@ -24,6 +24,7 @@ import {
   setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
+import { validatePassword } from '../../util/validatePassword';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -34,8 +35,8 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordError, setIsPasswordError] = useState(false);
+  const [isConfirmPasswordError, setIsConfirmPasswordError] = useState(false);
   const selectedCountry = useSelector(selectSelectedCountry);
-
   const { data: registrationSettings } = useRegistrationSettings();
 
   const {
@@ -47,6 +48,7 @@ const SignUp = () => {
   } = useEmailVerificationSend();
 
   const debouncedEmail = useDebouncedValue(email, 1000);
+  const debouncedPassword = useDebouncedValue(password, 1000);
   const debouncedConfirmPassword = useDebouncedValue(confirmPassword, 1000);
 
   const selectOptions = useMemo(() => {
@@ -68,28 +70,37 @@ const SignUp = () => {
   }, [debouncedEmail]);
 
   useEffect(() => {
+    if (!debouncedPassword) {
+      return;
+    }
+    setIsPasswordError(!validatePassword(debouncedPassword));
+  }, [debouncedPassword]);
+
+  useEffect(() => {
     if (!debouncedConfirmPassword) {
       return;
     }
-    setIsPasswordError(debouncedConfirmPassword !== password);
-  }, [debouncedConfirmPassword, password]);
+    setIsConfirmPasswordError(debouncedConfirmPassword !== debouncedPassword);
+  }, [debouncedConfirmPassword, debouncedPassword]);
 
   const isDisabled = useMemo(
     () =>
       !debouncedEmail ||
-      !password ||
+      !debouncedPassword ||
       !debouncedConfirmPassword ||
       !selectedCountry ||
       isPasswordError ||
+      isConfirmPasswordError ||
       isEmailError ||
       emailVerificationIsError ||
       emailVerificationIsLoading,
     [
       debouncedEmail,
-      password,
+      debouncedPassword,
       debouncedConfirmPassword,
       selectedCountry,
       isPasswordError,
+      isConfirmPasswordError,
       isEmailError,
       emailVerificationIsError,
       emailVerificationIsLoading,
@@ -112,21 +123,38 @@ const SignUp = () => {
     [resetEmailVerificationSend],
   );
 
-  const handleContinue = async () => {
-    if (!debouncedEmail || !debouncedConfirmPassword || !selectedCountry) {
+  const handleContinue = useCallback(async () => {
+    if (
+      !debouncedEmail ||
+      !debouncedPassword ||
+      !debouncedConfirmPassword ||
+      !selectedCountry
+    ) {
       return;
     }
-    const { contactVerificationId } = await sendEmailVerification(
-      debouncedEmail,
-      selectedCountry === 'US' ? 'us' : 'international',
-    );
-    dispatch(setContactVerificationId(contactVerificationId));
+    try {
+      const { contactVerificationId } = await sendEmailVerification(
+        debouncedEmail,
+        selectedCountry === 'US' ? 'us' : 'international',
+      );
+      dispatch(setContactVerificationId(contactVerificationId));
 
-    navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
-      email: debouncedEmail,
-      password: debouncedConfirmPassword,
-    });
-  };
+      navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
+        email: debouncedEmail,
+        password: debouncedConfirmPassword,
+      });
+    } catch {
+      // Allow error message to display
+    }
+  }, [
+    debouncedConfirmPassword,
+    debouncedEmail,
+    debouncedPassword,
+    dispatch,
+    navigation,
+    selectedCountry,
+    sendEmailVerification,
+  ]);
 
   const handleCountrySelect = useCallback(
     (countryValue: string) => {
@@ -183,7 +211,13 @@ const SignUp = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.password_label',
           )}
+          isError={debouncedPassword.length > 0 && isPasswordError}
         />
+        {debouncedPassword.length > 0 && isPasswordError ? (
+          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            {strings('card.card_onboarding.sign_up.invalid_password')}
+          </Text>
+        ) : null}
       </Box>
 
       <Box>
@@ -204,9 +238,11 @@ const SignUp = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.confirm_password_label',
           )}
-          isError={debouncedConfirmPassword.length > 0 && isPasswordError}
+          isError={
+            debouncedConfirmPassword.length > 0 && isConfirmPasswordError
+          }
         />
-        {debouncedConfirmPassword.length > 0 && isPasswordError && (
+        {debouncedConfirmPassword.length > 0 && isConfirmPasswordError && (
           <Text variant={TextVariant.BodySm} twClassName="text-error-default">
             {strings('card.card_onboarding.sign_up.password_mismatch')}
           </Text>
