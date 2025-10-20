@@ -131,7 +131,6 @@ const createStyles = (colors: Colors) =>
     },
     portfolioBalance: {
       marginHorizontal: 16,
-      paddingTop: 24,
     },
     portfolioLink: { marginLeft: 8 },
     bottomModal: {
