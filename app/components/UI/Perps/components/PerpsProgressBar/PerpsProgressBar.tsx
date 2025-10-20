@@ -149,7 +149,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
     });
 
     // Hide after animation completes
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       setShouldShow(false);
       setIsAnimatingToComplete(false);
 
@@ -159,7 +159,13 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
         controller.updateWithdrawalProgress(0);
       }
     }, 500);
-  }, [isAnimatingToComplete, progressWidth]);
+    return () => clearTimeout(timeout);
+  }, [
+    isAnimatingToComplete,
+    progressWidth,
+    setShouldShow,
+    setIsAnimatingToComplete,
+  ]);
 
   // Listen for transaction status updates
   useEffect(() => {
