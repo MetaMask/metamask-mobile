@@ -185,7 +185,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
-      isRefreshing: false,
     });
 
     mockUseDepositRequests.mockReturnValue({
@@ -193,7 +192,6 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
-      isRefreshing: false,
     });
   });
 
