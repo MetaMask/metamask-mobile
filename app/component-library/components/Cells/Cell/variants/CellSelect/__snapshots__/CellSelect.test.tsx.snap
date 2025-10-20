@@ -3,7 +3,6 @@
 exports[`CellSelect should render default settings correctly 1`] = `
 <TouchableOpacity
   disabled={false}
-  onPressOut={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",

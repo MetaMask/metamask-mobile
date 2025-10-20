@@ -6,7 +6,7 @@ exports[`ButtonBase handles custom label color 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -41,7 +41,7 @@ exports[`ButtonBase handles custom label text variant 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -76,7 +76,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 32 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -111,7 +111,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 40 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -146,7 +146,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 48 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -181,7 +181,7 @@ exports[`ButtonBase handles different widths 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -217,7 +217,7 @@ exports[`ButtonBase renders when disabled 1`] = `
   activeOpacity={1}
   disabled={true}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -253,7 +253,7 @@ exports[`ButtonBase renders with basic props 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -288,7 +288,7 @@ exports[`ButtonBase renders with both start and end icons 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -343,7 +343,7 @@ exports[`ButtonBase renders with custom label component 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -368,7 +368,7 @@ exports[`ButtonBase renders with end icon 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -413,7 +413,7 @@ exports[`ButtonBase renders with start icon 1`] = `
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={true}
+  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",

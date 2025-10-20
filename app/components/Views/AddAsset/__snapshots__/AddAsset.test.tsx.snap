@@ -361,7 +361,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               disabled={false}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -401,7 +400,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               activeOpacity={1}
               disabled={true}
               loading={false}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -732,7 +730,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
           accessible={true}
           activeOpacity={1}
           disabled={true}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -991,7 +988,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={true}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
