@@ -13,6 +13,7 @@ export function createStakedTrxAsset(
   return {
     ...base,
     name: 'Staked TRX',
+    symbol: 'sTRX',
     balance: formatWithThreshold(sum, minimumDisplayThreshold, I18n.locale, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 5,

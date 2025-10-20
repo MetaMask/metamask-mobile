@@ -151,10 +151,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
 
   const strxEnergy = tronResources.find(
-    (a) => a.name.toLowerCase() === 'strx-energy',
+    (a) => a.symbol.toLowerCase() === 'strx-energy',
   );
   const strxBandwidth = tronResources.find(
-    (a) => a.name.toLowerCase() === 'strx-bandwidth',
+    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
   );
   ///: END:ONLY_INCLUDE_IF
 
@@ -587,15 +587,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             />
           )}
 
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakedTrxAsset && (
+              <Balance
+                asset={stakedTrxAsset}
+                mainBalance={stakedTrxAsset.balance}
+                secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
-            {
-              ///: BEGIN:ONLY_INCLUDE_IF(tron)
-              isTronNative && stakedTrxAsset && (
-                <TokenDetails asset={stakedTrxAsset} />
-              )
-              ///: END:ONLY_INCLUDE_IF
-            }
           </View>
           {networkModal}
         </View>
