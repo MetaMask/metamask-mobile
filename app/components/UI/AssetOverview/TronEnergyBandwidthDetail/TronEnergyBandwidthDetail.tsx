@@ -16,21 +16,21 @@ import ResourceRing from './ResourceRing';
 const TronEnergyBandwidthDetail = () => {
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
 
-  const energy = tronResources.find((a) => a.name.toLowerCase() === 'energy');
+  const energy = tronResources.find((a) => a.symbol.toLowerCase() === 'energy');
   const bandwidth = tronResources.find(
-    (a) => a.name.toLowerCase() === 'bandwidth',
+    (a) => a.symbol.toLowerCase() === 'bandwidth',
   );
   const maxEnergy = tronResources.find(
-    (a) => a.name.toLowerCase() === 'max-energy',
+    (a) => a.symbol.toLowerCase() === 'max-energy',
   );
   const maxBandwidth = tronResources.find(
-    (a) => a.name.toLowerCase() === 'max-bandwidth',
+    (a) => a.symbol.toLowerCase() === 'max-bandwidth',
   );
   const strxEnergy = tronResources.find(
-    (a) => a.name.toLowerCase() === 'strx-energy',
+    (a) => a.symbol.toLowerCase() === 'strx-energy',
   );
   const strxBandwidth = tronResources.find(
-    (a) => a.name.toLowerCase() === 'strx-bandwidth',
+    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
   );
 
   const parseNum = (v?: string | number) =>

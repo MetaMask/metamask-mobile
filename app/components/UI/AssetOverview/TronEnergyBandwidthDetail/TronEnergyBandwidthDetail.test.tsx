@@ -32,11 +32,11 @@ type SelectorReturn = ReturnType<
   typeof selectTronResourcesBySelectedAccountGroup
 >;
 interface Resource {
-  name: string;
+  symbol: string;
   balance: number | string;
 }
-const res = (name: string, balance: number | string): Resource => ({
-  name,
+const res = (symbol: string, balance: number | string): Resource => ({
+  symbol,
   balance,
 });
 
