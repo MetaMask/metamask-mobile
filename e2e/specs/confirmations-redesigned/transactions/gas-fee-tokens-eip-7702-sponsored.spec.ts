@@ -19,6 +19,7 @@ import {
   TRANSACTION_RELAY_STATUS_NETWORKS_MOCK,
   TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/transaction-relay-mocks';
+import { RelayStatus } from '../../../../app/util/transactions/transaction-relay';
 
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
@@ -98,7 +99,11 @@ const SIMULATION_GAS_SPONSORSHIP_MOCK = {
 describe(
   SmokeConfirmationsRedesigned('Send native asset using EIP-7702'),
   () => {
-    const testSpecificMock = async (mockServer: Mockttp) => {
+    const testSpecificMock = async (
+      mockServer: Mockttp,
+      options: { success: boolean } = { success: true },
+    ) => {
+      const { success } = options;
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
         url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
@@ -123,47 +128,81 @@ describe(
         mockServer,
         Object.assign({}, ...remoteFeatureEip7702),
       );
-      await setupMockRequest(mockServer, {
-        requestMethod: 'POST',
-        url: `${LOCALHOST_SENTINEL_URL}/`,
-        response: TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK.response,
-        responseCode: 200,
-      });
+      if (success) {
+        await setupMockRequest(mockServer, {
+          requestMethod: 'POST',
+          url: `${LOCALHOST_SENTINEL_URL}/`,
+          response: TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK.response,
+          responseCode: 200,
+        });
+      }
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
         url: `${TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.urlEndpoint}`,
-        response: TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.response,
+        response: {
+          transactions: [
+            {
+              hash: TRANSACTION_RELAY_STATUS_NETWORKS_MOCK.response
+                .transactions[0].hash,
+              status: success ? RelayStatus.Success : 'FAILED',
+            },
+          ],
+        },
         responseCode: 200,
       });
     };
 
+    const fixtureBase = {
+      fixture: new FixtureBuilder()
+        .withGanacheNetwork()
+        .withPermissionControllerConnectedToTestDapp(
+          buildPermissions(['0x539']),
+        )
+        .withDisabledSmartTransactions()
+        .build(),
+      restartDevice: true,
+      localNodeOptions: [
+        {
+          type: LocalNodeType.anvil,
+          options: {
+            hardfork: 'prague' as Hardfork,
+            loadState:
+              './e2e/specs/confirmations-redesigned/transactions/7702/withUpgradedAccount.json',
+          },
+        },
+      ],
+      testSpecificMock,
+    };
+
     it('should send ETH sponsored by MetaMask', async () => {
+      await withFixtures(fixtureBase, async () => {
+        await loginToApp();
+        await device.disableSynchronization();
+        await WalletView.tapWalletSendButton();
+        await SendView.selectEthereumToken();
+        await SendView.pressAmountFiveButton();
+        await SendView.pressContinueButton();
+        await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
+        await SendView.pressReviewButton();
+        await Assertions.expectElementToBeVisible(
+          RowComponents.NetworkFeePaidByMetaMask,
+        );
+        await FooterActions.tapConfirmButton();
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Confirmed');
+      });
+    });
+
+    it('fails transaction if error', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .withDisabledSmartTransactions()
-            .build(),
-          restartDevice: true,
-          localNodeOptions: [
-            {
-              type: LocalNodeType.anvil,
-              options: {
-                hardfork: 'prague' as Hardfork,
-                loadState:
-                  './e2e/specs/confirmations-redesigned/transactions/7702/withUpgradedAccount.json',
-              },
-            },
-          ],
-          testSpecificMock,
+          ...fixtureBase,
+          testSpecificMock: async (mockServer: Mockttp) =>
+            await testSpecificMock(mockServer, { success: false }),
         },
         async () => {
           await loginToApp();
           await device.disableSynchronization();
-          // send 5 ETH
           await WalletView.tapWalletSendButton();
           await SendView.selectEthereumToken();
           await SendView.pressAmountFiveButton();
@@ -175,7 +214,7 @@ describe(
           );
           await FooterActions.tapConfirmButton();
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.expectTextDisplayed('Failed');
         },
       );
     });
