@@ -54,3 +54,16 @@ export const PredictMarketDetailsSelectorsIDs = {
   POSITIONS_TAB: 'predict-market-details-positions-tab',
   OUTCOMES_TAB: 'predict-market-details-outcomes-tab',
 } as const;
+
+// ========================================
+// PREDICT UNAVAILABLE (GEO-BLOCK) SELECTORS
+// ========================================
+
+import enContent from '../../../locales/languages/en.json';
+
+export const PredictUnavailableSelectorsIDs = {
+  TITLE_TEXT: enContent.predict.unavailable.title,
+  DESCRIPTION_TEXT: enContent.predict.unavailable.description,
+  LINK_TEXT: enContent.predict.unavailable.link,
+  BUTTON_TEXT: enContent.predict.unavailable.button,
+} as const;
