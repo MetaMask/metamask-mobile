@@ -38,6 +38,7 @@ interface TempTouchableOpacityProps extends TouchableOpacityProps {
 const TempTouchableOpacity = ({
   onPress,
   onPressIn,
+  onPressOut,
   disabled,
   shouldEnableAndroidPressIn = true,
   children,
@@ -129,24 +130,21 @@ const TempTouchableOpacity = ({
         timeoutRef.current = null;
       }
 
-      // Stricter tap detection to prevent scroll interference
-      const MAX_DURATION = 200; // 200ms max duration (reduced for stricter detection)
-      const MAX_MOVEMENT = 10; // 10px max movement (reduced for stricter detection)
+      // Very strict tap detection to prevent scroll interference
+      const MAX_DURATION = 150; // 150ms max duration (very strict)
+      const MAX_MOVEMENT = 5; // 5px max movement (very strict)
 
       // Calculate velocity to better distinguish taps from scrolls
       const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY) / duration;
-      const MAX_VELOCITY = 0.5; // 0.5 px/ms max velocity for taps
+      const MAX_VELOCITY = 0.2; // 0.2 px/ms max velocity for taps (very strict)
 
+      // Only fire onPress if it's a very clear tap
       if (
         duration < MAX_DURATION &&
         deltaX < MAX_MOVEMENT &&
         deltaY < MAX_MOVEMENT &&
         velocity < MAX_VELOCITY
       ) {
-        onPress(pressEvent);
-      } else if (duration < 500 && velocity < 1.0) {
-        // Fallback: if tap detection fails but it's still a reasonable gesture,
-        // fire onPress to ensure responsiveness (but with longer duration and velocity check)
         onPress(pressEvent);
       }
 
@@ -176,7 +174,7 @@ const TempTouchableOpacity = ({
       // If accessibility is enabled, use normal handlers
       finalOnPress = onPress;
       finalOnPressIn = onPressIn;
-      finalOnPressOut = undefined; // No special onPressOut handling needed
+      finalOnPressOut = onPressOut; // No special onPressOut handling needed
     } else {
       // If accessibility is disabled, use tap emulator
       finalOnPress = undefined; // We handle this in onPressOut
