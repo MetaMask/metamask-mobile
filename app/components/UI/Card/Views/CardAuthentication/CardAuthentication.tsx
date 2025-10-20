@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -30,19 +30,19 @@ import createStyles from './CardAuthentication.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
 import { CardAuthenticationSelectors } from '../../../../../../e2e/selectors/Card/CardAuthentication.selectors';
-import { NavigationActions } from '@react-navigation/compat';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardLocation } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 
 const CardAuthentication = () => {
-  const { dispatch, addListener } = useNavigation();
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<CardLocation>('international');
-  const [loginSuccess, setLoginSuccess] = useState(false);
   const theme = useTheme();
-  const { login, loading, error, clearError } = useCardProviderAuthentication();
+  const { login, error, clearError } = useCardProviderAuthentication();
 
   const styles = createStyles(theme);
 
@@ -60,46 +60,29 @@ const CardAuthentication = () => {
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = addListener('beforeRemove', (e) => {
-      if (loading) {
-        e.preventDefault();
-        return;
-      }
-
-      dispatch(e.data.action);
-    });
-
-    return unsubscribe;
-  }, [addListener, loading, dispatch]);
-
-  // Navigate to home after successful login when loading is complete
-  useEffect(() => {
-    if (loginSuccess && !loading && !error) {
-      dispatch(
-        NavigationActions.navigate({
-          routeName: Routes.CARD.HOME,
-        }),
-      );
-      setLoginSuccess(false); // Reset the flag
-    }
-  }, [loginSuccess, loading, error, dispatch]);
-
   const performLogin = useCallback(async () => {
-    await login({
-      location,
-      email,
-      password,
-    });
+    try {
+      setLoading(true);
+      await login({
+        location,
+        email,
+        password,
+      });
 
-    if (!error) {
-      setLoginSuccess(true);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    } catch (err) {
+      Logger.log('CardAuthentication::Login failed', err);
+    } finally {
+      setLoading(false);
     }
-  }, [error, email, location, login, password]);
+  }, [email, location, login, password, navigation]);
 
   const isDisabled = useMemo(
-    () => loading || !!error || email.length === 0 || password.length === 0,
-    [loading, error, email, password],
+    () => !!error || email.length === 0 || password.length === 0,
+    [error, email, password],
   );
 
   return (
