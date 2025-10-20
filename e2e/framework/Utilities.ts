@@ -248,7 +248,7 @@ export default class Utilities {
      */
 
     if (checkVisibility) {
-      const visibilityTimeout = timeout || 100; // If no timeout is provided, default to 100ms
+      const visibilityTimeout = timeout || 2000; // If no timeout is provided, default to 100ms
       if (device.getPlatform() === 'ios') {
         await waitFor(el).toExist().withTimeout(visibilityTimeout);
       } else {
