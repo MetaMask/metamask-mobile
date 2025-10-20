@@ -305,15 +305,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
     isClosing: false,
     limitPrice: orderForm.limitPrice,
     direction: orderForm.direction,
-    // TODO: We're passing in several sub-properties of currentPrice. Consider passing in the entire currentPrice object instead.
     currentAskPrice: currentPrice?.bestAsk
-      ? parseFloat(currentPrice.bestAsk)
+      ? Number.parseFloat(currentPrice.bestAsk)
       : undefined,
     currentBidPrice: currentPrice?.bestBid
-      ? parseFloat(currentPrice.bestBid)
+      ? Number.parseFloat(currentPrice.bestBid)
       : undefined,
     priceTimestamp: currentPrice?.timestamp,
   });
+
   const estimatedFees = feeResults.totalFee;
 
   // Simple boolean calculation - no need for expensive memoization

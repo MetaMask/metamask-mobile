@@ -191,6 +191,9 @@ const PerpsClosePositionView: React.FC = () => {
     () => closingValue.toString(),
     [closingValue],
   );
+
+  const positionPriceData = priceData[position.coin];
+
   const feeResults = usePerpsOrderFees({
     orderType,
     amount: closingValueString,
@@ -198,15 +201,13 @@ const PerpsClosePositionView: React.FC = () => {
     isClosing: true,
     limitPrice,
     direction: isLong ? 'short' : 'long',
-    currentAskPrice: priceData[position.coin]?.bestAsk
-      ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        parseFloat(priceData[position.coin].bestAsk!)
+    currentAskPrice: positionPriceData?.bestAsk
+      ? Number.parseFloat(positionPriceData.bestAsk)
       : undefined,
-    currentBidPrice: priceData[position.coin]?.bestBid
-      ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        parseFloat(priceData[position.coin].bestBid!)
+    currentBidPrice: positionPriceData?.bestBid
+      ? Number.parseFloat(positionPriceData.bestBid)
       : undefined,
-    priceTimestamp: priceData[position.coin]?.timestamp,
+    priceTimestamp: positionPriceData?.timestamp,
   });
 
   // Simple boolean calculation for rewards state
