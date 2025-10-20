@@ -48,6 +48,7 @@ jest.mock('../Engine', () => {
           KeyringController: {
             subscribe: jest.fn(),
             state: { ...keyringState },
+            metadata: { vault: keyringState?.vault || 'test_vault' },
           },
           AssetsContractController: { subscribe: jest.fn() },
           NftController: { subscribe: jest.fn() },
@@ -195,6 +196,88 @@ describe('EngineService', () => {
     });
   });
 
+  describe('existing user vault check', () => {
+    it('should log vault status when user is an existing user', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: true },
+          engine: {
+            backgroundState: {
+              KeyringController: { vault: 'encrypted_vault_string' },
+            },
+          },
+        }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      engineService.start();
+
+      await waitFor(() => {
+        expect(Logger.log).toHaveBeenCalledWith(
+          'EngineService: Is vault defined at KeyringController before Enging init: ',
+          true,
+        );
+      });
+    });
+
+    it('should log vault as undefined when existing user has no vault', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: true },
+          engine: {
+            backgroundState: {
+              KeyringController: {},
+            },
+          },
+        }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      engineService.start();
+
+      await waitFor(() => {
+        expect(Logger.log).toHaveBeenCalledWith(
+          'EngineService: Is vault defined at KeyringController before Enging init: ',
+          false,
+        );
+      });
+    });
+  });
+
+  describe('updateControllers edge cases', () => {
+    it('should log error and return early when engine context does not exist', async () => {
+      const originalInit = Engine.init;
+      jest.spyOn(Engine, 'init').mockImplementation((...args) => {
+        const result = originalInit(...args);
+        Object.defineProperty(Engine, 'context', {
+          get: () => null,
+          configurable: true,
+        });
+        return result;
+      });
+
+      await engineService.start();
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          new Error(
+            'Engine context does not exists. Redux will not be updated from controller state updates!',
+          ),
+        );
+      });
+    });
+
+    it('should skip CronjobController state change events', async () => {
+      await engineService.start();
+
+      const subscribeCalls = Engine.controllerMessenger.subscribe.mock.calls;
+      const cronjobCalls = subscribeCalls.filter(
+        (call: unknown[]) => call[0] === 'CronjobController:stateChange',
+      );
+      expect(cronjobCalls).toHaveLength(0);
+    });
+  });
+
   describe('updateBatcher', () => {
     it('should batch initial state key', async () => {
       engineService.start();
@@ -202,7 +285,6 @@ describe('EngineService', () => {
       // @ts-expect-error - accessing private property for testing
       engineService.updateBatcher.add(INIT_BG_STATE_KEY);
 
-      // Wait for batcher to process
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({ type: INIT_BG_STATE_KEY });
       });
@@ -217,13 +299,11 @@ describe('EngineService', () => {
         'NetworkController',
       ];
 
-      // Add each key
       keys.forEach((key) => {
         // @ts-expect-error - accessing private property for testing
         engineService.updateBatcher.add(key);
       });
 
-      // Wait for batcher to process and verify each key in order
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledTimes(keys.length); // 3 keys
         keys.forEach((key, index) => {
