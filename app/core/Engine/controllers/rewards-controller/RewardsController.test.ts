@@ -2007,11 +2007,6 @@ describe('RewardsController', () => {
   });
 
   describe('isRewardsFeatureEnabled', () => {
-    beforeEach(() => {
-      // Reset all mocks for this test suite
-      jest.clearAllMocks();
-    });
-
     it('should return true when feature flag is enabled', () => {
       // Mock the feature flag selector to return true
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
@@ -2344,9 +2339,6 @@ describe('RewardsController', () => {
         signedMessage: 'signedMessage123',
         signatureType: 'ed25519',
       });
-
-      // Restore Date.now
-      jest.restoreAllMocks();
     });
 
     it('should throw error when session token storage fails', async () => {
@@ -3998,7 +3990,6 @@ describe('RewardsController', () => {
     });
 
     it('should log and rethrow Error objects when API call fails', async () => {
-      jest.clearAllMocks();
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -4031,7 +4022,6 @@ describe('RewardsController', () => {
     });
 
     it('should log and rethrow non-Error objects when API call fails', async () => {
-      jest.clearAllMocks();
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -4646,7 +4636,6 @@ describe('RewardsController', () => {
   describe('resetAll', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     it('should skip reset when feature flag is disabled', async () => {
@@ -4826,7 +4815,6 @@ describe('RewardsController', () => {
 
     it('should return true for valid referral codes from service', async () => {
       // Arrange
-      jest.clearAllMocks();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'RewardsDataService:validateReferralCode') {
@@ -4848,7 +4836,6 @@ describe('RewardsController', () => {
 
     it('should return false for invalid referral codes from service', async () => {
       // Arrange
-      jest.clearAllMocks();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'RewardsDataService:validateReferralCode') {
@@ -4873,7 +4860,6 @@ describe('RewardsController', () => {
       const validCodes = ['ABCDEF', 'ABC234', 'XYZ567', 'DEF237'];
 
       for (const code of validCodes) {
-        jest.clearAllMocks();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockMessenger.call.mockImplementation((action, ..._args): any => {
           if (action === 'RewardsDataService:validateReferralCode') {
@@ -4893,7 +4879,6 @@ describe('RewardsController', () => {
 
     it('should handle service errors and throw error', async () => {
       // Arrange
-      jest.clearAllMocks();
       mockMessenger.call.mockRejectedValue(new Error('Service error'));
 
       // Act & Assert
@@ -5053,7 +5038,6 @@ describe('RewardsController', () => {
   describe('convertInternalAccountToCaipAccountId', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     it('should log error when conversion fails due to invalid internal account', () => {
@@ -5143,10 +5127,6 @@ describe('RewardsController', () => {
   });
 
   describe('invalidateAccountsAndSubscriptions', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('should correctly invalidate accounts and subscriptions', async () => {
       // Arrange
       const testController = new TestableRewardsController({
@@ -5672,6 +5652,7 @@ describe('RewardsController', () => {
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      // Clear calls resulting from top-level `beforeEach`
       jest.clearAllMocks();
     });
 
@@ -6407,9 +6388,6 @@ describe('RewardsController', () => {
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
-      // Restore any spies that might be left over from previous tests
-      jest.restoreAllMocks();
     });
 
     it('should return empty array when accounts array is empty', async () => {
@@ -6625,12 +6603,10 @@ describe('RewardsController', () => {
   describe('optOut', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     it('should return false when subscription ID is not found', async () => {
       // Arrange
-      jest.clearAllMocks(); // Clear mocks to ensure clean test
       const testController = new TestableRewardsController({
         messenger: mockMessenger,
         state: {
@@ -6838,7 +6814,6 @@ describe('RewardsController', () => {
   describe('optIn and optOut edge cases', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     describe('optIn edge cases', () => {
@@ -8246,7 +8221,6 @@ describe('RewardsController', () => {
     } as InternalAccount;
 
     beforeEach(() => {
-      jest.clearAllMocks();
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
       mockIsSolanaAddress.mockReturnValue(false); // Default to non-Solana
     });
@@ -9125,7 +9099,6 @@ describe('RewardsController', () => {
     } as InternalAccount;
 
     beforeEach(() => {
-      jest.clearAllMocks();
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
       mockIsSolanaAddress.mockReturnValue(false);
     });
@@ -9219,7 +9192,6 @@ describe('RewardsController', () => {
 
     it('should return false array when feature flag is disabled', async () => {
       // Arrange
-      jest.clearAllMocks(); // Clear any calls from initialization
       mockSelectRewardsEnabledFlag.mockReturnValue(false);
 
       // Act
@@ -12181,8 +12153,6 @@ describe('RewardsController', () => {
       mockWriteCache = jest.fn();
       mockFetchFresh = jest.fn();
       mockSwrCallback = jest.fn();
-      jest.clearAllMocks();
-      mockLogger.log.mockClear();
       const mockTimestamp = 1234567890;
       jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
     });
