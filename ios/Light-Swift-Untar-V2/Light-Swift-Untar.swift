@@ -15,12 +15,12 @@ public typealias Closure = (Double) -> Void
 enum UntarError: Error, LocalizedError {
   case notFound(file: String)
   case corruptFile(type: UnicodeScalar)
-  case invalidPaths()
+  case invalidPaths
   public var errorDescription: String? {
     switch self {
     case let .notFound(file: file): return "Source file \(file) not found"
     case let .corruptFile(type: type): return "Invalid block type \(type) found"
-    case let .invalidPaths(): return "Tarball failed to extract due to invalid paths"
+    case .invalidPaths: return "Tarball failed to extract due to invalid paths"
     }
   }
 }
@@ -51,7 +51,7 @@ public extension FileManager {
         let name = self.name(object: tarObject, offset: location)
         let filePath = URL(fileURLWithPath: path).appendingPathComponent(name).resolvingSymlinksInPath().path
         guard filePath.hasPrefix(rootPath) else {
-          throw UntarError.invalidPaths()
+            throw UntarError.invalidPaths
         }
         let size = self.size(object: tarObject, offset: location)
         if size == 0 { try "".write(toFile: filePath, atomically: true, encoding: .utf8) } else {
@@ -63,7 +63,7 @@ public extension FileManager {
         let name = self.name(object: tarObject, offset: location)
         let directoryPath = URL(fileURLWithPath: path).appendingPathComponent(name).resolvingSymlinksInPath().path
         guard directoryPath.hasPrefix(rootPath) else {
-          throw UntarError.invalidPaths()
+            throw UntarError.invalidPaths
         }
         try createDirectory(atPath: directoryPath, withIntermediateDirectories: true,
                             attributes: nil)
