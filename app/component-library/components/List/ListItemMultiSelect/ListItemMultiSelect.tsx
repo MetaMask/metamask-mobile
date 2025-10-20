@@ -21,12 +21,18 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
+  shouldEnableAndroidPressIn = true,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
   return (
-    <TempTouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
+    <TempTouchableOpacity
+      style={styles.base}
+      disabled={isDisabled}
+      shouldEnableAndroidPressIn={shouldEnableAndroidPressIn}
+      {...props}
+    >
       <ListItem gap={gap} style={styles.listItem}>
         <Checkbox
           style={styles.checkbox}

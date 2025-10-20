@@ -30,6 +30,7 @@ const ButtonBase = ({
   style,
   width = DEFAULT_BUTTONBASE_WIDTH,
   isDisabled,
+  shouldEnableAndroidPressIn = true,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -46,6 +47,7 @@ const ButtonBase = ({
       style={styles.base}
       accessibilityRole="button"
       accessible
+      shouldEnableAndroidPressIn={shouldEnableAndroidPressIn}
       {...props}
     >
       {startIconName && (
