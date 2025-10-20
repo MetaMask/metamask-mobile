@@ -266,7 +266,7 @@ jobs:
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
-      metamask_environment: 'qa'
+      metamask_environment: 'e2e'
       keystore_target: 'qa'
     secrets: inherit
 
@@ -292,13 +292,22 @@ jobs:
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
+  ios-tests-ready:
+    name: 'iOS Tests Ready'
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    needs: [needs_e2e_build, build-ios-apps]
+    steps:
+      - name: iOS build complete
+        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
+
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-ios-apps]
+    needs: [needs_e2e_build, ios-tests-ready]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}

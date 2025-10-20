@@ -191,7 +191,7 @@ describe('WaysToEarn', () => {
     expect(queryByText('1 point per $1 spent')).not.toBeOnTheScreen();
   });
 
-  it('navigates to referrals when referral item is pressed', () => {
+  it('opens referral bottom sheet modal when referral item is pressed', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
     const referralButton = getByText('Refer friends');
@@ -200,7 +200,9 @@ describe('WaysToEarn', () => {
     fireEvent.press(referralButton);
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL,
+    );
   });
 
   it('opens modal for swap earning way when pressed', () => {

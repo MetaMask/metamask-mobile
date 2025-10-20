@@ -468,7 +468,8 @@ describe('PerpsClosePositionView', () => {
       );
       expect(receiveText).toBeDefined();
       // Look for 1000 in the display (margin + P&L - fees)
-      expect(getByText('$1,000.00')).toBeDefined();
+      // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
+      expect(getByText('$1,000')).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
@@ -2241,6 +2242,135 @@ describe('PerpsClosePositionView', () => {
             PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
           ),
         ).toBeDefined();
+      });
+    });
+  });
+
+  describe('Rewards Points Row', () => {
+    it('should render RewardsAnimations component when rewards are enabled', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 1000,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 250,
+        feeDiscountPercentage: 15,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+        expect(getByText('1,000')).toBeDefined();
+      });
+    });
+
+    it('should not render rewards row when shouldShowRewardsRow is false', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: false,
+        estimatedPoints: undefined,
+        isLoading: false,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      const { queryByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(queryByText(strings('perps.estimated_points'))).toBeNull();
+      });
+    });
+
+    it('should render RewardsAnimations in loading state', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: true,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+      });
+    });
+
+    it('should render RewardsAnimations in error state', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: false,
+        hasError: true,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+      });
+    });
+
+    it('should render RewardsAnimations with bonus bips', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 2500,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 500,
+        feeDiscountPercentage: 25,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+        expect(getByText('2,500')).toBeDefined();
       });
     });
   });
