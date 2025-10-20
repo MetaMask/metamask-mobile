@@ -488,16 +488,6 @@ const PerpsMarketListView = ({
           </Text>
         </View>
         <View style={styles.titleButtonsRightContainer}>
-          {__DEV__ && (
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={() => {
-                navigation.navigate(Routes.PERPS.HIP3_DEBUG);
-              }}
-            >
-              <Icon name={IconName.Setting} size={IconSize.Lg} />
-            </TouchableOpacity>
-          )}
           <TouchableOpacity
             style={styles.searchButton}
             onPress={handleSearchToggle}
