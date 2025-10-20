@@ -1,11 +1,9 @@
 import React, { ReactNode } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   useColorPulseAnimation,
@@ -14,6 +12,8 @@ import {
   usePerpsNetworkManagement,
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { getDefaultPerpsControllerState } from '../../controllers';
 
 // TypeScript interfaces for component props
 interface MockComponentProps {
@@ -45,9 +45,33 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock Redux
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+// Mock Redux - we'll use renderWithProvider instead
+
+// Mock Engine
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      // Mock controller methods that might be called
+      getWithdrawals: jest.fn().mockResolvedValue([]),
+      getDeposits: jest.fn().mockResolvedValue([]),
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+}));
+
+// Mock strings function
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const mockStrings: Record<string, string> = {
+      'perps.available_balance': 'Available balance',
+      'perps.add_funds': 'Add Funds',
+      'perps.withdraw': 'Withdraw',
+    };
+    return mockStrings[key] || key;
+  }),
 }));
 
 // Mock hooks
@@ -242,7 +266,6 @@ jest.mock('react-native', () => {
 });
 
 // Setup mocks
-const mockUseSelector = useSelector as jest.Mock;
 const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.Mock;
 const mockUseColorPulseAnimation = useColorPulseAnimation as jest.Mock;
 const mockUseBalanceComparison = useBalanceComparison as jest.Mock;
@@ -260,14 +283,24 @@ describe('PerpsMarketBalanceActions', () => {
     orders: [],
   };
 
+  // Helper function to create mock state
+  const createMockState = (
+    perpsControllerOverrides: Partial<
+      ReturnType<typeof getDefaultPerpsControllerState>
+    > = {},
+  ) => ({
+    engine: {
+      backgroundState: {
+        PerpsController: {
+          ...getDefaultPerpsControllerState(),
+          ...perpsControllerOverrides,
+        },
+      },
+    },
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Setup default mock implementations
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPerpsEligibility) return true;
-      return undefined;
-    });
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: defaultPerpsAccount,
@@ -305,7 +338,11 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Rendering', () => {
     it('renders component with balance display', () => {
       // Arrange & Act
-      const { getByText, getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByText, getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert
       expect(getByText('perps.available_balance')).toBeOnTheScreen();
@@ -316,7 +353,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('displays formatted balance amount', () => {
       // Arrange & Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const balanceElement = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
       );
@@ -327,7 +368,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('shows both Add Funds and Withdraw buttons', () => {
       // Arrange & Act
-      const { getByTestId, getByText } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert
       expect(
@@ -342,7 +387,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('renders USDC avatar with HyperLiquid badge', () => {
       // Arrange & Act
-      const { getByText } = render(<PerpsMarketBalanceActions />);
+      const { getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert - Check that the component renders (badge is complex to test directly)
       expect(getByText('perps.available_balance')).toBeOnTheScreen();
@@ -358,7 +407,11 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { UNSAFE_root } = render(<PerpsMarketBalanceActions />);
+      const { UNSAFE_root } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert
       expect(UNSAFE_root.children).toHaveLength(0);
@@ -374,7 +427,11 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Assert
       expect(
@@ -388,7 +445,11 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Balance Animation', () => {
     it('triggers animation when balance changes', () => {
       // Arrange
-      const { rerender } = render(<PerpsMarketBalanceActions />);
+      const { rerender } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Act - Simulate balance change
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -414,14 +475,24 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act & Assert - Should not throw
-      expect(() => render(<PerpsMarketBalanceActions />)).not.toThrow();
+      expect(() =>
+        renderWithProvider(
+          <PerpsMarketBalanceActions />,
+          { state: createMockState() },
+          false, // Disable NavigationContainer
+        ),
+      ).not.toThrow();
     });
   });
 
   describe('Add Funds Button', () => {
     it('calls correct handlers when eligible user clicks Add Funds', async () => {
       // Arrange
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const addFundsButton = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
       );
@@ -441,12 +512,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('does not proceed with deposit when user is ineligible', async () => {
       // Arrange
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsEligibility) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({ isEligible: false }) },
+        false, // Disable NavigationContainer
+      );
       const addFundsButton = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
       );
@@ -470,7 +540,11 @@ describe('PerpsMarketBalanceActions', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const addFundsButton = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
       );
@@ -493,7 +567,11 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Withdraw Button', () => {
     it('calls correct handlers when eligible user clicks Withdraw', async () => {
       // Arrange
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const withdrawButton = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
       );
@@ -523,7 +601,11 @@ describe('PerpsMarketBalanceActions', () => {
         error: null,
       });
 
-      const { queryByTestId } = render(<PerpsMarketBalanceActions />);
+      const { queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Act & Assert
       expect(
@@ -533,12 +615,11 @@ describe('PerpsMarketBalanceActions', () => {
 
     it('does not proceed with withdraw when user is ineligible', async () => {
       // Arrange
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsEligibility) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({ isEligible: false }) },
+        false, // Disable NavigationContainer
+      );
       const withdrawButton = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
       );
@@ -561,7 +642,11 @@ describe('PerpsMarketBalanceActions', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const withdrawButton = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
       );
@@ -584,13 +669,11 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Eligibility Logic', () => {
     it('renders add funds button regardless of eligibility status', () => {
       // Arrange - Test with ineligible user
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsEligibility) return false;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({ isEligible: false }) },
+        false, // Disable NavigationContainer
+      );
 
       // Assert - Add funds button should still render
       expect(
@@ -609,7 +692,11 @@ describe('PerpsMarketBalanceActions', () => {
       mockDepositWithConfirmation.mockRejectedValue(new Error('Deposit error'));
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const addFundsButton = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
       );
@@ -647,7 +734,11 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
       const balanceElement = getByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
       );
@@ -660,7 +751,11 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Component Lifecycle', () => {
     it('stops animation on unmount', () => {
       // Arrange
-      const { unmount } = render(<PerpsMarketBalanceActions />);
+      const { unmount } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false, // Disable NavigationContainer
+      );
 
       // Act
       unmount();
