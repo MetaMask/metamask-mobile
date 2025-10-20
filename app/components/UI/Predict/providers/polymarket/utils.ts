@@ -59,10 +59,8 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
-  CLOB_RELAYER:
-    process.env.METAMASK_ENVIRONMENT === 'dev'
-      ? 'https://predict.dev-api.cx.metamask.io'
-      : 'https://predict.api.cx.metamask.io',
+  // TODO: use prod URL for when process.env.METAMASK_ENVIRONMENT != 'dev'
+  CLOB_RELAYER: 'https://predict.dev-api.cx.metamask.io',
 });
 
 export const getL1Headers = async ({ address }: { address: string }) => {

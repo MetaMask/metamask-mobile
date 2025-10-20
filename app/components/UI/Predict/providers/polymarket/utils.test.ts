@@ -128,7 +128,7 @@ describe('polymarket utils', () => {
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
-        CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
+        CLOB_RELAYER: 'https://predict.dev-api.cx.metamask.io',
       });
     });
   });
@@ -726,7 +726,7 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://predict.api.cx.metamask.io/order',
+        'https://predict.dev-api.cx.metamask.io/order',
         {
           method: 'POST',
           headers: {
