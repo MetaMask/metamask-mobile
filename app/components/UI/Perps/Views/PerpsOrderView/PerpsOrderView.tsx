@@ -785,15 +785,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
-  const placeOrderLabel =
-    amountTimesLeverage < minimumOrderAmount
-      ? strings('perps.order.validation.insufficient_funds')
-      : strings(
-          orderForm.direction === 'long'
-            ? 'perps.order.button.long'
-            : 'perps.order.button.short',
-          { asset: orderForm.asset },
-        );
+  const orderButtonKey =
+    orderForm.direction === 'long'
+      ? 'perps.order.button.long'
+      : 'perps.order.button.short';
+  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
+  const placeOrderLabel = isInsufficientFunds
+    ? strings('perps.order.validation.insufficient_funds')
+    : strings(orderButtonKey, { asset: orderForm.asset });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
@@ -803,6 +802,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
         orderForm.direction,
       ),
   );
+
+  let rewardAnimationState = RewardAnimationState.Idle;
+  if (rewardsState.isLoading) {
+    rewardAnimationState = RewardAnimationState.Loading;
+  } else if (rewardsState.hasError) {
+    rewardAnimationState = RewardAnimationState.ErrorState;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1104,13 +1110,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                       strings('perps.points_error_content'),
                     )
                   }
-                  state={
-                    rewardsState.isLoading
-                      ? RewardAnimationState.Loading
-                      : rewardsState.hasError
-                      ? RewardAnimationState.ErrorState
-                      : RewardAnimationState.Idle
-                  }
+                  state={rewardAnimationState}
                 />
               </View>
             </View>

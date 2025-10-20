@@ -369,7 +369,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     // Notify subscription service of discovered HIP-3 DEXs for position subscriptions
-    const hip3Dexs = dexsToMap.filter((d) => d !== null) as string[];
+    const hip3Dexs = dexsToMap.filter((d): d is string => d !== null);
     if (hip3Dexs.length > 0) {
       await this.subscriptionService.updateFeatureFlags(
         this.equityEnabled,
@@ -3838,21 +3838,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
     }
 
+    const validAmountForMetamaskFee = isNaN(parsedAmount)
+      ? 0
+      : parsedAmount * metamaskFeeRate;
     const metamaskFeeAmount =
-      amount !== undefined
-        ? isNaN(parsedAmount)
-          ? 0
-          : parsedAmount * metamaskFeeRate
-        : undefined;
+      amount === undefined ? undefined : validAmountForMetamaskFee;
 
     // Total fees
     const totalFeeRate = protocolFeeRate + metamaskFeeRate;
+    const validAmountForTotalFee = isNaN(parsedAmount)
+      ? 0
+      : parsedAmount * totalFeeRate;
     const totalFeeAmount =
-      amount !== undefined
-        ? isNaN(parsedAmount)
-          ? 0
-          : parsedAmount * totalFeeRate
-        : undefined;
+      amount === undefined ? undefined : validAmountForTotalFee;
 
     const result = {
       // Total fees

@@ -499,13 +499,13 @@ const HIP3DebugView: React.FC = () => {
             DEXs)
           </Text>
 
-          {loadingDexs ? (
-            <ActivityIndicator style={styles.loader} />
-          ) : availableDexs.length === 0 ? (
+          {loadingDexs && <ActivityIndicator style={styles.loader} />}
+          {!loadingDexs && availableDexs.length === 0 && (
             <Text variant={TextVariant.BodySM} style={styles.subtitle}>
               No HIP-3 DEXs available
             </Text>
-          ) : (
+          )}
+          {!loadingDexs && availableDexs.length > 0 && (
             <View>
               <Text variant={TextVariant.BodySM} style={styles.subtitle}>
                 Selected: {selectedDex || 'None'}
@@ -547,13 +547,13 @@ const HIP3DebugView: React.FC = () => {
               Choose a market on {selectedDex} DEX for testing
             </Text>
 
-            {loadingMarkets ? (
-              <ActivityIndicator style={styles.loader} />
-            ) : markets.length === 0 ? (
+            {loadingMarkets && <ActivityIndicator style={styles.loader} />}
+            {!loadingMarkets && markets.length === 0 && (
               <Text variant={TextVariant.BodySM} style={styles.subtitle}>
                 No markets available for {selectedDex}
               </Text>
-            ) : (
+            )}
+            {!loadingMarkets && markets.length > 0 && (
               <View>
                 <Text variant={TextVariant.BodySM} style={styles.subtitle}>
                   Selected: {selectedMarket || 'None'}

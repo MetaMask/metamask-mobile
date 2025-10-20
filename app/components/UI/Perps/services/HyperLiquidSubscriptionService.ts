@@ -133,11 +133,11 @@ export class HyperLiquidSubscriptionService {
   private readonly marketDataCache = new Map<
     string,
     {
-      prevDayPx?: number | undefined;
+      prevDayPx?: number;
       funding?: number;
-      openInterest?: number | undefined;
-      volume24h?: number | undefined;
-      oraclePrice?: number | undefined;
+      openInterest?: number;
+      volume24h?: number;
+      oraclePrice?: number;
       lastUpdated: number;
     }
   >();
@@ -681,7 +681,7 @@ export class HyperLiquidSubscriptionService {
     const hip3Dexs = enabledDexs.filter((dex) => dex !== null);
     await Promise.all(
       hip3Dexs.map(async (dex) => {
-        const dexName = dex as string;
+        const dexName = dex;
         try {
           await this.ensureClearinghouseStateSubscription(userAddress, dexName);
         } catch (error) {
@@ -856,7 +856,7 @@ export class HyperLiquidSubscriptionService {
       // HIP-3: Cleanup clearinghouseState subscriptions (HIP-3 DEXs)
       if (this.clearinghouseStateSubscriptions.size > 0) {
         const enabledDexs = this.getEnabledDexs();
-        const hip3Dexs = enabledDexs.filter((dex) => dex !== null) as string[];
+        const hip3Dexs = enabledDexs.filter((dex) => dex !== null);
         hip3Dexs.forEach((dex) => {
           this.cleanupClearinghouseStateSubscription(dex);
         });
@@ -1385,13 +1385,15 @@ export class HyperLiquidSubscriptionService {
     const infoClient = this.clientService.getInfoClient();
     const perpsMeta = await infoClient.meta({ dex: dex || undefined });
 
+    const dexIdentifier = dex ?? 'main DEX';
+
     if (!perpsMeta?.universe) {
-      throw new Error(
-        `No universe data available for ${dex ? `DEX: ${dex}` : 'main DEX'}`,
-      );
+      const errorMessage = `No universe data available for ${dexIdentifier}`;
+      throw new Error(errorMessage);
     }
 
-    DevLogger.log(`Cached meta for ${dex ? `DEX: ${dex}` : 'main DEX'}`, {
+    const metaLogMessage = `Cached meta for ${dexIdentifier}`;
+    DevLogger.log(metaLogMessage, {
       dex,
       universeCount: perpsMeta.universe.length,
       firstAssetSample: perpsMeta.universe[0]?.name,
@@ -1405,13 +1407,11 @@ export class HyperLiquidSubscriptionService {
           // Cache asset contexts for this DEX
           this.dexAssetCtxsCache.set(dexKey, data.ctxs);
 
-          DevLogger.log(
-            `assetCtxs callback fired for ${dex ? `DEX: ${dex}` : 'main DEX'}`,
-            {
-              dex,
-              ctxsCount: data.ctxs?.length ?? 0,
-            },
-          );
+          const callbackLogMessage = `assetCtxs callback fired for ${dexIdentifier}`;
+          DevLogger.log(callbackLogMessage, {
+            dex,
+            ctxsCount: data.ctxs?.length ?? 0,
+          });
 
           // Use cached meta to map ctxs array indices to symbols (no REST API call!)
           perpsMeta.universe.forEach((asset, index) => {
@@ -1654,7 +1654,7 @@ export class HyperLiquidSubscriptionService {
             }
 
             // Extract account state for this DEX
-            const accountState: AccountState = adaptAccountStateFromSDK(
+            const accountState = adaptAccountStateFromSDK(
               data.clearinghouseState,
               undefined, // No spot state in clearinghouseState event
             );
