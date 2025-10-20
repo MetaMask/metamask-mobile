@@ -145,6 +145,13 @@ export const useLatestBalance = (token: {
   }, [token.address, token.decimals, chainId, selectedAddress, nonEvmTokens]);
 
   useEffect(() => {
+    // In case chainId is undefined, exit early to avoid
+    // calling handleFetchEvmAtomicBalance which will trigger an invalid address error
+    // when selectedAddress is a non-EVM chain.
+    if (!chainId) {
+      return;
+    }
+
     if (!isCaipChainId(chainId)) {
       handleFetchEvmAtomicBalance();
     }

@@ -169,4 +169,94 @@ describe('useLatestBalance', () => {
       });
     });
   });
+
+  it('does not call EVM balance fetch when chainId is undefined', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: '0x1234567890123456789012345678901234567890',
+          decimals: 18,
+          chainId: undefined,
+          balance: '10.0',
+        }),
+      { state: initialState },
+    );
+
+    expect(getProviderByChainId).not.toHaveBeenCalled();
+    expect(mockProvider.getBalance).not.toHaveBeenCalled();
+    expect(result.current).toEqual({
+      displayBalance: '10.0',
+      atomicBalance: BigNumber.from('10000000000000000000'),
+    });
+  });
+
+  it('does not call EVM balance fetch when Solana address is selected with undefined chainId', async () => {
+    const state = cloneDeep(initialState);
+    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+      solanaAccountId;
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: solanaNativeTokenAddress,
+          decimals: 9,
+          chainId: undefined,
+          balance: '100.0',
+        }),
+      { state },
+    );
+
+    expect(getProviderByChainId).not.toHaveBeenCalled();
+    expect(mockProvider.getBalance).not.toHaveBeenCalled();
+    expect(result.current).toEqual({
+      displayBalance: '100.0',
+      atomicBalance: BigNumber.from('100000000000'),
+    });
+  });
+
+  it('does not call EVM balance fetch when Solana address is selected with hex chainId', async () => {
+    const state = cloneDeep(initialState);
+    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+      solanaAccountId;
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: solanaNativeTokenAddress,
+          decimals: 9,
+          chainId: '0x1' as Hex,
+          balance: '100.0',
+        }),
+      { state },
+    );
+
+    // When a Solana address is selected but chainId is hex (EVM),
+    // it should not attempt to call EVM balance methods with Solana address
+    // This would cause ethers.js to throw "invalid address" error
+    expect(result.current).toEqual({
+      displayBalance: '100.0',
+      atomicBalance: BigNumber.from('100000000000'),
+    });
+  });
+
+  it('returns cached balance when EVM address is used with Solana CAIP chainId', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: '0x1234567890123456789012345678901234567890',
+          decimals: 18,
+          chainId: SolScope.Mainnet,
+          balance: '50.0',
+        }),
+      { state: initialState },
+    );
+
+    // Should not call EVM provider methods when chainId is CAIP (Solana)
+    expect(getProviderByChainId).not.toHaveBeenCalled();
+    expect(mockProvider.getBalance).not.toHaveBeenCalled();
+    expect(result.current).toEqual({
+      displayBalance: '50.0',
+      atomicBalance: BigNumber.from('50000000000000000000'),
+    });
+  });
 });
