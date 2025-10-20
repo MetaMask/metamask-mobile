@@ -43,55 +43,63 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
+
   const fillTag = useMemo(() => {
-    let label = '';
+    const { fill } = item;
 
-    if (
-      item.fill?.isLiquidation &&
-      // liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
-      // We only want to show the liquidated tag if the liquidation event is for the current user.
-      item.fill?.liquidation?.liquidatedUser === selectedAccount?.address
-    ) {
-      label = strings('perps.transactions.order.liquidated');
-    } else if (item.fill?.isTakeProfit) {
-      label = strings('perps.transactions.order.take_profit');
-    } else if (item.fill?.isStopLoss) {
-      label = strings('perps.transactions.order.stop_loss');
-    }
-
-    if (!label) {
+    if (!fill) {
       return null;
     }
 
-    let severity = TagSeverity.Default;
+    const tagConfig = [
+      {
+        condition: fill.isAutoDeleveraging,
+        label: strings('perps.transactions.order.auto_deleveraging'),
+        severity: TagSeverity.Info,
+        textColor: TextColor.Default,
+        includesBorder: false,
+      },
+      {
+        condition:
+          fill.isLiquidation &&
+          fill.liquidation?.liquidatedUser === selectedAccount?.address,
+        label: strings('perps.transactions.order.liquidated'),
+        severity: TagSeverity.Danger,
+        textColor: TextColor.Error,
+        includesBorder: false,
+      },
+      {
+        condition: fill.isTakeProfit,
+        label: strings('perps.transactions.order.take_profit'),
+        severity: TagSeverity.Default,
+        textColor: TextColor.Alternative,
+        includesBorder: true,
+      },
+      {
+        condition: fill.isStopLoss,
+        label: strings('perps.transactions.order.stop_loss'),
+        severity: TagSeverity.Default,
+        textColor: TextColor.Alternative,
+        includesBorder: true,
+      },
+    ].find((config) => config.condition);
 
-    if (item.fill?.isLiquidation) {
-      severity = TagSeverity.Danger;
-    }
-
-    let textColor = TextColor.Alternative;
-    if (item.fill?.isLiquidation) {
-      textColor = TextColor.Error;
+    if (!tagConfig) {
+      return null;
     }
 
     return (
       <TagBase
         shape={TagShape.Pill}
-        severity={severity}
-        includesBorder={Boolean(!item.fill?.liquidation)}
+        severity={tagConfig.severity}
+        includesBorder={tagConfig.includesBorder}
       >
-        <Text variant={TextVariant.BodyXSMedium} color={textColor}>
-          {label}
+        <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
+          {tagConfig.label}
         </Text>
       </TagBase>
     );
-  }, [
-    item.fill?.isLiquidation,
-    item.fill?.isStopLoss,
-    item.fill?.isTakeProfit,
-    item.fill?.liquidation,
-    selectedAccount?.address,
-  ]);
+  }, [item, selectedAccount?.address]);
 
   return (
     <TouchableOpacity

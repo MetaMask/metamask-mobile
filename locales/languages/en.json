@@ -1516,7 +1516,8 @@
         "total_fee": "Total fee",
         "liquidated": "Liquidated",
         "take_profit": "Take profit",
-        "stop_loss": "Stop loss"
+        "stop_loss": "Stop loss",
+        "auto_deleveraging": "Auto-Deleveraging"
       },
       "funding": {
         "date": "Date",
