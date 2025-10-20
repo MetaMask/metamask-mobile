@@ -369,6 +369,9 @@ describe('RewardsController', () => {
     jest.resetAllMocks();
     jest.restoreAllMocks();
 
+    // Mock Date.now to return a consistent timestamp
+    jest.spyOn(Date, 'now').mockReturnValue(123);
+
     // Reset import mocks
     // @ts-expect-error TODO: Resolve type mismatch
     mockStoreSubscriptionToken.mockResolvedValue(undefined);
