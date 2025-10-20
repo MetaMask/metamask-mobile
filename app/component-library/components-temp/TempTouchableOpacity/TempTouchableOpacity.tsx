@@ -30,13 +30,13 @@ const TempTouchableOpacity = ({
   );
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // Check if we're in a test environment
-    const isTestEnvironment =
-      process.env.NODE_ENV === 'test' ||
-      process.env.IS_TEST === 'true' ||
-      process.env.METAMASK_ENVIRONMENT === 'e2e';
+  // Check if we're in a test environment (consolidated)
+  const isTestEnvironment =
+    process.env.NODE_ENV === 'test' ||
+    process.env.IS_TEST === 'true' ||
+    process.env.METAMASK_ENVIRONMENT === 'e2e';
 
+  useEffect(() => {
     if (isTestEnvironment) {
       setIsAccessibilityEnabled(false);
       return;
@@ -60,18 +60,13 @@ const TempTouchableOpacity = ({
       );
       return () => subscription?.remove();
     }
-  }, []);
+  }, [isTestEnvironment]);
 
   // Check if we should apply Android press handling
-  const isE2ETest =
-    process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e';
-  const isUnitTest = process.env.NODE_ENV === 'test';
   const shouldApplyAndroidPressHandling =
     shouldEnableAndroidPressIn &&
     Platform.OS === 'android' &&
-    !isE2ETest &&
-    !isUnitTest;
+    !isTestEnvironment;
 
   // Tap emulator for ScrollView compatibility
   const handlePressIn = (pressEvent: GestureResponderEvent) => {
