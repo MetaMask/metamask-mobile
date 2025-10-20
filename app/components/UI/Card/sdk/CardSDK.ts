@@ -37,6 +37,7 @@ import {
   RegisterAddressResponse,
   RegisterMailingAddressRequest,
   RegistrationSettingsResponse,
+  StartUserVerificationResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -1262,6 +1263,64 @@ export class CardSDK {
       throw new CardError(
         CardErrorType.UNKNOWN_ERROR,
         'Failed to verify phone verification',
+        error as Error,
+      );
+    }
+  };
+
+  startUserVerification = async (
+    location: CardLocation,
+  ): Promise<StartUserVerificationResponse> => {
+    const isUSEnv = location === 'us';
+
+    this.logDebugInfo('startUserVerification', { location });
+    try {
+      const response = await this.makeRequest(
+        '/v1/user/verification',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+        false,
+        isUSEnv,
+      );
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.BAD_REQUEST,
+            responseBody?.message || 'Failed to get registration settings',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration settings',
+          );
+        }
+      }
+      const data = await response.json();
+      return data as StartUserVerificationResponse;
+    } catch (error) {
+      this.logDebugInfo('startUserVerification error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to start user verification',
         error as Error,
       );
     }

@@ -5953,7 +5953,8 @@
       "verify_identity": {
         "title": "Verifying your identity to get your card",
         "description": "To keep your account secure and comply with regulations, we need to verify your identity.\n\nYou'll need a government-issued ID and a proof of address (like a utility bill or bank statement).\n\nVerification usually takes 5-30 minutes, and we'll notify you as soon as it's complete.",
-        "verify_button": "Verify now with Veriff"
+        "verify_button": "Verify now with Veriff",
+        "start_verification_error": "Error getting verification url. Please try again shortly."
       },
       "validating_kyc": {
         "title": "Validating your KYC..."

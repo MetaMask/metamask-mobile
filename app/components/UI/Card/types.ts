@@ -227,7 +227,10 @@ export interface PhoneVerificationVerifyResponse {
   success: boolean;
 }
 
-// Registration interfaces
+export interface StartUserVerificationResponse {
+  sessionUrl: string;
+}
+
 export interface RegisterPersonalDetailsRequest {
   onboardingId: string;
   firstName: string;
