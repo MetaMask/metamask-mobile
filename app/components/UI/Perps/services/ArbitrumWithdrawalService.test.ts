@@ -404,7 +404,7 @@ describe('ArbitrumWithdrawalService', () => {
     });
 
     it('returns true for Arbitrum testnet', () => {
-      mockSelectChainId.mockReturnValue('0x66eed');
+      mockSelectChainId.mockReturnValue('0x66eee');
 
       const result = service.isOnArbitrum();
 
