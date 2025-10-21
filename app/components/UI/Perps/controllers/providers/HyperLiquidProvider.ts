@@ -109,6 +109,18 @@ import { PERPS_ERROR_CODES } from '../PerpsController';
  * Implements the IPerpsProvider interface for HyperLiquid protocol.
  * Uses the @nktkas/hyperliquid SDK for all operations.
  * Delegates to service classes for client management, wallet integration, and subscriptions.
+ *
+ * HIP-3 DEX Abstraction (SDK v0.25.4+)
+ *
+ * Supports native HyperLiquid DEX abstraction for automatic collateral management:
+ * - When `useDexAbstraction=true`, HyperLiquid automatically transfers collateral
+ * between DEXs for HIP-3 orders (eliminates manual transfer logic)
+ * - When `useDexAbstraction=false` (default), uses manual auto-transfer with
+ * explicit balance checks and rollback on failure
+ *
+ * Trade-offs:
+ * - DEX abstraction: Simpler code, protocol-native, one-time irreversible operation
+ * - Manual transfer: More control, custom rebalancing, explicit error handling
  */
 export class HyperLiquidProvider implements IPerpsProvider {
   readonly protocolId = 'hyperliquid';
@@ -146,6 +158,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Feature flag configuration for HIP-3 DEX support
   private equityEnabled: boolean;
   private enabledDexs: string[];
+  private useDexAbstraction: boolean;
 
   // Cache for validated DEXs to avoid redundant perpDexs() API calls
   private cachedValidatedDexs: (string | null)[] | null = null;
@@ -167,6 +180,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       isTestnet?: boolean;
       equityEnabled?: boolean;
       enabledDexs?: string[];
+      useDexAbstraction?: boolean;
     } = {},
   ) {
     const isTestnet = options.isTestnet || false;
@@ -174,6 +188,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Dev-friendly defaults: Enable all DEXs by default for easier testing
     this.equityEnabled = options.equityEnabled ?? __DEV__;
     this.enabledDexs = options.enabledDexs ?? [];
+
+    // DEX abstraction: Native HyperLiquid feature for automatic collateral management
+    // When enabled, HyperLiquid automatically transfers funds between DEXs for HIP-3 orders
+    this.useDexAbstraction = options.useDexAbstraction ?? false;
 
     // Initialize services
     this.clientService = new HyperLiquidClientService({ isTestnet });
@@ -198,6 +216,64 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Ensure HIP-3 DEX abstraction is enabled for the current user
+   *
+   * DEX abstraction is a native HyperLiquid feature that automatically manages
+   * collateral transfers for HIP-3 orders. When enabled:
+   * - Orders on HIP-3 perps automatically transfer collateral from main DEX or spot
+   * - Freed collateral from closed positions automatically returns to source
+   *
+   * This is a one-time, irreversible operation per user wallet.
+   * Does nothing if feature flag is disabled or already enabled.
+   *
+   * @private
+   */
+  private async ensureDexAbstractionEnabled(): Promise<void> {
+    if (!this.useDexAbstraction) {
+      return; // Feature disabled
+    }
+
+    try {
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      // Check if already enabled (returns boolean | null)
+      const isEnabled = await infoClient.userDexAbstraction({
+        user: userAddress,
+      });
+
+      if (isEnabled === true) {
+        DevLogger.log('HyperLiquidProvider: DEX abstraction already enabled', {
+          user: userAddress,
+        });
+        return;
+      }
+
+      // Enable DEX abstraction (one-time, irreversible)
+      DevLogger.log('HyperLiquidProvider: Enabling DEX abstraction', {
+        user: userAddress,
+        note: 'HyperLiquid will auto-manage collateral for HIP-3 orders',
+      });
+
+      const exchangeClient = this.clientService.getExchangeClient();
+      await exchangeClient.agentEnableDexAbstraction();
+
+      DevLogger.log(
+        '✅ HyperLiquidProvider: DEX abstraction enabled successfully',
+      );
+    } catch (error) {
+      // Non-blocking: Log error but don't fail initialization
+      // Falls back to manual auto-transfer logic
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('ensureDexAbstractionEnabled', {
+          note: 'Will use manual auto-transfer as fallback',
+        }),
+      );
+    }
+  }
+
+  /**
    * Ensure clients are initialized and asset mapping is loaded
    * Asset mapping is built once on first call and reused for the provider's lifetime
    * since HIP-3 configuration is immutable after construction
@@ -213,6 +289,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
       await this.buildAssetMapping();
     }
+
+    // Setup DEX abstraction if enabled (one-time check per provider instance)
+    await this.ensureDexAbstractionEnabled();
   }
 
   /**
@@ -1347,10 +1426,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // HIP-3 Atomic Transaction: Auto-transfer → Order → Rollback on failure
       // Only runs for HIP-3 markets (dexName !== null), skipped for main DEX
+      // When useDexAbstraction=true, HyperLiquid handles transfers automatically
       const isHip3Order = dexName !== null;
       let transferInfo: { amount: number; sourceDex: string } | null = null;
 
-      if (isHip3Order) {
+      if (isHip3Order && !this.useDexAbstraction) {
+        // Manual auto-transfer logic (when DEX abstraction is disabled)
+        DevLogger.log('HyperLiquidProvider: Using manual auto-transfer', {
+          coin: params.coin,
+          dex: dexName,
+        });
+
         // Calculate required margin based on existing position
         const positionSize = parseFloat(formattedSize);
         const effectiveLeverage = params.leverage || assetInfo.maxLeverage || 1;
@@ -1372,6 +1458,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
           targetDex: dexName,
           requiredMargin: requiredMarginWithBuffer,
         });
+      } else if (isHip3Order && this.useDexAbstraction) {
+        DevLogger.log(
+          'HyperLiquidProvider: Using DEX abstraction (no manual transfer)',
+          {
+            coin: params.coin,
+            dex: dexName,
+            note: 'HyperLiquid will auto-manage collateral',
+          },
+        );
       }
 
       // Build orders array - main order plus optional TP/SL orders
@@ -2028,9 +2123,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
 
       // If close succeeded and this is a HIP-3 position, auto-transfer back
-      if (result.success && isHip3Position && hip3Dex) {
+      // Only run manual transfer if DEX abstraction is disabled
+      if (
+        result.success &&
+        isHip3Position &&
+        hip3Dex &&
+        !this.useDexAbstraction
+      ) {
         DevLogger.log(
-          'Position closed successfully, initiating auto-transfer back',
+          'Position closed successfully, initiating manual auto-transfer back',
         );
 
         // Non-blocking: Transfer freed margin back to main DEX
@@ -2038,6 +2139,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
           sourceDex: hip3Dex,
           freedMargin,
         });
+      } else if (
+        result.success &&
+        isHip3Position &&
+        hip3Dex &&
+        this.useDexAbstraction
+      ) {
+        DevLogger.log(
+          'Position closed - DEX abstraction will auto-return freed margin',
+          {
+            coin: params.coin,
+            dex: hip3Dex,
+            note: 'HyperLiquid handles return automatically',
+          },
+        );
       }
 
       return result;
