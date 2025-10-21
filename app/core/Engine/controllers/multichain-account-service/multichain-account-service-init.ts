@@ -61,9 +61,12 @@ export const multichainAccountServiceInit: ControllerInitFunction<
     initialRemoteFeatureFlagsState.remoteFeatureFlags.bitcoinAccounts,
   );
 
-  if (initialBitcoinEnabled) {
-    btcProvider.setEnabled(true);
+  // We need to set the initial state, so if it's
+  // - enabled: new accounts will get created and existing accounts will also appear on the account tree.
+  // - disabled: no new accounts will get created
+  btcProvider.setEnabled(initialBitcoinEnabled);
 
+  if (initialBitcoinEnabled) {
     // Trigger wallet alignment when Bitcoin accounts are enabled
     controller.alignWallets().catch((error) => {
       console.error(

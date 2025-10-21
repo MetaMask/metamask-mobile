@@ -132,7 +132,9 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not be enabled
-      expect(setEnabledSpy).not.toHaveBeenCalled();
+      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
     });
 
     it('does not enable Bitcoin provider when app version is below minimum', () => {
@@ -150,7 +152,9 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not be enabled
-      expect(setEnabledSpy).not.toHaveBeenCalled();
+      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
     });
 
     it('enables Bitcoin provider when feature flag is enabled and version meets minimum', () => {
@@ -192,7 +196,8 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not have been called, nor the alignement process
-      expect(setEnabledSpy).not.toHaveBeenCalled();
+      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
       expect(alignWalletsSpy).not.toHaveBeenCalled();
 
       // Enabling the remote feature flag would enable the Bitcoin provider
@@ -211,7 +216,7 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
+      expect(setEnabledSpy).toHaveBeenCalledTimes(2);
       expect(setEnabledSpy).toHaveBeenCalledWith(true);
 
       // And alignment triggered
