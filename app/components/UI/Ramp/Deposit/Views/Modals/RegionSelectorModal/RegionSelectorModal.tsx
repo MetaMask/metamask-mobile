@@ -156,6 +156,7 @@ function RegionSelectorModal() {
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
+        shouldEnableAndroidPressIn
         isSelected={selectedRegion?.isoCode === region.isoCode}
         onPress={() => {
           handleOnRegionPressCallback(region);
