@@ -19,6 +19,7 @@ import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnableme
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import Engine from '../../../core/Engine';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Routes from '../../../constants/navigation/Routes';
@@ -115,17 +116,26 @@ export const useNetworkSelection = ({
   /**
    * Helper function to switch the active network in MultichainNetworkController.
    * This synchronizes the active network state when a network is enabled.
+   * For EVM networks, it uses the networkClientId from rpcEndpoints.
+   * For non-EVM networks (like Solana), it uses the caipChainId directly.
    */
   const switchActiveNetwork = useCallback(
     async (caipChainId: CaipChainId) => {
-      const networkConfig = networkConfigurations[caipChainId];
-      if (!networkConfig || !('rpcEndpoints' in networkConfig)) {
-        // Some network types (like Bitcoin) handle network switching differently
-        // so it's not an error if configuration is missing or lacks RPC endpoints
+      const { MultichainNetworkController } = Engine.context;
+
+      // For non-EVM chains (e.g., Solana, Bitcoin), use the caipChainId directly
+      if (isNonEvmChainId(caipChainId)) {
+        await MultichainNetworkController.setActiveNetwork(caipChainId);
         return;
       }
 
-      const { MultichainNetworkController } = Engine.context;
+      // For EVM chains, use the networkClientId from rpcEndpoints
+      const networkConfig = networkConfigurations[caipChainId];
+      if (!networkConfig || !('rpcEndpoints' in networkConfig)) {
+        // Configuration is missing or lacks RPC endpoints
+        return;
+      }
+
       const { rpcEndpoints, defaultRpcEndpointIndex } = networkConfig;
       const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
