@@ -31,7 +31,7 @@ interface KeyValueRowTooltip {
    * Optional icon name for the tooltip icon.
    * @default IconName.Question
    */
-  iconName?: IconProps['name'];
+  iconName?: IconName;
   /**
    * Optional onPress handler
    */
