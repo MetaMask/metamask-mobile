@@ -135,6 +135,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
     ) => Promise<void>;
   };
 
+  // PnL Hero Card screen
+  PerpsPnlHeroCard: {
+    position?: Position;
+    transaction?: PerpsTransaction;
+  };
+
   // Root perps view
   Perps: undefined;
 }
