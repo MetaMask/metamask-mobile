@@ -40,6 +40,7 @@ import { areAddressesEqual } from '../../../../../util/address';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import QuoteCountdownTimer from '../QuoteCountdownTimer';
 
 if (
   Platform.OS === 'android' &&
@@ -143,10 +144,18 @@ const QuoteDetailsCard: React.FC = () => {
       <Box style={styles.container}>
         <KeyValueRow
           field={{
-            label: {
-              text: strings('bridge.rate'),
-              variant: TextVariant.BodyMDMedium,
-            },
+            label: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text variant={TextVariant.BodyMDMedium}>
+                  {strings('bridge.rate')}
+                </Text>
+                <QuoteCountdownTimer />
+              </Box>
+            ),
             tooltip: {
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
