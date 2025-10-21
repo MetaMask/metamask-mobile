@@ -1,11 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { getErrorMessage } from '../util/getErrorMessage';
-import {
-  CardLocation,
-  PhoneVerificationVerifyRequest,
-  RegisterUserResponse,
-} from '../types';
+import { PhoneVerificationVerifyRequest, RegisterUserResponse } from '../types';
 
 /**
  * Hook for verifying phone verification
@@ -14,7 +10,6 @@ import {
 const usePhoneVerificationVerify = (): {
   verifyPhoneVerification: (
     request: PhoneVerificationVerifyRequest,
-    location: CardLocation,
   ) => Promise<RegisterUserResponse>;
   isLoading: boolean;
   isSuccess: boolean;
@@ -44,7 +39,6 @@ const usePhoneVerificationVerify = (): {
   const verifyPhoneVerification = useCallback(
     async (
       request: PhoneVerificationVerifyRequest,
-      location: CardLocation,
     ): Promise<RegisterUserResponse> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
@@ -56,10 +50,7 @@ const usePhoneVerificationVerify = (): {
         setIsSuccess(false);
         setError(null);
 
-        const RegisterUserResponse = await sdk.phoneVerificationVerify({
-          ...request,
-          location,
-        });
+        const RegisterUserResponse = await sdk.phoneVerificationVerify(request);
 
         setIsSuccess(true);
 

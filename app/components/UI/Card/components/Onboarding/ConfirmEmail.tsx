@@ -112,9 +112,9 @@ const ConfirmEmail = () => {
         },
         selectedCountry === 'US' ? 'us' : 'international',
       );
-      dispatch(setOnboardingId(onboardingId));
 
       if (onboardingId) {
+        dispatch(setOnboardingId(onboardingId));
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (hasAccount) {
         navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);

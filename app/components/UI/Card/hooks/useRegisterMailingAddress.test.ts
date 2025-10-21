@@ -66,7 +66,6 @@ describe('useRegisterMailingAddress', () => {
     sdk: mockSDK,
     isLoading: false,
     logoutFromProvider: mockLogoutFromProvider,
-    userCardLocation: 'us',
   };
 
   beforeEach(() => {
@@ -96,15 +95,11 @@ describe('useRegisterMailingAddress', () => {
 
       let response: RegisterAddressResponse | undefined;
       await act(async () => {
-        response = await result.current.registerAddress(
-          mockAddressRequest,
-          'us',
-        );
+        response = await result.current.registerAddress(mockAddressRequest);
       });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...mockAddressRequest,
-        location: 'us',
       });
       expect(response).toEqual(mockAddressResponse);
       expect(result.current.isLoading).toBe(false);
@@ -126,7 +121,7 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       act(() => {
-        result.current.registerAddress(mockAddressRequest, 'us');
+        result.current.registerAddress(mockAddressRequest);
       });
 
       // Should be loading
@@ -149,7 +144,6 @@ describe('useRegisterMailingAddress', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us',
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
 
@@ -157,7 +151,7 @@ describe('useRegisterMailingAddress', () => {
 
       await act(async () => {
         try {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         } catch (error) {
           expect(error).toBeInstanceOf(Error);
           expect((error as Error).message).toBe('Card SDK not initialized');
@@ -179,7 +173,7 @@ describe('useRegisterMailingAddress', () => {
 
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         });
       } catch (error) {
         // Expected to throw
@@ -187,7 +181,6 @@ describe('useRegisterMailingAddress', () => {
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...mockAddressRequest,
-        location: 'us',
       });
       expect(mockGetErrorMessage).toHaveBeenCalledWith(apiError);
       expect(result.current.isLoading).toBe(false);
@@ -208,7 +201,7 @@ describe('useRegisterMailingAddress', () => {
 
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         });
       } catch (error) {
         // Expected to throw
@@ -233,7 +226,7 @@ describe('useRegisterMailingAddress', () => {
 
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         });
       } catch (error) {
         // Expected to throw
@@ -253,7 +246,7 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       await act(async () => {
-        await result.current.registerAddress(mockAddressRequest, 'us');
+        await result.current.registerAddress(mockAddressRequest);
       });
 
       expect(result.current.isSuccess).toBe(true);
@@ -269,7 +262,7 @@ describe('useRegisterMailingAddress', () => {
       mockRegisterMailingAddress.mockReturnValue(registerAddressPromise);
 
       act(() => {
-        result.current.registerAddress(mockAddressRequest, 'us');
+        result.current.registerAddress(mockAddressRequest);
       });
 
       // Success should be reset when starting new registration
@@ -297,7 +290,7 @@ describe('useRegisterMailingAddress', () => {
       // First call should fail
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         });
       } catch (error) {
         // Expected to throw
@@ -310,7 +303,7 @@ describe('useRegisterMailingAddress', () => {
       mockRegisterMailingAddress.mockResolvedValue(mockAddressResponse);
 
       await act(async () => {
-        await result.current.registerAddress(mockAddressRequest, 'us');
+        await result.current.registerAddress(mockAddressRequest);
       });
 
       expect(result.current.isError).toBe(false);
@@ -333,7 +326,7 @@ describe('useRegisterMailingAddress', () => {
       // Trigger error
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         });
       } catch (error) {
         // Expected to throw
@@ -362,7 +355,7 @@ describe('useRegisterMailingAddress', () => {
 
       // Trigger successful registration
       await act(async () => {
-        await result.current.registerAddress(mockAddressRequest, 'us');
+        await result.current.registerAddress(mockAddressRequest);
       });
 
       expect(result.current.isSuccess).toBe(true);
@@ -391,7 +384,7 @@ describe('useRegisterMailingAddress', () => {
       // Trigger error
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         });
       } catch (error) {
         // Expected to throw
@@ -429,12 +422,11 @@ describe('useRegisterMailingAddress', () => {
       };
 
       await act(async () => {
-        await result.current.registerAddress(customRequest, 'us');
+        await result.current.registerAddress(customRequest);
       });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...customRequest,
-        location: 'us',
       });
       expect(mockRegisterMailingAddress).toHaveBeenCalledTimes(1);
     });
@@ -444,7 +436,6 @@ describe('useRegisterMailingAddress', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'international',
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
 
@@ -452,7 +443,7 @@ describe('useRegisterMailingAddress', () => {
 
       await act(async () => {
         try {
-          await result.current.registerAddress(mockAddressRequest, 'us');
+          await result.current.registerAddress(mockAddressRequest);
         } catch (error) {
           expect(error).toBeInstanceOf(Error);
           expect((error as Error).message).toBe('Card SDK not initialized');
@@ -477,31 +468,11 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       await act(async () => {
-        await result.current.registerAddress(minimalRequest, 'international');
+        await result.current.registerAddress(minimalRequest);
       });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...minimalRequest,
-        location: 'international',
-      });
-      expect(result.current.isSuccess).toBe(true);
-    });
-
-    it('handles international location', async () => {
-      mockRegisterMailingAddress.mockResolvedValue(mockAddressResponse);
-
-      const { result } = renderHook(() => useRegisterMailingAddress());
-
-      await act(async () => {
-        await result.current.registerAddress(
-          mockAddressRequest,
-          'international',
-        );
-      });
-
-      expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
-        ...mockAddressRequest,
-        location: 'international',
       });
       expect(result.current.isSuccess).toBe(true);
     });
@@ -520,12 +491,11 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       await act(async () => {
-        await result.current.registerAddress(usRequest, 'us');
+        await result.current.registerAddress(usRequest);
       });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...usRequest,
-        location: 'us',
       });
       expect(result.current.isSuccess).toBe(true);
     });

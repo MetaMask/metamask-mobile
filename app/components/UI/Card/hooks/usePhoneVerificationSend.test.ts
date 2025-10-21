@@ -88,15 +88,11 @@ describe('usePhoneVerificationSend', () => {
       let response: PhoneVerificationSendResponse | undefined;
 
       await act(async () => {
-        response = await result.current.sendPhoneVerification(
-          mockSendRequest,
-          'us',
-        );
+        response = await result.current.sendPhoneVerification(mockSendRequest);
       });
 
       expect(mockPhoneVerificationSend).toHaveBeenCalledWith({
         ...mockSendRequest,
-        location: 'us',
       });
       expect(response).toEqual(mockSendResponse);
       expect(result.current.isLoading).toBe(false);
@@ -115,7 +111,7 @@ describe('usePhoneVerificationSend', () => {
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       act(() => {
-        result.current.sendPhoneVerification(mockSendRequest, 'us');
+        result.current.sendPhoneVerification(mockSendRequest);
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -135,14 +131,13 @@ describe('usePhoneVerificationSend', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us' as CardLocation,
       });
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toThrow('Card SDK not initialized');
 
@@ -156,14 +151,13 @@ describe('usePhoneVerificationSend', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us' as CardLocation,
       });
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toThrow('Card SDK not initialized');
     });
@@ -179,7 +173,7 @@ describe('usePhoneVerificationSend', () => {
 
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toThrow(cardError);
 
@@ -198,7 +192,7 @@ describe('usePhoneVerificationSend', () => {
 
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toThrow(networkError);
 
@@ -217,7 +211,7 @@ describe('usePhoneVerificationSend', () => {
 
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toBe(unknownError);
 
@@ -226,25 +220,6 @@ describe('usePhoneVerificationSend', () => {
       expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
-    });
-
-    it('should work with international location', async () => {
-      mockPhoneVerificationSend.mockResolvedValue(mockSendResponse);
-
-      const { result } = renderHook(() => usePhoneVerificationSend());
-
-      await act(async () => {
-        await result.current.sendPhoneVerification(
-          mockSendRequest,
-          'international',
-        );
-      });
-
-      expect(mockPhoneVerificationSend).toHaveBeenCalledWith({
-        ...mockSendRequest,
-        location: 'international',
-      });
-      expect(result.current.isSuccess).toBe(true);
     });
   });
 
@@ -258,7 +233,7 @@ describe('usePhoneVerificationSend', () => {
       // First, trigger an error
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toThrow();
 
@@ -286,7 +261,7 @@ describe('usePhoneVerificationSend', () => {
 
       // First, perform a successful operation
       await act(async () => {
-        await result.current.sendPhoneVerification(mockSendRequest, 'us');
+        await result.current.sendPhoneVerification(mockSendRequest);
       });
 
       expect(result.current.isSuccess).toBe(true);
@@ -311,7 +286,7 @@ describe('usePhoneVerificationSend', () => {
       // First, trigger an error
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toThrow();
 
@@ -343,17 +318,13 @@ describe('usePhoneVerificationSend', () => {
       };
 
       await act(async () => {
-        await result.current.sendPhoneVerification(
-          customRequest,
-          'international',
-        );
+        await result.current.sendPhoneVerification(customRequest);
       });
 
       expect(mockPhoneVerificationSend).toHaveBeenCalledWith({
         phoneCountryCode: '+44',
         phoneNumber: '9876543210',
         contactVerificationId: 'contact-456',
-        location: 'international',
       });
     });
 
@@ -363,14 +334,13 @@ describe('usePhoneVerificationSend', () => {
         sdk: sdkWithoutMethod,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us' as CardLocation,
       });
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       await expect(
         act(async () => {
-          await result.current.sendPhoneVerification(mockSendRequest, 'us');
+          await result.current.sendPhoneVerification(mockSendRequest);
         }),
       ).rejects.toThrow();
     });
@@ -389,12 +359,11 @@ describe('usePhoneVerificationSend', () => {
       };
 
       await act(async () => {
-        await result.current.sendPhoneVerification(emptyRequest, 'us');
+        await result.current.sendPhoneVerification(emptyRequest);
       });
 
       expect(mockPhoneVerificationSend).toHaveBeenCalledWith({
         ...emptyRequest,
-        location: 'us',
       });
     });
 
@@ -410,12 +379,11 @@ describe('usePhoneVerificationSend', () => {
       };
 
       await act(async () => {
-        await result.current.sendPhoneVerification(specialRequest, 'us');
+        await result.current.sendPhoneVerification(specialRequest);
       });
 
       expect(mockPhoneVerificationSend).toHaveBeenCalledWith({
         ...specialRequest,
-        location: 'us',
       });
     });
   });

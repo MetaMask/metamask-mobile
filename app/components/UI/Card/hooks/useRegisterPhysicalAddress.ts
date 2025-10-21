@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { getErrorMessage } from '../util/getErrorMessage';
 import {
-  CardLocation,
   RegisterPhysicalAddressRequest,
   RegisterAddressResponse,
 } from '../types';
@@ -14,7 +13,6 @@ import {
 const useRegisterPhysicalAddress = (): {
   registerAddress: (
     request: RegisterPhysicalAddressRequest,
-    location: CardLocation,
   ) => Promise<RegisterAddressResponse>;
   isLoading: boolean;
   isSuccess: boolean;
@@ -44,7 +42,6 @@ const useRegisterPhysicalAddress = (): {
   const registerAddress = useCallback(
     async (
       request: RegisterPhysicalAddressRequest,
-      location: CardLocation,
     ): Promise<RegisterAddressResponse> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
@@ -56,10 +53,9 @@ const useRegisterPhysicalAddress = (): {
         setIsSuccess(false);
         setError(null);
 
-        const registerAddressResponse = await sdk.registerPhysicalAddress({
-          ...request,
-          location,
-        });
+        const registerAddressResponse = await sdk.registerPhysicalAddress(
+          request,
+        );
 
         setIsSuccess(true);
 

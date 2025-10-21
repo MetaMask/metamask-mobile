@@ -49,7 +49,6 @@ describe('useStartVerification', () => {
       sdk: mockSDK,
       isLoading: false,
       logoutFromProvider: jest.fn(),
-      userCardLocation: 'international',
     });
     mockUseSelector.mockReturnValue('US'); // selectedCountry
     mockGetErrorMessage.mockReturnValue('Mocked error message');
@@ -62,7 +61,6 @@ describe('useStartVerification', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => useStartVerification());
@@ -78,53 +76,11 @@ describe('useStartVerification', () => {
   });
 
   describe('startVerification function', () => {
-    it('should successfully start verification for US location', async () => {
-      mockStartUserVerification.mockResolvedValue(
-        mockStartUserVerificationResponse,
-      );
-      mockUseSelector.mockReturnValue('US');
-
-      const { result } = renderHook(() => useStartVerification());
-
-      let response;
-      await act(async () => {
-        response = await result.current.startVerification();
-      });
-
-      expect(mockStartUserVerification).toHaveBeenCalledWith('us');
-      expect(response).toEqual(mockStartUserVerificationResponse);
-      expect(result.current.data).toEqual(mockStartUserVerificationResponse);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.isSuccess).toBe(true);
-      expect(result.current.isError).toBe(false);
-      expect(result.current.error).toBeNull();
-    });
-
-    it('should successfully start verification for international location', async () => {
-      mockStartUserVerification.mockResolvedValue(
-        mockStartUserVerificationResponse,
-      );
-      mockUseSelector.mockReturnValue('GB');
-
-      const { result } = renderHook(() => useStartVerification());
-
-      let response;
-      await act(async () => {
-        response = await result.current.startVerification();
-      });
-
-      expect(mockStartUserVerification).toHaveBeenCalledWith('international');
-      expect(response).toEqual(mockStartUserVerificationResponse);
-      expect(result.current.data).toEqual(mockStartUserVerificationResponse);
-      expect(result.current.isSuccess).toBe(true);
-    });
-
     it('should handle SDK not initialized error', async () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => useStartVerification());
@@ -229,7 +185,6 @@ describe('useStartVerification', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
       const { result, rerender } = renderHook(() => useStartVerification());
 
@@ -245,7 +200,6 @@ describe('useStartVerification', () => {
         sdk: mockSDK,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
       mockStartUserVerification.mockResolvedValue(
         mockStartUserVerificationResponse,
@@ -270,7 +224,6 @@ describe('useStartVerification', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => useStartVerification());
@@ -320,38 +273,11 @@ describe('useStartVerification', () => {
   });
 
   describe('auto-triggering on mount', () => {
-    it('should automatically start verification when SDK and selectedCountry are available', async () => {
-      mockStartUserVerification.mockResolvedValue(
-        mockStartUserVerificationResponse,
-      );
-      mockUseSelector.mockReturnValue('US');
-
-      await act(async () => {
-        renderHook(() => useStartVerification());
-      });
-
-      expect(mockStartUserVerification).toHaveBeenCalledWith('us');
-    });
-
-    it('should automatically start verification with international location for non-US country', async () => {
-      mockStartUserVerification.mockResolvedValue(
-        mockStartUserVerificationResponse,
-      );
-      mockUseSelector.mockReturnValue('GB');
-
-      await act(async () => {
-        renderHook(() => useStartVerification());
-      });
-
-      expect(mockStartUserVerification).toHaveBeenCalledWith('international');
-    });
-
     it('should not auto-trigger when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
       mockUseSelector.mockReturnValue('US');
 
@@ -469,52 +395,6 @@ describe('useStartVerification', () => {
       // State should still reflect the second call
       expect(result.current.data).toEqual(secondResponse);
     });
-
-    it('should handle location parameter correctly', async () => {
-      // Mock to prevent auto-triggering on mount
-      mockUseCardSDK.mockReturnValue({
-        sdk: null,
-        isLoading: false,
-        logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
-      });
-      mockUseSelector.mockReturnValue(null);
-
-      const { result, rerender } = renderHook(() => useStartVerification());
-
-      // Provide SDK after mount
-      mockUseCardSDK.mockReturnValue({
-        sdk: mockSDK,
-        isLoading: false,
-        logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
-      });
-      mockStartUserVerification.mockResolvedValue(
-        mockStartUserVerificationResponse,
-      );
-
-      // Test with 'US' selectedCountry (should call with 'us')
-      mockUseSelector.mockReturnValue('US');
-      rerender();
-
-      await act(async () => {
-        await result.current.startVerification();
-      });
-
-      expect(mockStartUserVerification).toHaveBeenLastCalledWith('us');
-
-      // Test with 'international' location (non-US selectedCountry)
-      mockUseSelector.mockReturnValue('CA'); // Canada, should use 'international'
-      rerender();
-
-      await act(async () => {
-        await result.current.startVerification();
-      });
-
-      expect(mockStartUserVerification).toHaveBeenLastCalledWith(
-        'international',
-      );
-    });
   });
 
   describe('state management', () => {
@@ -524,7 +404,6 @@ describe('useStartVerification', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
       mockUseSelector.mockReturnValue(null);
 
@@ -540,7 +419,6 @@ describe('useStartVerification', () => {
         sdk: mockSDK,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
       mockStartUserVerification.mockResolvedValue(
         mockStartUserVerificationResponse,

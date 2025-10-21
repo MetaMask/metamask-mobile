@@ -41,6 +41,7 @@ import {
   LinkUserToConsentRequest,
   LinkUserToConsentResponse,
   UserResponse,
+  StartUserVerificationRequest,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -949,12 +950,10 @@ export class CardSDK {
     }
   }
   emailVerificationSend = async (
-    request: EmailVerificationSendRequest & { location: CardLocation },
+    request: EmailVerificationSendRequest,
   ): Promise<EmailVerificationSendResponse> => {
     this.logDebugInfo('emailVerificationSend', { email: request.email });
 
-    const { location, ...body } = request;
-    const isUSEnv = location === 'us';
     try {
       const response = await this.makeRequest(
         '/v1/auth/register/email/send',
@@ -963,10 +962,9 @@ export class CardSDK {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(request),
         },
         false, // not authenticated
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1011,16 +1009,13 @@ export class CardSDK {
   };
 
   emailVerificationVerify = async (
-    request: EmailVerificationVerifyRequest & { location: CardLocation },
+    request: EmailVerificationVerifyRequest,
   ): Promise<EmailVerificationVerifyResponse> => {
     this.logDebugInfo('emailVerificationVerify', {
       email: request.email,
       contactVerificationId: request.contactVerificationId,
       countryOfResidence: request.countryOfResidence,
     });
-
-    const { location, ...body } = request;
-    const isUSEnv = location === 'us';
 
     try {
       const response = await this.makeRequest(
@@ -1030,10 +1025,9 @@ export class CardSDK {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(request),
         },
         false, // not authenticated
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1077,13 +1071,10 @@ export class CardSDK {
   };
 
   phoneVerificationSend = async (
-    request: PhoneVerificationSendRequest & { location: CardLocation },
+    request: PhoneVerificationSendRequest,
   ): Promise<PhoneVerificationSendResponse> => {
     try {
       this.logDebugInfo('phoneVerificationSend request', request);
-
-      const { location, contactVerificationId, ...body } = request;
-      const isUSEnv = location === 'us';
 
       const response = await this.makeRequest(
         '/v1/auth/register/phone/send',
@@ -1092,10 +1083,9 @@ export class CardSDK {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(request),
         },
         false,
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1140,13 +1130,10 @@ export class CardSDK {
   };
 
   phoneVerificationVerify = async (
-    request: PhoneVerificationVerifyRequest & { location: CardLocation },
+    request: PhoneVerificationVerifyRequest,
   ): Promise<RegisterUserResponse> => {
     try {
       this.logDebugInfo('phoneVerificationVerify request', request);
-
-      const { location, ...body } = request;
-      const isUSEnv = location === 'us';
 
       const response = await this.makeRequest(
         '/v1/auth/register/phone/verify',
@@ -1155,10 +1142,9 @@ export class CardSDK {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(request),
         },
         false,
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1204,22 +1190,20 @@ export class CardSDK {
   };
 
   startUserVerification = async (
-    location: CardLocation,
+    request: StartUserVerificationRequest,
   ): Promise<StartUserVerificationResponse> => {
-    const isUSEnv = location === 'us';
-
-    this.logDebugInfo('startUserVerification', { location });
+    this.logDebugInfo('startUserVerification', request);
     try {
       const response = await this.makeRequest(
         '/v1/auth/register/verification',
         {
-          method: 'GET',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify(request),
         },
         false,
-        isUSEnv,
       );
       if (!response.ok) {
         let responseBody = null;
@@ -1262,14 +1246,10 @@ export class CardSDK {
   };
 
   registerPersonalDetails = async (
-    request: RegisterPersonalDetailsRequest & { location: CardLocation },
+    request: RegisterPersonalDetailsRequest,
   ): Promise<RegisterUserResponse> => {
-    const { location, ...requestBody } = request;
-    const isUSEnv = location === 'us';
-
     this.logDebugInfo('registerPersonalDetails', {
-      onboardingId: requestBody.onboardingId,
-      location,
+      onboardingId: request.onboardingId,
     });
 
     try {
@@ -1280,10 +1260,9 @@ export class CardSDK {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify(request),
         },
         false,
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1329,14 +1308,10 @@ export class CardSDK {
   };
 
   registerPhysicalAddress = async (
-    request: RegisterPhysicalAddressRequest & { location: CardLocation },
+    request: RegisterPhysicalAddressRequest,
   ): Promise<RegisterAddressResponse> => {
-    const { location, ...requestBody } = request;
-    const isUSEnv = location === 'us';
-
     this.logDebugInfo('registerPhysicalAddress', {
-      onboardingId: requestBody.onboardingId,
-      location,
+      onboardingId: request.onboardingId,
     });
 
     try {
@@ -1347,10 +1322,9 @@ export class CardSDK {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify(request),
         },
         false,
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1396,14 +1370,10 @@ export class CardSDK {
   };
 
   registerMailingAddress = async (
-    request: RegisterPhysicalAddressRequest & { location: CardLocation },
+    request: RegisterPhysicalAddressRequest,
   ): Promise<RegisterAddressResponse> => {
-    const { location, ...requestBody } = request;
-    const isUSEnv = location === 'us';
-
     this.logDebugInfo('registerMailingAddress', {
-      onboardingId: requestBody.onboardingId,
-      location,
+      onboardingId: request.onboardingId,
     });
 
     try {
@@ -1414,10 +1384,9 @@ export class CardSDK {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify(request),
         },
         false,
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1462,13 +1431,7 @@ export class CardSDK {
     }
   };
 
-  getRegistrationSettings = async (
-    location: CardLocation,
-  ): Promise<RegistrationSettingsResponse> => {
-    const isUSEnv = location === 'us';
-
-    this.logDebugInfo('getRegistrationSettings', { location });
-
+  getRegistrationSettings = async (): Promise<RegistrationSettingsResponse> => {
     try {
       const response = await this.makeRequest(
         '/v1/auth/settings',
@@ -1476,7 +1439,6 @@ export class CardSDK {
           method: 'GET',
         },
         false, // not authenticated
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1521,13 +1483,7 @@ export class CardSDK {
     }
   };
 
-  getRegistrationStatus = async (
-    location: CardLocation,
-  ): Promise<UserResponse> => {
-    const isUSEnv = location === 'us';
-
-    this.logDebugInfo('getRegistrationStatus', { location });
-
+  getRegistrationStatus = async (): Promise<UserResponse> => {
     try {
       const response = await this.makeRequest(
         '/v1/auth/register',
@@ -1535,7 +1491,6 @@ export class CardSDK {
           method: 'GET',
         },
         false, // not authenticated
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1581,25 +1536,21 @@ export class CardSDK {
   };
 
   createOnboardingConsent = async (
-    request: CreateOnboardingConsentRequest & { location: CardLocation },
+    request: CreateOnboardingConsentRequest,
   ): Promise<CreateOnboardingConsentResponse> => {
-    const { location, ...requestBody } = request;
-    const isUSEnv = location === 'us';
-
-    this.logDebugInfo('createOnboardingConsent', { location, requestBody });
+    this.logDebugInfo('createOnboardingConsent', { request });
 
     try {
       const response = await this.makeRequest(
         '/v2/consent/onboarding',
         {
           method: 'POST',
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify(request),
           headers: {
             'Content-Type': 'application/json',
           },
         },
         false, // not authenticated
-        isUSEnv,
       );
 
       if (!response.ok) {
@@ -1646,15 +1597,11 @@ export class CardSDK {
 
   linkUserToConsent = async (
     consentSetId: string,
-    request: LinkUserToConsentRequest & { location: CardLocation },
+    request: LinkUserToConsentRequest,
   ): Promise<LinkUserToConsentResponse> => {
-    const { location, ...requestBody } = request;
-    const isUSEnv = location === 'us';
-
     this.logDebugInfo('linkUserToConsent', {
       consentSetId,
-      location,
-      requestBody,
+      request,
     });
 
     try {
@@ -1662,13 +1609,12 @@ export class CardSDK {
         `/v2/consent/onboarding/${consentSetId}`,
         {
           method: 'PATCH',
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify(request),
           headers: {
             'Content-Type': 'application/json',
           },
         },
         false, // not authenticated
-        isUSEnv,
       );
 
       if (!response.ok) {

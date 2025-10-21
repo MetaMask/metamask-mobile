@@ -219,6 +219,10 @@ export interface PhoneVerificationVerifyRequest {
   contactVerificationId: string;
 }
 
+export interface StartUserVerificationRequest {
+  onboardingId: string;
+}
+
 export interface StartUserVerificationResponse {
   sessionUrl: string;
 }

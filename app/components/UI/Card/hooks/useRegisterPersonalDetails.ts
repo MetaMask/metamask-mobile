@@ -1,11 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { getErrorMessage } from '../util/getErrorMessage';
-import {
-  CardLocation,
-  RegisterPersonalDetailsRequest,
-  RegisterUserResponse,
-} from '../types';
+import { RegisterPersonalDetailsRequest, RegisterUserResponse } from '../types';
 
 /**
  * Hook for registering personal details
@@ -14,7 +10,6 @@ import {
 const useRegisterPersonalDetails = (): {
   registerPersonalDetails: (
     request: RegisterPersonalDetailsRequest,
-    location: CardLocation,
   ) => Promise<RegisterUserResponse>;
   isLoading: boolean;
   isSuccess: boolean;
@@ -44,7 +39,6 @@ const useRegisterPersonalDetails = (): {
   const registerPersonalDetails = useCallback(
     async (
       request: RegisterPersonalDetailsRequest,
-      location: CardLocation,
     ): Promise<RegisterUserResponse> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
@@ -56,10 +50,7 @@ const useRegisterPersonalDetails = (): {
         setIsSuccess(false);
         setError(null);
 
-        const RegisterUserResponse = await sdk.registerPersonalDetails({
-          ...request,
-          location,
-        });
+        const RegisterUserResponse = await sdk.registerPersonalDetails(request);
 
         setIsSuccess(true);
 

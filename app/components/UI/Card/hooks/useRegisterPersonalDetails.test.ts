@@ -96,13 +96,11 @@ describe('useRegisterPersonalDetails', () => {
       await act(async () => {
         response = await result.current.registerPersonalDetails(
           mockPersonalDetailsRequest,
-          'us',
         );
       });
 
       expect(mockRegisterPersonalDetails).toHaveBeenCalledWith({
         ...mockPersonalDetailsRequest,
-        location: 'us',
       });
       expect(response).toEqual(mockUserResponse);
       expect(result.current.isLoading).toBe(false);
@@ -128,10 +126,7 @@ describe('useRegisterPersonalDetails', () => {
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
       act(() => {
-        result.current.registerPersonalDetails(
-          mockPersonalDetailsRequest,
-          'us',
-        );
+        result.current.registerPersonalDetails(mockPersonalDetailsRequest);
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -161,7 +156,6 @@ describe('useRegisterPersonalDetails', () => {
         act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         }),
       ).rejects.toThrow('Card SDK not initialized');
@@ -184,7 +178,6 @@ describe('useRegisterPersonalDetails', () => {
         await act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         });
       } catch (error) {
@@ -193,7 +186,6 @@ describe('useRegisterPersonalDetails', () => {
 
       expect(mockRegisterPersonalDetails).toHaveBeenCalledWith({
         ...mockPersonalDetailsRequest,
-        location: 'us',
       });
       expect(mockGetErrorMessage).toHaveBeenCalledWith(apiError);
       expect(result.current.isLoading).toBe(false);
@@ -216,7 +208,6 @@ describe('useRegisterPersonalDetails', () => {
         await act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         });
       } catch (error) {
@@ -244,7 +235,6 @@ describe('useRegisterPersonalDetails', () => {
         await act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         });
       } catch (error) {
@@ -267,7 +257,6 @@ describe('useRegisterPersonalDetails', () => {
       await act(async () => {
         await result.current.registerPersonalDetails(
           mockPersonalDetailsRequest,
-          'us',
         );
       });
 
@@ -288,10 +277,7 @@ describe('useRegisterPersonalDetails', () => {
       );
 
       act(() => {
-        result.current.registerPersonalDetails(
-          mockPersonalDetailsRequest,
-          'us',
-        );
+        result.current.registerPersonalDetails(mockPersonalDetailsRequest);
       });
 
       // Success should be reset when starting new registration
@@ -321,7 +307,6 @@ describe('useRegisterPersonalDetails', () => {
         await act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         });
       } catch (error) {
@@ -337,7 +322,6 @@ describe('useRegisterPersonalDetails', () => {
       await act(async () => {
         await result.current.registerPersonalDetails(
           mockPersonalDetailsRequest,
-          'us',
         );
       });
 
@@ -360,7 +344,6 @@ describe('useRegisterPersonalDetails', () => {
         await act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         });
       } catch (error) {
@@ -401,7 +384,6 @@ describe('useRegisterPersonalDetails', () => {
       await act(async () => {
         await result.current.registerPersonalDetails(
           mockPersonalDetailsRequest,
-          'us',
         );
       });
 
@@ -430,7 +412,6 @@ describe('useRegisterPersonalDetails', () => {
         await act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         });
       } catch (error) {
@@ -467,15 +448,11 @@ describe('useRegisterPersonalDetails', () => {
       };
 
       await act(async () => {
-        await result.current.registerPersonalDetails(
-          customRequest,
-          'international',
-        );
+        await result.current.registerPersonalDetails(customRequest);
       });
 
       expect(mockRegisterPersonalDetails).toHaveBeenCalledWith({
         ...customRequest,
-        location: 'international',
       });
       expect(mockRegisterPersonalDetails).toHaveBeenCalledTimes(1);
     });
@@ -485,7 +462,6 @@ describe('useRegisterPersonalDetails', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'international',
       };
 
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
@@ -496,7 +472,6 @@ describe('useRegisterPersonalDetails', () => {
         act(async () => {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
-            'us',
           );
         }),
       ).rejects.toThrow('Card SDK not initialized');
@@ -521,34 +496,11 @@ describe('useRegisterPersonalDetails', () => {
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
       await act(async () => {
-        await result.current.registerPersonalDetails(
-          minimalRequest,
-          'international',
-        );
+        await result.current.registerPersonalDetails(minimalRequest);
       });
 
       expect(mockRegisterPersonalDetails).toHaveBeenCalledWith({
         ...minimalRequest,
-        location: 'international',
-      });
-      expect(result.current.isSuccess).toBe(true);
-    });
-
-    it('handles international location', async () => {
-      mockRegisterPersonalDetails.mockResolvedValue(mockUserResponse);
-
-      const { result } = renderHook(() => useRegisterPersonalDetails());
-
-      await act(async () => {
-        await result.current.registerPersonalDetails(
-          mockPersonalDetailsRequest,
-          'international',
-        );
-      });
-
-      expect(mockRegisterPersonalDetails).toHaveBeenCalledWith({
-        ...mockPersonalDetailsRequest,
-        location: 'international',
       });
       expect(result.current.isSuccess).toBe(true);
     });

@@ -50,7 +50,6 @@ describe('useEmailVerificationSend', () => {
       sdk: mockSDK,
       isLoading: false,
       logoutFromProvider: mockLogoutFromProvider,
-      userCardLocation: 'international',
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -77,10 +76,7 @@ describe('useEmailVerificationSend', () => {
 
       let sendPromise: Promise<EmailVerificationSendResponse>;
       act(() => {
-        sendPromise = result.current.sendEmailVerification(
-          'test@example.com',
-          'us',
-        );
+        sendPromise = result.current.sendEmailVerification('test@example.com');
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -96,7 +92,6 @@ describe('useEmailVerificationSend', () => {
       expect(response).toEqual(mockSendResponse);
       expect(mockEmailVerificationSend).toHaveBeenCalledWith({
         email: 'test@example.com',
-        location: 'us',
       });
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(true);
@@ -116,7 +111,7 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       act(() => {
-        result.current.sendEmailVerification('test@example.com', 'us');
+        result.current.sendEmailVerification('test@example.com');
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -142,7 +137,7 @@ describe('useEmailVerificationSend', () => {
 
       await expect(
         act(async () => {
-          await result.current.sendEmailVerification('test@example.com', 'us');
+          await result.current.sendEmailVerification('test@example.com');
         }),
       ).rejects.toThrow(cardError);
 
@@ -161,7 +156,7 @@ describe('useEmailVerificationSend', () => {
 
       await expect(
         act(async () => {
-          await result.current.sendEmailVerification('test@example.com', 'us');
+          await result.current.sendEmailVerification('test@example.com');
         }),
       ).rejects.toThrow(networkError);
 
@@ -180,7 +175,7 @@ describe('useEmailVerificationSend', () => {
 
       await expect(
         act(async () => {
-          await result.current.sendEmailVerification('test@example.com', 'us');
+          await result.current.sendEmailVerification('test@example.com');
         }),
       ).rejects.toThrow(unknownError);
 
@@ -196,14 +191,13 @@ describe('useEmailVerificationSend', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
       await expect(
         act(async () => {
-          await result.current.sendEmailVerification('test@example.com', 'us');
+          await result.current.sendEmailVerification('test@example.com');
         }),
       ).rejects.toThrow('Card SDK not initialized');
 
@@ -219,14 +213,14 @@ describe('useEmailVerificationSend', () => {
 
       // First successful send
       await act(async () => {
-        await result.current.sendEmailVerification('test@example.com', 'us');
+        await result.current.sendEmailVerification('test@example.com');
       });
 
       expect(result.current.isSuccess).toBe(true);
 
       // Second send should reset success state
       act(() => {
-        result.current.sendEmailVerification('test2@example.com', 'us');
+        result.current.sendEmailVerification('test2@example.com');
       });
 
       expect(result.current.isSuccess).toBe(false);
@@ -246,7 +240,7 @@ describe('useEmailVerificationSend', () => {
       // First send with error
       await expect(
         act(async () => {
-          await result.current.sendEmailVerification('test@example.com', 'us');
+          await result.current.sendEmailVerification('test@example.com');
         }),
       ).rejects.toThrow(cardError);
 
@@ -255,44 +249,11 @@ describe('useEmailVerificationSend', () => {
 
       // Second send should reset error state
       act(() => {
-        result.current.sendEmailVerification('test2@example.com', 'us');
+        result.current.sendEmailVerification('test2@example.com');
       });
 
       expect(result.current.isError).toBe(false);
       expect(result.current.error).toBeNull();
-    });
-
-    it('works with us location', async () => {
-      mockEmailVerificationSend.mockResolvedValue(mockSendResponse);
-
-      const { result } = renderHook(() => useEmailVerificationSend());
-
-      await act(async () => {
-        await result.current.sendEmailVerification('test@example.com', 'us');
-      });
-
-      expect(mockEmailVerificationSend).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        location: 'us',
-      });
-    });
-
-    it('works with international location', async () => {
-      mockEmailVerificationSend.mockResolvedValue(mockSendResponse);
-
-      const { result } = renderHook(() => useEmailVerificationSend());
-
-      await act(async () => {
-        await result.current.sendEmailVerification(
-          'test@example.com',
-          'international',
-        );
-      });
-
-      expect(mockEmailVerificationSend).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        location: 'international',
-      });
     });
   });
 
@@ -309,7 +270,7 @@ describe('useEmailVerificationSend', () => {
       // Trigger error
       await expect(
         act(async () => {
-          await result.current.sendEmailVerification('test@example.com', 'us');
+          await result.current.sendEmailVerification('test@example.com');
         }),
       ).rejects.toThrow(cardError);
 
@@ -336,7 +297,7 @@ describe('useEmailVerificationSend', () => {
 
       // Trigger successful send
       await act(async () => {
-        await result.current.sendEmailVerification('test@example.com', 'us');
+        await result.current.sendEmailVerification('test@example.com');
       });
 
       expect(result.current.isSuccess).toBe(true);
@@ -360,45 +321,12 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       await act(async () => {
-        await result.current.sendEmailVerification(
-          'custom@example.com',
-          'international',
-        );
+        await result.current.sendEmailVerification('custom@example.com');
       });
 
       expect(mockEmailVerificationSend).toHaveBeenCalledTimes(1);
       expect(mockEmailVerificationSend).toHaveBeenCalledWith({
         email: 'custom@example.com',
-        location: 'international',
-      });
-    });
-
-    it('works with both us and international locations', async () => {
-      mockEmailVerificationSend.mockResolvedValue(mockSendResponse);
-
-      const { result } = renderHook(() => useEmailVerificationSend());
-
-      // Test US location
-      await act(async () => {
-        await result.current.sendEmailVerification('test@example.com', 'us');
-      });
-
-      expect(mockEmailVerificationSend).toHaveBeenLastCalledWith({
-        email: 'test@example.com',
-        location: 'us',
-      });
-
-      // Test international location
-      await act(async () => {
-        await result.current.sendEmailVerification(
-          'test@example.com',
-          'international',
-        );
-      });
-
-      expect(mockEmailVerificationSend).toHaveBeenLastCalledWith({
-        email: 'test@example.com',
-        location: 'international',
       });
     });
   });
@@ -410,12 +338,11 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       await act(async () => {
-        await result.current.sendEmailVerification('', 'us');
+        await result.current.sendEmailVerification('');
       });
 
       expect(mockEmailVerificationSend).toHaveBeenCalledWith({
         email: '',
-        location: 'us',
       });
     });
 
@@ -427,12 +354,11 @@ describe('useEmailVerificationSend', () => {
       const specialEmail = 'test+special@example-domain.co.uk';
 
       await act(async () => {
-        await result.current.sendEmailVerification(specialEmail, 'us');
+        await result.current.sendEmailVerification(specialEmail);
       });
 
       expect(mockEmailVerificationSend).toHaveBeenCalledWith({
         email: specialEmail,
-        location: 'us',
       });
     });
   });
@@ -463,14 +389,13 @@ describe('useEmailVerificationSend', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
       await expect(
         act(async () => {
-          await result.current.sendEmailVerification('test@example.com', 'us');
+          await result.current.sendEmailVerification('test@example.com');
         }),
       ).rejects.toThrow('Card SDK not initialized');
     });

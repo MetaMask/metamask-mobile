@@ -22,6 +22,7 @@ import {
   selectSelectedCountry,
   setContactVerificationId,
   setSelectedCountry,
+  setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
@@ -137,7 +138,6 @@ const SignUp = () => {
     try {
       const { contactVerificationId } = await sendEmailVerification(
         debouncedEmail,
-        selectedCountry === 'US' ? 'us' : 'international',
       );
 
       dispatch(setContactVerificationId(contactVerificationId));
@@ -168,6 +168,9 @@ const SignUp = () => {
     (countryValue: string) => {
       resetEmailVerificationSend();
       dispatch(setSelectedCountry(countryValue));
+      dispatch(
+        setUserCardLocation(countryValue === 'US' ? 'us' : 'international'),
+      );
     },
     [dispatch, resetEmailVerificationSend],
   );

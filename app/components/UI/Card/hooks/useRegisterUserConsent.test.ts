@@ -59,7 +59,6 @@ describe('useRegisterUserConsent', () => {
       sdk: mockSDK,
       isLoading: false,
       logoutFromProvider: jest.fn(),
-      userCardLocation: 'us',
     });
 
     mockUseSelector.mockReturnValue('US'); // selectedCountry
@@ -112,13 +111,11 @@ describe('useRegisterUserConsent', () => {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),
           },
-          location: 'us',
         });
 
         // Verify Stage 2: linkUserToConsent called with correct parameters
         expect(mockLinkUserToConsent).toHaveBeenCalledWith('consent-123', {
           userId: testUserId,
-          location: 'us',
         });
 
         // Verify final state
@@ -155,13 +152,11 @@ describe('useRegisterUserConsent', () => {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),
           },
-          location: 'international',
         });
 
         // Verify Stage 2: linkUserToConsent called with international location
         expect(mockLinkUserToConsent).toHaveBeenCalledWith('consent-123', {
           userId: testUserId,
-          location: 'international',
         });
 
         expect(result.current.isSuccess).toBe(true);
@@ -229,7 +224,6 @@ describe('useRegisterUserConsent', () => {
           sdk: null,
           isLoading: false,
           logoutFromProvider: jest.fn(),
-          userCardLocation: 'us',
         });
 
         const { result } = renderHook(() => useRegisterUserConsent());
@@ -525,32 +519,28 @@ describe('useRegisterUserConsent', () => {
       {
         country: 'US',
         expectedPolicy: 'us',
-        expectedLocation: 'us',
         description: 'US users',
       },
       {
         country: 'CA',
         expectedPolicy: 'global',
-        expectedLocation: 'international',
         description: 'Canadian users',
       },
       {
         country: 'GB',
         expectedPolicy: 'global',
-        expectedLocation: 'international',
         description: 'UK users',
       },
       {
         country: 'DE',
         expectedPolicy: 'global',
-        expectedLocation: 'international',
         description: 'German users',
       },
     ] as const;
 
     it.each(countryTestCases)(
       'uses correct policy and location for $description',
-      async ({ country, expectedPolicy, expectedLocation }) => {
+      async ({ country, expectedPolicy }) => {
         mockUseSelector.mockReturnValue(country);
         const { result } = renderHook(() => useRegisterUserConsent());
 
@@ -564,14 +554,6 @@ describe('useRegisterUserConsent', () => {
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith(
           expect.objectContaining({
             policy: expectedPolicy,
-            location: expectedLocation,
-          }),
-        );
-
-        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
-          'consent-123',
-          expect.objectContaining({
-            location: expectedLocation,
           }),
         );
       },
@@ -591,7 +573,6 @@ describe('useRegisterUserConsent', () => {
         sdk: customSDK,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'us',
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -609,7 +590,6 @@ describe('useRegisterUserConsent', () => {
         sdk: mockSDK,
         isLoading: true,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'us',
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -626,7 +606,6 @@ describe('useRegisterUserConsent', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => useRegisterUserConsent());
@@ -704,7 +683,6 @@ describe('useRegisterUserConsent', () => {
         } as unknown as CardSDK,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'us',
       });
 
       rerender();

@@ -89,7 +89,6 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
             userAgent: AppConstants.USER_AGENT,
             timestamp: new Date().toISOString(),
           },
-          location: selectedCountry === 'US' ? 'us' : 'international',
         });
 
         if (!consentSetId) {
@@ -105,7 +104,6 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         // Stage 2: Link user to consent
         await sdk.linkUserToConsent(consentSetId, {
           userId,
-          location: selectedCountry === 'US' ? 'us' : 'international',
         });
 
         // Update state with success

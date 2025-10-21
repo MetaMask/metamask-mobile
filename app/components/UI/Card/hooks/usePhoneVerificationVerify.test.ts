@@ -67,7 +67,6 @@ describe('usePhoneVerificationVerify', () => {
       sdk: mockSDK,
       isLoading: false,
       logoutFromProvider: mockLogoutFromProvider,
-      userCardLocation: 'international',
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -96,13 +95,11 @@ describe('usePhoneVerificationVerify', () => {
       await act(async () => {
         response = await result.current.verifyPhoneVerification(
           mockVerifyRequest,
-          'us',
         );
       });
 
       expect(mockPhoneVerificationVerify).toHaveBeenCalledWith({
         ...mockVerifyRequest,
-        location: 'us',
       });
       expect(response).toEqual(mockUserResponse);
       expect(result.current.isLoading).toBe(false);
@@ -124,7 +121,7 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       act(() => {
-        result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+        result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -145,14 +142,13 @@ describe('usePhoneVerificationVerify', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow('Card SDK not initialized');
 
@@ -173,7 +169,7 @@ describe('usePhoneVerificationVerify', () => {
 
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow(apiError);
 
@@ -192,7 +188,7 @@ describe('usePhoneVerificationVerify', () => {
 
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow(networkError);
 
@@ -211,7 +207,7 @@ describe('usePhoneVerificationVerify', () => {
 
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow(genericError);
 
@@ -228,14 +224,14 @@ describe('usePhoneVerificationVerify', () => {
 
       // First successful verification
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+        await result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
       expect(result.current.isSuccess).toBe(true);
 
       // Second verification should reset success state initially
       const secondPromise = act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+        await result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
       // During the call, success should be reset
@@ -255,7 +251,7 @@ describe('usePhoneVerificationVerify', () => {
       // First verification with error
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow(error);
 
@@ -264,7 +260,7 @@ describe('usePhoneVerificationVerify', () => {
 
       // Second successful verification should reset error state
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+        await result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
       expect(result.current.isError).toBe(false);
@@ -283,7 +279,7 @@ describe('usePhoneVerificationVerify', () => {
       // Set error state
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow(error);
 
@@ -310,7 +306,7 @@ describe('usePhoneVerificationVerify', () => {
 
       // Set some state
       await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+        await result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
       expect(result.current.isSuccess).toBe(true);
@@ -335,7 +331,7 @@ describe('usePhoneVerificationVerify', () => {
       // Set error state
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow(error);
 
@@ -361,15 +357,11 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       await act(async () => {
-        await result.current.verifyPhoneVerification(
-          mockVerifyRequest,
-          'international',
-        );
+        await result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
       expect(mockPhoneVerificationVerify).toHaveBeenCalledWith({
         ...mockVerifyRequest,
-        location: 'international',
       });
     });
 
@@ -378,14 +370,13 @@ describe('usePhoneVerificationVerify', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'international',
       });
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       await expect(
         act(async () => {
-          await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
         }),
       ).rejects.toThrow('Card SDK not initialized');
     });
@@ -406,47 +397,11 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       await act(async () => {
-        await result.current.verifyPhoneVerification(minimalRequest, 'us');
+        await result.current.verifyPhoneVerification(minimalRequest);
       });
 
       expect(mockPhoneVerificationVerify).toHaveBeenCalledWith({
         ...minimalRequest,
-        location: 'us',
-      });
-      expect(result.current.isSuccess).toBe(true);
-    });
-
-    it('handles international location', async () => {
-      mockPhoneVerificationVerify.mockResolvedValue(mockUserResponse);
-
-      const { result } = renderHook(() => usePhoneVerificationVerify());
-
-      await act(async () => {
-        await result.current.verifyPhoneVerification(
-          mockVerifyRequest,
-          'international',
-        );
-      });
-
-      expect(mockPhoneVerificationVerify).toHaveBeenCalledWith({
-        ...mockVerifyRequest,
-        location: 'international',
-      });
-      expect(result.current.isSuccess).toBe(true);
-    });
-
-    it('handles US location', async () => {
-      mockPhoneVerificationVerify.mockResolvedValue(mockUserResponse);
-
-      const { result } = renderHook(() => usePhoneVerificationVerify());
-
-      await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest, 'us');
-      });
-
-      expect(mockPhoneVerificationVerify).toHaveBeenCalledWith({
-        ...mockVerifyRequest,
-        location: 'us',
       });
       expect(result.current.isSuccess).toBe(true);
     });

@@ -57,7 +57,6 @@ describe('useUserRegistrationStatus', () => {
       sdk: mockSDK,
       isLoading: false,
       logoutFromProvider: jest.fn(),
-      userCardLocation: 'us',
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -84,44 +83,6 @@ describe('useUserRegistrationStatus', () => {
   });
 
   describe('fetchRegistrationStatus', () => {
-    it('fetches registration status successfully for US location', async () => {
-      // Given: US country selected and successful API response
-      mockUseSelector.mockReturnValue('US');
-      mockGetRegistrationStatus.mockResolvedValue(mockUserResponse);
-
-      // When: Hook starts polling
-      const { result } = renderHook(() => useUserRegistrationStatus());
-
-      await act(async () => {
-        result.current.startPolling();
-      });
-
-      // Then: Should fetch with US location and update state
-      expect(mockGetRegistrationStatus).toHaveBeenCalledWith('us');
-      expect(result.current.userResponse).toEqual(mockUserResponse);
-      expect(result.current.verificationState).toBe('VERIFIED');
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.isError).toBe(false);
-      expect(result.current.error).toBeNull();
-    });
-
-    it('fetches registration status successfully for international location', async () => {
-      // Given: Non-US country selected
-      mockUseSelector.mockReturnValue('CA');
-      mockGetRegistrationStatus.mockResolvedValue(mockUserResponse);
-
-      // When: Hook starts polling
-      const { result } = renderHook(() => useUserRegistrationStatus());
-
-      await act(async () => {
-        result.current.startPolling();
-      });
-
-      // Then: Should fetch with international location
-      expect(mockGetRegistrationStatus).toHaveBeenCalledWith('international');
-      expect(result.current.userResponse).toEqual(mockUserResponse);
-    });
-
     it('sets loading state during fetch', async () => {
       // Given: Mock response
       mockGetRegistrationStatus.mockResolvedValue(mockUserResponse);
@@ -144,7 +105,6 @@ describe('useUserRegistrationStatus', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'us',
       });
 
       // When: Hook attempts to fetch
@@ -192,7 +152,6 @@ describe('useUserRegistrationStatus', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'us',
       });
 
       const { result } = renderHook(() => useUserRegistrationStatus());

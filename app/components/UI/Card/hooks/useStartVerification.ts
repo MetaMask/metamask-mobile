@@ -3,7 +3,7 @@ import { useCardSDK } from '../sdk';
 import { StartUserVerificationResponse, CardError } from '../types';
 import Logger from '../../../../util/Logger';
 import { getErrorMessage } from '../util/getErrorMessage';
-import { selectSelectedCountry } from '../../../../core/redux/slices/card';
+import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 
 interface UseStartVerificationReturn {
@@ -27,7 +27,7 @@ export const useStartVerification = (): UseStartVerificationReturn => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const onboardingId = useSelector(selectOnboardingId);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -43,15 +43,22 @@ export const useStartVerification = (): UseStartVerificationReturn => {
         return null;
       }
 
+      if (!onboardingId) {
+        const errorMessage = 'Onboarding ID not found';
+        setError(errorMessage);
+        setIsError(true);
+        return null;
+      }
+
       try {
         setIsLoading(true);
         setIsError(false);
         setError(null);
         setIsSuccess(false);
 
-        const response = await sdk.startUserVerification(
-          selectedCountry === 'US' ? 'us' : 'international',
-        );
+        const response = await sdk.startUserVerification({
+          onboardingId,
+        });
 
         setData(response);
         setIsSuccess(true);
@@ -79,14 +86,14 @@ export const useStartVerification = (): UseStartVerificationReturn => {
 
         return null;
       }
-    }, [sdk, selectedCountry]);
+    }, [onboardingId, sdk]);
 
   // Automatically fetch verification data on mount
   useEffect(() => {
-    if (sdk && selectedCountry) {
+    if (sdk && onboardingId) {
       startVerification();
     }
-  }, [sdk, selectedCountry, startVerification]);
+  }, [onboardingId, sdk, startVerification]);
 
   return {
     startVerification,

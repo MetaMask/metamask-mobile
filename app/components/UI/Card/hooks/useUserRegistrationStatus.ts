@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
-import { CardLocation, UserResponse, VERIFICATION_STATUS } from '../types';
+import { UserResponse, VERIFICATION_STATUS } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
-import { selectSelectedCountry } from '../../../../core/redux/slices/card';
 
 interface UseUserRegistrationStatusReturn {
   verificationState: VERIFICATION_STATUS | null;
@@ -24,7 +22,6 @@ interface UseUserRegistrationStatusReturn {
 export const useUserRegistrationStatus =
   (): UseUserRegistrationStatusReturn => {
     const { sdk } = useCardSDK();
-    const selectedCountry = useSelector(selectSelectedCountry);
     const [verificationState, setVerificationState] =
       useState<VERIFICATION_STATUS | null>(null);
     const [userResponse, setUserResponse] = useState<UserResponse | null>(null);
@@ -54,9 +51,7 @@ export const useUserRegistrationStatus =
         setIsError(false);
         setError(null);
 
-        const location: CardLocation =
-          selectedCountry === 'US' ? 'us' : 'international';
-        const response = await sdk.getRegistrationStatus(location);
+        const response = await sdk.getRegistrationStatus();
 
         setUserResponse(response);
         setVerificationState(response.verificationState || null);
@@ -67,7 +62,7 @@ export const useUserRegistrationStatus =
         setIsError(true);
         setIsLoading(false);
       }
-    }, [sdk, selectedCountry]);
+    }, [sdk]);
 
     const startPolling = useCallback(() => {
       // Clear any existing interval

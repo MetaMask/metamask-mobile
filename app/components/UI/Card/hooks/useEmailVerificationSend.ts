@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { getErrorMessage } from '../util/getErrorMessage';
-import { CardLocation, EmailVerificationSendResponse } from '../types';
+import { EmailVerificationSendResponse } from '../types';
 
 /**
  * Hook for sending email verification
@@ -10,7 +10,6 @@ import { CardLocation, EmailVerificationSendResponse } from '../types';
 const useEmailVerificationSend = (): {
   sendEmailVerification: (
     email: string,
-    location: CardLocation,
   ) => Promise<EmailVerificationSendResponse>;
   isLoading: boolean;
   isSuccess: boolean;
@@ -38,10 +37,7 @@ const useEmailVerificationSend = (): {
   }, []);
 
   const sendEmailVerification = useCallback(
-    async (
-      email: string,
-      location: CardLocation,
-    ): Promise<EmailVerificationSendResponse> => {
+    async (email: string): Promise<EmailVerificationSendResponse> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
       }
@@ -54,7 +50,6 @@ const useEmailVerificationSend = (): {
 
         const emailVerificationSendResponse = await sdk.emailVerificationSend({
           email,
-          location,
         });
 
         setIsSuccess(true);
