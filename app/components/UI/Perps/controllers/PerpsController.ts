@@ -1800,12 +1800,16 @@ export class PerpsController extends BaseController<
     try {
       // Clear any stale results when starting a new deposit flow
       // Don't set depositInProgress yet - wait until user confirms
+
+      // Generate deposit request ID for tracking
+      const currentDepositId = generateDepositId();
+
       this.update((state) => {
         state.lastDepositResult = null;
 
         // Add deposit request to tracking
         const depositRequest = {
-          id: generateDepositId(),
+          id: currentDepositId,
           timestamp: Date.now(),
           amount: amount || '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
@@ -1891,14 +1895,18 @@ export class PerpsController extends BaseController<
               error: '',
             };
 
-            // Update the most recent deposit request
+            // Update the deposit request by request ID to avoid race conditions
             if (state.depositRequests.length > 0) {
-              const latestRequest = state.depositRequests[0];
-              // For deposits, we have a txHash immediately, so mark as completed
-              // (the transaction hash means the deposit was successful)
-              latestRequest.status = 'completed' as TransactionStatus;
-              latestRequest.success = true;
-              latestRequest.txHash = actualTxHash;
+              const requestToUpdate = state.depositRequests.find(
+                (req) => req.id === currentDepositId,
+              );
+              if (requestToUpdate) {
+                // For deposits, we have a txHash immediately, so mark as completed
+                // (the transaction hash means the deposit was successful)
+                requestToUpdate.status = 'completed' as TransactionStatus;
+                requestToUpdate.success = true;
+                requestToUpdate.txHash = actualTxHash;
+              }
             }
           });
 
@@ -1941,11 +1949,15 @@ export class PerpsController extends BaseController<
                 txHash: '',
               };
 
-              // Update the most recent deposit request to failed
+              // Update the deposit request by request ID to avoid race conditions
               if (state.depositRequests.length > 0) {
-                const latestRequest = state.depositRequests[0];
-                latestRequest.status = 'failed' as TransactionStatus;
-                latestRequest.success = false;
+                const requestToUpdate = state.depositRequests.find(
+                  (req) => req.id === currentDepositId,
+                );
+                if (requestToUpdate) {
+                  requestToUpdate.status = 'failed' as TransactionStatus;
+                  requestToUpdate.success = false;
+                }
               }
             });
           }
@@ -2082,6 +2094,11 @@ export class PerpsController extends BaseController<
         }
       | undefined;
 
+    // Generate withdrawal request ID for tracking (outside try block for catch access)
+    const currentWithdrawalId = `withdraw-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
     try {
       trace({
         name: TraceName.PerpsWithdraw,
@@ -2114,9 +2131,7 @@ export class PerpsController extends BaseController<
 
         // Add withdrawal request to tracking
         const withdrawalRequest = {
-          id: `withdraw-${Date.now()}-${Math.random()
-            .toString(36)
-            .substr(2, 9)}`,
+          id: currentWithdrawalId,
           timestamp: Date.now(),
           amount: netAmount.toString(), // Use net amount (after fees)
           asset: USDC_SYMBOL, // Default to USDC for now
@@ -2162,23 +2177,26 @@ export class PerpsController extends BaseController<
             error: '',
           };
 
-          // Update the most recent withdrawal request
+          // Update the withdrawal request by request ID to avoid race conditions
           if (state.withdrawalRequests.length > 0) {
-            const latestRequest = state.withdrawalRequests[0];
-
-            // Set status based on success and txHash availability
-            if (result.txHash) {
-              latestRequest.status = 'completed' as TransactionStatus;
-              latestRequest.success = true;
-              latestRequest.txHash = result.txHash;
-            } else {
-              // Success but no txHash means it's bridging
-              latestRequest.status = 'bridging' as TransactionStatus;
-              latestRequest.success = true;
-            }
-            // Always update withdrawal ID if available
-            if (result.withdrawalId) {
-              latestRequest.withdrawalId = result.withdrawalId;
+            const requestToUpdate = state.withdrawalRequests.find(
+              (req) => req.id === currentWithdrawalId,
+            );
+            if (requestToUpdate) {
+              // Set status based on success and txHash availability
+              if (result.txHash) {
+                requestToUpdate.status = 'completed' as TransactionStatus;
+                requestToUpdate.success = true;
+                requestToUpdate.txHash = result.txHash;
+              } else {
+                // Success but no txHash means it's bridging
+                requestToUpdate.status = 'bridging' as TransactionStatus;
+                requestToUpdate.success = true;
+              }
+              // Always update withdrawal ID if available
+              if (result.withdrawalId) {
+                requestToUpdate.withdrawalId = result.withdrawalId;
+              }
             }
           }
         });
@@ -2239,11 +2257,15 @@ export class PerpsController extends BaseController<
           txHash: '',
         };
 
-        // Update the most recent withdrawal request to failed
+        // Update the withdrawal request by request ID to avoid race conditions
         if (state.withdrawalRequests.length > 0) {
-          const latestRequest = state.withdrawalRequests[0];
-          latestRequest.status = 'failed' as TransactionStatus;
-          latestRequest.success = false;
+          const requestToUpdate = state.withdrawalRequests.find(
+            (req) => req.id === currentWithdrawalId,
+          );
+          if (requestToUpdate) {
+            requestToUpdate.status = 'failed' as TransactionStatus;
+            requestToUpdate.success = false;
+          }
         }
       });
 
@@ -2301,11 +2323,15 @@ export class PerpsController extends BaseController<
           txHash: '',
         };
 
-        // Update the most recent withdrawal request to failed
+        // Update the withdrawal request by request ID to avoid race conditions
         if (state.withdrawalRequests.length > 0) {
-          const latestRequest = state.withdrawalRequests[0];
-          latestRequest.status = 'failed' as TransactionStatus;
-          latestRequest.success = false;
+          const requestToUpdate = state.withdrawalRequests.find(
+            (req) => req.id === currentWithdrawalId,
+          );
+          if (requestToUpdate) {
+            requestToUpdate.status = 'failed' as TransactionStatus;
+            requestToUpdate.success = false;
+          }
         }
       });
 
