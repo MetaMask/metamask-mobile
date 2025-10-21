@@ -36,6 +36,7 @@
 		android:largeHeap="true"
      	android:exported="false"
      	>
+    <profileable android:shell="true" />
 		<activity
 			android:launchMode="singleInstance"
 			android:name=".SplashActivity"
