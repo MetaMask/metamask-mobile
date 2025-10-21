@@ -162,9 +162,14 @@ const ConfirmEmail = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.confirm_email.confirm_code_label',
           )}
+          testID="confirm-code-input"
         />
         {verifyIsError && (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            testID="confirm-code-error-text"
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default"
+          >
             {verifyError}
           </Text>
         )}
@@ -186,6 +191,7 @@ const ConfirmEmail = () => {
             !selectedCountry ||
             emailVerificationIsLoading
           }
+          testID="resend-verification-text"
         >
           {resendCooldown > 0
             ? strings('card.card_onboarding.confirm_email.resend_cooldown', {
@@ -194,7 +200,11 @@ const ConfirmEmail = () => {
             : strings('card.card_onboarding.confirm_email.resend_verification')}
         </Text>
         {emailVerificationIsError && (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            testID="confirm-email-error-text"
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default"
+          >
             {emailVerificationError}
           </Text>
         )}
@@ -210,6 +220,7 @@ const ConfirmEmail = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      testID="confirm-email-continue-button"
     />
   );
 

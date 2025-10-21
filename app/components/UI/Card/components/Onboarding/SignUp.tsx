@@ -194,13 +194,22 @@ const SignUp = () => {
             'card.card_onboarding.sign_up.email_label',
           )}
           isError={debouncedEmail.length > 0 && isEmailError}
+          testID="signup-email-input"
         />
         {debouncedEmail.length > 0 && emailVerificationIsError ? (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            testID="signup-email-error-text"
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default"
+          >
             {emailVerificationError}
           </Text>
         ) : isEmailError ? (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            testID="signup-email-error-text"
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default"
+          >
             {strings('card.card_onboarding.sign_up.invalid_email')}
           </Text>
         ) : null}
@@ -223,9 +232,14 @@ const SignUp = () => {
             'card.card_onboarding.sign_up.password_label',
           )}
           isError={debouncedPassword.length > 0 && isPasswordError}
+          testID="signup-password-input"
         />
         {debouncedPassword.length > 0 && isPasswordError ? (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            testID="signup-password-error-text"
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default"
+          >
             {strings('card.card_onboarding.sign_up.invalid_password')}
           </Text>
         ) : null}
@@ -252,9 +266,14 @@ const SignUp = () => {
           isError={
             debouncedConfirmPassword.length > 0 && isConfirmPasswordError
           }
+          testID="signup-confirm-password-input"
         />
         {debouncedConfirmPassword.length > 0 && isConfirmPasswordError && (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            testID="signup-confirm-password-error-text"
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default"
+          >
             {strings('card.card_onboarding.sign_up.password_mismatch')}
           </Text>
         )}
@@ -271,6 +290,7 @@ const SignUp = () => {
             defaultValue={strings(
               'card.card_onboarding.sign_up.country_placeholder',
             )}
+            testID="signup-country-select"
           />
         </Box>
       </Box>
@@ -285,6 +305,7 @@ const SignUp = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      testID="signup-continue-button"
     />
   );
 
