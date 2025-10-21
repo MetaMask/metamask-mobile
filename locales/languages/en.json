@@ -1682,13 +1682,18 @@
       }
     },
     "order": {
+      "available": "Available",
       "cashed_out": "Cashed out",
       "cashed_out_subtitle": "{{amount}} added to your balance",
       "cashing_out": "Cashing out {{amount}}",
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed"
+      "order_failed": "Order failed",
+      "payments_made_in_usdc": "All payments are made in USDC",
+      "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
+      "prediction_minimum_bet": "Minimum bet is {{amount}}",
+      "to_win": "To win"
     }
   },
   "receive": {
