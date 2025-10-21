@@ -7051,7 +7051,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 10/527aa7d7996dc3d778d770e1abf777ac38ec7a31a0c537b4a670f6a49f3e5f68a341fbe8b923f2b3c1dd5f1b00be70462126563360bb2191d635d977c20d4b24
+  checksum: 10/17ce073b19da5c7c58aaf177ca63d4fda615817612c88fb7d3c1e5ed2d14aee398e67cf808f5f9ecfe1af31c361684efddbf1cc51b73dd4964e1ffce15ff5316
   languageName: node
   linkType: hard
 
@@ -7073,7 +7073,7 @@ __metadata:
     "@metamask/network-controller": ^24.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 10/a427121a8c3c168bae1d2cc2babb875dc4bce3ba8b0c0d21a09fbc4c4865fdaa73a2df2686d0798431f652918f64c3ef456dd1ee85525092c2287de406e7b332
+  checksum: 10/4f7ba286ff38c94f814d507b973f66a023a3c85dd88c47d30a7ac559921fdd38332d6b2a88ca5b07b697332b4ab47bd12a5ab8e6b4616096b884a017ac70deea
   languageName: node
   linkType: hard
 
