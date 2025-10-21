@@ -1,16 +1,17 @@
 import { SmokeAccounts } from '../../tags.js';
-import WalletView from '../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../framework/Assertions';
-import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import AddressList from '../../pages/MultichainAccounts/AddressList';
-import { defaultGanacheOptions } from '../../framework/Constants';
-import { completeSrpQuiz } from '../multisrp/utils';
+import WalletView from '../../pages/wallet/WalletView.js';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
+import Assertions from '../../framework/Assertions.js';
+import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common.js';
+import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.js';
+import AddressList from '../../pages/MultichainAccounts/AddressList.js';
+import { defaultGanacheOptions } from '../../framework/Constants.js';
+import { completeSrpQuiz } from '../multisrp/utils.js';
 
+// Quarantining, See open ticket here: https://github.com/MetaMask/metamask-mobile/issues/21429
 describe(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
-  const LAST = 2;
+  const LAST = 3;
 
   it('should be able to add a new account and verify it is working', async () => {
     await withMultichainAccountDetailsV2EnabledFixtures(async () => {
@@ -34,6 +35,8 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
           },
         );
       }
+      await AccountListBottomSheet.tapCreateAccount(FIRST);
+      await AccountListBottomSheet.scrollToBottomOfAccountList();
 
       await AccountListBottomSheet.tapAccountEllipsisButtonV2(LAST);
       await AccountDetails.tapNetworksLink();
