@@ -7142,15 +7142,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/composable-controller@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/composable-controller@npm:11.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^8.0.0"
-  checksum: 10/63a0c55329e01b1e0053f2e419a59be92f1261bb5d59ea805812a999a8de2930e89305f940278c236e49ed56335e621acd3b65f86905cdc1a6dde3e84c6c9755
-  languageName: node
-  linkType: hard
-
 "@metamask/contract-metadata@npm:^2.4.0":
   version: 2.5.0
   resolution: "@metamask/contract-metadata@npm:2.5.0"
@@ -34090,7 +34081,6 @@ __metadata:
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.1.0"
-    "@metamask/composable-controller": "npm:^11.0.0"
     "@metamask/controller-utils": "npm:^11.11.0"
     "@metamask/core-backend": "npm:^2.1.0"
     "@metamask/delegation-controller": "npm:^0.7.0"

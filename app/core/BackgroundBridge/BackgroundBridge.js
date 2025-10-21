@@ -1134,8 +1134,8 @@ export class BackgroundBridge extends EventEmitter {
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
     const {
-      PreferencesController: { selectedAddress },
-    } = Engine.datamodel.state;
+      selectedAddress,
+    } = Engine.context.PreferencesController.state;
     return {
       isInitialized: !!vault,
       isUnlocked: true,

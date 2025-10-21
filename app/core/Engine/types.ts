@@ -232,7 +232,6 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
-import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
@@ -369,14 +368,6 @@ type OptionalControllers = Pick<
   | 'SnapKeyringBuilder'
 >;
 
-/**
- * Controllers that are defined with state.
- */
-export type StatefulControllers = Omit<
-  Controllers,
-  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
->;
-
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
@@ -458,7 +449,6 @@ type GlobalActions =
   | DelegationControllerActions;
 
 type GlobalEvents =
-  | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents

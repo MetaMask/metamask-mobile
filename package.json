@@ -213,7 +213,6 @@
     "@metamask/bridge-controller": "^50.0.0",
     "@metamask/bridge-status-controller": "^50.0.0",
     "@metamask/chain-agnostic-permission": "^1.1.0",
-    "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.11.0",
     "@metamask/core-backend": "^2.1.0",
     "@metamask/delegation-controller": "^0.7.0",
