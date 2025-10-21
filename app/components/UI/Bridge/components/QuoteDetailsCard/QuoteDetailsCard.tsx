@@ -55,7 +55,7 @@ const QuoteDetailsCard: React.FC = () => {
 
   const locale = I18n.locale;
   const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumFractionDigits: 6,
+    maximumSignificantDigits: 8,
   });
 
   const {
