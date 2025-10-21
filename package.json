@@ -5,7 +5,7 @@
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
-    "audit:ci": "yarn npm audit --environment production --severity moderate",
+    "audit:ci": "yarn npm audit --environment production --severity moderate --no-deprecations",
     "watch": "./scripts/build.sh watcher main dev --watcher",
     "watch:clean": "./scripts/build.sh watcher main dev --watcher --clean",
     "watch:flask": "METAMASK_BUILD_TYPE=flask ./scripts/build.sh watcher flask dev --watcher",
@@ -282,9 +282,9 @@
     "@metamask/signature-controller": "^33.0.0",
     "@metamask/slip44": "^4.2.0",
     "@metamask/smart-transactions-controller": "^19.2.1",
-    "@metamask/snaps-controllers": "^15.0.1",
+    "@metamask/snaps-controllers": "^15.0.2",
     "@metamask/snaps-execution-environments": "^10.2.2",
-    "@metamask/snaps-rpc-methods": "^13.5.2",
+    "@metamask/snaps-rpc-methods": "^13.5.3",
     "@metamask/snaps-sdk": "^10.0.0",
     "@metamask/snaps-utils": "^11.6.0",
     "@metamask/solana-wallet-snap": "^2.4.6",
@@ -653,7 +653,7 @@
   },
   "engines": {
     "node": "^20.18.0",
-    "yarn": "^3.8.7"
+    "yarn": "^4.10.3"
   },
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.34.3",
@@ -737,7 +737,7 @@
       "esbuild": false
     }
   },
-  "packageManager": "yarn@3.8.7",
+  "packageManager": "yarn@4.10.3",
   "foundryup": {
     "binaries": [
       "anvil"

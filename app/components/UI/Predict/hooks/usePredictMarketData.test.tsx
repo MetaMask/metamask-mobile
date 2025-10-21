@@ -66,6 +66,8 @@ describe('usePredictMarketData', () => {
           groupItemTitle: 'Yes/No',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     },
     {
       id: 'market-2',
@@ -115,6 +117,8 @@ describe('usePredictMarketData', () => {
           groupItemTitle: 'Yes/No',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     },
   ];
 

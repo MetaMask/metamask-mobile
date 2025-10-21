@@ -85,6 +85,8 @@ export type PredictMarket = {
   recurrence: Recurrence;
   categories: PredictCategory[];
   outcomes: PredictOutcome[];
+  liquidity: number;
+  volume: number;
 };
 
 export type PredictSeries = {
@@ -237,11 +239,17 @@ export interface GetMarketPriceResponse {
   price: number;
 }
 
-export type Result<T = void> = {
-  success: boolean;
-  error?: string;
-  response?: T;
-};
+export type Result<T = void> =
+  | {
+      success: true;
+      response: T;
+      error?: never;
+    }
+  | {
+      success: false;
+      error: string;
+      response?: never;
+    };
 
 export interface UnrealizedPnL {
   user: string;
