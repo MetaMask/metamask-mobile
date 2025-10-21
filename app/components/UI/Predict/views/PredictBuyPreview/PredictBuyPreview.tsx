@@ -147,7 +147,8 @@ const PredictBuyPreview = () => {
     !hasInsufficientFunds &&
     preview &&
     !isCalculating &&
-    !isLoading;
+    !isLoading &&
+    !isBalanceLoading;
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
@@ -298,7 +299,10 @@ const PredictBuyPreview = () => {
             style={tw.style('text-center')}
           >
             {strings('predict.order.prediction_minimum_bet', {
-              amount: '$1.00',
+              amount: formatPrice(MINIMUM_BET, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
             })}
           </Text>
         </Box>
