@@ -12,6 +12,9 @@ export enum AllowanceState {
 export enum CardWarning {
   NeedDelegation = 'need_delegation',
   CloseSpendingLimit = 'close_spending_limit',
+  Frozen = 'frozen',
+  Blocked = 'blocked',
+  NoCard = 'no_card',
 }
 
 // Helper interface for token balances
