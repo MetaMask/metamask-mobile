@@ -135,6 +135,13 @@ function RegionSelectorModal() {
     }
   }, []);
 
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      sheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
+
   const handleOnRegionPressCallback = useCallback(
     async (region: Region) => {
       if (region.states && region.states.length > 0) {
@@ -155,7 +162,7 @@ function RegionSelectorModal() {
       });
 
       setSelectedRegion(region);
-      sheetRef.current?.onCloseBottomSheet(() => {
+      closeBottomSheetAndNavigate(() => {
         navigation.goBack();
       });
     },
@@ -166,6 +173,7 @@ function RegionSelectorModal() {
       scrollToTop,
       isBuy,
       navigation,
+      closeBottomSheetAndNavigate,
     ],
   );
 
@@ -243,11 +251,16 @@ function RegionSelectorModal() {
     if (activeView === RegionViewType.STATE) {
       handleRegionBackButton();
     } else {
-      sheetRef.current?.onCloseBottomSheet(() => {
+      closeBottomSheetAndNavigate(() => {
         navigation.goBack();
       });
     }
-  }, [activeView, handleRegionBackButton, navigation]);
+  }, [
+    activeView,
+    handleRegionBackButton,
+    navigation,
+    closeBottomSheetAndNavigate,
+  ]);
 
   const onModalHide = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);

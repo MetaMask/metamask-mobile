@@ -83,10 +83,7 @@ function NetworksFilterSelector({
         renderItem={({ item: chainId }) => (
           <ListItemSelect onPress={handleNetworkOnPress(chainId)}>
             <ListItemColumn>
-              <Checkbox
-                isChecked={networkFilter?.includes(chainId) ?? false}
-                onPress={handleNetworkOnPress(chainId)}
-              />
+              <Checkbox isChecked={networkFilter?.includes(chainId) ?? false} />
             </ListItemColumn>
             <ListItemColumn>
               <AvatarNetwork
