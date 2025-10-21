@@ -206,7 +206,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
         >
           {/* Menu button to show account addresses */}
           <ButtonIcon
-            iconName={IconNameDS.Menu}
+            iconName={IconNameDS.Details}
             size={ButtonIconSize.Lg}
             onPress={handleShowAddresses}
             isDisabled={isLoading}
