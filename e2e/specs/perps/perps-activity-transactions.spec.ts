@@ -60,7 +60,6 @@ describe(
 
           // Open BTC existing position from 'position-testing' profile
           await TabBarComponent.tapTrade();
-          await device.disableSynchronization();
           await WalletActionsBottomSheet.tapPerpsButton();
           await PerpsMarketListView.selectMarket('BTC');
           await PerpsMarketDetailsView.scrollToBottom();

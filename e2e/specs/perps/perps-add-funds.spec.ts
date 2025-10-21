@@ -13,6 +13,7 @@ import PerpsDepositView from '../../pages/Perps/PerpsDepositView';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
 import ToastModal from '../../pages/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
+import PerpsDepositProcessingView from '../../pages/Perps/PerpsDepositProcessingView';
 
 describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
   beforeEach(async () => {
@@ -56,7 +57,6 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
       },
       async () => {
         await loginToApp();
-
         await Assertions.expectElementToBeVisible(
           WalletView.container as DetoxElement,
           {
@@ -97,23 +97,16 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
         await PerpsDepositView.tapContinue();
         await PerpsDepositView.tapConfirm();
 
-        // Apply deposit mock and wait for wallet balance to increase
+        await PerpsDepositProcessingView.expectProcessingVisible();
+        // Apply deposit mock and verify balance update
         await PerpsE2EModifiers.applyDepositUSD('80');
         await Utilities.waitUntil(
           async () => {
             const current = await PerpsTabView.getBalance();
-            return current > initialBalance;
+            return current === initialBalance + 80;
           },
-          { interval: 500, timeout: 15000 },
+          { interval: 500, timeout: 30000 },
         );
-
-        // Back on Perps tab, read balance and assert increment by 80
-        const updatedBalance = await PerpsTabView.getBalance();
-        if (!(updatedBalance > initialBalance)) {
-          throw new Error(
-            `Balance did not increase: before=${initialBalance}, after=${updatedBalance}`,
-          );
-        }
       },
     );
   });
