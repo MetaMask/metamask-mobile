@@ -136,11 +136,6 @@ appwright/reporters/reports/*
 
 # anvil binaries
 .metamask/*
-# ppom
-ppom/node_modules
-ppom/dist
-ppom/package-lock.json
-app/lib/ppom/ppom.html.js
 
 # ccache
 ccache

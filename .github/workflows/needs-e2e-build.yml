@@ -94,7 +94,7 @@ jobs:
             ignore:
               - '**/*.md'                          # Documentation files
               - 'docs/**'                          # Documentation directory
-              - '**/*.yml'                         # Workflow files  
+              - '**/*.yml'                         # Workflow files
               - '.github/**'                       # GitHub workflow changes
               - 'LICENSE'                          # License file
               - 'README.md'                        # Main README
@@ -108,10 +108,9 @@ jobs:
               - 'bitrise.yml'                      # CI config (non-GitHub)
               - 'sonar-project.properties'         # SonarQube config
               - 'scripts/*'                        # Build/utility scripts
-              - 'scripts/*/**'                     # Subdirectories in scripts/   
+              - 'scripts/*/**'                     # Subdirectories in scripts/
               - '!scripts/build.sh'                # But NOT build.sh
               - 'patches/**'                       # Dependency patches
-              - 'ppom/**'                          # PPOM sub-project
 
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback
