@@ -37,8 +37,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  const coordinatedPress = useCoordinatedPress();
-
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
 
@@ -99,8 +97,8 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   }, [onPress, markets, symbol, navigation, order, position, source]);
 
   const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handlePress);
-  }, [coordinatedPress, handlePress]);
+    handlePress();
+  }, [handlePress]);
 
   if (!position && !order) {
     return null;
