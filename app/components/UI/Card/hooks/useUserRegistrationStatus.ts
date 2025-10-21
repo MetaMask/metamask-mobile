@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { UserResponse, VERIFICATION_STATUS } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
+import { selectOnboardingId } from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 interface UseUserRegistrationStatusReturn {
   verificationState: VERIFICATION_STATUS | null;
@@ -29,6 +31,7 @@ export const useUserRegistrationStatus =
     const [isError, setIsError] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const onboardingId = useSelector(selectOnboardingId);
 
     // Default polling interval: 5 seconds
     const POLLING_INTERVAL = 5000;
@@ -46,12 +49,19 @@ export const useUserRegistrationStatus =
         return;
       }
 
+      if (!onboardingId) {
+        const errorMessage = 'Onboarding ID not available';
+        setError(errorMessage);
+        setIsError(true);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setIsError(false);
         setError(null);
 
-        const response = await sdk.getRegistrationStatus();
+        const response = await sdk.getRegistrationStatus(onboardingId);
 
         setUserResponse(response);
         setVerificationState(response.verificationState || null);
@@ -62,7 +72,7 @@ export const useUserRegistrationStatus =
         setIsError(true);
         setIsLoading(false);
       }
-    }, [sdk]);
+    }, [onboardingId, sdk]);
 
     const startPolling = useCallback(() => {
       // Clear any existing interval
@@ -89,13 +99,18 @@ export const useUserRegistrationStatus =
     // Auto-manage polling based on verification state
     useEffect(() => {
       if (verificationState === 'PENDING') {
-        startPolling();
+        // Only start auto-polling if not already polling
+        if (!intervalRef.current) {
+          intervalRef.current = setInterval(() => {
+            fetchRegistrationStatus();
+          }, POLLING_INTERVAL);
+        }
       } else if (verificationState !== null) {
         stopPolling();
       }
 
       return stopPolling;
-    }, [verificationState, startPolling, stopPolling]);
+    }, [verificationState, fetchRegistrationStatus, stopPolling]);
 
     return {
       verificationState,

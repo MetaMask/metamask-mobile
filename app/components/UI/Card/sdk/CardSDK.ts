@@ -1483,10 +1483,12 @@ export class CardSDK {
     }
   };
 
-  getRegistrationStatus = async (): Promise<UserResponse> => {
+  getRegistrationStatus = async (
+    onboardingId: string,
+  ): Promise<UserResponse> => {
     try {
       const response = await this.makeRequest(
-        '/v1/auth/register',
+        `/v1/auth/register?onboardingId=${onboardingId}`,
         {
           method: 'GET',
         },

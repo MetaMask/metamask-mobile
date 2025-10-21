@@ -479,8 +479,8 @@ describe('useUserRegistrationStatus', () => {
         result.current.startPolling();
       });
 
-      // Then: Should handle gracefully (each call triggers a fetch, plus auto-polling from PENDING state)
-      expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(4);
+      // Then: Should handle gracefully (each call triggers a fetch, but auto-polling is prevented)
+      expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(3);
 
       // Clear previous calls
       mockGetRegistrationStatus.mockClear();

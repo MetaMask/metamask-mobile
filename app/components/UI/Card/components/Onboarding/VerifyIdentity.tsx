@@ -16,6 +16,7 @@ const VerifyIdentity = () => {
 
   const {
     data: verificationResponse,
+    isLoading: startVerificationIsLoading,
     isError: startVerificationIsError,
     error: startVeriricationErr,
   } = useStartVerification();
@@ -47,7 +48,7 @@ const VerifyIdentity = () => {
         >
           {startVeriricationErr}
         </Text>
-      ) : !sessionUrl ? (
+      ) : !sessionUrl && !startVerificationIsLoading ? (
         <Text
           variant={TextVariant.BodySm}
           twClassName="text-error-default text-center"
