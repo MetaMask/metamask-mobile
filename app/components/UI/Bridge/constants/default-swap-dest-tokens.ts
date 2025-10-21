@@ -88,7 +88,7 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
   [CHAIN_IDS.SEI]: {
     symbol: 'USDC',
     name: 'USD Coin',
-    address: '0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392',
+    address: '0xe15fc38f6d8c56af07bbcbe3baf5708a2bf42392',
     decimals: 6,
     image:
       'https://static.cx.metamask.io/api/v1/tokenIcons/1329/0xe15fc38f6d8c56af07bbcbe3baf5708a2bf42392.png',
