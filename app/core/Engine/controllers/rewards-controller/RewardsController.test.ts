@@ -15,6 +15,7 @@ import {
   type SeasonDtoState,
   type SubscriptionReferralDetailsState,
   CURRENT_SEASON_ID,
+  SeasonStatusDto,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -22,12 +23,10 @@ import { base58 } from 'ethers/lib/utils';
 // Mock dependencies
 jest.mock('./utils/multi-subscription-token-vault', () => ({
   ...jest.requireActual('./utils/multi-subscription-token-vault'),
-  storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
-  removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
-  resetAllSubscriptionTokens: jest.fn().mockResolvedValue(undefined),
-  getSubscriptionToken: jest
-    .fn()
-    .mockResolvedValue({ token: null, success: false }),
+  storeSubscriptionToken: jest.fn(),
+  removeSubscriptionToken: jest.fn(),
+  resetAllSubscriptionTokens: jest.fn(),
+  getSubscriptionToken: jest.fn(),
 }));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -55,24 +54,12 @@ jest.mock('@metamask/controller-utils', () => ({
   toHex: jest.fn(),
 }));
 jest.mock('./utils/solana-snap', () => ({
-  signSolanaRewardsMessage: jest
-    .fn()
-    .mockResolvedValue({ signature: 'solanaSignature123' }),
+  signSolanaRewardsMessage: jest.fn(),
 }));
 jest.mock('./services/rewards-data-service', () => {
   const actual = jest.requireActual('./services/rewards-data-service');
   return {
-    RewardsDataService: jest.fn().mockImplementation(() => ({
-      getJwt: jest.fn(),
-      linkAccount: jest.fn(),
-      getReferralCode: jest.fn(),
-      getSeasonStatus: jest.fn(),
-      getReferralDetails: jest.fn(),
-      optIn: jest.fn(),
-      validateReferralCode: jest.fn(),
-      claimReward: jest.fn(),
-      login: jest.fn(),
-    })),
+    RewardsDataService: jest.fn(),
     InvalidTimestampError: actual.InvalidTimestampError,
     AuthorizationFailedError: actual.AuthorizationFailedError,
   };
@@ -134,11 +121,14 @@ const mockResetAllSubscriptionTokens =
   resetAllSubscriptionTokens as jest.MockedFunction<
     typeof resetAllSubscriptionTokens
   >;
+const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
+  typeof getSubscriptionToken
+>;
 const mockSignSolanaRewardsMessage =
   signSolanaRewardsMessage as jest.MockedFunction<
     typeof signSolanaRewardsMessage
   >;
-const mockRewardsDataService = new (RewardsDataService as jest.Mock)();
+const MockRewardsDataServiceClass = jest.mocked(RewardsDataService);
 
 // Test constants - CAIP-10 format addresses
 const CAIP_ACCOUNT_1: CaipAccountId = 'eip155:1:0x123' as CaipAccountId;
@@ -214,6 +204,8 @@ class TestableRewardsController extends RewardsController {
       if (state.activeAccount) {
         state.activeAccount = {
           ...state.activeAccount,
+          lastPerpsDiscountRateFetched: null,
+          perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
           account: state.activeAccount.account, // Ensure account is always present (never undefined)
@@ -374,9 +366,41 @@ const createTestSeasonStatusState = (
 describe('RewardsController', () => {
   let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
   let controller: RewardsController;
+  let mockRewardsDataService: jest.Mocked<
+    InstanceType<typeof RewardsDataService>
+  >;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Mock Date.now to return a consistent timestamp
+    jest.spyOn(Date, 'now').mockReturnValue(123);
+
+    // Reset import mocks
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockStoreSubscriptionToken.mockResolvedValue(undefined);
+    mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+    mockResetAllSubscriptionTokens.mockResolvedValue(undefined);
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockGetSubscriptionToken.mockResolvedValue({ token: null, success: false });
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockSignSolanaRewardsMessage.mockResolvedValue({
+      signature: 'solanaSignature123',
+    });
+    // @ts-expect-error TODO: Resolve type mismatch
+    MockRewardsDataServiceClass.mockImplementation(() => ({
+      // TODO: Remove this mock, there is no `getJwt` method
+      getJwt: jest.fn(),
+      linkAccount: jest.fn(),
+      getReferralCode: jest.fn(),
+      getSeasonStatus: jest.fn(),
+      getReferralDetails: jest.fn(),
+      optIn: jest.fn(),
+      validateReferralCode: jest.fn(),
+      claimReward: jest.fn(),
+      login: jest.fn(),
+    }));
+
+    // @ts-expect-error TODO: Resolve type mismatch
+    mockRewardsDataService = new MockRewardsDataServiceClass();
 
     mockMessenger = {
       subscribe: jest.fn(),
@@ -395,6 +419,11 @@ describe('RewardsController', () => {
     controller = new RewardsController({
       messenger: mockMessenger,
     });
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('initialization', () => {
@@ -1984,11 +2013,6 @@ describe('RewardsController', () => {
   });
 
   describe('isRewardsFeatureEnabled', () => {
-    beforeEach(() => {
-      // Reset all mocks for this test suite
-      jest.clearAllMocks();
-    });
-
     it('should return true when feature flag is enabled', () => {
       // Mock the feature flag selector to return true
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
@@ -2020,8 +2044,84 @@ describe('RewardsController', () => {
   });
 
   describe('performSilentAuth', () => {
+    let subscribeCallback: any;
+    const mockInternalAccount: InternalAccount = {
+      id: 'mock-id',
+      address: '0x123',
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+      metadata: {
+        name: 'mock-account',
+        keyring: {
+          type: 'HD Key Tree',
+        },
+        importTime: 0,
+      },
+      scopes: [],
+    };
+
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      mockMessenger = {
+        call: jest.fn(),
+        subscribe: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        publish: jest.fn(),
+        unsubscribe: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+      // Mock Date.now to return a consistent timestamp
+      jest.spyOn(Date, 'now').mockReturnValue(1000000);
+
+      // Mock RewardsDataService:login to route through our mockRewardsDataService.getJwt
+      mockMessenger.call.mockImplementation(((...args: any[]) => {
+        const [method, payload] = args;
+        if (method === 'AccountsController:getSelectedMultichainAccount') {
+          return Promise.resolve(mockInternalAccount);
+        }
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockInternalAccount];
+        }
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xmockSignature');
+        }
+        if (method === 'RewardsDataService:login') {
+          // Mimic the controller calling into data service; delegate to getJwt
+          const { timestamp, signature } = payload || {};
+          // Make sure to pass the account address correctly
+          return (
+            mockRewardsDataService
+              // @ts-expect-error TODO: There is no `getJwt` method. We should remove it from the
+              // RewardsDataService mock, and fix this mock
+              .getJwt(signature, timestamp, mockInternalAccount.address)
+              .then((jwt: string) => ({
+                subscription: { id: 'sub-123' },
+                sessionId: jwt,
+              }))
+          );
+        }
+        return Promise.resolve(undefined);
+      }) as any);
+
+      new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Find the callback function for the 'AccountTreeController:selectedAccountGroupChange' event
+      subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
+      )?.[1] as (_current?: any, _previous?: any) => void;
     });
 
     it('should format and convert authentication message to hex correctly', async () => {
@@ -2045,8 +2145,7 @@ describe('RewardsController', () => {
         '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex');
 
       // Mock Date.now to return predictable timestamp
-      const originalDateNow = Date.now;
-      Date.now = jest.fn(() => mockTimestamp * 1000);
+      jest.spyOn(Date, 'now').mockImplementation(() => mockTimestamp * 1000);
 
       // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
       mockMessenger.call
@@ -2075,9 +2174,6 @@ describe('RewardsController', () => {
           from: mockInternalAccount.address,
         },
       );
-
-      // Restore Date.now
-      Date.now = originalDateNow;
     });
 
     it('should handle CAIP account ID conversion from internal account scopes', async () => {
@@ -2126,26 +2222,6 @@ describe('RewardsController', () => {
           timestamp: expect.any(Number),
         }),
       );
-    });
-
-    let subscribeCallback: any;
-
-    beforeEach(() => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsSolanaAddress.mockReturnValue(false);
-
-      // Mock Date.now for consistent testing
-      Date.now = jest.fn(() => 1000000); // Fixed timestamp
-
-      // Get the account group change subscription callback
-      const subscribeCalls = mockMessenger.subscribe.mock.calls.find(
-        (call) =>
-          call[0] === 'AccountTreeController:selectedAccountGroupChange',
-      );
-      subscribeCallback = subscribeCalls
-        ? subscribeCalls[1]
-        : async (_current?: any, _previous?: any) => undefined;
     });
 
     it('should skip silent auth for hardware accounts', async () => {
@@ -2227,7 +2303,7 @@ describe('RewardsController', () => {
     it('should handle Solana message signing', async () => {
       // Arrange
       const mockTimestamp = 1234567890;
-      Date.now = jest.fn().mockReturnValue(mockTimestamp);
+      jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
 
       const mockSolanaAccount = {
         id: 'test-id',
@@ -2273,9 +2349,6 @@ describe('RewardsController', () => {
         signedMessage: 'signedMessage123',
         signatureType: 'ed25519',
       });
-
-      // Restore Date.now
-      jest.restoreAllMocks();
     });
 
     it('should throw error when session token storage fails', async () => {
@@ -2362,85 +2435,6 @@ describe('RewardsController', () => {
         expect(updatedAccountState.hasOptedIn).toBeUndefined(); // Should be undefined due to error
         expect(updatedAccountState.subscriptionId).toBeNull();
       }
-    });
-
-    const mockInternalAccount: InternalAccount = {
-      id: 'mock-id',
-      address: '0x123',
-      options: {},
-      methods: [],
-      type: 'eip155:eoa',
-      metadata: {
-        name: 'mock-account',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-        importTime: 0,
-      },
-      scopes: [],
-    };
-
-    let originalDateNow: () => number;
-
-    beforeEach(() => {
-      mockMessenger = {
-        call: jest.fn(),
-        subscribe: jest.fn(),
-        registerActionHandler: jest.fn(),
-        registerInitialEventPayload: jest.fn(),
-        publish: jest.fn(),
-        unsubscribe: jest.fn(),
-        clearEventSubscriptions: jest.fn(),
-        unregisterActionHandler: jest.fn(),
-      } as unknown as jest.Mocked<RewardsControllerMessenger>;
-
-      // Mock Date.now to return a consistent timestamp
-      originalDateNow = Date.now;
-      Date.now = jest.fn().mockReturnValue(1000000);
-
-      // Mock RewardsDataService:login to route through our mockRewardsDataService.getJwt
-      mockMessenger.call.mockImplementation(((...args: any[]) => {
-        const [method, payload] = args;
-        if (method === 'AccountsController:getSelectedMultichainAccount') {
-          return Promise.resolve(mockInternalAccount);
-        }
-        if (
-          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [mockInternalAccount];
-        }
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xmockSignature');
-        }
-        if (method === 'RewardsDataService:login') {
-          // Mimic the controller calling into data service; delegate to getJwt
-          const { timestamp, signature } = payload || {};
-          // Make sure to pass the account address correctly
-          return mockRewardsDataService
-            .getJwt(signature, timestamp, mockInternalAccount.address)
-            .then((jwt: string) => ({
-              subscription: { id: 'sub-123' },
-              sessionId: jwt,
-            }));
-        }
-        return Promise.resolve(undefined);
-      }) as any);
-
-      new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      // Find the callback function for the 'AccountTreeController:selectedAccountGroupChange' event
-      subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) =>
-          call[0] === 'AccountTreeController:selectedAccountGroupChange',
-      )?.[1] as (_current?: any, _previous?: any) => void;
-    });
-
-    afterEach(() => {
-      // Restore original Date.now
-      Date.now = originalDateNow;
     });
 
     it('should log errors that do not include "Engine does not exist"', async () => {
@@ -2539,25 +2533,35 @@ describe('RewardsController', () => {
     });
 
     it('should use CURRENT_SEASON_ID as default when seasonId is not provided', async () => {
-      // Skip the actual test since we're just verifying the parameter is passed correctly
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getSeasonStatus') {
-          // Check if the first parameter is CURRENT_SEASON_ID when not explicitly provided
-          expect(_args[0]).toBe(CURRENT_SEASON_ID);
-          expect(_args[1]).toBe(mockSubscriptionId);
-          return Promise.resolve(null);
-        }
-        return Promise.resolve({});
-      });
+      const tiers = createTestTiers();
+      // Arrange
+      const mockSeasonStatus: SeasonStatusDto = {
+        season: {
+          id: mockSeasonId,
+          name: 'Test Season',
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+          tiers,
+        },
+        balance: {
+          total: 1500,
+          refereePortion: 100,
+        },
+        currentTierId: tiers[0].id,
+      };
 
-      // Mock the controller method to avoid processing the response
-      jest.spyOn(controller, 'getSeasonStatus').mockResolvedValue(null);
+      mockMessenger.call.mockResolvedValue(mockSeasonStatus);
 
-      // Act
-      await controller.getSeasonStatus(mockSubscriptionId);
+      // Act - call without seasonId parameter
+      const result = await controller.getSeasonStatus(mockSubscriptionId);
 
       // Assert
-      expect(mockMessenger.call).toHaveBeenCalled();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonStatus',
+        CURRENT_SEASON_ID,
+        mockSubscriptionId,
+      );
+      expect(result?.season?.id).toEqual(mockSeasonId);
     });
 
     it('should return null when feature flag is disabled', async () => {
@@ -2874,6 +2878,7 @@ describe('RewardsController', () => {
 
     it('should handle 403 error, reauth, and fetch status again', async () => {
       // Arrange
+      jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
       );
@@ -3129,6 +3134,7 @@ describe('RewardsController', () => {
 
     it('should handle 403 error, reauth with active account, and fetch status again', async () => {
       // Arrange
+      jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
       );
@@ -3282,6 +3288,7 @@ describe('RewardsController', () => {
 
     it('should handle 403 error, reauth with non-active account, and fetch status again', async () => {
       // Arrange
+      jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
       );
@@ -4003,7 +4010,6 @@ describe('RewardsController', () => {
     });
 
     it('should log and rethrow Error objects when API call fails', async () => {
-      jest.clearAllMocks();
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -4036,7 +4042,6 @@ describe('RewardsController', () => {
     });
 
     it('should log and rethrow non-Error objects when API call fails', async () => {
-      jest.clearAllMocks();
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -4228,6 +4233,7 @@ describe('RewardsController', () => {
       mockRewardsDataService.login
         .mockRejectedValueOnce(new Error('First account auth failed'))
         .mockResolvedValueOnce({
+          // @ts-expect-error TODO: Fix type mismatch
           subscription: { id: 'subscription-id-123' },
           jwt: 'mock-jwt-token',
         });
@@ -4585,28 +4591,6 @@ describe('RewardsController', () => {
       const mockSubscriptionId = 'sub-123';
       const mockError = new Error('Logout service failed');
 
-      // Mock isHardwareAccount to return true, which will skip silent auth and preserve our test state
-      mockIsHardwareAccount.mockReturnValue(true);
-
-      // Mock AccountsController to return a valid account
-      const mockInternalAccount = {
-        address: '0x123',
-        type: 'eip155:eoa' as const,
-        id: 'test-id',
-        scopes: ['eip155:1' as const],
-        options: {},
-        methods: ['personal_sign'],
-        metadata: {
-          name: 'Test Account',
-          keyring: { type: 'HD Key Tree' },
-          importTime: Date.now(),
-        },
-      };
-
-      mockMessenger.call
-        .mockReturnValueOnce(mockInternalAccount) // getSelectedMultichainAccount
-        .mockRejectedValueOnce(mockError); // RewardsDataService:logout
-
       const activeAccountState = {
         account: CAIP_ACCOUNT_1,
 
@@ -4632,6 +4616,9 @@ describe('RewardsController', () => {
         },
       });
 
+      // Mock logout to fail after controller initialization
+      mockMessenger.call.mockRejectedValueOnce(mockError); // RewardsDataService:logout
+
       // Act & Assert
       await expect(controller.logout()).rejects.toThrow(
         'Logout service failed',
@@ -4642,16 +4629,12 @@ describe('RewardsController', () => {
         'RewardsController: Logout failed to complete',
         'Logout service failed',
       );
-
-      // Reset mock for other tests
-      mockIsHardwareAccount.mockReturnValue(false);
     });
   });
 
   describe('resetAll', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     it('should skip reset when feature flag is disabled', async () => {
@@ -4831,7 +4814,6 @@ describe('RewardsController', () => {
 
     it('should return true for valid referral codes from service', async () => {
       // Arrange
-      jest.clearAllMocks();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'RewardsDataService:validateReferralCode') {
@@ -4853,7 +4835,6 @@ describe('RewardsController', () => {
 
     it('should return false for invalid referral codes from service', async () => {
       // Arrange
-      jest.clearAllMocks();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'RewardsDataService:validateReferralCode') {
@@ -4878,7 +4859,6 @@ describe('RewardsController', () => {
       const validCodes = ['ABCDEF', 'ABC234', 'XYZ567', 'DEF237'];
 
       for (const code of validCodes) {
-        jest.clearAllMocks();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockMessenger.call.mockImplementation((action, ..._args): any => {
           if (action === 'RewardsDataService:validateReferralCode') {
@@ -4898,7 +4878,6 @@ describe('RewardsController', () => {
 
     it('should handle service errors and throw error', async () => {
       // Arrange
-      jest.clearAllMocks();
       mockMessenger.call.mockRejectedValue(new Error('Service error'));
 
       // Act & Assert
@@ -5058,7 +5037,6 @@ describe('RewardsController', () => {
   describe('convertInternalAccountToCaipAccountId', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     it('should log error when conversion fails due to invalid internal account', () => {
@@ -5148,10 +5126,6 @@ describe('RewardsController', () => {
   });
 
   describe('invalidateAccountsAndSubscriptions', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('should correctly invalidate accounts and subscriptions', async () => {
       // Arrange
       const testController = new TestableRewardsController({
@@ -5191,8 +5165,14 @@ describe('RewardsController', () => {
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
 
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated accounts and subscriptions',
@@ -5278,8 +5258,14 @@ describe('RewardsController', () => {
       await testController.invalidateAccountsAndSubscriptions();
 
       // Assert
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
     });
@@ -5306,8 +5292,14 @@ describe('RewardsController', () => {
       await testController.invalidateAccountsAndSubscriptions();
 
       // Assert
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
     });
@@ -5377,8 +5369,14 @@ describe('RewardsController', () => {
       // Assert
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
     });
 
     it('should not affect other state properties', async () => {
@@ -5476,8 +5474,14 @@ describe('RewardsController', () => {
       // And verify the expected changes still occurred
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
     });
   });
 
@@ -5677,6 +5681,7 @@ describe('RewardsController', () => {
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      // Clear calls resulting from top-level `beforeEach`
       jest.clearAllMocks();
     });
 
@@ -6412,9 +6417,6 @@ describe('RewardsController', () => {
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
-      // Restore any spies that might be left over from previous tests
-      jest.restoreAllMocks();
     });
 
     it('should return empty array when accounts array is empty', async () => {
@@ -6630,12 +6632,10 @@ describe('RewardsController', () => {
   describe('optOut', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     it('should return false when subscription ID is not found', async () => {
       // Arrange
-      jest.clearAllMocks(); // Clear mocks to ensure clean test
       const testController = new TestableRewardsController({
         messenger: mockMessenger,
         state: {
@@ -6843,7 +6843,6 @@ describe('RewardsController', () => {
   describe('optIn and optOut edge cases', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      jest.clearAllMocks();
     });
 
     describe('optIn edge cases', () => {
@@ -7292,10 +7291,6 @@ describe('RewardsController', () => {
       ];
       const mockOptInResponse = { ois: [false, false], sids: [null, null] }; // No accounts opted in
 
-      mockMessenger.call
-        .mockReturnValueOnce(mockInternalAccounts) // getInternalAccounts
-        .mockResolvedValueOnce(mockOptInResponse); // getOptInStatus
-
       const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -7304,6 +7299,12 @@ describe('RewardsController', () => {
           subscriptions: {},
         },
       });
+
+      // Setup mocks after controller creation
+      mockMessenger.call
+        .mockReturnValueOnce(mockInternalAccounts) // First call: AccountsController:listMultichainAccounts in getCandidateSubscriptionId
+        .mockReturnValueOnce(mockInternalAccounts) // Second call: AccountsController:listMultichainAccounts in getOptInStatus
+        .mockResolvedValueOnce(mockOptInResponse); // Third call: RewardsDataService:getOptInStatus
 
       // Act
       const result = await testController.getCandidateSubscriptionId();
@@ -8251,7 +8252,6 @@ describe('RewardsController', () => {
     } as InternalAccount;
 
     beforeEach(() => {
-      jest.clearAllMocks();
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
       mockIsSolanaAddress.mockReturnValue(false); // Default to non-Solana
     });
@@ -9130,7 +9130,6 @@ describe('RewardsController', () => {
     } as InternalAccount;
 
     beforeEach(() => {
-      jest.clearAllMocks();
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
       mockIsSolanaAddress.mockReturnValue(false);
     });
@@ -9224,7 +9223,6 @@ describe('RewardsController', () => {
 
     it('should return false array when feature flag is disabled', async () => {
       // Arrange
-      jest.clearAllMocks(); // Clear any calls from initialization
       mockSelectRewardsEnabledFlag.mockReturnValue(false);
 
       // Act
@@ -11286,6 +11284,7 @@ describe('RewardsController', () => {
     }
 
     beforeEach(() => {
+      // Undo mocks set in top-level `beforeEach`
       jest.resetAllMocks();
 
       // Setup global mocks
@@ -11293,6 +11292,13 @@ describe('RewardsController', () => {
       (global as any).isNonEvmAddress = mockIsNonEvmAddress;
       (global as any).signSolanaRewardsMessage = mockSignSolanaRewardsMessage;
       (global as any).Logger = mockLogger;
+    });
+
+    afterEach(() => {
+      delete (global as any).isSolanaAddress;
+      delete (global as any).isNonEvmAddress;
+      delete (global as any).signSolanaRewardsMessage;
+      delete (global as any).Logger;
     });
 
     it('should sign EVM message correctly', async () => {
@@ -12178,10 +12184,8 @@ describe('RewardsController', () => {
       mockWriteCache = jest.fn();
       mockFetchFresh = jest.fn();
       mockSwrCallback = jest.fn();
-      jest.clearAllMocks();
-      mockLogger.log.mockClear();
       const mockTimestamp = 1234567890;
-      Date.now = jest.fn().mockReturnValue(mockTimestamp);
+      jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
     });
 
     describe('cache behavior', () => {

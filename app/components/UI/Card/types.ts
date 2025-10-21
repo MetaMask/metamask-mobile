@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { FlashListAssetKey } from '../Tokens/TokenList';
 
 /**
@@ -10,6 +9,11 @@ export enum AllowanceState {
   NotEnabled = 'not_enabled',
 }
 
+export enum CardWarning {
+  NeedDelegation = 'need_delegation',
+  CloseSpendingLimit = 'close_spending_limit',
+}
+
 // Helper interface for token balances
 export interface CardToken {
   address: string | null;
@@ -18,11 +22,27 @@ export interface CardToken {
   name: string | null;
 }
 
+// Card token data interface
+// Used on Keychain storage
+export interface CardTokenData {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresAt: number;
+  refreshTokenExpiresAt: number;
+  location: CardLocation;
+}
+
+export interface AuthenticatedCardTokenAllowanceData {
+  availableBalance?: string;
+  walletAddress?: string;
+}
+
 export type CardTokenAllowance = {
   allowanceState: AllowanceState;
-  allowance: ethers.BigNumber;
+  allowance: string;
 } & FlashListAssetKey &
-  CardToken;
+  CardToken &
+  AuthenticatedCardTokenAllowanceData;
 
 export interface CardLoginInitiateResponse {
   token: string;
@@ -63,6 +83,57 @@ export interface CardExchangeTokenResponse {
   refreshTokenExpiresIn: number;
 }
 
+export enum CardStatus {
+  ACTIVE = 'ACTIVE',
+  FROZEN = 'FROZEN',
+  BLOCKED = 'BLOCKED',
+}
+
+export enum CardType {
+  VIRTUAL = 'VIRTUAL',
+  PHYSICAL = 'PHYSICAL',
+  METAL = 'METAL',
+}
+
+export interface CardDetailsResponse {
+  id: string;
+  holderName: string;
+  expiryDate: string;
+  panLast4: string;
+  status: CardStatus;
+  type: CardType;
+  orderedAt: string;
+}
+
+export interface CardWalletExternalResponse {
+  address: string; // This is the wallet address;
+  currency: string;
+  balance: string;
+  allowance: string;
+  network: 'linea' | 'solana';
+}
+
+export interface CardWalletExternalPriorityResponse {
+  id: number;
+  address: string; // This is the wallet address;
+  currency: string;
+  network: 'linea' | 'solana';
+  priority: number;
+}
+
+export interface CardExternalWalletDetail {
+  id: number;
+  walletAddress: string;
+  currency: string;
+  balance: string;
+  allowance: string;
+  priority: number;
+  tokenDetails: CardToken;
+  chainId: string;
+}
+
+export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
+
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
   NETWORK_ERROR = 'NETWORK_ERROR',
@@ -71,6 +142,7 @@ export enum CardErrorType {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
+  NO_CARD = 'NO_CARD',
 }
 
 export class CardError extends Error {

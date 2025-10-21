@@ -13,7 +13,10 @@ import {
 import { CardSDK } from '../sdk/CardSDK';
 import { strings } from '../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
-import { setIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import {
+  setIsAuthenticatedCard,
+  setUserCardLocation,
+} from '../../../../core/redux/slices/card';
 
 jest.mock('@sentry/core');
 jest.mock('../sdk');
@@ -25,6 +28,7 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('../../../../core/redux/slices/card', () => ({
   setIsAuthenticatedCard: jest.fn(),
+  setUserCardLocation: jest.fn(),
 }));
 
 const mockUuid4 = uuid4 as jest.MockedFunction<typeof uuid4>;
@@ -42,6 +46,9 @@ const mockStrings = strings as jest.MockedFunction<typeof strings>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSetIsAuthenticatedCard =
   setIsAuthenticatedCard as jest.MockedFunction<typeof setIsAuthenticatedCard>;
+const mockSetUserCardLocation = setUserCardLocation as jest.MockedFunction<
+  typeof setUserCardLocation
+>;
 
 describe('useCardProviderAuthentication', () => {
   const mockSdk = {
@@ -81,7 +88,6 @@ describe('useCardProviderAuthentication', () => {
       sdk: mockSdk as unknown as CardSDK,
       isLoading: false,
       logoutFromProvider: jest.fn(),
-      userCardLocation: 'international',
     });
     mockStrings.mockImplementation((key: string) => `mocked_${key}`);
     mockUseDispatch.mockReturnValue(mockDispatch);
@@ -89,6 +95,10 @@ describe('useCardProviderAuthentication', () => {
       type: 'card/setIsAuthenticatedCard',
       payload: true,
     } as ReturnType<typeof setIsAuthenticatedCard>);
+    mockSetUserCardLocation.mockReturnValue({
+      type: 'card/setUserCardLocation',
+      payload: 'us',
+    } as ReturnType<typeof setUserCardLocation>);
   });
 
   describe('initial state', () => {
@@ -148,22 +158,18 @@ describe('useCardProviderAuthentication', () => {
       });
 
       expect(mockSdk.initiateCardProviderAuthentication).toHaveBeenCalledWith({
-        location: loginParams.location,
         state: mockStateUuid,
         codeChallenge: mockCodeChallenge,
       });
       expect(mockSdk.login).toHaveBeenCalledWith({
-        location: loginParams.location,
         email: loginParams.email,
         password: loginParams.password,
       });
       expect(mockSdk.authorize).toHaveBeenCalledWith({
-        location: loginParams.location,
         initiateAccessToken: mockInitiateResponse.token,
         loginAccessToken: mockLoginResponse.accessToken,
       });
       expect(mockSdk.exchangeToken).toHaveBeenCalledWith({
-        location: loginParams.location,
         code: mockAuthorizeResponse.code,
         codeVerifier: mockCodeVerifier,
         grantType: 'authorization_code',
@@ -171,14 +177,15 @@ describe('useCardProviderAuthentication', () => {
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: mockExchangeTokenResponse.accessToken,
         refreshToken: mockExchangeTokenResponse.refreshToken,
-        expiresAt: expect.any(Number),
+        accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
+        refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
         location: loginParams.location,
       });
       expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'card/setIsAuthenticatedCard',
-        payload: true,
-      });
+      expect(mockSetUserCardLocation).toHaveBeenCalledWith(
+        loginParams.location,
+      );
+      expect(mockDispatch).toHaveBeenCalledTimes(2);
       expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);
     });
@@ -380,7 +387,6 @@ describe('useCardProviderAuthentication', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
 
       const loginParams = {

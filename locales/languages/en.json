@@ -1680,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1790,6 +1799,8 @@
     "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Add crypto to get started",
     "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
     "add_funds": "Add funds",
     "next": "Next",
@@ -5980,6 +5991,18 @@
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
