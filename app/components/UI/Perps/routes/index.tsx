@@ -14,6 +14,7 @@ import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
+import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 
 const Stack = createStackNavigator();
@@ -106,6 +107,16 @@ const PerpsScreenStack = () => (
           component={PerpsClosePositionView}
           options={{
             title: strings('perps.close_position.title'),
+            headerShown: false,
+          }}
+        />
+
+        {/* TP/SL View - Regular screen */}
+        <Stack.Screen
+          name={Routes.PERPS.TPSL}
+          component={PerpsTPSLView}
+          options={{
+            title: strings('perps.tpsl.title'),
             headerShown: false,
           }}
         />
