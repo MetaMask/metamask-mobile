@@ -1,9 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import {
-  FlatList,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -116,7 +113,7 @@ function RegionSelectorModal() {
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
-      <TouchableWithoutFeedback
+      <TouchableOpacity
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
@@ -153,7 +150,7 @@ function RegionSelectorModal() {
             </View>
           </ListItemColumn>
         </ListItemSelect>
-      </TouchableWithoutFeedback>
+      </TouchableOpacity>
     ),
     [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
   );

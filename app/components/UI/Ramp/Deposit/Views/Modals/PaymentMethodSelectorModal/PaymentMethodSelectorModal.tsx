@@ -1,9 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import {
-  FlatList,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
@@ -87,7 +84,7 @@ function PaymentMethodSelectorModal() {
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: DepositPaymentMethod }) => (
-      <TouchableWithoutFeedback
+      <TouchableOpacity
         onPress={() => handleSelectPaymentMethodIdCallback(paymentMethod.id)}
       >
         <ListItemSelect
@@ -114,7 +111,7 @@ function PaymentMethodSelectorModal() {
             </Text>
           </ListItemColumn>
         </ListItemSelect>
-      </TouchableWithoutFeedback>
+      </TouchableOpacity>
     ),
     [
       handleSelectPaymentMethodIdCallback,

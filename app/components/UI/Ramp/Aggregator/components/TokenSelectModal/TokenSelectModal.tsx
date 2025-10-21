@@ -1,9 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import {
-  FlatList,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useSelector } from 'react-redux';
 
@@ -181,9 +178,7 @@ function TokenSelectModal() {
 
   const renderToken = useCallback(
     ({ item: token }: { item: CryptoCurrency }) => (
-      <TouchableWithoutFeedback
-        onPress={() => handleSelectTokenCallback(token)}
-      >
+      <TouchableOpacity onPress={() => handleSelectTokenCallback(token)}>
         <ListItemSelect isSelected={selectedAsset?.id === token.id}>
           <ListItemColumn widthType={WidthType.Auto}>
             <BadgeWrapper
@@ -210,7 +205,7 @@ function TokenSelectModal() {
             </Text>
           </ListItemColumn>
         </ListItemSelect>
-      </TouchableWithoutFeedback>
+      </TouchableOpacity>
     ),
     [
       selectedAsset?.id,

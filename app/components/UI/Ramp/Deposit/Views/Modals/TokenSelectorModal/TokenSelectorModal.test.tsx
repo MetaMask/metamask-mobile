@@ -63,8 +63,9 @@ describe('TokenSelectorModal Component', () => {
   });
 
   it('displays network filter selector when pressing "All networks" button', async () => {
-    const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
-    const allNetworksButton = getByText('All networks');
+    const { getByText, toJSON, getByTestId } =
+      renderWithProvider(TokenSelectorModal);
+    const allNetworksButton = getByTestId('all-networks-button');
     fireEvent.press(allNetworksButton);
     await waitFor(() => {
       expect(getByText('Deselect all')).toBeTruthy();

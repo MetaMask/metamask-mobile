@@ -1,10 +1,7 @@
 import { CaipChainId } from '@metamask/utils';
 import React, { useCallback } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import {
-  FlatList,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 
 import styleSheet from './NetworksFilterSelector.styles';
@@ -66,12 +63,13 @@ function NetworksFilterSelector({
   );
   return (
     <>
-      <TouchableWithoutFeedback
+      <TouchableOpacity
         onPress={() => {
           setNetworkFilter(
             networks.length === networkFilter?.length ? [] : networks,
           );
         }}
+        testID="select-deselect-all-networks-button"
       >
         <Button
           variant={ButtonVariants.Link}
@@ -83,12 +81,12 @@ function NetworksFilterSelector({
           }
           onPress={() => undefined}
         />
-      </TouchableWithoutFeedback>
+      </TouchableOpacity>
       <FlatList
         style={styles.list}
         data={networks}
         renderItem={({ item: chainId }) => (
-          <TouchableWithoutFeedback onPress={handleNetworkOnPress(chainId)}>
+          <TouchableOpacity onPress={handleNetworkOnPress(chainId)}>
             <ListItemSelect>
               <ListItemColumn>
                 <Checkbox
@@ -112,12 +110,12 @@ function NetworksFilterSelector({
                 </Text>
               </ListItemColumn>
             </ListItemSelect>
-          </TouchableWithoutFeedback>
+          </TouchableOpacity>
         )}
         keyExtractor={(item) => item}
       ></FlatList>
       <View style={styles.buttonContainer}>
-        <TouchableWithoutFeedback
+        <TouchableOpacity
           onPress={() => {
             if (
               networkFilter?.length === networks.length ||
@@ -127,6 +125,7 @@ function NetworksFilterSelector({
             }
             setIsEditingNetworkFilter(false);
           }}
+          testID="apply-networks-filter-button"
         >
           <Button
             variant={ButtonVariants.Primary}
@@ -135,7 +134,7 @@ function NetworksFilterSelector({
             label={strings('deposit.networks_filter_selector.apply')}
             onPress={() => undefined}
           />
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       </View>
     </>
   );

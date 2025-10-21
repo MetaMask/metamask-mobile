@@ -1,9 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import {
-  FlatList,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
 
@@ -113,9 +110,7 @@ function StateSelectorModal() {
 
   const renderStateItem = useCallback(
     ({ item: state }: { item: { code: string; name: string } }) => (
-      <TouchableWithoutFeedback
-        onPress={() => handleOnStatePressCallback(state)}
-      >
+      <TouchableOpacity onPress={() => handleOnStatePressCallback(state)}>
         <ListItemSelect isSelected={selectedState === state.code}>
           <ListItemColumn widthType={WidthType.Fill}>
             <View style={styles.state}>
@@ -128,7 +123,7 @@ function StateSelectorModal() {
             </View>
           </ListItemColumn>
         </ListItemSelect>
-      </TouchableWithoutFeedback>
+      </TouchableOpacity>
     ),
     [handleOnStatePressCallback, selectedState, styles.state],
   );

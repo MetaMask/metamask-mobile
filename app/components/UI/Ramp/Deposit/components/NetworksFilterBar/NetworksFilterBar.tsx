@@ -1,10 +1,7 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
-import {
-  ScrollView,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
@@ -80,9 +77,7 @@ function NetworksFilterBar({
     >
       {networkFilter && networkFilter.length !== networks.length ? (
         <>
-          <TouchableWithoutFeedback
-            onPress={() => setIsEditingNetworkFilter(true)}
-          >
+          <TouchableOpacity onPress={() => setIsEditingNetworkFilter(true)}>
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Sm}
@@ -102,14 +97,14 @@ function NetworksFilterBar({
               }
               onPress={() => undefined}
             />
-          </TouchableWithoutFeedback>
+          </TouchableOpacity>
           {networks.map((chainId) => {
             const isSelected = networkFilter.includes(chainId);
             const networkName =
               DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
               allNetworkConfigurations[chainId]?.name;
             return (
-              <TouchableWithoutFeedback
+              <TouchableOpacity
                 key={chainId}
                 onPress={() => {
                   if (isSelected && networkFilter.length > 1) {
@@ -150,16 +145,17 @@ function NetworksFilterBar({
                   }
                   onPress={() => undefined}
                 />
-              </TouchableWithoutFeedback>
+              </TouchableOpacity>
             );
           })}
         </>
       ) : (
-        <TouchableWithoutFeedback
+        <TouchableOpacity
           onPress={() => {
             setNetworkFilter(networks);
             setIsEditingNetworkFilter(true);
           }}
+          testID="all-networks-button"
         >
           <Button
             variant={ButtonVariants.Secondary}
@@ -183,7 +179,7 @@ function NetworksFilterBar({
             }
             onPress={() => undefined}
           />
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       )}
     </ScrollView>
   );

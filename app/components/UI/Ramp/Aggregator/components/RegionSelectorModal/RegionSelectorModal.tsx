@@ -6,10 +6,7 @@ import React, {
   useEffect,
 } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import {
-  FlatList,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -166,9 +163,7 @@ function RegionSelectorModal() {
       if (!region) return null;
 
       return (
-        <TouchableWithoutFeedback
-          onPress={() => handleOnRegionPressCallback(region)}
-        >
+        <TouchableOpacity onPress={() => handleOnRegionPressCallback(region)}>
           <ListItemSelect
             isSelected={
               selectedRegion?.id === region.id ||
@@ -192,7 +187,7 @@ function RegionSelectorModal() {
               </ListItemColumn>
             )}
           </ListItemSelect>
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       );
     },
     [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],

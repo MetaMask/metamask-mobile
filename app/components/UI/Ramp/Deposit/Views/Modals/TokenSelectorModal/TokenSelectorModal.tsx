@@ -1,9 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import {
-  FlatList,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 
@@ -150,7 +147,7 @@ function TokenSelectorModal() {
       const depositNetworkName =
         DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
-        <TouchableWithoutFeedback
+        <TouchableOpacity
           onPress={() => handleSelectAssetIdCallback(token.assetId)}
         >
           <ListItemSelect
@@ -183,7 +180,7 @@ function TokenSelectorModal() {
               </Text>
             </ListItemColumn>
           </ListItemSelect>
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       );
     },
     [

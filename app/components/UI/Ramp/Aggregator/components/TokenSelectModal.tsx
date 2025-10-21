@@ -4,7 +4,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -199,7 +199,7 @@ function TokenSelectModal({
             description={description}
             descriptionStyle={modalStyles.headerDescription}
           >
-            <TouchableWithoutFeedback onPress={handleSearchPress}>
+            <TouchableOpacity onPress={handleSearchPress}>
               <View style={modalStyles.inputWrapper}>
                 <Icon name="search" size={20} style={modalStyles.searchIcon} />
                 <TextInput
@@ -224,7 +224,7 @@ function TokenSelectModal({
                   </TouchableOpacity>
                 )}
               </View>
-            </TouchableWithoutFeedback>
+            </TouchableOpacity>
           </ScreenLayout.Header>
 
           <ScreenLayout.Body>

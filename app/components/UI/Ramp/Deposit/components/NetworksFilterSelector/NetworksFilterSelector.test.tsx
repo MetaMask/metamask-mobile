@@ -21,7 +21,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('renders correctly when networkFilter is null', () => {
-    const { toJSON, getByText } = render(
+    const { toJSON, getByTestId } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={null}
@@ -32,14 +32,14 @@ describe('NetworksFilterSelector', () => {
 
     expect(toJSON()).toMatchSnapshot();
 
-    const selectAllButton = getByText('Select all');
+    const selectAllButton = getByTestId('select-deselect-all-networks-button');
     fireEvent.press(selectAllButton);
 
     expect(mockSetNetworkFilter).toHaveBeenCalledWith(networks);
   });
 
   it('renders correctly when networkFilter is the same as uniqueNetworks', () => {
-    const { toJSON, getByText } = render(
+    const { toJSON, getByTestId } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={networks}
@@ -50,7 +50,9 @@ describe('NetworksFilterSelector', () => {
 
     expect(toJSON()).toMatchSnapshot();
 
-    const deselectAllButton = getByText('Deselect all');
+    const deselectAllButton = getByTestId(
+      'select-deselect-all-networks-button',
+    );
     fireEvent.press(deselectAllButton);
 
     expect(mockSetNetworkFilter).toHaveBeenCalledWith([]);
@@ -90,7 +92,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('applies the filter and closes the selector if all items are selected', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={networks}
@@ -99,7 +101,7 @@ describe('NetworksFilterSelector', () => {
       />,
     );
 
-    const applyButton = getByText('Apply');
+    const applyButton = getByTestId('apply-networks-filter-button');
     fireEvent.press(applyButton);
 
     expect(mockSetNetworkFilter).toHaveBeenCalledWith(null);
@@ -107,7 +109,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('applies the filter and closes the selector if no items are selected', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={[]}
@@ -116,7 +118,7 @@ describe('NetworksFilterSelector', () => {
       />,
     );
 
-    const applyButton = getByText('Apply');
+    const applyButton = getByTestId('apply-networks-filter-button');
     fireEvent.press(applyButton);
 
     expect(mockSetNetworkFilter).toHaveBeenCalledWith(null);
@@ -124,7 +126,7 @@ describe('NetworksFilterSelector', () => {
   });
 
   it('applies the filter and closes the selector if some items are selected', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <NetworksFilterSelector
         networks={networks}
         networkFilter={['eip155:1']}
@@ -133,7 +135,7 @@ describe('NetworksFilterSelector', () => {
       />,
     );
 
-    const applyButton = getByText('Apply');
+    const applyButton = getByTestId('apply-networks-filter-button');
     fireEvent.press(applyButton);
 
     expect(mockSetNetworkFilter).not.toHaveBeenCalled();
