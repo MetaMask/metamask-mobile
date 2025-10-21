@@ -36,11 +36,6 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal/RegionSelectorModal';
-import { useRegions } from '../../hooks/useRegions';
-import Icon, {
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
 
 export interface EnterAddressParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
@@ -63,7 +58,6 @@ const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, previousFormData } = useParams<EnterAddressParams>();
-  const { regions } = useRegions();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -182,11 +176,6 @@ const EnterAddress = (): JSX.Element => {
       ),
     );
   }, [navigation, theme]);
-
-  useEffect(() => {
-    handleFormDataChange('state')('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRegion]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
@@ -370,23 +359,10 @@ const EnterAddress = (): JSX.Element => {
                 returnKeyType="done"
                 testID="country-input"
                 containerStyle={styles.nameInputContainer}
-                isReadonly
+                isDisabled
                 startAccessory={
                   <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
                 }
-                endAccessory={
-                  <Icon
-                    name={IconName.ArrowDown}
-                    color={theme.colors.icon.alternative}
-                  />
-                }
-                onPress={() => {
-                  navigation.navigate(
-                    ...createRegionSelectorModalNavigationDetails({
-                      regions: regions || [],
-                    }),
-                  );
-                }}
               />
             </View>
           </ScreenLayout.Content>
