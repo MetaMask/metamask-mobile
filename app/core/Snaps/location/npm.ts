@@ -36,6 +36,7 @@ export class NpmLocation extends BaseNpmLocation {
     tarballUrl: URL,
   ): Promise<Map<string, VirtualFile<unknown>>> {
     let response: FetchBlobResponse | null = null;
+    let untarPath: string | null = null;
     try {
       response = await ReactNativeBlobUtil.config({
         fileCache: true,
@@ -68,10 +69,10 @@ export class NpmLocation extends BaseNpmLocation {
 
       // Slice .tgz extension
       const outPath = dataPath.slice(0, -4);
-      const npmPackageDataLocation = await RNTar.unTar(dataPath, outPath);
+      untarPath = (await RNTar.unTar(dataPath, outPath)) as string;
 
       // Find all paths contained within the tarball
-      const paths = await findAllPaths(npmPackageDataLocation);
+      const paths = await findAllPaths(untarPath);
 
       const files = await Promise.all(paths.map(readAndParseAt));
 
@@ -84,7 +85,7 @@ export class NpmLocation extends BaseNpmLocation {
 
       files.forEach(({ path, contents }) => {
         // Remove most of the base path
-        const normalizedPath = path.replace(`${npmPackageDataLocation}/`, '');
+        const normalizedPath = path.replace(`${untarPath}/`, '');
         map.set(
           normalizedPath,
           new VirtualFile({
@@ -95,9 +96,6 @@ export class NpmLocation extends BaseNpmLocation {
         );
       });
 
-      // Cleanup filesystem
-      await ReactNativeBlobUtil.fs.unlink(npmPackageDataLocation);
-
       return map;
     } catch {
       throw new Error(
@@ -105,6 +103,10 @@ export class NpmLocation extends BaseNpmLocation {
       );
     } finally {
       response?.flush();
+
+      if (untarPath) {
+        ReactNativeBlobUtil.fs.unlink(untarPath).catch(console.error);
+      }
     }
   }
 }
