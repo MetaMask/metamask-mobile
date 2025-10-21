@@ -300,18 +300,15 @@ const PhysicalAddress = () => {
     try {
       await registerUserConsent(onboardingId, userId);
 
-      const { accessToken } = await registerAddress(
-        {
-          onboardingId,
-          addressLine1,
-          addressLine2: addressLine2 || undefined,
-          city,
-          usState: state || undefined,
-          zip: zipCode,
-          isSameMailingAddress,
-        },
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      const { accessToken } = await registerAddress({
+        onboardingId,
+        addressLine1,
+        addressLine2: addressLine2 || undefined,
+        city,
+        usState: state || undefined,
+        zip: zipCode,
+        isSameMailingAddress,
+      });
 
       if (accessToken) {
         // Registration complete

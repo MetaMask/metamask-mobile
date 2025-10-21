@@ -81,14 +81,11 @@ const SetPhoneNumber = () => {
     }
 
     try {
-      const { success } = await sendPhoneVerification(
-        {
-          phoneCountryCode: selectedCountryAreaCode,
-          phoneNumber: debouncedPhoneNumber,
-          contactVerificationId,
-        },
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      const { success } = await sendPhoneVerification({
+        phoneCountryCode: selectedCountryAreaCode,
+        phoneNumber: debouncedPhoneNumber,
+        contactVerificationId,
+      });
       if (success) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
           phoneCountryCode: selectedCountryAreaCode,

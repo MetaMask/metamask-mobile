@@ -75,19 +75,16 @@ const ConfirmEmail = () => {
   }, [resendCooldown]);
 
   const handleResendVerification = useCallback(async () => {
-    if (resendCooldown > 0 || !email || !selectedCountry) return;
+    if (resendCooldown > 0 || !email) return;
 
     try {
-      const { contactVerificationId } = await sendEmailVerification(
-        email,
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      const { contactVerificationId } = await sendEmailVerification(email);
       dispatch(setContactVerificationId(contactVerificationId));
       setResendCooldown(60); // 1 minute cooldown
     } catch {
       // Allow error message to display
     }
-  }, [dispatch, email, resendCooldown, selectedCountry, sendEmailVerification]);
+  }, [dispatch, email, resendCooldown, sendEmailVerification]);
 
   const handleContinue = useCallback(async () => {
     if (
@@ -100,18 +97,15 @@ const ConfirmEmail = () => {
       return;
     }
     try {
-      const { onboardingId, hasAccount } = await verifyEmailVerification(
-        {
-          email,
-          password,
-          verificationCode: confirmCode,
-          contactVerificationId,
-          countryOfResidence: selectedCountry,
-          allowMarketing: true,
-          allowSms: true,
-        },
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      const { onboardingId, hasAccount } = await verifyEmailVerification({
+        email,
+        password,
+        verificationCode: confirmCode,
+        contactVerificationId,
+        countryOfResidence: selectedCountry,
+        allowMarketing: true,
+        allowSms: true,
+      });
 
       if (onboardingId) {
         dispatch(setOnboardingId(onboardingId));

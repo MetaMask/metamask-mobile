@@ -151,7 +151,7 @@ describe('useRegisterMailingAddress', () => {
 
       await act(async () => {
         try {
-          await result.current.registerAddress(mockAddressRequest);
+          await result.current.registerAddress(mockAddressRequest, 'us');
         } catch (error) {
           expect(error).toBeInstanceOf(Error);
           expect((error as Error).message).toBe('Card SDK not initialized');
@@ -173,7 +173,7 @@ describe('useRegisterMailingAddress', () => {
 
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest);
+          await result.current.registerAddress(mockAddressRequest, 'us');
         });
       } catch (error) {
         // Expected to throw
@@ -181,6 +181,7 @@ describe('useRegisterMailingAddress', () => {
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...mockAddressRequest,
+        location: 'us',
       });
       expect(mockGetErrorMessage).toHaveBeenCalledWith(apiError);
       expect(result.current.isLoading).toBe(false);
@@ -201,7 +202,7 @@ describe('useRegisterMailingAddress', () => {
 
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest);
+          await result.current.registerAddress(mockAddressRequest, 'us');
         });
       } catch (error) {
         // Expected to throw
@@ -226,7 +227,7 @@ describe('useRegisterMailingAddress', () => {
 
       try {
         await act(async () => {
-          await result.current.registerAddress(mockAddressRequest);
+          await result.current.registerAddress(mockAddressRequest, 'us');
         });
       } catch (error) {
         // Expected to throw
@@ -246,7 +247,7 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       await act(async () => {
-        await result.current.registerAddress(mockAddressRequest);
+        await result.current.registerAddress(mockAddressRequest, 'us');
       });
 
       expect(result.current.isSuccess).toBe(true);
@@ -422,11 +423,12 @@ describe('useRegisterMailingAddress', () => {
       };
 
       await act(async () => {
-        await result.current.registerAddress(customRequest);
+        await result.current.registerAddress(customRequest, 'us');
       });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...customRequest,
+        location: 'us',
       });
       expect(mockRegisterMailingAddress).toHaveBeenCalledTimes(1);
     });
@@ -443,7 +445,7 @@ describe('useRegisterMailingAddress', () => {
 
       await act(async () => {
         try {
-          await result.current.registerAddress(mockAddressRequest);
+          await result.current.registerAddress(mockAddressRequest, 'us');
         } catch (error) {
           expect(error).toBeInstanceOf(Error);
           expect((error as Error).message).toBe('Card SDK not initialized');
@@ -468,11 +470,31 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       await act(async () => {
-        await result.current.registerAddress(minimalRequest);
+        await result.current.registerAddress(minimalRequest, 'international');
       });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...minimalRequest,
+        location: 'international',
+      });
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    it('handles international location', async () => {
+      mockRegisterMailingAddress.mockResolvedValue(mockAddressResponse);
+
+      const { result } = renderHook(() => useRegisterMailingAddress());
+
+      await act(async () => {
+        await result.current.registerAddress(
+          mockAddressRequest,
+          'international',
+        );
+      });
+
+      expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
+        ...mockAddressRequest,
+        location: 'international',
       });
       expect(result.current.isSuccess).toBe(true);
     });
@@ -491,11 +513,12 @@ describe('useRegisterMailingAddress', () => {
       const { result } = renderHook(() => useRegisterMailingAddress());
 
       await act(async () => {
-        await result.current.registerAddress(usRequest);
+        await result.current.registerAddress(usRequest, 'us');
       });
 
       expect(mockRegisterMailingAddress).toHaveBeenCalledWith({
         ...usRequest,
+        location: 'us',
       });
       expect(result.current.isSuccess).toBe(true);
     });

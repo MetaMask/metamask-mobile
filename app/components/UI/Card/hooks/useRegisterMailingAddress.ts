@@ -13,6 +13,7 @@ import {
 const useRegisterMailingAddress = (): {
   registerAddress: (
     request: RegisterPhysicalAddressRequest,
+    location?: string,
   ) => Promise<RegisterAddressResponse>;
   isLoading: boolean;
   isSuccess: boolean;
@@ -42,6 +43,7 @@ const useRegisterMailingAddress = (): {
   const registerAddress = useCallback(
     async (
       request: RegisterPhysicalAddressRequest,
+      location?: string,
     ): Promise<RegisterAddressResponse> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
@@ -53,8 +55,12 @@ const useRegisterMailingAddress = (): {
         setIsSuccess(false);
         setError(null);
 
+        const requestWithLocation = location
+          ? { ...request, location }
+          : request;
+
         const registerAddressResponse = await sdk.registerMailingAddress(
-          request,
+          requestWithLocation,
         );
 
         setIsSuccess(true);

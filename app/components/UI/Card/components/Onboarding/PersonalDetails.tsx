@@ -142,17 +142,14 @@ const PersonalDetails = () => {
     }
 
     try {
-      const { user } = await registerPersonalDetails(
-        {
-          onboardingId,
-          firstName,
-          lastName,
-          dateOfBirth: formatDateOfBirth(dateOfBirth),
-          countryOfNationality: nationality,
-          ssn: debouncedSSN,
-        },
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      const { user } = await registerPersonalDetails({
+        onboardingId,
+        firstName,
+        lastName,
+        dateOfBirth: formatDateOfBirth(dateOfBirth),
+        countryOfNationality: nationality,
+        ssn: debouncedSSN,
+      });
 
       if (user?.id) {
         dispatch(setUserId(user.id));

@@ -1,5 +1,7 @@
+import { useCallback } from 'react';
 import { useCardSDK } from '../sdk';
 import { useWrapWithCache } from './useWrapWithCache';
+
 /**
  * Hook to fetch and cache registration settings from the Card SDK
  *
@@ -8,12 +10,12 @@ import { useWrapWithCache } from './useWrapWithCache';
 const useRegistrationSettings = () => {
   const { sdk } = useCardSDK();
 
-  const fetchRegistrationSettings = async () => {
+  const fetchRegistrationSettings = useCallback(async () => {
     if (!sdk) {
       throw new Error('Card SDK not available');
     }
     return sdk.getRegistrationSettings();
-  };
+  }, [sdk]);
 
   return useWrapWithCache(
     'registration-settings',

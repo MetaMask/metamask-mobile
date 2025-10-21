@@ -110,17 +110,14 @@ const MailingAddress = () => {
     }
 
     try {
-      const { accessToken } = await registerAddress(
-        {
-          onboardingId,
-          addressLine1,
-          addressLine2: addressLine2 || undefined,
-          city,
-          usState: state || undefined,
-          zip: zipCode,
-        },
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      const { accessToken } = await registerAddress({
+        onboardingId,
+        addressLine1,
+        addressLine2: addressLine2 || undefined,
+        city,
+        usState: state || undefined,
+        zip: zipCode,
+      });
 
       if (accessToken) {
         // Registration complete

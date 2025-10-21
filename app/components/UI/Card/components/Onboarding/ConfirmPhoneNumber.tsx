@@ -23,7 +23,6 @@ import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
   selectContactVerificationId,
   selectOnboardingId,
-  selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
@@ -75,7 +74,6 @@ const ConfirmPhoneNumber = () => {
   }>();
 
   const onboardingId = useSelector(selectOnboardingId);
-  const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
 
   const {
@@ -105,16 +103,13 @@ const ConfirmPhoneNumber = () => {
       return;
     }
     try {
-      const { user } = await verifyPhoneVerification(
-        {
-          onboardingId,
-          phoneNumber,
-          phoneCountryCode,
-          verificationCode: confirmCode,
-          contactVerificationId,
-        },
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      const { user } = await verifyPhoneVerification({
+        onboardingId,
+        phoneNumber,
+        phoneCountryCode,
+        verificationCode: confirmCode,
+        contactVerificationId,
+      });
       if (user) {
         navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
       }
@@ -141,7 +136,6 @@ const ConfirmPhoneNumber = () => {
     phoneCountryCode,
     contactVerificationId,
     verifyPhoneVerification,
-    selectedCountry,
     navigation,
   ]);
 
@@ -164,14 +158,11 @@ const ConfirmPhoneNumber = () => {
       return;
     }
     try {
-      await sendPhoneVerification(
-        {
-          phoneCountryCode,
-          phoneNumber,
-          contactVerificationId,
-        },
-        selectedCountry === 'US' ? 'us' : 'international',
-      );
+      await sendPhoneVerification({
+        phoneCountryCode,
+        phoneNumber,
+        contactVerificationId,
+      });
       setResendCooldown(30);
     } catch {
       // Allow error message to display
@@ -182,7 +173,6 @@ const ConfirmPhoneNumber = () => {
     phoneCountryCode,
     contactVerificationId,
     sendPhoneVerification,
-    selectedCountry,
   ]);
 
   // Cooldown timer effect
