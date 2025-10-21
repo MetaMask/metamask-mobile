@@ -5,6 +5,9 @@ import { detectHyperLiquidWithdrawal } from '../utils/arbitrumWithdrawalDetectio
 import { transformArbitrumWithdrawalsToHistoryItems } from '../utils/arbitrumWithdrawalTransforms';
 import { selectChainId } from '../../../../selectors/networkController';
 import { store } from '../../../../store';
+import type { RootState } from '../../../../reducers';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine');
@@ -31,8 +34,8 @@ const mockStore = store as jest.Mocked<typeof store>;
 
 describe('ArbitrumWithdrawalService', () => {
   let service: ArbitrumWithdrawalService;
-  let mockTransactionController: any;
-  let mockPreferencesController: any;
+  let mockTransactionController: unknown;
+  let mockPreferencesController: unknown;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -75,10 +78,17 @@ describe('ArbitrumWithdrawalService', () => {
       },
     };
 
-    mockEngine.context = {
+    (
+      mockEngine as unknown as {
+        context: {
+          TransactionController: unknown;
+          PreferencesController: unknown;
+        };
+      }
+    ).context = {
       TransactionController: mockTransactionController,
       PreferencesController: mockPreferencesController,
-    } as any;
+    };
 
     // Mock store
     mockStore.getState.mockReturnValue({
@@ -91,7 +101,7 @@ describe('ArbitrumWithdrawalService', () => {
           },
         },
       },
-    } as any);
+    } as unknown as RootState);
 
     // Mock selectors
     mockSelectChainId.mockReturnValue('0xa4b1');
@@ -101,7 +111,9 @@ describe('ArbitrumWithdrawalService', () => {
 
   describe('getTransactions', () => {
     it('returns transactions from TransactionController', () => {
-      const transactions = (service as any).getTransactions();
+      const transactions = (
+        service as unknown as { getTransactions: () => TransactionMeta[] }
+      ).getTransactions();
 
       expect(transactions).toHaveLength(2);
       expect(transactions[0].hash).toBe('0x123');
@@ -109,9 +121,13 @@ describe('ArbitrumWithdrawalService', () => {
     });
 
     it('returns empty array when TransactionController throws error', () => {
-      mockEngine.context.TransactionController = undefined;
+      (
+        mockEngine as unknown as { context: { TransactionController: unknown } }
+      ).context.TransactionController = undefined;
 
-      const transactions = (service as any).getTransactions();
+      const transactions = (
+        service as unknown as { getTransactions: () => TransactionMeta[] }
+      ).getTransactions();
 
       expect(transactions).toEqual([]);
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -121,9 +137,15 @@ describe('ArbitrumWithdrawalService', () => {
     });
 
     it('returns empty array when transactions state is undefined', () => {
-      mockTransactionController.state.transactions = undefined;
+      (
+        mockTransactionController as unknown as {
+          state: { transactions: undefined };
+        }
+      ).state.transactions = undefined;
 
-      const transactions = (service as any).getTransactions();
+      const transactions = (
+        service as unknown as { getTransactions: () => TransactionMeta[] }
+      ).getTransactions();
 
       expect(transactions).toEqual([]);
     });
@@ -131,7 +153,9 @@ describe('ArbitrumWithdrawalService', () => {
 
   describe('getCurrentChainId', () => {
     it('returns chain ID from store', () => {
-      const chainId = (service as any).getCurrentChainId();
+      const chainId = (
+        service as unknown as { getCurrentChainId: () => string | null }
+      ).getCurrentChainId();
 
       expect(chainId).toBe('0xa4b1');
       expect(mockSelectChainId).toHaveBeenCalledWith(mockStore.getState());
@@ -142,7 +166,9 @@ describe('ArbitrumWithdrawalService', () => {
         throw new Error('Selector error');
       });
 
-      const chainId = (service as any).getCurrentChainId();
+      const chainId = (
+        service as unknown as { getCurrentChainId: () => string | null }
+      ).getCurrentChainId();
 
       expect(chainId).toBeNull();
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -152,9 +178,13 @@ describe('ArbitrumWithdrawalService', () => {
     });
 
     it('returns null when selector returns undefined', () => {
-      mockSelectChainId.mockReturnValue(undefined);
+      mockSelectChainId.mockReturnValue(
+        null as unknown as SupportedCaipChainId,
+      );
 
-      const chainId = (service as any).getCurrentChainId();
+      const chainId = (
+        service as unknown as { getCurrentChainId: () => string | null }
+      ).getCurrentChainId();
 
       expect(chainId).toBeNull();
     });
@@ -162,15 +192,21 @@ describe('ArbitrumWithdrawalService', () => {
 
   describe('getCurrentAddress', () => {
     it('returns selected address from PreferencesController', () => {
-      const address = (service as any).getCurrentAddress();
+      const address = (
+        service as unknown as { getCurrentAddress: () => string | null }
+      ).getCurrentAddress();
 
       expect(address).toBe('0xuser');
     });
 
     it('returns null when PreferencesController throws error', () => {
-      mockEngine.context.PreferencesController = undefined;
+      (
+        mockEngine as unknown as { context: { PreferencesController: unknown } }
+      ).context.PreferencesController = undefined;
 
-      const address = (service as any).getCurrentAddress();
+      const address = (
+        service as unknown as { getCurrentAddress: () => string | null }
+      ).getCurrentAddress();
 
       expect(address).toBeNull();
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -180,9 +216,15 @@ describe('ArbitrumWithdrawalService', () => {
     });
 
     it('returns null when selectedAddress is undefined', () => {
-      mockPreferencesController.state.selectedAddress = undefined;
+      (
+        mockPreferencesController as unknown as {
+          state: { selectedAddress: undefined };
+        }
+      ).state.selectedAddress = undefined;
 
-      const address = (service as any).getCurrentAddress();
+      const address = (
+        service as unknown as { getCurrentAddress: () => string | null }
+      ).getCurrentAddress();
 
       expect(address).toBeNull();
     });
@@ -312,6 +354,14 @@ describe('ArbitrumWithdrawalService', () => {
         asset: 'USDC',
         status: 'completed' as const,
         txHash: '0x123',
+        details: {
+          source: 'arbitrum',
+          bridgeContract: '0x1234567890123456789012345678901234567890',
+          recipient: '0x9876543210987654321098765432109876543210',
+          blockNumber: '12345',
+          chainId: '42161',
+          synthetic: false,
+        },
       },
     ];
 
@@ -370,7 +420,9 @@ describe('ArbitrumWithdrawalService', () => {
     });
 
     it('returns false when chain ID is null', () => {
-      mockSelectChainId.mockReturnValue(null);
+      mockSelectChainId.mockReturnValue(
+        null as unknown as SupportedCaipChainId,
+      );
 
       const result = service.isOnArbitrum();
 
