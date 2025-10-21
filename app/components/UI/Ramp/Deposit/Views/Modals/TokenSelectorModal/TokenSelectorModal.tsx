@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import {
+  FlatList,
+  TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 
@@ -147,36 +150,40 @@ function TokenSelectorModal() {
       const depositNetworkName =
         DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
-        <ListItemSelect
-          isSelected={selectedCryptoCurrency?.assetId === token.assetId}
+        <TouchableWithoutFeedback
           onPress={() => handleSelectAssetIdCallback(token.assetId)}
-          accessibilityRole="button"
-          accessible
         >
-          <ListItemColumn widthType={WidthType.Auto}>
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <BadgeNetwork
-                  name={networkName}
-                  imageSource={networkImageSource}
+          <ListItemSelect
+            isSelected={selectedCryptoCurrency?.assetId === token.assetId}
+          >
+            <ListItemColumn widthType={WidthType.Auto}>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <BadgeNetwork
+                    name={networkName}
+                    imageSource={networkImageSource}
+                  />
+                }
+              >
+                <AvatarToken
+                  name={token.name}
+                  imageSource={{ uri: token.iconUrl }}
+                  size={AvatarSize.Md}
                 />
-              }
-            >
-              <AvatarToken
-                name={token.name}
-                imageSource={{ uri: token.iconUrl }}
-                size={AvatarSize.Md}
-              />
-            </BadgeWrapper>
-          </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-              {depositNetworkName ?? networkName}
-            </Text>
-          </ListItemColumn>
-        </ListItemSelect>
+              </BadgeWrapper>
+            </ListItemColumn>
+            <ListItemColumn widthType={WidthType.Fill}>
+              <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={colors.text.alternative}
+              >
+                {depositNetworkName ?? networkName}
+              </Text>
+            </ListItemColumn>
+          </ListItemSelect>
+        </TouchableWithoutFeedback>
       );
     },
     [

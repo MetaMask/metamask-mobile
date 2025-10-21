@@ -1,7 +1,10 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
-import { ScrollView } from 'react-native-gesture-handler';
+import {
+  ScrollView,
+  TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
@@ -77,55 +80,37 @@ function NetworksFilterBar({
     >
       {networkFilter && networkFilter.length !== networks.length ? (
         <>
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Sm}
-            label={
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={8}
-              >
-                <Text variant={TextVariant.BodyMD}>See all</Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Xs}
-                  color={colors.icon.default}
-                />
-              </Box>
-            }
+          <TouchableWithoutFeedback
             onPress={() => setIsEditingNetworkFilter(true)}
-          />
+          >
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Sm}
+              label={
+                <Box
+                  flexDirection={FlexDirection.Row}
+                  alignItems={AlignItems.center}
+                  gap={8}
+                >
+                  <Text variant={TextVariant.BodyMD}>See all</Text>
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Xs}
+                    color={colors.icon.default}
+                  />
+                </Box>
+              }
+              onPress={() => undefined}
+            />
+          </TouchableWithoutFeedback>
           {networks.map((chainId) => {
             const isSelected = networkFilter.includes(chainId);
             const networkName =
               DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
               allNetworkConfigurations[chainId]?.name;
             return (
-              <Button
+              <TouchableWithoutFeedback
                 key={chainId}
-                variant={
-                  isSelected ? ButtonVariants.Primary : ButtonVariants.Secondary
-                }
-                size={ButtonSize.Sm}
-                label={
-                  <>
-                    {isSelected && (
-                      <AvatarNetwork
-                        key={chainId}
-                        imageSource={getNetworkImageSource({ chainId })}
-                        name={networkName}
-                        size={AvatarSize.Xs}
-                        style={styles.selectedNetworkIcon}
-                      />
-                    )}
-                    <Text
-                      color={isSelected ? TextColor.Inverse : TextColor.Default}
-                    >
-                      {networkName}
-                    </Text>
-                  </>
-                }
                 onPress={() => {
                   if (isSelected && networkFilter.length > 1) {
                     setNetworkFilter((prev) =>
@@ -135,36 +120,70 @@ function NetworksFilterBar({
                     setNetworkFilter([chainId]);
                   }
                 }}
-              />
+              >
+                <Button
+                  variant={
+                    isSelected
+                      ? ButtonVariants.Primary
+                      : ButtonVariants.Secondary
+                  }
+                  size={ButtonSize.Sm}
+                  label={
+                    <>
+                      {isSelected && (
+                        <AvatarNetwork
+                          key={chainId}
+                          imageSource={getNetworkImageSource({ chainId })}
+                          name={networkName}
+                          size={AvatarSize.Xs}
+                          style={styles.selectedNetworkIcon}
+                        />
+                      )}
+                      <Text
+                        color={
+                          isSelected ? TextColor.Inverse : TextColor.Default
+                        }
+                      >
+                        {networkName}
+                      </Text>
+                    </>
+                  }
+                  onPress={() => undefined}
+                />
+              </TouchableWithoutFeedback>
             );
           })}
         </>
       ) : (
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
-          label={
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              {allNetworksIcons}
-              <Text variant={TextVariant.BodyMD}>
-                {strings('deposit.networks_filter_bar.all_networks')}
-              </Text>
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Xs}
-                color={colors.icon.default}
-              />
-            </Box>
-          }
+        <TouchableWithoutFeedback
           onPress={() => {
             setNetworkFilter(networks);
             setIsEditingNetworkFilter(true);
           }}
-        />
+        >
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Sm}
+            label={
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                {allNetworksIcons}
+                <Text variant={TextVariant.BodyMD}>
+                  {strings('deposit.networks_filter_bar.all_networks')}
+                </Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Xs}
+                  color={colors.icon.default}
+                />
+              </Box>
+            }
+            onPress={() => undefined}
+          />
+        </TouchableWithoutFeedback>
       )}
     </ScrollView>
   );
