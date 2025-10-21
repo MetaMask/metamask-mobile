@@ -12,7 +12,10 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
@@ -51,8 +54,9 @@ import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSh
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import RewardPointsDisplay from '../../components/RewardPointsDisplay';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -104,6 +108,7 @@ import {
 import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
+import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -135,13 +140,24 @@ interface OrderRouteParams {
 const PerpsOrderViewContentBase: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const styles = createStyles(colors);
+
+  // Dynamic bottom padding for fixed container: safe area inset + 16px visual padding
+  const fixedBottomContainerStyle = useMemo(
+    () => ({
+      ...styles.fixedBottomContainer,
+      paddingBottom: insets.bottom + 16,
+    }),
+    [styles.fixedBottomContainer, insets.bottom],
+  );
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
   const { track } = usePerpsEventTracking();
+  const { openTooltipModal } = useTooltipModal();
 
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
@@ -237,7 +253,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderTypeRef.current = orderForm.type;
   }, [orderForm.type]);
 
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
@@ -548,12 +563,39 @@ const PerpsOrderViewContentBase: React.FC = () => {
       return;
     }
 
-    setIsTPSLVisible(true);
+    navigation.navigate(Routes.PERPS.TPSL, {
+      asset: orderForm.asset,
+      currentPrice: assetData.price,
+      direction: orderForm.direction,
+      leverage: orderForm.leverage,
+      orderType: orderForm.type,
+      limitPrice: orderForm.limitPrice,
+      initialTakeProfitPrice: orderForm.takeProfitPrice,
+      initialStopLossPrice: orderForm.stopLossPrice,
+      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
+        // Use the same clearing approach as the "Off" button
+        // If values are undefined or empty, ensure they're cleared properly
+        const tpToSet = takeProfitPrice || undefined;
+        const slToSet = stopLossPrice || undefined;
+
+        setTakeProfitPrice(tpToSet);
+        setStopLossPrice(slToSet);
+      },
+    });
   }, [
     PerpsToastOptions.formValidation.orderForm.limitPriceRequired,
     orderForm.limitPrice,
     orderForm.type,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.leverage,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    assetData.price,
     showToast,
+    navigation,
+    setTakeProfitPrice,
+    setStopLossPrice,
   ]);
 
   const handleAmountPress = () => {
@@ -800,7 +842,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
       <PerpsOrderHeader
         asset={orderForm.asset}
@@ -1089,13 +1131,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 </TouchableOpacity>
               </View>
               <View style={styles.pointsRightContainer}>
-                <RewardPointsDisplay
-                  estimatedPoints={rewardsState.estimatedPoints}
+                <RewardsAnimations
+                  value={rewardsState.estimatedPoints ?? 0}
                   bonusBips={rewardsState.bonusBips}
-                  isLoading={rewardsState.isLoading}
-                  hasError={rewardsState.hasError}
                   shouldShow={rewardsState.shouldShowRewardsRow}
-                  isRefresh={rewardsState.isRefresh}
+                  infoOnPress={() =>
+                    openTooltipModal(
+                      strings('perps.points_error'),
+                      strings('perps.points_error_content'),
+                    )
+                  }
+                  state={
+                    rewardsState.isLoading
+                      ? RewardAnimationState.Loading
+                      : rewardsState.hasError
+                      ? RewardAnimationState.ErrorState
+                      : RewardAnimationState.Idle
+                  }
                 />
               </View>
             </View>
@@ -1150,7 +1202,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       )}
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
-        <View style={styles.fixedBottomContainer}>
+        <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 && (
             <View style={styles.validationContainer}>
               {filteredErrors.map((error) => (
@@ -1186,30 +1238,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           </ButtonSemantic>
         </View>
       )}
-      {/* TP/SL Bottom Sheet */}
-      <PerpsTPSLBottomSheet
-        isVisible={isTPSLVisible}
-        onClose={() => setIsTPSLVisible(false)}
-        onConfirm={(takeProfitPrice, stopLossPrice) => {
-          // Use the same clearing approach as the "Off" button
-          // If values are undefined or empty, ensure they're cleared properly
-          const tpToSet = takeProfitPrice || undefined;
-          const slToSet = stopLossPrice || undefined;
-
-          setTakeProfitPrice(tpToSet);
-          setStopLossPrice(slToSet);
-          setIsTPSLVisible(false);
-        }}
-        asset={orderForm.asset}
-        currentPrice={assetData.price}
-        direction={orderForm.direction}
-        leverage={orderForm.leverage}
-        marginRequired={marginRequired}
-        initialTakeProfitPrice={orderForm.takeProfitPrice}
-        initialStopLossPrice={orderForm.stopLossPrice}
-        orderType={orderForm.type}
-        limitPrice={orderForm.limitPrice}
-      />
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
         isVisible={isLeverageVisible}
