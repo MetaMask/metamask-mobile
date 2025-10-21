@@ -213,33 +213,6 @@ const QuoteDetailsCard: React.FC = () => {
           />
         )}
 
-        {priceImpact && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.price_impact'),
-                variant: TextVariant.BodyMDMedium,
-              },
-              tooltip: {
-                title: strings('bridge.price_impact_info_title'),
-                content: gasIncluded
-                  ? strings('bridge.price_impact_info_gasless_description')
-                  : strings('bridge.price_impact_info_description'),
-                size: TooltipSizes.Sm,
-              },
-            }}
-            value={{
-              label: {
-                text: priceImpact,
-                variant: TextVariant.BodyMD,
-                color: shouldShowPriceImpactWarning
-                  ? TextColor.Error
-                  : undefined,
-              },
-            }}
-          />
-        )}
-
         <KeyValueRow
           field={{
             label: {
@@ -270,6 +243,55 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
+
+        {activeQuote?.minToTokenAmount && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.minimum_received'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.minimum_received_tooltip_title'),
+                content: strings('bridge.minimum_received_tooltip_content'),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
+
+        {priceImpact && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.price_impact'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.price_impact_info_title'),
+                content: gasIncluded
+                  ? strings('bridge.price_impact_info_gasless_description')
+                  : strings('bridge.price_impact_info_description'),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: priceImpact,
+                variant: TextVariant.BodyMD,
+                color: shouldShowPriceImpactWarning
+                  ? TextColor.Error
+                  : undefined,
+              },
+            }}
+          />
+        )}
 
         {!isSwap && (
           <KeyValueRow
@@ -305,28 +327,6 @@ const QuoteDetailsCard: React.FC = () => {
                   />
                 </TouchableOpacity>
               ),
-            }}
-          />
-        )}
-
-        {activeQuote?.minToTokenAmount && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.minimum_received'),
-                variant: TextVariant.BodyMDMedium,
-              },
-              tooltip: {
-                title: strings('bridge.minimum_received_tooltip_title'),
-                content: strings('bridge.minimum_received_tooltip_content'),
-                size: TooltipSizes.Sm,
-              },
-            }}
-            value={{
-              label: {
-                text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
-                variant: TextVariant.BodyMD,
-              },
             }}
           />
         )}
