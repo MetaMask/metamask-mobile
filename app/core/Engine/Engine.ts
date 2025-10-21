@@ -58,7 +58,13 @@ import {
 } from './controllers/core-backend';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
-import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAssetType,
+  Hex,
+  Json,
+  KnownCaipNamespace,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import {
@@ -610,6 +616,28 @@ export class Engine {
             approval.id,
             new Error('Snap was terminated.'),
           );
+        }
+      },
+    );
+
+    // Subscribe to destinationTransactionCompleted event from BridgeStatusController.
+    this.controllerMessenger.subscribe(
+      'BridgeStatusController:destinationTransactionCompleted',
+      (caipAsset: CaipAssetType) => {
+        // Parse the CAIP asset ID (e.g., eip155:8453/erc20:0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34)
+        const { chain } = parseCaipAssetType(caipAsset);
+
+        // Parse the chain ID to get namespace and reference
+        const { namespace: caipNamespace, reference } = chain;
+        // For EVM networks, check if it's popular
+        if (caipNamespace === 'eip155') {
+          const hexChainId = toHex(reference);
+          this.context.TokenDetectionController.detectTokens({
+            chainIds: [hexChainId],
+          });
+          this.context.TokenBalancesController.updateBalances({
+            chainIds: [hexChainId],
+          });
         }
       },
     );
