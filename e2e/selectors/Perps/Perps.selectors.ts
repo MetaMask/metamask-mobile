@@ -108,7 +108,7 @@ export const PerpsMarketListViewSelectorsIDs = {
   BACK_HEADER_BUTTON: 'perps-market-header-back-button',
   BACK_LIST_BUTTON: 'perps-market-list-back-button',
   BACK_BUTTON: 'perps-market-list-back-button',
-  SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
+  SEARCH_CLEAR_BUTTON: 'perps-market-list-search-bar-clear',
   SEARCH_BAR: 'perps-market-list-search-bar',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
   LIST_HEADER: 'perps-market-list-header',
