@@ -56,6 +56,12 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../util/analytics/actionButtonTracking';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import {
@@ -104,7 +110,6 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import CollectibleContracts from '../../UI/CollectibleContracts';
 import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -153,7 +158,6 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -182,6 +186,7 @@ import { createAddressListNavigationDetails } from '../../Views/MultichainAccoun
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -196,6 +201,7 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       flex: 1,
+      marginTop: 8,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -424,12 +430,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
+    if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
       tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
-    } else if (collectiblesEnabled) {
-      tabs.push(
-        <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
-      );
     }
 
     return tabs;
@@ -581,6 +583,13 @@ const Wallet = ({
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
 
   const onReceive = useCallback(() => {
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: strings('asset_overview.receive_button'),
+      location: ActionLocation.HOME,
+    });
+
     if (isMultichainAccountsState2Enabled) {
       if (selectedAccountGroupId) {
         navigate(
@@ -624,6 +633,8 @@ const Wallet = ({
       );
     }
   }, [
+    trackEvent,
+    createEventBuilder,
     isMultichainAccountsState2Enabled,
     navigate,
     selectedAccountGroupId,
@@ -634,6 +645,13 @@ const Wallet = ({
 
   const onSend = useCallback(async () => {
     try {
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.SEND,
+        action_position: ActionPosition.THIRD_POSITION,
+        button_label: strings('asset_overview.send_button'),
+        location: ActionLocation.HOME,
+      });
+
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
       const wasHandledAsNonEvm = await sendNonEvmAsset(
@@ -668,6 +686,8 @@ const Wallet = ({
       navigateToSendPage(InitSendLocation.HomePage);
     }
   }, [
+    trackEvent,
+    createEventBuilder,
     nativeCurrency,
     navigateToSendPage,
     dispatch,
@@ -1039,7 +1059,7 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   useEffect(() => {
@@ -1058,7 +1078,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        isCardholder,
+        shouldDisplayCardButton,
         isRewardsEnabled,
       ),
     );
@@ -1074,7 +1094,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    isCardholder,
+    shouldDisplayCardButton,
     isRewardsEnabled,
   ]);
 
