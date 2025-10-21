@@ -1082,7 +1082,7 @@ export class CardSDK {
     try {
       this.logDebugInfo('phoneVerificationSend request', request);
 
-      const { location, ...body } = request;
+      const { location, contactVerificationId, ...body } = request;
       const isUSEnv = location === 'us';
 
       const response = await this.makeRequest(

@@ -1,19 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCardSDK } from '../sdk';
-import {
-  CardLocation,
-  StartUserVerificationResponse,
-  CardError,
-} from '../types';
+import { StartUserVerificationResponse, CardError } from '../types';
 import Logger from '../../../../util/Logger';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { selectSelectedCountry } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 
 interface UseStartVerificationReturn {
-  startVerification: (
-    location: CardLocation,
-  ) => Promise<StartUserVerificationResponse | null>;
+  startVerification: () => Promise<StartUserVerificationResponse | null>;
   data: StartUserVerificationResponse | null;
   isLoading: boolean;
   isSuccess: boolean;
