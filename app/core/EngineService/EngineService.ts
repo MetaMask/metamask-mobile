@@ -28,6 +28,7 @@ import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint, StateMetadata, StatePropertyMetadata } from '@metamask/base-controller';
+import { hasPersistedState } from './utils/persistence-utils';
 import { Json } from '@metamask/utils';
 
 export class EngineService {
@@ -49,27 +50,6 @@ export class EngineService {
       });
     }),
   );
-
-  /**
-   * Checks if a controller has any persistent state based on its metadata.
-   * 
-   * @param metadata - The controller's state metadata
-   * @returns true if the controller has properties marked for persistence, false otherwise
-   */
-  private hasPersistedState = (metadata: StateMetadata<StateConstraint> | undefined): boolean => {
-    if (!metadata) {
-      return false;
-    }
-
-    return Object.values(metadata).some((propertyMetadata: StatePropertyMetadata<Json>) => {
-      if (!propertyMetadata) {
-        return false;
-      }
-      // Check if the property has persist: true or a persist function
-      const persistProperty = propertyMetadata.persist;
-      return typeof persistProperty === 'function' || persistProperty === true;
-    });
-  };
 
   private initializeControllers = (engine: TypedEngine) => {
     // coordination mechanism to prevent race conditions between engine initialization and UI rendering
@@ -213,7 +193,7 @@ export class EngineService {
           // Check if controller has any persistent state before setting up persistence
           // @ts-expect-error Engine context has stateless controllers, so metadata may not be available
           const controllerMetadata = UntypedEngine.context[controllerName]?.metadata;
-          if (!this.hasPersistedState(controllerMetadata)) {
+          if (!hasPersistedState(controllerMetadata)) {
             Logger.log(`Skipping persistence setup for ${controllerName}, no persistent state`);
             return;
           }

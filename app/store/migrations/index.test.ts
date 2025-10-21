@@ -214,8 +214,8 @@ describe('migrations', () => {
 });
 
 describe('Critical Error Handling', () => {
-  const mockedControllerStorage = ControllerStorage as jest.Mocked<typeof ControllerStorage>;
-  const mockedCaptureException = captureException as jest.MockedFunction<typeof captureException>;
+  const mockedControllerStorage = jest.mocked(ControllerStorage);
+  const mockedCaptureException = jest.mocked(captureException);
 
   beforeEach(() => {
     jest.clearAllMocks();

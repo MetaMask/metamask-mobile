@@ -385,69 +385,6 @@ describe('EngineService', () => {
     });
   });
 
-  describe('hasPersistedState', () => {
-    // Type for accessing private methods
-    interface EngineServiceWithPrivateMethods {
-      hasPersistedState: (metadata: Record<string, unknown> | undefined) => boolean;
-    }
-
-    it('should return false when metadata is undefined', () => {
-      // Act
-      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(undefined);
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    it('should return false when metadata is empty', () => {
-      // Act
-      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState({});
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    it('should return true when metadata has persistent properties', () => {
-      // Arrange
-      const metadata = {
-        field1: { persist: true, anonymous: false },
-        field2: { persist: false, anonymous: true },
-      };
-
-      // Act
-      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
-
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('should return true when metadata has persist function', () => {
-      // Arrange
-      const metadata = {
-        field1: { persist: jest.fn(), anonymous: false },
-      };
-
-      // Act
-      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
-
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('should return false when all properties have persist false', () => {
-      // Arrange
-      const metadata = {
-        field1: { persist: false, anonymous: false },
-        field2: { persist: false, anonymous: true },
-      };
-
-      // Act
-      const result = (engineService as unknown as EngineServiceWithPrivateMethods).hasPersistedState(metadata);
-
-      // Assert
-      expect(result).toBe(false);
-    });
-  });
 
   describe('initializeControllers edge cases', () => {
     // Type for accessing private methods
@@ -842,6 +779,46 @@ describe('EngineService', () => {
       );
     });
 
+    it('skips persistence setup for controllers without persistent state', async () => {
+      // Arrange - Mock a controller with NO persistent state (all persist: false)
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            metadata: {
+              field1: { persist: false, anonymous: false },
+              field2: { persist: false, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            metadata: {
+              field1: { persist: true, anonymous: false },
+            },
+          },
+          NetworkController: {
+            metadata: {}, // Empty metadata = no persistent state
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert - Verify log messages about skipping controllers without persistent state
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Skipping persistence setup for KeyringController, no persistent state'
+      );
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Skipping persistence setup for NetworkController, no persistent state'
+      );
+
+      // Verify that PreferencesController did NOT get skipped (it has persistent state)
+      const skipMessages = (Logger.log as jest.MockedFunction<typeof Logger.log>).mock.calls
+        .filter(call => call[0]?.includes?.('Skipping persistence setup for PreferencesController'));
+      expect(skipMessages).toHaveLength(0);
+    });
+
     it('should handle missing controllerMessenger gracefully', async () => {
       // Arrange
       Object.defineProperty(Engine, 'controllerMessenger', {
@@ -855,7 +832,7 @@ describe('EngineService', () => {
 
       // Should not log success message
       expect(Logger.log).not.toHaveBeenCalledWith(
-        'Individual controller persistence and Redux update subscriptions set up successfully',
+        'Individual controller persistence subscriptions set up successfully',
       );
     });
   });
