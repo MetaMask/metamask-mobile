@@ -1,552 +1,357 @@
+import { BigNumber } from 'bignumber.js';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
   transformFundingToTransactions,
+  transformUserHistoryToTransactions,
+  transformWithdrawalRequestsToTransactions,
+  transformDepositRequestsToTransactions,
 } from './transactionTransforms';
-import { OrderFill, Order, Funding } from '../controllers/types';
+import {
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
+} from '../types/transactionHistory';
 
 describe('transactionTransforms', () => {
   describe('transformFillsToTransactions', () => {
-    const mockOrderFill: OrderFill = {
-      orderId: '12345',
-      symbol: 'ETH',
-      side: 'buy',
-      size: '1.5',
-      price: '2000.00',
-      fee: '5.00',
-      feeToken: 'USDC',
-      timestamp: 1640995200000,
-      pnl: '100.50',
+    const mockFill = {
       direction: 'Open Long',
-      success: true,
+      orderId: 'order1',
+      symbol: 'ETH',
+      size: '1',
+      price: '2000',
+      fee: '10',
+      timestamp: 1640995200000,
+      feeToken: 'USDC',
+      pnl: '0',
+      liquidation: false,
+      detailedOrderType: 'Market',
     };
 
-    it('should transform Open Long fills correctly', () => {
-      const fills = [mockOrderFill];
-      const result = transformFillsToTransactions(fills);
+    it('transforms open position fill correctly', () => {
+      const result = transformFillsToTransactions([mockFill]);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
-        id: '12345',
+      expect(result[0]).toEqual({
+        id: 'order1',
         type: 'trade',
         category: 'position_open',
         title: 'Opened long',
-        subtitle: '1.5 ETH',
+        subtitle: '1 ETH',
         timestamp: 1640995200000,
         asset: 'ETH',
         fill: {
           shortTitle: 'Opened long',
-          amount: '-$5.00', // For opens: show fee paid (negative)
-          amountNumber: 5.0,
-          isPositive: false, // Opens are negative (cost)
-          size: '1.5',
-          entryPrice: '2000.00',
-          pnl: '100.50',
-          fee: '5.00',
+          amount: '-$10.00',
+          amountNumber: -10,
+          isPositive: false,
+          size: '1',
+          entryPrice: '2000',
+          pnl: '0',
+          fee: '10',
           points: '0',
           feeToken: 'USDC',
           action: 'Opened',
+          liquidation: false,
+          isLiquidation: false,
+          isTakeProfit: false,
+          isStopLoss: false,
         },
       });
     });
 
-    it('should transform Close Short fills correctly', () => {
-      const closeFill: OrderFill = {
-        ...mockOrderFill,
-        direction: 'Close Short',
-        side: 'buy',
-        pnl: '75.25',
+    it('transforms close position fill correctly', () => {
+      const closeFill = {
+        ...mockFill,
+        direction: 'Close Long',
+        pnl: '50',
+        fee: '5',
       };
 
       const result = transformFillsToTransactions([closeFill]);
 
-      expect(result[0]).toMatchObject({
-        category: 'position_close',
-        title: 'Closed short',
-        fill: {
-          shortTitle: 'Closed short',
-          amount: '+$70.25', // For closes: PnL minus fee (75.25 - 5.00)
-          amountNumber: 70.25,
-          isPositive: true, // Positive PnL after fee
-          action: 'Closed',
-        },
-      });
+      expect(result[0].fill.amount).toBe('+$45.00');
+      expect(result[0].fill.amountNumber).toBe(45);
+      expect(result[0].fill.isPositive).toBe(true);
+      expect(result[0].fill.action).toBe('Closed');
     });
 
-    it('should handle missing direction field', () => {
-      const fillWithoutDirection: OrderFill = {
-        ...mockOrderFill,
-        direction: undefined as unknown as string,
-      };
-
-      const result = transformFillsToTransactions([fillWithoutDirection]);
-
-      expect(result).toHaveLength(0);
-    });
-
-    it('should handle undefined direction', () => {
-      const minimalFill: OrderFill = {
-        ...mockOrderFill,
-        direction: '',
-      };
-
-      const result = transformFillsToTransactions([minimalFill]);
-
-      expect(result).toHaveLength(0);
-    });
-
-    it('should calculate amount correctly for closed positions', () => {
-      const closedFill: OrderFill = {
-        ...mockOrderFill,
-        direction: 'Close Long',
-        pnl: '150.75',
-      };
-
-      const result = transformFillsToTransactions([closedFill]);
-
-      // For closed positions, uses PnL - fee (150.75 - 5.00 = 145.75)
-      expect(result[0].fill?.amount).toBe('+$145.75');
-      expect(result[0].fill?.amountNumber).toBe(145.75);
-      expect(result[0].fill?.isPositive).toBe(true);
-    });
-
-    it('should handle zero PnL correctly', () => {
-      const closedFill: OrderFill = {
-        ...mockOrderFill,
-        direction: 'Close Long',
-        pnl: '0',
-      };
-
-      const result = transformFillsToTransactions([closedFill]);
-
-      // Should use PnL - fee = 0 - 5 = -5
-      expect(result[0].fill?.amount).toBe('-$5.00');
-      expect(result[0].fill?.amountNumber).toBe(-5.0);
-      expect(result[0].fill?.isPositive).toBe(false);
-    });
-
-    it('should handle break-even PnL (PnL equals fee)', () => {
-      const breakEvenFill: OrderFill = {
-        ...mockOrderFill,
-        direction: 'Close Long',
-        pnl: '5.00', // Equals the fee
-        fee: '5.00',
-      };
-
-      const result = transformFillsToTransactions([breakEvenFill]);
-
-      // PnL - fee = 5 - 5 = 0, should show $0.00 and be treated as positive (green)
-      expect(result[0].fill?.amount).toBe('$0.00');
-      expect(result[0].fill?.amountNumber).toBe(0);
-      expect(result[0].fill?.isPositive).toBe(true); // Break-even treated as positive
-    });
-
-    it('should handle flipped positions correctly', () => {
-      const flippedFill: OrderFill = {
-        ...mockOrderFill,
-        direction: 'Short > Long',
-        pnl: '50.00',
-        fee: '10.00',
+    it('transforms flipped position fill correctly', () => {
+      const flippedFill = {
+        ...mockFill,
+        direction: 'Close Long > Open Short',
+        startPosition: '2',
+        pnl: '100',
+        fee: '8',
       };
 
       const result = transformFillsToTransactions([flippedFill]);
 
-      expect(result[0]).toMatchObject({
-        category: 'position_close', // Flips are treated as closes
-        title: 'Flipped short > long',
-        fill: {
-          shortTitle: 'Flipped short > long',
-          amount: '+$40.00', // PnL minus fee (50 - 10)
-          amountNumber: 40.0,
-          isPositive: true,
-          action: 'Flipped',
-        },
-      });
+      expect(result[0].fill.size).toBe('1'); // 2 - 1 = 1
+      expect(result[0].fill.action).toBe('Flipped');
+      expect(result[0].title).toBe('Flipped short');
     });
 
-    it('should handle empty fills array', () => {
-      const result = transformFillsToTransactions([]);
-      expect(result).toEqual([]);
-    });
-
-    it('should handle fills with empty direction field', () => {
-      const minimalFill: OrderFill = {
-        orderId: '',
-        symbol: 'BTC',
-        side: 'buy',
-        size: '0.1',
-        price: '50000',
-        fee: '0',
-        feeToken: 'USDC',
-        timestamp: 1640995200000,
-        pnl: '0',
-        direction: '',
+    it('handles break-even PnL correctly', () => {
+      const breakEvenFill = {
+        ...mockFill,
+        direction: 'Close Long',
+        pnl: '10',
+        fee: '10',
       };
 
-      const result = transformFillsToTransactions([minimalFill]);
+      const result = transformFillsToTransactions([breakEvenFill]);
 
-      expect(result).toHaveLength(0);
+      expect(result[0].fill.amount).toBe('$0.00');
+      expect(result[0].fill.amountNumber).toBe(0);
+      expect(result[0].fill.isPositive).toBe(true);
     });
 
-    it('should correctly identify take profit fills', () => {
-      const tpFill: OrderFill = {
-        orderId: '123',
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.1',
-        price: '55000',
-        pnl: '500',
-        direction: 'Close Long',
-        fee: '5',
-        feeToken: 'USDC',
-        timestamp: Date.now(),
-        detailedOrderType: 'Take Profit Market',
-      };
-
-      const result = transformFillsToTransactions([tpFill]);
-
-      expect(result[0].fill?.isTakeProfit).toBe(true);
-      expect(result[0].fill?.isStopLoss).toBe(false);
-      expect(result[0].fill?.isLiquidation).toBe(false);
-    });
-
-    it('should correctly identify stop loss fills', () => {
-      const slFill: OrderFill = {
-        orderId: '123',
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.1',
-        price: '45000',
-        pnl: '-500',
-        direction: 'Close Long',
-        fee: '5',
-        feeToken: 'USDC',
-        timestamp: Date.now(),
-        detailedOrderType: 'Stop Market',
-      };
-
-      const result = transformFillsToTransactions([slFill]);
-
-      expect(result[0].fill?.isStopLoss).toBe(true);
-      expect(result[0].fill?.isTakeProfit).toBe(false);
-      expect(result[0].fill?.isLiquidation).toBe(false);
-    });
-
-    it('should correctly identify liquidation fills', () => {
-      const liquidationFill: OrderFill = {
-        orderId: '123',
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.1',
-        price: '44900',
-        pnl: '-1000',
-        direction: 'Close Long',
-        fee: '5',
-        feeToken: 'USDC',
-        timestamp: Date.now(),
-        liquidation: {
-          liquidatedUser: '0x123',
-          markPx: '44900',
-          method: 'market',
-        },
+    it('handles liquidation fills', () => {
+      const liquidationFill = {
+        ...mockFill,
+        liquidation: true,
+        detailedOrderType: 'Liquidation',
       };
 
       const result = transformFillsToTransactions([liquidationFill]);
 
-      expect(result[0].fill?.isLiquidation).toBe(true);
-      expect(result[0].fill?.liquidation).toEqual({
-        liquidatedUser: '0x123',
-        markPx: '44900',
-        method: 'market',
-      });
-      expect(result[0].fill?.isTakeProfit).toBe(false);
-      expect(result[0].fill?.isStopLoss).toBe(false);
+      expect(result[0].fill.isLiquidation).toBe(true);
     });
 
-    it('should handle fills with stop loss and liquidation (edge case)', () => {
-      const complexFill: OrderFill = {
-        orderId: '123',
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.1',
-        price: '44900',
-        pnl: '-1000',
-        direction: 'Close Long',
-        fee: '5',
-        feeToken: 'USDC',
-        timestamp: Date.now(),
-        detailedOrderType: 'Stop Market',
-        liquidation: {
-          liquidatedUser: '0x123',
-          markPx: '44900',
-          method: 'market',
-        },
+    it('handles take profit fills', () => {
+      const takeProfitFill = {
+        ...mockFill,
+        detailedOrderType: 'Take Profit',
       };
 
-      const result = transformFillsToTransactions([complexFill]);
+      const result = transformFillsToTransactions([takeProfitFill]);
 
-      // Both should be true in this edge case
-      expect(result[0].fill?.isStopLoss).toBe(true);
-      expect(result[0].fill?.isLiquidation).toBe(true);
+      expect(result[0].fill.isTakeProfit).toBe(true);
     });
 
-    it('should handle fills without detailedOrderType or liquidation', () => {
-      const regularFill: OrderFill = {
-        orderId: '123',
-        symbol: 'ETH',
-        side: 'buy',
-        size: '1.0',
-        price: '3000',
-        pnl: '0',
-        direction: 'Open Long',
-        fee: '3',
-        feeToken: 'USDC',
-        timestamp: Date.now(),
+    it('handles stop loss fills', () => {
+      const stopLossFill = {
+        ...mockFill,
+        detailedOrderType: 'Stop Loss',
       };
 
-      const result = transformFillsToTransactions([regularFill]);
+      const result = transformFillsToTransactions([stopLossFill]);
 
-      expect(result[0].fill?.isTakeProfit).toBe(false);
-      expect(result[0].fill?.isStopLoss).toBe(false);
-      expect(result[0].fill?.isLiquidation).toBe(false);
-      expect(result[0].fill?.liquidation).toBeUndefined();
+      expect(result[0].fill.isStopLoss).toBe(true);
     });
 
-    it('should correctly identify Take Profit Limit orders', () => {
-      const tpLimitFill: OrderFill = {
-        orderId: '456',
-        symbol: 'ETH',
-        side: 'sell',
-        size: '2.0',
-        price: '3500',
-        pnl: '1000',
-        direction: 'Close Long',
-        fee: '7',
-        feeToken: 'USDC',
-        timestamp: Date.now(),
-        detailedOrderType: 'Take Profit Limit',
+    it('handles unknown direction gracefully', () => {
+      const unknownFill = {
+        ...mockFill,
+        direction: 'Unknown Direction',
       };
 
-      const result = transformFillsToTransactions([tpLimitFill]);
+      const result = transformFillsToTransactions([unknownFill]);
 
-      expect(result[0].fill?.isTakeProfit).toBe(true);
-      expect(result[0].fill?.isStopLoss).toBe(false);
+      expect(result).toHaveLength(0);
     });
 
-    it('should correctly identify Stop Limit orders', () => {
-      const slLimitFill: OrderFill = {
-        orderId: '789',
-        symbol: 'SOL',
-        side: 'buy',
-        size: '10',
-        price: '100',
-        pnl: '-200',
-        direction: 'Close Short',
-        fee: '2',
-        feeToken: 'USDC',
-        timestamp: Date.now(),
-        detailedOrderType: 'Stop Limit',
+    it('handles missing direction', () => {
+      const noDirectionFill = {
+        ...mockFill,
+        direction: undefined,
       };
 
-      const result = transformFillsToTransactions([slLimitFill]);
+      const result = transformFillsToTransactions([noDirectionFill]);
 
-      expect(result[0].fill?.isStopLoss).toBe(true);
-      expect(result[0].fill?.isTakeProfit).toBe(false);
+      expect(result).toHaveLength(0);
     });
 
-    it('should handle unknown actions by logging error and returning empty array', () => {
-      // Mock console.error to test the error logging
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      const unknownActionFill: OrderFill = {
-        ...mockOrderFill,
-        direction: 'Unknown Action' as string, // This will trigger the unknown action case
+    it('uses timestamp as fallback ID when orderId is missing', () => {
+      const noOrderIdFill = {
+        ...mockFill,
+        orderId: undefined,
       };
 
-      const result = transformFillsToTransactions([unknownActionFill]);
+      const result = transformFillsToTransactions([noOrderIdFill]);
 
-      // Should return empty array for unknown actions
-      expect(result).toEqual([]);
-
-      // Should log error
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Unknown action',
-        unknownActionFill,
-      );
-
-      // Restore console.error
-      consoleErrorSpy.mockRestore();
+      expect(result[0].id).toBe(`fill-${mockFill.timestamp}`);
     });
   });
 
   describe('transformOrdersToTransactions', () => {
-    const mockOrder: Order = {
-      orderId: '67890',
+    const mockOrder = {
+      orderId: 'order1',
       symbol: 'BTC',
       side: 'buy',
-      orderType: 'limit',
+      orderType: 'Limit',
       size: '0.5',
-      originalSize: '1.0',
-      price: '45000',
-      filledSize: '0.5',
-      remainingSize: '0.5',
-      status: 'open',
+      originalSize: '1',
+      price: '50000',
+      status: 'filled',
       timestamp: 1640995200000,
-      lastUpdated: 1640995200000,
     };
 
-    it('should transform open orders correctly', () => {
-      const orders = [mockOrder];
-      const result = transformOrdersToTransactions(orders);
+    it('transforms filled order correctly', () => {
+      const result = transformOrdersToTransactions([mockOrder]);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
-        id: '67890-1640995200000',
+      expect(result[0]).toEqual({
+        id: 'order1-1640995200000',
         type: 'order',
         category: 'limit_order',
-        title: 'Long limit',
-        subtitle: '1.0 BTC',
+        title: 'Long Limit',
+        subtitle: '1 BTC',
         timestamp: 1640995200000,
         asset: 'BTC',
         order: {
-          text: '', // Open orders have empty text (PerpsOrderTransactionStatus.Open = '')
-          statusType: 'pending',
+          text: PerpsOrderTransactionStatus.Filled,
+          statusType: PerpsOrderTransactionStatusType.Filled,
           type: 'limit',
-          size: '45000', // originalSize * price
-          limitPrice: '45000',
-          filled: '50%', // (1.0 - 0.5) / 1.0 * 100
+          size: '50000',
+          limitPrice: '50000',
+          filled: '50%',
         },
       });
     });
 
-    it('should transform filled orders correctly', () => {
-      const filledOrder: Order = {
-        ...mockOrder,
-        status: 'filled',
-        remainingSize: '0',
-        filledSize: '1.0',
-      };
-
-      const result = transformOrdersToTransactions([filledOrder]);
-
-      expect(result[0].order).toMatchObject({
-        text: 'Filled',
-        statusType: 'filled',
-        size: '45000', // originalSize * price = 1.0 * 45000
-        filled: '50%',
-      });
-    });
-
-    it('should transform cancelled orders correctly', () => {
-      const cancelledOrder: Order = {
+    it('transforms cancelled order correctly', () => {
+      const cancelledOrder = {
         ...mockOrder,
         status: 'canceled',
       };
 
       const result = transformOrdersToTransactions([cancelledOrder]);
 
-      expect(result[0].order).toMatchObject({
-        text: 'Canceled',
-        statusType: 'canceled',
-        size: '45000',
-      });
+      expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Canceled);
+      expect(result[0].order.statusType).toBe(
+        PerpsOrderTransactionStatusType.Canceled,
+      );
     });
 
-    it('should transform rejected orders correctly', () => {
-      const rejectedOrder: Order = {
+    it('transforms rejected order correctly', () => {
+      const rejectedOrder = {
         ...mockOrder,
         status: 'rejected',
       };
 
       const result = transformOrdersToTransactions([rejectedOrder]);
 
-      expect(result[0].order).toMatchObject({
-        text: 'Rejected',
-        statusType: 'canceled', // Rejected maps to canceled
-        size: '45000',
-      });
+      expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Rejected);
+      expect(result[0].order.statusType).toBe(
+        PerpsOrderTransactionStatusType.Canceled,
+      );
     });
 
-    it('should transform triggered orders correctly', () => {
-      const triggeredOrder: Order = {
+    it('transforms triggered order correctly', () => {
+      const triggeredOrder = {
         ...mockOrder,
         status: 'triggered',
       };
 
       const result = transformOrdersToTransactions([triggeredOrder]);
 
-      expect(result[0].order).toMatchObject({
-        text: 'Triggered',
-        statusType: 'filled', // Triggered maps to filled
-        size: '45000',
-      });
+      expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Triggered);
+      expect(result[0].order.statusType).toBe(
+        PerpsOrderTransactionStatusType.Filled,
+      );
     });
 
-    it('should handle market orders', () => {
-      const marketOrder: Order = {
+    it('transforms open order correctly', () => {
+      const openOrder = {
         ...mockOrder,
-        orderType: 'market',
+        status: 'open',
       };
 
-      const result = transformOrdersToTransactions([marketOrder]);
+      const result = transformOrdersToTransactions([openOrder]);
 
-      expect(result[0].order?.type).toBe('market');
-      expect(result[0].order?.size).toBe('45000');
+      expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Open);
+      expect(result[0].order.statusType).toBe(
+        PerpsOrderTransactionStatusType.Pending,
+      );
     });
 
-    it('should handle sell orders', () => {
-      const sellOrder: Order = {
+    it('transforms pending order correctly', () => {
+      const pendingOrder = {
+        ...mockOrder,
+        status: 'pending',
+      };
+
+      const result = transformOrdersToTransactions([pendingOrder]);
+
+      expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Queued);
+      expect(result[0].order.statusType).toBe(
+        PerpsOrderTransactionStatusType.Pending,
+      );
+    });
+
+    it('handles short orders correctly', () => {
+      const shortOrder = {
         ...mockOrder,
         side: 'sell',
       };
 
-      const result = transformOrdersToTransactions([sellOrder]);
+      const result = transformOrdersToTransactions([shortOrder]);
 
-      expect(result[0].title).toBe('Short limit');
-      expect(result[0].order?.size).toBe('45000');
+      expect(result[0].title).toBe('Short Limit');
     });
 
-    it('should calculate order size correctly', () => {
-      const result = transformOrdersToTransactions([mockOrder]);
-
-      // size = originalSize * price = 1.0 * 45000 = 45000
-      expect(result[0].order?.size).toBe('45000');
-    });
-
-    it('should handle orders with zero remaining size (fully filled)', () => {
-      const fullyFilledOrder: Order = {
+    it('handles market orders correctly', () => {
+      const marketOrder = {
         ...mockOrder,
-        size: '0', // No remaining size
-        status: 'filled',
+        orderType: 'Market',
+      };
+
+      const result = transformOrdersToTransactions([marketOrder]);
+
+      expect(result[0].order.type).toBe('market');
+    });
+
+    it('calculates filled percentage correctly', () => {
+      const partiallyFilledOrder = {
+        ...mockOrder,
+        size: '0.2',
+        originalSize: '1',
+      };
+
+      const result = transformOrdersToTransactions([partiallyFilledOrder]);
+
+      expect(result[0].order.filled).toBe('80%');
+    });
+
+    it('handles zero size as 100% filled', () => {
+      const fullyFilledOrder = {
+        ...mockOrder,
+        size: '0',
+        originalSize: '1',
       };
 
       const result = transformOrdersToTransactions([fullyFilledOrder]);
 
-      // When size is 0, filled should be 100%
-      expect(result[0].order?.filled).toBe('100%');
+      expect(result[0].order.filled).toBe('100%');
     });
 
-    it('should handle empty orders array', () => {
-      const result = transformOrdersToTransactions([]);
-      expect(result).toEqual([]);
+    it('handles missing originalSize', () => {
+      const noOriginalSizeOrder = {
+        ...mockOrder,
+        originalSize: undefined,
+      };
+
+      const result = transformOrdersToTransactions([noOriginalSizeOrder]);
+
+      expect(result[0].order.filled).toBe('100%');
     });
   });
 
   describe('transformFundingToTransactions', () => {
-    const mockFunding: Funding = {
+    const mockFunding = {
       symbol: 'ETH',
-      amountUsd: '12.50',
+      amountUsd: '5.25',
       rate: '0.0001',
       timestamp: 1640995200000,
-      transactionHash: '0x123abc',
     };
 
-    it('should transform positive funding correctly', () => {
-      const funding = [mockFunding];
-      const result = transformFundingToTransactions(funding);
+    it('transforms positive funding correctly', () => {
+      const result = transformFundingToTransactions([mockFunding]);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
+      expect(result[0]).toEqual({
         id: 'funding-1640995200000-ETH',
         type: 'funding',
         category: 'funding_fee',
@@ -556,119 +361,300 @@ describe('transactionTransforms', () => {
         asset: 'ETH',
         fundingAmount: {
           isPositive: true,
-          fee: '+$12.5',
-          feeNumber: 12.5,
-          rate: '0.01%', // 0.0001 * 100
+          fee: '+$5.25',
+          feeNumber: 5.25,
+          rate: '0.01%',
         },
       });
     });
 
-    it('should transform negative funding correctly', () => {
-      const negativeFunding: Funding = {
+    it('transforms negative funding correctly', () => {
+      const negativeFunding = {
         ...mockFunding,
-        amountUsd: '-8.75',
+        amountUsd: '-3.50',
       };
 
       const result = transformFundingToTransactions([negativeFunding]);
 
-      expect(result[0]).toMatchObject({
-        title: 'Paid funding fee',
-        fundingAmount: {
-          isPositive: false,
-          fee: '-$8.75',
-          feeNumber: -8.75,
-        },
-      });
+      expect(result[0].title).toBe('Paid funding fee');
+      expect(result[0].fundingAmount.isPositive).toBe(false);
+      expect(result[0].fundingAmount.fee).toBe('-$3.5');
+      expect(result[0].fundingAmount.feeNumber).toBe(-3.5);
     });
 
-    it('should handle zero funding amounts', () => {
-      const zeroFunding: Funding = {
-        ...mockFunding,
-        amountUsd: '0',
-      };
+    it('sorts funding by timestamp descending', () => {
+      const funding1 = { ...mockFunding, timestamp: 1000 };
+      const funding2 = { ...mockFunding, timestamp: 2000 };
+      const funding3 = { ...mockFunding, timestamp: 1500 };
 
-      const result = transformFundingToTransactions([zeroFunding]);
-
-      expect(result[0].fundingAmount).toMatchObject({
-        isPositive: false, // BigNumber treats 0 as not greater than 0
-        fee: '-$0',
-        feeNumber: 0,
-      });
-    });
-
-    it('should handle funding without transaction hash', () => {
-      const fundingWithoutHash: Funding = {
-        symbol: 'BTC',
-        amountUsd: '5.25',
-        rate: '0.00005',
-        timestamp: 1640995200000,
-      };
-
-      const result = transformFundingToTransactions([fundingWithoutHash]);
-
-      expect(result[0]).toMatchObject({
-        id: 'funding-1640995200000-BTC',
-        asset: 'BTC',
-        fundingAmount: {
-          rate: '0.005%', // 0.00005 * 100
-        },
-      });
-    });
-
-    it('should handle empty funding array', () => {
-      const result = transformFundingToTransactions([]);
-      expect(result).toEqual([]);
-    });
-
-    it('should handle very small rates', () => {
-      const smallRateFunding: Funding = {
-        ...mockFunding,
-        rate: '0.000001',
-      };
-
-      const result = transformFundingToTransactions([smallRateFunding]);
-
-      expect(result[0].fundingAmount?.rate).toBe('0.0001%');
-    });
-
-    it('should handle large rates', () => {
-      const largeRateFunding: Funding = {
-        ...mockFunding,
-        rate: '0.01',
-      };
-
-      const result = transformFundingToTransactions([largeRateFunding]);
-
-      expect(result[0].fundingAmount?.rate).toBe('1%');
-    });
-
-    it('should sort funding by timestamp in descending order (newest first)', () => {
-      const olderFunding: Funding = {
-        symbol: 'BTC',
-        amountUsd: '10.00',
-        rate: '0.0001',
-        timestamp: 1640995200000, // Older timestamp
-      };
-
-      const newerFunding: Funding = {
-        symbol: 'ETH',
-        amountUsd: '15.00',
-        rate: '0.0002',
-        timestamp: 1640995300000, // Newer timestamp
-      };
-
-      // Pass in older first, newer second
       const result = transformFundingToTransactions([
-        olderFunding,
-        newerFunding,
+        funding1,
+        funding2,
+        funding3,
       ]);
 
-      // Should be sorted with newer first
-      expect(result).toHaveLength(2);
-      expect(result[0].timestamp).toBe(1640995300000); // Newer first
-      expect(result[0].asset).toBe('ETH');
-      expect(result[1].timestamp).toBe(1640995200000); // Older second
-      expect(result[1].asset).toBe('BTC');
+      expect(result[0].timestamp).toBe(2000);
+      expect(result[1].timestamp).toBe(1500);
+      expect(result[2].timestamp).toBe(1000);
+    });
+  });
+
+  describe('transformUserHistoryToTransactions', () => {
+    const mockUserHistoryItem = {
+      id: 'deposit1',
+      timestamp: 1640995200000,
+      type: 'deposit',
+      amount: '1000',
+      asset: 'USDC',
+      status: 'completed',
+      txHash: '0x123',
+    };
+
+    it('transforms completed deposit correctly', () => {
+      const result = transformUserHistoryToTransactions([mockUserHistoryItem]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: 'deposit-deposit1',
+        type: 'deposit',
+        category: 'deposit',
+        title: 'Deposited 1000 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$1000.00',
+          amountNumber: 1000,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: '0x123',
+          status: 'completed',
+          type: 'deposit',
+        },
+      });
+    });
+
+    it('transforms completed withdrawal correctly', () => {
+      const withdrawalItem = {
+        ...mockUserHistoryItem,
+        type: 'withdrawal',
+        amount: '500',
+      };
+
+      const result = transformUserHistoryToTransactions([withdrawalItem]);
+
+      expect(result[0].type).toBe('withdrawal');
+      expect(result[0].category).toBe('withdrawal');
+      expect(result[0].title).toBe('Withdrew 500 USDC');
+      expect(result[0].depositWithdrawal.amount).toBe('-$500.00');
+      expect(result[0].depositWithdrawal.amountNumber).toBe(500);
+      expect(result[0].depositWithdrawal.isPositive).toBe(false);
+      expect(result[0].depositWithdrawal.type).toBe('withdrawal');
+    });
+
+    it('filters out non-completed items', () => {
+      const pendingItem = {
+        ...mockUserHistoryItem,
+        status: 'pending',
+      };
+
+      const result = transformUserHistoryToTransactions([pendingItem]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('handles missing txHash', () => {
+      const noTxHashItem = {
+        ...mockUserHistoryItem,
+        txHash: undefined,
+      };
+
+      const result = transformUserHistoryToTransactions([noTxHashItem]);
+
+      expect(result[0].depositWithdrawal.txHash).toBe('');
+    });
+  });
+
+  describe('transformWithdrawalRequestsToTransactions', () => {
+    const mockWithdrawalRequest = {
+      id: 'withdrawal1',
+      timestamp: 1640995200000,
+      amount: '500',
+      asset: 'USDC',
+      txHash: '0x456',
+      status: 'completed' as const,
+      destination: '0x123',
+      withdrawalId: 'withdrawal123',
+    };
+
+    it('transforms completed withdrawal request correctly', () => {
+      const result = transformWithdrawalRequestsToTransactions([
+        mockWithdrawalRequest,
+      ]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: 'withdrawal-withdrawal1',
+        type: 'withdrawal',
+        category: 'withdrawal',
+        title: 'Withdrew 500 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '-$500.00',
+          amountNumber: -500,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: '0x456',
+          status: 'completed',
+          type: 'withdrawal',
+        },
+      });
+    });
+
+    it('filters out non-completed withdrawal requests', () => {
+      const pendingRequest = {
+        ...mockWithdrawalRequest,
+        status: 'pending' as const,
+      };
+
+      const result = transformWithdrawalRequestsToTransactions([
+        pendingRequest,
+      ]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('handles missing txHash', () => {
+      const noTxHashRequest = {
+        ...mockWithdrawalRequest,
+        txHash: undefined,
+      };
+
+      const result = transformWithdrawalRequestsToTransactions([
+        noTxHashRequest,
+      ]);
+
+      expect(result[0].depositWithdrawal.txHash).toBe('');
+    });
+  });
+
+  describe('transformDepositRequestsToTransactions', () => {
+    const mockDepositRequest = {
+      id: 'deposit1',
+      timestamp: 1640995200000,
+      amount: '1000',
+      asset: 'USDC',
+      txHash: '0x789',
+      status: 'completed' as const,
+      source: 'arbitrum',
+      depositId: 'deposit123',
+    };
+
+    it('transforms completed deposit request correctly', () => {
+      const result = transformDepositRequestsToTransactions([
+        mockDepositRequest,
+      ]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: 'deposit-deposit1',
+        type: 'deposit',
+        category: 'deposit',
+        title: 'Deposited 1000 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$1000.00',
+          amountNumber: 1000,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: '0x789',
+          status: 'completed',
+          type: 'deposit',
+        },
+      });
+    });
+
+    it('handles zero amount deposits', () => {
+      const zeroAmountRequest = {
+        ...mockDepositRequest,
+        amount: '0',
+      };
+
+      const result = transformDepositRequestsToTransactions([
+        zeroAmountRequest,
+      ]);
+
+      expect(result[0].title).toBe('Deposit');
+    });
+
+    it('handles zero string amount deposits', () => {
+      const zeroStringRequest = {
+        ...mockDepositRequest,
+        amount: '0.00',
+      };
+
+      const result = transformDepositRequestsToTransactions([
+        zeroStringRequest,
+      ]);
+
+      expect(result[0].title).toBe('Deposit');
+    });
+
+    it('filters out non-completed deposit requests', () => {
+      const pendingRequest = {
+        ...mockDepositRequest,
+        status: 'pending' as const,
+      };
+
+      const result = transformDepositRequestsToTransactions([pendingRequest]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('handles missing txHash', () => {
+      const noTxHashRequest = {
+        ...mockDepositRequest,
+        txHash: undefined,
+      };
+
+      const result = transformDepositRequestsToTransactions([noTxHashRequest]);
+
+      expect(result[0].depositWithdrawal.txHash).toBe('');
+    });
+  });
+
+  describe('edge cases', () => {
+    it('handles empty arrays', () => {
+      expect(transformFillsToTransactions([])).toEqual([]);
+      expect(transformOrdersToTransactions([])).toEqual([]);
+      expect(transformFundingToTransactions([])).toEqual([]);
+      expect(transformUserHistoryToTransactions([])).toEqual([]);
+      expect(transformWithdrawalRequestsToTransactions([])).toEqual([]);
+      expect(transformDepositRequestsToTransactions([])).toEqual([]);
+    });
+
+    it('handles BigNumber edge cases', () => {
+      const edgeCaseFill = {
+        direction: 'Close Long',
+        orderId: 'order1',
+        symbol: 'ETH',
+        size: '0.0000001',
+        price: '2000',
+        fee: '0.000001',
+        timestamp: 1640995200000,
+        feeToken: 'USDC',
+        pnl: '0.000001',
+        liquidation: false,
+        detailedOrderType: 'Market',
+      };
+
+      const result = transformFillsToTransactions([edgeCaseFill]);
+
+      expect(result[0].fill.amountNumber).toBeCloseTo(0, 6);
     });
   });
 });
