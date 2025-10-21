@@ -35,6 +35,8 @@ export interface LastTransactionResult {
  * Used for transaction history display and detailed status tracking
  * JSON serializable for controller state
  */
+export type TransactionStatus = 'pending' | 'bridging' | 'completed' | 'failed';
+
 export interface LastTransactionResult {
   amount: string;
   asset: string;
@@ -51,7 +53,7 @@ export interface TransactionRecord {
   txHash?: string;
   timestamp: number;
   success: boolean;
-  status: 'pending' | 'bridging' | 'completed' | 'failed';
+  status: TransactionStatus;
   destination?: string; // mainly for withdrawals
   source?: string; // mainly for deposits
   transactionId?: string; // generic - could be withdrawalId or depositId
