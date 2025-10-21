@@ -22,6 +22,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   ZERO_BALANCE,
   HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS,
+  WITHDRAWAL_PROGRESS_STAGES,
 } from '../../constants/hyperLiquidConfig';
 
 interface PerpsProgressBarProps {
@@ -235,11 +236,11 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       if (isSameWithdrawal && existingProgress > 0) {
         // Continue from existing progress
         // Find the current stage based on progress
-        const progressStages = [25, 35, 45, 55, 65, 75, 85, 90, 95, 98];
-        currentStage = progressStages.findIndex(
+        currentStage = WITHDRAWAL_PROGRESS_STAGES.findIndex(
           (stage) => stage > existingProgress,
         );
-        if (currentStage === -1) currentStage = progressStages.length;
+        if (currentStage === -1)
+          currentStage = WITHDRAWAL_PROGRESS_STAGES.length;
       } else {
         // Start fresh - set initial progress
         const controller = Engine.context.PerpsController;
@@ -250,11 +251,9 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       }
 
       // Simulate withdrawal progress stages - 5 minutes total, every 30 seconds
-      const progressStages = [25, 35, 45, 55, 65, 75, 85, 90, 95, 98];
-
       const progressInterval = setInterval(() => {
-        if (currentStage < progressStages.length) {
-          const progress = progressStages[currentStage];
+        if (currentStage < WITHDRAWAL_PROGRESS_STAGES.length) {
+          const progress = WITHDRAWAL_PROGRESS_STAGES[currentStage];
 
           // Update controller with persistent progress
           const controller = Engine.context.PerpsController;

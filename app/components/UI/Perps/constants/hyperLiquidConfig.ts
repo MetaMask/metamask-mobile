@@ -214,3 +214,9 @@ export const HYPERLIQUID_CONFIG = {
   // HyperLiquid uses 'HlPerp' as their perps exchange identifier
   EXCHANGE_NAME: 'HlPerp',
 } as const;
+
+// Progress bar constants
+export const INITIAL_AMOUNT_UI_PROGRESS = 10;
+export const WITHDRAWAL_PROGRESS_STAGES = [
+  25, 35, 45, 55, 65, 75, 85, 90, 95, 98,
+];

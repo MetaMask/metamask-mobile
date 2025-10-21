@@ -46,6 +46,7 @@ import { BigNumber } from 'bignumber.js';
 import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
+  INITIAL_AMOUNT_UI_PROGRESS,
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
@@ -288,7 +289,7 @@ const PerpsMarketBalanceActions: React.FC<
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
         <PerpsProgressBar
-          progressAmount={10}
+          progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
           height={4}
           onTransactionAmountChange={setTransactionAmountWei}
         />

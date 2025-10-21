@@ -1427,7 +1427,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
-        params?.accountId as `${string}:${string}:${string}` | undefined,
+        params?.accountId as CaipAccountId | undefined,
       );
 
       const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
