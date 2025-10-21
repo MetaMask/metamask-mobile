@@ -46,7 +46,6 @@ export interface PredictPositionsHeaderHandle {
   refresh: () => Promise<void>;
 }
 
-// TODO: rename to something like `PredictPositionsHeader` (given its purpose has evolved)
 const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
   (_, ref) => {
     const { claim } = usePredictClaim();
