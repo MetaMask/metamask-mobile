@@ -21,6 +21,8 @@ const OTAUpdatesBottomSheet = ({
   const runTypeMessage = currentlyRunning.isEmbeddedLaunch
     ? 'This app is running from built-in code'
     : 'This app is running an update';
+
+  const updateRuntimeVersion = currentlyRunning.runtimeVersion;
   const error = checkError?.message;
 
   useEffect(() => {
@@ -59,11 +61,12 @@ const OTAUpdatesBottomSheet = ({
         {isUpdatePending && (
           <Text variant={TextVariant.BodyMDBold}>Update pending</Text>
         )}
-        <Text variant={TextVariant.BodyMDBold}>
-          Updates Channel:{channel}
-        </Text>
+        <Text variant={TextVariant.BodyMDBold}>Updates Channel:{channel}</Text>
         <Text variant={TextVariant.BodyMDBold}>
           Updates Update ID:{updateId}
+        </Text>
+        <Text variant={TextVariant.BodyMDBold}>
+          Updates Runtime Version:{updateRuntimeVersion}
         </Text>
       </Box>
       <Box twClassName="flex-row items-center justify-center p-4">
