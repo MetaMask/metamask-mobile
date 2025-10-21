@@ -95,6 +95,32 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     name: 'Ethereum',
   }),
   selectSourceAmount: () => '1.0',
+  selectDestAddress: () => undefined,
+  selectIsSwap: () => false,
+}));
+
+// Mock multichain account selectors
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: () => ({}),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+    selectAccountTreeControllerState: () => ({}),
+    selectAccountGroupWithInternalAccounts: () => [],
+    selectSelectedAccountGroupInternalAccounts: () => [],
+  }),
+);
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectInternalAccounts: () => [],
 }));
 
 // want to make the source token solana and dest token evm

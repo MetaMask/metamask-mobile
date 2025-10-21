@@ -1,16 +1,16 @@
+import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import type { OrderFormState } from '../types';
-import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
-import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
+import type { OrderFormState } from '../types/perps-types';
 import {
   findOptimalAmount,
   getMaxAllowedAmount as getMaxAllowedAmountUtils,
 } from '../utils/orderCalculations';
+import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { debounce } from 'lodash';
+import { usePerpsNetwork } from './usePerpsNetwork';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -134,18 +134,22 @@ export function usePerpsOrderForm(
   });
 
   // Calculate the maximum possible amount based on available balance and current leverage
-  const maxPossibleAmount = useMemo(() => getMaxAllowedAmountUtils({
+  const maxPossibleAmount = useMemo(
+    () =>
+      getMaxAllowedAmountUtils({
+        availableBalance,
+        assetPrice: parseFloat(currentPrice?.price) || 0,
+        assetSzDecimals:
+          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+        leverage: orderForm.leverage, // Use current leverage instead of default
+      }),
+    [
       availableBalance,
-      assetPrice: parseFloat(currentPrice?.price) || 0,
-      assetSzDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
-      leverage: orderForm.leverage, // Use current leverage instead of default
-    }), [
-    availableBalance,
-    currentPrice?.price,
-    marketData?.szDecimals,
-    orderForm.leverage, // Include current leverage in dependencies
-  ]);
+      currentPrice?.price,
+      marketData?.szDecimals,
+      orderForm.leverage, // Include current leverage in dependencies
+    ],
+  );
 
   // Optimize order amount to get the optimal USD value for the position size
   const optimizeOrderAmount = useMemo(() => {

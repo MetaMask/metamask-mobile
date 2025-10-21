@@ -489,9 +489,6 @@ export class RewardsController extends BaseController<
     this.messagingSystem.subscribe('KeyringController:unlock', () =>
       this.handleAuthenticationTrigger('KeyringController unlocked'),
     );
-
-    // Initialize silent authentication on startup
-    this.handleAuthenticationTrigger('Controller initialized');
   }
 
   /**
@@ -505,7 +502,17 @@ export class RewardsController extends BaseController<
    * Get account state for a given CAIP-10 address
    */
   #getAccountState(account: CaipAccountId): RewardsAccountState | null {
-    return this.state.accounts[account] || null;
+    let accState = null;
+    if (account?.startsWith('eip155')) {
+      accState =
+        this.state.accounts[
+          `eip155:0:${account.split(':')[2]?.toLowerCase()}`
+        ] || this.state.accounts[`eip155:0:${account.split(':')[2]}`];
+    }
+    if (!accState) {
+      accState = this.state.accounts[account];
+    }
+    return accState || null;
   }
 
   /**
@@ -569,7 +576,7 @@ export class RewardsController extends BaseController<
 
     if (isSolanaAddress(account.address)) {
       const result = await signSolanaRewardsMessage(
-        account.address,
+        account.id,
         Buffer.from(message, 'utf8').toString('base64'),
       );
       return `0x${Buffer.from(base58.decode(result.signature)).toString(
@@ -953,11 +960,21 @@ export class RewardsController extends BaseController<
         { account },
       );
 
+      // Make sure all account caip indexes are stored the same way
+      const coercedAccount =
+        account?.startsWith('eip155') && !account?.startsWith('eip155:0')
+          ? (`eip155:0:${account
+              .split(':')[2]
+              ?.toLowerCase()}` as CaipAccountId)
+          : account?.startsWith('eip155')
+          ? (account.toLowerCase() as CaipAccountId)
+          : (account as CaipAccountId);
+
       this.update((state: RewardsControllerState) => {
         // Create account state if it doesn't exist
-        if (!state.accounts[account]) {
-          state.accounts[account] = {
-            account,
+        if (!state.accounts[coercedAccount]) {
+          state.accounts[coercedAccount] = {
+            account: coercedAccount,
             hasOptedIn: perpsDiscountData.hasOptedIn,
             subscriptionId: null,
             perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
@@ -965,13 +982,15 @@ export class RewardsController extends BaseController<
           };
         } else {
           // Update account state
-          state.accounts[account].hasOptedIn = perpsDiscountData.hasOptedIn;
+          state.accounts[coercedAccount].hasOptedIn =
+            perpsDiscountData.hasOptedIn;
           if (!perpsDiscountData.hasOptedIn) {
-            state.accounts[account].subscriptionId = null;
+            state.accounts[coercedAccount].subscriptionId = null;
           }
-          state.accounts[account].perpsFeeDiscount =
+          state.accounts[coercedAccount].perpsFeeDiscount =
             perpsDiscountData.discountBips ?? 0;
-          state.accounts[account].lastPerpsDiscountRateFetched = Date.now();
+          state.accounts[coercedAccount].lastPerpsDiscountRateFetched =
+            Date.now();
         }
       });
       return perpsDiscountData;
@@ -1607,6 +1626,8 @@ export class RewardsController extends BaseController<
       if (state.activeAccount) {
         state.activeAccount = {
           ...state.activeAccount,
+          lastPerpsDiscountRateFetched: null,
+          perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
           account: state.activeAccount.account, // Ensure account is always present (never undefined)
@@ -2368,7 +2389,7 @@ export class RewardsController extends BaseController<
           }
           results.push({ account: accountToLink, success });
         }
-      } catch (error) {
+      } catch {
         // Continue with other accounts even if one fails
         results.push({ account: accountToLink, success: false });
       }

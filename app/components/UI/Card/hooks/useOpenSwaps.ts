@@ -24,7 +24,7 @@ export interface OpenSwapsParams {
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
-  priorityToken?: CardTokenAllowance;
+  priorityToken?: CardTokenAllowance | null;
 }
 
 export const useOpenSwaps = ({
