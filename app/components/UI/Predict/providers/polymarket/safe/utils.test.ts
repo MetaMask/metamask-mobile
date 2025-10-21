@@ -105,7 +105,7 @@ const mockGetIsApprovedForAll = getIsApprovedForAll as jest.MockedFunction<
 
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890' as const;
 const TEST_SAFE_ADDRESS = '0x9999999999999999999999999999999999999999' as const;
-const TEST_TO_ADDRESS = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382' as const;
+const TEST_TO_ADDRESS = '0x100c7b833bbd604a77890783439bbb9d65e31de7' as const;
 
 function buildSigner({
   address = TEST_ADDRESS,
