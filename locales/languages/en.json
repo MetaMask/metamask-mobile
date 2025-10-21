@@ -1697,7 +1697,14 @@
     "sl_on_chart": "SL on Chart",
     "pnl_hero_card": {
       "title": "PnL Hero Card",
-      "share_pnl": "Share P&L"
+      "share_pnl": "Share P&L",
+      "header_title": "Share your trade",
+      "entry_price": "Entry",
+      "mark_price": "Mark",
+      "share_button": "Share",
+      "save_button": "Save image",
+      "referral_footer": "Earn up to 500 points when you sign up for rewards with this code.",
+      "referral_link": "link.metamask.io/rewards/referrals={{code}}"
     }
   },
   "predict": {
