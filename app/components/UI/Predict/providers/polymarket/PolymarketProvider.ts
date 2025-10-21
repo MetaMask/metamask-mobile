@@ -705,7 +705,7 @@ export class PolymarketProvider implements PredictProvider {
 
     const callData = encodeErc20Transfer({
       to: signer.address,
-      value: parseUnits('1', 6).toBigInt(),
+      value: '0x0',
     });
 
     return {
@@ -728,7 +728,8 @@ export class PolymarketProvider implements PredictProvider {
 
     const safeAddress =
       this.#accountStateByAddress.get(signer.address)?.address ??
-      (await this.getAccountState({ ownerAddress: signer.address })).address;
+      computeProxyAddress(signer.address);
+
     if (!safeAddress) {
       throw new Error('Safe address not found');
     }

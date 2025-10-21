@@ -1271,19 +1271,11 @@ export class PredictController extends BaseController<
         providerId: params.providerId,
         to: transaction.params.to as Hex,
         predictAddress: predictAddress as Hex,
+        transactionId: '',
       };
     });
 
-    const finalData = await provider.prepareWithdrawConfirmation?.({
-      callData: transaction.params.data as Hex,
-      signer,
-    });
-
-    if (!finalData) {
-      throw new Error('Failed to prepare withdraw confirmation');
-    }
-
-    /* const { batchId } = await addTransactionBatch({
+    const { batchId } = await addTransactionBatch({
       from: selectedAddress as Hex,
       origin: ORIGIN_METAMASK,
       networkClientId: NetworkController.findNetworkClientIdByChainId(chainId),
@@ -1293,36 +1285,37 @@ export class PredictController extends BaseController<
       transactions: [
         {
           params: {
-            to: predictAddress as Hex,
-            data: finalData.callData as Hex,
+            to: signer.address as Hex,
+            value: '0x1',
           },
         },
+        transaction,
       ],
-    }); */
+    });
 
-    const { transactionMeta } = await addTransaction(
+    /* const { transactionMeta } = await addTransaction(
       {
+        ...transaction,
         from: selectedAddress as Hex,
-        to: predictAddress as Hex,
-        data: finalData.callData as Hex,
       },
       {
         origin: ORIGIN_METAMASK,
         networkClientId:
           NetworkController.findNetworkClientIdByChainId(chainId),
-        requireApproval: false,
+        requireApproval: true,
       },
-    );
+    ); */
 
     this.update((state) => {
       if (state.withdrawTransaction) {
         state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
+        state.withdrawTransaction.transactionId = batchId;
       }
     });
 
     return {
       success: true,
-      response: transactionMeta.id,
+      response: batchId,
     };
   }
 
@@ -1334,6 +1327,10 @@ export class PredictController extends BaseController<
       }
     | undefined
   > {
+    if (!this.state.withdrawTransaction) {
+      return;
+    }
+
     const isWithdrawTransaction =
       request.transactionMeta?.nestedTransactions?.some(
         (tx) => tx.type === TransactionType.predictWithdraw,
@@ -1343,12 +1340,14 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const currentWithdrawTransaction = this.state.withdrawTransaction;
-    if (!currentWithdrawTransaction) {
-      return;
-    }
+    const withdrawTransaction =
+      request.transactionMeta?.nestedTransactions?.find(
+        (tx) => tx.type === TransactionType.predictWithdraw,
+      );
 
-    const provider = this.providers.get(currentWithdrawTransaction.providerId);
+    const provider = this.providers.get(
+      this.state.withdrawTransaction.providerId,
+    );
     if (!provider) {
       throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
@@ -1356,13 +1355,6 @@ export class PredictController extends BaseController<
     if (!provider.prepareWithdrawConfirmation) {
       return;
     }
-
-    const previousData = request.transactionMeta.txParams.data;
-
-    if (!previousData) {
-      return;
-    }
-
     const { KeyringController } = Engine.context;
 
     const signer = {
@@ -1376,14 +1368,15 @@ export class PredictController extends BaseController<
     };
 
     const { callData } = await provider.prepareWithdrawConfirmation({
-      callData: previousData as Hex,
+      callData: withdrawTransaction?.data as Hex,
       signer,
     });
 
     return {
       updateTransaction: (transaction: TransactionMeta) => {
         transaction.txParams.data = callData;
-        transaction.txParams.to = currentWithdrawTransaction.predictAddress;
+        transaction.txParams.to = this.state.withdrawTransaction
+          ?.predictAddress as Hex;
       },
     };
   }

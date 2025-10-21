@@ -287,4 +287,5 @@ export type PredictWithdraw = {
   providerId: string;
   to: Hex;
   predictAddress: Hex;
+  transactionId: string;
 };
