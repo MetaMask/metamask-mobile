@@ -7,7 +7,10 @@ import {
 import { Hex, createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
-import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
+import {
+  selectBridgeQuotes,
+  selectGasIncluded,
+} from '../../../../core/redux/slices/bridge';
 import { GasFeeEstimates, GasFeeState } from '@metamask/gas-fee-controller';
 import { orderBy } from 'lodash';
 import { toChecksumAddress } from '../../../../util/address';
@@ -206,11 +209,14 @@ async function getSingleBridgeQuote(
 
   const { BridgeController } = Engine.context;
 
+  const state = store.getState();
+  const gasIncluded = selectGasIncluded(state);
+
   const quoteRequest: GenericQuoteRequest = {
     destChainId: targetChainId,
     destTokenAddress: toChecksumAddress(targetTokenAddress),
     destWalletAddress: from,
-    gasIncluded: false,
+    gasIncluded,
     gasIncluded7702: false,
     insufficientBal: false,
     slippage: slippage * 100,

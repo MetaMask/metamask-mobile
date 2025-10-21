@@ -12,15 +12,16 @@ import {
   getBridgeQuotes,
   refreshQuote,
 } from './bridge';
-import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import {
+  selectBridgeQuotes,
+  selectGasIncluded,
+} from '../../../../core/redux/slices/bridge';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { cloneDeep } from 'lodash';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
-jest.mock('../../../../selectors/smartTransactionsController');
 
 jest.useFakeTimers();
 
@@ -67,9 +68,7 @@ const QUOTE_2_MOCK = {
 
 describe('Confirmations Bridge Utils', () => {
   const selectBridgeQuotesMock = jest.mocked(selectBridgeQuotes);
-  const selectShouldUseSmartTransactionMock = jest.mocked(
-    selectShouldUseSmartTransaction,
-  );
+  const selectGasIncludedMock = jest.mocked(selectGasIncluded);
   const engineMock = jest.mocked(Engine);
   let messengerMock: ExtendedMessenger<
     MockAnyNamespace,
@@ -105,6 +104,9 @@ describe('Confirmations Bridge Utils', () => {
         }) as never,
     );
 
+    // Default gasIncluded to false
+    selectGasIncludedMock.mockReturnValue(false);
+
     bridgeControllerMock.fetchQuotes
       .mockResolvedValueOnce([QUOTE_1_MOCK])
       .mockResolvedValueOnce([QUOTE_2_MOCK]);
@@ -125,8 +127,6 @@ describe('Confirmations Bridge Utils', () => {
         },
       },
     } as never);
-
-    selectShouldUseSmartTransactionMock.mockReturnValue(false);
   });
 
   describe('getBridgeQuotes', () => {
@@ -175,6 +175,8 @@ describe('Confirmations Bridge Utils', () => {
           destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
           slippage: 0.5,
           insufficientBal: false,
+          gasIncluded: false,
+          gasIncluded7702: false,
         }),
         undefined,
         FeatureId.PERPS,
@@ -190,9 +192,41 @@ describe('Confirmations Bridge Utils', () => {
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
           slippage: 0.5,
           insufficientBal: false,
+          gasIncluded: false,
+          gasIncluded7702: false,
         }),
         undefined,
         undefined,
+      );
+    });
+
+    it('includes gasIncluded true in quote request when enabled', async () => {
+      selectGasIncludedMock.mockReturnValue(true);
+
+      await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: true,
+          gasIncluded7702: false,
+        }),
+        undefined,
+        FeatureId.PERPS,
+      );
+    });
+
+    it('includes gasIncluded false in quote request when disabled', async () => {
+      selectGasIncludedMock.mockReturnValue(false);
+
+      await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: false,
+          gasIncluded7702: false,
+        }),
+        undefined,
+        FeatureId.PERPS,
       );
     });
 
@@ -700,6 +734,24 @@ describe('Confirmations Bridge Utils', () => {
       } as TransactionBridgeQuote);
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(1);
+    });
+
+    it('includes gasIncluded in refresh request', async () => {
+      selectGasIncludedMock.mockReturnValue(true);
+
+      await refreshQuote({
+        ...QUOTE_1_MOCK,
+        request: QUOTE_REQUEST_1_MOCK,
+      } as TransactionBridgeQuote);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: true,
+          gasIncluded7702: false,
+        }),
+        undefined,
+        FeatureId.PERPS,
+      );
     });
 
     it('throws if new quote under minimum', async () => {
