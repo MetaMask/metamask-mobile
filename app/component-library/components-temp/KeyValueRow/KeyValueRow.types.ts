@@ -6,6 +6,7 @@ import { ButtonIconSizes } from '../../components/Buttons/ButtonIcon';
 import { ReactNode } from 'react';
 import { TextProps } from '../../components/Texts/Text/Text.types';
 import { ViewProps } from 'react-native';
+import { IconName } from '@metamask/design-system-react-native';
 
 /**
  * The optional tooltip tha can be displayed within a KeyValueRowField or KeyValueRowLabel.
