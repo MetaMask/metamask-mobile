@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react-native';
+import { screen, act } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -91,11 +91,16 @@ describe('PredictPositions', () => {
 
   it('renders loading state when isLoading is true', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      isLoading: true,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        isLoading: true,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
@@ -106,11 +111,16 @@ describe('PredictPositions', () => {
 
   it('renders loading state when isRefreshing and no positions', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      isRefreshing: true,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        isRefreshing: true,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
@@ -121,10 +131,15 @@ describe('PredictPositions', () => {
 
   it('renders FlashList when no positions and not loading', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
@@ -211,10 +226,13 @@ describe('PredictPositions', () => {
       });
 
     const ref = React.createRef<PredictPositionsHandle>();
+
     renderWithProvider(<PredictPositions ref={ref} />);
 
     // Act
-    ref.current?.refresh();
+    act(() => {
+      ref.current?.refresh();
+    });
 
     // Assert
     expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
