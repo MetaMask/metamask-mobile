@@ -252,6 +252,7 @@ const Routes = {
     TRENDING: 'PerpsTrendingView',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
+    TPSL: 'PerpsTPSL',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
