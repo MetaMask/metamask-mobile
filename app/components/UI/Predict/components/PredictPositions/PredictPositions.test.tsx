@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react-native';
+import { screen, act } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -91,11 +91,16 @@ describe('PredictPositions', () => {
 
   it('renders loading state when isLoading is true', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      isLoading: true,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        isLoading: true,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
@@ -106,11 +111,16 @@ describe('PredictPositions', () => {
 
   it('renders loading state when isRefreshing and no positions', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      isRefreshing: true,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        isRefreshing: true,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
@@ -121,49 +131,113 @@ describe('PredictPositions', () => {
 
   it('renders FlashList when no positions and not loading', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
 
     // Assert - FlashList should be rendered
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
-    expect(screen.getByTestId('claimable-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
+    // Claimable list should not be rendered when there are no claimable positions
+    expect(
+      screen.queryByTestId('predict-claimable-positions-list'),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders FlashList when positions exist', () => {
-    // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      positions: mockPositions,
-    });
+    // Arrange - mock the hook to return different values for each call
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: mockPositions,
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
 
     // Assert
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
-    expect(screen.getByTestId('claimable-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
+    // Claimable list should not be rendered when there are no claimable positions
+    expect(
+      screen.queryByTestId('predict-claimable-positions-list'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders claimable positions list when claimable positions exist', () => {
+    // Arrange - mock the hook to return different values for each call
+    const claimablePosition: PredictPosition = {
+      ...mockPositions[0],
+      id: '3',
+      claimable: true,
+      status: PredictPositionStatus.REDEEMABLE,
+    };
+
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: mockPositions,
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [claimablePosition],
+      });
+
+    // Act
+    renderWithProvider(<PredictPositions />);
+
+    // Assert
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-claimable-positions-list'),
+    ).toBeOnTheScreen();
   });
 
   it('exposes refresh method via ref', () => {
     // Arrange
     const mockLoadPositions = jest.fn();
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      loadPositions: mockLoadPositions,
-    });
+    const mockLoadClaimablePositions = jest.fn();
+
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        loadPositions: mockLoadPositions,
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        loadPositions: mockLoadClaimablePositions,
+      });
 
     const ref = React.createRef<PredictPositionsHandle>();
+
     renderWithProvider(<PredictPositions ref={ref} />);
 
     // Act
-    ref.current?.refresh();
+    act(() => {
+      ref.current?.refresh();
+    });
 
     // Assert
     expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+    expect(mockLoadClaimablePositions).toHaveBeenCalledWith({
+      isRefresh: true,
+    });
   });
 });

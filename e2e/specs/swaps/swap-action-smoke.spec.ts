@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNodeType } from '../../framework/types';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
