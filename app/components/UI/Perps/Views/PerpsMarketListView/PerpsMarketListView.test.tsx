@@ -129,7 +129,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View, Text: RNText } = jest.requireActual('react-native');
   return {
     Box: ({
       children,
@@ -144,6 +144,14 @@ jest.mock('@metamask/design-system-react-native', () => {
         {children}
       </View>
     ),
+    Text: RNText,
+    TextVariant: {
+      BodySm: 'sBodySM',
+      BodyMD: 'sBodyMD',
+      BodyMDMedium: 'sBodyMDMedium',
+      HeadingSM: 'sHeadingSM',
+      HeadingLG: 'sHeadingLG',
+    },
     BoxFlexDirection: {
       Row: 'row',
     },
