@@ -45,11 +45,40 @@ describe('AccountGroupBalance', () => {
       }),
     );
 
-    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
-      state: testState,
-    });
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AccountGroupBalance />,
+      {
+        state: testState,
+      },
+    );
 
-    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
-    expect(el).toBeTruthy();
+    // Should render balance text, not empty state
+    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
+    expect(queryByTestId('account-group-balance-empty-state')).toBeNull();
+  });
+
+  it('renders balance empty state when balance is zero', () => {
+    const { selectBalanceBySelectedAccountGroup } = jest.requireMock(
+      '../../../../../selectors/assets/balances',
+    );
+    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
+      () => ({
+        walletId: 'wallet-1',
+        groupId: 'wallet-1/group-1',
+        totalBalanceInUserCurrency: 0, // Zero balance
+        userCurrency: 'usd',
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AccountGroupBalance />,
+      {
+        state: testState,
+      },
+    );
+
+    // Should render BalanceEmptyState instead of balance text
+    expect(getByTestId('account-group-balance-empty-state')).toBeDefined();
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
   });
 });
