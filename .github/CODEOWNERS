@@ -62,7 +62,6 @@ app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmati
 app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
 app/core/Analytics/events/confirmations                     @MetaMask/confirmations
-ppom                                                        @MetaMask/confirmations
 app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
 
 # Wallet integrations Team
