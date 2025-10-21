@@ -52,8 +52,16 @@ const mockTransformArbitrumWithdrawalsToHistoryItems =
   >;
 
 describe('usePerpsTransactionHistory', () => {
-  let mockController: unknown;
-  let mockProvider: unknown;
+  let mockController: {
+    getActiveProvider: jest.MockedFunction<() => unknown>;
+  };
+  let mockProvider: {
+    getOrderFills: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    getOrders: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    getFunding: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+  };
 
   const mockFills = [
     {
@@ -98,11 +106,19 @@ describe('usePerpsTransactionHistory', () => {
     {
       id: 'deposit1',
       timestamp: 1640995203000,
-      type: 'deposit',
+      type: 'deposit' as const,
       amount: '1000',
       asset: 'USDC',
-      status: 'completed',
+      status: 'completed' as const,
       txHash: '0x123',
+      details: {
+        source: 'ethereum',
+        bridgeContract: '0x1234567890123456789012345678901234567890',
+        recipient: '0x9876543210987654321098765432109876543210',
+        blockNumber: '12345',
+        chainId: '1',
+        synthetic: false,
+      },
     },
   ];
 
@@ -123,11 +139,19 @@ describe('usePerpsTransactionHistory', () => {
     {
       id: 'arbitrum-history-1',
       timestamp: 1640995204000,
-      type: 'withdrawal',
+      type: 'withdrawal' as const,
       amount: '500',
       asset: 'USDC',
-      status: 'completed',
+      status: 'completed' as const,
       txHash: '0x456',
+      details: {
+        source: 'arbitrum',
+        bridgeContract: '0x1234567890123456789012345678901234567890',
+        recipient: '0x9876543210987654321098765432109876543210',
+        blockNumber: '12345',
+        chainId: '42161',
+        synthetic: false,
+      },
     },
   ];
 
@@ -152,7 +176,7 @@ describe('usePerpsTransactionHistory', () => {
         points: '0',
         feeToken: 'USDC',
         action: 'Opened',
-        liquidation: false,
+        liquidation: undefined,
         isLiquidation: false,
         isTakeProfit: false,
         isStopLoss: false,
@@ -231,7 +255,7 @@ describe('usePerpsTransactionHistory', () => {
 
   describe('fetchAllTransactions', () => {
     it('fetches and combines all transaction data', async () => {
-      const { result } = renderHook(() => usePerpsTransactionHistory());
+      renderHook(() => usePerpsTransactionHistory());
 
       await act(async () => {
         // Wait for the effect to complete
@@ -274,7 +298,7 @@ describe('usePerpsTransactionHistory', () => {
           'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
 
-      const { result } = renderHook(() => usePerpsTransactionHistory(params));
+      renderHook(() => usePerpsTransactionHistory(params));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -293,7 +317,7 @@ describe('usePerpsTransactionHistory', () => {
           id: 'tx1',
           timestamp: 1000,
           type: 'deposit' as const,
-          category: 'deposit',
+          category: 'deposit' as const,
           title: 'Deposit',
           subtitle: '100 USDC',
           asset: 'USDC',
@@ -302,7 +326,7 @@ describe('usePerpsTransactionHistory', () => {
           id: 'tx2',
           timestamp: 2000,
           type: 'trade' as const,
-          category: 'position_open',
+          category: 'position_open' as const,
           title: 'Trade',
           subtitle: '1 ETH',
           asset: 'ETH',
@@ -311,7 +335,7 @@ describe('usePerpsTransactionHistory', () => {
           id: 'tx3',
           timestamp: 1500,
           type: 'withdrawal' as const,
-          category: 'withdrawal',
+          category: 'withdrawal' as const,
           title: 'Withdrawal',
           subtitle: '50 USDC',
           asset: 'USDC',
@@ -385,7 +409,7 @@ describe('usePerpsTransactionHistory', () => {
         id: 'tx1',
         timestamp: 1000,
         type: 'deposit' as const,
-        category: 'deposit',
+        category: 'deposit' as const,
         title: 'Deposit',
         subtitle: '100 USDC',
         asset: 'USDC',
@@ -394,7 +418,7 @@ describe('usePerpsTransactionHistory', () => {
         id: 'tx1',
         timestamp: 1000,
         type: 'trade' as const,
-        category: 'position_open',
+        category: 'position_open' as const,
         title: 'Trade',
         subtitle: '1 ETH',
         asset: 'ETH',
@@ -634,7 +658,7 @@ describe('usePerpsTransactionHistory', () => {
 
   describe('logging', () => {
     it('logs transaction data fetching', async () => {
-      const { result } = renderHook(() => usePerpsTransactionHistory());
+      renderHook(() => usePerpsTransactionHistory());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));

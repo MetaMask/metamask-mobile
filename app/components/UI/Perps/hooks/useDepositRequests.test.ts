@@ -16,8 +16,14 @@ const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
 >;
 
 describe('useDepositRequests', () => {
-  let mockController: any;
-  let mockProvider: any;
+  let mockController: {
+    getActiveProvider: jest.MockedFunction<() => unknown>;
+  };
+  let mockProvider: {
+    getUserNonFundingLedgerUpdates: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+  };
 
   const mockPendingDeposits = [
     {
@@ -39,29 +45,6 @@ describe('useDepositRequests', () => {
       txHash: '0x123',
       source: 'ethereum',
       depositId: 'deposit2',
-    },
-  ];
-
-  const mockCompletedDeposits = [
-    {
-      id: 'completed1',
-      timestamp: 1640995202000,
-      amount: '500',
-      asset: 'USDC',
-      status: 'completed' as const,
-      txHash: '0x456',
-      source: undefined,
-      depositId: 'deposit3',
-    },
-    {
-      id: 'completed2',
-      timestamp: 1640995203000,
-      amount: '0',
-      asset: 'USDC',
-      status: 'completed' as const,
-      txHash: '0x789',
-      source: undefined,
-      depositId: 'deposit4',
     },
   ];
 
@@ -117,9 +100,11 @@ describe('useDepositRequests', () => {
     };
 
     // Mock Engine context
-    mockEngine.context = {
+    (
+      mockEngine as unknown as { context: { PerpsController: unknown } }
+    ).context = {
       PerpsController: mockController,
-    } as any;
+    };
 
     // Mock usePerpsSelector
     mockUsePerpsSelector.mockReturnValue(mockPendingDeposits);
@@ -166,7 +151,7 @@ describe('useDepositRequests', () => {
 
     it('uses provided startTime', async () => {
       const startTime = 1640995200000;
-      const { result } = renderHook(() => useDepositRequests({ startTime }));
+      renderHook(() => useDepositRequests({ startTime }));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -179,7 +164,7 @@ describe('useDepositRequests', () => {
     });
 
     it('uses start of today when no startTime provided', async () => {
-      const { result } = renderHook(() => useDepositRequests());
+      renderHook(() => useDepositRequests());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -224,7 +209,9 @@ describe('useDepositRequests', () => {
     });
 
     it('handles PerpsController not available', async () => {
-      mockEngine.context.PerpsController = undefined;
+      (
+        mockEngine.context as unknown as { PerpsController: unknown }
+      ).PerpsController = undefined;
 
       const { result } = renderHook(() => useDepositRequests());
 
@@ -250,7 +237,7 @@ describe('useDepositRequests', () => {
     });
 
     it('handles provider without getUserNonFundingLedgerUpdates method', async () => {
-      mockProvider = {};
+      mockProvider = {} as unknown as typeof mockProvider;
       mockController.getActiveProvider.mockReturnValue(mockProvider);
 
       const { result } = renderHook(() => useDepositRequests());
@@ -465,7 +452,7 @@ describe('useDepositRequests', () => {
 
   describe('logging', () => {
     it('logs pending deposits from controller state', () => {
-      const { result } = renderHook(() => useDepositRequests());
+      renderHook(() => useDepositRequests());
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'Pending deposits from controller state:',
@@ -485,7 +472,7 @@ describe('useDepositRequests', () => {
     });
 
     it('logs final combined deposits', async () => {
-      const { result } = renderHook(() => useDepositRequests());
+      renderHook(() => useDepositRequests());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
