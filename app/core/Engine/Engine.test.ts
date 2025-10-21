@@ -102,6 +102,7 @@ describe('Engine', () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
     await Engine.destroyEngine();
+    await EngineClass.instance?.destroyEngineInstance();
   });
 
   it('should expose an API', () => {
