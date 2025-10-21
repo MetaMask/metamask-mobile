@@ -1582,7 +1582,22 @@
     "title": "MetaMask Predict",
     "prediction_markets": "Prediction Markets",
     "market_list": "Market List",
-    "market_details": "Market Details",
+    "loading": "Loading...",
+    "market_details": {
+      "title": "Market Details",
+      "market_ended_on": "Market ended on {{outcome}}",
+      "market_resulted_to": "Market resulted to {{outcome}}",
+      "waiting_for_final_resolution": "Waiting for final resolution",
+      "no_positions_found": "No positions found",
+      "volume": "Volume",
+      "end_date": "End date",
+      "resolver": "Resolver",
+      "powered_by": "Powered by",
+      "yes": "Yes",
+      "no": "No",
+      "on": "on",
+      "market_unavailable": "Market unavailable"
+    },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
       "explore": "Browse markets",
