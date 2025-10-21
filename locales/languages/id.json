@@ -869,6 +869,7 @@
       "fetch_regions": "Terjadi masalah saat mengambil wilayah.",
       "fetch_tokens": "Terjadi masalah saat mengambil token.",
       "fetch_payment_methods": "Terjadi masalah saat mengambil metode pembayaran.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Coba Lagi",
       "error_details_title": "Detail Kesalahan",
       "see_more": "Lihat selengkapnya"
@@ -1679,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1789,6 +1799,8 @@
     "alphabetically": "Sesuai abjad (A-Z)",
     "add_to_get_started": "Tambahkan kripto untuk memulai",
     "token_is_needed_to_continue": "{{tokenSymbol}} diperlukan untuk melanjutkan",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Danai dompet Anda untuk memulai di web3",
     "add_funds": "Tambahkan dana",
     "next": "Berikutnya",
@@ -3151,9 +3163,10 @@
     "tx_review_staking_unstake": "Batalkan stake",
     "tx_review_lending_deposit": "Deposit Pinjaman",
     "tx_review_lending_withdraw": "Penarikan Pinjaman",
-    "tx_review_perps_deposit": "Akun Perp yang didanai",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Mengirim Ether",
     "self_sent_ether": "Mengirim Ether ke Diri Sendiri",
     "received_ether": "Menerima Ether",
@@ -3227,6 +3240,7 @@
     "network_fee": "Biaya Jaringan",
     "network_fee_tooltip": "Jumlah yang dibayarkan untuk memproses transaksi di jaringan.",
     "confirm_gas_fee_token_tooltip": "Ini dibayarkan ke jaringan untuk memproses transaksi Anda. Termasuk biaya MetaMask sebesar {{metamaskFeeFiat}} untuk token non-ETH atau ETH yang telah didanai sebelumnya.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Termasuk biaya {{metamaskFeeFiat}}",
     "smart_account_upgrade": "Tingkatkan ke akun cerdas",
     "smart_account_downgrade": "Beralih ke akun standar",
@@ -5361,7 +5375,8 @@
       "switch_account_type": "Pembaruan akun",
       "approve": "Setujui permintaan",
       "perps_deposit": "Tambahkan dana",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
@@ -5967,6 +5982,18 @@
       "limited_spending_warning": "Kemampuan pemakaian Anda mungkin terbatas. Untuk menyesuaikan limit, buka {{manageCard}}",
       "add_funds": "Tambahkan dana",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
