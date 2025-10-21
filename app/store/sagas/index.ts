@@ -28,11 +28,14 @@ import {
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
+import { endPerformanceTrace } from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import { RootState } from '../../reducers';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 
@@ -228,6 +231,9 @@ export function* startAppServices() {
     take(NavigationActionType.ON_NAVIGATION_READY),
   ]);
 
+  // Capture the start time for app services
+  const appServicesStartTime = Date.now();
+
   // Start Engine service
   yield call(EngineService.start);
 
@@ -240,6 +246,39 @@ export function* startAppServices() {
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
+
+  // Calculate app services duration
+  const appServicesDurationMs = Date.now() - appServicesStartTime;
+
+  // Get the performance state to access store init duration
+  const state: RootState = yield select();
+  const activeTrace =
+    state.performance?.activeTraceBySessionId?.[
+      PerformanceEventNames.AppStartupComplete
+    ];
+  const storeInitDurationMs =
+    (activeTrace?.metadata?.storeInitDurationMs as number) || 0;
+
+  // Calculate TOTAL app startup time (store init + app services)
+  const totalAppStartupMs = storeInitDurationMs + appServicesDurationMs;
+
+  Logger.log(
+    `📊 [PERFORMANCE] App Services initialization completed in ${appServicesDurationMs}ms`,
+  );
+  Logger.log(
+    `📊 [PERFORMANCE] TOTAL App Startup time: ${totalAppStartupMs}ms (Store: ${storeInitDurationMs}ms + Services: ${appServicesDurationMs}ms)`,
+  );
+
+  // END app startup performance trace with combined metrics
+  yield put(
+    endPerformanceTrace({
+      eventName: PerformanceEventNames.AppStartupComplete,
+      additionalMetadata: {
+        appServicesDurationMs,
+        totalAppStartupMs,
+      },
+    }),
+  );
 }
 
 // Main generator function that initializes other sagas in parallel.
