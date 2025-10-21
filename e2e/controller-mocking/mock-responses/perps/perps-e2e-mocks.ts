@@ -318,6 +318,30 @@ export class PerpsE2EMockService {
     };
   }
 
+  /**
+   * Mock deposit in USD into the perps trading account.
+   * Increases both availableBalance and totalBalance by the provided fiat amount.
+   */
+  public async mockDepositUSD(amountFiat: string): Promise<{ success: boolean }>{
+    const delta = parseFloat(amountFiat || '0');
+    if (!Number.isFinite(delta) || delta <= 0) {
+      return { success: false };
+    }
+
+    const newAvailable = parseFloat(this.mockAccount.availableBalance) + delta;
+    const newTotal = parseFloat(this.mockAccount.totalBalance) + delta;
+
+    this.mockAccount = {
+      ...this.mockAccount,
+      availableBalance: newAvailable.toString(),
+      totalBalance: newTotal.toString(),
+    };
+
+    // Notify subscribers about balance change
+    this.notifyAccountCallbacks();
+    return { success: true };
+  }
+
   // Mock close position
   public async mockClosePosition(
     coin: string,
@@ -353,6 +377,21 @@ export class PerpsE2EMockService {
 
     // Remove position
     this.mockPositions = this.mockPositions.filter((p) => p.coin !== coin);
+
+    // Record a trade fill for the close so it appears under Trades
+    const closeFill: OrderFill = {
+      orderId: `mock_close_${this.orderIdCounter}`,
+      symbol: existingPosition.coin,
+      size: Math.abs(parseFloat(existingPosition.size)).toString(),
+      price: this.mockPricesMap[existingPosition.coin]?.price || existingPosition.entryPrice,
+      timestamp: Date.now(),
+      side: parseFloat(existingPosition.size) > 0 ? 'sell' : 'buy',
+      fee: '0.00',
+      feeToken: 'USDC',
+      pnl: pnl.toFixed(2),
+      direction: parseFloat(existingPosition.size) > 0 ? 'short' : 'long',
+    };
+    this.mockOrderFills.push(closeFill);
 
     // Recompute account unrealized PnL based on remaining positions
     const recomputedUnrealized = this.computeTotalUnrealizedPnl();

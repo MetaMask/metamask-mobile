@@ -86,6 +86,24 @@ export class E2EControllerOverrides {
     return mockAccount;
   }
 
+  // Mock historical orders
+  async getOrders(): Promise<Order[]> {
+    const orders = this.mockService.getMockOrders();
+    return orders;
+  }
+
+  // Mock historical order fills (trades)
+  async getOrderFills(): Promise<OrderFill[]> {
+    const fills = this.mockService.getMockOrderFills();
+    return fills;
+  }
+
+  // Mock funding history
+  async getFunding(): Promise<Funding[]> {
+    const funding = await this.mockService.mockGetFunding();
+    return funding;
+  }
+
   // Mock positions with Redux update
   async getPositions(): Promise<Position[]> {
     console.log('E2E Mock: Intercepted getPositions');
