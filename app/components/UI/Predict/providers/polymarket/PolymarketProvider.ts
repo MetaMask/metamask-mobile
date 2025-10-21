@@ -18,7 +18,6 @@ import {
   PredictPosition,
   PredictPriceHistoryPoint,
   UnrealizedPnL,
-  Result,
   Side,
 } from '../../types';
 import {
@@ -29,6 +28,7 @@ import {
   GetMarketsParams,
   GetPositionsParams,
   OrderPreview,
+  OrderResult,
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
@@ -41,6 +41,7 @@ import {
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
+  ROUNDING_CONFIG,
 } from './constants';
 import {
   computeSafeAddress,
@@ -58,6 +59,7 @@ import {
   PolymarketApiActivity,
   SignatureType,
   UtilsSide,
+  TickSize,
 } from './types';
 import {
   createApiKey,
@@ -74,6 +76,7 @@ import {
   submitClobOrder,
   previewOrder,
   generateSalt,
+  roundOrderAmount,
 } from './utils';
 
 export type SignTypedMessageFn = (
@@ -344,9 +347,9 @@ export class PolymarketProvider implements PredictProvider {
     return previewOrder(params);
   }
 
-  public async placeOrder<OrderResponse>(
+  public async placeOrder(
     params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
-  ): Promise<Result<OrderResponse>> {
+  ): Promise<OrderResult> {
     const { signer, preview } = params;
     const {
       outcomeTokenId,
@@ -355,6 +358,8 @@ export class PolymarketProvider implements PredictProvider {
       minAmountReceived,
       negRisk,
       fees,
+      slippage,
+      tickSize,
     } = preview;
 
     const chainId = POLYGON_MAINNET_CHAIN_ID;
@@ -367,8 +372,19 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Maker address not found');
     }
 
+    // Introduce slippage into minAmountReceived to reduce failure rate
+    const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
+    const decimals = roundConfig.amount ?? 4;
+    const minAmountWithSlippage = roundOrderAmount({
+      amount: minAmountReceived * (1 - slippage),
+      decimals,
+    });
+
     const makerAmount = parseUnits(maxAmountSpent.toString(), 6).toString();
-    const takerAmount = parseUnits(minAmountReceived.toString(), 6).toString();
+    const takerAmount = parseUnits(
+      minAmountWithSlippage.toString(),
+      6,
+    ).toString();
 
     /**
      * Do NOT change the order below.
@@ -453,11 +469,23 @@ export class PolymarketProvider implements PredictProvider {
       feeAuthorization,
     });
 
+    if (!response) {
+      return {
+        success,
+        error,
+      } as OrderResult;
+    }
+
     return {
       success,
-      response,
+      response: {
+        id: response.orderID,
+        spentAmount: response.makingAmount,
+        receivedAmount: response.takingAmount,
+        txHashes: response.transactionsHashes,
+      },
       error,
-    } as Result<OrderResponse>;
+    } as OrderResult;
   }
 
   public async prepareClaim(
