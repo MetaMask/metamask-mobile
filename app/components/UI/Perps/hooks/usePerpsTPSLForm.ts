@@ -169,11 +169,12 @@ export function usePerpsTPSLForm(
     initialCurrentPrice ||
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
+  let actualDirection: 'long' | 'short' | undefined;
+  if (position) {
+    actualDirection = parseFloat(position.size) > 0 ? 'long' : 'short';
+  } else {
+    actualDirection = direction;
+  }
 
   const leverage = position?.leverage?.value || propLeverage;
   const entryPrice = position?.entryPrice

@@ -115,20 +115,28 @@ const PerpsTPSLView: React.FC = () => {
   // For limit orders, use the limit price as entry price if available
   // For market orders or when limit price is not set, use spot price
   // Ensure we always have a valid price > 0 for calculations
-  const effectiveEntryPrice = position?.entryPrice
-    ? parseFloat(position.entryPrice)
-    : orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-    ? parseFloat(limitPrice)
-    : spotPrice > 0
-    ? spotPrice
-    : livePrice || initialCurrentPrice || 0;
+  let effectiveEntryPrice: number;
+  if (position?.entryPrice) {
+    effectiveEntryPrice = parseFloat(position.entryPrice);
+  } else if (
+    orderType === 'limit' &&
+    limitPrice &&
+    parseFloat(limitPrice) > 0
+  ) {
+    effectiveEntryPrice = parseFloat(limitPrice);
+  } else if (spotPrice > 0) {
+    effectiveEntryPrice = spotPrice;
+  } else {
+    effectiveEntryPrice = livePrice || initialCurrentPrice || 0;
+  }
 
   // Determine direction for tracking events
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
+  let actualDirection: 'long' | 'short';
+  if (position) {
+    actualDirection = parseFloat(position.size) > 0 ? 'long' : 'short';
+  } else {
+    actualDirection = direction || 'long';
+  }
 
   // Calculate liquidation price for new orders (when there's no existing position)
   const shouldCalculateLiquidation =
@@ -797,15 +805,14 @@ const PerpsTPSLView: React.FC = () => {
             />
             <View style={styles.keypadContainer}>
               <Keypad
-                value={
-                  focusedInput === 'takeProfitPrice'
-                    ? takeProfitPrice
-                    : focusedInput === 'takeProfitPercentage'
-                    ? formattedTakeProfitPercentage
-                    : focusedInput === 'stopLossPrice'
-                    ? stopLossPrice
-                    : formattedStopLossPercentage
-                }
+                value={(() => {
+                  if (focusedInput === 'takeProfitPrice')
+                    return takeProfitPrice;
+                  if (focusedInput === 'takeProfitPercentage')
+                    return formattedTakeProfitPercentage;
+                  if (focusedInput === 'stopLossPrice') return stopLossPrice;
+                  return formattedStopLossPercentage;
+                })()}
                 onChange={handleKeypadChange}
                 currency={TP_SL_VIEW_CONFIG.KEYPAD_CURRENCY_CODE}
                 decimals={TP_SL_VIEW_CONFIG.KEYPAD_DECIMALS}
