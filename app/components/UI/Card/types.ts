@@ -216,10 +216,7 @@ export interface PhoneVerificationVerifyRequest {
   phoneNumber: string;
   verificationCode: string;
   onboardingId: string;
-}
-
-export interface PhoneVerificationVerifyResponse {
-  success: boolean;
+  contactVerificationId: string;
 }
 
 export interface StartUserVerificationResponse {
@@ -235,7 +232,7 @@ export interface RegisterPersonalDetailsRequest {
   ssn?: string; // Required for US users only
 }
 
-export interface RegisterPersonalDetailsResponse {
+export interface RegisterUserResponse {
   onboardingId: string;
   user: UserResponse;
 }
@@ -247,16 +244,7 @@ export interface RegisterPhysicalAddressRequest {
   city: string;
   zip: string;
   usState?: string; // Required for US users
-  isSameMailingAddress: boolean;
-}
-
-export interface RegisterMailingAddressRequest {
-  onboardingId: string;
-  mailingAddressLine1: string;
-  mailingAddressLine2?: string;
-  mailingCity: string;
-  mailingZip: string;
-  mailingUsState?: string; // Required for US users
+  isSameMailingAddress?: boolean;
 }
 
 export interface RegisterAddressResponse {

@@ -19,7 +19,7 @@ const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => (
   <UnmountOnBlur>
-    <Stack.Navigator initialRouteName={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}>
+    <Stack.Navigator initialRouteName={Routes.CARD.ONBOARDING.SIGN_UP}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}

@@ -57,6 +57,9 @@ export const getErrorMessage = (error: unknown): string => {
         if (error.message.includes('Onboarding ID not found')) {
           return strings('card.card_onboarding.errors.invalid_onboarding_id');
         }
+        if (error.message.includes('Create user failed')) {
+          return strings('card.card_onboarding.errors.create_user_failed');
+        }
 
         return error.message;
       case CardErrorType.NETWORK_ERROR:

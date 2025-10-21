@@ -4,7 +4,7 @@ import { getErrorMessage } from '../util/getErrorMessage';
 import {
   CardLocation,
   RegisterPersonalDetailsRequest,
-  RegisterPersonalDetailsResponse,
+  RegisterUserResponse,
 } from '../types';
 
 /**
@@ -15,7 +15,7 @@ const useRegisterPersonalDetails = (): {
   registerPersonalDetails: (
     request: RegisterPersonalDetailsRequest,
     location: CardLocation,
-  ) => Promise<RegisterPersonalDetailsResponse>;
+  ) => Promise<RegisterUserResponse>;
   isLoading: boolean;
   isSuccess: boolean;
   isError: boolean;
@@ -45,7 +45,7 @@ const useRegisterPersonalDetails = (): {
     async (
       request: RegisterPersonalDetailsRequest,
       location: CardLocation,
-    ): Promise<RegisterPersonalDetailsResponse> => {
+    ): Promise<RegisterUserResponse> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
       }
@@ -56,15 +56,14 @@ const useRegisterPersonalDetails = (): {
         setIsSuccess(false);
         setError(null);
 
-        const registerPersonalDetailsResponse =
-          await sdk.registerPersonalDetails({
-            ...request,
-            location,
-          });
+        const RegisterUserResponse = await sdk.registerPersonalDetails({
+          ...request,
+          location,
+        });
 
         setIsSuccess(true);
 
-        return registerPersonalDetailsResponse;
+        return RegisterUserResponse;
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);

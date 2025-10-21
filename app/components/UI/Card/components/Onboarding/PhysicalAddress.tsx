@@ -24,6 +24,8 @@ import {
 } from '../../../../../core/redux/slices/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { CardError } from '../../types';
+import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import SelectComponent from '../../../SelectComponent';
 
 export const AddressFields = ({
   addressLine1,
@@ -47,115 +49,130 @@ export const AddressFields = ({
   handleStateChange: (text: string) => void;
   zipCode: string;
   handleZipCodeChange: (text: string) => void;
-}) => (
-  <>
-    {/* Address Line 1 */}
-    <Box>
-      <Label>
-        {strings('card.card_onboarding.physical_address.address_line_1_label')}
-      </Label>
-      <TextField
-        autoCapitalize={'none'}
-        onChangeText={handleAddressLine1Change}
-        placeholder={strings(
-          'card.card_onboarding.physical_address.address_line_1_placeholder',
-        )}
-        numberOfLines={1}
-        size={TextFieldSize.Lg}
-        value={addressLine1}
-        keyboardType="default"
-        maxLength={255}
-        accessibilityLabel={strings(
-          'card.card_onboarding.physical_address.address_line_1_label',
-        )}
-      />
-    </Box>
-    {/* Address Line 2 */}
-    <Box>
-      <Label>
-        {strings('card.card_onboarding.physical_address.address_line_2_label')}
-      </Label>
-      <TextField
-        autoCapitalize={'none'}
-        onChangeText={handleAddressLine2Change}
-        placeholder={strings(
-          'card.card_onboarding.physical_address.address_line_2_placeholder',
-        )}
-        numberOfLines={1}
-        size={TextFieldSize.Lg}
-        value={addressLine2}
-        keyboardType="default"
-        maxLength={255}
-        accessibilityLabel={strings(
-          'card.card_onboarding.physical_address.address_line_2_label',
-        )}
-      />
-    </Box>
-    {/* City */}
-    <Box>
-      <Label>
-        {strings('card.card_onboarding.physical_address.city_label')}
-      </Label>
-      <TextField
-        autoCapitalize={'none'}
-        onChangeText={handleCityChange}
-        placeholder={strings(
-          'card.card_onboarding.physical_address.city_placeholder',
-        )}
-        numberOfLines={1}
-        size={TextFieldSize.Lg}
-        value={city}
-        keyboardType="default"
-        maxLength={255}
-        accessibilityLabel={strings(
-          'card.card_onboarding.physical_address.city_label',
-        )}
-      />
-    </Box>
-    {/* State */}
-    <Box>
-      <Label>
-        {strings('card.card_onboarding.physical_address.state_label')}
-      </Label>
-      <TextField
-        autoCapitalize={'none'}
-        onChangeText={handleStateChange}
-        placeholder={strings(
-          'card.card_onboarding.physical_address.state_placeholder',
-        )}
-        numberOfLines={1}
-        size={TextFieldSize.Lg}
-        value={state}
-        keyboardType="default"
-        maxLength={255}
-        accessibilityLabel={strings(
-          'card.card_onboarding.physical_address.state_label',
-        )}
-      />
-    </Box>
-    {/* ZIP Code */}
-    <Box>
-      <Label>
-        {strings('card.card_onboarding.physical_address.zip_code_label')}
-      </Label>
-      <TextField
-        autoCapitalize={'none'}
-        onChangeText={handleZipCodeChange}
-        placeholder={strings(
-          'card.card_onboarding.physical_address.zip_code_placeholder',
-        )}
-        numberOfLines={1}
-        size={TextFieldSize.Lg}
-        value={zipCode}
-        keyboardType="number-pad"
-        maxLength={255}
-        accessibilityLabel={strings(
-          'card.card_onboarding.physical_address.zip_code_label',
-        )}
-      />
-    </Box>
-  </>
-);
+}) => {
+  const { data: registrationSettings } = useRegistrationSettings();
+  const selectedCountry = useSelector(selectSelectedCountry);
+
+  const selectOptions = useMemo(() => {
+    if (!registrationSettings?.usStates) {
+      return [];
+    }
+    return [...registrationSettings.usStates]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((state) => ({
+        key: state.postalAbbreviation,
+        value: state.postalAbbreviation,
+        label: state.name,
+      }));
+  }, [registrationSettings]);
+
+  return (
+    <>
+      {/* Address Line 1 */}
+      <Box>
+        <Label>
+          {strings(
+            'card.card_onboarding.physical_address.address_line_1_label',
+          )}
+        </Label>
+        <TextField
+          autoCapitalize={'none'}
+          onChangeText={handleAddressLine1Change}
+          placeholder={strings(
+            'card.card_onboarding.physical_address.address_line_1_placeholder',
+          )}
+          numberOfLines={1}
+          size={TextFieldSize.Lg}
+          value={addressLine1}
+          keyboardType="default"
+          maxLength={255}
+          accessibilityLabel={strings(
+            'card.card_onboarding.physical_address.address_line_1_label',
+          )}
+        />
+      </Box>
+      {/* Address Line 2 */}
+      <Box>
+        <Label>
+          {strings(
+            'card.card_onboarding.physical_address.address_line_2_label',
+          )}
+        </Label>
+        <TextField
+          autoCapitalize={'none'}
+          onChangeText={handleAddressLine2Change}
+          placeholder={strings(
+            'card.card_onboarding.physical_address.address_line_2_placeholder',
+          )}
+          numberOfLines={1}
+          size={TextFieldSize.Lg}
+          value={addressLine2}
+          keyboardType="default"
+          maxLength={255}
+          accessibilityLabel={strings(
+            'card.card_onboarding.physical_address.address_line_2_label',
+          )}
+        />
+      </Box>
+      {/* City */}
+      <Box>
+        <Label>
+          {strings('card.card_onboarding.physical_address.city_label')}
+        </Label>
+        <TextField
+          autoCapitalize={'none'}
+          onChangeText={handleCityChange}
+          placeholder={strings(
+            'card.card_onboarding.physical_address.city_placeholder',
+          )}
+          numberOfLines={1}
+          size={TextFieldSize.Lg}
+          value={city}
+          keyboardType="default"
+          maxLength={255}
+          accessibilityLabel={strings(
+            'card.card_onboarding.physical_address.city_label',
+          )}
+        />
+      </Box>
+      {/* State */}
+      {selectedCountry === 'US' && (
+        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+          <SelectComponent
+            options={selectOptions}
+            selectedValue={state}
+            onValueChange={handleStateChange}
+            label={strings('card.card_onboarding.physical_address.state_label')}
+            defaultValue={strings(
+              'card.card_onboarding.physical_address.state_placeholder',
+            )}
+          />
+        </Box>
+      )}
+      {/* ZIP Code */}
+      <Box>
+        <Label>
+          {strings('card.card_onboarding.physical_address.zip_code_label')}
+        </Label>
+        <TextField
+          autoCapitalize={'none'}
+          onChangeText={handleZipCodeChange}
+          placeholder={strings(
+            'card.card_onboarding.physical_address.zip_code_placeholder',
+          )}
+          numberOfLines={1}
+          size={TextFieldSize.Lg}
+          value={zipCode}
+          keyboardType="number-pad"
+          maxLength={255}
+          accessibilityLabel={strings(
+            'card.card_onboarding.physical_address.zip_code_label',
+          )}
+        />
+      </Box>
+    </>
+  );
+};
 
 const PhysicalAddress = () => {
   const navigation = useNavigation();
@@ -185,15 +202,19 @@ const PhysicalAddress = () => {
     isLoading: registerUserConsentLoading,
     isError: registerUserConsentIsError,
     error: registerUserConsentError,
+    reset: resetRegisterUserConsent,
   } = useRegisterUserConsent();
 
   const handleSameMailingAddressToggle = useCallback(() => {
+    resetRegisterAddress();
     setIsSameMailingAddress(!isSameMailingAddress);
-  }, [isSameMailingAddress]);
+  }, [isSameMailingAddress, resetRegisterAddress]);
 
   const handleElectronicConsentToggle = useCallback(() => {
+    resetRegisterUserConsent();
+    resetRegisterAddress();
     setElectronicConsent(!electronicConsent);
-  }, [electronicConsent]);
+  }, [electronicConsent, resetRegisterAddress, resetRegisterUserConsent]);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {

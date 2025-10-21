@@ -113,11 +113,11 @@ const MailingAddress = () => {
       const { accessToken } = await registerAddress(
         {
           onboardingId,
-          mailingAddressLine1: addressLine1,
-          mailingAddressLine2: addressLine2 || undefined,
-          mailingCity: city,
-          mailingUsState: state || undefined,
-          mailingZip: zipCode,
+          addressLine1,
+          addressLine2: addressLine2 || undefined,
+          city,
+          usState: state || undefined,
+          zip: zipCode,
         },
         selectedCountry === 'US' ? 'us' : 'international',
       );

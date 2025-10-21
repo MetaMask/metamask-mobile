@@ -99,21 +99,23 @@ const ConfirmPhoneNumber = () => {
       confirmCode.length !== CELL_COUNT ||
       !onboardingId ||
       !phoneNumber ||
-      !phoneCountryCode
+      !phoneCountryCode ||
+      !contactVerificationId
     ) {
       return;
     }
     try {
-      const { success } = await verifyPhoneVerification(
+      const { user } = await verifyPhoneVerification(
         {
           onboardingId,
           phoneNumber,
           phoneCountryCode,
           verificationCode: confirmCode,
+          contactVerificationId,
         },
         selectedCountry === 'US' ? 'us' : 'international',
       );
-      if (success) {
+      if (user) {
         navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
       }
     } catch (error) {
@@ -137,6 +139,7 @@ const ConfirmPhoneNumber = () => {
     onboardingId,
     phoneNumber,
     phoneCountryCode,
+    contactVerificationId,
     verifyPhoneVerification,
     selectedCountry,
     navigation,

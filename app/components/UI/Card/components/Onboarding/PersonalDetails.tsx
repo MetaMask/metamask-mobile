@@ -126,7 +126,7 @@ const PersonalDetails = () => {
       setDateError(
         strings('card.card_onboarding.personal_details.invalid_date_of_birth'),
       );
-    }
+    } else setDateError('');
   }, [dateOfBirth]);
 
   const handleContinue = async () => {
@@ -257,18 +257,20 @@ const PersonalDetails = () => {
         <Label>
           {strings('card.card_onboarding.personal_details.nationality_label')}
         </Label>
-        <SelectComponent
-          label={strings(
-            'card.card_onboarding.personal_details.nationality_label',
-          )}
-          selectedValue={nationality}
-          options={selectOptions}
-          onValueChange={handleNationalitySelect}
-          defaultValue={strings(
-            'card.card_onboarding.personal_details.nationality_placeholder',
-          )}
-          testID="nationality-select"
-        />
+        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+          <SelectComponent
+            label={strings(
+              'card.card_onboarding.personal_details.nationality_label',
+            )}
+            selectedValue={nationality}
+            options={selectOptions}
+            onValueChange={handleNationalitySelect}
+            defaultValue={strings(
+              'card.card_onboarding.personal_details.nationality_placeholder',
+            )}
+            testID="nationality-select"
+          />
+        </Box>
       </Box>
 
       {/* SSN */}

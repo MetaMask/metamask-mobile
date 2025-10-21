@@ -4,7 +4,7 @@ import { getErrorMessage } from '../util/getErrorMessage';
 import {
   CardLocation,
   PhoneVerificationVerifyRequest,
-  PhoneVerificationVerifyResponse,
+  RegisterUserResponse,
 } from '../types';
 
 /**
@@ -15,7 +15,7 @@ const usePhoneVerificationVerify = (): {
   verifyPhoneVerification: (
     request: PhoneVerificationVerifyRequest,
     location: CardLocation,
-  ) => Promise<PhoneVerificationVerifyResponse>;
+  ) => Promise<RegisterUserResponse>;
   isLoading: boolean;
   isSuccess: boolean;
   isError: boolean;
@@ -45,7 +45,7 @@ const usePhoneVerificationVerify = (): {
     async (
       request: PhoneVerificationVerifyRequest,
       location: CardLocation,
-    ): Promise<PhoneVerificationVerifyResponse> => {
+    ): Promise<RegisterUserResponse> => {
       if (!sdk) {
         throw new Error('Card SDK not initialized');
       }
@@ -56,15 +56,14 @@ const usePhoneVerificationVerify = (): {
         setIsSuccess(false);
         setError(null);
 
-        const phoneVerificationVerifyResponse =
-          await sdk.phoneVerificationVerify({
-            ...request,
-            location,
-          });
+        const RegisterUserResponse = await sdk.phoneVerificationVerify({
+          ...request,
+          location,
+        });
 
         setIsSuccess(true);
 
-        return phoneVerificationVerifyResponse;
+        return RegisterUserResponse;
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);

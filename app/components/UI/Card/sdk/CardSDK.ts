@@ -30,12 +30,10 @@ import {
   PhoneVerificationSendRequest,
   PhoneVerificationSendResponse,
   PhoneVerificationVerifyRequest,
-  PhoneVerificationVerifyResponse,
   RegisterPersonalDetailsRequest,
-  RegisterPersonalDetailsResponse,
+  RegisterUserResponse,
   RegisterPhysicalAddressRequest,
   RegisterAddressResponse,
-  RegisterMailingAddressRequest,
   RegistrationSettingsResponse,
   StartUserVerificationResponse,
   CreateOnboardingConsentRequest,
@@ -1143,7 +1141,7 @@ export class CardSDK {
 
   phoneVerificationVerify = async (
     request: PhoneVerificationVerifyRequest & { location: CardLocation },
-  ): Promise<PhoneVerificationVerifyResponse> => {
+  ): Promise<RegisterUserResponse> => {
     try {
       this.logDebugInfo('phoneVerificationVerify request', request);
 
@@ -1189,7 +1187,7 @@ export class CardSDK {
       }
 
       const data = await response.json();
-      return data as PhoneVerificationVerifyResponse;
+      return data as RegisterUserResponse;
     } catch (error) {
       this.logDebugInfo('phoneVerificationVerify error', error);
 
@@ -1265,7 +1263,7 @@ export class CardSDK {
 
   registerPersonalDetails = async (
     request: RegisterPersonalDetailsRequest & { location: CardLocation },
-  ): Promise<RegisterPersonalDetailsResponse> => {
+  ): Promise<RegisterUserResponse> => {
     const { location, ...requestBody } = request;
     const isUSEnv = location === 'us';
 
@@ -1314,7 +1312,7 @@ export class CardSDK {
       }
 
       const data = await response.json();
-      return data as RegisterPersonalDetailsResponse;
+      return data as RegisterUserResponse;
     } catch (error) {
       this.logDebugInfo('registerPersonalDetails error', error);
 
@@ -1398,7 +1396,7 @@ export class CardSDK {
   };
 
   registerMailingAddress = async (
-    request: RegisterMailingAddressRequest & { location: CardLocation },
+    request: RegisterPhysicalAddressRequest & { location: CardLocation },
   ): Promise<RegisterAddressResponse> => {
     const { location, ...requestBody } = request;
     const isUSEnv = location === 'us';

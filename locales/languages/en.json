@@ -6018,7 +6018,8 @@
         "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
         "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
         "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
-        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process."
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
+        "create_user_failed": "Failed to create user. Please try again."
       }
     },
     "card_home": {

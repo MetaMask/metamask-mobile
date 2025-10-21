@@ -3,7 +3,7 @@ import { useCardSDK } from '../sdk';
 import { getErrorMessage } from '../util/getErrorMessage';
 import {
   CardLocation,
-  RegisterMailingAddressRequest,
+  RegisterPhysicalAddressRequest,
   RegisterAddressResponse,
 } from '../types';
 
@@ -13,7 +13,7 @@ import {
  */
 const useRegisterMailingAddress = (): {
   registerAddress: (
-    request: RegisterMailingAddressRequest,
+    request: RegisterPhysicalAddressRequest,
     location: CardLocation,
   ) => Promise<RegisterAddressResponse>;
   isLoading: boolean;
@@ -43,7 +43,7 @@ const useRegisterMailingAddress = (): {
 
   const registerAddress = useCallback(
     async (
-      request: RegisterMailingAddressRequest,
+      request: RegisterPhysicalAddressRequest,
       location: CardLocation,
     ): Promise<RegisterAddressResponse> => {
       if (!sdk) {
