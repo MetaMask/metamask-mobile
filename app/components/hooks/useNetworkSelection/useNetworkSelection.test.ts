@@ -670,13 +670,13 @@ describe('useNetworkSelection', () => {
         .mockReturnValueOnce([]); // selectInternalAccounts
 
       // Mock setActiveNetwork to throw an error
-      const mockSetActiveNetwork = jest
+      const mockSetActiveNetworkWithError = jest
         .fn()
         .mockRejectedValue(new Error('Network error'));
       jest.doMock('../../../core/Engine', () => ({
         context: {
           MultichainNetworkController: {
-            setActiveNetwork: mockSetActiveNetwork,
+            setActiveNetwork: mockSetActiveNetworkWithError,
           },
           NetworkController: {
             findNetworkClientIdByChainId: jest.fn(),
@@ -909,6 +909,9 @@ describe('useNetworkSelection', () => {
       await result.current.selectAllPopularNetworks(mockCallback);
 
       expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).toHaveBeenCalledWith('mainnet-client-id');
       expect(mockCallback).toHaveBeenCalled();
     });
 
@@ -922,6 +925,21 @@ describe('useNetworkSelection', () => {
       ).resolves.toBeUndefined();
 
       expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).toHaveBeenCalledWith('mainnet-client-id');
+    });
+
+    it('switches active network to ethereum mainnet', async () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      await result.current.selectAllPopularNetworks();
+
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).toHaveBeenCalledWith('mainnet-client-id');
     });
   });
 

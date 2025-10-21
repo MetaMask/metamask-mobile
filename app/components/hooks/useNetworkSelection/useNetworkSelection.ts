@@ -183,9 +183,13 @@ export const useNetworkSelection = ({
   const selectAllPopularNetworks = useCallback(
     async (onComplete?: () => void) => {
       await enableAllPopularNetworks();
+
+      // Switch the active network in MultichainNetworkController to ethereum mainnet
+      await switchActiveNetwork('eip155:1');
+
       onComplete?.();
     },
-    [enableAllPopularNetworks],
+    [enableAllPopularNetworks, switchActiveNetwork],
   );
 
   /** Toggles a popular network and resets all custom networks */
