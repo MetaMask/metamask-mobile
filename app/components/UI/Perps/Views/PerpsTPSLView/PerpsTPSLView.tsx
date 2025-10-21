@@ -106,10 +106,9 @@ const PerpsTPSLView: React.FC = () => {
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
   // For display purposes, use limit price for limit orders, otherwise use spot price
-  const currentPrice =
-    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-      ? parseFloat(limitPrice)
-      : spotPrice;
+  const hasValidLimitPrice =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
+  const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
@@ -416,7 +415,8 @@ const PerpsTPSLView: React.FC = () => {
                   {strings('perps.tpsl.entry_price')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.entryPrice &&
+                  {position.entryPrice !== undefined &&
+                  position.entryPrice !== null &&
                   position.entryPrice !== 'null' &&
                   position.entryPrice !== '0.00'
                     ? formatPerpsFiat(position.entryPrice, {
@@ -435,7 +435,7 @@ const PerpsTPSLView: React.FC = () => {
                   : strings('perps.tpsl.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {currentPrice
+                {currentPrice !== undefined && currentPrice !== null
                   ? formatPerpsFiat(currentPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
@@ -447,7 +447,8 @@ const PerpsTPSLView: React.FC = () => {
                 {strings('perps.tpsl.liquidation_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {displayLiquidationPrice &&
+                {displayLiquidationPrice !== undefined &&
+                displayLiquidationPrice !== null &&
                 displayLiquidationPrice !== 'null' &&
                 displayLiquidationPrice !== '0.00'
                   ? formatPerpsFiat(displayLiquidationPrice, {
