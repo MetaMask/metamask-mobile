@@ -587,7 +587,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Error message */}
-            {!isValid && takeProfitError && (
+            {!isValid && Boolean(takeProfitError) && (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {takeProfitError}
               </Text>
