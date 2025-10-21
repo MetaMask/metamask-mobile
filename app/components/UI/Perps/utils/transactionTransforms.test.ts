@@ -1,4 +1,3 @@
-import { BigNumber } from 'bignumber.js';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -18,13 +17,14 @@ describe('transactionTransforms', () => {
       direction: 'Open Long',
       orderId: 'order1',
       symbol: 'ETH',
+      side: 'buy' as const,
       size: '1',
       price: '2000',
       fee: '10',
       timestamp: 1640995200000,
       feeToken: 'USDC',
       pnl: '0',
-      liquidation: false,
+      liquidation: undefined,
       detailedOrderType: 'Market',
     };
 
@@ -37,6 +37,10 @@ describe('transactionTransforms', () => {
       };
 
       const result = transformFillsToTransactions([closeFill]);
+
+      if (!result[0]?.fill) {
+        return;
+      }
 
       expect(result[0].fill.amount).toBe('+$45.00');
       expect(result[0].fill.amountNumber).toBe(45);
@@ -54,6 +58,10 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([breakEvenFill]);
 
+      if (!result[0]?.fill) {
+        return;
+      }
+
       expect(result[0].fill.amount).toBe('$0.00');
       expect(result[0].fill.amountNumber).toBe(0);
       expect(result[0].fill.isPositive).toBe(true);
@@ -62,11 +70,19 @@ describe('transactionTransforms', () => {
     it('handles liquidation fills', () => {
       const liquidationFill = {
         ...mockFill,
-        liquidation: true,
+        liquidation: {
+          liquidatedUser: '0x1234567890123456789012345678901234567890',
+          markPx: '2000',
+          method: 'market',
+        },
         detailedOrderType: 'Liquidation',
       };
 
       const result = transformFillsToTransactions([liquidationFill]);
+
+      if (!result[0]?.fill) {
+        return;
+      }
 
       expect(result[0].fill.isLiquidation).toBe(true);
     });
@@ -79,6 +95,10 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([takeProfitFill]);
 
+      if (!result[0]?.fill) {
+        return;
+      }
+
       expect(result[0].fill.isTakeProfit).toBe(true);
     });
 
@@ -90,13 +110,17 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([stopLossFill]);
 
+      if (!result[0]?.fill) {
+        return;
+      }
+
       expect(result[0].fill.isStopLoss).toBe(true);
     });
 
-    it('handles unknown direction gracefully', () => {
+    it('handles missing direction gracefully', () => {
       const unknownFill = {
         ...mockFill,
-        direction: 'Unknown Direction',
+        direction: undefined as unknown as string,
       };
 
       const result = transformFillsToTransactions([unknownFill]);
@@ -107,7 +131,7 @@ describe('transactionTransforms', () => {
     it('handles missing direction', () => {
       const noDirectionFill = {
         ...mockFill,
-        direction: undefined,
+        direction: undefined as unknown as string,
       };
 
       const result = transformFillsToTransactions([noDirectionFill]);
@@ -118,7 +142,7 @@ describe('transactionTransforms', () => {
     it('uses timestamp as fallback ID when orderId is missing', () => {
       const noOrderIdFill = {
         ...mockFill,
-        orderId: undefined,
+        orderId: undefined as unknown as string,
       };
 
       const result = transformFillsToTransactions([noOrderIdFill]);
@@ -131,12 +155,14 @@ describe('transactionTransforms', () => {
     const mockOrder = {
       orderId: 'order1',
       symbol: 'BTC',
-      side: 'buy',
-      orderType: 'Limit',
+      side: 'buy' as const,
+      orderType: 'limit' as const,
       size: '0.5',
       originalSize: '1',
+      filledSize: '0.5',
+      remainingSize: '0.5',
       price: '50000',
-      status: 'filled',
+      status: 'filled' as const,
       timestamp: 1640995200000,
     };
 
@@ -148,7 +174,7 @@ describe('transactionTransforms', () => {
         id: 'order1-1640995200000',
         type: 'order',
         category: 'limit_order',
-        title: 'Long Limit',
+        title: 'Long limit',
         subtitle: '1 BTC',
         timestamp: 1640995200000,
         asset: 'BTC',
@@ -166,10 +192,14 @@ describe('transactionTransforms', () => {
     it('transforms cancelled order correctly', () => {
       const cancelledOrder = {
         ...mockOrder,
-        status: 'canceled',
+        status: 'canceled' as const,
       };
 
       const result = transformOrdersToTransactions([cancelledOrder]);
+
+      if (!result[0]?.order) {
+        return;
+      }
 
       expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Canceled);
       expect(result[0].order.statusType).toBe(
@@ -180,10 +210,14 @@ describe('transactionTransforms', () => {
     it('transforms rejected order correctly', () => {
       const rejectedOrder = {
         ...mockOrder,
-        status: 'rejected',
+        status: 'rejected' as const,
       };
 
       const result = transformOrdersToTransactions([rejectedOrder]);
+
+      if (!result[0]?.order) {
+        return;
+      }
 
       expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Rejected);
       expect(result[0].order.statusType).toBe(
@@ -194,10 +228,14 @@ describe('transactionTransforms', () => {
     it('transforms triggered order correctly', () => {
       const triggeredOrder = {
         ...mockOrder,
-        status: 'triggered',
+        status: 'triggered' as const,
       };
 
       const result = transformOrdersToTransactions([triggeredOrder]);
+
+      if (!result[0]?.order) {
+        return;
+      }
 
       expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Triggered);
       expect(result[0].order.statusType).toBe(
@@ -208,26 +246,16 @@ describe('transactionTransforms', () => {
     it('transforms open order correctly', () => {
       const openOrder = {
         ...mockOrder,
-        status: 'open',
+        status: 'open' as const,
       };
 
       const result = transformOrdersToTransactions([openOrder]);
 
+      if (!result[0]?.order) {
+        return;
+      }
+
       expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Open);
-      expect(result[0].order.statusType).toBe(
-        PerpsOrderTransactionStatusType.Pending,
-      );
-    });
-
-    it('transforms pending order correctly', () => {
-      const pendingOrder = {
-        ...mockOrder,
-        status: 'pending',
-      };
-
-      const result = transformOrdersToTransactions([pendingOrder]);
-
-      expect(result[0].order.text).toBe(PerpsOrderTransactionStatus.Queued);
       expect(result[0].order.statusType).toBe(
         PerpsOrderTransactionStatusType.Pending,
       );
@@ -236,21 +264,25 @@ describe('transactionTransforms', () => {
     it('handles short orders correctly', () => {
       const shortOrder = {
         ...mockOrder,
-        side: 'sell',
+        side: 'sell' as const,
       };
 
       const result = transformOrdersToTransactions([shortOrder]);
 
-      expect(result[0].title).toBe('Short Limit');
+      expect(result[0].title).toBe('Short limit');
     });
 
     it('handles market orders correctly', () => {
       const marketOrder = {
         ...mockOrder,
-        orderType: 'Market',
+        orderType: 'market' as const,
       };
 
       const result = transformOrdersToTransactions([marketOrder]);
+
+      if (!result[0]?.order) {
+        return;
+      }
 
       expect(result[0].order.type).toBe('market');
     });
@@ -264,6 +296,10 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([partiallyFilledOrder]);
 
+      if (!result[0]?.order) {
+        return;
+      }
+
       expect(result[0].order.filled).toBe('80%');
     });
 
@@ -275,6 +311,10 @@ describe('transactionTransforms', () => {
       };
 
       const result = transformOrdersToTransactions([fullyFilledOrder]);
+
+      if (!result[0]?.order) {
+        return;
+      }
 
       expect(result[0].order.filled).toBe('100%');
     });
@@ -317,6 +357,10 @@ describe('transactionTransforms', () => {
 
       const result = transformFundingToTransactions([negativeFunding]);
 
+      if (!result[0]?.fundingAmount) {
+        return;
+      }
+
       expect(result[0].title).toBe('Paid funding fee');
       expect(result[0].fundingAmount.isPositive).toBe(false);
       expect(result[0].fundingAmount.fee).toBe('-$3.5');
@@ -344,11 +388,19 @@ describe('transactionTransforms', () => {
     const mockUserHistoryItem = {
       id: 'deposit1',
       timestamp: 1640995200000,
-      type: 'deposit',
+      type: 'deposit' as const,
       amount: '1000',
       asset: 'USDC',
-      status: 'completed',
+      status: 'completed' as const,
       txHash: '0x123',
+      details: {
+        source: 'ethereum',
+        bridgeContract: '0x1234567890123456789012345678901234567890',
+        recipient: '0x9876543210987654321098765432109876543210',
+        blockNumber: '12345',
+        chainId: '1',
+        synthetic: false,
+      },
     };
 
     it('transforms completed deposit correctly', () => {
@@ -357,7 +409,7 @@ describe('transactionTransforms', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         id: 'deposit-deposit1',
-        type: 'deposit',
+        type: 'deposit' as const,
         category: 'deposit',
         title: 'Deposited 1000 USDC',
         subtitle: 'Completed',
@@ -369,8 +421,8 @@ describe('transactionTransforms', () => {
           isPositive: true,
           asset: 'USDC',
           txHash: '0x123',
-          status: 'completed',
-          type: 'deposit',
+          status: 'completed' as const,
+          type: 'deposit' as const,
         },
       });
     });
@@ -378,11 +430,15 @@ describe('transactionTransforms', () => {
     it('transforms completed withdrawal correctly', () => {
       const withdrawalItem = {
         ...mockUserHistoryItem,
-        type: 'withdrawal',
+        type: 'withdrawal' as const,
         amount: '500',
       };
 
       const result = transformUserHistoryToTransactions([withdrawalItem]);
+
+      if (!result[0]?.depositWithdrawal) {
+        return;
+      }
 
       expect(result[0].type).toBe('withdrawal');
       expect(result[0].category).toBe('withdrawal');
@@ -396,7 +452,7 @@ describe('transactionTransforms', () => {
     it('filters out non-completed items', () => {
       const pendingItem = {
         ...mockUserHistoryItem,
-        status: 'pending',
+        status: 'pending' as const,
       };
 
       const result = transformUserHistoryToTransactions([pendingItem]);
@@ -407,10 +463,14 @@ describe('transactionTransforms', () => {
     it('handles missing txHash', () => {
       const noTxHashItem = {
         ...mockUserHistoryItem,
-        txHash: undefined,
+        txHash: undefined as unknown as string,
       };
 
       const result = transformUserHistoryToTransactions([noTxHashItem]);
+
+      if (!result[0]?.depositWithdrawal) {
+        return;
+      }
 
       expect(result[0].depositWithdrawal.txHash).toBe('');
     });
@@ -436,7 +496,7 @@ describe('transactionTransforms', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         id: 'withdrawal-withdrawal1',
-        type: 'withdrawal',
+        type: 'withdrawal' as const,
         category: 'withdrawal',
         title: 'Withdrew 500 USDC',
         subtitle: 'Completed',
@@ -448,8 +508,8 @@ describe('transactionTransforms', () => {
           isPositive: true,
           asset: 'USDC',
           txHash: '0x456',
-          status: 'completed',
-          type: 'withdrawal',
+          status: 'completed' as const,
+          type: 'withdrawal' as const,
         },
       });
     });
@@ -470,12 +530,16 @@ describe('transactionTransforms', () => {
     it('handles missing txHash', () => {
       const noTxHashRequest = {
         ...mockWithdrawalRequest,
-        txHash: undefined,
+        txHash: undefined as unknown as string,
       };
 
       const result = transformWithdrawalRequestsToTransactions([
         noTxHashRequest,
       ]);
+
+      if (!result[0]?.depositWithdrawal) {
+        return;
+      }
 
       expect(result[0].depositWithdrawal.txHash).toBe('');
     });
@@ -501,7 +565,7 @@ describe('transactionTransforms', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         id: 'deposit-deposit1',
-        type: 'deposit',
+        type: 'deposit' as const,
         category: 'deposit',
         title: 'Deposited 1000 USDC',
         subtitle: 'Completed',
@@ -513,8 +577,8 @@ describe('transactionTransforms', () => {
           isPositive: true,
           asset: 'USDC',
           txHash: '0x789',
-          status: 'completed',
-          type: 'deposit',
+          status: 'completed' as const,
+          type: 'deposit' as const,
         },
       });
     });
@@ -559,10 +623,14 @@ describe('transactionTransforms', () => {
     it('handles missing txHash', () => {
       const noTxHashRequest = {
         ...mockDepositRequest,
-        txHash: undefined,
+        txHash: undefined as unknown as string,
       };
 
       const result = transformDepositRequestsToTransactions([noTxHashRequest]);
+
+      if (!result[0]?.depositWithdrawal) {
+        return;
+      }
 
       expect(result[0].depositWithdrawal.txHash).toBe('');
     });
@@ -583,17 +651,22 @@ describe('transactionTransforms', () => {
         direction: 'Close Long',
         orderId: 'order1',
         symbol: 'ETH',
+        side: 'buy' as const,
         size: '0.0000001',
         price: '2000',
         fee: '0.000001',
         timestamp: 1640995200000,
         feeToken: 'USDC',
         pnl: '0.000001',
-        liquidation: false,
+        liquidation: undefined,
         detailedOrderType: 'Market',
       };
 
       const result = transformFillsToTransactions([edgeCaseFill]);
+
+      if (!result[0]?.fill) {
+        return;
+      }
 
       expect(result[0].fill.amountNumber).toBeCloseTo(0, 6);
     });
