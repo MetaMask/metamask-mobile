@@ -588,9 +588,12 @@ describe('useCardDetails', () => {
         pollResult = await promise;
       });
 
-      // Then: Returns undefined after max attempts
-      expect(pollResult).toBeUndefined();
+      // Then: Returns false after max attempts and resets loading state
+      expect(pollResult).toBe(false);
       expect(mockGetCardDetails).toHaveBeenCalledTimes(3);
+      expect(result.current.isLoadingPollCardStatusUntilProvisioned).toBe(
+        false,
+      );
     });
 
     it('sets loading state during polling', async () => {

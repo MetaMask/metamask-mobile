@@ -89,6 +89,10 @@ const useCardDetails = () => {
         try {
           const cardDetailsResponse = await sdk?.getCardDetails();
           if (!cardDetailsResponse) {
+            setState((prevState) => ({
+              ...prevState,
+              isLoadingPollCardStatusUntilProvisioned: false,
+            }));
             return false;
           }
           if (cardDetailsResponse.status === CardStatus.ACTIVE) {
@@ -112,6 +116,13 @@ const useCardDetails = () => {
           return false;
         }
       }
+
+      // Max polling attempts reached without finding ACTIVE status
+      setState((prevState) => ({
+        ...prevState,
+        isLoadingPollCardStatusUntilProvisioned: false,
+      }));
+      return false;
     },
     [sdk],
   );
