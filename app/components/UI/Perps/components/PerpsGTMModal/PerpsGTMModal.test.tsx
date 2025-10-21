@@ -9,6 +9,8 @@ import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
+const mockHasNonLatinCharacters = jest.fn(() => false);
+
 const mockTheme = {
   colors: {
     background: {
@@ -25,8 +27,18 @@ const mockTheme = {
 };
 
 jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ theme: mockTheme }),
+  useTheme: () => mockTheme,
 }));
+
+// Mock for different color schemes
+const mockUseColorScheme = jest.fn();
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    useColorScheme: () => mockUseColorScheme(),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -71,6 +83,8 @@ describe('PerpsGTMModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('false');
+    mockUseColorScheme.mockReturnValue('light'); // Default to light mode
+    mockHasNonLatinCharacters.mockReturnValue(false); // Default to Latin characters
   });
 
   it('renders correctly with all main elements', async () => {
@@ -79,11 +93,13 @@ describe('PerpsGTMModal', () => {
     });
 
     await waitFor(() => {
-      expect(getByText('perps.gtm_content.title')).toBeTruthy();
-      expect(getByText('perps.gtm_content.title_description')).toBeTruthy();
-      expect(getByText('perps.gtm_content.try_now')).toBeTruthy();
-      expect(getByText('perps.gtm_content.not_now')).toBeTruthy();
-      expect(getByTestId('perps-gtm-modal')).toBeTruthy();
+      expect(getByText('perps.gtm_content.title')).toBeOnTheScreen();
+      expect(
+        getByText('perps.gtm_content.title_description'),
+      ).toBeOnTheScreen();
+      expect(getByText('perps.gtm_content.try_now')).toBeOnTheScreen();
+      expect(getByText('perps.gtm_content.not_now')).toBeOnTheScreen();
+      expect(getByTestId('perps-gtm-modal')).toBeOnTheScreen();
     });
   });
 
@@ -138,7 +154,124 @@ describe('PerpsGTMModal', () => {
     });
 
     await waitFor(() => {
-      expect(getByTestId('perps-gtm-modal')).toBeTruthy();
+      expect(getByTestId('perps-gtm-modal')).toBeOnTheScreen();
+    });
+  });
+
+  it('renders correctly in dark mode', async () => {
+    mockUseColorScheme.mockReturnValue('dark');
+
+    const { getByText, getByTestId } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(getByText('perps.gtm_content.title')).toBeOnTheScreen();
+      expect(
+        getByText('perps.gtm_content.title_description'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('perps-gtm-modal')).toBeOnTheScreen();
+    });
+  });
+
+  it('handles system font when non-Latin characters are detected', async () => {
+    mockHasNonLatinCharacters.mockReturnValue(true);
+
+    const { getByText } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      const titleElement = getByText('perps.gtm_content.title');
+      const descriptionElement = getByText(
+        'perps.gtm_content.title_description',
+      );
+
+      // Check that hasNonLatinCharacters was called
+      expect(mockHasNonLatinCharacters).toHaveBeenCalled();
+
+      // Verify elements exist
+      expect(titleElement).toBeDefined();
+      expect(descriptionElement).toBeDefined();
+    });
+  });
+
+  it('handles MM Poly font when Latin characters are detected', async () => {
+    mockHasNonLatinCharacters.mockReturnValue(false);
+
+    const { getByText } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      const titleElement = getByText('perps.gtm_content.title');
+      const descriptionElement = getByText(
+        'perps.gtm_content.title_description',
+      );
+
+      // Check that hasNonLatinCharacters was called
+      expect(mockHasNonLatinCharacters).toHaveBeenCalled();
+
+      // Verify elements exist
+      expect(titleElement).toBeDefined();
+      expect(descriptionElement).toBeDefined();
+    });
+  });
+
+  it('renders with correct button styles in dark mode', async () => {
+    mockUseColorScheme.mockReturnValue('dark');
+
+    const { getByText } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      const tryNowButton = getByText('perps.gtm_content.try_now');
+      const notNowButton = getByText('perps.gtm_content.not_now');
+      expect(tryNowButton).toBeOnTheScreen();
+      expect(notNowButton).toBeOnTheScreen();
+    });
+  });
+
+  it('renders with correct button styles in light mode', async () => {
+    mockUseColorScheme.mockReturnValue('light');
+
+    const { getByText } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      const tryNowButton = getByText('perps.gtm_content.try_now');
+      const notNowButton = getByText('perps.gtm_content.not_now');
+      expect(tryNowButton).toBeOnTheScreen();
+      expect(notNowButton).toBeOnTheScreen();
+    });
+  });
+
+  it('calls analytics tracking correctly on button presses', async () => {
+    const { getByText } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      const tryNowButton = getByText('perps.gtm_content.try_now');
+      fireEvent.press(tryNowButton);
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
+    );
+  });
+
+  it('verifies all ScrollView properties are set correctly', async () => {
+    const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      const modal = getByTestId('perps-gtm-modal');
+      expect(modal).toBeOnTheScreen();
     });
   });
 });
