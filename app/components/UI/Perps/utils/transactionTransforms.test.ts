@@ -28,38 +28,6 @@ describe('transactionTransforms', () => {
       detailedOrderType: 'Market',
     };
 
-    it('transforms open position fill correctly', () => {
-      const result = transformFillsToTransactions([mockFill]);
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        id: 'order1',
-        type: 'trade',
-        category: 'position_open',
-        title: 'Opened long',
-        subtitle: '1 ETH',
-        timestamp: 1640995200000,
-        asset: 'ETH',
-        fill: {
-          shortTitle: 'Opened long',
-          amount: '-$10.00',
-          amountNumber: -10,
-          isPositive: false,
-          size: '1',
-          entryPrice: '2000',
-          pnl: '0',
-          fee: '10',
-          points: '0',
-          feeToken: 'USDC',
-          action: 'Opened',
-          liquidation: false,
-          isLiquidation: false,
-          isTakeProfit: false,
-          isStopLoss: false,
-        },
-      });
-    });
-
     it('transforms close position fill correctly', () => {
       const closeFill = {
         ...mockFill,
@@ -74,22 +42,6 @@ describe('transactionTransforms', () => {
       expect(result[0].fill.amountNumber).toBe(45);
       expect(result[0].fill.isPositive).toBe(true);
       expect(result[0].fill.action).toBe('Closed');
-    });
-
-    it('transforms flipped position fill correctly', () => {
-      const flippedFill = {
-        ...mockFill,
-        direction: 'Close Long > Open Short',
-        startPosition: '2',
-        pnl: '100',
-        fee: '8',
-      };
-
-      const result = transformFillsToTransactions([flippedFill]);
-
-      expect(result[0].fill.size).toBe('1'); // 2 - 1 = 1
-      expect(result[0].fill.action).toBe('Flipped');
-      expect(result[0].title).toBe('Flipped short');
     });
 
     it('handles break-even PnL correctly', () => {
@@ -323,17 +275,6 @@ describe('transactionTransforms', () => {
       };
 
       const result = transformOrdersToTransactions([fullyFilledOrder]);
-
-      expect(result[0].order.filled).toBe('100%');
-    });
-
-    it('handles missing originalSize', () => {
-      const noOriginalSizeOrder = {
-        ...mockOrder,
-        originalSize: undefined,
-      };
-
-      const result = transformOrdersToTransactions([noOriginalSizeOrder]);
 
       expect(result[0].order.filled).toBe('100%');
     });

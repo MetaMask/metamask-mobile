@@ -108,8 +108,11 @@ export const useDepositRequests = (
       });
 
       // Transform ledger updates to deposit requests
+      // Handle cases where updates might be undefined or null
+      const updatesArray = Array.isArray(updates) ? updates : [];
+
       const depositData = (
-        updates as {
+        updatesArray as {
           delta: {
             coin?: string;
             usdc: string;
