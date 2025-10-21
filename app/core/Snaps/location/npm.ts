@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
-import { assert, stringToBytes } from '@metamask/utils';
+import { assert, getErrorMessage, stringToBytes } from '@metamask/utils';
 import { NativeModules } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import {
@@ -97,9 +97,11 @@ export class NpmLocation extends BaseNpmLocation {
       });
 
       return map;
-    } catch {
+    } catch (error) {
       throw new Error(
-        `Failed to fetch and unpack NPM tarball for "${this.meta.packageName}"`,
+        `Failed to fetch and unpack NPM tarball for "${
+          this.meta.packageName
+        }": ${getErrorMessage(error)}`,
       );
     } finally {
       response?.flush();
