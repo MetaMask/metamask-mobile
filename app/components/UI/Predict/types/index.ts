@@ -285,7 +285,7 @@ export type PredictWithdraw = {
   chainId: number;
   status: PredictWithdrawStatus;
   providerId: string;
-  to: Hex;
   predictAddress: Hex;
   transactionId: string;
+  amount: number;
 };

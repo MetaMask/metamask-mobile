@@ -188,6 +188,7 @@ export interface PrepareWithdrawConfirmationParams {
 
 export interface PrepareWithdrawConfirmationResponse {
   callData: Hex;
+  amount: number;
 }
 
 export interface PredictProvider {

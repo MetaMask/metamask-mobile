@@ -55,6 +55,7 @@ import {
   getClaimTransaction,
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
+  getSafeUsdcAmount,
   getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
@@ -514,7 +515,7 @@ export class PolymarketProvider implements PredictProvider {
 
       let feeAuthorization;
       if (fees !== undefined && fees.totalFee > 0) {
-        const safeAddress = await computeSafeAddress(signer.address);
+        const safeAddress = computeProxyAddress(signer.address);
         const feeAmountInUsdc = BigInt(
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
@@ -740,8 +741,11 @@ export class PolymarketProvider implements PredictProvider {
       safeAddress,
     });
 
+    const amount = getSafeUsdcAmount(callData);
+
     return {
       callData: signedCallData,
+      amount,
     };
   }
 }

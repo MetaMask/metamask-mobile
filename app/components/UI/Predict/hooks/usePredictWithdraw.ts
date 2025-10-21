@@ -6,6 +6,9 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictEligibility } from './usePredictEligibility';
 import { usePredictTrading } from './usePredictTrading';
+import { createSelector } from 'reselect';
+import { RootState } from '../../../../reducers';
+import { useSelector } from 'react-redux';
 
 interface UsePredictWithdrawParams {
   providerId?: string;
@@ -14,13 +17,20 @@ interface UsePredictWithdrawParams {
 export const usePredictWithdraw = ({
   providerId = 'polymarket',
 }: UsePredictWithdrawParams = {}) => {
-  const { prepareWithdraw: withdrawTransaction } = usePredictTrading();
+  const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { isEligible } = usePredictEligibility({
     providerId,
   });
+
+  const selectWithdrawTransaction = createSelector(
+    (state: RootState) => state.engine.backgroundState.PredictController,
+    (predictState) => predictState.withdrawTransaction,
+  );
+
+  const withdrawTransaction = useSelector(selectWithdrawTransaction);
 
   const withdraw = useCallback(async () => {
     if (!isEligible) {
@@ -36,7 +46,7 @@ export const usePredictWithdraw = ({
         loader: ConfirmationLoader.CustomAmount,
       });
 
-      const response = await withdrawTransaction({ providerId });
+      const response = await prepareWithdraw({ providerId });
       return response;
     } catch (err) {
       console.error('Failed to proceed with withdraw:', err);
@@ -45,9 +55,9 @@ export const usePredictWithdraw = ({
     isEligible,
     navigateToConfirmation,
     navigation,
+    prepareWithdraw,
     providerId,
-    withdrawTransaction,
   ]);
 
-  return { withdraw };
+  return { withdraw, withdrawTransaction };
 };

@@ -1,18 +1,15 @@
-import React, { useMemo } from 'react';
-import { Hex } from '@metamask/utils';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { RootState } from '../../../../../../reducers';
-import { selectPredictBalanceByAddress } from '../predict-temp';
-import { useSelector } from 'react-redux';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+import React, { useMemo } from 'react';
+import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import styleSheet from './predict-withdraw-balance.styles';
 import { strings } from '../../../../../../../locales/i18n';
 import { PREDICT_CURRENCY } from '../../../constants/predict';
@@ -22,14 +19,11 @@ export function PredictWithdrawBalance() {
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from as Hex;
   const formatFiat = useFiatFormatter({ currency: PREDICT_CURRENCY });
-
-  const balanceFiat = useSelector((state: RootState) =>
-    selectPredictBalanceByAddress(state, from),
-  );
+  const { balance } = usePredictBalance({ loadOnMount: true });
 
   const balanceFormatted = useMemo(
-    () => formatFiat(new BigNumber(balanceFiat)),
-    [balanceFiat, formatFiat],
+    () => formatFiat(new BigNumber(balance)),
+    [balance, formatFiat],
   );
 
   return (

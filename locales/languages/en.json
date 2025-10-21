@@ -1762,7 +1762,10 @@
       "withdrawing": "Withdrawing {{amount}} USDC",
       "withdrawing_subtitle": "Est. {{time}} seconds",
       "withdraw_completed": "Withdrawal completed",
-      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance"
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Failed to proceed with withdraw",
+      "try_again": "Try again"
     }
   },
   "receive": {

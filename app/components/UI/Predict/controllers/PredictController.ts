@@ -20,9 +20,9 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
-import Engine from '../../../../core/Engine';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
@@ -36,6 +36,7 @@ import {
   PredictEventType,
   PredictEventTypeValue,
 } from '../constants/eventNames';
+import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
   GetAccountStateParams,
@@ -1269,9 +1270,9 @@ export class PredictController extends BaseController<
         chainId: hexToNumber(chainId),
         status: PredictWithdrawStatus.IDLE,
         providerId: params.providerId,
-        to: transaction.params.to as Hex,
         predictAddress: predictAddress as Hex,
         transactionId: '',
+        amount: 0,
       };
     });
 
@@ -1293,22 +1294,8 @@ export class PredictController extends BaseController<
       ],
     });
 
-    /* const { transactionMeta } = await addTransaction(
-      {
-        ...transaction,
-        from: selectedAddress as Hex,
-      },
-      {
-        origin: ORIGIN_METAMASK,
-        networkClientId:
-          NetworkController.findNetworkClientIdByChainId(chainId),
-        requireApproval: true,
-      },
-    ); */
-
     this.update((state) => {
       if (state.withdrawTransaction) {
-        state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
         state.withdrawTransaction.transactionId = batchId;
       }
     });
@@ -1367,9 +1354,16 @@ export class PredictController extends BaseController<
         KeyringController.signPersonalMessage(params),
     };
 
-    const { callData } = await provider.prepareWithdrawConfirmation({
+    const { callData, amount } = await provider.prepareWithdrawConfirmation({
       callData: withdrawTransaction?.data as Hex,
       signer,
+    });
+
+    this.update((state) => {
+      if (state.withdrawTransaction) {
+        state.withdrawTransaction.amount = amount;
+        state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
+      }
     });
 
     return {
@@ -1379,5 +1373,11 @@ export class PredictController extends BaseController<
           ?.predictAddress as Hex;
       },
     };
+  }
+
+  public clearWithdrawTransaction(): void {
+    this.update((state) => {
+      state.withdrawTransaction = null;
+    });
   }
 }

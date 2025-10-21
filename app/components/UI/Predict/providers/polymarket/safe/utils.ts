@@ -704,3 +704,46 @@ export function computeProxyAddress(userAddress: string): Hex {
   const predicted = getCreate2Address(SAFE_FACTORY_ADDRESS, salt, bytecodeHash);
   return predicted as Hex;
 }
+
+/**
+ * Decodes USDC amount from ERC20 transfer calldata
+ * @param data ERC20 transfer calldata (0xa9059cbb...)
+ * @returns USDC amount in decimal format (e.g., 1.5 for 1.5 USDC)
+ */
+export function getSafeUsdcAmount(data: string): number {
+  if (!data.startsWith('0xa9059cbb')) {
+    throw new Error('Not an ERC20 transfer call');
+  }
+
+  // Extract amount (last 32 bytes)
+  // data format: 0x + selector (8 chars) + address (64 chars) + amount (64 chars)
+  // Account for the "0x" prefix (2 chars) in the string position
+  const encodedAmount = '0x' + data.slice(2 + 8 + 64, 2 + 8 + 64 + 64);
+  let amount: ethers.BigNumber;
+
+  try {
+    amount = ethers.BigNumber.from(encodedAmount);
+  } catch (e) {
+    throw new Error('Invalid encoded amount in calldata');
+  }
+
+  // Convert to USDC float
+  const usdcValue = parseFloat(ethers.utils.formatUnits(amount, 6));
+
+  // Check for unreasonably large values (likely corrupted data)
+  // USDC total supply is ~35 billion, so anything above 100 billion is invalid
+  const MAX_REASONABLE_USDC = 1e11; // 100 billion USDC
+  if (usdcValue > MAX_REASONABLE_USDC || !isFinite(usdcValue)) {
+    throw new Error(
+      `Decoded USDC amount is invalid or too large: ${usdcValue}`,
+    );
+  }
+
+  // Validate non-negative
+  if (usdcValue < 0) {
+    throw new Error(`Decoded USDC amount is negative: ${usdcValue}`);
+  }
+
+  // Round to 6 decimals to match USDC
+  return Math.round(usdcValue * 1e6) / 1e6;
+}

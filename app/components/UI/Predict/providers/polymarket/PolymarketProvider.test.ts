@@ -39,7 +39,7 @@ import {
 import { OrderPreview, PlaceOrderParams } from '../types';
 import { query } from '@metamask/controller-utils';
 import {
-  computeSafeAddress,
+  computeProxyAddress,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
@@ -95,7 +95,7 @@ jest.mock('./utils', () => {
 });
 
 jest.mock('./safe/utils', () => ({
-  computeSafeAddress: jest.fn(),
+  computeProxyAddress: jest.fn(),
   createSafeFeeAuthorization: jest.fn(),
   getClaimTransaction: jest.fn(),
   getDeployProxyWalletTransaction: jest.fn(),
@@ -129,7 +129,7 @@ const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
-const mockComputeSafeAddress = computeSafeAddress as jest.Mock;
+const mockComputeProxyAddress = computeProxyAddress as jest.Mock;
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 const mockGetClaimTransaction = getClaimTransaction as jest.Mock;
 const mockHasAllowances = hasAllowances as jest.Mock;
@@ -235,7 +235,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -319,7 +319,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -357,7 +357,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -397,7 +397,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -430,7 +430,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -460,7 +460,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -488,7 +488,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -659,7 +659,7 @@ describe('PolymarketProvider', () => {
       secret: 'test-secret',
       passphrase: 'test-passphrase',
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockCreateSafeFeeAuthorization.mockResolvedValue({
@@ -859,7 +859,7 @@ describe('PolymarketProvider', () => {
         secret: 'test-secret',
         passphrase: 'test-passphrase',
       });
-      mockComputeSafeAddress.mockResolvedValue(
+      mockComputeProxyAddress.mockReturnValue(
         '0x9999999999999999999999999999999999999999',
       );
       mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
@@ -946,7 +946,7 @@ describe('PolymarketProvider', () => {
 
       await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
-      expect(mockComputeSafeAddress).toHaveBeenCalledWith(mockSigner.address);
+      expect(mockComputeProxyAddress).toHaveBeenCalledWith(mockSigner.address);
     });
 
     it('calculates 4% fee from maker amount', async () => {
@@ -1481,7 +1481,7 @@ describe('PolymarketProvider', () => {
         },
       ];
 
-      (computeSafeAddress as jest.Mock).mockResolvedValue(
+      (computeProxyAddress as jest.Mock).mockReturnValue(
         '0x9999999999999999999999999999999999999999',
       );
       (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
@@ -1591,7 +1591,7 @@ describe('PolymarketProvider', () => {
         },
       ];
 
-      (computeSafeAddress as jest.Mock).mockResolvedValue(
+      (computeProxyAddress as jest.Mock).mockReturnValue(
         '0x9999999999999999999999999999999999999999',
       );
       (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
@@ -1897,7 +1897,7 @@ describe('PolymarketProvider', () => {
     };
 
     beforeEach(() => {
-      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
       (generateTransferData as jest.Mock).mockReturnValue('0xtransferData');
     });
 
@@ -2169,7 +2169,7 @@ describe('PolymarketProvider', () => {
   describe('getAccountState', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
     });
 
     it('returns account state for an undeployed wallet', async () => {
@@ -2221,7 +2221,7 @@ describe('PolymarketProvider', () => {
       await provider.getAccountState({ ownerAddress: '0x123' });
 
       // Then Safe address is only computed once
-      expect(computeSafeAddress).toHaveBeenCalledTimes(1);
+      expect(computeProxyAddress).toHaveBeenCalledTimes(1);
     });
 
     it('computes Safe address for each unique owner', async () => {
@@ -2235,9 +2235,9 @@ describe('PolymarketProvider', () => {
       await provider.getAccountState({ ownerAddress: '0x456' });
 
       // Then Safe address is computed for each owner
-      expect(computeSafeAddress).toHaveBeenCalledTimes(2);
-      expect(computeSafeAddress).toHaveBeenCalledWith('0x123');
-      expect(computeSafeAddress).toHaveBeenCalledWith('0x456');
+      expect(computeProxyAddress).toHaveBeenCalledTimes(2);
+      expect(computeProxyAddress).toHaveBeenCalledWith('0x123');
+      expect(computeProxyAddress).toHaveBeenCalledWith('0x456');
     });
 
     it('calls all required functions in parallel', async () => {
@@ -2267,7 +2267,7 @@ describe('PolymarketProvider', () => {
     it('returns balance for the given address', async () => {
       // Given a provider
       const provider = createProvider();
-      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
       (getBalance as jest.Mock).mockResolvedValue(123.45);
 
       // When getting balance
