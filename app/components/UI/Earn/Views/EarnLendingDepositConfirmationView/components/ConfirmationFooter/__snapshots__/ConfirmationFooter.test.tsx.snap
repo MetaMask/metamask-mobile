@@ -256,7 +256,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
       accessible={true}
       activeOpacity={1}
       disabled={false}
-      onPress={[Function]}
+      onPress={[MockFunction]}
       onPressIn={[Function]}
       style={
         {
@@ -296,7 +296,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
       accessible={true}
       activeOpacity={1}
       disabled={false}
-      onPress={[Function]}
+      onPress={[MockFunction]}
       onPressIn={[Function]}
       style={
         {

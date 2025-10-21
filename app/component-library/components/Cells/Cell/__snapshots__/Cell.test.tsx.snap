@@ -905,7 +905,6 @@ exports[`Cell should render CellMultiSelectWithMenu given the type MultiSelectWi
 exports[`Cell should render CellSelect given the type Select 1`] = `
 <TouchableOpacity
   disabled={false}
-  onPress={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
