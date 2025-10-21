@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { type Hex, type CaipChainId, isCaipChainId } from '@metamask/utils';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
@@ -163,16 +163,24 @@ export const useLatestBalance = (token: {
     }
   }, [handleFetchEvmAtomicBalance, handleNonEvmAtomicBalance, chainId]);
 
+  const cachedBalance = useMemo(() => {
+    const displayBalance = token.balance;
+
+    let atomicBalance: BigNumber | undefined;
+    if (token.balance) {
+      try {
+        atomicBalance = parseUnits(token.balance, token.decimals);
+      } catch {
+        atomicBalance = undefined;
+      }
+    }
+
+    return { displayBalance, atomicBalance };
+  }, [token.balance, token.decimals]);
+
   if (!token.address || !token.decimals) {
     return undefined;
   }
-
-  const cachedBalance = {
-    displayBalance: token.balance,
-    atomicBalance: token.balance
-      ? parseUnits(token.balance, token.decimals)
-      : undefined,
-  };
 
   // If the token has changed, return cached balance of new token, so we have time to fetch the new balance
   if (previousToken?.address !== token.address) {

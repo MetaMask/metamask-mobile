@@ -100,6 +100,8 @@ const mockSingleMarket: PredictMarketType = {
   recurrence: Recurrence.NONE,
   categories: ['crypto'],
   outcomes: [mockSingleOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockMultipleMarket: PredictMarketType = {
@@ -113,6 +115,8 @@ const mockMultipleMarket: PredictMarketType = {
   recurrence: Recurrence.NONE,
   categories: ['crypto'],
   outcomes: [mockMultipleOutcome1, mockMultipleOutcome2],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {

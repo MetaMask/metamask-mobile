@@ -5,14 +5,24 @@ export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     bottomSheet: {},
     container: {
-      paddingHorizontal: 16,
-      paddingBottom: 16,
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
+    scrollView: {
+      flex: 1,
     },
     header: {
-      paddingBottom: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
     },
     footer: {
-      paddingBottom: 8,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
     },
     priceInfoContainer: {
       marginTop: 16,
@@ -136,7 +146,10 @@ export const createStyles = (colors: Theme['colors']) =>
       marginTop: 12,
     },
     content: {
+      flexGrow: 1,
       paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 24,
     },
     description: {
       marginBottom: 16,
@@ -174,7 +187,7 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 8,
     },
     keypadContainer: {
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
       paddingTop: 8,
       backgroundColor: colors.background.default,
     },
@@ -182,7 +195,8 @@ export const createStyles = (colors: Theme['colors']) =>
       flex: 1,
     },
     keypadFooter: {
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
       width: '100%',
     },
     doneButton: {
