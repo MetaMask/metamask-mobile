@@ -1,15 +1,26 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { memo, useCallback, useRef, useState } from 'react';
+import {
+  Keyboard,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -22,61 +33,68 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import type { Position } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
-  getPerpsTPSLBottomSheetSelector,
-  PerpsTPSLBottomSheetSelectorsIDs,
+  getPerpsTPSLViewSelector,
+  PerpsTPSLViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
-import { createStyles } from './PerpsTPSLBottomSheet.styles';
+import { createStyles } from './PerpsTPSLView.styles';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
+import type { Position } from '../../controllers/types';
 
-// Quick percentage buttons constants - RoE percentages
-const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
-const STOP_LOSS_PERCENTAGES = [-5, -10, -25, -50]; // -5%, -10%, -25%, -50% RoE
+// Helper function to calculate effective entry price
+const calculateEffectiveEntryPrice = (
+  position: Position | undefined,
+  orderType: 'market' | 'limit' | undefined,
+  limitPrice: string | undefined,
+  spotPrice: number,
+  livePrice: number | undefined,
+  initialCurrentPrice: number | undefined,
+): number => {
+  const hasPositionEntry = position?.entryPrice
+    ? parseFloat(position.entryPrice)
+    : 0;
+  const limitPriceValue =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+      ? parseFloat(limitPrice)
+      : 0;
+  const fallbackPrice =
+    spotPrice > 0 ? spotPrice : livePrice || initialCurrentPrice || 0;
+  // Use proper precedence checking instead of || operator to avoid treating 0 as falsy
+  if (hasPositionEntry > 0) return hasPositionEntry;
+  if (limitPriceValue > 0) return limitPriceValue;
+  return fallbackPrice;
+};
 
-interface PerpsTPSLBottomSheetProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onConfirm: (takeProfitPrice?: string, stopLossPrice?: string) => void;
-  // Context data
-  asset: string;
-  currentPrice?: number;
-  direction?: 'long' | 'short'; // For new orders
-  position?: Position; // For existing positions
-  initialTakeProfitPrice?: string;
-  initialStopLossPrice?: string;
-  isUpdating?: boolean;
-  leverage?: number; // For new orders
-  marginRequired?: string; // For new orders
-  orderType?: 'market' | 'limit'; // Order type for new orders
-  limitPrice?: string; // Limit price for limit orders
-}
+const PerpsTPSLView: React.FC = () => {
+  const navigation = useNavigation();
+  const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
 
-const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
-  isVisible,
-  onClose,
-  onConfirm,
-  asset,
-  currentPrice: initialCurrentPrice,
-  direction,
-  position,
-  initialTakeProfitPrice,
-  initialStopLossPrice,
-  isUpdating = false,
-  leverage: propLeverage,
-  orderType,
-  limitPrice,
-}) => {
+  // Extract params from navigation route
+  const {
+    asset,
+    currentPrice: initialCurrentPrice,
+    direction,
+    position,
+    initialTakeProfitPrice,
+    initialStopLossPrice,
+    leverage: propLeverage,
+    orderType,
+    limitPrice,
+    onConfirm,
+  } = route.params;
+
+  const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Keypad state management
@@ -88,11 +106,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const stopLossPriceRef = useRef<TextInput>(null);
   const stopLossPercentageRef = useRef<TextInput>(null);
 
-  // Subscribe to real-time price only when visible and we have an asset
-  // Use 1s debounce for TP/SL bottom sheet
+  // Subscribe to real-time price only when we have an asset
+  // Use throttle for TP/SL screen to reduce re-renders
   const priceData = usePerpsLivePrices({
-    symbols: isVisible && asset ? [asset] : [],
-    throttleMs: 1000,
+    symbols: asset ? [asset] : [],
+    throttleMs: TP_SL_VIEW_CONFIG.PRICE_THROTTLE_MS,
   });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
@@ -107,29 +125,30 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
   // For display purposes, use limit price for limit orders, otherwise use spot price
-  const currentPrice =
-    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-      ? parseFloat(limitPrice)
-      : spotPrice;
+  const hasValidLimitPrice =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
+  const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
   // For market orders or when limit price is not set, use spot price
   // Ensure we always have a valid price > 0 for calculations
-  const effectiveEntryPrice = position?.entryPrice
-    ? parseFloat(position.entryPrice)
-    : orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-    ? parseFloat(limitPrice)
-    : spotPrice > 0
-    ? spotPrice
-    : livePrice || initialCurrentPrice || 0;
+  const effectiveEntryPrice = calculateEffectiveEntryPrice(
+    position,
+    orderType,
+    limitPrice,
+    spotPrice,
+    livePrice,
+    initialCurrentPrice,
+  );
 
   // Determine direction for tracking events
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
+  const actualDirection = (() => {
+    if (position) {
+      return parseFloat(position.size) > 0 ? 'long' : 'short';
+    }
+    return direction;
+  })();
 
   // Calculate liquidation price for new orders (when there's no existing position)
   const shouldCalculateLiquidation =
@@ -157,7 +176,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     initialStopLossPrice,
     leverage: propLeverage,
     entryPrice: effectiveEntryPrice,
-    isVisible,
+    isVisible: true,
     liquidationPrice: displayLiquidationPrice,
     orderType,
   });
@@ -204,7 +223,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    conditions: [isVisible],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TP_SL,
       [PerpsEventProperties.ASSET]: asset,
@@ -215,16 +233,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     },
   });
 
-  useEffect(() => {
-    if (isVisible) {
-      bottomSheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
-
-  // Handle close without saving
-  const handleClose = useCallback(() => {
-    onClose();
-  }, [onClose]);
+  // Handle back button press
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   // Keypad handlers
   const handleKeypadChange = useCallback(
@@ -316,7 +328,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     setFocusedInput(null);
   }, [focusedInput]);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
     if (focusedInput) {
       dismissKeypad();
     }
@@ -330,39 +342,48 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
-    onConfirm(parseTakeProfitPrice, parseStopLossPrice);
-    // Don't close immediately - let the parent handle closing after update completes
-  }, [focusedInput, takeProfitPrice, stopLossPrice, onConfirm, dismissKeypad]);
+    setIsUpdating(true);
+    try {
+      await onConfirm(parseTakeProfitPrice, parseStopLossPrice);
+      navigation.goBack();
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [
+    focusedInput,
+    takeProfitPrice,
+    stopLossPrice,
+    onConfirm,
+    dismissKeypad,
+    navigation,
+  ]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;
   const inputsDisabled = isUpdating;
 
-  if (!isVisible) return null;
-
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={handleClose}
-      testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
-      isFullscreen
-    >
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      {/* Simple header with back button and title */}
+      <View style={styles.header}>
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          iconColor={IconColor.Default}
+          size={ButtonIconSizes.Md}
+          onPress={handleBack}
+          testID="back-button"
+        />
+        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.tpsl.title')}
         </Text>
-      </BottomSheetHeader>
-      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content}>
-        <TouchableOpacity
-          style={styles.scrollContent}
-          activeOpacity={1}
-          testID="scroll-content"
-          onPress={() => {
-            if (focusedInput) {
-              dismissKeypad();
-            }
-          }}
-        >
+      </View>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        onScrollBeginDrag={Keyboard.dismiss}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.scrollContent} testID="scroll-content">
           {/* Description text */}
           {!focusedInput && (
             <Text
@@ -391,7 +412,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   {strings('perps.tpsl.entry_price')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.entryPrice &&
+                  {position.entryPrice !== undefined &&
+                  position.entryPrice !== null &&
                   position.entryPrice !== 'null' &&
                   position.entryPrice !== '0.00'
                     ? formatPerpsFiat(position.entryPrice, {
@@ -410,7 +432,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   : strings('perps.tpsl.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {currentPrice
+                {currentPrice !== undefined && currentPrice !== null
                   ? formatPerpsFiat(currentPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
@@ -422,7 +444,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 {strings('perps.tpsl.liquidation_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {displayLiquidationPrice &&
+                {displayLiquidationPrice !== undefined &&
+                displayLiquidationPrice !== null &&
                 displayLiquidationPrice !== 'null' &&
                 displayLiquidationPrice !== '0.00'
                   ? formatPerpsFiat(displayLiquidationPrice, {
@@ -453,13 +476,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   !takeProfitPrice && styles.percentageButtonOff,
                 ]}
                 onPress={handleTakeProfitOff}
-                disabled={inputsDisabled || !!focusedInput}
+                disabled={inputsDisabled || Boolean(focusedInput)}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {strings('perps.tpsl.off')}
                 </Text>
               </TouchableOpacity>
-              {TAKE_PROFIT_PERCENTAGES.map((percentage) => (
+              {TP_SL_VIEW_CONFIG.TAKE_PROFIT_ROE_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={[
@@ -468,7 +491,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                       styles.percentageButtonActiveTP,
                   ]}
                   onPress={() => handleTakeProfitPercentageButton(percentage)}
-                  testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
+                  testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
                     percentage,
                   )}
                   disabled={inputsDisabled}
@@ -500,7 +523,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   value={takeProfitPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleTakeProfitPriceChange(text);
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
@@ -538,7 +561,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   value={formattedTakeProfitPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleTakeProfitPercentageChange(text);
                   }}
                   placeholder={strings('perps.tpsl.profit_roe_placeholder')}
@@ -565,7 +588,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </View>
 
             {/* Error message */}
-            {!isValid && takeProfitError && (
+            {!isValid && Boolean(takeProfitError) && (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {takeProfitError}
               </Text>
@@ -598,7 +621,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   {strings('perps.tpsl.off')}
                 </Text>
               </TouchableOpacity>
-              {STOP_LOSS_PERCENTAGES.map((percentage) => (
+              {TP_SL_VIEW_CONFIG.STOP_LOSS_ROE_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={[
@@ -607,7 +630,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                       styles.percentageButtonActiveSL,
                   ]}
                   onPress={() => handleStopLossPercentageButton(percentage)}
-                  testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
+                  testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
                     percentage,
                   )}
                   disabled={inputsDisabled}
@@ -639,7 +662,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   value={stopLossPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleStopLossPriceChange(text);
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
@@ -677,7 +700,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   value={formattedStopLossPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
-                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    if (digitCount > TP_SL_VIEW_CONFIG.MAX_INPUT_DIGITS) return;
                     handleStopLossPercentageChange(text);
                   }}
                   placeholder={strings('perps.tpsl.loss_roe_placeholder')}
@@ -710,7 +733,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </Text>
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <View style={styles.keypadFooter}>
@@ -727,41 +750,37 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             />
             <View style={styles.keypadContainer}>
               <Keypad
-                value={
-                  focusedInput === 'takeProfitPrice'
-                    ? takeProfitPrice
-                    : focusedInput === 'takeProfitPercentage'
-                    ? formattedTakeProfitPercentage
-                    : focusedInput === 'stopLossPrice'
-                    ? stopLossPrice
-                    : formattedStopLossPercentage
-                }
+                value={(() => {
+                  if (focusedInput === 'takeProfitPrice')
+                    return takeProfitPrice;
+                  if (focusedInput === 'takeProfitPercentage')
+                    return formattedTakeProfitPercentage;
+                  if (focusedInput === 'stopLossPrice') return stopLossPrice;
+                  return formattedStopLossPercentage;
+                })()}
                 onChange={handleKeypadChange}
-                // USD_PERPS is not a real currency - it's a custom configuration
-                // that allows 5 decimal places for crypto prices, overriding the
-                // default USD configuration which only allows 2 decimal places.
-                currency="USD_PERPS"
-                decimals={5}
+                currency={TP_SL_VIEW_CONFIG.KEYPAD_CURRENCY_CODE}
+                decimals={TP_SL_VIEW_CONFIG.KEYPAD_DECIMALS}
               />
             </View>
           </>
         ) : (
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                label: strings('perps.tpsl.done'),
-                variant: ButtonVariants.Primary,
-                size: ButtonSize.Lg,
-                onPress: handleConfirm,
-                isDisabled: confirmDisabled,
-                loading: isUpdating,
-              },
-            ]}
-          />
+          <View style={styles.footer}>
+            <Button
+              label={strings('perps.tpsl.done')}
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              onPress={handleConfirm}
+              isDisabled={confirmDisabled}
+              loading={isUpdating}
+              testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+            />
+          </View>
         )}
       </View>
-    </BottomSheet>
+    </SafeAreaView>
   );
 };
 
-export default memo(PerpsTPSLBottomSheet);
+export default memo(PerpsTPSLView);

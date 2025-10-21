@@ -5,12 +5,16 @@ import { getCardholder } from '../../../../components/UI/Card/util/getCardholder
 import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
-import { CardTokenAllowance } from '../../../../components/UI/Card/types';
+import {
+  CardLocation,
+  CardTokenAllowance,
+} from '../../../../components/UI/Card/types';
 import {
   selectCardExperimentalSwitch,
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
 
 export interface CardSliceState {
   cardholderAccounts: string[];
@@ -23,6 +27,7 @@ export interface CardSliceState {
   alwaysShowCardButton: boolean;
   geoLocation: string;
   isAuthenticated: boolean;
+  userCardLocation: CardLocation;
 }
 
 export const initialState: CardSliceState = {
@@ -36,12 +41,19 @@ export const initialState: CardSliceState = {
   alwaysShowCardButton: false,
   geoLocation: 'UNKNOWN',
   isAuthenticated: false,
+  userCardLocation: 'international',
 };
 
 // Async thunk for loading cardholder accounts
 export const loadCardholderAccounts = createAsyncThunk(
   'card/loadCardholderAccounts',
   getCardholder,
+);
+
+// Async thunk for verifying card authentication
+export const verifyCardAuthentication = createAsyncThunk(
+  'card/verifyCardAuthentication',
+  handleLocalAuthentication,
 );
 
 const name = 'card';
@@ -92,6 +104,12 @@ const slice = createSlice({
     setIsAuthenticatedCard: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
     },
+    setUserCardLocation: (
+      state,
+      action: PayloadAction<CardLocation | null>,
+    ) => {
+      state.userCardLocation = action.payload ?? 'international';
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -106,6 +124,21 @@ const slice = createSlice({
           action?.error?.message,
         );
         state.isLoaded = true;
+      })
+      .addCase(verifyCardAuthentication.fulfilled, (state, action) => {
+        state.isAuthenticated = action.payload.isAuthenticated;
+        state.userCardLocation =
+          action.payload.userCardLocation ?? 'international';
+      })
+      .addCase(verifyCardAuthentication.rejected, (state, action) => {
+        Logger.log(
+          'cardSlice::Error verifying card authentication',
+          action?.error?.message,
+        );
+        state.isAuthenticated = false;
+        state.authenticatedPriorityToken = null;
+        state.authenticatedPriorityTokenLastFetched = null;
+        state.userCardLocation = 'international';
       });
   },
 });
@@ -216,6 +249,11 @@ export const selectIsAuthenticatedCard = createSelector(
   (card) => card.isAuthenticated,
 );
 
+export const selectUserCardLocation = createSelector(
+  selectCardState,
+  (card) => card.userCardLocation,
+);
+
 export const selectDisplayCardButton = createSelector(
   selectIsCardholder,
   selectAlwaysShowCardButton,
@@ -256,4 +294,5 @@ export const {
   setCardPriorityTokenLastFetched,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
+  setUserCardLocation,
 } = actions;

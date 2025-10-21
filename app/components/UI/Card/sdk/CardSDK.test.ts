@@ -8,7 +8,6 @@ import {
   CardToken,
   CardError,
   CardErrorType,
-  CardLocation,
   CardLoginInitiateResponse,
   CardLoginResponse,
   CardAuthorizeResponse,
@@ -935,7 +934,6 @@ describe('CardSDK', () => {
     const mockQueryParams = {
       state: 'test-state',
       codeChallenge: 'test-challenge',
-      location: 'us' as CardLocation,
     };
 
     it('should initiate authentication successfully', async () => {
@@ -961,7 +959,7 @@ describe('CardSDK', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'x-us-env': 'true',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
           }),
         }),
@@ -1021,13 +1019,40 @@ describe('CardSDK', () => {
         message: 'Request timed out. Please check your connection.',
       });
     });
+
+    it('should set x-us-env header to true when userCardLocation is us', async () => {
+      const usCardSDK = new CardSDK({
+        cardFeatureFlag: mockCardFeatureFlag,
+        userCardLocation: 'us',
+      });
+
+      const mockResponse: CardLoginInitiateResponse = {
+        token: 'initiate-token',
+        url: 'https://example.com/auth',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      await usCardSDK.initiateCardProviderAuthentication(mockQueryParams);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/oauth/authorize/initiate'),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-us-env': 'true',
+          }),
+        }),
+      );
+    });
   });
 
   describe('login', () => {
     const mockLoginData = {
       email: 'test@example.com',
       password: 'password123',
-      location: 'us' as CardLocation,
     };
 
     it('should login successfully', async () => {
@@ -1059,7 +1084,7 @@ describe('CardSDK', () => {
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'x-us-env': 'true',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
           }),
         }),
@@ -1116,7 +1141,6 @@ describe('CardSDK', () => {
     const mockAuthorizeData = {
       initiateAccessToken: 'initiate-token',
       loginAccessToken: 'login-token',
-      location: 'us' as CardLocation,
     };
 
     it('should authorize successfully', async () => {
@@ -1143,7 +1167,7 @@ describe('CardSDK', () => {
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'x-us-env': 'true',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
             Authorization: `Bearer ${mockAuthorizeData.loginAccessToken}`,
           }),
@@ -1191,13 +1215,11 @@ describe('CardSDK', () => {
       code: 'auth-code',
       codeVerifier: 'code-verifier',
       grantType: 'authorization_code' as const,
-      location: 'us' as CardLocation,
     };
 
     const mockRefreshTokenExchangeData = {
       code: 'refresh-token-123',
       grantType: 'refresh_token' as const,
-      location: 'international' as CardLocation,
     };
 
     it('should exchange authorization code successfully', async () => {
@@ -1237,7 +1259,7 @@ describe('CardSDK', () => {
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'x-us-env': 'true',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
             'x-secret-key': 'test-api-key',
           }),
@@ -1327,76 +1349,6 @@ describe('CardSDK', () => {
     });
   });
 
-  describe('refreshLocalToken', () => {
-    it('should refresh token successfully', async () => {
-      const mockRefreshToken = 'refresh-token-123';
-      const mockLocation: CardLocation = 'international';
-
-      const mockResponse = {
-        access_token: 'refreshed-access-token',
-        token_type: 'Bearer',
-        expires_in: 3600,
-        refresh_token: 'new-refresh-token',
-        refresh_token_expires_in: 7200,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.refreshLocalToken(
-        mockRefreshToken,
-        mockLocation,
-      );
-
-      const expectedResponse: CardExchangeTokenResponse = {
-        accessToken: 'refreshed-access-token',
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        refreshToken: 'new-refresh-token',
-        refreshTokenExpiresIn: 7200,
-      };
-
-      expect(result).toEqual(expectedResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/oauth/token'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            grant_type: 'refresh_token',
-            refresh_token: mockRefreshToken,
-          }),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'false',
-            'x-client-key': 'test-api-key',
-            'x-secret-key': 'test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('should handle refresh token failure', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 401,
-        text: jest.fn().mockResolvedValue('Invalid refresh token'),
-      });
-
-      await expect(
-        cardSDK.refreshLocalToken('invalid-token', 'us'),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.refreshLocalToken('invalid-token', 'us'),
-      ).rejects.toMatchObject({
-        type: CardErrorType.INVALID_CREDENTIALS,
-        message: 'Token exchange failed. Please try logging in again.',
-      });
-    });
-  });
-
   describe('isBaanxLoginEnabled', () => {
     it('should return true when Baanx login is enabled', () => {
       const enabledFeatureFlag: CardFeatureFlag = {
@@ -1447,7 +1399,6 @@ describe('CardSDK', () => {
         cardSDK.login({
           email: 'test@example.com',
           password: 'password',
-          location: 'us',
         }),
       ).rejects.toThrow(CardError);
 
@@ -1455,7 +1406,6 @@ describe('CardSDK', () => {
         cardSDK.login({
           email: 'test@example.com',
           password: 'password',
-          location: 'us',
         }),
       ).rejects.toMatchObject({
         type: CardErrorType.UNKNOWN_ERROR,

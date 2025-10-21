@@ -180,8 +180,9 @@ export const useGetPriorityCardToken = () => {
   const { allTokenBalances, priorityToken, lastFetched } = cardState;
 
   // Helper to check if cache is still valid (less than 5 minutes old)
+  // Cache is only valid if we have both a recent lastFetched AND an actual token
   const isCacheValid = useCallback(() => {
-    if (!lastFetched) return false;
+    if (!lastFetched || !priorityToken) return false;
     const now = new Date();
     const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
     const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
@@ -194,7 +195,7 @@ export const useGetPriorityCardToken = () => {
     }
 
     return lastFetchedDate > fiveMinutesAgo;
-  }, [lastFetched, isAuthenticated]);
+  }, [lastFetched, priorityToken, isAuthenticated]);
 
   // Memoize cache validity to prevent unnecessary re-runs
   const cacheIsValid = useMemo(() => isCacheValid(), [isCacheValid]);
@@ -513,11 +514,7 @@ export const useGetPriorityCardToken = () => {
 
   useEffect(() => {
     const run = async () => {
-      if (!selectedAddress || isLoadingSDK) {
-        return;
-      }
-
-      if (cacheIsValid) {
+      if (!selectedAddress || isLoadingSDK || cacheIsValid) {
         return;
       }
 
@@ -533,7 +530,6 @@ export const useGetPriorityCardToken = () => {
     selectedAddress,
     cacheIsValid,
     fetchPriorityTokenOnChain,
-    lastFetched,
     isAuthenticated,
     fetchPriorityTokenAPI,
     isLoadingSDK,
