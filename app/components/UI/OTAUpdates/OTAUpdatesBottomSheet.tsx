@@ -10,6 +10,7 @@ import { useUpdates, reloadAsync, channel, updateId } from 'expo-updates';
 import Button from '../../../component-library/components/Buttons/Button';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button/Button.types';
 import { Box } from '@metamask/design-system-react-native';
+import { getActiveUpdateChannel } from '../../../util/updates/setupRCUpdates';
 
 const OTAUpdatesBottomSheet = ({
   setOpenOTAUpdatesBottomSheet,
@@ -24,6 +25,7 @@ const OTAUpdatesBottomSheet = ({
 
   const updateRuntimeVersion = currentlyRunning.runtimeVersion;
   const error = checkError?.message;
+  const activeChannel = getActiveUpdateChannel();
 
   useEffect(() => {
     // do not prompt for social login flow
@@ -61,12 +63,18 @@ const OTAUpdatesBottomSheet = ({
         {isUpdatePending && (
           <Text variant={TextVariant.BodyMDBold}>Update pending</Text>
         )}
-        <Text variant={TextVariant.BodyMDBold}>Updates Channel:{channel}</Text>
         <Text variant={TextVariant.BodyMDBold}>
-          Updates Update ID:{updateId}
+          Environment: {process.env.METAMASK_ENVIRONMENT}
         </Text>
         <Text variant={TextVariant.BodyMDBold}>
-          Updates Runtime Version:{updateRuntimeVersion}
+          Embedded Channel: {channel}
+        </Text>
+        <Text variant={TextVariant.BodyMDBold}>
+          Active Channel: {activeChannel}
+        </Text>
+        <Text variant={TextVariant.BodyMDBold}>Update ID: {updateId}</Text>
+        <Text variant={TextVariant.BodyMDBold}>
+          Runtime Version: {updateRuntimeVersion}
         </Text>
       </Box>
       <Box twClassName="flex-row items-center justify-center p-4">
