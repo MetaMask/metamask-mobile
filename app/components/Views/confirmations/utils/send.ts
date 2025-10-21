@@ -60,6 +60,7 @@ export const handleSendPageNavigation = (
   location: string,
   isSendRedesignEnabled: boolean,
   asset?: AssetType | Nft,
+  extraParams?: { recipientAddress?: string },
 ) => {
   if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
@@ -70,11 +71,15 @@ export const handleSendPageNavigation = (
       } else {
         screen = Routes.SEND.AMOUNT;
       }
+    } else if (extraParams?.recipientAddress) {
+      // QR scan with recipient address → start at asset selection
+      screen = Routes.SEND.ASSET;
     }
     navigate(Routes.SEND.DEFAULT, {
       screen,
       params: {
         asset,
+        ...extraParams,
       },
     });
   } else {

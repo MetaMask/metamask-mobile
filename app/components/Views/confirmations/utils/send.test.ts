@@ -66,6 +66,112 @@ describe('handleSendPageNavigation', () => {
     );
     expect(mockNavigate.mock.calls[0][0]).toEqual('Send');
   });
+
+  describe('with extraParams', () => {
+    it('navigates to Asset screen when recipientAddress is provided without asset', () => {
+      const mockNavigate = jest.fn();
+      const recipientAddress = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
+
+      handleSendPageNavigation(
+        mockNavigate,
+        InitSendLocation.QRScanner,
+        true,
+        undefined,
+        { recipientAddress },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Asset',
+        params: {
+          asset: undefined,
+          recipientAddress,
+        },
+      });
+    });
+
+    it('navigates to Amount screen when both asset and recipientAddress provided', () => {
+      const mockNavigate = jest.fn();
+      const recipientAddress = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
+      const asset = { name: 'ETHEREUM' } as AssetType;
+
+      handleSendPageNavigation(
+        mockNavigate,
+        InitSendLocation.QRScanner,
+        true,
+        asset,
+        { recipientAddress },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Amount',
+        params: {
+          asset,
+          recipientAddress,
+        },
+      });
+    });
+
+    it('navigates to Recipient screen for ERC721 NFTs with recipientAddress', () => {
+      const mockNavigate = jest.fn();
+      const recipientAddress = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
+      const nft = {
+        name: 'MyNFT',
+        standard: TokenStandard.ERC721,
+      } as AssetType;
+
+      handleSendPageNavigation(
+        mockNavigate,
+        InitSendLocation.QRScanner,
+        true,
+        nft,
+        { recipientAddress },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Recipient',
+        params: {
+          asset: nft,
+          recipientAddress,
+        },
+      });
+    });
+
+    it('passes extraParams through when send redesign is disabled', () => {
+      const mockNavigate = jest.fn();
+      const recipientAddress = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
+
+      handleSendPageNavigation(
+        mockNavigate,
+        InitSendLocation.QRScanner,
+        false,
+        undefined,
+        { recipientAddress },
+      );
+
+      // Legacy flow doesn't use params, just navigates to SendFlowView
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
+    });
+
+    it('handles empty recipientAddress in extraParams', () => {
+      const mockNavigate = jest.fn();
+
+      handleSendPageNavigation(
+        mockNavigate,
+        InitSendLocation.QRScanner,
+        true,
+        undefined,
+        { recipientAddress: '' },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Asset',
+        params: {
+          asset: undefined,
+          recipientAddress: '',
+        },
+      });
+    });
+  });
 });
 
 describe('prepareEVMTransaction', () => {

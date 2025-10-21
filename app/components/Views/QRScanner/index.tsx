@@ -17,7 +17,7 @@ import {
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
@@ -28,7 +28,15 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNativeCurrencyByChainId,
+} from '../../../selectors/networkController';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { InitSendLocation } from '../confirmations/constants/send';
+import { newAssetTransaction } from '../../../actions/transaction';
+import { getEther } from '../../../util/transactions';
+import { RootState } from '../../../reducers';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import {
@@ -67,6 +75,12 @@ const QRScanner = ({
   const { hasPermission, requestPermission } = useCameraPermission();
 
   const currentChainId = useSelector(selectChainId);
+  const nativeCurrency = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, currentChainId),
+  );
+  const dispatch = useDispatch();
+  const { navigateToSendPage } = useSendNavigation();
+
   const theme = useTheme();
   const styles = createStyles(theme);
 
@@ -227,21 +241,37 @@ const QRScanner = ({
           mountedRef.current = false;
           return;
         }
-        // Let ethereum:address and address go forward
+        // Handle plain addresses and ethereum: URLs by using home screen send flow
         if (
           (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
             !parse(content).function_name) ||
           (content.startsWith('0x') && isValidAddress(content))
         ) {
-          const handledContent = content.startsWith('0x')
-            ? `${PROTOCOLS.ETHEREUM}:${content}@${currentChainId}`
-            : content;
           shouldReadBarCodeRef.current = false;
-          data = parse(handledContent);
-          const action = 'send-eth';
-          data = { ...data, action };
+
+          // Extract recipient address from QR code
+          const recipientAddress = content.startsWith('0x')
+            ? content
+            : parse(content).target_address;
+
+          // Initialize transaction with native currency (same as home screen send button)
+          if (nativeCurrency) {
+            dispatch(newAssetTransaction(getEther(nativeCurrency)));
+          } else {
+            // Fallback to ETH if native currency not available
+            dispatch(newAssetTransaction(getEther('ETH')));
+          }
+
+          // Close QR scanner modal first
           end();
-          onScanSuccess(data, handledContent);
+
+          // Navigate to send flow after modal closes
+          InteractionManager.runAfterInteractions(() => {
+            navigateToSendPage(InitSendLocation.QRScanner, undefined, {
+              recipientAddress,
+            });
+          });
+
           return;
         }
 
@@ -291,7 +321,9 @@ const QRScanner = ({
       navigation,
       onStartScan,
       onScanSuccess,
-      currentChainId,
+      dispatch,
+      navigateToSendPage,
+      nativeCurrency,
     ],
   );
 
