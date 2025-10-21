@@ -31,6 +31,11 @@ const readAndParseAt = async (path: string) => {
   return { path, contents };
 };
 
+const { fetch: blobFetch } = ReactNativeBlobUtil.config({
+  fileCache: true,
+  appendExt: 'tgz',
+});
+
 export class NpmLocation extends BaseNpmLocation {
   async fetchNpmTarball(
     tarballUrl: URL,
@@ -38,10 +43,7 @@ export class NpmLocation extends BaseNpmLocation {
     let response: FetchBlobResponse | null = null;
     let untarPath: string | null = null;
     try {
-      response = await ReactNativeBlobUtil.config({
-        fileCache: true,
-        appendExt: 'tgz',
-      }).fetch('GET', tarballUrl.toString());
+      response = await blobFetch('GET', tarballUrl.toString());
 
       const responseInfo = response.respInfo;
 
