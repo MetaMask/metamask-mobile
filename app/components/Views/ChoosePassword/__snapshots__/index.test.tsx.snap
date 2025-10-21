@@ -539,8 +539,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessible={true}
               activeOpacity={1}
               disabled={true}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",

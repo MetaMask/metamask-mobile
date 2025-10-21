@@ -579,8 +579,6 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                           accessible={true}
                           activeOpacity={1}
                           disabled={true}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
