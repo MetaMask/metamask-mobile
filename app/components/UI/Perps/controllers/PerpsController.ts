@@ -18,6 +18,7 @@ import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
+import { generateDepositId } from '../utils/idUtils';
 import { LastTransactionResult } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -1800,9 +1801,7 @@ export class PerpsController extends BaseController<
 
         // Add deposit request to tracking
         const depositRequest = {
-          id: `deposit-${Date.now()}-${Math.random()
-            .toString(36)
-            .substr(2, 9)}`,
+          id: generateDepositId(),
           timestamp: Date.now(),
           amount: amount || '0', // Use provided amount or default to '0'
           asset: 'USDC',
