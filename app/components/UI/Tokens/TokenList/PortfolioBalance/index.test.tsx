@@ -5,6 +5,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PortfolioBalance } from '.';
 import Engine from '../../../../../core/Engine';
+import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
 
 const { PreferencesController } = Engine.context;
 
@@ -17,9 +18,9 @@ const mockSelectedAccountMultichainBalance = {
 };
 
 jest.mock('../../../../hooks/useMultichainBalances', () => ({
-  useSelectedAccountMultichainBalances: () => ({
+  useSelectedAccountMultichainBalances: jest.fn(() => ({
     selectedAccountMultichainBalance: mockSelectedAccountMultichainBalance,
-  }),
+  })),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -44,6 +45,30 @@ jest.mock('../../../../../core/Engine', () => ({
         selectedNetworkClientId: 'mainnet',
       },
     },
+  },
+}));
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    })),
+  }),
+  MetaMetricsEvents: {
+    CARD_ADD_FUNDS_DEPOSIT_CLICKED: 'CARD_ADD_FUNDS_DEPOSIT_CLICKED',
+    RAMPS_BUTTON_CLICKED: 'RAMPS_BUTTON_CLICKED',
   },
 }));
 
@@ -146,6 +171,15 @@ const renderPortfolioBalance = (state: any = {}) =>
   renderWithProvider(<PortfolioBalance />, { state });
 
 describe('PortfolioBalance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset to default mock before each test
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance: mockSelectedAccountMultichainBalance,
+    });
+  });
+
   it('fiat balance must be defined', () => {
     const { getByTestId } = renderPortfolioBalance(initialState);
     expect(
@@ -206,5 +240,41 @@ describe('PortfolioBalance', () => {
     fireEvent.press(balanceContainer);
 
     expect(PreferencesController.setPrivacyMode).toHaveBeenCalledWith(true);
+  });
+
+  it('displays BalanceEmptyState when balance is zero', () => {
+    // Mock zero balance
+    const mockSelectedAccountMultichainBalanceZero = {
+      displayBalance: '$0.00',
+      totalFiatBalance: 0,
+      shouldShowAggregatedPercentage: false,
+      tokenFiatBalancesCrossChains: [],
+    };
+
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance:
+        mockSelectedAccountMultichainBalanceZero,
+    });
+
+    const { getByTestId, queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should render BalanceEmptyState instead of balance text
+    expect(getByTestId('portfolio-balance-empty-state')).toBeDefined();
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
+  });
+
+  it('displays loader when balance is not available', () => {
+    // Mock null balance
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance: null,
+    });
+
+    const { queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should not render balance text or empty state
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
+    expect(queryByTestId('portfolio-balance-empty-state')).toBeNull();
   });
 });
