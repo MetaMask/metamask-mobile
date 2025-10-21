@@ -58,7 +58,7 @@ export const multichainAccountServiceInit: ControllerInitFunction<
 
   // Set initial state based on bitcoinAccounts feature flag
   const initialBitcoinEnabled = isBitcoinAccountsFeatureEnabled(
-    initialRemoteFeatureFlagsState?.remoteFeatureFlags?.bitcoinAccounts,
+    initialRemoteFeatureFlagsState.remoteFeatureFlags.bitcoinAccounts,
   );
 
   if (initialBitcoinEnabled) {
