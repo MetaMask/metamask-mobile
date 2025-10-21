@@ -7117,13 +7117,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/build-utils@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/build-utils@npm:1.0.0"
+"@metamask/build-utils@npm:^3.0.0":
+  version: 3.0.4
+  resolution: "@metamask/build-utils@npm:3.0.4"
   dependencies:
-    "@metamask/utils": ^8.2.0
+    "@metamask/utils": ^11.8.1
     "@types/eslint": ^8.44.7
-  checksum: 3e70fc1b72948d0d5466b96e329fb80f2e08f70dcb801aa3cbb903bdc490245ed77e107ffa4da6c9ea6f6feb0551bb18f38da5d6467b1b35cc9de90e007ef451
+  checksum: bb9b25777c0b4f30a9f50de513000084b0d74b3961f0040f328c8a20751b96c567d90c9bf061ab584c23a2e9c97626f99849ced18caf42fef49f88708c3396c8
   languageName: node
   linkType: hard
 
@@ -7327,12 +7327,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/error-reporting-service@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/error-reporting-service@npm:2.0.0"
+"@metamask/error-reporting-service@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "@metamask/error-reporting-service@npm:2.2.1"
   dependencies:
-    "@metamask/base-controller": ^8.0.1
-  checksum: 210f7d6b76aac0ba0164f3c6986987cc3e7c7681f8dc2d0e3470995c109009b95eeae14207fc89e261469f61dd3ae04aa9d0b022137ecc9ec1a4a12a44cdb76c
+    "@metamask/base-controller": ^8.4.1
+  checksum: b32c24120583d10c23babe648ccb864f389621ce4c2121484deed748f254529be2ea62d3079847f7fa16e648bac0a94e643aea46f1ce84ada54b2f798a091d8f
   languageName: node
   linkType: hard
 
@@ -8844,10 +8844,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "@metamask/tron-wallet-snap@npm:1.4.0"
-  checksum: 6c63d9d7b8d23c7a8df887f8d3fea5d675ae252f3d9790d8f8fe824057c98ad3fbc0e948c2a46882e3a196402bafe32009cca6b877091aa00cad1a5134ce2317
+"@metamask/tron-wallet-snap@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.5.0"
+  checksum: a480aafd175137de32a444ad440f75a8f5efabbbc0fdbbfa9188b2f085964d18f05246d86713a9a2c366ae629a3bcab1155e087aa48ef630dcf0921f4f605830
   languageName: node
   linkType: hard
 
@@ -21607,13 +21607,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base-64@npm:1.0.0":
-  version: 1.0.0
-  resolution: "base-64@npm:1.0.0"
-  checksum: d10b64a1fc9b2c5a5f39f1ce1e6c9d1c5b249222bbfa3a0604c592d90623caf74419983feadd8a170f27dc0c3389704f72faafa3e645aeb56bfc030c93ff074a
-  languageName: node
-  linkType: hard
-
 "base-x@npm:^1.1.0, base-x@npm:^3.0.2, base-x@npm:^3.0.8":
   version: 3.0.11
   resolution: "base-x@npm:3.0.11"
@@ -34078,7 +34071,7 @@ __metadata:
     "@metamask/bridge-controller": ^50.0.0
     "@metamask/bridge-status-controller": ^50.0.0
     "@metamask/browser-passworder": ^5.0.0
-    "@metamask/build-utils": ^1.0.0
+    "@metamask/build-utils": ^3.0.0
     "@metamask/chain-agnostic-permission": ^1.1.0
     "@metamask/composable-controller": ^11.0.0
     "@metamask/controller-utils": ^11.11.0
@@ -34092,7 +34085,7 @@ __metadata:
     "@metamask/eip-5792-middleware": ^1.2.3
     "@metamask/eip1193-permission-middleware": ^1.0.0
     "@metamask/ens-resolver-snap": ^1.0.0
-    "@metamask/error-reporting-service": ^2.0.0
+    "@metamask/error-reporting-service": ^2.2.1
     "@metamask/eslint-config-typescript": ^9.0.0
     "@metamask/eslint-plugin-design-tokens": ^1.0.0
     "@metamask/eth-hd-keyring": ^13.0.0
@@ -34172,7 +34165,7 @@ __metadata:
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
     "@metamask/transaction-controller": ^60.9.0
-    "@metamask/tron-wallet-snap": ^1.4.0
+    "@metamask/tron-wallet-snap": ^1.5.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
     "@nktkas/hyperliquid": ^0.25.1
@@ -34282,7 +34275,6 @@ __metadata:
     babel-plugin-react-compiler: ^19.1.0-rc.2
     babel-plugin-transform-inline-environment-variables: ^0.4.4
     babel-plugin-transform-remove-console: 6.9.4
-    base-64: 1.0.0
     base64-js: ^1.5.1
     bignumber.js: ^9.0.1
     bitcoin-address-validation: 2.2.3
