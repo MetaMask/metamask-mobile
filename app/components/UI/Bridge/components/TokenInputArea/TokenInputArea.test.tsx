@@ -294,6 +294,9 @@ describe('getDisplayAmount', () => {
     const amount = '1234.567890123456789';
     expect(getDisplayAmount(amount, TokenInputAreaType.Source, true)).toBe(
       '1234.56789',
+    );
+  });
+
   it('returns full amount for source type when under max length', () => {
     const amount = '123456789012345678';
     expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(
