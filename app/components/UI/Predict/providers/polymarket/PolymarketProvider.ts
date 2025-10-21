@@ -18,8 +18,6 @@ import {
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
-  UnrealizedPnL,
-  Result,
   Side,
   UnrealizedPnL,
 } from '../../types';
@@ -67,8 +65,8 @@ import {
   PolymarketApiActivity,
   PolymarketPosition,
   SignatureType,
-  UtilsSide,
   TickSize,
+  UtilsSide,
 } from './types';
 import {
   createApiKey,
@@ -85,10 +83,8 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
-  submitClobOrder,
-  previewOrder,
-  generateSalt,
   roundOrderAmount,
+  submitClobOrder,
 } from './utils';
 
 export type SignTypedMessageFn = (

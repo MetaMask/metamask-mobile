@@ -18,7 +18,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex, numberToHex } from '@metamask/utils';
+import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
