@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useUserHistory } from './useUserHistory';
+import type { CaipAccountId } from '@metamask/utils';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine');
@@ -11,8 +12,14 @@ const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 
 describe('useUserHistory', () => {
-  let mockController: any;
-  let mockProvider: any;
+  let mockController: {
+    getActiveProvider: jest.MockedFunction<() => unknown>;
+  };
+  let mockProvider: {
+    getUserHistory: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+  };
 
   const mockUserHistory = [
     {
@@ -49,7 +56,9 @@ describe('useUserHistory', () => {
     };
 
     // Mock Engine context
-    (mockEngine as any).context = {
+    (
+      mockEngine as unknown as { context: { PerpsController: unknown } }
+    ).context = {
       PerpsController: mockController,
     };
   });
@@ -87,10 +96,11 @@ describe('useUserHistory', () => {
       const params = {
         startTime: 1640995200000,
         endTime: 1640995300000,
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890' as any,
+        accountId:
+          'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
 
-      const { result } = renderHook(() => useUserHistory(params));
+      renderHook(() => useUserHistory(params));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -100,7 +110,9 @@ describe('useUserHistory', () => {
     });
 
     it('handles PerpsController not available', async () => {
-      (mockEngine as any).context.PerpsController = undefined;
+      (
+        mockEngine as unknown as { context: { PerpsController: unknown } }
+      ).context.PerpsController = undefined;
 
       const { result } = renderHook(() => useUserHistory());
 
@@ -151,7 +163,7 @@ describe('useUserHistory', () => {
 
   describe('loading states', () => {
     it('sets loading to true during fetch', async () => {
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: (value: unknown) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
@@ -163,7 +175,7 @@ describe('useUserHistory', () => {
       expect(result.current.isLoading).toBe(true);
 
       await act(async () => {
-        resolvePromise!(mockUserHistory);
+        resolvePromise(mockUserHistory);
         await promise;
       });
 
@@ -221,7 +233,7 @@ describe('useUserHistory', () => {
 
   describe('parameter changes', () => {
     it('refetches when startTime changes', async () => {
-      const { result, rerender } = renderHook(
+      const { rerender } = renderHook(
         ({ startTime }) => useUserHistory({ startTime }),
         { initialProps: { startTime: 1000 } },
       );
@@ -253,7 +265,7 @@ describe('useUserHistory', () => {
     });
 
     it('refetches when endTime changes', async () => {
-      const { result, rerender } = renderHook(
+      const { rerender } = renderHook(
         ({ endTime }) => useUserHistory({ endTime }),
         { initialProps: { endTime: 1000 } },
       );
@@ -285,12 +297,12 @@ describe('useUserHistory', () => {
     });
 
     it('refetches when accountId changes', async () => {
-      const { result, rerender } = renderHook(
+      const { rerender } = renderHook(
         ({ accountId }) => useUserHistory({ accountId }),
         {
           initialProps: {
             accountId:
-              'eip155:1:0x1234567890123456789012345678901234567890' as any,
+              'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
           },
         },
       );
@@ -309,7 +321,8 @@ describe('useUserHistory', () => {
       mockProvider.getUserHistory.mockClear();
 
       rerender({
-        accountId: 'eip155:1:0x9876543210987654321098765432109876543210' as any,
+        accountId:
+          'eip155:1:0x9876543210987654321098765432109876543210' as CaipAccountId,
       });
 
       await act(async () => {
@@ -329,10 +342,11 @@ describe('useUserHistory', () => {
       const params = {
         startTime: 1640995200000,
         endTime: 1640995300000,
-        accountId: 'eip155:1:0x1234567890123456789012345678901234567890' as any,
+        accountId:
+          'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
       };
 
-      const { result } = renderHook(() => useUserHistory(params));
+      renderHook(() => useUserHistory(params));
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -345,7 +359,7 @@ describe('useUserHistory', () => {
     });
 
     it('logs successful fetch', async () => {
-      const { result } = renderHook(() => useUserHistory());
+      renderHook(() => useUserHistory());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -360,7 +374,7 @@ describe('useUserHistory', () => {
     it('logs errors', async () => {
       mockProvider.getUserHistory.mockRejectedValue(new Error('Test error'));
 
-      const { result } = renderHook(() => useUserHistory());
+      renderHook(() => useUserHistory());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
