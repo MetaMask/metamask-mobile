@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,6 +9,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 
 const ValidatingKYC = () => {
   const navigation = useNavigation();
+  const hasNavigatedToWebview = useRef(false);
 
   const { verificationState } = useUserRegistrationStatus();
   const { sessionUrl } = useParams<{ sessionUrl: string }>();
@@ -18,9 +19,12 @@ const ValidatingKYC = () => {
       navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS);
     } else if (verificationState === 'REJECTED') {
       navigation.navigate(Routes.CARD.ONBOARDING.KYC_FAILED);
-    } else if (verificationState === 'UNVERIFIED') {
-      navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
-    } else if (sessionUrl) {
+    } else if (
+      verificationState === 'UNVERIFIED' &&
+      sessionUrl &&
+      !hasNavigatedToWebview.current
+    ) {
+      hasNavigatedToWebview.current = true;
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {

@@ -62,6 +62,12 @@ describe('useUserRegistrationStatus', () => {
       return 'US'; // Default for other selectors like selectedCountry
     });
 
+    // Default mock for getRegistrationStatus to handle auto-polling
+    mockGetRegistrationStatus.mockResolvedValue({
+      ...mockUserResponse,
+      verificationState: 'UNVERIFIED',
+    });
+
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
@@ -336,13 +342,43 @@ describe('useUserRegistrationStatus', () => {
       expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(1);
     });
 
+    it('starts polling when verification state is UNVERIFIED', async () => {
+      // Given: Response with UNVERIFIED verification state
+      const unverifiedResponse: UserResponse = {
+        ...mockUserResponse,
+        verificationState: 'UNVERIFIED',
+      };
+      mockGetRegistrationStatus.mockResolvedValue(unverifiedResponse);
+
+      // When: Hook is rendered and fetches data
+      const { result } = renderHook(() => useUserRegistrationStatus());
+
+      await act(async () => {
+        result.current.startPolling();
+      });
+
+      expect(result.current.verificationState).toBe('UNVERIFIED');
+
+      // Clear the initial calls
+      mockGetRegistrationStatus.mockClear();
+
+      // When: Time advances
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      // Then: Should continue polling
+      expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(1);
+    });
+
     it('stops polling when verification state changes from PENDING to VERIFIED', async () => {
-      // Given: Initial PENDING response
+      // Given: Initial PENDING response for both auto-polling and manual startPolling
       const pendingResponse: UserResponse = {
         ...mockUserResponse,
         verificationState: 'PENDING',
       };
-      mockGetRegistrationStatus.mockResolvedValueOnce(pendingResponse);
+      // Use mockResolvedValue instead of mockResolvedValueOnce to handle multiple calls
+      mockGetRegistrationStatus.mockResolvedValue(pendingResponse);
 
       const { result } = renderHook(() => useUserRegistrationStatus());
 
