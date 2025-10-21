@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
-import { assert, getErrorMessage, stringToBytes } from '@metamask/utils';
+import { assert, getErrorMessage } from '@metamask/utils';
 import { NativeModules } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import {
@@ -25,9 +25,7 @@ const findAllPaths = async (path: string): Promise<string[]> => {
 };
 
 const readAndParseAt = async (path: string) => {
-  const contents = stringToBytes(
-    await ReactNativeBlobUtil.fs.readFile(path, 'utf8'),
-  );
+  const contents = await ReactNativeBlobUtil.fs.readFile(path, 'utf8');
   return { path, contents };
 };
 
