@@ -7087,7 +7087,7 @@ __metadata:
 
 "@metamask/bridge-controller@file:../core/packages/bridge-controller::locator=metamask%40workspace%3A.":
   version: 52.0.0
-  resolution: "@metamask/bridge-controller@file:../core/packages/bridge-controller#../core/packages/bridge-controller::hash=f8187e&locator=metamask%40workspace%3A."
+  resolution: "@metamask/bridge-controller@file:../core/packages/bridge-controller#../core/packages/bridge-controller::hash=18e598&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/address": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
@@ -7114,13 +7114,13 @@ __metadata:
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 93c211cbac228e286841ccef18237d4aa926a2a301794856045cd7d1a1f3d06f06a588da52c93b765b71b75cd96fc62dbf401cff872e8d15b7f1e8d5bc1ef67e
+  checksum: 2fa58f27885e261eb97162fdce336ec6c6f72b70984e1282370bdd11cf83a9e8494c855ab55d375bf0025ce80346a0a99ffbaf73428d195550ba64846e5f720e
   languageName: node
   linkType: hard
 
 "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller::locator=metamask%40workspace%3A.":
   version: 51.0.0
-  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=60b681&locator=metamask%40workspace%3A."
+  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=5b6925&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": ^8.4.1
     "@metamask/controller-utils": ^11.14.1
@@ -7138,7 +7138,7 @@ __metadata:
     "@metamask/network-controller": ^24.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 7a9c74ff2208292d29c56710b0a588f0bcc60fb7c94f4a74626e5cfc65eefd1ba8f7437f73afa2ae4bb076f891fb828134d4316bd5de4ec43abc3265dbca77b0
+  checksum: 80067f6b5587d62e3903616d696eb32491d324b51f23d44c4ab32671a7df9d414f09275ac43fa9a2839f0aad4670efa816f886269b467a35d617d668be55ce86
   languageName: node
   linkType: hard
 
@@ -7743,39 +7743,39 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-controller%23..%2Fcore%2Fpackages%2Fbridge-controller%3A%3Ahash%3Df8187e%26locator%3Dmetamask%2540workspace%253A.":
+"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-controller%23..%2Fcore%2Fpackages%2Fbridge-controller%3A%3Ahash%3D18e598%26locator%3Dmetamask%2540workspace%253A.":
   version: 1.0.0
-  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=5fbfb0&locator=%40metamask%2Fbridge-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-controller%23..%2Fcore%2Fpackages%2Fbridge-controller%3A%3Ahash%3Df8187e%26locator%3Dmetamask%2540workspace%253A."
+  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=68fa9a&locator=%40metamask%2Fbridge-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-controller%23..%2Fcore%2Fpackages%2Fbridge-controller%3A%3Ahash%3D18e598%26locator%3Dmetamask%2540workspace%253A."
   dependencies:
     "@metamask/base-controller": ^8.3.0
     "@metamask/controller-utils": ^11.12.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.4.2
-  checksum: c64ca4f807e347e5b87dbac21f26dfdfaf64d7449e588786ccd1120dac365b8ae0cbfb22c4d641a78f1116c60f65fc796c428df468fa2db1bd705a7d563c039b
+  checksum: 57e3a79bd1e09e186a3d4959b8dfb1b1171e216a9a3e63107cdbb1f1a6b7ab40e3c34ce81ce00cd2c17c6ab6ec461febdfa016de957193613ece2e4826fa22eb
   languageName: node
   linkType: hard
 
-"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D60b681%26locator%3Dmetamask%2540workspace%253A.":
+"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D5b6925%26locator%3Dmetamask%2540workspace%253A.":
   version: 1.0.0
-  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=5fbfb0&locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D60b681%26locator%3Dmetamask%2540workspace%253A."
+  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=68fa9a&locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D5b6925%26locator%3Dmetamask%2540workspace%253A."
   dependencies:
     "@metamask/base-controller": ^8.3.0
     "@metamask/controller-utils": ^11.12.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.4.2
-  checksum: c64ca4f807e347e5b87dbac21f26dfdfaf64d7449e588786ccd1120dac365b8ae0cbfb22c4d641a78f1116c60f65fc796c428df468fa2db1bd705a7d563c039b
+  checksum: 57e3a79bd1e09e186a3d4959b8dfb1b1171e216a9a3e63107cdbb1f1a6b7ab40e3c34ce81ce00cd2c17c6ab6ec461febdfa016de957193613ece2e4826fa22eb
   languageName: node
   linkType: hard
 
 "@metamask/intent-manager@file:../core/packages/intent-manager::locator=metamask%40workspace%3A.":
   version: 1.0.0
-  resolution: "@metamask/intent-manager@file:../core/packages/intent-manager#../core/packages/intent-manager::hash=5fbfb0&locator=metamask%40workspace%3A."
+  resolution: "@metamask/intent-manager@file:../core/packages/intent-manager#../core/packages/intent-manager::hash=68fa9a&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": ^8.3.0
     "@metamask/controller-utils": ^11.12.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.4.2
-  checksum: c64ca4f807e347e5b87dbac21f26dfdfaf64d7449e588786ccd1120dac365b8ae0cbfb22c4d641a78f1116c60f65fc796c428df468fa2db1bd705a7d563c039b
+  checksum: 57e3a79bd1e09e186a3d4959b8dfb1b1171e216a9a3e63107cdbb1f1a6b7ab40e3c34ce81ce00cd2c17c6ab6ec461febdfa016de957193613ece2e4826fa22eb
   languageName: node
   linkType: hard
 

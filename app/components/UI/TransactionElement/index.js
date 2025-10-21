@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -158,6 +158,18 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.predictDeposit,
 ];
 
+const INTENT_STATUS = {
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+};
+
+const TRANSACTION_STATUS = {
+  SUBMITTED: 'submitted',
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  FAILED: 'failed',
+};
 /**
  * View that renders a transaction item part of transactions list
  */
@@ -434,6 +446,19 @@ class TransactionElement extends PureComponent {
     );
   };
 
+  mapIntentStatusToTransactionStatus = (intentStatus) => {
+    if (intentStatus === INTENT_STATUS.PENDING) {
+      return TRANSACTION_STATUS.PENDING;
+    }
+    if (intentStatus === INTENT_STATUS.COMPLETE) {
+      return TRANSACTION_STATUS.CONFIRMED;
+    }
+    if (intentStatus === INTENT_STATUS.FAILED) {
+      return TRANSACTION_STATUS.FAILED;
+    }
+    return TRANSACTION_STATUS.SUBMITTED;
+  };
+
   /**
    * Renders an horizontal bar with basic tx information
    *
@@ -452,14 +477,23 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
+    // transform the status from bridgeTxHistoryItem to the status of the transaction
+    let transactionStatus = status;
+    if (bridgeTxHistoryItem) {
+      transactionStatus = this.mapIntentStatusToTransactionStatus(
+        bridgeTxHistoryItem.status.status,
+      );
+    }
 
     const renderNormalActions =
-      (status === 'submitted' ||
-        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      (transactionStatus === 'submitted' ||
+        (transactionStatus === 'approved' &&
+          !isQRHardwareAccount &&
+          !isLedgerAccount)) &&
       !isSmartTransaction &&
       !isBridgeTransaction;
     const renderUnsignedQRActions =
-      status === 'approved' && isQRHardwareAccount;
+      transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     let title = actionKey;
@@ -476,7 +510,11 @@ class TransactionElement extends PureComponent {
           </ListItem.Date>
           <ListItem.Content style={styles.listItemContent}>
             <ListItem.Icon>
-              {this.renderTxElementIcon(transactionElement, status, chainId)}
+              {this.renderTxElementIcon(
+                transactionElement,
+                transactionStatus,
+                chainId,
+              )}
             </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
@@ -492,7 +530,7 @@ class TransactionElement extends PureComponent {
               ) : (
                 <StatusText
                   testID={`transaction-status-${i}`}
-                  status={status}
+                  status={transactionStatus}
                   style={styles.listItemStatus}
                 />
               )}
