@@ -7,6 +7,7 @@ import {
   TransactionControllerStateChangeEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
   TransactionControllerGetStateAction,
+  TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import {
   BridgeStatusControllerActions,
@@ -15,6 +16,7 @@ import {
 import { TransactionPayControllerMessenger } from '@metamask/transaction-pay-controller';
 import { BridgeControllerActions } from '@metamask/bridge-controller';
 import {
+  AccountTrackerControllerGetStateAction,
   CurrencyRateControllerActions,
   TokenBalancesControllerGetStateAction,
   TokenListControllerActions,
@@ -24,6 +26,7 @@ import {
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 type MessengerActions =
+  | AccountTrackerControllerGetStateAction
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | CurrencyRateControllerActions
@@ -34,7 +37,8 @@ type MessengerActions =
   | TokenListControllerActions
   | TokenRatesControllerGetStateAction
   | TokensControllerGetStateAction
-  | TransactionControllerGetStateAction;
+  | TransactionControllerGetStateAction
+  | TransactionControllerUpdateTransactionAction;
 
 type MessengerEvents =
   | BridgeStatusControllerStateChangeEvent
@@ -47,6 +51,7 @@ export function getTransactionPayControllerMessenger(
   return messenger.getRestricted({
     name: 'TransactionPayController',
     allowedActions: [
+      'AccountTrackerController:getState',
       'BridgeController:fetchQuotes',
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
@@ -58,6 +63,7 @@ export function getTransactionPayControllerMessenger(
       'TokenRatesController:getState',
       'TokensController:getState',
       'TransactionController:getState',
+      'TransactionController:updateTransaction',
     ],
     allowedEvents: [
       'BridgeStatusController:stateChange',
