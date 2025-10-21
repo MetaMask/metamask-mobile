@@ -384,12 +384,11 @@ export const calculateRoEForPrice = (
     roePercentage = -roePercentage;
   }
 
-  if (!isForPositionBoundTpsl) {
-    if (isProfit && roePercentage < 0) {
-      roePercentage = 0;
-    } else if (!isProfit && roePercentage > 0) {
-      roePercentage = 0;
-    }
+  if (
+    !isForPositionBoundTpsl &&
+    ((isProfit && roePercentage < 0) || (!isProfit && roePercentage > 0))
+  ) {
+    roePercentage = 0;
   }
 
   return roePercentage.toFixed(2);
@@ -517,7 +516,7 @@ export const sanitizePercentageInput = (
     const hasMinus = finalValue.includes('-');
     if (hasPlus && hasMinus) {
       // Mixed signs - keep only the first sign
-      const firstSignMatch = finalValue.match(/[+-]/);
+      const firstSignMatch = /[+-]/.exec(finalValue);
       if (firstSignMatch) {
         const sign = firstSignMatch[0];
         const restOfString = finalValue.substring(1);

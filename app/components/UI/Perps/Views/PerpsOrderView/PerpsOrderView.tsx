@@ -826,15 +826,16 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
-  const placeOrderLabel =
-    amountTimesLeverage < minimumOrderAmount
-      ? strings('perps.order.validation.insufficient_funds')
-      : strings(
-          orderForm.direction === 'long'
-            ? 'perps.order.button.long'
-            : 'perps.order.button.short',
-          { asset: orderForm.asset },
-        );
+  const placeOrderLabel = (() => {
+    if (amountTimesLeverage < minimumOrderAmount) {
+      return strings('perps.order.validation.insufficient_funds');
+    }
+    const buttonKey =
+      orderForm.direction === 'long'
+        ? 'perps.order.button.long'
+        : 'perps.order.button.short';
+    return strings(buttonKey, { asset: orderForm.asset });
+  })();
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
@@ -1145,13 +1146,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
                       strings('perps.points_error_content'),
                     )
                   }
-                  state={
-                    rewardsState.isLoading
-                      ? RewardAnimationState.Loading
-                      : rewardsState.hasError
-                      ? RewardAnimationState.ErrorState
-                      : RewardAnimationState.Idle
-                  }
+                  state={(() => {
+                    if (rewardsState.isLoading)
+                      return RewardAnimationState.Loading;
+                    if (rewardsState.hasError)
+                      return RewardAnimationState.ErrorState;
+                    return RewardAnimationState.Idle;
+                  })()}
                 />
               </View>
             </View>
