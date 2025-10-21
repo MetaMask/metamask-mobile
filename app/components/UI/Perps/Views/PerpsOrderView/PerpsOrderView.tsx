@@ -957,7 +957,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {orderForm.limitPrice
+                        {orderForm.limitPrice !== undefined &&
+                        orderForm.limitPrice !== null
                           ? formatPerpsFiat(orderForm.limitPrice, {
                               ranges: PRICE_RANGES_UNIVERSAL,
                             })
@@ -1051,7 +1052,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {marginRequired
+              {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
