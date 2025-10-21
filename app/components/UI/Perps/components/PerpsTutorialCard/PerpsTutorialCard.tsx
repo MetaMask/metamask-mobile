@@ -9,11 +9,11 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { TouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const PerpsTutorialCard = () => {
   const { styles } = useStyles(styleSheet, {});

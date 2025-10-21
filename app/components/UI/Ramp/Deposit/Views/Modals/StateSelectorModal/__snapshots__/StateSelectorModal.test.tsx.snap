@@ -375,7 +375,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={17}
+                          handlerTag={47}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -687,7 +687,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                             }
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={16}
+                            handlerTag={46}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -719,44 +719,55 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={41}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -766,25 +777,43 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            California
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                California
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -1178,7 +1207,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={11}
+                          handlerTag={31}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -1483,7 +1512,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                             data={[]}
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={10}
+                            handlerTag={30}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -1925,7 +1954,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={8}
+                          handlerTag={23}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -2237,7 +2266,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                             }
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={7}
+                            handlerTag={22}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -2269,44 +2298,55 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={17}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -2316,25 +2356,43 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            California
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                California
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -2728,7 +2786,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={5}
+                          handlerTag={15}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -3040,7 +3098,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                             }
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={4}
+                            handlerTag={14}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -3072,44 +3130,55 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={9}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -3119,25 +3188,43 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            California
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                California
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -3850,44 +3937,55 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -3897,69 +3995,98 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            California
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                California
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -3969,69 +4096,98 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            Florida
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                Florida
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -4041,69 +4197,98 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            New York
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                New York
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -4113,69 +4298,98 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            Texas
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                Texas
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -4185,25 +4399,43 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            Washington
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                Washington
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -4597,7 +4829,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={14}
+                          handlerTag={39}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -4909,7 +5141,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                             }
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={13}
+                            handlerTag={38}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -4941,44 +5173,55 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={33}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -4988,25 +5231,43 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            California
-                                          </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                California
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>

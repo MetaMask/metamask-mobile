@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -113,42 +113,44 @@ function RegionSelectorModal() {
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
-      <ListItemSelect
-        isSelected={selectedRegion?.isoCode === region.isoCode}
+      <TouchableOpacity
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
           }
         }}
-        accessibilityRole="button"
-        accessible
         disabled={!region.supported}
       >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.region}>
-            <View style={styles.emoji}>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.flag}
-              </Text>
+        <ListItemSelect
+          isSelected={selectedRegion?.isoCode === region.isoCode}
+          disabled={!region.supported}
+        >
+          <ListItemColumn widthType={WidthType.Fill}>
+            <View style={styles.region}>
+              <View style={styles.emoji}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={
+                    region.supported ? TextColor.Default : TextColor.Alternative
+                  }
+                >
+                  {region.flag}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={
+                    region.supported ? TextColor.Default : TextColor.Alternative
+                  }
+                >
+                  {region.name}
+                </Text>
+              </View>
             </View>
-            <View>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.name}
-              </Text>
-            </View>
-          </View>
-        </ListItemColumn>
-      </ListItemSelect>
+          </ListItemColumn>
+        </ListItemSelect>
+      </TouchableOpacity>
     ),
     [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
   );

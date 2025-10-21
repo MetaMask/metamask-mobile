@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
 
@@ -110,20 +110,20 @@ function StateSelectorModal() {
 
   const renderStateItem = useCallback(
     ({ item: state }: { item: { code: string; name: string } }) => (
-      <ListItemSelect
-        isSelected={selectedState === state.code}
-        onPress={() => handleOnStatePressCallback(state)}
-        accessibilityRole="button"
-        accessible
-      >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.state}>
-            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
-              {state.name}
-            </Text>
-          </View>
-        </ListItemColumn>
-      </ListItemSelect>
+      <TouchableOpacity onPress={() => handleOnStatePressCallback(state)}>
+        <ListItemSelect isSelected={selectedState === state.code}>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <View style={styles.state}>
+              <Text
+                variant={TextVariant.BodyLGMedium}
+                color={TextColor.Default}
+              >
+                {state.name}
+              </Text>
+            </View>
+          </ListItemColumn>
+        </ListItemSelect>
+      </TouchableOpacity>
     ),
     [handleOnStatePressCallback, selectedState, styles.state],
   );

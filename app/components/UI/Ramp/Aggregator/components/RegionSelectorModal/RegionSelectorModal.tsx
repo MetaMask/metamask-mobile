@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -163,32 +163,31 @@ function RegionSelectorModal() {
       if (!region) return null;
 
       return (
-        <ListItemSelect
-          isSelected={
-            selectedRegion?.id === region.id ||
-            (selectedRegion?.id.includes('-') &&
-              selectedRegion.id.split('-')[0] === region.id)
-          }
-          onPress={() => handleOnRegionPressCallback(region)}
-          accessibilityRole="button"
-          accessible
-        >
-          <ListItemColumn widthType={WidthType.Fill}>
-            <View style={styles.region}>
-              <View style={styles.emoji}>
-                <Text variant={TextVariant.BodyLGMedium}>{region.emoji}</Text>
+        <TouchableOpacity onPress={() => handleOnRegionPressCallback(region)}>
+          <ListItemSelect
+            isSelected={
+              selectedRegion?.id === region.id ||
+              (selectedRegion?.id.includes('-') &&
+                selectedRegion.id.split('-')[0] === region.id)
+            }
+          >
+            <ListItemColumn widthType={WidthType.Fill}>
+              <View style={styles.region}>
+                <View style={styles.emoji}>
+                  <Text variant={TextVariant.BodyLGMedium}>{region.emoji}</Text>
+                </View>
+                <View>
+                  <Text variant={TextVariant.BodyLGMedium}>{region.name}</Text>
+                </View>
               </View>
-              <View>
-                <Text variant={TextVariant.BodyLGMedium}>{region.name}</Text>
-              </View>
-            </View>
-          </ListItemColumn>
-          {region.states && region.states.length > 0 && (
-            <ListItemColumn>
-              <Icon name={IconName.ArrowRight} />
             </ListItemColumn>
-          )}
-        </ListItemSelect>
+            {region.states && region.states.length > 0 && (
+              <ListItemColumn>
+                <Icon name={IconName.ArrowRight} />
+              </ListItemColumn>
+            )}
+          </ListItemSelect>
+        </TouchableOpacity>
       );
     },
     [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],

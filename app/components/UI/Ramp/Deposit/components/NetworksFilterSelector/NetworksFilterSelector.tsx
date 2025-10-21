@@ -1,7 +1,7 @@
 import { CaipChainId } from '@metamask/utils';
 import React, { useCallback } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 
 import styleSheet from './NetworksFilterSelector.styles';
@@ -63,57 +63,59 @@ function NetworksFilterSelector({
   );
   return (
     <>
-      <Button
-        variant={ButtonVariants.Link}
-        size={ButtonSize.Sm}
-        label={
-          networks.length === networkFilter?.length
-            ? strings('deposit.networks_filter_selector.deselect_all')
-            : strings('deposit.networks_filter_selector.select_all')
-        }
+      <TouchableOpacity
         onPress={() => {
           setNetworkFilter(
             networks.length === networkFilter?.length ? [] : networks,
           );
         }}
-      />
+        testID="select-deselect-all-networks-button"
+      >
+        <Button
+          variant={ButtonVariants.Link}
+          size={ButtonSize.Sm}
+          label={
+            networks.length === networkFilter?.length
+              ? strings('deposit.networks_filter_selector.deselect_all')
+              : strings('deposit.networks_filter_selector.select_all')
+          }
+          onPress={() => undefined}
+        />
+      </TouchableOpacity>
       <FlatList
         style={styles.list}
         data={networks}
         renderItem={({ item: chainId }) => (
-          <ListItemSelect onPress={handleNetworkOnPress(chainId)}>
-            <ListItemColumn>
-              <Checkbox
-                isChecked={networkFilter?.includes(chainId) ?? false}
-                onPress={handleNetworkOnPress(chainId)}
-              />
-            </ListItemColumn>
-            <ListItemColumn>
-              <AvatarNetwork
-                name={
-                  DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
-                  allNetworkConfigurations[chainId]?.name
-                }
-                imageSource={getNetworkImageSource({ chainId })}
-                size={AvatarSize.Md}
-              />
-            </ListItemColumn>
-            <ListItemColumn widthType={WidthType.Fill}>
-              <Text variant={TextVariant.BodyMD}>
-                {DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
-                  allNetworkConfigurations[chainId]?.name}
-              </Text>
-            </ListItemColumn>
-          </ListItemSelect>
+          <TouchableOpacity onPress={handleNetworkOnPress(chainId)}>
+            <ListItemSelect>
+              <ListItemColumn>
+                <Checkbox
+                  isChecked={networkFilter?.includes(chainId) ?? false}
+                />
+              </ListItemColumn>
+              <ListItemColumn>
+                <AvatarNetwork
+                  name={
+                    DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
+                    allNetworkConfigurations[chainId]?.name
+                  }
+                  imageSource={getNetworkImageSource({ chainId })}
+                  size={AvatarSize.Md}
+                />
+              </ListItemColumn>
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodyMD}>
+                  {DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
+                    allNetworkConfigurations[chainId]?.name}
+                </Text>
+              </ListItemColumn>
+            </ListItemSelect>
+          </TouchableOpacity>
         )}
         keyExtractor={(item) => item}
       ></FlatList>
       <View style={styles.buttonContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('deposit.networks_filter_selector.apply')}
+        <TouchableOpacity
           onPress={() => {
             if (
               networkFilter?.length === networks.length ||
@@ -123,7 +125,16 @@ function NetworksFilterSelector({
             }
             setIsEditingNetworkFilter(false);
           }}
-        />
+          testID="apply-networks-filter-button"
+        >
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={strings('deposit.networks_filter_selector.apply')}
+            onPress={() => undefined}
+          />
+        </TouchableOpacity>
       </View>
     </>
   );

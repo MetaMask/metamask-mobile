@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useSelector } from 'react-redux';
 
@@ -178,37 +178,34 @@ function TokenSelectModal() {
 
   const renderToken = useCallback(
     ({ item: token }: { item: CryptoCurrency }) => (
-      <ListItemSelect
-        onPress={() => handleSelectTokenCallback(token)}
-        isSelected={selectedAsset?.id === token.id}
-        accessibilityRole="button"
-        accessible
-      >
-        <ListItemColumn widthType={WidthType.Auto}>
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <BadgeNetwork
-                name={token.network?.shortName}
-                imageSource={getNetworkImageForToken(token)}
+      <TouchableOpacity onPress={() => handleSelectTokenCallback(token)}>
+        <ListItemSelect isSelected={selectedAsset?.id === token.id}>
+          <ListItemColumn widthType={WidthType.Auto}>
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <BadgeNetwork
+                  name={token.network?.shortName}
+                  imageSource={getNetworkImageForToken(token)}
+                />
+              }
+            >
+              <AvatarToken
+                name={token.symbol}
+                src={{ uri: token.logo }}
+                size={AvatarTokenSize.Lg}
+                key={token.logo}
               />
-            }
-          >
-            <AvatarToken
-              name={token.symbol}
-              src={{ uri: token.logo }}
-              size={AvatarTokenSize.Lg}
-              key={token.logo}
-            />
-          </BadgeWrapper>
-        </ListItemColumn>
-        <ListItemColumn widthType={WidthType.Fill}>
-          <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-          <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-            {token.name}
-          </Text>
-        </ListItemColumn>
-      </ListItemSelect>
+            </BadgeWrapper>
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+              {token.name}
+            </Text>
+          </ListItemColumn>
+        </ListItemSelect>
+      </TouchableOpacity>
     ),
     [
       selectedAsset?.id,

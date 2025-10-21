@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
@@ -84,33 +84,34 @@ function PaymentMethodSelectorModal() {
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: DepositPaymentMethod }) => (
-      <ListItemSelect
-        isSelected={selectedPaymentMethod?.id === paymentMethod.id}
+      <TouchableOpacity
         onPress={() => handleSelectPaymentMethodIdCallback(paymentMethod.id)}
-        accessibilityRole="button"
-        accessible
       >
-        <ListItemColumn widthType={WidthType.Auto}>
-          <View style={styles.iconContainer}>
-            <Icon
-              name={paymentMethod.icon as IconName}
-              color={
-                typeof paymentMethod.iconColor === 'object'
-                  ? paymentMethod.iconColor[themeAppearance]
-                  : paymentMethod.iconColor ?? IconColor.Primary
-              }
-            />
-          </View>
-        </ListItemColumn>
-        <ListItemColumn widthType={WidthType.Fill}>
-          <Text variant={TextVariant.BodyLGMedium}>{paymentMethod.name}</Text>
-        </ListItemColumn>
-        <ListItemColumn widthType={WidthType.Auto}>
-          <Text>
-            {strings(`deposit.payment_duration.${paymentMethod.duration}`)}
-          </Text>
-        </ListItemColumn>
-      </ListItemSelect>
+        <ListItemSelect
+          isSelected={selectedPaymentMethod?.id === paymentMethod.id}
+        >
+          <ListItemColumn widthType={WidthType.Auto}>
+            <View style={styles.iconContainer}>
+              <Icon
+                name={paymentMethod.icon as IconName}
+                color={
+                  typeof paymentMethod.iconColor === 'object'
+                    ? paymentMethod.iconColor[themeAppearance]
+                    : paymentMethod.iconColor ?? IconColor.Primary
+                }
+              />
+            </View>
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text variant={TextVariant.BodyLGMedium}>{paymentMethod.name}</Text>
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Auto}>
+            <Text>
+              {strings(`deposit.payment_duration.${paymentMethod.duration}`)}
+            </Text>
+          </ListItemColumn>
+        </ListItemSelect>
+      </TouchableOpacity>
     ),
     [
       handleSelectPaymentMethodIdCallback,

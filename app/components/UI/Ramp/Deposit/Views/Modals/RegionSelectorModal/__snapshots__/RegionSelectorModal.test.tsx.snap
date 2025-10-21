@@ -1406,44 +1406,55 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -1456,90 +1467,119 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇩🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              Germany
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇩🇪
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Germany
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -1552,46 +1592,64 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇨🇦
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              Canada
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇨🇦
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Canada
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -2334,44 +2392,55 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -2384,117 +2453,146 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇺🇸
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              United States
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇺🇸
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  United States
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
-                                  </View>
-                                  <View
-                                    accessibilityRole="checkbox"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "backgroundColor": "#4459ff1a",
-                                        "bottom": 0,
-                                        "flexDirection": "row",
-                                        "left": 0,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
+                                      <View
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        style={
+                                          {
+                                            "backgroundColor": "#4459ff1a",
+                                            "bottom": 0,
+                                            "flexDirection": "row",
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "right": 0,
+                                            "top": 0,
+                                          }
                                         }
-                                      }
-                                    />
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "backgroundColor": "#4459ff",
+                                              "borderRadius": 2,
+                                              "marginLeft": 4,
+                                              "marginVertical": 4,
+                                              "width": 4,
+                                            }
+                                          }
+                                        />
+                                      </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -2507,90 +2605,119 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇩🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              Germany
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇩🇪
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Germany
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={true}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={false}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={true}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -2603,90 +2730,119 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇨🇦
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              Canada
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇨🇦
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Canada
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -2699,46 +2855,64 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇫🇷
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              France
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇫🇷
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  France
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -3132,7 +3306,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={8}
+                          handlerTag={20}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -3438,7 +3612,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={7}
+                            handlerTag={19}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -3880,7 +4054,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={5}
+                          handlerTag={13}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -4201,7 +4375,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={4}
+                            handlerTag={12}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -4233,44 +4407,55 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={9}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -4283,46 +4468,64 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇩🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              Germany
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇩🇪
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Germany
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -5065,44 +5268,55 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -5115,117 +5329,146 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇺🇸
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              United States
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇺🇸
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  United States
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
-                                  </View>
-                                  <View
-                                    accessibilityRole="checkbox"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "backgroundColor": "#4459ff1a",
-                                        "bottom": 0,
-                                        "flexDirection": "row",
-                                        "left": 0,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
+                                      <View
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        style={
+                                          {
+                                            "backgroundColor": "#4459ff1a",
+                                            "bottom": 0,
+                                            "flexDirection": "row",
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "right": 0,
+                                            "top": 0,
+                                          }
                                         }
-                                      }
-                                    />
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "backgroundColor": "#4459ff",
+                                              "borderRadius": 2,
+                                              "marginLeft": 4,
+                                              "marginVertical": 4,
+                                              "width": 4,
+                                            }
+                                          }
+                                        />
+                                      </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -5238,90 +5481,119 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇩🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              Germany
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇩🇪
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Germany
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={true}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={false}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={true}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -5334,90 +5606,119 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇨🇦
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              Canada
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇨🇦
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Canada
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
                                   style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
                                   }
+                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="none"
                                     accessible={true}
+                                    collapsable={false}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "opacity": 1,
                                       }
                                     }
                                   >
-                                    <View
+                                    <TouchableOpacity
+                                      disabled={false}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
                                         }
                                       }
                                     >
                                       <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "flex": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -5430,46 +5731,64 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                           <View
                                             style={
                                               {
-                                                "marginRight": 12,
+                                                "flex": 1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
                                               style={
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 }
                                               }
                                             >
-                                              🇫🇷
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
+                                              <View
+                                                style={
+                                                  {
+                                                    "marginRight": 12,
+                                                  }
                                                 }
-                                              }
-                                            >
-                                              France
-                                            </Text>
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  🇫🇷
+                                                </Text>
+                                              </View>
+                                              <View>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  France
+                                                </Text>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
+                                </RNGestureHandlerButton>
                               </View>
                             </View>
                           </RCTScrollView>

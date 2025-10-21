@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../../../locales/i18n';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
@@ -82,19 +82,16 @@ function FiatSelectorModal() {
 
   const renderItem = useCallback(
     ({ item }: { item: FiatCurrency }) => (
-      <ListItemSelect
-        onPress={() => handleSelectCurrency(item)}
-        isSelected={selectedFiatCurrencyId === item.id}
-        accessibilityRole="button"
-        accessible
-      >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <Text variant={TextVariant.BodyLGMedium}>{item.name}</Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {item.symbol}
-          </Text>
-        </ListItemColumn>
-      </ListItemSelect>
+      <TouchableOpacity onPress={() => handleSelectCurrency(item)}>
+        <ListItemSelect isSelected={selectedFiatCurrencyId === item.id}>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text variant={TextVariant.BodyLGMedium}>{item.name}</Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {item.symbol}
+            </Text>
+          </ListItemColumn>
+        </ListItemSelect>
+      </TouchableOpacity>
     ),
     [handleSelectCurrency, selectedFiatCurrencyId],
   );
