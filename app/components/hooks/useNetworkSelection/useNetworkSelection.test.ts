@@ -13,7 +13,10 @@ import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnableme
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from './useNetworkSelection';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import {
+  selectPopularNetworkConfigurationsByCaipChainId,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../selectors/networkController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Engine from '../../../core/Engine';
 import NavigationService from '../../../core/NavigationService';
@@ -101,6 +104,9 @@ jest.mock('../../../core/Engine', () => ({
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
     },
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
+    },
   },
   setSelectedAddress: jest.fn(), // Add this line
 }));
@@ -154,6 +160,7 @@ jest.mock('../../../selectors/accountsController', () => ({
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
   selectPopularNetworkConfigurationsByCaipChainId: jest.fn(),
+  selectNetworkConfigurationsByCaipChainId: jest.fn(),
 }));
 
 jest.mock('../../../core/NavigationService', () => {
@@ -237,6 +244,48 @@ describe('useNetworkSelection', () => {
     },
   ];
 
+  const mockNetworkConfigurations = {
+    'eip155:1': {
+      caipChainId: 'eip155:1' as CaipChainId,
+      chainId: '0x1' as Hex,
+      name: 'Ethereum Mainnet',
+      rpcEndpoints: [
+        {
+          networkClientId: 'mainnet-client-id',
+          url: 'https://mainnet.infura.io',
+          type: 'infura',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    },
+    'eip155:137': {
+      caipChainId: 'eip155:137' as CaipChainId,
+      chainId: '0x89' as Hex,
+      name: 'Polygon',
+      rpcEndpoints: [
+        {
+          networkClientId: 'polygon-client-id',
+          url: 'https://polygon-rpc.com',
+          type: 'custom',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    },
+    'eip155:13881': {
+      caipChainId: 'eip155:13881' as CaipChainId,
+      chainId: '0x13881' as Hex,
+      name: 'Mumbai Testnet',
+      rpcEndpoints: [
+        {
+          networkClientId: 'mumbai-client-id',
+          url: 'https://mumbai.polygonscan.com',
+          type: 'custom',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnableNetwork.mockReset();
@@ -248,6 +297,9 @@ describe('useNetworkSelection', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
         return mockPopularNetworkConfigurations;
+      }
+      if (selector === selectNetworkConfigurationsByCaipChainId) {
+        return mockNetworkConfigurations;
       }
       if (selector === selectMultichainAccountsState2Enabled) {
         return false;
@@ -1116,6 +1168,9 @@ describe('useNetworkSelection', () => {
             },
           ];
         }
+        if (selector === selectNetworkConfigurationsByCaipChainId) {
+          return mockNetworkConfigurations;
+        }
         if (selector === selectMultichainAccountsState2Enabled) {
           return false;
         }
@@ -1147,6 +1202,9 @@ describe('useNetworkSelection', () => {
               name: 'Bitcoin Mainnet',
             },
           ];
+        }
+        if (selector === selectNetworkConfigurationsByCaipChainId) {
+          return mockNetworkConfigurations;
         }
         if (selector === selectMultichainAccountsState2Enabled) {
           return false;
