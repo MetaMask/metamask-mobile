@@ -1604,6 +1604,8 @@ export class RewardsController extends BaseController<
       if (state.activeAccount) {
         state.activeAccount = {
           ...state.activeAccount,
+          lastPerpsDiscountRateFetched: null,
+          perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
           account: state.activeAccount.account, // Ensure account is always present (never undefined)

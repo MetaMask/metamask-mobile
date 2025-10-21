@@ -15,6 +15,7 @@ import {
   type SeasonDtoState,
   type SubscriptionReferralDetailsState,
   CURRENT_SEASON_ID,
+  SeasonStatusDto,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -203,6 +204,8 @@ class TestableRewardsController extends RewardsController {
       if (state.activeAccount) {
         state.activeAccount = {
           ...state.activeAccount,
+          lastPerpsDiscountRateFetched: null,
+          perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
           account: state.activeAccount.account, // Ensure account is always present (never undefined)
@@ -2530,25 +2533,35 @@ describe('RewardsController', () => {
     });
 
     it('should use CURRENT_SEASON_ID as default when seasonId is not provided', async () => {
-      // Skip the actual test since we're just verifying the parameter is passed correctly
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getSeasonStatus') {
-          // Check if the first parameter is CURRENT_SEASON_ID when not explicitly provided
-          expect(_args[0]).toBe(CURRENT_SEASON_ID);
-          expect(_args[1]).toBe(mockSubscriptionId);
-          return Promise.resolve(null);
-        }
-        return Promise.resolve({});
-      });
+      const tiers = createTestTiers();
+      // Arrange
+      const mockSeasonStatus: SeasonStatusDto = {
+        season: {
+          id: mockSeasonId,
+          name: 'Test Season',
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+          tiers,
+        },
+        balance: {
+          total: 1500,
+          refereePortion: 100,
+        },
+        currentTierId: tiers[0].id,
+      };
 
-      // Mock the controller method to avoid processing the response
-      jest.spyOn(controller, 'getSeasonStatus').mockResolvedValue(null);
+      mockMessenger.call.mockResolvedValue(mockSeasonStatus);
 
-      // Act
-      await controller.getSeasonStatus(mockSubscriptionId);
+      // Act - call without seasonId parameter
+      const result = await controller.getSeasonStatus(mockSubscriptionId);
 
       // Assert
-      expect(mockMessenger.call).toHaveBeenCalled();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonStatus',
+        CURRENT_SEASON_ID,
+        mockSubscriptionId,
+      );
+      expect(result?.season?.id).toEqual(mockSeasonId);
     });
 
     it('should return null when feature flag is disabled', async () => {
@@ -4578,28 +4591,6 @@ describe('RewardsController', () => {
       const mockSubscriptionId = 'sub-123';
       const mockError = new Error('Logout service failed');
 
-      // Mock isHardwareAccount to return true, which will skip silent auth and preserve our test state
-      mockIsHardwareAccount.mockReturnValue(true);
-
-      // Mock AccountsController to return a valid account
-      const mockInternalAccount = {
-        address: '0x123',
-        type: 'eip155:eoa' as const,
-        id: 'test-id',
-        scopes: ['eip155:1' as const],
-        options: {},
-        methods: ['personal_sign'],
-        metadata: {
-          name: 'Test Account',
-          keyring: { type: 'HD Key Tree' },
-          importTime: Date.now(),
-        },
-      };
-
-      mockMessenger.call
-        .mockReturnValueOnce(mockInternalAccount) // getSelectedMultichainAccount
-        .mockRejectedValueOnce(mockError); // RewardsDataService:logout
-
       const activeAccountState = {
         account: CAIP_ACCOUNT_1,
 
@@ -4625,6 +4616,9 @@ describe('RewardsController', () => {
         },
       });
 
+      // Mock logout to fail after controller initialization
+      mockMessenger.call.mockRejectedValueOnce(mockError); // RewardsDataService:logout
+
       // Act & Assert
       await expect(controller.logout()).rejects.toThrow(
         'Logout service failed',
@@ -4635,9 +4629,6 @@ describe('RewardsController', () => {
         'RewardsController: Logout failed to complete',
         'Logout service failed',
       );
-
-      // Reset mock for other tests
-      mockIsHardwareAccount.mockReturnValue(false);
     });
   });
 
@@ -5174,8 +5165,14 @@ describe('RewardsController', () => {
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
 
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated accounts and subscriptions',
@@ -5261,8 +5258,14 @@ describe('RewardsController', () => {
       await testController.invalidateAccountsAndSubscriptions();
 
       // Assert
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
     });
@@ -5289,8 +5292,14 @@ describe('RewardsController', () => {
       await testController.invalidateAccountsAndSubscriptions();
 
       // Assert
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
     });
@@ -5360,8 +5369,14 @@ describe('RewardsController', () => {
       // Assert
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
     });
 
     it('should not affect other state properties', async () => {
@@ -5459,8 +5474,14 @@ describe('RewardsController', () => {
       // And verify the expected changes still occurred
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
-      // activeAccount is set to null when invalidating accounts and subscriptions
-      expect(testController.state.activeAccount).toBeNull();
+      // activeAccount is reset to default values while preserving account field
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
     });
   });
 
@@ -7270,10 +7291,6 @@ describe('RewardsController', () => {
       ];
       const mockOptInResponse = { ois: [false, false], sids: [null, null] }; // No accounts opted in
 
-      mockMessenger.call
-        .mockReturnValueOnce(mockInternalAccounts) // getInternalAccounts
-        .mockResolvedValueOnce(mockOptInResponse); // getOptInStatus
-
       const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -7282,6 +7299,12 @@ describe('RewardsController', () => {
           subscriptions: {},
         },
       });
+
+      // Setup mocks after controller creation
+      mockMessenger.call
+        .mockReturnValueOnce(mockInternalAccounts) // First call: AccountsController:listMultichainAccounts in getCandidateSubscriptionId
+        .mockReturnValueOnce(mockInternalAccounts) // Second call: AccountsController:listMultichainAccounts in getOptInStatus
+        .mockResolvedValueOnce(mockOptInResponse); // Third call: RewardsDataService:getOptInStatus
 
       // Act
       const result = await testController.getCandidateSubscriptionId();
