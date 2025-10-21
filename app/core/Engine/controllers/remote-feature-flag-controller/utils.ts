@@ -6,6 +6,7 @@ import {
 // Points to the LaunchDarkly environment based on the METAMASK_ENVIRONMENT environment variable
 export const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
+  return 'rc';
 
   switch (env) {
     case 'production':
