@@ -23,6 +23,7 @@ import {
   ZERO_BALANCE,
   HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS,
   WITHDRAWAL_PROGRESS_STAGES,
+  PROGRESS_BAR_COMPLETION_DELAY_MS,
 } from '../../constants/hyperLiquidConfig';
 
 interface PerpsProgressBarProps {
@@ -149,7 +150,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
 
     // Animate to 100%
     progressWidth.value = withTiming(100, {
-      duration: 500,
+      duration: PROGRESS_BAR_COMPLETION_DELAY_MS,
       easing: Easing.out(Easing.cubic),
     });
 
@@ -163,7 +164,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       if (controller) {
         controller.updateWithdrawalProgress(0);
       }
-    }, 500);
+    }, PROGRESS_BAR_COMPLETION_DELAY_MS);
     return () => clearTimeout(timeout);
   }, [
     isAnimatingToComplete,
