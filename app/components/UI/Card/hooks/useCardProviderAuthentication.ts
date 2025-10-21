@@ -82,7 +82,10 @@ const useCardProviderAuthentication =
     }, []);
 
     const sendOtpLogin = useCallback(
-      async (params: { userId: string }): Promise<void> => {
+      async (params: {
+        userId: string;
+        location: CardLocation;
+      }): Promise<void> => {
         if (!sdk) {
           throw new Error('Card SDK not initialized');
         }
@@ -91,6 +94,7 @@ const useCardProviderAuthentication =
           setOtpLoading(true);
           await sdk.sendOtpLogin({
             userId: params.userId,
+            location: params.location,
           });
         } catch (err) {
           setOtpError(getErrorMessage(err));
@@ -121,12 +125,14 @@ const useCardProviderAuthentication =
             {
               state,
               codeChallenge,
+              location: params.location,
             },
           );
 
           const loginResponse = await sdk.login({
             email: params.email,
             password: params.password,
+            location: params.location,
             ...(params.otpCode ? { otpCode: params.otpCode } : {}),
           });
 
@@ -137,6 +143,7 @@ const useCardProviderAuthentication =
           const authorizeResponse = await sdk.authorize({
             initiateAccessToken: initiateResponse.token,
             loginAccessToken: loginResponse.accessToken,
+            location: params.location,
           });
 
           if (authorizeResponse.state !== state) {
@@ -147,6 +154,7 @@ const useCardProviderAuthentication =
             code: authorizeResponse.code,
             codeVerifier,
             grantType: 'authorization_code',
+            location: params.location,
           });
 
           await storeCardBaanxToken({

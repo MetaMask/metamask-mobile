@@ -165,19 +165,23 @@ describe('useCardProviderAuthentication', () => {
       expect(mockSdk.initiateCardProviderAuthentication).toHaveBeenCalledWith({
         state: mockStateUuid,
         codeChallenge: mockCodeChallenge,
+        location: loginParams.location,
       });
       expect(mockSdk.login).toHaveBeenCalledWith({
         email: loginParams.email,
         password: loginParams.password,
+        location: loginParams.location,
       });
       expect(mockSdk.authorize).toHaveBeenCalledWith({
         initiateAccessToken: mockInitiateResponse.token,
         loginAccessToken: mockLoginResponse.accessToken,
+        location: loginParams.location,
       });
       expect(mockSdk.exchangeToken).toHaveBeenCalledWith({
         code: mockAuthorizeResponse.code,
         codeVerifier: mockCodeVerifier,
         grantType: 'authorization_code',
+        location: loginParams.location,
       });
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: mockExchangeTokenResponse.accessToken,
@@ -600,7 +604,8 @@ describe('useCardProviderAuthentication', () => {
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: mockExchangeTokenResponse.accessToken,
         refreshToken: mockExchangeTokenResponse.refreshToken,
-        expiresAt: expect.any(Number),
+        accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
+        refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
         location: loginParams.location,
       });
       expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
@@ -699,7 +704,6 @@ describe('useCardProviderAuthentication', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
-        userCardLocation: 'international',
       });
 
       const otpParams = {

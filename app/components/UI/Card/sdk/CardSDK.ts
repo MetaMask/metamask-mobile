@@ -381,6 +381,7 @@ export class CardSDK {
     endpoint: string,
     options: RequestInit & { query?: string } = {},
     authenticated: boolean = false,
+    location: CardLocation = this.userCardLocation,
     timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
   ): Promise<Response> {
     const apiKey = this.cardBaanxApiKey;
@@ -392,7 +393,7 @@ export class CardSDK {
       );
     }
 
-    const isUSEnv = this.userCardLocation === 'us';
+    const isUSEnv = location === 'us';
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'x-us-env': String(isUSEnv),
@@ -467,6 +468,7 @@ export class CardSDK {
   initiateCardProviderAuthentication = async (queryParams: {
     state: string;
     codeChallenge: string;
+    location: CardLocation;
   }): Promise<CardLoginInitiateResponse> => {
     if (!this.cardBaanxApiKey) {
       throw new CardError(
@@ -494,6 +496,7 @@ export class CardSDK {
         query: queryParamsString.toString(),
       },
       false,
+      queryParams.location,
     );
 
     if (!response.ok) {
@@ -522,9 +525,10 @@ export class CardSDK {
   login = async (body: {
     email: string;
     password: string;
+    location: CardLocation;
     otpCode?: string;
   }): Promise<CardLoginResponse> => {
-    const { email, password, otpCode } = body;
+    const { email, password, otpCode, location } = body;
 
     const response = await this.makeRequest(
       '/v1/auth/login',
@@ -537,6 +541,7 @@ export class CardSDK {
         }),
       },
       false,
+      location,
     );
 
     if (!response.ok) {
@@ -594,7 +599,10 @@ export class CardSDK {
     return data as CardLoginResponse;
   };
 
-  sendOtpLogin = async (body: { userId: string }): Promise<void> => {
+  sendOtpLogin = async (body: {
+    userId: string;
+    location: CardLocation;
+  }): Promise<void> => {
     const { userId } = body;
     const response = await this.makeRequest(
       '/v1/auth/login/otp',
@@ -603,6 +611,7 @@ export class CardSDK {
         body: JSON.stringify({ userId }),
       },
       false,
+      body.location,
     );
 
     if (!response.ok) {
@@ -631,8 +640,9 @@ export class CardSDK {
   authorize = async (body: {
     initiateAccessToken: string;
     loginAccessToken: string;
+    location: CardLocation;
   }): Promise<CardAuthorizeResponse> => {
-    const { initiateAccessToken, loginAccessToken } = body;
+    const { initiateAccessToken, loginAccessToken, location } = body;
     const response = await this.makeRequest(
       '/v1/auth/oauth/authorize',
       {
@@ -645,6 +655,7 @@ export class CardSDK {
         },
       },
       false,
+      location,
     );
 
     if (!response.ok) {
@@ -688,6 +699,7 @@ export class CardSDK {
     code?: string;
     codeVerifier?: string;
     grantType: 'authorization_code' | 'refresh_token';
+    location: CardLocation;
   }): Promise<CardExchangeTokenResponse> => {
     let requestBody = null;
 
@@ -717,6 +729,7 @@ export class CardSDK {
         },
       },
       false,
+      body.location,
     );
 
     if (!response.ok) {
