@@ -245,7 +245,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Fetch all available DEXs from HyperLiquid
     const infoClient = this.clientService.getInfoClient();
-    const allDexs = await infoClient.perpDexs();
+    let allDexs;
+    try {
+      allDexs = await infoClient.perpDexs();
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getValidatedDexs.perpDexs'),
+      );
+      this.cachedAllPerpDexs = [null];
+      this.cachedValidatedDexs = [null];
+      return this.cachedValidatedDexs;
+    }
 
     // Cache for buildAssetMapping() to avoid duplicate call
     this.cachedAllPerpDexs = allDexs;
