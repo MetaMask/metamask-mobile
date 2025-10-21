@@ -822,15 +822,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
-  const placeOrderLabel =
-    amountTimesLeverage < minimumOrderAmount
-      ? strings('perps.order.validation.insufficient_funds')
-      : strings(
-          orderForm.direction === 'long'
-            ? 'perps.order.button.long'
-            : 'perps.order.button.short',
-          { asset: orderForm.asset },
-        );
+  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
+  const orderButtonKey =
+    orderForm.direction === 'long'
+      ? 'perps.order.button.long'
+      : 'perps.order.button.short';
+  const placeOrderLabel = isInsufficientFunds
+    ? strings('perps.order.validation.insufficient_funds')
+    : strings(orderButtonKey, { asset: orderForm.asset });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
@@ -950,7 +949,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {orderForm.limitPrice
+                        {orderForm.limitPrice !== undefined &&
+                        orderForm.limitPrice !== null
                           ? formatPerpsFiat(orderForm.limitPrice, {
                               ranges: PRICE_RANGES_UNIVERSAL,
                             })
@@ -1044,7 +1044,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {marginRequired
+              {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
@@ -1141,13 +1141,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
                       strings('perps.points_error_content'),
                     )
                   }
-                  state={
-                    rewardsState.isLoading
-                      ? RewardAnimationState.Loading
-                      : rewardsState.hasError
-                      ? RewardAnimationState.ErrorState
-                      : RewardAnimationState.Idle
-                  }
+                  state={(() => {
+                    if (rewardsState.isLoading)
+                      return RewardAnimationState.Loading;
+                    if (rewardsState.hasError)
+                      return RewardAnimationState.ErrorState;
+                    return RewardAnimationState.Idle;
+                  })()}
                 />
               </View>
             </View>
