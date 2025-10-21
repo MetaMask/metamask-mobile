@@ -378,7 +378,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
   }
 
   return (
-    <Box style={styles.progress}>
+    <Box style={styles.progress} testID="perps-progress-bar">
       {/* Progress Box - overlayed on top with animated width */}
       <Animated.View style={[styles.progressDone, animatedProgressStyle]} />
     </Box>
