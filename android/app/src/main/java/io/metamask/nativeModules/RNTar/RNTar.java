@@ -78,7 +78,7 @@ public class RNTar extends ReactContextBaseJavaModule {
       }
 
       File outPathFile = new File(outputPath);
-      String outPathCanonical = outPathFile.getCanonicalPath() + File.seperator;
+      String outPathCanonical = outPathFile.getCanonicalPath() + File.separator;
 
       // Set up the input streams for reading the .tgz file
       try (FileInputStream fileInputStream = new FileInputStream(tgzPath);
@@ -91,7 +91,7 @@ public class RNTar extends ReactContextBaseJavaModule {
         while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
           File outputFile = new File(outputPath, entry.getName());
 
-          if (!outPathFile.getCanonicalPath().startsWith(outPathCanonical)) {
+          if (!outputFile.getCanonicalPath().startsWith(outPathCanonical)) {
             throw new IOException("Tarball failed to extract due to invalid paths.");
           }
 
