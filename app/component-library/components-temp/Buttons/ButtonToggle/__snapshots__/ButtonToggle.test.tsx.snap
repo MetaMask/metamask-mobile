@@ -5,7 +5,7 @@ exports[`ButtonToggle renders correctly in active state 1`] = `
   accessibilityRole="button"
   accessible={true}
   activeOpacity={1}
-  onPress={[MockFunction]}
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
@@ -44,7 +44,7 @@ exports[`ButtonToggle renders correctly in inactive state 1`] = `
   accessibilityRole="button"
   accessible={true}
   activeOpacity={1}
-  onPress={[MockFunction]}
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
