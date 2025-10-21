@@ -98,19 +98,14 @@ export const useUserRegistrationStatus =
 
     // Auto-manage polling based on verification state
     useEffect(() => {
-      if (verificationState === 'PENDING') {
-        // Only start auto-polling if not already polling
-        if (!intervalRef.current) {
-          intervalRef.current = setInterval(() => {
-            fetchRegistrationStatus();
-          }, POLLING_INTERVAL);
-        }
+      if (verificationState === 'PENDING' || verificationState === null) {
+        startPolling();
       } else if (verificationState !== null) {
         stopPolling();
       }
 
       return stopPolling;
-    }, [verificationState, fetchRegistrationStatus, stopPolling]);
+    }, [verificationState, stopPolling, startPolling]);
 
     return {
       verificationState,

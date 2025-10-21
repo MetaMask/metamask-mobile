@@ -28,15 +28,9 @@ const VerifyIdentity = () => {
       return;
     }
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: sessionUrl,
-        title: 'Identity Verification',
-      },
+    navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
+      sessionUrl,
     });
-
-    navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
   };
 
   const renderFormFields = () => (

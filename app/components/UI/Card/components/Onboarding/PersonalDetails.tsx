@@ -18,7 +18,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  setUserId,
+  setUser,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import SelectComponent from '../../../SelectComponent';
@@ -151,8 +151,8 @@ const PersonalDetails = () => {
         ssn: debouncedSSN,
       });
 
-      if (user?.id) {
-        dispatch(setUserId(user.id));
+      if (user) {
+        dispatch(setUser(user));
         navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
       }
     } catch (error) {

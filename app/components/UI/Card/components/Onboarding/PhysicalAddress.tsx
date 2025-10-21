@@ -16,11 +16,12 @@ import OnboardingStep from './OnboardingStep';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  selectUserId,
+  selectUser,
+  setUser,
 } from '../../../../../core/redux/slices/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { CardError } from '../../types';
@@ -176,10 +177,11 @@ export const AddressFields = ({
 
 const PhysicalAddress = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const tw = useTailwind();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-  const userId = useSelector(selectUserId);
+  const user = useSelector(selectUser);
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -263,7 +265,7 @@ const PhysicalAddress = () => {
       registerUserConsentLoading ||
       registerUserConsentIsError ||
       !onboardingId ||
-      !userId ||
+      !user?.id ||
       !addressLine1 ||
       !city ||
       (!state && selectedCountry === 'US') ||
@@ -275,7 +277,7 @@ const PhysicalAddress = () => {
       registerUserConsentLoading,
       registerUserConsentIsError,
       onboardingId,
-      userId,
+      user?.id,
       addressLine1,
       city,
       state,
@@ -288,7 +290,7 @@ const PhysicalAddress = () => {
   const handleContinue = async () => {
     if (
       !onboardingId ||
-      !userId ||
+      !user?.id ||
       !addressLine1 ||
       !city ||
       (!state && selectedCountry === 'US') ||
@@ -298,9 +300,9 @@ const PhysicalAddress = () => {
       return;
     }
     try {
-      await registerUserConsent(onboardingId, userId);
+      await registerUserConsent(onboardingId, user.id);
 
-      const { accessToken } = await registerAddress({
+      const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
         addressLine2: addressLine2 || undefined,
@@ -309,6 +311,10 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
+
+      if (updatedUser) {
+        dispatch(setUser(updatedUser));
+      }
 
       if (accessToken) {
         // Registration complete

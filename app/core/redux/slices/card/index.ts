@@ -8,6 +8,7 @@ import { isEthAccount } from '../../../Multichain/utils';
 import {
   CardLocation,
   CardTokenAllowance,
+  UserResponse,
 } from '../../../../components/UI/Card/types';
 import {
   selectCardExperimentalSwitch,
@@ -20,7 +21,7 @@ export interface OnboardingState {
   onboardingId: string | null;
   selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
   contactVerificationId: string | null;
-  userId: string | null;
+  user: UserResponse | null;
 }
 
 export interface CacheState {
@@ -60,7 +61,7 @@ export const initialState: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
-    userId: null,
+    user: null,
   },
   cache: {
     data: {},
@@ -132,7 +133,8 @@ const slice = createSlice({
       state,
       action: PayloadAction<CardLocation | null>,
     ) => {
-      state.userCardLocation = action.payload ?? 'international';},
+      state.userCardLocation = action.payload ?? 'international';
+    },
     setOnboardingId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.onboardingId = action.payload;
     },
@@ -142,15 +144,15 @@ const slice = createSlice({
     setContactVerificationId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.contactVerificationId = action.payload;
     },
-    setUserId: (state, action: PayloadAction<string | null>) => {
-      state.onboarding.userId = action.payload;
+    setUser: (state, action: PayloadAction<UserResponse | null>) => {
+      state.onboarding.user = action.payload;
     },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         selectedCountry: null,
         contactVerificationId: null,
-        userId: null,
+        user: null,
       };
     },
     setCacheData: (
@@ -359,9 +361,9 @@ export const selectContactVerificationId = createSelector(
   (card) => card.onboarding.contactVerificationId,
 );
 
-export const selectUserId = createSelector(
+export const selectUser = createSelector(
   selectCardState,
-  (card) => card.onboarding.userId,
+  (card) => card.onboarding.user,
 );
 
 // Actions
@@ -378,7 +380,7 @@ export const {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
-  setUserId,
+  setUser,
   resetOnboardingState,
   setCacheData,
   clearCacheData,

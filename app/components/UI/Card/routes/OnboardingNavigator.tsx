@@ -14,69 +14,94 @@ import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
 import Complete from '../components/Onboarding/Complete';
 import { cardAuthenticationNavigationOptions } from '.';
+import {
+  selectOnboardingId,
+  selectUser,
+} from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 const Stack = createStackNavigator();
 
-const OnboardingNavigator: React.FC = () => (
-  <UnmountOnBlur>
-    <Stack.Navigator initialRouteName={Routes.CARD.ONBOARDING.SIGN_UP}>
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.SIGN_UP}
-        component={SignUp}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.CONFIRM_EMAIL}
-        component={ConfirmEmail}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
-        component={SetPhoneNumber}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
-        component={ConfirmPhoneNumber}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
-        component={VerifyIdentity}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
-        component={ValidatingKYC}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.KYC_FAILED}
-        component={KYCFailed}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
-        component={PersonalDetails}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
-        component={PhysicalAddress}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
-        component={MailingAddress}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.COMPLETE}
-        component={Complete}
-        options={cardAuthenticationNavigationOptions}
-      />
-    </Stack.Navigator>
-  </UnmountOnBlur>
-);
+const OnboardingNavigator: React.FC = () => {
+  const onboardingId = useSelector(selectOnboardingId);
+  const user = useSelector(selectUser);
+
+  const getInitialRouteName = () => {
+    if (!onboardingId || !user?.id) {
+      return Routes.CARD.ONBOARDING.SIGN_UP;
+    }
+    if (user?.verificationState === 'VERIFIED') {
+      if (!user?.firstName) {
+        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+      } else if (!user?.addressLine1) {
+        return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
+      }
+      return Routes.CARD.ONBOARDING.COMPLETE;
+    }
+    return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+  };
+
+  return (
+    <UnmountOnBlur>
+      <Stack.Navigator initialRouteName={getInitialRouteName()}>
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.SIGN_UP}
+          component={SignUp}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.CONFIRM_EMAIL}
+          component={ConfirmEmail}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
+          component={SetPhoneNumber}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
+          component={ConfirmPhoneNumber}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
+          component={VerifyIdentity}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
+          component={ValidatingKYC}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.KYC_FAILED}
+          component={KYCFailed}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
+          component={PersonalDetails}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
+          component={PhysicalAddress}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
+          component={MailingAddress}
+          options={cardAuthenticationNavigationOptions}
+        />
+        <Stack.Screen
+          name={Routes.CARD.ONBOARDING.COMPLETE}
+          component={Complete}
+          options={cardAuthenticationNavigationOptions}
+        />
+      </Stack.Navigator>
+    </UnmountOnBlur>
+  );
+};
 
 export default OnboardingNavigator;
