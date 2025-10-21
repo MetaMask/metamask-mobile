@@ -143,11 +143,12 @@ const PerpsTPSLView: React.FC = () => {
   );
 
   // Determine direction for tracking events
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
+  const actualDirection = (() => {
+    if (position) {
+      return parseFloat(position.size) > 0 ? 'long' : 'short';
+    }
+    return direction;
+  })();
 
   // Calculate liquidation price for new orders (when there's no existing position)
   const shouldCalculateLiquidation =
