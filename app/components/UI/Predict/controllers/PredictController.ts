@@ -17,10 +17,18 @@ import {
   TransactionControllerTransactionSubmittedEvent,
 } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
+import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import {
+  PredictEventProperties,
+  PredictEventType,
+  PredictEventTypeValue,
+} from '../constants/eventNames';
 import {
   AccountState,
   GetAccountStateParams,
@@ -45,6 +53,7 @@ import {
   PredictPosition,
   PredictPriceHistoryPoint,
   Result,
+  Side,
   UnrealizedPnL,
 } from '../types';
 
@@ -589,6 +598,119 @@ export class PredictController extends BaseController<
     }
   }
 
+  /**
+   * Track Predict order analytics events
+   * @private
+   */
+  private async trackPredictOrderEvent({
+    eventType,
+    amount,
+    analyticsProperties,
+    provider,
+    providerId,
+    ownerAddress,
+    completionDuration,
+    orderId,
+    failureReason,
+    sharePrice,
+  }: {
+    eventType: PredictEventTypeValue;
+    amount: number;
+    analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+    provider?: PredictProvider;
+    providerId: string;
+    ownerAddress?: string;
+    completionDuration?: number;
+    orderId?: string;
+    failureReason?: string;
+    sharePrice?: number;
+  }): Promise<void> {
+    if (!analyticsProperties) {
+      return;
+    }
+
+    // Get safe address from account state for analytics (only if provider and ownerAddress available)
+    let safeAddress: string | undefined;
+    if (provider && ownerAddress) {
+      try {
+        const accountState = await provider.getAccountState({
+          providerId,
+          ownerAddress,
+        });
+        safeAddress = accountState.address;
+      } catch {
+        // If we can't get safe address, continue without it
+      }
+    }
+
+    // Build regular properties (common to all events)
+    const regularProperties = {
+      [PredictEventProperties.TIMESTAMP]: Date.now(),
+      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]:
+        analyticsProperties.marketCategory,
+      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      [PredictEventProperties.TRANSACTION_TYPE]:
+        analyticsProperties.transactionType,
+      [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+      [PredictEventProperties.VOLUME]: analyticsProperties.volume,
+      [PredictEventProperties.SHARE_PRICE]: sharePrice,
+      // Add completion duration for COMPLETED and FAILED events
+      ...(completionDuration !== undefined && {
+        [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
+      }),
+      // Add failure reason for FAILED events
+      ...(failureReason && {
+        [PredictEventProperties.FAILURE_REASON]: failureReason,
+      }),
+    };
+
+    // Build sensitive properties
+    const sensitiveProperties = {
+      [PredictEventProperties.AMOUNT]: amount,
+      // Add user address only if we have it
+      ...(safeAddress && {
+        [PredictEventProperties.USER_ADDRESS]: safeAddress,
+      }),
+      // Add order ID for COMPLETED events
+      ...(orderId && {
+        [PredictEventProperties.ORDER_ID]: orderId,
+      }),
+    };
+
+    // Determine event name based on type
+    let metaMetricsEvent: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
+    let eventLabel: string;
+
+    switch (eventType) {
+      case PredictEventType.SUBMITTED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_SUBMITTED;
+        eventLabel = 'PREDICT_ACTION_SUBMITTED';
+        break;
+      case PredictEventType.COMPLETED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_COMPLETED;
+        eventLabel = 'PREDICT_ACTION_COMPLETED';
+        break;
+      case PredictEventType.FAILED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_FAILED;
+        eventLabel = 'PREDICT_ACTION_FAILED';
+        break;
+    }
+
+    DevLogger.log(`📊 [Analytics] ${eventLabel}`, {
+      regularProperties,
+      sensitiveProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(metaMetricsEvent)
+        .addProperties(regularProperties)
+        .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     const provider = this.providers.get(params.providerId);
     if (!provider) {
@@ -599,15 +721,20 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
+    const startTime = performance.now();
+    const { analyticsProperties, preview, providerId } = params;
+
+    const sharePrice = preview?.sharePrice;
+    const amount = preview?.maxAmountSpent;
+
     try {
-      const provider = this.providers.get(params.providerId);
+      const provider = this.providers.get(providerId);
       if (!provider) {
         throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
       }
 
       const { AccountsController, KeyringController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
-
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
@@ -618,8 +745,87 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(_params),
       };
 
-      return await provider.placeOrder({ ...params, signer });
+      // Track Predict Action Submitted (fire and forget)
+      this.trackPredictOrderEvent({
+        eventType: PredictEventType.SUBMITTED,
+        amount,
+        analyticsProperties,
+        provider,
+        providerId,
+        ownerAddress: selectedAddress,
+        sharePrice,
+      });
+
+      const result = await provider.placeOrder({ ...params, signer });
+
+      // Track Predict Action Completed or Failed
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success) {
+        const { id: orderId, spentAmount, receivedAmount } = result.response;
+
+        let realSharePrice = sharePrice;
+        try {
+          if (preview.side === Side.BUY) {
+            realSharePrice =
+              parseFloat(spentAmount) / parseFloat(receivedAmount);
+          } else {
+            realSharePrice =
+              parseFloat(receivedAmount) / parseFloat(spentAmount);
+          }
+        } catch (_e) {
+          // If we can't get real share price, continue without it
+        }
+
+        // Track Predict Action Completed (fire and forget)
+        this.trackPredictOrderEvent({
+          eventType: PredictEventType.COMPLETED,
+          amount: spentAmount ? parseFloat(spentAmount) : amount,
+          analyticsProperties,
+          provider,
+          providerId,
+          ownerAddress: selectedAddress,
+          completionDuration,
+          orderId,
+          sharePrice: realSharePrice,
+        });
+      } else {
+        // Track Predict Action Failed (fire and forget)
+        this.trackPredictOrderEvent({
+          eventType: PredictEventType.FAILED,
+          amount,
+          analyticsProperties,
+          provider,
+          providerId,
+          ownerAddress: selectedAddress,
+          sharePrice,
+          completionDuration,
+          failureReason: result.error || 'Unknown error',
+        });
+      }
+
+      return result as Result;
     } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track Predict Action Failed (fire and forget)
+      // Note: If provider/ownerAddress unavailable, we'll track without user_address
+      const provider = this.providers.get(providerId);
+      const selectedAddress =
+        Engine.context?.AccountsController?.getSelectedAccount()?.address;
+
+      this.trackPredictOrderEvent({
+        eventType: PredictEventType.FAILED,
+        amount,
+        analyticsProperties,
+        provider,
+        providerId,
+        ownerAddress: selectedAddress,
+        sharePrice,
+        completionDuration,
+        failureReason: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       return {
         success: false,
         error:

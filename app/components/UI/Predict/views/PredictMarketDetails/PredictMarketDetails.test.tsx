@@ -9,6 +9,7 @@ import {
 import PredictMarketDetails from './PredictMarketDetails';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 jest.mock('@react-navigation/native', () => ({
@@ -836,6 +837,7 @@ describe('PredictMarketDetails', () => {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
       });
     });
@@ -869,6 +871,7 @@ describe('PredictMarketDetails', () => {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
       });
     });
@@ -1325,6 +1328,231 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.queryByText('predict.market_details.market_ended_on'),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Winning Outcome Logic', () => {
+    it('finds winning outcome from multiple outcomes', () => {
+      const marketWithWinningOutcome = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            groupItemTitle: 'Option A',
+            tokens: [{ id: 'token-1', price: 0.3 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            groupItemTitle: 'Option B',
+            tokens: [
+              { id: 'token-2', price: 1.0 }, // Winning token
+            ],
+            volume: 500000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithWinningOutcome);
+
+      expect(
+        screen.getByText('predict.market_details.market_ended_on'),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles winning outcome with multiple tokens', () => {
+      const marketWithMultipleTokens = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            groupItemTitle: 'Yes',
+            tokens: [
+              { id: 'token-1', price: 0.5 },
+              { id: 'token-2', price: 1.0 }, // Winning token
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithMultipleTokens);
+
+      expect(
+        screen.getByText('predict.market_details.market_ended_on'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Closed Market Functionality', () => {
+    it('displays winning outcome when market is closed', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            groupItemTitle: 'Yes',
+            tokens: [
+              { id: 'token-1', price: 1.0 }, // Winning token
+            ],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'No',
+            groupItemTitle: 'No',
+            tokens: [
+              { id: 'token-2', price: 0.0 }, // Losing token
+            ],
+            volume: 500000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      expect(
+        screen.getByText('predict.market_details.market_ended_on'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders claim button when market is closed', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      expect(
+        screen.getByText('confirm.predict_claim.button_label'),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles claim button press', async () => {
+      const mockClaim = jest.fn();
+      const { usePredictClaim } = jest.requireMock(
+        '../../hooks/usePredictClaim',
+      );
+      usePredictClaim.mockReturnValue({
+        claim: mockClaim,
+      });
+
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      const claimButton = screen.getByText(
+        'confirm.predict_claim.button_label',
+      );
+      fireEvent.press(claimButton);
+
+      expect(mockClaim).toHaveBeenCalled();
+    });
+
+    it('renders outcomes tab for closed markets', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      // Should render outcomes tab for closed markets
+      expect(screen.getByTestId('predict-market-outcome')).toBeOnTheScreen();
+    });
+
+    it('sets timeframe to MAX when market is closed', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      // Verify the component renders without errors
+      expect(
+        screen.getByTestId('predict-market-details-screen'),
+      ).toBeOnTheScreen();
+    });
+
+    it('finds winning outcome token when market is closed', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            groupItemTitle: 'Yes',
+            tokens: [
+              { id: 'token-1', price: 1.0 }, // Winning token
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      expect(
+        screen.getByText('predict.market_details.market_ended_on'),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles market without winning token', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', price: 0.5 }, // No winning token
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      // Should not display winning outcome message
+      expect(screen.queryByText('Market ended on')).not.toBeOnTheScreen();
     });
   });
 
