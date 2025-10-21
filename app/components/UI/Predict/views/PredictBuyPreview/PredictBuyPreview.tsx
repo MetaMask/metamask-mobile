@@ -15,7 +15,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Image, ScrollView, TouchableOpacity } from 'react-native';
 import Button, {
   ButtonSize,
@@ -26,10 +26,17 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+} from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
@@ -41,12 +48,32 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken } = route.params;
+  const { market, outcome, outcomeToken, entryPoint } = route.params;
+
+  // Prepare analytics properties (userAddress will be added by PredictController)
+  const analyticsProperties = useMemo(
+    () => ({
+      marketId: market?.id,
+      marketTitle: market?.title,
+      marketCategory: market?.categories?.[0],
+      entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      transactionType:
+        outcomeToken?.title === 'Yes'
+          ? PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
+          : PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+      liquidity: market?.liquidity,
+      volume: market?.volume,
+      sharePrice: outcomeToken?.price,
+    }),
+    [market, outcomeToken, entryPoint],
+  );
+
   const { placeOrder, isLoading } = usePredictPlaceOrder();
 
   const [currentValue, setCurrentValue] = useState(0);
@@ -62,6 +89,34 @@ const PredictBuyPreview = () => {
     size: currentValue,
     autoRefreshTimeout: 5000,
   });
+
+  // Track Predict Action Initiated when screen mounts
+  useEffect(() => {
+    const regularProperties = {
+      [PredictEventProperties.TIMESTAMP]: Date.now(),
+      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]:
+        analyticsProperties.marketCategory,
+      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      [PredictEventProperties.TRANSACTION_TYPE]:
+        analyticsProperties.transactionType,
+      [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
+      [PredictEventProperties.SHARE_PRICE]: outcomeToken?.price,
+      [PredictEventProperties.VOLUME]: analyticsProperties.volume,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_ACTION_INITIATED', {
+      regularProperties,
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PREDICT_ACTION_INITIATED)
+        .addProperties(regularProperties)
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toWin = preview?.minAmountReceived ?? 0;
 
@@ -82,6 +137,7 @@ const PredictBuyPreview = () => {
 
     placeOrder({
       providerId: outcome.providerId,
+      analyticsProperties,
       preview,
     });
     dispatch(StackActions.pop());
