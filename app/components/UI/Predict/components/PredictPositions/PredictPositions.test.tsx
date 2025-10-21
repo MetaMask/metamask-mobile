@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react-native';
+import { screen, act } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -91,11 +91,16 @@ describe('PredictPositions', () => {
 
   it('renders loading state when isLoading is true', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      isLoading: true,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        isLoading: true,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
@@ -106,11 +111,16 @@ describe('PredictPositions', () => {
 
   it('renders loading state when isRefreshing and no positions', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      isRefreshing: true,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        isRefreshing: true,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
@@ -121,19 +131,26 @@ describe('PredictPositions', () => {
 
   it('renders FlashList when no positions and not loading', () => {
     // Arrange
-    mockUsePredictPositions.mockReturnValue({
-      ...defaultMockHookReturn,
-      positions: [],
-    });
+    mockUsePredictPositions
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      })
+      .mockReturnValueOnce({
+        ...defaultMockHookReturn,
+        positions: [],
+      });
 
     // Act
     renderWithProvider(<PredictPositions />);
 
     // Assert - FlashList should be rendered
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
     // Claimable list should not be rendered when there are no claimable positions
     expect(
-      screen.queryByTestId('claimable-positions-list'),
+      screen.queryByTestId('predict-claimable-positions-list'),
     ).not.toBeOnTheScreen();
   });
 
@@ -153,10 +170,12 @@ describe('PredictPositions', () => {
     renderWithProvider(<PredictPositions />);
 
     // Assert
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
     // Claimable list should not be rendered when there are no claimable positions
     expect(
-      screen.queryByTestId('claimable-positions-list'),
+      screen.queryByTestId('predict-claimable-positions-list'),
     ).not.toBeOnTheScreen();
   });
 
@@ -183,8 +202,12 @@ describe('PredictPositions', () => {
     renderWithProvider(<PredictPositions />);
 
     // Assert
-    expect(screen.getByTestId('active-positions-list')).toBeOnTheScreen();
-    expect(screen.getByTestId('claimable-positions-list')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-active-positions-list'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-claimable-positions-list'),
+    ).toBeOnTheScreen();
   });
 
   it('exposes refresh method via ref', () => {
@@ -203,10 +226,13 @@ describe('PredictPositions', () => {
       });
 
     const ref = React.createRef<PredictPositionsHandle>();
+
     renderWithProvider(<PredictPositions ref={ref} />);
 
     // Act
-    ref.current?.refresh();
+    act(() => {
+      ref.current?.refresh();
+    });
 
     // Assert
     expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });

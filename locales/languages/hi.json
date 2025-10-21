@@ -869,6 +869,7 @@
       "fetch_regions": "क्षेत्रों को प्राप्त करने में समस्या हुई।",
       "fetch_tokens": "टोकन को प्राप्त करने में समस्या हुई।",
       "fetch_payment_methods": "भुगतान विधियों को प्राप्त करने में समस्या हुई।",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "फिर से प्रयास करें",
       "error_details_title": "गड़बड़ी का विवरण",
       "see_more": "अधिक देखें"
@@ -1679,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1789,6 +1799,8 @@
     "alphabetically": "वर्णानुक्रम में (A-Z)",
     "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
     "token_is_needed_to_continue": "जारी रखने के लिए {{tokenSymbol}} की आवश्यकता है",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Web3 में शुरू करने के लिए अपने वॉलेट को फंड करें",
     "add_funds": "फंड जोड़ें",
     "next": "आगे",
@@ -3151,9 +3163,10 @@
     "tx_review_staking_unstake": "अनस्टेक करें",
     "tx_review_lending_deposit": "डिपॉज़िट उधार दिया जा रहा है",
     "tx_review_lending_withdraw": "विदड्रॉवल उधार दिया जा रहा है",
-    "tx_review_perps_deposit": "फंडेड पर्प्स अकाउंट",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Ether भेजे गए",
     "self_sent_ether": "खुद को Ether भेजें",
     "received_ether": "Ether प्राप्त किया",
@@ -3227,6 +3240,7 @@
     "network_fee": "नेटवर्क फीस",
     "network_fee_tooltip": "नेटवर्क पर ट्रांसेक्शन को प्रोसेस करने के लिए भुगतान की गई राशि।",
     "confirm_gas_fee_token_tooltip": "यह आपके ट्रांसेक्शन को प्रोसेस करने के लिए नेटवर्क को भुगतान किया जाता है। इसमें गैर-ETH टोकन या पहले से फंड किए गए ETH के लिए {{metamaskFeeFiat}} MetaMask फीस शामिल है।",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "इसमें {{metamaskFeeFiat}} फीस शामिल है",
     "smart_account_upgrade": "स्मार्ट अकाउंट में अपग्रेड करें",
     "smart_account_downgrade": "मानक अकाउंट पर स्विच करें",
@@ -5361,7 +5375,8 @@
       "switch_account_type": "अकाउंट अपडेट",
       "approve": "अनुरोध एप्रूव करें",
       "perps_deposit": "फंड जोड़ें",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -5967,6 +5982,18 @@
       "limited_spending_warning": "आपकी वास्तविक खर्च करने की क्षमता सीमित हो सकती है। अपनी सीमा समायोजित करने के लिए, {{manageCard}} पर जाएँ",
       "add_funds": "फंड जोड़ें",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
