@@ -20,6 +20,8 @@ let e2eBridgePerps: E2EBridgePerpsStreaming = {};
 
 // Ensure we only register the deep link handler once
 let hasRegisteredDeepLinkHandler = false;
+// Track processed URLs to avoid duplicate handling when both initial URL and event fire
+const processedDeepLinks = new Set<string>();
 
 /**
  * Register a lightweight deep link handler for E2E-only schema (e2e://perps/*)
@@ -32,17 +34,21 @@ function registerE2EPerpsDeepLinkHandler(): void {
   }
 
   try {
-    Linking.addEventListener('url', (event: { url: string }) => {
+    const handleUrl = (incomingUrl?: string) => {
       try {
-        const { url } = event || {};
+        const url = incomingUrl || '';
+        if (!url) return;
         // Accept both native e2e scheme and tunneled expo-metamask scheme used in Android E2E
-        const isE2EScheme = url?.startsWith('e2e://perps/');
-        const isExpoMappedScheme = url?.startsWith(
-          'expo-metamask://e2e/perps/',
-        );
+        const isE2EScheme = url.startsWith('e2e://perps/');
+        const isExpoMappedScheme = url.startsWith('expo-metamask://e2e/perps/');
         if (!isE2EScheme && !isExpoMappedScheme) {
           return;
         }
+
+        if (processedDeepLinks.has(url)) {
+          return; // Avoid duplicate processing
+        }
+        processedDeepLinks.add(url);
 
         // Lazy require to keep bridge tree-shakeable in prod and avoid ESM import in Jest
         /* eslint-disable @typescript-eslint/no-require-imports */
@@ -86,7 +92,25 @@ function registerE2EPerpsDeepLinkHandler(): void {
       } catch (err) {
         DevLogger.log('[E2E Bridge] Error handling E2E perps deeplink', err);
       }
+    };
+
+    // Listen to runtime deep links
+    Linking.addEventListener('url', (event: { url: string }) => {
+      handleUrl(event?.url);
     });
+
+    // Also process the initial URL if present (e.g., app launched via link)
+    // This ensures E2E commands are honored even if delivered as initial URL
+    Linking.getInitialURL()
+      .then((initialUrl) => {
+        if (initialUrl) {
+          DevLogger.log('[E2E Bridge] Processing initial URL', initialUrl);
+          handleUrl(initialUrl);
+        }
+      })
+      .catch(() => {
+        // no-op
+      });
 
     hasRegisteredDeepLinkHandler = true;
     DevLogger.log('[E2E Bridge] Registered E2E perps deep link handler');
