@@ -26,6 +26,14 @@ type PrivateLinkParams = CommonLinkParams & {
 
 type InvalidLinkParams = CommonLinkParams & {
   linkType: DeepLinkModalLinkType.INVALID;
+  onContinue?: never; // Invalid links don't continue, they only go back or navigate home
+  pageTitle?: never; // Invalid links don't have a page title
+};
+
+type UnsupportedLinkParams = CommonLinkParams & {
+  linkType: DeepLinkModalLinkType.UNSUPPORTED;
+  onContinue?: never; // Unsupported links don't continue, they only go back or navigate home
+  pageTitle?: never; // Unsupported links don't have a page title
 };
 
 /**
@@ -34,7 +42,8 @@ type InvalidLinkParams = CommonLinkParams & {
 export type DeepLinkModalParams =
   | PublicLinkParams
   | PrivateLinkParams
-  | InvalidLinkParams;
+  | InvalidLinkParams
+  | UnsupportedLinkParams;
 
 /**
  * Modal Image Props

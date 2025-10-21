@@ -12,7 +12,10 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
@@ -51,8 +54,9 @@ import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSh
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import RewardPointsDisplay from '../../components/RewardPointsDisplay';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -90,17 +94,21 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   formatPerpsFiat,
-  formatPrice,
-  PRICE_RANGES_DETAILED_VIEW,
   PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { calculatePositionSize } from '../../utils/orderCalculations';
+import {
+  calculateMarginRequired,
+  calculatePositionSize,
+} from '../../utils/orderCalculations';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
+import { BigNumber } from 'bignumber.js';
+import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -132,13 +140,24 @@ interface OrderRouteParams {
 const PerpsOrderViewContentBase: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const styles = createStyles(colors);
+
+  // Dynamic bottom padding for fixed container: safe area inset + 16px visual padding
+  const fixedBottomContainerStyle = useMemo(
+    () => ({
+      ...styles.fixedBottomContainer,
+      paddingBottom: insets.bottom + 16,
+    }),
+    [styles.fixedBottomContainer, insets.bottom],
+  );
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
   const { track } = usePerpsEventTracking();
+  const { openTooltipModal } = useTooltipModal();
 
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
@@ -160,13 +179,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm,
     setAmount,
     setLeverage,
+    optimizeOrderAmount,
     setTakeProfitPrice,
     setStopLossPrice,
     setLimitPrice,
     setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
-    calculations,
+    maxPossibleAmount,
   } = usePerpsOrderContext();
 
   // Get live positions to sync leverage from existing position
@@ -233,7 +253,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderTypeRef.current = orderForm.type;
   }, [orderForm.type]);
 
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
@@ -298,12 +317,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const assetData = useMemo(() => {
     if (!currentPrice) {
-      return { price: 0, change: 0 };
+      return { price: 0, change: 0, markPrice: 0 };
     }
     const price = parseFloat(currentPrice.price || '0');
+    const markPrice = parseFloat(currentPrice.markPrice || '0');
     const change = parseFloat(currentPrice.percentChange24h || '0');
     return {
       price: isNaN(price) ? 0 : price, // Mid price used for display
+      markPrice: isNaN(markPrice) ? 0 : markPrice,
       change: isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
@@ -354,6 +375,21 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [orderForm.amount, assetData.price, marketData?.szDecimals],
   );
 
+  const marginRequired = useMemo(() => {
+    if (!isLoadingMarketData && orderForm.amount) {
+      return calculateMarginRequired({
+        amount: BigNumber(assetData.markPrice).times(positionSize).toString(),
+        leverage: orderForm.leverage,
+      });
+    }
+  }, [
+    orderForm.amount,
+    assetData.markPrice,
+    orderForm.leverage,
+    isLoadingMarketData,
+    positionSize,
+  ]);
+
   const { updatePositionTPSL } = usePerpsTrading();
 
   // Order execution using new hook
@@ -402,9 +438,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     positionSize,
     showToast,
   ]);
-
-  // Get margin required from form calculations
-  const marginRequired = calculations.marginRequired;
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(() => {
@@ -510,7 +543,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     positionSize,
     assetPrice: assetData.price,
     availableBalance,
-    marginRequired,
+    marginRequired: marginRequired || '0',
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -530,12 +563,39 @@ const PerpsOrderViewContentBase: React.FC = () => {
       return;
     }
 
-    setIsTPSLVisible(true);
+    navigation.navigate(Routes.PERPS.TPSL, {
+      asset: orderForm.asset,
+      currentPrice: assetData.price,
+      direction: orderForm.direction,
+      leverage: orderForm.leverage,
+      orderType: orderForm.type,
+      limitPrice: orderForm.limitPrice,
+      initialTakeProfitPrice: orderForm.takeProfitPrice,
+      initialStopLossPrice: orderForm.stopLossPrice,
+      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
+        // Use the same clearing approach as the "Off" button
+        // If values are undefined or empty, ensure they're cleared properly
+        const tpToSet = takeProfitPrice || undefined;
+        const slToSet = stopLossPrice || undefined;
+
+        setTakeProfitPrice(tpToSet);
+        setStopLossPrice(slToSet);
+      },
+    });
   }, [
     PerpsToastOptions.formValidation.orderForm.limitPriceRequired,
     orderForm.limitPrice,
     orderForm.type,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.leverage,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    assetData.price,
     showToast,
+    navigation,
+    setTakeProfitPrice,
+    setStopLossPrice,
   ]);
 
   const handleAmountPress = () => {
@@ -558,6 +618,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
+    optimizeOrderAmount(assetData.price, marketData?.szDecimals);
   };
 
   const handleMaxPress = () => {
@@ -575,20 +636,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
   useEffect(() => {
     if (!isInputFocused) {
       const currentAmount = parseFloat(orderForm.amount || '0');
-      const maxAllowed = Math.floor(availableBalance * orderForm.leverage);
 
       // If user-entered amount exceeds the max purchasable with current balance/leverage,
       // snap it down to the maximum once input is closed.
-      if (currentAmount > maxAllowed) {
-        setAmount(String(maxAllowed));
+      if (currentAmount > maxPossibleAmount) {
+        setAmount(String(maxPossibleAmount));
       }
+      optimizeOrderAmount(assetData.price, marketData?.szDecimals);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isInputFocused,
-    orderForm.amount,
     availableBalance,
     orderForm.leverage,
     setAmount,
+    optimizeOrderAmount,
+    assetData.price,
+    marketData?.szDecimals,
   ]);
 
   const handlePlaceOrder = useCallback(async () => {
@@ -754,6 +818,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
+
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
@@ -777,7 +842,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
       <PerpsOrderHeader
         asset={orderForm.asset}
@@ -810,10 +875,16 @@ const PerpsOrderViewContentBase: React.FC = () => {
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => {
                 inputMethodRef.current = 'slider';
-                setAmount(Math.floor(value).toString());
+                const amount = Math.floor(value).toString();
+
+                setAmount(amount);
+                if (amount !== '0') {
+                  // Now using debounced optimizeOrderAmount for all interactions
+                  optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+                }
               }}
               minimumValue={0}
-              maximumValue={amountTimesLeverage}
+              maximumValue={maxPossibleAmount}
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}
@@ -880,7 +951,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         color={TextColor.Default}
                       >
                         {orderForm.limitPrice
-                          ? formatPrice(orderForm.limitPrice)
+                          ? formatPerpsFiat(orderForm.limitPrice, {
+                              ranges: PRICE_RANGES_UNIVERSAL,
+                            })
                           : 'Set price'}
                       </Text>
                     </ListItemColumn>
@@ -972,7 +1045,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {marginRequired
-                ? formatPrice(marginRequired)
+                ? formatPerpsFiat(marginRequired, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
@@ -999,7 +1074,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
-                    ranges: PRICE_RANGES_DETAILED_VIEW,
+                    ranges: PRICE_RANGES_UNIVERSAL,
                   })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
@@ -1056,13 +1131,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 </TouchableOpacity>
               </View>
               <View style={styles.pointsRightContainer}>
-                <RewardPointsDisplay
-                  estimatedPoints={rewardsState.estimatedPoints}
+                <RewardsAnimations
+                  value={rewardsState.estimatedPoints ?? 0}
                   bonusBips={rewardsState.bonusBips}
-                  isLoading={rewardsState.isLoading}
-                  hasError={rewardsState.hasError}
                   shouldShow={rewardsState.shouldShowRewardsRow}
-                  isRefresh={rewardsState.isRefresh}
+                  infoOnPress={() =>
+                    openTooltipModal(
+                      strings('perps.points_error'),
+                      strings('perps.points_error_content'),
+                    )
+                  }
+                  state={
+                    rewardsState.isLoading
+                      ? RewardAnimationState.Loading
+                      : rewardsState.hasError
+                      ? RewardAnimationState.ErrorState
+                      : RewardAnimationState.Idle
+                  }
                 />
               </View>
             </View>
@@ -1117,7 +1202,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       )}
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
-        <View style={styles.fixedBottomContainer}>
+        <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 && (
             <View style={styles.validationContainer}>
               {filteredErrors.map((error) => (
@@ -1153,30 +1238,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           </ButtonSemantic>
         </View>
       )}
-      {/* TP/SL Bottom Sheet */}
-      <PerpsTPSLBottomSheet
-        isVisible={isTPSLVisible}
-        onClose={() => setIsTPSLVisible(false)}
-        onConfirm={(takeProfitPrice, stopLossPrice) => {
-          // Use the same clearing approach as the "Off" button
-          // If values are undefined or empty, ensure they're cleared properly
-          const tpToSet = takeProfitPrice || undefined;
-          const slToSet = stopLossPrice || undefined;
-
-          setTakeProfitPrice(tpToSet);
-          setStopLossPrice(slToSet);
-          setIsTPSLVisible(false);
-        }}
-        asset={orderForm.asset}
-        currentPrice={assetData.price}
-        direction={orderForm.direction}
-        leverage={orderForm.leverage}
-        marginRequired={marginRequired}
-        initialTakeProfitPrice={orderForm.takeProfitPrice}
-        initialStopLossPrice={orderForm.stopLossPrice}
-        orderType={orderForm.type}
-        limitPrice={orderForm.limitPrice}
-      />
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
         isVisible={isLeverageVisible}

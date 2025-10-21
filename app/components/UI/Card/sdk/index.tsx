@@ -4,15 +4,31 @@ import React, {
   useContext,
   useMemo,
   useEffect,
+  useCallback,
 } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { CardSDK } from './CardSDK';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import {
+  CardFeatureFlag,
+  selectCardFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
+import { removeCardBaanxToken } from '../util/cardTokenVault';
+import {
+  setAuthenticatedPriorityToken,
+  setAuthenticatedPriorityTokenLastFetched,
+  setIsAuthenticatedCard,
+  selectUserCardLocation,
+  setUserCardLocation,
+} from '../../../../core/redux/slices/card';
 
+// Types
 export interface ICardSDK {
   sdk: CardSDK | null;
+  isLoading: boolean;
+  logoutFromProvider: () => Promise<void>;
 }
 
 interface ProviderProps<T> {
@@ -20,38 +36,75 @@ interface ProviderProps<T> {
   children?: React.ReactNode;
 }
 
+// Context
 const CardSDKContext = createContext<ICardSDK | undefined>(undefined);
 
+/**
+ * CardSDKProvider manages the Card SDK instance.
+ * It handles SDK initialization. Authentication is handled separately
+ * by the CardAuthenticationVerification component at the app level.
+ */
 export const CardSDKProvider = ({
   value,
   ...props
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-
+  const userCardLocation = useSelector(selectUserCardLocation);
+  const dispatch = useDispatch();
   const [sdk, setSdk] = useState<CardSDK | null>(null);
+  // Start with true to indicate initialization in progress
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize CardholderSDK if card feature flag is enabled and chain ID is selected
+  const removeAuthenticatedData = useCallback(() => {
+    dispatch(setIsAuthenticatedCard(false));
+    dispatch(setAuthenticatedPriorityTokenLastFetched(null));
+    dispatch(setAuthenticatedPriorityToken(null));
+    dispatch(setUserCardLocation(null));
+  }, [dispatch]);
+
+  // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
     if (cardFeatureFlag) {
+      setIsLoading(true);
       const cardSDK = new CardSDK({
-        cardFeatureFlag,
+        cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
+        userCardLocation,
       });
       setSdk(cardSDK);
     } else {
       setSdk(null);
+      setIsLoading(false);
     }
-  }, [cardFeatureFlag]);
 
+    setIsLoading(false);
+  }, [cardFeatureFlag, userCardLocation]);
+
+  const logoutFromProvider = useCallback(async () => {
+    if (!sdk) {
+      throw new Error('SDK not available for logout');
+    }
+
+    await removeCardBaanxToken();
+    removeAuthenticatedData();
+  }, [sdk, removeAuthenticatedData]);
+
+  // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     (): ICardSDK => ({
       sdk,
+      isLoading,
+      logoutFromProvider,
     }),
-    [sdk],
+    [sdk, isLoading, logoutFromProvider],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;
 };
 
+/**
+ * Hook to access CardSDK context.
+ * Must be used within a CardSDKProvider.
+ */
 export const useCardSDK = () => {
   const contextValue = useContext(CardSDKContext);
   if (!contextValue) {
@@ -60,6 +113,9 @@ export const useCardSDK = () => {
   return contextValue;
 };
 
+/**
+ * Higher-order component that wraps a component with CardSDKProvider.
+ */
 export const withCardSDK =
   (Component: React.ComponentType) => (props: Record<string, unknown>) =>
     (
@@ -68,8 +124,15 @@ export const withCardSDK =
       </CardSDKProvider>
     );
 
+/**
+ * Component that performs cardholder verification.
+ * This should be mounted at the app entry level to ensure
+ * cardholder verification is always up-to-date.
+ * Returns null as it's just a side-effect component.
+ */
 export const CardVerification: React.FC = () => {
   useCardholderCheck();
+  useCardAuthenticationVerification();
 
   return null;
 };

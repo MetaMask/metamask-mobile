@@ -71,6 +71,7 @@ export enum DeepLinkModalLinkType {
   PUBLIC = 'public',
   PRIVATE = 'private',
   INVALID = 'invalid',
+  UNSUPPORTED = 'unsupported',
 }
 
 /**
@@ -125,4 +126,5 @@ export enum SUPPORTED_ACTIONS {
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
   REWARDS = ACTIONS.REWARDS,
   WC = ACTIONS.WC,
+  ONBOARDING = ACTIONS.ONBOARDING,
 }

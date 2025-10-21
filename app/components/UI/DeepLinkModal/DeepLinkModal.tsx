@@ -121,7 +121,8 @@ const DeepLinkModal = () => {
   const navigation = useNavigation();
 
   const pageTitle =
-    params.linkType !== DeepLinkModalLinkType.INVALID
+    params.linkType !== DeepLinkModalLinkType.INVALID &&
+    params.linkType !== DeepLinkModalLinkType.UNSUPPORTED
       ? params.pageTitle
       : undefined;
   const { styles } = useStyles(styleSheet, {});
@@ -154,6 +155,11 @@ const DeepLinkModal = () => {
       [DeepLinkModalLinkType.INVALID]: {
         title: strings('deep_link_modal.invalid.title'),
         description: strings('deep_link_modal.invalid.description'),
+        buttonLabel: strings('deep_link_modal.go_to_home_button'),
+      },
+      [DeepLinkModalLinkType.UNSUPPORTED]: {
+        title: strings('deep_link_modal.unsupported.title'),
+        description: strings('deep_link_modal.unsupported.description'),
         buttonLabel: strings('deep_link_modal.go_to_home_button'),
       },
     }),
@@ -262,8 +268,11 @@ const DeepLinkModal = () => {
         );
       }
 
-      if (linkType === DeepLinkModalLinkType.INVALID) {
-        // Navigate to home page for invalid links
+      if (
+        linkType === DeepLinkModalLinkType.INVALID ||
+        linkType === DeepLinkModalLinkType.UNSUPPORTED
+      ) {
+        // Navigate to home page for invalid/unsupported links
         navigation.navigate(Routes.WALLET.HOME, {
           screen: Routes.WALLET.TAB_STACK_FLOW,
           params: {
