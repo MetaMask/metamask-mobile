@@ -254,14 +254,14 @@ const PredictBuyPreview = () => {
             <Skeleton width={120} height={20} />
           ) : (
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              Available:{' '}
+              {`${strings('predict.order.available')}: `}
               {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
             </Text>
           )}
         </Box>
         <Box twClassName="text-center mt-2">
           <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
-            To win{' '}
+            {`${strings('predict.order.to_win')} `}
             {formatPrice(toWin, {
               minimumDecimals: 2,
               maximumDecimals: 2,
@@ -283,7 +283,7 @@ const PredictBuyPreview = () => {
             color={TextColor.Error}
             style={tw.style('text-center')}
           >
-            Insufficient funds. Lower the amount or add funds to continue.
+            {strings('predict.order.prediction_insufficient_funds')}
           </Text>
         </Box>
       );
@@ -297,7 +297,9 @@ const PredictBuyPreview = () => {
             color={TextColor.Error}
             style={tw.style('text-center')}
           >
-            Minimum bet is $1.00
+            {strings('predict.order.prediction_minimum_bet', {
+              amount: '$1.00',
+            })}
           </Text>
         </Box>
       );
@@ -350,7 +352,7 @@ const PredictBuyPreview = () => {
           </Box>
           <Box twClassName="text-center items-center">
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              All payments are made in USDC
+              {strings('predict.order.payments_made_in_usdc')}
             </Text>
           </Box>
         </Box>
