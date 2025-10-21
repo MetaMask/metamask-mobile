@@ -301,7 +301,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
           {asset}-USD{' '}
-          {currentPrice
+          {currentPrice !== undefined && currentPrice !== null
             ? formatPerpsFiat(currentPrice, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })

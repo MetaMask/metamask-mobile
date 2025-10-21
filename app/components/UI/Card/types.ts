@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { FlashListAssetKey } from '../Tokens/TokenList';
 
 /**
@@ -10,6 +9,24 @@ export enum AllowanceState {
   NotEnabled = 'not_enabled',
 }
 
+export enum CardWarning {
+  NeedDelegation = 'need_delegation',
+  CloseSpendingLimit = 'close_spending_limit',
+}
+
+export type CardUserPhase =
+  | 'ACCOUNT'
+  | 'PHONE_NUMBER'
+  | 'PERSONAL_INFORMATION'
+  | 'PHYSICAL_ADDRESS'
+  | 'MAILING_ADDRESS';
+
+export type CardVerificationState =
+  | 'VERIFIED'
+  | 'UNVERIFIED'
+  | 'PENDING'
+  | 'REJECTED';
+
 // Helper interface for token balances
 export interface CardToken {
   address: string | null;
@@ -18,11 +35,27 @@ export interface CardToken {
   name: string | null;
 }
 
+// Card token data interface
+// Used on Keychain storage
+export interface CardTokenData {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresAt: number;
+  refreshTokenExpiresAt: number;
+  location: CardLocation;
+}
+
+export interface AuthenticatedCardTokenAllowanceData {
+  availableBalance?: string;
+  walletAddress?: string;
+}
+
 export type CardTokenAllowance = {
   allowanceState: AllowanceState;
-  allowance: ethers.BigNumber;
+  allowance: string;
 } & FlashListAssetKey &
-  CardToken;
+  CardToken &
+  AuthenticatedCardTokenAllowanceData;
 
 export interface CardLoginInitiateResponse {
   token: string;
@@ -32,12 +65,12 @@ export interface CardLoginInitiateResponse {
 export type CardLocation = 'us' | 'international';
 
 export interface CardLoginResponse {
-  phase: string | null;
+  phase: CardUserPhase | null;
   userId: string;
   isOtpRequired: boolean;
   phoneNumber: string | null;
   accessToken: string;
-  verificationState: string;
+  verificationState: CardVerificationState;
   isLinked: boolean;
 }
 
@@ -63,14 +96,67 @@ export interface CardExchangeTokenResponse {
   refreshTokenExpiresIn: number;
 }
 
+export enum CardStatus {
+  ACTIVE = 'ACTIVE',
+  FROZEN = 'FROZEN',
+  BLOCKED = 'BLOCKED',
+}
+
+export enum CardType {
+  VIRTUAL = 'VIRTUAL',
+  PHYSICAL = 'PHYSICAL',
+  METAL = 'METAL',
+}
+
+export interface CardDetailsResponse {
+  id: string;
+  holderName: string;
+  expiryDate: string;
+  panLast4: string;
+  status: CardStatus;
+  type: CardType;
+  orderedAt: string;
+}
+
+export interface CardWalletExternalResponse {
+  address: string; // This is the wallet address;
+  currency: string;
+  balance: string;
+  allowance: string;
+  network: 'linea' | 'solana';
+}
+
+export interface CardWalletExternalPriorityResponse {
+  id: number;
+  address: string; // This is the wallet address;
+  currency: string;
+  network: 'linea' | 'solana';
+  priority: number;
+}
+
+export interface CardExternalWalletDetail {
+  id: number;
+  walletAddress: string;
+  currency: string;
+  balance: string;
+  allowance: string;
+  priority: number;
+  tokenDetails: CardToken;
+  chainId: string;
+}
+
+export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
+
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  OTP_REQUIRED = 'OTP_REQUIRED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   API_KEY_MISSING = 'API_KEY_MISSING',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
+  NO_CARD = 'NO_CARD',
 }
 
 export class CardError extends Error {
@@ -83,4 +169,44 @@ export class CardError extends Error {
     this.type = type;
     this.originalError = originalError;
   }
+}
+
+// Country type definition
+export interface CountriesOutput {
+  countries: {
+    id: string;
+    name: string;
+    iso3166alpha2: string;
+    callingCode: string;
+    canSignUp: boolean;
+  }[];
+  usStates: {
+    id: string;
+    name: string;
+    postalAbbreviation: string;
+    canSignUp: boolean;
+  }[];
+  links: {
+    us: {
+      termsAndConditions: string;
+      accountOpeningDisclosure: string;
+      noticeOfPrivacy: string;
+    };
+    intl: {
+      termsAndConditions: string;
+      rightToInformation: string;
+    };
+  };
+  config: {
+    us: {
+      emailSpecialCharactersDomainsException: string;
+      consentSmsNumber: string;
+      supportEmail: string;
+    };
+    intl: {
+      emailSpecialCharactersDomainsException: string;
+      consentSmsNumber: string;
+      supportEmail: string;
+    };
+  };
 }

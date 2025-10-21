@@ -34,6 +34,8 @@ import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import Loader from '../../../component-library/components-temp/Loader';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { SolScope } from '@metamask/keyring-api';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -60,6 +62,10 @@ const Tokens = memo(() => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+
+  const selectedSolanaAccount =
+    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
+  const isSolanaSelected = selectedSolanaAccount !== null;
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [isTokensLoading, setIsTokensLoading] = useState(true);
@@ -175,7 +181,7 @@ const Tokens = memo(() => {
     // Use InteractionManager for better performance during refresh
     InteractionManager.runAfterInteractions(() => {
       refreshTokens({
-        isEvmSelected,
+        isSolanaSelected,
         evmNetworkConfigurationsByChainId,
         nativeCurrencies,
         selectedAccountId,
@@ -183,7 +189,7 @@ const Tokens = memo(() => {
       setRefreshing(false);
     });
   }, [
-    isEvmSelected,
+    isSolanaSelected,
     evmNetworkConfigurationsByChainId,
     nativeCurrencies,
     selectedAccountId,
