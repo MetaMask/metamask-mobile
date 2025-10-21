@@ -5,7 +5,7 @@
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
-    "audit:ci": "yarn npm audit --environment production --severity moderate",
+    "audit:ci": "yarn npm audit --environment production --severity moderate --no-deprecations",
     "watch": "./scripts/build.sh watcher main dev --watcher",
     "watch:clean": "./scripts/build.sh watcher main dev --watcher --clean",
     "watch:flask": "METAMASK_BUILD_TYPE=flask ./scripts/build.sh watcher flask dev --watcher",
@@ -346,7 +346,6 @@
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "^1.8.2",
-    "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "bitcoin-address-validation": "2.2.3",
     "bnjs4": "npm:bn.js@^4.12.0",
@@ -656,7 +655,7 @@
   },
   "engines": {
     "node": "^20.18.0",
-    "yarn": "^3.8.7"
+    "yarn": "^4.10.3"
   },
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.34.3",
@@ -740,7 +739,7 @@
       "esbuild": false
     }
   },
-  "packageManager": "yarn@3.8.7",
+  "packageManager": "yarn@4.10.3",
   "foundryup": {
     "binaries": [
       "anvil"
