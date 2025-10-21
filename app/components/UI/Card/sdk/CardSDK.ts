@@ -795,6 +795,21 @@ export class CardSDK {
       const responses = await Promise.all(promises);
 
       if (!responses[0].ok || !responses[1].ok) {
+        try {
+          const errorResponse0 = await responses[0].json();
+          const errorResponse1 = await responses[1].json();
+          Logger.log(
+            errorResponse0,
+            'Failed to get card external wallet details. Please try again.',
+          );
+          Logger.log(
+            errorResponse1,
+            'Failed to get card priority wallet details. Please try again.',
+          );
+        } catch (error) {
+          // If we can't parse response, continue without it
+        }
+
         throw new CardError(
           CardErrorType.SERVER_ERROR,
           'Failed to get card external wallet details. Please try again.',
