@@ -159,6 +159,6 @@ export class ArbitrumWithdrawalService {
    */
   isOnArbitrum(): boolean {
     const chainId = this.getCurrentChainId();
-    return chainId === '0xa4b1' || chainId === '0x66eed'; // Arbitrum mainnet or testnet
+    return chainId === '0xa4b1' || chainId === '0x66eee'; // Arbitrum mainnet or testnet
   }
 }
