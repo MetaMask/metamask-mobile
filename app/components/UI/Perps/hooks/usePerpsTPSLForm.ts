@@ -895,9 +895,10 @@ export function usePerpsTPSLForm(
 
   // Calculate expected P&L for Take Profit
   // Use fee hook for accurate closing fees
+  // Notional value must be positive for fee calculation (use abs for short positions)
   const tpNotionalValue =
-    takeProfitPrice && positionSizeForPnL > 0
-      ? (parseFloat(takeProfitPrice) * positionSizeForPnL).toFixed(2)
+    takeProfitPrice && positionSizeForPnL !== 0
+      ? (parseFloat(takeProfitPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
       : '0';
 
   const tpClosingFees = usePerpsOrderFees({
@@ -908,7 +909,7 @@ export function usePerpsTPSLForm(
   });
 
   const expectedTakeProfitPnL =
-    takeProfitPrice && positionSizeForPnL > 0 && entryPrice && entryPrice > 0
+    takeProfitPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
       ? calculateExpectedPnL({
           triggerPrice: parseFloat(takeProfitPrice),
           entryPrice,
@@ -918,9 +919,10 @@ export function usePerpsTPSLForm(
       : undefined;
 
   // Calculate expected P&L for Stop Loss
+  // Notional value must be positive for fee calculation (use abs for short positions)
   const slNotionalValue =
-    stopLossPrice && positionSizeForPnL > 0
-      ? (parseFloat(stopLossPrice) * positionSizeForPnL).toFixed(2)
+    stopLossPrice && positionSizeForPnL !== 0
+      ? (parseFloat(stopLossPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
       : '0';
 
   const slClosingFees = usePerpsOrderFees({
@@ -931,7 +933,7 @@ export function usePerpsTPSLForm(
   });
 
   const expectedStopLossPnL =
-    stopLossPrice && positionSizeForPnL > 0 && entryPrice && entryPrice > 0
+    stopLossPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
       ? calculateExpectedPnL({
           triggerPrice: parseFloat(stopLossPrice),
           entryPrice,
