@@ -204,9 +204,9 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
           twClassName="gap-4"
           testID={`rewards-account-group-actions-${accountGroup.id}`}
         >
-          {/* More options button to show account addresses */}
+          {/* Menu button to show account addresses */}
           <ButtonIcon
-            iconName={IconNameDS.MoreVertical}
+            iconName={IconNameDS.Menu}
             size={ButtonIconSize.Lg}
             onPress={handleShowAddresses}
             isDisabled={isLoading}

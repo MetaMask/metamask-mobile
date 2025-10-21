@@ -169,7 +169,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       Lg: 'lg',
     },
     IconName: {
-      MoreVertical: 'more-vertical',
+      Menu: 'menu',
       Check: 'check',
       Add: 'add',
     },
@@ -254,7 +254,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     __esModule: true,
     default: MockIcon,
     IconName: {
-      MoreVertical: 'more-vertical',
+      Menu: 'menu',
       Check: 'check',
       Add: 'add',
     },
