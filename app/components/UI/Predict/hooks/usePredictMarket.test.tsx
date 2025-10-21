@@ -64,6 +64,8 @@ describe('usePredictMarket', () => {
         groupItemTitle: 'Yes/No',
       },
     ],
+    liquidity: 1000000,
+    volume: 1000000,
   };
 
   beforeEach(() => {

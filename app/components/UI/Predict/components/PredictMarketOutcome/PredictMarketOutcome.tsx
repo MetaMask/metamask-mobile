@@ -28,13 +28,18 @@ import {
   PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
+  entryPoint?: PredictEntryPoint;
   outcomeToken?: PredictOutcomeToken;
   isClosed?: boolean;
 }
@@ -42,6 +47,7 @@ interface PredictMarketOutcomeProps {
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   market,
   outcome,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isClosed = false,
   outcomeToken,
 }) => {
@@ -89,6 +95,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[0],
+        entryPoint,
       },
     });
   };
@@ -107,6 +114,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[1],
+        entryPoint,
       },
     });
   };

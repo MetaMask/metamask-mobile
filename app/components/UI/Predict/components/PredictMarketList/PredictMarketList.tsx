@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import TabBar from '../../../../Base/TabBar';
+import { PredictEventValues } from '../../constants/eventNames';
 import MarketListContent from '../MarketListContent';
 
 interface PredictMarketListProps {
@@ -28,7 +29,11 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
           initialPage={0}
         >
           <View key="search" style={tw.style('flex-1 pt-4 w-full')}>
-            <MarketListContent category="trending" q={searchQuery} />
+            <MarketListContent
+              category="trending"
+              q={searchQuery}
+              entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
+            />
           </View>
         </ScrollableTabView>
       )}
