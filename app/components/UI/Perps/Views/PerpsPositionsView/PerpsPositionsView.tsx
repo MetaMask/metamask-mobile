@@ -3,7 +3,7 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
@@ -19,10 +19,8 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import type { Position } from '../../controllers/types';
-import { usePerpsLivePositions, usePerpsTPSLUpdate } from '../../hooks';
+import { usePerpsLivePositions } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   formatPnl,
@@ -41,25 +39,12 @@ const PerpsPositionsView: React.FC = () => {
 
   const { account } = usePerpsLiveAccount();
 
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null,
-  );
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-
   // Get real-time positions via WebSocket
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update every second
   });
 
   const error = null;
-
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      setIsTPSLVisible(false);
-      setSelectedPosition(null);
-    },
-  });
 
   // Memoize position count text to avoid recalculating on every render
   const positionCountText = useMemo(() => {
@@ -225,32 +210,6 @@ const PerpsPositionsView: React.FC = () => {
         </View>
         {renderContent()}
       </ScrollView>
-
-      {/* TP/SL Bottom Sheet - Rendered outside ScrollView to fix layering issue */}
-      {isTPSLVisible && selectedPosition && (
-        <PerpsTPSLBottomSheet
-          isVisible
-          onClose={() => {
-            setIsTPSLVisible(false);
-            setSelectedPosition(null);
-          }}
-          onConfirm={async (takeProfitPrice, stopLossPrice) => {
-            await handleUpdateTPSL(
-              selectedPosition,
-              takeProfitPrice,
-              stopLossPrice,
-            );
-            setIsTPSLVisible(false);
-            setSelectedPosition(null);
-          }}
-          asset={selectedPosition.coin}
-          position={selectedPosition}
-          initialTakeProfitPrice={selectedPosition.takeProfitPrice}
-          initialStopLossPrice={selectedPosition.stopLossPrice}
-          isUpdating={isUpdating}
-          orderType="market" // Default to market for existing positions
-        />
-      )}
     </SafeAreaView>
   );
 };

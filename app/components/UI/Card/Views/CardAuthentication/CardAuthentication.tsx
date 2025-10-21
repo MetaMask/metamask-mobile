@@ -233,7 +233,7 @@ const CardAuthentication = () => {
                 loading={loading}
                 style={[styles.button, isDisabled && styles.buttonDisabled]}
                 width={ButtonWidthTypes.Full}
-                disabled={isDisabled}
+                disabled={isDisabled || loading}
               />
             </Box>
           </Box>
