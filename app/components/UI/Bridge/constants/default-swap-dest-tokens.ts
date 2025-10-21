@@ -94,6 +94,15 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
       'https://static.cx.metamask.io/api/v1/tokenIcons/1329/0xe15fc38f6d8c56af07bbcbe3baf5708a2bf42392.png',
     chainId: CHAIN_IDS.SEI,
   },
+  [CHAIN_IDS.MONAD]: {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    address: '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/143/0x754704Bc059F8C67012fEd69BC8A327a5aafb603.png',
+    chainId: CHAIN_IDS.MONAD,
+  },
   [SolScope.Mainnet]: {
     address:
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',

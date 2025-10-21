@@ -12,6 +12,7 @@ import {
   POLYGON_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
   SEI_CHAIN_ID,
+  MONAD_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
 import {
@@ -30,6 +31,7 @@ const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   AVALANCHE_CHAIN_ID,
   LINEA_CHAIN_ID,
   SEI_CHAIN_ID,
+  MONAD_CHAIN_ID,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   SolScope.Mainnet,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)

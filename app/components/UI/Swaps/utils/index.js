@@ -18,6 +18,7 @@ const {
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
   SEI_CHAIN_ID,
+  MONAD_CHAIN_ID,
 } = swapsUtils;
 
 const allowedChainIds = [
@@ -31,6 +32,7 @@ const allowedChainIds = [
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
   SEI_CHAIN_ID,
+  MONAD_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
 ];
 
