@@ -10,49 +10,57 @@ import {
   MultichainAccountServiceMessenger,
   getMultichainAccountServiceMessenger,
   getMultichainAccountServiceInitMessenger,
+  Actions,
+  Events,
+  AllowedInitializationActions,
+  AllowedInitializationEvents,
 } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 import { Messenger } from '@metamask/base-controller';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
-import { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('@metamask/multichain-account-service');
 
 const mockRemoteFeatureFlagControllerGetState = jest.fn();
 
-type MockInitMessenger = Parameters<
-  typeof getMultichainAccountServiceInitMessenger
->[0];
+type MockInitMessenger = Messenger<
+  Actions | AllowedInitializationActions,
+  Events | AllowedInitializationEvents
+>;
+
+function getBaseMessenger(): MockInitMessenger {
+  return new Messenger();
+}
 
 function getInitRequestMock({
+  messenger = getBaseMessenger(),
   remoteFeatureFlags = {},
 }: {
-  remoteFeatureFlags?: RemoteFeatureFlagControllerState['remoteFeatureFlags'];
+  messenger?: MockInitMessenger;
+  remoteFeatureFlags?: FeatureFlags;
 } = {}): jest.Mocked<
   ControllerInitRequest<
     MultichainAccountServiceMessenger,
     MultichainAccountServiceInitMessenger
   >
 > {
-  // Create a base messenger and get the restricted messengers from it
-  const baseMessenger = new Messenger();
-  const controllerMessenger =
-    getMultichainAccountServiceMessenger(baseMessenger);
-  const initMessenger = getMultichainAccountServiceInitMessenger(baseMessenger);
-
-  // Create extended messenger for the base mock
-  const extendedControllerMessenger = new ExtendedControllerMessenger();
-
-  // Build the base mock with extended messenger
-  const baseMock = buildControllerInitRequestMock(extendedControllerMessenger);
+  const controllerMessenger = getMultichainAccountServiceMessenger(messenger);
+  const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
 
   // Mock remote feature flag state which is required when initializing the service
-  (baseMessenger as MockInitMessenger).registerActionHandler(
+  messenger.registerActionHandler(
     'RemoteFeatureFlagController:getState',
     mockRemoteFeatureFlagControllerGetState,
   );
   mockRemoteFeatureFlagControllerGetState.mockImplementation(() => ({
     remoteFeatureFlags,
   }));
+
+  // Create extended messenger for the base mock
+  const extendedControllerMessenger = new ExtendedControllerMessenger();
+
+  // Build the base mock with extended messenger
+  const baseMock = buildControllerInitRequestMock(extendedControllerMessenger);
 
   // Return merged mock with proper messengers
   return {
@@ -156,6 +164,49 @@ describe('MultichainAccountServiceInit', () => {
             },
           },
         }),
+      );
+
+      // Then Bitcoin provider should be enabled
+      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
+      expect(setEnabledSpy).toHaveBeenCalledWith(true);
+
+      // And alignment triggered
+      expect(alignWalletsSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('enables Bitcoin provider when feature flag is enabled at runtime', () => {
+      // When initializing the service
+      const messenger = getBaseMessenger();
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          messenger,
+          // Given the feature flag is not enabled yet
+          remoteFeatureFlags: {
+            bitcoinAccounts: {
+              enabled: false,
+              minimumVersion: '1.0.0',
+            },
+          },
+        }),
+      );
+
+      // Then Bitcoin provider should not have been called, nor the alignement process
+      expect(setEnabledSpy).not.toHaveBeenCalled();
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
+
+      // Enabling the remote feature flag would enable the Bitcoin provider
+      messenger.publish(
+        'RemoteFeatureFlagController:stateChange',
+        {
+          remoteFeatureFlags: {
+            bitcoinAccounts: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+          cacheTimestamp: 0,
+        },
+        [],
       );
 
       // Then Bitcoin provider should be enabled
