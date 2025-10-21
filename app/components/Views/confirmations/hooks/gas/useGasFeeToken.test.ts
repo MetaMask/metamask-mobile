@@ -1,6 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
-  METAMASK_FEE_PERCENTAGE,
   RATE_WEI_NATIVE,
   useGasFeeToken,
   useSelectedGasFeeToken,
@@ -180,24 +179,6 @@ describe('useGasFeeToken', () => {
       expect(result.metaMaskFee).toStrictEqual(customFee);
     });
 
-    it('calculates fee using METAMASK_FEE_PERCENTAGE when fee property is not provided', () => {
-      const tokenWithoutFee: GasFeeToken = {
-        ...GAS_FEE_TOKEN_MOCK,
-        fee: undefined,
-      };
-
-      const result = runHook({
-        gasFeeTokens: [tokenWithoutFee],
-        tokenAddress: tokenWithoutFee.tokenAddress,
-      });
-
-      const expectedFee = new BigNumber(GAS_FEE_TOKEN_MOCK.amount)
-        .times(METAMASK_FEE_PERCENTAGE)
-        .toString(16);
-
-      expect(result.metaMaskFee).toStrictEqual(`0x${expectedFee}`);
-    });
-
     it('calculates correct metamaskFeeFiat when fee property is provided', () => {
       const customFee = toHex(1000);
       const tokenWithFee: GasFeeToken = {
@@ -261,10 +242,11 @@ describe('useGasFeeToken', () => {
 
     it('calculates percentage-based fee correctly for large amounts', () => {
       const largeAmount = toHex(new BigNumber('1000000000000').toNumber());
+      const expectedFee = '0x03b9aca00' as Hex;
       const tokenWithLargeAmount: GasFeeToken = {
         ...GAS_FEE_TOKEN_MOCK,
         amount: largeAmount,
-        fee: undefined,
+        fee: expectedFee,
       };
 
       const result = runHook({
@@ -272,11 +254,7 @@ describe('useGasFeeToken', () => {
         tokenAddress: tokenWithLargeAmount.tokenAddress,
       });
 
-      const expectedFee = new BigNumber(largeAmount)
-        .times(METAMASK_FEE_PERCENTAGE)
-        .toString(16);
-
-      expect(result.metaMaskFee).toStrictEqual(`0x${expectedFee}`);
+      expect(result.metaMaskFee).toStrictEqual(expectedFee);
     });
 
     it('uses fee property over calculated percentage when both are applicable', () => {
@@ -294,12 +272,6 @@ describe('useGasFeeToken', () => {
 
       // Should use the provided fee, not the calculated one
       expect(result.metaMaskFee).toStrictEqual(customFee);
-
-      // Verify it's not using the percentage calculation
-      const calculatedFee = new BigNumber(tokenWithBothValues.amount)
-        .times(METAMASK_FEE_PERCENTAGE)
-        .toString(16);
-      expect(result.metaMaskFee).not.toStrictEqual(`0x${calculatedFee}`);
     });
   });
 });
