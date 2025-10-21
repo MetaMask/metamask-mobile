@@ -41,7 +41,6 @@ import {
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
-import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsPositionCard.styles';
 
@@ -75,12 +74,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const isEligible = useSelector(selectPerpsEligibility);
 
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null,
-  );
-
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
+  const { handleUpdateTPSL } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Positions update automatically via WebSocket
       // Call parent's position update callback if provided
@@ -137,7 +131,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const roeValue = parseFloat(position.returnOnEquity || '0');
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
 
-  const handleEditTPSL = () => {
+  const handleEditTPSL = useCallback(() => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
@@ -154,9 +148,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
 
     DevLogger.log('PerpsPositionCard: Editing TPSL', { position });
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
-  };
+
+    navigation.navigate(Routes.PERPS.TPSL, {
+      asset: position.coin,
+      position,
+      initialTakeProfitPrice: position.takeProfitPrice,
+      initialStopLossPrice: position.stopLossPrice,
+      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
+        await handleUpdateTPSL(position, takeProfitPrice, stopLossPrice);
+      },
+    });
+  }, [
+    isEligible,
+    position,
+    navigation,
+    handleUpdateTPSL,
+    setIsEligibilityModalVisible,
+    setIsTPSLCountWarningVisible,
+  ]);
 
   const handleTpslCountPress = useCallback(async () => {
     if (isLoading || error) {
@@ -496,33 +505,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </View>
         )}
       </TouchableOpacity>
-      {/* TP/SL Bottom Sheet - Wrapped in Modal to render from root */}
-      {isTPSLVisible && selectedPosition && (
-        <Modal visible transparent animationType="fade">
-          <PerpsTPSLBottomSheet
-            isVisible
-            onClose={() => {
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            onConfirm={async (takeProfitPrice, stopLossPrice) => {
-              await handleUpdateTPSL(
-                selectedPosition,
-                takeProfitPrice,
-                stopLossPrice,
-              );
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            asset={selectedPosition.coin}
-            position={selectedPosition}
-            initialTakeProfitPrice={selectedPosition.takeProfitPrice}
-            initialStopLossPrice={selectedPosition.stopLossPrice}
-            isUpdating={isUpdating}
-            orderType="market" // Default to market for existing positions
-          />
-        </Modal>
-      )}
       {isTPSLCountWarningVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>

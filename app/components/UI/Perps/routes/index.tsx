@@ -14,6 +14,7 @@ import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
+import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 
@@ -122,6 +123,16 @@ const PerpsScreenStack = () => (
             }}
           />
         )}
+
+        {/* TP/SL View - Regular screen */}
+        <Stack.Screen
+          name={Routes.PERPS.TPSL}
+          component={PerpsTPSLView}
+          options={{
+            title: strings('perps.tpsl.title'),
+            headerShown: false,
+          }}
+        />
 
         {/* Modal stack for bottom sheet modals */}
         <Stack.Screen
