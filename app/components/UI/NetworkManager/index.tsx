@@ -53,9 +53,13 @@ import createStyles from './index.styles';
 import {
   NetworkMenuModalState,
   ShowConfirmDeleteModalState,
+  ShowMultiRpcSelectModalState,
 } from './index.types';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -80,6 +84,7 @@ const NetworkManager = () => {
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
+  const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -121,10 +126,35 @@ const NetworkManager = () => {
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
+  const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] =
+    useState<ShowMultiRpcSelectModalState>({
+      isVisible: false,
+      chainId: '0x1',
+      networkName: '',
+    });
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
+
+  /**
+   * Convert CAIP network configurations to hex-based format for RpcSelectionModal
+   * Filter only EVM networks as RPC selection is only supported for EVM
+   */
+  const evmNetworkConfigurations = useMemo(() => {
+    const evmConfigs: Record<string, NetworkConfiguration> = {};
+    Object.entries(networkConfigurations).forEach(([caipChainId, config]) => {
+      if (
+        !isNonEvmChainId(caipChainId as CaipChainId) &&
+        'rpcEndpoints' in config
+      ) {
+        const parsedCaipChainId = parseCaipChainId(caipChainId as CaipChainId);
+        const hexChainId = toHex(parsedCaipChainId.reference);
+        evmConfigs[hexChainId] = config as NetworkConfiguration;
+      }
+    });
+    return evmConfigs;
+  }, [networkConfigurations]);
 
   const containerStyle = useMemo(
     () => [
@@ -216,6 +246,27 @@ const NetworkManager = () => {
   const closeDeleteModal = useCallback(() => {
     setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     networkMenuSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const openRpcModal = useCallback(
+    ({ chainId, networkName }: { chainId: string; networkName: string }) => {
+      setShowMultiRpcSelectModal({
+        isVisible: true,
+        chainId,
+        networkName,
+      });
+      rpcMenuSheetRef.current?.onOpenBottomSheet();
+    },
+    [],
+  );
+
+  const closeRpcModal = useCallback(() => {
+    setShowMultiRpcSelectModal({
+      isVisible: false,
+      chainId: '0x1',
+      networkName: '',
+    });
+    rpcMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleEditNetwork = useCallback(() => {
@@ -328,11 +379,13 @@ const NetworkManager = () => {
               {...defaultTabProps}
               openModal={openModal}
               dismissModal={dismissModal}
+              openRpcModal={openRpcModal}
             />
             <CustomNetworkSelector
               {...customTabProps}
               openModal={openModal}
               dismissModal={dismissModal}
+              openRpcModal={openRpcModal}
             />
           </ScrollableTabView>
         </View>
@@ -385,6 +438,14 @@ const NetworkManager = () => {
           </View>
         </BottomSheet>
       )}
+
+      <RpcSelectionModal
+        showMultiRpcSelectModal={showMultiRpcSelectModal}
+        closeRpcModal={closeRpcModal}
+        rpcMenuSheetRef={rpcMenuSheetRef}
+        networkConfigurations={evmNetworkConfigurations}
+        styles={styles}
+      />
     </BottomSheet>
   );
 };

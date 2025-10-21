@@ -29,6 +29,8 @@ import Text, {
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
+import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -48,6 +50,7 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 const CustomNetworkSelector = ({
   openModal,
   dismissModal,
+  openRpcModal,
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
@@ -104,7 +107,17 @@ const CustomNetworkSelector = ({
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
             title={name}
+            secondaryText={
+              networkTypeOrRpcUrl
+                ? hideProtocolFromUrl(hideKeyFromUrl(networkTypeOrRpcUrl))
+                : undefined
+            }
             onPress={handlePress}
+            onTextClick={
+              openRpcModal
+                ? () => openRpcModal({ chainId, networkName: name })
+                : undefined
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -123,7 +136,7 @@ const CustomNetworkSelector = ({
         </View>
       );
     },
-    [selectCustomNetwork, openModal, dismissModal],
+    [selectCustomNetwork, openModal, dismissModal, openRpcModal],
   );
 
   const renderFooter = useCallback(
