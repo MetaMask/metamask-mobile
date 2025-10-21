@@ -159,9 +159,11 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
 ];
 
 const INTENT_STATUS = {
+  SUBMITTED: 'SUBMITTED',
   PENDING: 'PENDING',
   COMPLETE: 'COMPLETE',
   FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
 };
 
 const TRANSACTION_STATUS = {
@@ -456,7 +458,12 @@ class TransactionElement extends PureComponent {
     if (intentStatus === INTENT_STATUS.FAILED) {
       return TRANSACTION_STATUS.FAILED;
     }
-    return TRANSACTION_STATUS.SUBMITTED;
+    if (intentStatus === INTENT_STATUS.SUBMITTED) {
+      return TRANSACTION_STATUS.SUBMITTED;
+    }
+
+    // if it is unknown status, default to failed
+    return TRANSACTION_STATUS.FAILED;
   };
 
   /**
