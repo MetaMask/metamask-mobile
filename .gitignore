@@ -175,3 +175,5 @@ temp/
 
 # Reassure performance testing
 .reassure/
+
+tests/coverage-systems/
