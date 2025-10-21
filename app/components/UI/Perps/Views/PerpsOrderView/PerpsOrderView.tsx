@@ -572,6 +572,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
       limitPrice: orderForm.limitPrice,
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
+      amount: orderForm.amount,
+      szDecimals: marketData?.szDecimals,
       onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
         // Use the same clearing approach as the "Off" button
         // If values are undefined or empty, ensure they're cleared properly
@@ -591,11 +593,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.leverage,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
+    orderForm.amount,
     assetData.price,
     showToast,
     navigation,
     setTakeProfitPrice,
     setStopLossPrice,
+    marketData?.szDecimals,
   ]);
 
   const handleAmountPress = () => {
