@@ -151,6 +151,7 @@ const QuoteDetailsCard: React.FC = () => {
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
+              iconName: IconName.Info,
             },
           }}
           value={{
@@ -202,6 +203,7 @@ const QuoteDetailsCard: React.FC = () => {
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -223,6 +225,7 @@ const QuoteDetailsCard: React.FC = () => {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
+              iconName: IconName.Info,
             },
           }}
           value={{
@@ -255,6 +258,7 @@ const QuoteDetailsCard: React.FC = () => {
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -279,6 +283,7 @@ const QuoteDetailsCard: React.FC = () => {
                   ? strings('bridge.price_impact_info_gasless_description')
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -345,6 +350,7 @@ const QuoteDetailsCard: React.FC = () => {
                   'bridge.points_tooltip_content_1',
                 )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -372,6 +378,7 @@ const QuoteDetailsCard: React.FC = () => {
                   title: strings('bridge.points_error'),
                   content: strings('bridge.points_error_content'),
                   size: TooltipSizes.Sm,
+                  iconName: IconName.Info,
                 },
               }),
             }}

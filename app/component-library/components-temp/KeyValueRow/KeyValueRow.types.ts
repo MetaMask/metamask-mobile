@@ -28,6 +28,11 @@ interface KeyValueRowTooltip {
    */
   size?: ButtonIconSizes;
   /**
+   * Optional icon name for the tooltip icon.
+   * @default IconName.Question
+   */
+  iconName?: IconProps['name'];
+  /**
    * Optional onPress handler
    */
   onPress?: (...args: unknown[]) => unknown;

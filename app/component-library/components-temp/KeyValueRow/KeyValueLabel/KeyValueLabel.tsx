@@ -54,7 +54,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
         <ButtonIcon
           size={tooltip.size ?? TooltipSizes.Md}
           iconColor={IconColor.Muted}
-          iconName={IconName.Question}
+          iconName={tooltip.iconName ?? IconName.Question}
           accessibilityRole="button"
           accessibilityLabel={`${tooltip.title} tooltip`}
           onPress={onNavigateToTooltipModal}
