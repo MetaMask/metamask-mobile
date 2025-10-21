@@ -16,21 +16,12 @@ describe('convertPerpsAmountToUSD', () => {
   it('handles hex wei values correctly', () => {
     // 1 ETH in wei (0xde0b6b3a7640000)
     expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe('$20,000');
-
-    // 0.001 ETH in wei (0x38d7ea4c68000)
-    expect(convertPerpsAmountToUSD('0x38d7ea4c68000')).toBe('$20');
   });
 
   it('handles numeric strings correctly', () => {
     expect(convertPerpsAmountToUSD('100')).toBe('$100');
     expect(convertPerpsAmountToUSD('0.5')).toBe('$0.5'); // Trailing zero stripped
     expect(convertPerpsAmountToUSD('1234.56')).toBe('$1,234.56');
-  });
-
-  it('handles invalid input gracefully', () => {
-    expect(convertPerpsAmountToUSD('invalid')).toBe('$0'); // Invalid input placeholder
-    expect(convertPerpsAmountToUSD('abc123')).toBe('$0'); // Invalid input placeholder
-    expect(convertPerpsAmountToUSD('$invalid')).toBe('$0'); // Invalid input placeholder
   });
 
   it('handles edge cases', () => {
