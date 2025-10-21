@@ -9,6 +9,7 @@ import {
 import PredictMarketDetails from './PredictMarketDetails';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 jest.mock('@react-navigation/native', () => ({
@@ -803,6 +804,7 @@ describe('PredictMarketDetails', () => {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
       });
     });
@@ -834,6 +836,7 @@ describe('PredictMarketDetails', () => {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
       });
     });

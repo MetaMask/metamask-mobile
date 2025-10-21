@@ -110,9 +110,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
+  const coordinatedPress = useCoordinatedPress();
+
   const memoizedPressHandler = useCallback(() => {
-    handleNewTrade();
-  }, [handleNewTrade]);
+    coordinatedPress(handleNewTrade);
+  }, [coordinatedPress, handleNewTrade]);
 
   const renderStartTradeCTA = () => (
     <TempTouchableOpacity

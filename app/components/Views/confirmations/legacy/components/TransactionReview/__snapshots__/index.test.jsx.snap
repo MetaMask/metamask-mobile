@@ -956,6 +956,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                 accessible={true}
                 activeOpacity={1}
                 disabled={false}
+                onPress={[Function]}
                 onPressIn={[Function]}
                 style={
                   {
@@ -996,6 +997,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                 activeOpacity={1}
                 disabled={false}
                 loading={false}
+                onPress={[Function]}
                 onPressIn={[Function]}
                 style={
                   {
