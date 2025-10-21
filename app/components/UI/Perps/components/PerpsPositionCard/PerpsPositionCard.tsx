@@ -185,13 +185,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const fundingColorForZero = TextColor.Default;
   const fundingColorForPositive = TextColor.Error;
   const fundingColorForNegative = TextColor.Success;
-  const fundingColor = isNearZeroFunding
-    ? fundingColorForZero
-    : fundingSinceOpen === 0
-    ? fundingColorForZero
-    : fundingSinceOpen > 0
-    ? fundingColorForPositive
-    : fundingColorForNegative;
+
+  let fundingColor = fundingColorForNegative; // default for negative values
+  if (isNearZeroFunding || fundingSinceOpen === 0) {
+    fundingColor = fundingColorForZero;
+  } else if (fundingSinceOpen > 0) {
+    fundingColor = fundingColorForPositive;
+  }
 
   const fundingSign = fundingSinceOpen >= 0 ? '-' : '+';
   const fundingDisplay = isNearZeroFunding

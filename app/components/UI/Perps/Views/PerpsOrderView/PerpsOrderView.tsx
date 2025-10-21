@@ -1103,13 +1103,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
                       strings('perps.points_error_content'),
                     )
                   }
-                  state={
-                    rewardsState.isLoading
-                      ? RewardAnimationState.Loading
-                      : rewardsState.hasError
-                      ? RewardAnimationState.ErrorState
-                      : RewardAnimationState.Idle
-                  }
+                  state={(() => {
+                    if (rewardsState.isLoading)
+                      return RewardAnimationState.Loading;
+                    if (rewardsState.hasError)
+                      return RewardAnimationState.ErrorState;
+                    return RewardAnimationState.Idle;
+                  })()}
                 />
               </View>
             </View>
