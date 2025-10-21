@@ -1,15 +1,25 @@
-import { ethers, BigNumber } from 'ethers';
+import { encode, encodePacked } from '@metamask/abi-utils';
+import { query } from '@metamask/controller-utils';
+import EthQuery from '@metamask/eth-query';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { TransactionType } from '@metamask/transaction-controller';
+import { Hex, numberToHex } from '@metamask/utils';
+import { BigNumber, ethers } from 'ethers';
 import {
+  AbiCoder,
   arrayify,
+  getCreate2Address,
   hexlify,
   Interface,
-  parseUnits,
-  splitSignature,
   keccak256,
-  AbiCoder,
+  parseUnits,
   solidityPack,
+  splitSignature,
 } from 'ethers/lib/utils';
-import { multisendAbi, safeAbi, safeFactoryAbi } from './abi';
+import { PredictPosition } from '../../..';
+import Engine from '../../../../../../core/Engine';
+import { isSmartContractAddress } from '../../../../../../util/transactions';
+import { Signer } from '../../types';
 import {
   OperationType,
   SafeFeeAuthorization,
@@ -23,21 +33,6 @@ import {
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
 } from '../constants';
-import { Signer } from '../../types';
-import {
-  DOMAIN_SEPARATOR_TYPEHASH,
-  outcomeTokenSpenders,
-  SAFE_FACTORY_ADDRESS,
-  SAFE_FACTORY_NAME,
-  SAFE_MULTISEND_ADDRESS,
-  SAFE_TX_TYPEHASH,
-  usdcSpenders,
-} from './constants';
-import EthQuery from '@metamask/eth-query';
-import { query } from '@metamask/controller-utils';
-import Engine from '../../../../../../core/Engine';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { isSmartContractAddress } from '../../../../../../util/transactions';
 import {
   encodeApprove,
   encodeClaim,
@@ -46,8 +41,24 @@ import {
   getContractConfig,
   getIsApprovedForAll,
 } from '../utils';
-import { PredictPosition } from '../../..';
-import { TransactionType } from '@metamask/transaction-controller';
+import { multisendAbi, safeAbi } from './abi';
+import {
+  DOMAIN_SEPARATOR_TYPEHASH,
+  MASTER_COPY_ADDRESS,
+  outcomeTokenSpenders,
+  PROXY_CREATION_CODE,
+  SAFE_FACTORY_ADDRESS,
+  SAFE_FACTORY_NAME,
+  SAFE_MULTISEND_ADDRESS,
+  SAFE_TX_TYPEHASH,
+  usdcSpenders,
+} from './constants';
+import {
+  OperationType,
+  SafeFeeAuthorization,
+  SafeTransaction,
+  SplitSignature,
+} from './types';
 
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
@@ -259,34 +270,6 @@ const signSafetransaction = async (
   );
 
   return packedSig;
-};
-
-/**
- * Computes the safe address for a given signer
- * @param signer Signer
- * @returns Safe address
- */
-export const computeSafeAddress = async (
-  ownerAddress: string,
-): Promise<Hex> => {
-  const { NetworkController } = Engine.context;
-  const networkClientId = NetworkController.findNetworkClientIdByChainId(
-    numberToHex(POLYGON_MAINNET_CHAIN_ID),
-  );
-  const ethQuery = new EthQuery(
-    NetworkController.getNetworkClientById(networkClientId).provider,
-  );
-  const res = (await query(ethQuery, 'call', [
-    {
-      to: SAFE_FACTORY_ADDRESS,
-      data: new Interface(safeFactoryAbi).encodeFunctionData(
-        'computeProxyAddress',
-        [ownerAddress],
-      ),
-    },
-  ])) as Hex;
-  const safeAddress = ('0x' + res.slice(-40)) as Hex;
-  return safeAddress;
 };
 
 /**
@@ -579,7 +562,7 @@ export const getProxyWalletAllowancesTransaction = async ({
 }: {
   signer: Signer;
 }) => {
-  const safeAddress = await computeSafeAddress(signer.address);
+  const safeAddress = computeProxyAddress(signer.address);
   const safeTxn = createAllowancesSafeTransaction();
   const callData = await getSafeTransactionCallData({
     signer,
@@ -678,3 +661,46 @@ export const getClaimTransaction = async ({
     },
   ];
 };
+
+export const getWithdrawTransactionCallData = async ({
+  signer,
+  safeAddress,
+  data,
+}: {
+  signer: Signer;
+  safeAddress: string;
+  data: Hex;
+}) => {
+  const safeTxn: SafeTransaction = {
+    to: MATIC_CONTRACTS.collateral,
+    data,
+    operation: OperationType.Call,
+    value: '0',
+  };
+
+  const callData = await getSafeTransactionCallData({
+    signer,
+    safeAddress,
+    txn: safeTxn,
+  });
+
+  return callData as Hex;
+};
+
+/*
+ * Computes the proxy address for a given user address
+ * @param userAddress User address
+ * @returns Proxy address
+ */
+export function computeProxyAddress(userAddress: string): Hex {
+  const salt = keccak256(encode(['address'], [userAddress]));
+  const encodedMasterCopy = encode(['address'], [MASTER_COPY_ADDRESS]);
+  const encoded = encodePacked(
+    ['bytes', 'bytes'],
+    [PROXY_CREATION_CODE, encodedMasterCopy],
+  );
+  const bytecodeHash = keccak256(encoded);
+
+  const predicted = getCreate2Address(SAFE_FACTORY_ADDRESS, salt, bytecodeHash);
+  return predicted as Hex;
+}

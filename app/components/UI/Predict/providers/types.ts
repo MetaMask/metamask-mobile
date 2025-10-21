@@ -165,6 +165,31 @@ export interface GetBalanceParams {
   providerId: string;
 }
 
+export interface PrepareWithdrawParams {
+  providerId: string;
+}
+
+export interface PrepareWithdrawResponse {
+  chainId: Hex;
+  transaction: {
+    params: {
+      to: Hex;
+      data: Hex;
+    };
+    type?: TransactionType;
+  };
+  predictAddress: Hex;
+}
+
+export interface PrepareWithdrawConfirmationParams {
+  callData: Hex;
+  signer: Signer;
+}
+
+export interface PrepareWithdrawConfirmationResponse {
+  callData: Hex;
+}
+
 export interface PredictProvider {
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
@@ -201,6 +226,12 @@ export interface PredictProvider {
   getAccountState(
     params: GetAccountStateParams & { ownerAddress: string },
   ): Promise<AccountState>;
+  prepareWithdraw(
+    params: PrepareWithdrawParams & { signer: Signer },
+  ): Promise<PrepareWithdrawResponse>;
+  prepareWithdrawConfirmation?(
+    params: PrepareWithdrawConfirmationParams,
+  ): Promise<PrepareWithdrawConfirmationResponse>;
 
   getBalance(params: GetBalanceParams): Promise<number>;
 }

@@ -46,6 +46,7 @@ import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { PredictController } from '../../../../components/UI/Predict/controllers/PredictController';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -117,6 +118,11 @@ export const TransactionControllerInit: ControllerInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
+          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
+            handleBeforeSign(
+              _request,
+              request.getController('PredictController'),
+            ),
         },
         incomingTransactions: {
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
@@ -306,6 +312,13 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function handleBeforeSign(
+  request: { transactionMeta: TransactionMeta },
+  predictController: PredictController,
+) {
+  return predictController.beforeSign(request);
 }
 
 function addTransactionControllerListeners(

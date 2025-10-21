@@ -15,6 +15,8 @@ import {
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
+  TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
@@ -24,6 +26,9 @@ import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuil
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+} from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { ensureError } from '../utils/predictErrorHandler';
 import {
@@ -41,6 +46,7 @@ import {
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
+  PrepareWithdrawParams,
   PreviewOrderParams,
 } from '../providers/types';
 import {
@@ -54,6 +60,8 @@ import {
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PredictWithdraw,
+  PredictWithdrawStatus,
   Result,
   Side,
   UnrealizedPnL,
@@ -105,6 +113,9 @@ export type PredictControllerState = {
   // Deposit management
   depositTransaction: PredictDeposit | null;
 
+  // Withdraw management
+  withdrawTransaction: PredictWithdraw | null;
+
   // Persisted data
   // --------------
   // Setup
@@ -121,6 +132,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   claimablePositions: [],
   claimTransaction: null,
   depositTransaction: null,
+  withdrawTransaction: null,
   isOnboarded: {},
 });
 
@@ -134,6 +146,7 @@ const metadata = {
   claimablePositions: { persist: false, anonymous: false },
   claimTransaction: { persist: false, anonymous: false },
   depositTransaction: { persist: false, anonymous: false },
+  withdrawTransaction: { persist: false, anonymous: false },
   isOnboarded: { persist: true, anonymous: false },
 };
 
@@ -1223,5 +1236,155 @@ export class PredictController extends BaseController<
 
       throw error;
     }
+  }
+
+  public async prepareWithdraw(
+    params: PrepareWithdrawParams,
+  ): Promise<Result<string>> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+
+    const { AccountsController, KeyringController, NetworkController } =
+      Engine.context;
+    const selectedAddress = AccountsController.getSelectedAccount().address;
+    const signer = {
+      address: selectedAddress,
+      signTypedMessage: (
+        params: TypedMessageParams,
+        version: SignTypedDataVersion,
+      ) => KeyringController.signTypedMessage(params, version),
+      signPersonalMessage: (params: PersonalMessageParams) =>
+        KeyringController.signPersonalMessage(params),
+    };
+    const { chainId, transaction, predictAddress } =
+      await provider.prepareWithdraw({
+        ...params,
+        signer,
+      });
+
+    this.update((state) => {
+      state.withdrawTransaction = {
+        chainId: hexToNumber(chainId),
+        status: PredictWithdrawStatus.IDLE,
+        providerId: params.providerId,
+        to: transaction.params.to as Hex,
+        predictAddress: predictAddress as Hex,
+      };
+    });
+
+    const finalData = await provider.prepareWithdrawConfirmation?.({
+      callData: transaction.params.data as Hex,
+      signer,
+    });
+
+    if (!finalData) {
+      throw new Error('Failed to prepare withdraw confirmation');
+    }
+
+    /* const { batchId } = await addTransactionBatch({
+      from: selectedAddress as Hex,
+      origin: ORIGIN_METAMASK,
+      networkClientId: NetworkController.findNetworkClientIdByChainId(chainId),
+      disableHook: true,
+      disableSequential: true,
+      requireApproval: true,
+      transactions: [
+        {
+          params: {
+            to: predictAddress as Hex,
+            data: finalData.callData as Hex,
+          },
+        },
+      ],
+    }); */
+
+    const { transactionMeta } = await addTransaction(
+      {
+        from: selectedAddress as Hex,
+        to: predictAddress as Hex,
+        data: finalData.callData as Hex,
+      },
+      {
+        origin: ORIGIN_METAMASK,
+        networkClientId:
+          NetworkController.findNetworkClientIdByChainId(chainId),
+        requireApproval: false,
+      },
+    );
+
+    this.update((state) => {
+      if (state.withdrawTransaction) {
+        state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
+      }
+    });
+
+    return {
+      success: true,
+      response: transactionMeta.id,
+    };
+  }
+
+  public async beforeSign(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<
+    | {
+        updateTransaction?: (transaction: TransactionMeta) => void;
+      }
+    | undefined
+  > {
+    const isWithdrawTransaction =
+      request.transactionMeta?.nestedTransactions?.some(
+        (tx) => tx.type === TransactionType.predictWithdraw,
+      );
+
+    if (!isWithdrawTransaction) {
+      return;
+    }
+
+    const currentWithdrawTransaction = this.state.withdrawTransaction;
+    if (!currentWithdrawTransaction) {
+      return;
+    }
+
+    const provider = this.providers.get(currentWithdrawTransaction.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+
+    if (!provider.prepareWithdrawConfirmation) {
+      return;
+    }
+
+    const previousData = request.transactionMeta.txParams.data;
+
+    if (!previousData) {
+      return;
+    }
+
+    const { KeyringController } = Engine.context;
+
+    const signer = {
+      address: request.transactionMeta.txParams.from,
+      signTypedMessage: (
+        params: TypedMessageParams,
+        version: SignTypedDataVersion,
+      ) => KeyringController.signTypedMessage(params, version),
+      signPersonalMessage: (params: PersonalMessageParams) =>
+        KeyringController.signPersonalMessage(params),
+    };
+
+    const { callData } = await provider.prepareWithdrawConfirmation({
+      callData: previousData as Hex,
+      signer,
+    });
+
+    return {
+      updateTransaction: (transaction: TransactionMeta) => {
+        transaction.txParams.data = callData;
+        transaction.txParams.to = currentWithdrawTransaction.predictAddress;
+      },
+    };
   }
 }
