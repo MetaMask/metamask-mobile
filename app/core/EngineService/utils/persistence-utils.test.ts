@@ -69,7 +69,7 @@ describe('hasPersistedState', () => {
     const metadata = {
       field1: null,
       field2: { persist: false, anonymous: false },
-    } as Parameters<typeof hasPersistedState>[0];
+    } as unknown as Parameters<typeof hasPersistedState>[0];
 
     // Act
     const result = hasPersistedState(metadata);
