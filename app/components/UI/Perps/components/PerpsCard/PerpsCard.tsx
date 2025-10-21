@@ -18,10 +18,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../PressablePerpsComponent/PressablePerpsComponent';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 
 /**
  * PerpsCard Component
@@ -38,8 +35,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-
-  const coordinatedPress = useCoordinatedPress();
 
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
@@ -100,15 +95,15 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   }, [onPress, markets, symbol, navigation, order, position, source]);
 
   const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handlePress);
-  }, [coordinatedPress, handlePress]);
+    handlePress();
+  }, [handlePress]);
 
   if (!position && !order) {
     return null;
   }
 
   return (
-    <TouchablePerpsComponent
+    <TempTouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
       onPress={memoizedPressHandler}
@@ -144,7 +139,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           </Text>
         </View>
       </View>
-    </TouchablePerpsComponent>
+    </TempTouchableOpacity>
   );
 };
 
