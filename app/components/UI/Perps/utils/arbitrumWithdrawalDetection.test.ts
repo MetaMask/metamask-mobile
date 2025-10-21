@@ -43,9 +43,7 @@ describe('arbitrumWithdrawalDetection', () => {
     it('parses USDC transfer amount correctly', () => {
       // Transfer 100 USDC (100 * 1e6 = 100000000)
       const transferData =
-        '0xa9059cbb' +
-        '0000000000000000000000001234567890123456789012345678901234567890' + // recipient
-        '0000000000000000000000000000000000000000000000000000000005f5e100'; // 100 USDC in wei
+        '0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000000000005f5e100'; // 100 USDC in wei
 
       const result = parseUSDCTransferAmount(transferData);
       expect(result).toBe('100');
@@ -54,16 +52,14 @@ describe('arbitrumWithdrawalDetection', () => {
     it('parses small USDC amounts correctly', () => {
       // Transfer 0.5 USDC (0.5 * 1e6 = 500000)
       const transferData =
-        '0xa9059cbb' +
-        '0000000000000000000000001234567890123456789012345678901234567890' + // recipient
-        '000000000000000000000000000000000000000000000000000000000007a120'; // 0.5 USDC in wei
+        '0xa9059cbb0000000000000000000000001234567890123456789012345678901234567890000000000000000000000000000000000000000000000000000000000007a120'; // 0.5 USDC in wei
 
       const result = parseUSDCTransferAmount(transferData);
       expect(result).toBe('0.5');
     });
 
     it('handles parsing errors gracefully', () => {
-      const invalidData = '0xa9059cbb' + 'invalid_hex_data';
+      const invalidData = '0xa9059cbbinvalid_hex_data';
 
       const result = parseUSDCTransferAmount(invalidData);
 
@@ -93,16 +89,14 @@ describe('arbitrumWithdrawalDetection', () => {
     it('parses recipient address correctly', () => {
       const recipientAddress = '0x1234567890123456789012345678901234567890';
       const transferData =
-        '0xa9059cbb' +
-        '0000000000000000000000001234567890123456789012345678901234567890' + // recipient
-        '0000000000000000000000000000000000000000000000000000000005f5e100'; // amount
+        '0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000000000005f5e100'; // amount
 
       const result = parseERC20TransferRecipient(transferData);
       expect(result).toBe(recipientAddress);
     });
 
     it('handles parsing errors gracefully', () => {
-      const invalidData = '0xa9059cbb' + 'invalid_hex_data';
+      const invalidData = '0xa9059cbbinvalid_hex_data';
 
       const result = parseERC20TransferRecipient(invalidData);
 
@@ -155,7 +149,7 @@ describe('arbitrumWithdrawalDetection', () => {
 
     it('handles undefined txTo', () => {
       const result = isUSDCContractInteraction(
-        undefined as any,
+        undefined as unknown as string,
         ARBITRUM_MAINNET_CHAIN_ID,
       );
       expect(result).toBe(false);
@@ -205,7 +199,7 @@ describe('arbitrumWithdrawalDetection', () => {
 
     it('handles undefined txFrom', () => {
       const result = isHyperLiquidBridgeTransaction(
-        undefined as any,
+        undefined as unknown as string,
         ARBITRUM_MAINNET_CHAIN_ID,
       );
       expect(result).toBe(false);
@@ -221,10 +215,7 @@ describe('arbitrumWithdrawalDetection', () => {
       hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       from: mockBridgeContract,
       to: mockUserAddress,
-      data:
-        '0xa9059cbb' +
-        '0000000000000000000000001234567890123456789012345678901234567890' + // recipient
-        '0000000000000000000000000000000000000000000000000000000005f5e100', // 100 USDC
+      data: '0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000000000005f5e100', // 100 USDC
       chainId: mockChainId,
       time: 1640995200000,
       status: 'confirmed',
@@ -370,7 +361,7 @@ describe('arbitrumWithdrawalDetection', () => {
         hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
         from: mockBridgeContract,
         to: mockUserAddress,
-        data: '0xa9059cbb' + 'invalid_hex_data', // This will cause parsing to fail
+        data: '0xa9059cbbinvalid_hex_data', // This will cause parsing to fail
         chainId: mockChainId,
         time: 1640995200000,
         status: 'confirmed',
