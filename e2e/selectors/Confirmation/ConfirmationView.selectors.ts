@@ -41,6 +41,7 @@ export const ConfirmationRowComponentIDs = {
   STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
   PAID_BY_METAMASK: 'paid-by-metamask',
+  GAS_FEE_TOKEN_PILL: 'selected-gas-fee-token',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {
@@ -73,3 +74,8 @@ export const ApproveComponentIDs = {
   EDIT_SPENDING_CAP_INPUT: 'edit-spending-cap-input',
   EDIT_SPENDING_CAP_SAVE_BUTTON: 'edit-spending-cap-save-button',
 } as const;
+
+export const GasFeeTokenSelectorIDs = {
+  SELECTED_GAS_FEE_TOKEN_SYMBOL: 'selected-gas-fee-token-symbol',
+  SELECTED_GAS_FEE_TOKEN_ARROW: 'selected-gas-fee-token-arrow',
+};
