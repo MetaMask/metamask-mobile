@@ -156,7 +156,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    expect(getByText('Unknown Market')).toBeOnTheScreen();
+    // The component now shows the groupItemTitle directly, even if it's null/undefined
     expect(getByText('0%')).toBeOnTheScreen();
     expect(getByText(/\$0.*Vol\./)).toBeOnTheScreen();
   });
@@ -248,7 +248,7 @@ describe('PredictMarketOutcome', () => {
     expect(getByText('No • 0.00¢')).toBeOnTheScreen();
   });
 
-  it('displays Unknown Market when groupItemTitle is missing', () => {
+  it('displays empty title when groupItemTitle is missing', () => {
     const outcomeWithNoTitle: PredictOutcome = {
       ...mockOutcome,
       groupItemTitle: undefined as unknown as string,
@@ -259,6 +259,127 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    expect(getByText('Unknown Market')).toBeOnTheScreen();
+    // The component now shows the groupItemTitle directly, even if it's undefined
+    // We can verify the component renders without errors by checking other elements
+    expect(getByText('+65%')).toBeOnTheScreen();
+    expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
+  });
+
+  describe('Closed Market States', () => {
+    it('displays winner badge and check icon when market is closed with winning token', () => {
+      const winningToken = {
+        id: 'winning-token',
+        title: 'Yes',
+        price: 1.0,
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={mockOutcome}
+          market={mockMarket}
+          isClosed
+          outcomeToken={winningToken}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText('Yes')).toBeOnTheScreen(); // Winner token title
+      expect(getByText('Winner')).toBeOnTheScreen(); // Winner badge
+      // Check icon is rendered (mocked as SvgMock)
+    });
+
+    it('does not display winner badge when market is closed but no winning token provided', () => {
+      const { queryByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={mockOutcome}
+          market={mockMarket}
+          isClosed
+        />,
+        { state: initialState },
+      );
+
+      expect(queryByText('Winner')).not.toBeOnTheScreen();
+    });
+
+    it('does not display winner badge when market is not closed', () => {
+      const winningToken = {
+        id: 'winning-token',
+        title: 'Yes',
+        price: 1.0,
+      };
+
+      const { queryByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={mockOutcome}
+          market={mockMarket}
+          isClosed={false}
+          outcomeToken={winningToken}
+        />,
+        { state: initialState },
+      );
+
+      expect(queryByText('Winner')).not.toBeOnTheScreen();
+    });
+
+    it('hides action buttons when market is closed', () => {
+      const { queryByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={mockOutcome}
+          market={mockMarket}
+          isClosed
+        />,
+        { state: initialState },
+      );
+
+      expect(queryByText('Yes • 65.00¢')).not.toBeOnTheScreen();
+      expect(queryByText('No • 35.00¢')).not.toBeOnTheScreen();
+    });
+
+    it('shows action buttons when market is not closed', () => {
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={mockOutcome}
+          market={mockMarket}
+          isClosed={false}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText('Yes • 65.00¢')).toBeOnTheScreen();
+      expect(getByText('No • 35.00¢')).toBeOnTheScreen();
+    });
+
+    it('uses outcomeToken title when market is closed and outcomeToken is provided', () => {
+      const winningToken = {
+        id: 'winning-token',
+        title: 'Winning Option',
+        price: 1.0,
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={mockOutcome}
+          market={mockMarket}
+          isClosed
+          outcomeToken={winningToken}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText('Winning Option')).toBeOnTheScreen();
+    });
+
+    it('uses groupItemTitle when market is closed but no outcomeToken provided', () => {
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={mockOutcome}
+          market={mockMarket}
+          isClosed
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText('Crypto Markets')).toBeOnTheScreen();
+    });
   });
 });

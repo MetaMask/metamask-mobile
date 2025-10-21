@@ -17,10 +17,15 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket,
+  PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
 } from '../../types';
 import {
@@ -35,14 +40,17 @@ interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
   entryPoint?: PredictEntryPoint;
+  outcomeToken?: PredictOutcomeToken;
+  isClosed?: boolean;
 }
 
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   market,
   outcome,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isClosed = false,
+  outcomeToken,
 }) => {
-  // const outcome = market.outcomes[0];
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const navigation =
@@ -61,7 +69,13 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     return '0%';
   };
 
-  const getTitle = (): string => outcome.groupItemTitle ?? 'Unknown Market';
+  const getTitle = (): string => {
+    if (isClosed && outcomeToken) {
+      return outcomeToken.title;
+    }
+      return outcome.groupItemTitle;
+
+  };
 
   const getImageUrl = (): string => outcome.image;
 
@@ -125,48 +139,75 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             )}
           </Box>
           <View style={tw.style('flex-1')}>
-            <Text
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
-              style={tw.style('font-medium')}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
             >
-              {getTitle()}
-            </Text>
+              <Text
+                variant={TextVariant.HeadingMD}
+                color={TextColor.Default}
+                style={tw.style('font-medium')}
+              >
+                {getTitle()}
+              </Text>
+              {isClosed && outcomeToken && (
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Success}
+                  style={tw.style('bg-success-muted px-1 py-0.5 rounded-sm')}
+                >
+                  Winner
+                </Text>
+              )}
+            </Box>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
             </Text>
           </View>
-          <Text>{getYesPercentage()}</Text>
+          <Text>
+            {isClosed && outcomeToken ? (
+              <Icon
+                name={IconName.CheckBold}
+                size={IconSize.Md}
+                color={TextColor.Success}
+              />
+            ) : (
+              <Text>{getYesPercentage()}</Text>
+            )}
+          </Text>
         </Box>
       </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
-          width={ButtonWidthTypes.Full}
-          label={
-            <Text style={tw.style('font-medium')} color={TextColor.Success}>
-              {strings('predict.buy_yes')} •{' '}
-              {(outcome.tokens[0].price * 100).toFixed(2)}¢
-            </Text>
-          }
-          onPress={handleYes}
-          style={styles.buttonYes}
-        />
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
-          width={ButtonWidthTypes.Full}
-          label={
-            <Text style={tw.style('font-medium')} color={TextColor.Error}>
-              {strings('predict.buy_no')} •{' '}
-              {(outcome.tokens[1].price * 100).toFixed(2)}¢
-            </Text>
-          }
-          onPress={handleNo}
-          style={styles.buttonNo}
-        />
-      </View>
+      {!isClosed && (
+        <View style={styles.buttonContainer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Md}
+            width={ButtonWidthTypes.Full}
+            label={
+              <Text style={tw.style('font-medium')} color={TextColor.Success}>
+                {strings('predict.buy_yes')} •{' '}
+                {(outcome.tokens[0].price * 100).toFixed(2)}¢
+              </Text>
+            }
+            onPress={handleYes}
+            style={styles.buttonYes}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Md}
+            width={ButtonWidthTypes.Full}
+            label={
+              <Text style={tw.style('font-medium')} color={TextColor.Error}>
+                {strings('predict.buy_no')} •{' '}
+                {(outcome.tokens[1].price * 100).toFixed(2)}¢
+              </Text>
+            }
+            onPress={handleNo}
+            style={styles.buttonNo}
+          />
+        </View>
+      )}
     </View>
   );
 };
