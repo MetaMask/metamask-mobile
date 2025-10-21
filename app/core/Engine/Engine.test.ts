@@ -205,42 +205,18 @@ describe('Engine', () => {
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
-    // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
-      AccountTrackerController: {
-        ...backgroundState.AccountTrackerController,
-        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
-        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
-        accountsByChainId: {},
-      },
+      // Update application version here, so that we don't have to update
+      // `initial-background-state.json` every release
       AppMetadataController: {
         currentAppVersion,
-        previousAppVersion: '', // This will be managed by the controller
-        previousMigrationVersion: 0, // This will be managed by the controller
+        previousAppVersion: '',
+        previousMigrationVersion: 0,
         currentMigrationVersion,
       },
-      PredictController: {
-        eligibility: {},
-        lastError: null,
-        lastUpdateTimestamp: 0,
-        claimTransaction: null,
-        claimablePositions: [],
-        depositTransaction: null,
-        isOnboarded: {},
-      },
-      GatorPermissionsController: {
-        gatorPermissionsMapSerialized: JSON.stringify({
-          'native-token-stream': {},
-          'native-token-periodic': {},
-          'erc20-token-stream': {},
-          'erc20-token-periodic': {},
-          other: {},
-        }),
-        gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
-        isFetchingGatorPermissions: false,
-        isGatorPermissionsEnabled: false,
-      },
+      // WARNING: Do not make further changes to expected state here.
+      // Update `initial-background-state.json` instead.
     };
 
     expect(initialBackgroundState).toStrictEqual(expectedState);
