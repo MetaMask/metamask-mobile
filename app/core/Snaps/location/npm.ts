@@ -6,6 +6,7 @@ import { NativeModules } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import {
   BaseNpmLocation,
+  DetectSnapLocationOptions,
   getNpmCanonicalBasePath,
   TARBALL_SIZE_SAFETY_LIMIT,
 } from '@metamask/snaps-controllers';
@@ -29,19 +30,27 @@ const readAndParseAt = async (path: string) => {
   return { path, contents };
 };
 
-const { fetch: blobFetch } = ReactNativeBlobUtil.config({
-  fileCache: true,
-  appendExt: 'tgz',
-});
-
 export class NpmLocation extends BaseNpmLocation {
+  #blobFetch: ReactNativeBlobUtil['fetch'];
+
+  constructor(url: URL, opts: DetectSnapLocationOptions = {}) {
+    super(url, opts);
+
+    const { fetch: blobFetch } = ReactNativeBlobUtil.config({
+      fileCache: true,
+      appendExt: 'tgz',
+    });
+
+    this.#blobFetch = blobFetch;
+  }
+
   async fetchNpmTarball(
     tarballUrl: URL,
   ): Promise<Map<string, VirtualFile<unknown>>> {
     let response: FetchBlobResponse | null = null;
     let untarPath: string | null = null;
     try {
-      response = await blobFetch('GET', tarballUrl.toString());
+      response = await this.#blobFetch('GET', tarballUrl.toString());
 
       const responseInfo = response.respInfo;
 
