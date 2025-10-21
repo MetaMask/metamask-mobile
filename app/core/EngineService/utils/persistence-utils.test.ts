@@ -2,16 +2,22 @@ import { hasPersistedState } from './persistence-utils';
 
 describe('hasPersistedState', () => {
   it('returns false when metadata is undefined', () => {
+    // Arrange
+    const metadata = undefined;
+
     // Act
-    const result = hasPersistedState(undefined);
+    const result = hasPersistedState(metadata);
 
     // Assert
     expect(result).toBe(false);
   });
 
   it('returns false when metadata is empty', () => {
+    // Arrange
+    const metadata = {};
+
     // Act
-    const result = hasPersistedState({});
+    const result = hasPersistedState(metadata);
 
     // Assert
     expect(result).toBe(false);
@@ -63,7 +69,7 @@ describe('hasPersistedState', () => {
     const metadata = {
       field1: null,
       field2: { persist: false, anonymous: false },
-    };
+    } as Parameters<typeof hasPersistedState>[0];
 
     // Act
     const result = hasPersistedState(metadata);
