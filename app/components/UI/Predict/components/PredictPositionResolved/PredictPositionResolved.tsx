@@ -10,6 +10,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
+import { getPredictPositionSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 dayjs.extend(relativeTime);
 
@@ -45,6 +46,9 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
 
   return (
     <TouchableOpacity
+      testID={getPredictPositionSelector.resolvedPositionCard(
+        position.outcomeIndex,
+      )}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
