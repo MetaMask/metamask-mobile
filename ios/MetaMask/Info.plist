@@ -50,11 +50,11 @@
 	<key>EXUpdatesRuntimeVersion</key>
 	<string>7.58.99</string>
 	<key>EXUpdatesChannel</key>
-	<string>preview</string>
+	<string>production</string>
 	<key>EXUpdatesRequestHeaders</key>
 	<dict>
 		<key>expo-channel-name</key>
-		<string>preview</string>
+		<string>production</string>
 	</dict>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>

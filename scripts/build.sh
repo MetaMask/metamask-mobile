@@ -783,6 +783,10 @@ if [ -z "$METAMASK_ENVIRONMENT" ]; then
 	exit 1
 else
     echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
+	
+	# Update Expo channel configuration based on environment
+	echo "Updating Expo channel configuration..."
+	node "${__DIRNAME__}/update-expo-channel.js"
 fi
 
 if [ "$PLATFORM" == "ios" ]; then
