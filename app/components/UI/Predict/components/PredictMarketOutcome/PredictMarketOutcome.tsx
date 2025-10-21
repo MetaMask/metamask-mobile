@@ -73,7 +73,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     if (isClosed && outcomeToken) {
       return outcomeToken.title;
     }
-    return outcome.groupItemTitle;
+    return outcome.groupItemTitle || outcome.title || '';
   };
 
   const getImageUrl = (): string => outcome.image;
