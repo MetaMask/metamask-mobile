@@ -9,7 +9,7 @@ describe('convertPerpsAmountToUSD', () => {
 
   it('handles USD strings correctly', () => {
     expect(convertPerpsAmountToUSD('$10.32')).toBe('$10.32');
-    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0.5'); // Trailing zero stripped
+    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0.50'); // Trailing zero stripped
     expect(convertPerpsAmountToUSD('$1000')).toBe('$1,000');
   });
 
@@ -20,7 +20,7 @@ describe('convertPerpsAmountToUSD', () => {
 
   it('handles numeric strings correctly', () => {
     expect(convertPerpsAmountToUSD('100')).toBe('$100');
-    expect(convertPerpsAmountToUSD('0.5')).toBe('$0.5'); // Trailing zero stripped
+    expect(convertPerpsAmountToUSD('0.5')).toBe('$0.50'); // Trailing zero stripped
     expect(convertPerpsAmountToUSD('1234.56')).toBe('$1,234.56');
   });
 
