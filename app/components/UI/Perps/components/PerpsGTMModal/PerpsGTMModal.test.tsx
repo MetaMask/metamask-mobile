@@ -1,15 +1,17 @@
+// Mock the textUtils module first
+jest.mock('../../utils/textUtils');
+
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsGTMModal from './PerpsGTMModal';
 import StorageWrapper from '../../../../../store/storage-wrapper';
+import { hasNonLatinCharacters } from '../../utils/textUtils';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-
-const mockHasNonLatinCharacters = jest.fn(() => false);
 
 const mockTheme = {
   colors: {
@@ -84,7 +86,7 @@ describe('PerpsGTMModal', () => {
     jest.clearAllMocks();
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('false');
     mockUseColorScheme.mockReturnValue('light'); // Default to light mode
-    mockHasNonLatinCharacters.mockReturnValue(false); // Default to Latin characters
+    (hasNonLatinCharacters as jest.Mock).mockReturnValue(false); // Default to Latin characters
   });
 
   it('renders correctly with all main elements', async () => {
@@ -175,7 +177,7 @@ describe('PerpsGTMModal', () => {
   });
 
   it('handles system font when non-Latin characters are detected', async () => {
-    mockHasNonLatinCharacters.mockReturnValue(true);
+    (hasNonLatinCharacters as jest.Mock).mockReturnValue(true);
 
     const { getByText } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
@@ -188,7 +190,7 @@ describe('PerpsGTMModal', () => {
       );
 
       // Check that hasNonLatinCharacters was called
-      expect(mockHasNonLatinCharacters).toHaveBeenCalled();
+      expect(hasNonLatinCharacters).toHaveBeenCalled();
 
       // Verify elements exist
       expect(titleElement).toBeDefined();
@@ -197,7 +199,7 @@ describe('PerpsGTMModal', () => {
   });
 
   it('handles MM Poly font when Latin characters are detected', async () => {
-    mockHasNonLatinCharacters.mockReturnValue(false);
+    (hasNonLatinCharacters as jest.Mock).mockReturnValue(false);
 
     const { getByText } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
@@ -210,7 +212,7 @@ describe('PerpsGTMModal', () => {
       );
 
       // Check that hasNonLatinCharacters was called
-      expect(mockHasNonLatinCharacters).toHaveBeenCalled();
+      expect(hasNonLatinCharacters).toHaveBeenCalled();
 
       // Verify elements exist
       expect(titleElement).toBeDefined();
