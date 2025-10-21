@@ -12,9 +12,6 @@ prepare_react_native_project!
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
 
-install! 'cocoapods',
-  :deterministic_uuids => false
-
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -164,14 +161,4 @@ post_install do |installer|
     end
   end
 
-  # This is necessary for Xcode 14, because it signs resource bundles by default
-  # when building for devices.
-  installer.target_installation_results.pod_target_installation_results
-    .each do |pod_name, target_installation_result|
-    target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
-      resource_bundle_target.build_configurations.each do |config|
-        config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
-      end
-    end
-  end
 end
