@@ -12,6 +12,9 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -176,6 +179,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     setIsEligibilityModalVisible,
     setIsTPSLCountWarningVisible,
   ]);
+
+  const handleSharePress = () => {
+    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, { position });
+  };
 
   const handleTpslCountPress = useCallback(async () => {
     if (isLoading || error) {
@@ -490,15 +497,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Auto}
-              label={strings('perps.position.card.edit_tpsl')}
-              onPress={handleEditTPSL}
-              style={styles.footerButton}
-              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              width={ButtonWidthTypes.Auto}
               label={
                 <Text
                   variant={TextVariant.BodyMDMedium}
@@ -512,6 +510,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               onPress={handleClosePress}
               style={styles.footerButton}
               testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Auto}
+              label={strings('perps.position.card.edit_tpsl')}
+              onPress={handleEditTPSL}
+              style={styles.footerButton}
+              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+            />
+            <ButtonIcon
+              size={ButtonIconSizes.Md}
+              iconName={IconName.Share}
+              iconColor={IconColor.Default}
+              onPress={handleSharePress}
+              style={styles.shareButton}
             />
           </View>
         )}

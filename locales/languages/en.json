@@ -1694,7 +1694,11 @@
     "points_error": "We can't load points right now",
     "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
     "tp_on_chart": "TP on Chart",
-    "sl_on_chart": "SL on Chart"
+    "sl_on_chart": "SL on Chart",
+    "pnl_hero_card": {
+      "title": "PnL Hero Card",
+      "share_pnl": "Share P&L"
+    }
   },
   "predict": {
     "title": "MetaMask Predict",

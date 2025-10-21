@@ -18,6 +18,7 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 
@@ -169,6 +170,15 @@ const PerpsScreenStack = () => (
           component={PerpsTPSLView}
           options={{
             title: strings('perps.tpsl.title'),
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name={Routes.PERPS.PNL_HERO_CARD}
+          component={PerpsHeroCardView}
+          options={{
+            title: strings('perps.pnl_hero_card.title'),
             headerShown: false,
           }}
         />
