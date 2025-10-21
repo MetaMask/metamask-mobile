@@ -108,6 +108,7 @@ const TextField = React.forwardRef<
                 isStateStylesDisabled
                 inputStyle={inputStyle}
                 selection={isFocused ? undefined : { start: 0, end: 0 }}
+                selectTextOnFocus
               />
             )}
           </View>
