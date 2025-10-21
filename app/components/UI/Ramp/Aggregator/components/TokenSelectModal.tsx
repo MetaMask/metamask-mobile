@@ -1,12 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-  TouchableOpacity,
-  FlatList,
-} from 'react-native';
+import { StyleSheet, TextInput, View, FlatList } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
