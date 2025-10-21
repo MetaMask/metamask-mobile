@@ -188,10 +188,6 @@ const CardAuthentication = () => {
         });
 
         if (loginResponse?.isOtpRequired) {
-          Logger.log(
-            'CardAuthentication::Login response is OTP required',
-            loginResponse,
-          );
           // Switch to OTP step instead of navigating
           setOtpData({
             userId: loginResponse.userId,
