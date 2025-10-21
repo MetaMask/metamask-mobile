@@ -256,7 +256,7 @@ export const calculatePriceForRoE = (
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
-  if (!basePrice || basePrice <= 0) {
+  if (!basePrice || basePrice <= 0 || !direction) {
     return '';
   }
 
@@ -366,7 +366,7 @@ export const calculateRoEForPrice = (
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
-  if (!basePrice || basePrice <= 0 || !price) {
+  if (!basePrice || basePrice <= 0 || !price || !direction) {
     return '';
   }
 

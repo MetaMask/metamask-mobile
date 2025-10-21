@@ -169,11 +169,11 @@ export function usePerpsTPSLForm(
     initialCurrentPrice ||
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
-  let actualDirection: 'long' | 'short' | undefined;
+  let actualDirection: 'long' | 'short';
   if (position) {
     actualDirection = parseFloat(position.size) > 0 ? 'long' : 'short';
   } else {
-    actualDirection = direction;
+    actualDirection = direction || 'long';
   }
 
   const leverage = position?.leverage?.value || propLeverage;
@@ -873,20 +873,24 @@ export function usePerpsTPSLForm(
   // Calculate position size for expected P&L calculations
   let positionSizeForPnL = 0;
   if (position) {
-    positionSizeForPnL = Math.abs(parseFloat(position.size || '0'));
+    // Keep the sign from the position (positive for long, negative for short)
+    positionSizeForPnL = parseFloat(position.size || '0');
   } else if (
     amount &&
     entryPrice &&
     entryPrice > 0 &&
     szDecimals !== undefined
   ) {
-    positionSizeForPnL = parseFloat(
+    // calculatePositionSize returns unsigned value, apply direction sign
+    const unsignedSize = parseFloat(
       calculatePositionSize({
         amount,
         price: entryPrice,
         szDecimals,
       }),
     );
+    positionSizeForPnL =
+      actualDirection === 'long' ? unsignedSize : -unsignedSize;
   }
 
   // Calculate expected P&L for Take Profit
