@@ -13,6 +13,7 @@ import type {
   Order,
   OrderParams as PerpsOrderParams,
   Position,
+  UserHistoryItem,
 } from '../controllers/types';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 
@@ -419,7 +420,7 @@ export interface RawHyperLiquidLedgerUpdate {
  */
 export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
   rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
-): import('../controllers/types').UserHistoryItem[] {
+): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
     .filter(
       (update) =>
