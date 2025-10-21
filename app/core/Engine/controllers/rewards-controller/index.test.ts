@@ -86,7 +86,7 @@ describe('rewardsControllerInit', () => {
       const isDisabledCallback =
         rewardsControllerClassMock.mock.calls[0][0].isDisabled;
 
-      expect(isDisabledCallback()).toBe(true);
+      expect(isDisabledCallback?.()).toBe(true);
     });
 
     it('should return false when basicFunctionalityEnabled is true', () => {
@@ -97,7 +97,7 @@ describe('rewardsControllerInit', () => {
       const isDisabledCallback =
         rewardsControllerClassMock.mock.calls[0][0].isDisabled;
 
-      expect(isDisabledCallback()).toBe(false);
+      expect(isDisabledCallback?.()).toBe(false);
     });
   });
 });
