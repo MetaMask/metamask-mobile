@@ -632,7 +632,10 @@ describe('RewardsController', () => {
       await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       // Assert - verify state has been updated
-      const updatedAccountState = controller.state.accounts[CAIP_ACCOUNT_1];
+      const updatedAccountState =
+        controller.state.accounts[
+          CAIP_ACCOUNT_1.replace('eip155:1:', 'eip155:0:') as CaipAccountId
+        ];
       expect(updatedAccountState).toBeDefined();
       expect(updatedAccountState.hasOptedIn).toBe(true);
       expect(updatedAccountState.perpsFeeDiscount).toBe(850);
@@ -652,9 +655,11 @@ describe('RewardsController', () => {
 
       // Assert - verify new account state was created
       expect(result).toBe(true);
-      const newAccountState = controller.state.accounts[CAIP_ACCOUNT_2];
+      const newAccountState =
+        controller.state.accounts[
+          CAIP_ACCOUNT_2.replace('eip155:1:', 'eip155:0:') as CaipAccountId
+        ];
       expect(newAccountState).toBeDefined();
-      expect(newAccountState.account).toBe(CAIP_ACCOUNT_2);
       expect(newAccountState.hasOptedIn).toBe(true);
       expect(newAccountState.perpsFeeDiscount).toBe(1200);
       expect(newAccountState.subscriptionId).toBeNull();
@@ -1922,7 +1927,10 @@ describe('RewardsController', () => {
 
       // Assert - verify state has been updated
       expect(result).toBe(1500);
-      const updatedAccountState = controller.state.accounts[CAIP_ACCOUNT_1];
+      const updatedAccountState =
+        controller.state.accounts[
+          CAIP_ACCOUNT_1.replace('eip155:1:', 'eip155:0:') as CaipAccountId
+        ];
       expect(updatedAccountState).toBeDefined();
       expect(updatedAccountState.perpsFeeDiscount).toBe(1500);
       expect(updatedAccountState.hasOptedIn).toBe(true);
@@ -1961,9 +1969,11 @@ describe('RewardsController', () => {
 
       // Assert - verify new account state was created with correct values
       expect(result).toBe(2000);
-      const newAccountState = controller.state.accounts[CAIP_ACCOUNT_3];
+      const newAccountState =
+        controller.state.accounts[
+          CAIP_ACCOUNT_3.replace('eip155:1:', 'eip155:0:') as CaipAccountId
+        ];
       expect(newAccountState).toBeDefined();
-      expect(newAccountState.account).toBe(CAIP_ACCOUNT_3);
       expect(newAccountState.hasOptedIn).toBe(false);
       expect(newAccountState.perpsFeeDiscount).toBe(2000);
       expect(newAccountState.subscriptionId).toBeNull();
@@ -1980,6 +1990,236 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBe(0);
+    });
+
+    describe('CAIP account ID coercion', () => {
+      it('should coerce eip155:1:0xABC to eip155:0:0xabc format when storing state', async () => {
+        // Arrange - account with chain ID 1 (needs coercion to chain ID 0)
+        const nonCoercedAccount = 'eip155:1:0xABCDEF' as CaipAccountId;
+        const expectedCoercedAccount = 'eip155:0:0xabcdef' as CaipAccountId;
+
+        mockMessenger.call.mockResolvedValue({
+          hasOptedIn: false,
+          discountBips: 1500,
+        });
+
+        // Act - fetch discount for account that needs coercion
+        const result = await controller.getPerpsDiscountForAccount(
+          nonCoercedAccount,
+        );
+
+        // Assert - verify result is correct
+        expect(result).toBe(1500);
+
+        // Verify state was stored with coerced account key (not the original)
+        const coercedAccountState =
+          controller.state.accounts[expectedCoercedAccount];
+        expect(coercedAccountState).toBeDefined();
+        expect(coercedAccountState.account).toBe(expectedCoercedAccount);
+        expect(coercedAccountState.perpsFeeDiscount).toBe(1500);
+
+        // Verify state was NOT stored with non-coerced account key
+        const nonCoercedAccountState =
+          controller.state.accounts[nonCoercedAccount];
+        expect(nonCoercedAccountState).toBeUndefined();
+      });
+
+      it('should update existing account with coerced key when hasOptedIn changes to false', async () => {
+        // Arrange - existing account with coerced format, currently opted in with subscription
+        const coercedAccount = 'eip155:0:0xabcdef' as CaipAccountId;
+        const accountState = {
+          account: coercedAccount,
+          hasOptedIn: true,
+          subscriptionId: 'sub-123',
+          perpsFeeDiscount: 750,
+          lastPerpsDiscountRateFetched: Date.now() - 600000, // Stale cache
+        };
+
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            activeAccount: null,
+            accounts: { [coercedAccount]: accountState as RewardsAccountState },
+            subscriptions: {},
+          },
+        });
+
+        // Mock API response shows user has opted out
+        mockMessenger.call.mockResolvedValue({
+          hasOptedIn: false,
+          discountBips: 1000,
+        });
+
+        // Act - fetch discount for non-coerced account format (should coerce to same key)
+        const nonCoercedAccount = 'eip155:1:0xABCDEF' as CaipAccountId;
+        const result = await controller.getPerpsDiscountForAccount(
+          nonCoercedAccount,
+        );
+
+        // Assert
+        expect(result).toBe(1000);
+
+        // Verify state was updated using the coerced key
+        const updatedAccountState = controller.state.accounts[coercedAccount];
+        expect(updatedAccountState).toBeDefined();
+        expect(updatedAccountState.hasOptedIn).toBe(false);
+        expect(updatedAccountState.subscriptionId).toBeNull(); // This is the critical fix - should use coerced key
+        expect(updatedAccountState.perpsFeeDiscount).toBe(1000);
+      });
+
+      it('should handle eip155:0:0xABC format without coercion (already correct format)', async () => {
+        // Arrange - account already in correct format (eip155:0:...)
+        const correctAccount = 'eip155:0:0xDEF123' as CaipAccountId;
+
+        mockMessenger.call.mockResolvedValue({
+          hasOptedIn: true,
+          discountBips: 2000,
+        });
+
+        // Act
+        const result = await controller.getPerpsDiscountForAccount(
+          correctAccount,
+        );
+
+        // Assert - should store with same key (lowercased)
+        expect(result).toBe(2000);
+        const accountState =
+          controller.state.accounts['eip155:0:0xdef123' as CaipAccountId];
+        expect(accountState).toBeDefined();
+        expect(accountState.account).toBe('eip155:0:0xdef123' as CaipAccountId);
+        expect(accountState.perpsFeeDiscount).toBe(2000);
+      });
+
+      it('should consistently use coerced account when updating existing account that opted out', async () => {
+        // Arrange - existing account stored with different chain ID format
+        const existingAccount = 'eip155:0:0xabc123' as CaipAccountId;
+        const accountState = {
+          account: existingAccount,
+          hasOptedIn: true,
+          subscriptionId: 'existing-sub',
+          perpsFeeDiscount: 500,
+          lastPerpsDiscountRateFetched: Date.now() - 700000, // Stale
+        };
+
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            activeAccount: null,
+            accounts: {
+              [existingAccount]: accountState as RewardsAccountState,
+            },
+            subscriptions: {},
+          },
+        });
+
+        // Mock response indicates user opted out
+        mockMessenger.call.mockResolvedValue({
+          hasOptedIn: false,
+          discountBips: 800,
+        });
+
+        // Act - query with different chain ID format (should coerce to same key)
+        const queryAccount = 'eip155:137:0xABC123' as CaipAccountId; // Different chain ID, uppercase
+        await controller.getPerpsDiscountForAccount(queryAccount);
+
+        // Assert - verify the CORRECT coerced account was updated
+        const updatedState = controller.state.accounts[existingAccount];
+        expect(updatedState).toBeDefined();
+        expect(updatedState.hasOptedIn).toBe(false);
+        expect(updatedState.subscriptionId).toBeNull(); // Should use coerced key to set null
+        expect(updatedState.perpsFeeDiscount).toBe(800);
+
+        // Ensure no duplicate entries were created with wrong keys
+        const wrongKeyEntry = controller.state.accounts[queryAccount];
+        expect(wrongKeyEntry).toBeUndefined();
+      });
+
+      it('should set subscriptionId to null using coerced account when hasOptedIn becomes false', async () => {
+        // This test specifically verifies the bug fix on line 988
+        // where state.accounts[account] should be state.accounts[coercedAccount]
+
+        // Arrange - account with subscription that will opt out
+        const coercedFormat = 'eip155:0:0x999888' as CaipAccountId;
+        const existingState = {
+          account: coercedFormat,
+          hasOptedIn: true,
+          subscriptionId: 'should-be-nulled',
+          perpsFeeDiscount: 1200,
+          lastPerpsDiscountRateFetched: Date.now() - 800000,
+        };
+
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            activeAccount: null,
+            accounts: {
+              [coercedFormat]: existingState as RewardsAccountState,
+            },
+            subscriptions: {},
+          },
+        });
+
+        // Mock opt-out response
+        mockMessenger.call.mockResolvedValue({
+          hasOptedIn: false,
+          discountBips: 100,
+        });
+
+        // Act - query with format that needs coercion
+        const queryFormat = 'eip155:1:0x999888' as CaipAccountId;
+        await controller.getPerpsDiscountForAccount(queryFormat);
+
+        // Assert - the coerced account should have subscriptionId set to null
+        const finalState = controller.state.accounts[coercedFormat];
+        expect(finalState).toBeDefined();
+        expect(finalState.subscriptionId).toBeNull();
+        expect(finalState.hasOptedIn).toBe(false);
+        expect(finalState.perpsFeeDiscount).toBe(100);
+
+        // Verify no state was created or modified under the wrong key
+        expect(Object.keys(controller.state.accounts).length).toBe(1);
+        expect(controller.state.accounts[queryFormat]).toBeUndefined();
+      });
+
+      it('should preserve subscriptionId when hasOptedIn remains true', async () => {
+        // Arrange - account with subscription that stays opted in
+        const coercedFormat = 'eip155:0:0xffffff' as CaipAccountId;
+        const existingState = {
+          account: coercedFormat,
+          hasOptedIn: true,
+          subscriptionId: 'keep-this-sub',
+          perpsFeeDiscount: 500,
+          lastPerpsDiscountRateFetched: Date.now() - 900000,
+        };
+
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            activeAccount: null,
+            accounts: {
+              [coercedFormat]: existingState as RewardsAccountState,
+            },
+            subscriptions: {},
+          },
+        });
+
+        // Mock response with hasOptedIn: true
+        mockMessenger.call.mockResolvedValue({
+          hasOptedIn: true,
+          discountBips: 1500,
+        });
+
+        // Act
+        const queryFormat = 'eip155:5:0xFFFFFF' as CaipAccountId;
+        await controller.getPerpsDiscountForAccount(queryFormat);
+
+        // Assert - subscriptionId should be preserved (not set to null)
+        const finalState = controller.state.accounts[coercedFormat];
+        expect(finalState).toBeDefined();
+        expect(finalState.subscriptionId).toBe('keep-this-sub');
+        expect(finalState.hasOptedIn).toBe(true);
+        expect(finalState.perpsFeeDiscount).toBe(1500);
+      });
     });
   });
 
