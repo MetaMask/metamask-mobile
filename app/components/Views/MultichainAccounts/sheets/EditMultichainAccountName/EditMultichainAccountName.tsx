@@ -147,10 +147,10 @@ export const EditMultichainAccountName = () => {
         {error && <Text color={TextColor.Error}>{error}</Text>}
       </Box>
       <BottomSheetFooter
-        style={
-          styles.footer &&
-          Platform.OS === 'android' && { marginBottom: keyboardHeight }
-        }
+        style={{
+          ...styles.footer,
+          ...(Platform.OS === 'android' && { marginBottom: keyboardHeight }),
+        }}
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={[saveButtonProps]}
       />
