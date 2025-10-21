@@ -451,7 +451,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -490,7 +489,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1194,7 +1192,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1233,7 +1230,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
