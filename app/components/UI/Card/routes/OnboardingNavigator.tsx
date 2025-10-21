@@ -1,6 +1,5 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import UnmountOnBlur from '../../../Views/UnmountOnBlur';
 import Routes from '../../../../constants/navigation/Routes';
 import SignUp from '../components/Onboarding/SignUp';
 import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
@@ -30,6 +29,9 @@ const OnboardingNavigator: React.FC = () => {
     if (!onboardingId || !user?.id) {
       return Routes.CARD.ONBOARDING.SIGN_UP;
     }
+    if (user?.verificationState === 'PENDING') {
+      return Routes.CARD.ONBOARDING.VALIDATING_KYC;
+    }
     if (user?.verificationState === 'VERIFIED') {
       if (!user?.firstName) {
         return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
@@ -42,65 +44,63 @@ const OnboardingNavigator: React.FC = () => {
   };
 
   return (
-    <UnmountOnBlur>
-      <Stack.Navigator initialRouteName={getInitialRouteName()}>
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.SIGN_UP}
-          component={SignUp}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.CONFIRM_EMAIL}
-          component={ConfirmEmail}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
-          component={SetPhoneNumber}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
-          component={ConfirmPhoneNumber}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
-          component={VerifyIdentity}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
-          component={ValidatingKYC}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.KYC_FAILED}
-          component={KYCFailed}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
-          component={PersonalDetails}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
-          component={PhysicalAddress}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
-          component={MailingAddress}
-          options={cardAuthenticationNavigationOptions}
-        />
-        <Stack.Screen
-          name={Routes.CARD.ONBOARDING.COMPLETE}
-          component={Complete}
-          options={cardAuthenticationNavigationOptions}
-        />
-      </Stack.Navigator>
-    </UnmountOnBlur>
+    <Stack.Navigator initialRouteName={getInitialRouteName()}>
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.SIGN_UP}
+        component={SignUp}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.CONFIRM_EMAIL}
+        component={ConfirmEmail}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
+        component={SetPhoneNumber}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
+        component={ConfirmPhoneNumber}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
+        component={VerifyIdentity}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
+        component={ValidatingKYC}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.KYC_FAILED}
+        component={KYCFailed}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
+        component={PersonalDetails}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
+        component={PhysicalAddress}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
+        component={MailingAddress}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.COMPLETE}
+        component={Complete}
+        options={cardAuthenticationNavigationOptions}
+      />
+    </Stack.Navigator>
   );
 };
 

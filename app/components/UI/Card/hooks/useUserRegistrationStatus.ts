@@ -5,8 +5,9 @@ import { getErrorMessage } from '../util/getErrorMessage';
 import {
   selectOnboardingId,
   selectUser,
+  setUser,
 } from '../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 interface UseUserRegistrationStatusReturn {
   verificationState: VERIFICATION_STATUS | null;
@@ -28,6 +29,7 @@ export const useUserRegistrationStatus =
   (): UseUserRegistrationStatusReturn => {
     const { sdk } = useCardSDK();
     const user = useSelector(selectUser);
+    const dispatch = useDispatch();
     const [verificationState, setVerificationState] =
       useState<VERIFICATION_STATUS>(user?.verificationState || 'PENDING');
     const [userResponse, setUserResponse] = useState<UserResponse | null>(null);
@@ -66,7 +68,7 @@ export const useUserRegistrationStatus =
         setError(null);
 
         const response = await sdk.getRegistrationStatus(onboardingId);
-
+        dispatch(setUser(response));
         setUserResponse(response);
         setVerificationState(response.verificationState || 'PENDING');
         setIsLoading(false);
@@ -76,7 +78,7 @@ export const useUserRegistrationStatus =
         setIsError(true);
         setIsLoading(false);
       }
-    }, [onboardingId, sdk]);
+    }, [dispatch, onboardingId, sdk]);
 
     const startPolling = useCallback(() => {
       // Clear any existing interval

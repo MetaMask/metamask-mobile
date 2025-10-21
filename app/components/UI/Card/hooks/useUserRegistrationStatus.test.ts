@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { useUserRegistrationStatus } from './useUserRegistrationStatus';
 import { CardSDK } from '../sdk/CardSDK';
@@ -11,9 +11,9 @@ import {
 } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 
-// Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 jest.mock('../sdk', () => ({
@@ -25,6 +25,7 @@ jest.mock('../util/getErrorMessage', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
   typeof getErrorMessage
@@ -61,6 +62,10 @@ describe('useUserRegistrationStatus', () => {
       }
       return 'US'; // Default for other selectors like selectedCountry
     });
+
+    // Mock useDispatch
+    const mockDispatch = jest.fn();
+    mockUseDispatch.mockReturnValue(mockDispatch);
 
     // Default mock for getRegistrationStatus to handle auto-polling
     mockGetRegistrationStatus.mockResolvedValue({
