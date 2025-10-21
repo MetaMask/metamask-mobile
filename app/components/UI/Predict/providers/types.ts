@@ -38,6 +38,16 @@ export interface Signer {
 export interface PlaceOrderParams {
   providerId: string;
   preview: OrderPreview;
+  analyticsProperties?: {
+    marketId?: string;
+    marketTitle?: string;
+    marketCategory?: string;
+    entryPoint?: string;
+    transactionType?: string;
+    sharePrice?: number;
+    liquidity?: number;
+    volume?: number;
+  };
 }
 
 export interface PreviewOrderParams {
@@ -85,6 +95,13 @@ export interface OrderPreview {
   negRisk: boolean;
   fees?: PredictFees;
 }
+
+export type OrderResult = Result<{
+  id: string;
+  spentAmount: string;
+  receivedAmount: string;
+  txHashes?: string[];
+}>
 
 export interface ClaimOrderParams {
   positions: PredictPosition[];
@@ -165,7 +182,7 @@ export interface PredictProvider {
 
   // Order management
   previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
-  placeOrder(params: PlaceOrderParams & { signer: Signer }): Promise<Result>;
+  placeOrder(params: PlaceOrderParams & { signer: Signer }): Promise<OrderResult>;
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;

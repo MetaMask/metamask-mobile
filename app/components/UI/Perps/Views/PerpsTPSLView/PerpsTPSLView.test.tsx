@@ -658,7 +658,7 @@ describe('PerpsTPSLView', () => {
       // Act
       render(<PerpsTPSLView />);
 
-      // Assert - Component should render successfully with margin prop
+      // Assert - Component should render successfully
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
     });
   });

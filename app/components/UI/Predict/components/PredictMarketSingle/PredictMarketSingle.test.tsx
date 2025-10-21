@@ -8,6 +8,7 @@ import {
   Recurrence,
   PredictMarket as PredictMarketType,
 } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketSingle from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -76,6 +77,8 @@ const mockMarket: PredictMarketType = {
   recurrence: Recurrence.NONE,
   categories: ['crypto'],
   outcomes: [mockOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {
@@ -134,6 +137,7 @@ describe('PredictMarketSingle', () => {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
 
@@ -144,6 +148,7 @@ describe('PredictMarketSingle', () => {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
   });
