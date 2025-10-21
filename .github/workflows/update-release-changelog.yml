@@ -5,7 +5,7 @@ name: Update Release Changelog PR
 on:
   push:
     branches:
-      - 'release/[0-9]+.[0-9]+.[0-9]+'
+      - 'release/*'
 
 concurrency:
   group: update-release-changelog-${{ github.ref }}
@@ -20,7 +20,7 @@ jobs:
     with:
       release-branch: ${{ github.ref_name }}
       repository-url: ${{ github.server_url }}/${{ github.repository }}
-      platform: extension
+      platform: mobile
       github-tools-version: 36dc168896c1b496f35fc880ee8a3625b4b837ba
       previous-version-ref: null
     secrets:
