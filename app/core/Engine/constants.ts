@@ -32,7 +32,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NftController:stateChange',
   'PermissionController:stateChange',
   'PhishingController:stateChange',
-  'PPOMController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
   'SelectedNetworkController:stateChange',

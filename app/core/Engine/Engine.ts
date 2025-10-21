@@ -164,7 +164,6 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
-import { ppomControllerInit } from './controllers/ppom-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
@@ -346,7 +345,6 @@ export class Engine {
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -375,7 +373,6 @@ export class Engine {
     const perpsController = controllersByName.PerpsController;
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
-    const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -510,7 +507,6 @@ export class Engine {
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
       AccountsController: accountsController,
-      PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
       RatesController: ratesController,
@@ -1255,7 +1251,6 @@ export default {
       PreferencesController,
       PhishingController,
       RemoteFeatureFlagController,
-      PPOMController,
       TokenBalancesController,
       TokenRatesController,
       TokenSearchDiscoveryController,
@@ -1313,7 +1308,6 @@ export default {
       NetworkController,
       PhishingController,
       RemoteFeatureFlagController,
-      PPOMController,
       PreferencesController,
       TokenBalancesController,
       TokenRatesController,
