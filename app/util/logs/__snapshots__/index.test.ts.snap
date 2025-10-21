@@ -7,9 +7,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accountsByChainId": {
-          "0x1": {},
-        },
+        "accountsByChainId": {},
       },
       "AccountTreeController": {
         "accountGroupsMetadata": {},
@@ -127,6 +125,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "gasFeeEstimates": {},
         "gasFeeEstimatesByChainId": {},
         "nonRPCGasFeeApisDisabled": false,
+      },
+      "GatorPermissionsController": {
+        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
+        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "isFetchingGatorPermissions": false,
+        "isGatorPermissionsEnabled": false,
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -790,9 +794,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accountsByChainId": {
-          "0x1": {},
-        },
+        "accountsByChainId": {},
       },
       "AccountTreeController": {
         "accountGroupsMetadata": {},
@@ -910,6 +912,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "gasFeeEstimates": {},
         "gasFeeEstimatesByChainId": {},
         "nonRPCGasFeeApisDisabled": false,
+      },
+      "GatorPermissionsController": {
+        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
+        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "isFetchingGatorPermissions": false,
+        "isGatorPermissionsEnabled": false,
       },
       "KeyringController": {
         "isUnlocked": true,
