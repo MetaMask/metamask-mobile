@@ -30,6 +30,7 @@ import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativesdk.NativeSDKPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
+import com.intercom.reactnative.IntercomModule
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -72,6 +73,13 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Initialize Intercom
+        IntercomModule.initialize(
+            this,
+            "apiKey",
+            "appId"
+        )
         
         // Initialize Branch
         RNBranchModule.getAutoInstance(this)
