@@ -5,7 +5,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { performEvmRefresh } from './tokenRefreshUtils';
 
 interface RefreshTokensProps {
-  isEvmSelected: boolean;
+  isSolanaSelected: boolean;
   evmNetworkConfigurationsByChainId: Record<
     string,
     { chainId: Hex; nativeCurrency: string }
@@ -15,12 +15,12 @@ interface RefreshTokensProps {
 }
 
 export const refreshTokens = async ({
-  isEvmSelected,
+  isSolanaSelected,
   evmNetworkConfigurationsByChainId,
   nativeCurrencies,
   selectedAccountId,
 }: RefreshTokensProps) => {
-  if (!isEvmSelected) {
+  if (isSolanaSelected) {
     const { MultichainBalancesController } = Engine.context;
     if (selectedAccountId) {
       try {
@@ -29,8 +29,6 @@ export const refreshTokens = async ({
         Logger.error(error as Error, 'Error while refreshing NonEvm tokens');
       }
     }
-    return;
   }
-
   await performEvmRefresh(evmNetworkConfigurationsByChainId, nativeCurrencies);
 };

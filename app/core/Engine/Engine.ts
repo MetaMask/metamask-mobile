@@ -58,7 +58,13 @@ import {
 } from './controllers/core-backend';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
-import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAssetType,
+  Hex,
+  Json,
+  KnownCaipNamespace,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import {
@@ -609,6 +615,32 @@ export class Engine {
             'ApprovalController:rejectRequest',
             approval.id,
             new Error('Snap was terminated.'),
+          );
+        }
+      },
+    );
+
+    // Subscribe to destinationTransactionCompleted event from BridgeStatusController and refresh assets.
+    this.controllerMessenger.subscribe(
+      'BridgeStatusController:destinationTransactionCompleted',
+      (caipAsset: CaipAssetType) => {
+        try {
+          const { chain } = parseCaipAssetType(caipAsset);
+
+          const { namespace: caipNamespace, reference } = chain;
+          if (caipNamespace === 'eip155') {
+            const hexChainId = toHex(reference);
+            this.context.TokenDetectionController.detectTokens({
+              chainIds: [hexChainId],
+            });
+            this.context.TokenBalancesController.updateBalances({
+              chainIds: [hexChainId],
+            });
+          }
+        } catch (error) {
+          console.error(
+            'Error handling BridgeStatusController:destinationTransactionCompleted event:',
+            error,
           );
         }
       },

@@ -48,6 +48,31 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
+import type { Position } from '../../controllers/types';
+
+// Helper function to calculate effective entry price
+const calculateEffectiveEntryPrice = (
+  position: Position | undefined,
+  orderType: 'market' | 'limit' | undefined,
+  limitPrice: string | undefined,
+  spotPrice: number,
+  livePrice: number | undefined,
+  initialCurrentPrice: number | undefined,
+): number => {
+  const hasPositionEntry = position?.entryPrice
+    ? parseFloat(position.entryPrice)
+    : 0;
+  const limitPriceValue =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+      ? parseFloat(limitPrice)
+      : 0;
+  const fallbackPrice =
+    spotPrice > 0 ? spotPrice : livePrice || initialCurrentPrice || 0;
+  // Use proper precedence checking instead of || operator to avoid treating 0 as falsy
+  if (hasPositionEntry > 0) return hasPositionEntry;
+  if (limitPriceValue > 0) return limitPriceValue;
+  return fallbackPrice;
+};
 
 const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation();
@@ -100,29 +125,30 @@ const PerpsTPSLView: React.FC = () => {
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
   // For display purposes, use limit price for limit orders, otherwise use spot price
-  const currentPrice =
-    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-      ? parseFloat(limitPrice)
-      : spotPrice;
+  const hasValidLimitPrice =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
+  const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
   // For market orders or when limit price is not set, use spot price
   // Ensure we always have a valid price > 0 for calculations
-  const effectiveEntryPrice = position?.entryPrice
-    ? parseFloat(position.entryPrice)
-    : orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-    ? parseFloat(limitPrice)
-    : spotPrice > 0
-    ? spotPrice
-    : livePrice || initialCurrentPrice || 0;
+  const effectiveEntryPrice = calculateEffectiveEntryPrice(
+    position,
+    orderType,
+    limitPrice,
+    spotPrice,
+    livePrice,
+    initialCurrentPrice,
+  );
 
   // Determine direction for tracking events
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
+  const actualDirection = (() => {
+    if (position) {
+      return parseFloat(position.size) > 0 ? 'long' : 'short';
+    }
+    return direction;
+  })();
 
   // Calculate liquidation price for new orders (when there's no existing position)
   const shouldCalculateLiquidation =
@@ -386,7 +412,8 @@ const PerpsTPSLView: React.FC = () => {
                   {strings('perps.tpsl.entry_price')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.entryPrice &&
+                  {position.entryPrice !== undefined &&
+                  position.entryPrice !== null &&
                   position.entryPrice !== 'null' &&
                   position.entryPrice !== '0.00'
                     ? formatPerpsFiat(position.entryPrice, {
@@ -405,7 +432,7 @@ const PerpsTPSLView: React.FC = () => {
                   : strings('perps.tpsl.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {currentPrice
+                {currentPrice !== undefined && currentPrice !== null
                   ? formatPerpsFiat(currentPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
                     })
@@ -417,7 +444,8 @@ const PerpsTPSLView: React.FC = () => {
                 {strings('perps.tpsl.liquidation_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {displayLiquidationPrice &&
+                {displayLiquidationPrice !== undefined &&
+                displayLiquidationPrice !== null &&
                 displayLiquidationPrice !== 'null' &&
                 displayLiquidationPrice !== '0.00'
                   ? formatPerpsFiat(displayLiquidationPrice, {
@@ -448,7 +476,7 @@ const PerpsTPSLView: React.FC = () => {
                   !takeProfitPrice && styles.percentageButtonOff,
                 ]}
                 onPress={handleTakeProfitOff}
-                disabled={inputsDisabled || !!focusedInput}
+                disabled={inputsDisabled || Boolean(focusedInput)}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {strings('perps.tpsl.off')}
@@ -560,7 +588,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Error message */}
-            {!isValid && takeProfitError && (
+            {!isValid && Boolean(takeProfitError) && (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {takeProfitError}
               </Text>
@@ -722,15 +750,14 @@ const PerpsTPSLView: React.FC = () => {
             />
             <View style={styles.keypadContainer}>
               <Keypad
-                value={
-                  focusedInput === 'takeProfitPrice'
-                    ? takeProfitPrice
-                    : focusedInput === 'takeProfitPercentage'
-                    ? formattedTakeProfitPercentage
-                    : focusedInput === 'stopLossPrice'
-                    ? stopLossPrice
-                    : formattedStopLossPercentage
-                }
+                value={(() => {
+                  if (focusedInput === 'takeProfitPrice')
+                    return takeProfitPrice;
+                  if (focusedInput === 'takeProfitPercentage')
+                    return formattedTakeProfitPercentage;
+                  if (focusedInput === 'stopLossPrice') return stopLossPrice;
+                  return formattedStopLossPercentage;
+                })()}
                 onChange={handleKeypadChange}
                 currency={TP_SL_VIEW_CONFIG.KEYPAD_CURRENCY_CODE}
                 decimals={TP_SL_VIEW_CONFIG.KEYPAD_DECIMALS}
