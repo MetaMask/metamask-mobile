@@ -1,4 +1,5 @@
-import type { Json, StateConstraint, StateMetadata, StatePropertyMetadata } from '@metamask/utils';
+import type { StateConstraint, StateMetadata, StatePropertyMetadata } from '@metamask/base-controller';
+import type { Json } from '@metamask/utils';
 
 /**
  * Checks if a controller has any properties marked for persistence.
