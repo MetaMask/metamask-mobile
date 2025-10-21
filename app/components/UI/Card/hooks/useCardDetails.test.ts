@@ -50,7 +50,6 @@ describe('useCardDetails', () => {
       sdk: mockSDK,
       isLoading: false,
       logoutFromProvider: mockLogoutFromProvider,
-      userCardLocation: 'us',
     });
   });
 
@@ -240,7 +239,6 @@ describe('useCardDetails', () => {
         sdk: null,
         isLoading: true,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us',
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
 
@@ -257,7 +255,6 @@ describe('useCardDetails', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us',
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
 
@@ -295,7 +292,6 @@ describe('useCardDetails', () => {
         sdk: null,
         isLoading: true,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us',
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
 
@@ -310,7 +306,6 @@ describe('useCardDetails', () => {
         sdk: mockSDK,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us',
       });
       rerender();
 
@@ -328,7 +323,6 @@ describe('useCardDetails', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: mockLogoutFromProvider,
-        userCardLocation: 'us',
       });
 
       const { result } = renderHook(() => useCardDetails());
