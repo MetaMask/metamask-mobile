@@ -251,6 +251,7 @@ const Routes = {
     MARKET_DETAILS: 'PerpsMarketDetails',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
+    TPSL: 'PerpsTPSL',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
@@ -348,6 +349,20 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    ONBOARDING: {
+      ROOT: 'CardOnboarding',
+      SIGN_UP: 'CardOnboardingSignUp',
+      CONFIRM_EMAIL: 'CardOnboardingConfirmEmail',
+      SET_PHONE_NUMBER: 'CardOnboardingSetPhoneNumber',
+      CONFIRM_PHONE_NUMBER: 'CardOnboardingConfirmPhoneNumber',
+      VERIFY_IDENTITY: 'CardOnboardingVerifyIdentity',
+      VALIDATING_KYC: 'CardOnboardingValidatingKYC',
+      PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
+      PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
+      MAILING_ADDRESS: 'CardOnboardingMailingAddress',
+      COMPLETE: 'CardOnboardingComplete',
+      KYC_FAILED: 'CardOnboardingKYCFailed',
+    },
   },
   SEND: {
     RECIPIENT: 'Recipient',

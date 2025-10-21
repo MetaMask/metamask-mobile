@@ -6,7 +6,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
-import { Alert, Image, View } from 'react-native';
+import { Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
@@ -16,7 +16,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -26,6 +25,7 @@ import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictSellPreview.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
@@ -41,22 +41,7 @@ const PredictSellPreview = () => {
 
   const outcomeTitle = title;
 
-  const { placeOrder, isLoading } = usePredictPlaceOrder({
-    onComplete: () => {
-      try {
-        // TODO: fix this logic. This only seems to pop the stack once, but does not
-        // navigate to the market details screen
-        dispatch(StackActions.pop());
-        dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
-      } catch (error) {
-        // Navigation errors shouldn't prevent the order from being considered successful
-        console.warn('Navigation error after successful cash out:', error);
-      }
-    },
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-    },
-  });
+  const { placeOrder, isLoading } = usePredictPlaceOrder();
 
   const { preview, isCalculating } = usePredictOrderPreview({
     providerId: position.providerId,
@@ -80,6 +65,7 @@ const PredictSellPreview = () => {
       providerId: position.providerId,
       preview,
     });
+    dispatch(StackActions.pop());
   };
 
   return (
@@ -87,17 +73,20 @@ const PredictSellPreview = () => {
       <BottomSheetHeader onClose={() => goBack()}>
         <Text variant={TextVariant.HeadingMD}>Cash Out</Text>
       </BottomSheetHeader>
-      <View style={styles.container}>
+      <View
+        testID={PredictCashOutSelectorsIDs.CONTAINER}
+        style={styles.container}
+      >
         <View style={styles.cashOutContainer}>
           <Text style={styles.currentValue}>
-            {formatPrice(currentValue, { minimumDecimals: 2 })}
+            {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
           <Text
             style={styles.percentPnl}
             color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
           >
             {`${signal}${formatPrice(Math.abs(cashPnl), {
-              minimumDecimals: 2,
+              maximumDecimals: 2,
             })} (${formatPercentage(percentPnl)})`}
           </Text>
         </View>
@@ -119,13 +108,14 @@ const PredictSellPreview = () => {
                 ellipsizeMode="tail"
                 style={styles.detailsResolves}
               >
-                {formatPrice(initialValue, { minimumDecimals: 2 })} on{' '}
+                {formatPrice(initialValue, { maximumDecimals: 2 })} on{' '}
                 {outcomeSideText}
               </Text>
             </View>
           </View>
           <View style={styles.cashOutButtonContainer}>
             <Button
+              testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
               label="Cash out"
               variant={ButtonVariants.Secondary}
               disabled={!preview || isCalculating || isLoading}

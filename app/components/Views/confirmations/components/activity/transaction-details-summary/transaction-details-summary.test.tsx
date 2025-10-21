@@ -102,11 +102,11 @@ describe('TransactionDetailsSummary', () => {
           destAsset: {
             symbol: SYMBOL_2_MOCK,
           },
+          destChainId: Number(TARGET_CHAIN_ID_MOCK),
         },
         status: {
           status: StatusTypes.COMPLETE,
           destChain: {
-            chainId: Number(TARGET_CHAIN_ID_MOCK),
             txHash: RECEIVE_HASH_MOCK,
           },
         },
@@ -217,7 +217,9 @@ describe('TransactionDetailsSummary', () => {
   it('renders bridge line alternate title if symbols loading', () => {
     useBridgeTxHistoryDataMock.mockReturnValue({
       bridgeTxHistoryItem: {
-        quote: {},
+        quote: {
+          destChainId: Number(TARGET_CHAIN_ID_MOCK),
+        },
         status: {
           status: StatusTypes.COMPLETE,
         },
@@ -231,7 +233,15 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(strings('transaction_details.summary_title.bridge_loading')),
+      getByText(
+        strings('transaction_details.summary_title.bridge_send_loading'),
+      ),
+    ).toBeDefined();
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive_loading'),
+      ),
     ).toBeDefined();
   });
 

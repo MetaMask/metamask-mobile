@@ -62,6 +62,7 @@ import {
   roundNormal,
   roundDown,
   roundUp,
+  roundOrderAmount,
   roundOrderAmounts,
   previewOrder,
   getAllowanceCalls,
@@ -1438,7 +1439,7 @@ describe('polymarket utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&exclude_tag_id=100639&order=volume24hr',
+        'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&exclude_tag_id=100639&order=volume24hr',
       );
     });
 
@@ -1464,7 +1465,7 @@ describe('polymarket utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/public-search?q=weather&limit_per_type=10&page=1&ascending=false',
+        'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&presets=Events&limit_per_type=10&page=1',
       );
     });
 
@@ -1487,7 +1488,7 @@ describe('polymarket utils', () => {
       await getParsedMarketsFromPolymarketApi(params);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/pagination?limit=5&active=true&archived=false&closed=false&ascending=false&offset=0&tag_slug=crypto&order=volume24hr',
+        'https://gamma-api.polymarket.com/events/pagination?limit=5&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&tag_slug=crypto&order=volume24hr',
       );
     });
 
@@ -2085,6 +2086,80 @@ describe('polymarket utils', () => {
     it('should handle edge cases', () => {
       expect(roundUp(0.001, 2)).toBe(0.01);
       expect(roundUp(100.123456, 3)).toBe(100.124);
+    });
+  });
+
+  describe('roundOrderAmount', () => {
+    it('should return same amount if decimal places are within limit', () => {
+      expect(roundOrderAmount({ amount: 1.5, decimals: 2 })).toBe(1.5);
+      expect(roundOrderAmount({ amount: 10.25, decimals: 2 })).toBe(10.25);
+      expect(roundOrderAmount({ amount: 5, decimals: 2 })).toBe(5);
+    });
+
+    it('should round down amount if it exceeds decimals after rounding up', () => {
+      expect(roundOrderAmount({ amount: 1.235, decimals: 2 })).toBe(1.23);
+      expect(roundOrderAmount({ amount: 10.999, decimals: 2 })).toBe(10.99);
+    });
+
+    it('should round down when amount has more decimals than target', () => {
+      expect(roundOrderAmount({ amount: 1.001, decimals: 2 })).toBe(1);
+      expect(roundOrderAmount({ amount: 0.0001, decimals: 2 })).toBe(0);
+      expect(roundOrderAmount({ amount: 1.0001, decimals: 2 })).toBe(1);
+    });
+
+    it('should handle zero decimals', () => {
+      expect(roundOrderAmount({ amount: 1.5, decimals: 0 })).toBe(1);
+      expect(roundOrderAmount({ amount: 1.999, decimals: 0 })).toBe(1);
+      expect(roundOrderAmount({ amount: 5, decimals: 0 })).toBe(5);
+    });
+
+    it('should handle large decimal precision', () => {
+      expect(roundOrderAmount({ amount: 1.123456789, decimals: 6 })).toBe(
+        1.123456,
+      );
+      expect(roundOrderAmount({ amount: 0.123456789, decimals: 5 })).toBe(
+        0.12345,
+      );
+    });
+
+    it('should handle edge case with very small amounts', () => {
+      expect(roundOrderAmount({ amount: 0.00001, decimals: 2 })).toBe(0);
+      expect(roundOrderAmount({ amount: 0.000001, decimals: 4 })).toBe(0);
+      expect(roundOrderAmount({ amount: 0.123456, decimals: 4 })).toBe(0.1234);
+    });
+
+    it('should handle edge case with large amounts', () => {
+      expect(roundOrderAmount({ amount: 1000.123456, decimals: 2 })).toBe(
+        1000.12,
+      );
+      expect(roundOrderAmount({ amount: 99999.999999, decimals: 3 })).toBe(
+        99999.999,
+      );
+    });
+
+    it('should apply roundUp with extra decimals then roundDown if needed', () => {
+      const amount = 1.12345678;
+      const decimals = 2;
+      const result = roundOrderAmount({ amount, decimals });
+      expect(result).toBe(1.12);
+      expect(decimalPlaces(result)).toBeLessThanOrEqual(decimals);
+    });
+
+    it('should round up when amount can fit exactly into target decimals', () => {
+      expect(roundOrderAmount({ amount: 1.2345, decimals: 2 })).toBe(1.23);
+      expect(roundOrderAmount({ amount: 10.1234567, decimals: 4 })).toBe(
+        10.1234,
+      );
+    });
+
+    it('should handle negative amounts', () => {
+      expect(roundOrderAmount({ amount: -1.235, decimals: 2 })).toBe(-1.24);
+      expect(roundOrderAmount({ amount: -10.999, decimals: 2 })).toBe(-11);
+    });
+
+    it('should handle amounts that round up to exceed decimals', () => {
+      expect(roundOrderAmount({ amount: 1.996, decimals: 2 })).toBe(1.99);
+      expect(roundOrderAmount({ amount: 0.999999, decimals: 2 })).toBe(0.99);
     });
   });
 

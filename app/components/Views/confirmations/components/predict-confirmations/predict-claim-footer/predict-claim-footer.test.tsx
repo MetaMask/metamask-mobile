@@ -21,24 +21,32 @@ function render({ onPress }: { onPress?: () => void } = {}) {
 
 describe('PredictClaimFooter', () => {
   it('renders market count', () => {
+    // Given 5 won positions
     const { getByText } = render();
 
+    // Then the market count is displayed
     expect(
       getByText(strings('confirm.predict_claim.footer_top', { count: 5 })),
     ).toBeDefined();
   });
 
   it('renders market images', () => {
+    // Given 5 won positions with icons
     const { getAllByTestId } = render();
+
+    // Then the avatar group shows up to 3 avatars
     expect(getAllByTestId('token-avatar-image')).toHaveLength(3);
   });
 
   it('calls onPress when button is pressed', () => {
+    // Given a button with an onPress handler
     const onPressMock = jest.fn();
     const { getByText } = render({ onPress: onPressMock });
 
+    // When the button is pressed
     fireEvent.press(getByText(strings('confirm.predict_claim.button_label')));
 
+    // Then the onPress handler is called
     expect(onPressMock).toHaveBeenCalled();
   });
 });
