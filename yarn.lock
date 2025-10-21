@@ -7150,7 +7150,7 @@ __metadata:
 
 "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A48.0.0#./.yarn/patches/@metamask-bridge-status-controller-npm-48.0.0-f39cb20abf.patch::locator=metamask%40workspace%3A.":
   version: 48.0.0
-  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A48.0.0#./.yarn/patches/@metamask-bridge-status-controller-npm-48.0.0-f39cb20abf.patch::version=48.0.0&hash=31ccdf&locator=metamask%40workspace%3A."
+  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A48.0.0#./.yarn/patches/@metamask-bridge-status-controller-npm-48.0.0-f39cb20abf.patch::version=48.0.0&hash=39f584&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/controller-utils": ^11.14.0
@@ -7166,7 +7166,7 @@ __metadata:
     "@metamask/network-controller": ^24.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 3f88fbddd694e6bfd82d40e8188720ce69b36191b595825f7bdeeb331bddc79c666b11565f1eb8a66b7c7a003e69aecac32534c07da01532c07bfe97a457e5d5
+  checksum: e56c836a90235b5813d5e265823453ca6d7545485d5bceb2477462147fa32f726db2b806a31d1fb7ca21836bf571fabbca5c544f915aed94fba4760cf4d6a0d0
   languageName: node
   linkType: hard
 
