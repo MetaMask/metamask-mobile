@@ -6,6 +6,7 @@
  * configures itself when the isE2E flag is detected.
  */
 
+import { Linking } from 'react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isE2E } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
@@ -65,6 +66,15 @@ function registerE2EPerpsDeepLinkHandler(): void {
             DevLogger.log('[E2E Bridge] push-price', symbol, price);
             if (service && typeof service.mockPushPrice === 'function') {
               service.mockPushPrice(symbol, price);
+            }
+            return;
+          }
+
+          if (path === 'mock-deposit') {
+            const amount = params.get('amount') || '';
+            DevLogger.log('[E2E Bridge] mock-deposit', amount);
+            if (service && typeof service.mockDepositUSD === 'function') {
+              service.mockDepositUSD(amount);
             }
             return;
           }

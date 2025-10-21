@@ -17,6 +17,12 @@ class PerpsE2EModifiers {
       )}`,
     );
   }
+
+  static async applyDepositUSD(amount: string): Promise<void> {
+    await openE2EUrl(
+      `${E2EDeeplinkSchemes.PERPS}mock-deposit?amount=${encodeURIComponent(amount)}`,
+    );
+  }
 }
 
 export default PerpsE2EModifiers;
