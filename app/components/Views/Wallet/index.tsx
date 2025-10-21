@@ -158,7 +158,6 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -187,6 +186,7 @@ import { createAddressListNavigationDetails } from '../../Views/MultichainAccoun
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -1059,7 +1059,7 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   useEffect(() => {
@@ -1078,7 +1078,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        isCardholder,
+        shouldDisplayCardButton,
         isRewardsEnabled,
       ),
     );
@@ -1094,7 +1094,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    isCardholder,
+    shouldDisplayCardButton,
     isRewardsEnabled,
   ]);
 
