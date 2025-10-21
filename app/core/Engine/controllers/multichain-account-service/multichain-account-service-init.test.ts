@@ -44,9 +44,6 @@ function getInitRequestMock({
     MultichainAccountServiceInitMessenger
   >
 > {
-  const controllerMessenger = getMultichainAccountServiceMessenger(messenger);
-  const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
-
   // Mock remote feature flag state which is required when initializing the service
   messenger.registerActionHandler(
     'RemoteFeatureFlagController:getState',
@@ -55,6 +52,10 @@ function getInitRequestMock({
   mockRemoteFeatureFlagControllerGetState.mockImplementation(() => ({
     remoteFeatureFlags,
   }));
+
+  // Get restricted messengers
+  const controllerMessenger = getMultichainAccountServiceMessenger(messenger);
+  const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
 
   // Create extended messenger for the base mock
   const extendedControllerMessenger = new ExtendedControllerMessenger();
