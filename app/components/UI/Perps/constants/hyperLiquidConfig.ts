@@ -264,3 +264,31 @@ export const HIP3_DEX_MARKET_TYPES = {
   // abc: 'forex' as const,
   // commodity_dex: 'commodity' as const,
 } as const;
+
+/**
+ * HIP-3 margin management configuration
+ * Controls margin buffers and auto-rebalance behavior for HIP-3 DEXes with isolated margin
+ *
+ * Background: HyperLiquid validates availableBalance >= totalRequiredMargin BEFORE reallocating
+ * existing locked margin. This requires temporary over-funding when increasing positions,
+ * followed by automatic cleanup to minimize locked capital.
+ */
+export const HIP3_MARGIN_CONFIG = {
+  /**
+   * Margin buffer multiplier for fees and slippage (0.3% = multiply by 1.003)
+   * Covers HyperLiquid's max taker fee (0.035%) with comfortable margin
+   */
+  BUFFER_MULTIPLIER: 1.003,
+
+  /**
+   * Desired buffer to keep on HIP-3 DEX after auto-rebalance (USDC amount)
+   * Small buffer allows quick follow-up orders without transfers
+   */
+  REBALANCE_DESIRED_BUFFER: 0.1,
+
+  /**
+   * Minimum excess threshold to trigger auto-rebalance (USDC amount)
+   * Prevents unnecessary transfers for tiny amounts
+   */
+  REBALANCE_MIN_THRESHOLD: 0.1,
+} as const;
