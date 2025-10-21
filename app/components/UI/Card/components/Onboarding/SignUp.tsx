@@ -218,7 +218,7 @@ const SignUp = () => {
           size={TextFieldSize.Lg}
           value={password}
           maxLength={255}
-          //secureTextEntry
+          secureTextEntry
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.password_label',
           )}
@@ -245,7 +245,7 @@ const SignUp = () => {
           size={TextFieldSize.Lg}
           value={confirmPassword}
           maxLength={255}
-          //secureTextEntry
+          secureTextEntry
           accessibilityLabel={strings(
             'card.card_onboarding.sign_up.confirm_password_label',
           )}
