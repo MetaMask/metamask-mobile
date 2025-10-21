@@ -48,8 +48,6 @@ const config = {
     '__mocks__/',
     '<rootDir>/app/util/test/',
     '<rootDir>/app/util/testUtils/',
-    '<rootDir>/app/lib/ppom/ppom.html.js',
-    '<rootDir>/app/lib/ppom/blockaid-version.js',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
     '<rootDir>/app/features/SampleFeature/e2e/',
   ],
