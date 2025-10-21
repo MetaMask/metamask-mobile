@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
-import { Hex } from '@metamask/utils';
-
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -67,16 +65,13 @@ export enum PredictClaimStatus {
   ERROR = 'error',
 }
 
-export type PredictClaim = {
-  positionId: string;
-  chainId: number;
-  status: PredictClaimStatus;
-  txParams: {
-    to: Hex;
-    data: Hex;
-    value: Hex;
-  };
-};
+export enum PredictDepositStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
 
 export type PredictMarket = {
   id: string;
@@ -129,6 +124,9 @@ export interface PredictActivity {
   id: string;
   providerId: string;
   entry: PredictActivityEntry;
+  title?: string;
+  outcome?: string;
+  icon?: string;
 }
 
 export type PredictActivityEntry =
@@ -159,7 +157,32 @@ export interface PredictActivitySell {
 export interface PredictActivityClaimWinnings {
   type: 'claimWinnings';
   timestamp: number;
-  // tbd
+  amount: number;
+}
+
+export enum PredictActivityType {
+  BUY = 'BUY',
+  SELL = 'SELL',
+  CLAIM = 'CLAIM',
+}
+
+export interface PredictActivityItem {
+  id: string;
+  type: PredictActivityType;
+  marketTitle: string;
+  detail: string;
+  amountUsd: number;
+  icon?: string;
+  outcome?: string;
+  percentChange?: number;
+  providerId?: string;
+  priceImpactPercentage?: number;
+  metamaskFeeUsd?: number;
+  providerFeeUsd?: number;
+  totalUsd?: number;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
+  entry: PredictActivityEntry;
 }
 
 export interface PredictPriceHistoryPoint {
@@ -207,7 +230,7 @@ export type PredictPosition = {
 };
 
 export interface ClaimParams {
-  positions: PredictPosition[];
+  providerId: string;
 }
 
 export interface GetMarketPriceResponse {
@@ -218,4 +241,23 @@ export type Result<T = void> = {
   success: boolean;
   error?: string;
   response?: T;
+};
+
+export interface UnrealizedPnL {
+  user: string;
+  cashUpnl: number;
+  percentUpnl: number;
+}
+
+export type PredictClaim = {
+  batchId: string;
+  chainId: number;
+  status: PredictClaimStatus;
+};
+
+export type PredictDeposit = {
+  batchId: string;
+  chainId: number;
+  status: PredictDepositStatus;
+  providerId: string;
 };

@@ -11,6 +11,7 @@
 
 ## E2E Framework Structure
 
+- **Testing Scenarios (`e2e/specs/`)** - Test files organized by feature
 - **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
 - **Page Objects (`e2e/pages/`)**: Page Object Model implementation
@@ -109,7 +110,6 @@ await Gestures.tap(loadingButton, {
 ## E2E Test Examples and Patterns
 
 - **ALWAYS** use `withFixtures` - every test must use this pattern
-- **NEVER** skip the setup phase - run `yarn setup:e2e` first
 - **Framework Migration**: Use TypeScript framework (`e2e/framework/`), not legacy JavaScript (`e2e/utils/`)
 - **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
 - **Page Objects**: Mandatory pattern - no direct element access in test specs
@@ -319,7 +319,7 @@ await Utilities.executeWithRetry(
 
 **Predefined Job Coverage** (update when new tags are added):
 
-- `SmokeConfirmations` (3 splits) / `SmokeConfirmationsRedesigned` (2 splits)
+- `SmokeConfirmationsRedesigned` (2 splits)
 - `SmokeTrade` (2 splits) / `SmokeWalletPlatform` (2 splits) / `SmokeIdentity` (2 splits)
 - `SmokeAccounts` (2 splits) / `SmokeNetworkAbstractions` (2 splits) / `SmokeNetworkExpansion` (2 splits)
 - `SmokeCore` (2 splits) / `SmokeWalletUX` (2 splits) / `SmokeSwaps` (2 splits)

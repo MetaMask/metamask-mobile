@@ -8,7 +8,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 
-// Mock dependencies
 jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {

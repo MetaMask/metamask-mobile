@@ -23,9 +23,22 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import {
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../util/analytics/actionButtonTracking';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { handleFetch } from '@metamask/controller-utils';
+
 jest.mock('../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
+}));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  handleFetch: jest.fn(),
 }));
 
 jest.mock(
@@ -136,7 +149,6 @@ jest.mock('../../hooks/useStyles', () => ({
 jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
-  selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true), // Always return true for bridge-enabled sources
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -173,12 +185,24 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
-jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
-  useCurrentNetworkInfo: jest.fn(() => ({
-    getNetworkInfo: jest.fn(),
-    enabledNetworks: [],
-  })),
-}));
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+
+jest.mock('../../../components/hooks/useMetrics', () => {
+  const actualMetrics = jest.requireActual(
+    '../../../components/hooks/useMetrics',
+  );
+  return {
+    ...actualMetrics,
+    useMetrics: jest.fn(() => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    })),
+  };
+});
 
 jest.mock(
   '../../../selectors/featureFlagController/multichainAccounts',
@@ -221,6 +245,12 @@ describe('AssetOverview', () => {
   const mockSendNonEvmAsset = jest.fn();
 
   beforeEach(() => {
+    // Setup event builder chain
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
     // Default mock setup for the hook - return false to continue with EVM flow
     mockSendNonEvmAsset.mockResolvedValue(false);
     (useSendNonEvmAsset as jest.Mock).mockReturnValue({
@@ -281,6 +311,95 @@ describe('AssetOverview', () => {
     });
   });
 
+  it('should track buy button click analytics with correct properties', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+
+    // Extract the onBuy function from navigation params
+    fireEvent.press(buyButton);
+
+    // Get the onBuy function that was passed to navigation
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    // Clear mocks to isolate the tracking test
+    jest.clearAllMocks();
+
+    // Setup event builder chain again after clearing
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    // Call the onBuy function directly
+    onBuyFunction();
+
+    // Verify createEventBuilder was called with correct event
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+    );
+
+    // Verify addProperties was called with correct properties
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
+      button_label: 'Buy',
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
+    // Verify build was called
+    expect(mockBuild).toHaveBeenCalled();
+
+    // Verify trackEvent was called with the built event
+    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
+  });
+
+  it('should fire buy button tracking exactly once per button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    // Get the onBuy function
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    // Clear mocks
+    jest.clearAllMocks();
+
+    // Setup event builder chain
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    // Call onBuy
+    onBuyFunction();
+
+    // Verify each tracking function was called exactly once
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+    expect(mockAddProperties).toHaveBeenCalledTimes(2);
+    expect(mockBuild).toHaveBeenCalledTimes(2);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+
   it('should handle send button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -299,6 +418,43 @@ describe('AssetOverview', () => {
     await Promise.resolve();
 
     expect(navigate.mock.calls[1][0]).toEqual('Send');
+  });
+
+  it('should track send button click analytics with correct properties', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const sendButton = getByTestId('token-send-button');
+    fireEvent.press(sendButton);
+
+    // Wait for async operations to complete
+    await Promise.resolve();
+
+    // Verify createEventBuilder was called with correct event
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+    );
+
+    // Verify addProperties was called with correct properties
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.SEND,
+      action_position: ActionPosition.THIRD_POSITION,
+      button_label: 'Send',
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
+    // Verify build was called
+    expect(mockBuild).toHaveBeenCalled();
+
+    // Verify trackEvent was called with the built event
+    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
@@ -379,21 +535,13 @@ describe('AssetOverview', () => {
     const swapButton = getByTestId('token-swap-button');
     fireEvent.press(swapButton);
 
-    // Now navigates to unified Bridge view with Unified mode
+    // Now navigates to Bridge with unified mode
     expect(navigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
-      params: {
-        sourceToken: expect.objectContaining({
-          address: '0x123',
-          chainId: '0x1',
-          decimals: 18,
-          symbol: 'ETH',
-          name: 'Ethereum',
-          image: '',
-        }),
-        sourcePage: 'MainView',
+      params: expect.objectContaining({
         bridgeViewMode: 'Unified',
-      },
+        sourcePage: 'MainView',
+      }),
     });
   });
 
@@ -437,6 +585,55 @@ describe('AssetOverview', () => {
         }),
       },
     );
+
+    // Cleanup mocks for isolation
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
+  });
+
+  it('should track receive button click analytics with correct properties', async () => {
+    // Arrange - Mock the selectors directly to ensure conditions are met
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    // Act
+    const receiveButton = getByTestId('token-receive-button');
+    fireEvent.press(receiveButton);
+
+    // Assert - Verify createEventBuilder was called with correct event
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+    );
+
+    // Verify addProperties was called with correct properties
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: 'Receive',
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
+    // Verify build was called
+    expect(mockBuild).toHaveBeenCalled();
+
+    // Verify trackEvent was called with the built event
+    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
 
     // Cleanup mocks for isolation
     selectSelectedInternalAccount.mockReset();
@@ -542,26 +739,17 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    // Now navigates to unified Bridge view
+    // Now navigates to Bridge with unified mode
     expect(navigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
-      params: {
-        sourceToken: expect.objectContaining({
-          address: assetFromSearch.address,
-          chainId: assetFromSearch.chainId,
-          decimals: assetFromSearch.decimals,
-          symbol: assetFromSearch.symbol,
-          name: assetFromSearch.name,
-          image: assetFromSearch.image,
-          isFromSearch: true,
-        }),
-        sourcePage: 'MainView',
+      params: expect.objectContaining({
         bridgeViewMode: 'Unified',
-      },
+        sourcePage: 'MainView',
+      }),
     });
   });
 
-  it('should navigate to bridge when coming from search and on a different chain', async () => {
+  it('should navigate to bridge when swap button is pressed on different chain', async () => {
     const differentChainAssetFromSearch = {
       ...assetFromSearch,
       chainId: '0xa',
@@ -581,22 +769,13 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    // Unified bridge UI now handles network switching internally
+    // Should navigate to bridge view
     expect(navigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
-      params: {
-        sourceToken: expect.objectContaining({
-          address: differentChainAssetFromSearch.address,
-          chainId: differentChainAssetFromSearch.chainId,
-          decimals: differentChainAssetFromSearch.decimals,
-          symbol: differentChainAssetFromSearch.symbol,
-          name: differentChainAssetFromSearch.name,
-          image: differentChainAssetFromSearch.image,
-          isFromSearch: true,
-        }),
-        sourcePage: 'MainView',
+      params: expect.objectContaining({
         bridgeViewMode: 'Unified',
-      },
+        sourcePage: 'MainView',
+      }),
     });
   });
 
@@ -661,21 +840,13 @@ describe('AssetOverview', () => {
       // Wait for all promises to resolve
       await Promise.resolve();
 
-      // Now navigates directly to unified Bridge view
+      // Now navigates to Bridge with unified mode
       expect(navigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
-        params: {
-          sourceToken: expect.objectContaining({
-            address: differentChainAsset.address,
-            chainId: differentChainAsset.chainId,
-            decimals: differentChainAsset.decimals,
-            symbol: differentChainAsset.symbol,
-            name: differentChainAsset.name,
-            image: differentChainAsset.image,
-          }),
-          sourcePage: 'MainView',
+        params: expect.objectContaining({
           bridgeViewMode: 'Unified',
-        },
+          sourcePage: 'MainView',
+        }),
       });
     });
 
@@ -942,6 +1113,249 @@ describe('AssetOverview', () => {
 
       // Should display formatted Solana balance
       expect(secondaryBalance.props.children).toBe('123.45679 SOL');
+    });
+  });
+
+  it('should not render Balance component when balance is undefined', () => {
+    // Given an asset with undefined balance
+    const assetWithNoBalance = {
+      ...asset,
+      balance: undefined as unknown as string,
+    };
+
+    // Override the mock to enable state2 so balance stays undefined
+    const mockModule = jest.requireMock(
+      '../../../selectors/featureFlagController/multichainAccounts',
+    );
+    const originalMock = mockModule.selectMultichainAccountsState2Enabled;
+    mockModule.selectMultichainAccountsState2Enabled = jest
+      .fn()
+      .mockReturnValue(true);
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview asset={assetWithNoBalance} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
+
+    // Restore original mock
+    mockModule.selectMultichainAccountsState2Enabled = originalMock;
+  });
+
+  describe('Exchange Rate Fetching', () => {
+    const SOLANA_ASSET_ID =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
+    const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+    const mockSolanaAccount = createMockSnapInternalAccount(
+      'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+      'Solana Account 1',
+      SolAccountType.DataAccount,
+    );
+
+    const createSolanaToken = (balanceFiat: string) => ({
+      address: SOLANA_ASSET_ID,
+      aggregators: [],
+      balanceFiat,
+      balance: '10',
+      logo: 'https://example.com/jup.png',
+      decimals: 9,
+      image: 'https://example.com/jup.png',
+      name: 'Jupiter',
+      symbol: 'JUP',
+      isETH: false,
+      hasBalanceError: false,
+      chainId: SOLANA_CHAIN_ID,
+      isNative: false,
+    });
+
+    const createSolanaState = (customState = {}) => ({
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              selectedAccount: mockSolanaAccount.id,
+              accounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                [mockSolanaAccount.id]: mockSolanaAccount,
+              },
+            },
+          },
+          ...customState,
+        },
+      },
+    });
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should fetch exchange rate from API for non-imported EVM token', async () => {
+      const testTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const testToken = {
+        address: testTokenAddress,
+        aggregators: [],
+        balanceFiat: '$0.00',
+        balance: '100',
+        logo: 'https://example.com/test.png',
+        decimals: 18,
+        image: 'https://example.com/test.png',
+        name: 'Test Token',
+        symbol: 'TEST',
+        isETH: false,
+        hasBalanceError: false,
+        chainId: MOCK_CHAIN_ID,
+      };
+
+      jest.mocked(handleFetch).mockResolvedValue({
+        [testTokenAddress.toLowerCase()]: { price: 0.0005 },
+      });
+
+      const { findByText } = renderWithProvider(
+        <AssetOverview asset={testToken} />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                TokenRatesController: {
+                  marketData: { '0x1': {} },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      await findByText(testToken.name);
+      expect(handleFetch).toHaveBeenCalledWith(
+        expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
+      );
+      expect(handleFetch).toHaveBeenCalledWith(
+        expect.stringContaining('assetIds=eip155%3A1%2Ferc20%3A'),
+      );
+    });
+
+    it('should not fetch exchange rate when already cached for EVM token', () => {
+      jest.clearAllMocks();
+
+      const cachedTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const cachedToken = {
+        address: cachedTokenAddress,
+        aggregators: [],
+        balanceFiat: '$5.00',
+        balance: '1000',
+        logo: 'https://example.com/token.png',
+        decimals: 18,
+        image: 'https://example.com/token.png',
+        name: 'Cached Token',
+        symbol: 'CACHED',
+        isETH: false,
+        hasBalanceError: false,
+        chainId: MOCK_CHAIN_ID,
+      };
+
+      renderWithProvider(<AssetOverview asset={cachedToken} />, {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              TokenRatesController: {
+                marketData: {
+                  '0x1': {
+                    [cachedTokenAddress.toLowerCase()]: {
+                      price: 0.005,
+                      marketCap: 5000000,
+                      totalVolume: 1000000,
+                      circulatingSupply: 10000000,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const exchangeRateCalls = jest
+        .mocked(handleFetch)
+        .mock.calls.filter((call) => {
+          const url = String(call[0]);
+          return (
+            url.includes('spot-prices') &&
+            url.includes(cachedTokenAddress) &&
+            !url.includes('includeMarketData')
+          );
+        });
+      expect(exchangeRateCalls.length).toBe(0);
+    });
+
+    it('should not fetch exchange rate when already cached for Solana token', () => {
+      jest.clearAllMocks();
+
+      const cachedSolanaToken = createSolanaToken('$10.00');
+
+      renderWithProvider(<AssetOverview asset={cachedSolanaToken} />, {
+        state: createSolanaState({
+          MultichainAssetsRatesController: {
+            conversionRates: {
+              [SOLANA_ASSET_ID]: {
+                rate: '0.431111',
+                conversionTime: Date.now(),
+                marketData: {
+                  fungible: true as const,
+                  allTimeHigh: '2',
+                  allTimeLow: '0.306358',
+                  circulatingSupply: '3165216666.64',
+                  marketCap: '1364703778',
+                  totalVolume: '32954819',
+                  dilutedMarketCap: '3017669206',
+                },
+              },
+            },
+          },
+        }),
+      });
+
+      const exchangeRateCalls = jest
+        .mocked(handleFetch)
+        .mock.calls.filter((call) => {
+          const url = String(call[0]);
+          return (
+            url.includes('spot-prices') &&
+            url.includes('JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN') &&
+            !url.includes('includeMarketData')
+          );
+        });
+      expect(exchangeRateCalls.length).toBe(0);
+    });
+
+    it('should fetch exchange rate from API for non-imported Solana token', async () => {
+      const solanaToken = createSolanaToken('$0.00');
+
+      jest.mocked(handleFetch).mockResolvedValue({
+        [SOLANA_ASSET_ID]: { price: 0.431111 },
+      });
+
+      const { findByText } = renderWithProvider(
+        <AssetOverview asset={solanaToken} />,
+        { state: createSolanaState() },
+      );
+
+      await findByText(solanaToken.name);
+      expect(handleFetch).toHaveBeenCalledWith(
+        expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
+      );
     });
   });
 });
