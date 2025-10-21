@@ -294,6 +294,24 @@ describe('getDisplayAmount', () => {
     const amount = '1234.567890123456789';
     expect(getDisplayAmount(amount, TokenInputAreaType.Source, true)).toBe(
       '1234.56789',
+  it('returns full amount for source type when under max length', () => {
+    const amount = '123456789012345678';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(
+      '123,456,789,012,345,680',
+    );
+  });
+
+  it('returns full amount for source type when over max length', () => {
+    const amount = '1234567890123456789';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(
+      '1,234,567,890,123,456,800',
+    );
+  });
+
+  it('parses amount for destination type', () => {
+    const amount = '1234567890123456789.12345';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe(
+      '1,234,567,890,123,456,800.00000',
     );
   });
 

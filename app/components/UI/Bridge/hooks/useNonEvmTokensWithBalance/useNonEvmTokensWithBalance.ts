@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
-import { selectMultichainTokenListForAccountIdAnyChain } from '../../../../../selectors/multichain';
-import { useNonEvmAccountIds } from '../useNonEvmAccountIds';
+import { selectMultichainTokenListForAccountAnyChain } from '../../../../../selectors/multichain';
+import { useNonEvmAccounts } from '../useNonEvmAccounts';
 import { useMemo } from 'react';
 
 /**
@@ -9,21 +9,23 @@ import { useMemo } from 'react';
  * @returns Combined array of tokens from all non-EVM accounts
  */
 export const useNonEvmTokensWithBalance = () => {
-  const nonEvmAccountIds = useNonEvmAccountIds();
+  const nonEvmAccounts = useNonEvmAccounts();
   const nonEvmTokens = useSelector(
     useMemo(
       () => (state: RootState) => {
         const tokens: ReturnType<
-          typeof selectMultichainTokenListForAccountIdAnyChain
+          typeof selectMultichainTokenListForAccountAnyChain
         > = [];
-        for (const accountId of nonEvmAccountIds) {
-          const tokensForAccountId =
-            selectMultichainTokenListForAccountIdAnyChain(state, accountId);
-          tokens.push(...tokensForAccountId);
+        for (const account of nonEvmAccounts) {
+          const tokensForAccount = selectMultichainTokenListForAccountAnyChain(
+            state,
+            account,
+          );
+          tokens.push(...tokensForAccount);
         }
         return tokens;
       },
-      [nonEvmAccountIds],
+      [nonEvmAccounts],
     ),
   );
 

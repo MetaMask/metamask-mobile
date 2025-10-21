@@ -5,6 +5,7 @@ import Button from '../../../../../component-library/components/Buttons/Button';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket, Recurrence } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -13,6 +14,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
+    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 
@@ -20,6 +22,12 @@ jest.mock('@react-navigation/native', () => {
 const mockUsePredictEligibility = jest.fn();
 jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => mockUsePredictEligibility(),
+}));
+
+// Mock usePredictBalance hook
+const mockUsePredictBalance = jest.fn();
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => mockUsePredictBalance(),
 }));
 
 const mockMarket: PredictMarket = {
@@ -49,6 +57,8 @@ const mockMarket: PredictMarket = {
       groupItemTitle: 'Bitcoin Price Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {
@@ -63,6 +73,10 @@ describe('PredictMarketMultiple', () => {
     // Default mock implementation - user is eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: true,
+    });
+    // Default mock implementation - user has balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: false,
     });
   });
 
@@ -97,22 +111,24 @@ describe('PredictMarketMultiple', () => {
     // Press the "Yes" button
     fireEvent.press(buttons[0]);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
 
     // Press the "No" button
     fireEvent.press(buttons[1]);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
       params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
   });
@@ -233,6 +249,10 @@ describe('PredictMarketMultiple', () => {
     // Mock user as not eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+    });
+    // Mock user has balance
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: false,
     });
 
     const { UNSAFE_getAllByType } = renderWithProvider(

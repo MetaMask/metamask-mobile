@@ -1478,9 +1478,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Should display the deep link amount in the input
+      // Should display the deep link amount in the input (formatted with commas)
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('uses all deep link params when all are provided', async () => {
@@ -1514,7 +1514,7 @@ describe('BridgeView', () => {
       expect(getByText('USDC')).toBeTruthy();
       expect(getByText('USDT')).toBeTruthy();
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('falls back to Redux state when deep link params are not provided', () => {
