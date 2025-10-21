@@ -624,17 +624,24 @@ export class Engine {
     this.controllerMessenger.subscribe(
       'BridgeStatusController:destinationTransactionCompleted',
       (caipAsset: CaipAssetType) => {
-        const { chain } = parseCaipAssetType(caipAsset);
+        try {
+          const { chain } = parseCaipAssetType(caipAsset);
 
-        const { namespace: caipNamespace, reference } = chain;
-        if (caipNamespace === 'eip155') {
-          const hexChainId = toHex(reference);
-          this.context.TokenDetectionController.detectTokens({
-            chainIds: [hexChainId],
-          });
-          this.context.TokenBalancesController.updateBalances({
-            chainIds: [hexChainId],
-          });
+          const { namespace: caipNamespace, reference } = chain;
+          if (caipNamespace === 'eip155') {
+            const hexChainId = toHex(reference);
+            this.context.TokenDetectionController.detectTokens({
+              chainIds: [hexChainId],
+            });
+            this.context.TokenBalancesController.updateBalances({
+              chainIds: [hexChainId],
+            });
+          }
+        } catch (error) {
+          console.error(
+            'Error handling BridgeStatusController:destinationTransactionCompleted event:',
+            error,
+          );
         }
       },
     );
