@@ -204,9 +204,9 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
           twClassName="gap-4"
           testID={`rewards-account-group-actions-${accountGroup.id}`}
         >
-          {/* QR Code button to show account addresses */}
+          {/* More options button to show account addresses */}
           <ButtonIcon
-            iconName={IconNameDS.QrCode}
+            iconName={IconNameDS.MoreVertical}
             size={ButtonIconSize.Lg}
             onPress={handleShowAddresses}
             isDisabled={isLoading}
