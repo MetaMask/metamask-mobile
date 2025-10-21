@@ -10,7 +10,10 @@ import {
 } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
-import { setIsAuthenticatedCard as setIsAuthenticatedAction } from '../../../../core/redux/slices/card';
+import {
+  setIsAuthenticatedCard as setIsAuthenticatedAction,
+  setUserCardLocation,
+} from '../../../../core/redux/slices/card';
 
 /**
  * Maps CardError types to user-friendly localized error messages
@@ -79,10 +82,7 @@ const useCardProviderAuthentication =
     }, []);
 
     const sendOtpLogin = useCallback(
-      async (params: {
-        userId: string;
-        location: CardLocation;
-      }): Promise<void> => {
+      async (params: { userId: string }): Promise<void> => {
         if (!sdk) {
           throw new Error('Card SDK not initialized');
         }
@@ -91,7 +91,6 @@ const useCardProviderAuthentication =
           setOtpLoading(true);
           await sdk.sendOtpLogin({
             userId: params.userId,
-            location: params.location,
           });
         } catch (err) {
           setOtpError(getErrorMessage(err));
@@ -120,14 +119,12 @@ const useCardProviderAuthentication =
           setLoading(true);
           const initiateResponse = await sdk.initiateCardProviderAuthentication(
             {
-              location: params.location,
               state,
               codeChallenge,
             },
           );
 
           const loginResponse = await sdk.login({
-            location: params.location,
             email: params.email,
             password: params.password,
             ...(params.otpCode ? { otpCode: params.otpCode } : {}),
@@ -138,7 +135,6 @@ const useCardProviderAuthentication =
           }
 
           const authorizeResponse = await sdk.authorize({
-            location: params.location,
             initiateAccessToken: initiateResponse.token,
             loginAccessToken: loginResponse.accessToken,
           });
@@ -148,7 +144,6 @@ const useCardProviderAuthentication =
           }
 
           const exchangeTokenResponse = await sdk.exchangeToken({
-            location: params.location,
             code: authorizeResponse.code,
             codeVerifier,
             grantType: 'authorization_code',
@@ -157,12 +152,14 @@ const useCardProviderAuthentication =
           await storeCardBaanxToken({
             accessToken: exchangeTokenResponse.accessToken,
             refreshToken: exchangeTokenResponse.refreshToken,
-            expiresAt: Date.now() + exchangeTokenResponse.expiresIn * 1000,
+            accessTokenExpiresAt: exchangeTokenResponse.expiresIn,
+            refreshTokenExpiresAt: exchangeTokenResponse.refreshTokenExpiresIn,
             location: params.location,
           });
 
           setError(null);
           dispatch(setIsAuthenticatedAction(true));
+          dispatch(setUserCardLocation(params.location));
         } catch (err) {
           const errorMessage = getErrorMessage(err);
           setError(errorMessage);

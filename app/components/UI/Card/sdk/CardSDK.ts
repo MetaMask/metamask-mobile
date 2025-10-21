@@ -41,13 +41,16 @@ export class CardSDK {
   private enableLogs: boolean;
   private cardBaanxApiBaseUrl: string;
   private cardBaanxApiKey: string | undefined;
+  private userCardLocation: CardLocation;
   lineaChainId: CaipChainId;
 
   constructor({
     cardFeatureFlag,
+    userCardLocation,
     enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
+    userCardLocation?: CardLocation;
     enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
@@ -55,6 +58,7 @@ export class CardSDK {
     this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
     this.lineaChainId = `eip155:${getDecimalChainId(LINEA_CHAIN_ID)}`;
+    this.userCardLocation = userCardLocation ?? 'international';
   }
 
   get isBaanxLoginEnabled(): boolean {
@@ -377,7 +381,6 @@ export class CardSDK {
     endpoint: string,
     options: RequestInit & { query?: string } = {},
     authenticated: boolean = false,
-    isUSEnv: boolean = false,
     timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
   ): Promise<Response> {
     const apiKey = this.cardBaanxApiKey;
@@ -389,9 +392,10 @@ export class CardSDK {
       );
     }
 
+    const isUSEnv = this.userCardLocation === 'us';
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'x-us-env': isUSEnv ? 'true' : 'false',
+      'x-us-env': String(isUSEnv),
       'x-client-key': apiKey,
     };
 
@@ -463,7 +467,6 @@ export class CardSDK {
   initiateCardProviderAuthentication = async (queryParams: {
     state: string;
     codeChallenge: string;
-    location: CardLocation;
   }): Promise<CardLoginInitiateResponse> => {
     if (!this.cardBaanxApiKey) {
       throw new CardError(
@@ -472,7 +475,7 @@ export class CardSDK {
       );
     }
 
-    const { state, codeChallenge, location } = queryParams;
+    const { state, codeChallenge } = queryParams;
     const queryParamsString = new URLSearchParams();
     queryParamsString.set('client_id', this.cardBaanxApiKey);
     // Redirect URI is required but not used by this flow
@@ -491,7 +494,6 @@ export class CardSDK {
         query: queryParamsString.toString(),
       },
       false,
-      location === 'us',
     );
 
     if (!response.ok) {
@@ -520,10 +522,9 @@ export class CardSDK {
   login = async (body: {
     email: string;
     password: string;
-    location: CardLocation;
     otpCode?: string;
   }): Promise<CardLoginResponse> => {
-    const { email, password, location, otpCode } = body;
+    const { email, password, otpCode } = body;
 
     const response = await this.makeRequest(
       '/v1/auth/login',
@@ -536,7 +537,6 @@ export class CardSDK {
         }),
       },
       false,
-      location === 'us',
     );
 
     if (!response.ok) {
@@ -594,11 +594,8 @@ export class CardSDK {
     return data as CardLoginResponse;
   };
 
-  sendOtpLogin = async (body: {
-    userId: string;
-    location: CardLocation;
-  }): Promise<void> => {
-    const { userId, location } = body;
+  sendOtpLogin = async (body: { userId: string }): Promise<void> => {
+    const { userId } = body;
     const response = await this.makeRequest(
       '/v1/auth/login/otp',
       {
@@ -606,7 +603,6 @@ export class CardSDK {
         body: JSON.stringify({ userId }),
       },
       false,
-      location === 'us',
     );
 
     if (!response.ok) {
@@ -635,9 +631,8 @@ export class CardSDK {
   authorize = async (body: {
     initiateAccessToken: string;
     loginAccessToken: string;
-    location: CardLocation;
   }): Promise<CardAuthorizeResponse> => {
-    const { initiateAccessToken, loginAccessToken, location } = body;
+    const { initiateAccessToken, loginAccessToken } = body;
     const response = await this.makeRequest(
       '/v1/auth/oauth/authorize',
       {
@@ -650,7 +645,6 @@ export class CardSDK {
         },
       },
       false,
-      location === 'us',
     );
 
     if (!response.ok) {
@@ -694,7 +688,6 @@ export class CardSDK {
     code?: string;
     codeVerifier?: string;
     grantType: 'authorization_code' | 'refresh_token';
-    location: CardLocation;
   }): Promise<CardExchangeTokenResponse> => {
     let requestBody = null;
 
@@ -703,6 +696,8 @@ export class CardSDK {
         code: body.code,
         code_verifier: body.codeVerifier,
         grant_type: body.grantType,
+        // This is a required field for the authorization code grant type
+        // but it is not used by the Card API
         redirect_uri: 'https://example.com',
       };
     } else {
@@ -722,7 +717,6 @@ export class CardSDK {
         },
       },
       false,
-      body.location === 'us',
     );
 
     if (!response.ok) {
@@ -767,19 +761,6 @@ export class CardSDK {
       refreshToken: data.refresh_token,
       refreshTokenExpiresIn: data.refresh_token_expires_in,
     } as CardExchangeTokenResponse;
-  };
-
-  refreshLocalToken = async (
-    refreshToken: string,
-    location: CardLocation,
-  ): Promise<CardExchangeTokenResponse> => {
-    const tokenResponse = await this.exchangeToken({
-      code: refreshToken,
-      grantType: 'refresh_token',
-      location,
-    });
-
-    return tokenResponse;
   };
 
   getCardDetails = async (): Promise<CardDetailsResponse> => {
