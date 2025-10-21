@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useCardSDK } from '../sdk';
 import { SupportedToken } from '../../../../selectors/featureFlagController/card';
 import { getDecimalChainId } from '../../../../util/networks';
+import { toHex } from '@metamask/controller-utils';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 export interface SupportedTokenWithChain extends SupportedToken {
@@ -20,14 +21,14 @@ export const useSupportedTokens = (): {
       return [];
     }
 
-    const tokens = sdk.supportedTokens;
+    const tokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
 
     // TODO: get chainId from sdk
     const chainId = getDecimalChainId(LINEA_CHAIN_ID);
 
     return tokens.map((token) => ({
       ...token,
-      chainId: chainId.toString(),
+      chainId: toHex(chainId.toString()),
       chainName: 'Linea', // TODO: get chain name from sdk
     }));
   }, [sdk]);

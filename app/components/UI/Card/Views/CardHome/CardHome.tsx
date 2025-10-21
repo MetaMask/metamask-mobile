@@ -38,7 +38,7 @@ import { AllowanceState, CardType, CardWarning } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
-import SpendingLimitProgress from '../../components/SpendingLimitProgress/SpendingLimitProgress';
+import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import {
@@ -58,6 +58,7 @@ import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
 import useCardDetails from '../../hooks/useCardDetails';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
+import { ethers } from 'ethers';
 
 /**
  * CardHome Component
@@ -492,19 +493,12 @@ const CardHome = () => {
             style={[
               styles.buttonsContainerBase,
               styles.defaultHorizontalPadding,
-              styles.spendingLimitContainer,
             ]}
           >
-            <SpendingLimitProgress
-              currentAmount="650"
-              limitAmount={spendingLimit.limitAmount}
-              currency={priorityToken.symbol || 'USDC'}
-              onPress={manageSpendingLimitAction}
-              showWarning={false}
-              onSetNewLimit={navigateToSpendingLimit}
-              onDismiss={() => {
-                // TODO: Implement dismiss functionality
-              }}
+            <SpendingLimitProgressBar
+              remainingAllowance={undefined}
+              totalAllowance={ethers.BigNumber.from(spendingLimit.limitAmount)}
+              symbol={priorityToken.symbol || 'USDC'}
             />
           </View>
         )}
