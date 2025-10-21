@@ -1438,6 +1438,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return rawLedgerUpdates || [];
     } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getUserNonFundingLedgerUpdates', params),
+      );
       return [];
     }
   }
