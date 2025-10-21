@@ -4,7 +4,6 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { uniq } from 'lodash';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -12,12 +11,14 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayFiat } from './useTransactionPayFiat';
 import { getRequiredBalance } from '../../utils/transaction-pay';
 import { getNativeTokenAddress } from '../../utils/asset';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 export function useTransactionPayAvailableTokens() {
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { payToken } = useTransactionPayToken();
-  const requiredTokens = useTransactionRequiredTokens();
   const { convertFiat, formatFiat } = useTransactionPayFiat();
+
+  const requiredTokens = useTransactionPayRequiredTokens();
 
   const transactionMeta =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);

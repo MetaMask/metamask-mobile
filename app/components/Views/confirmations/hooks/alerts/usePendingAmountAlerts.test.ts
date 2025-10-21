@@ -25,20 +25,6 @@ jest.mock('./usePerpsHardwareAccountAlert', () => ({
   ],
 }));
 
-jest.mock('../pay/useTransactionRequiredTokens', () => ({
-  useTransactionRequiredTokens: () => [
-    {
-      address: '0x1',
-    },
-  ],
-}));
-
-jest.mock('../transactions/useTransactionMetadataRequest', () => ({
-  useTransactionMetadataRequest: () => ({
-    chainId: '0x1',
-  }),
-}));
-
 jest.mock('./useInsufficientPredictBalanceAlert', () => ({
   useInsufficientPredictBalanceAlert: () => [
     {

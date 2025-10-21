@@ -1,21 +1,17 @@
 import { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectTransactionBridgeQuotesById,
-  updateConfirmationMetric,
-} from '../../../../../core/redux/slices/confirmationMetrics';
+import { useDispatch } from 'react-redux';
+import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { BigNumber } from 'bignumber.js';
 import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayQuotes } from './useTransactionPayData';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -23,6 +19,7 @@ export function useTransactionPayMetrics() {
   const { payToken } = useTransactionPayToken();
   const { amountPrecise } = useTokenAmount();
   const automaticPayToken = useRef<BridgeToken>();
+  const quotes = useTransactionPayQuotes();
 
   const { count: availableTokenCount } = useAutomaticTransactionPayToken({
     countOnly: true,
@@ -30,10 +27,6 @@ export function useTransactionPayMetrics() {
 
   const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
-  );
 
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
@@ -80,12 +73,7 @@ export function useTransactionPayMetrics() {
   );
 
   if (nonGasQuote) {
-    properties.mm_pay_dust_usd = new BigNumber(
-      nonGasQuote.quote?.minDestTokenAmount,
-    )
-      .minus(nonGasQuote.request?.targetAmountMinimum)
-      .shiftedBy(-6)
-      .toString(10);
+    properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
   }
 
   const params = useDeepMemo(

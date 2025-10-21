@@ -14,11 +14,11 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { useSelector } from 'react-redux';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectPredictBalanceByAddress } from '../../components/predict-confirmations/predict-temp';
 import { RootState } from '../../../../../reducers';
 import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -44,7 +44,7 @@ export function useTransactionCustomAmount() {
 
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
-  const tokenBalanceFiat = useTokenBalance();
+  const balanceUsd = useTokenBalance();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -87,7 +87,7 @@ export function useTransactionCustomAmount() {
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number) => {
-      if (!tokenBalanceFiat) {
+      if (!balanceUsd) {
         return;
       }
 
@@ -95,13 +95,13 @@ export function useTransactionCustomAmount() {
 
       const newAmount = new BigNumber(finalPercentage)
         .dividedBy(100)
-        .multipliedBy(tokenBalanceFiat)
+        .multipliedBy(balanceUsd)
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
         .toString(10);
 
       updatePendingAmount(newAmount);
     },
-    [maxPercentage, tokenBalanceFiat, updatePendingAmount],
+    [balanceUsd, maxPercentage, updatePendingAmount],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -122,9 +122,9 @@ export function useTransactionCustomAmount() {
 
 function useMaxPercentage() {
   const featureFlags = useSelector(selectMetaMaskPayFlags);
-  const requiredTokens = useTransactionRequiredTokens();
   const { payToken } = useTransactionPayToken();
   const { chainId } = useTransactionMetadataRequest() ?? { chainId: '0x0' };
+  const requiredTokens = useTransactionPayRequiredTokens();
 
   return useMemo(() => {
     // Assumes we're not targetting native tokens.
@@ -176,7 +176,7 @@ function useTokenBalance() {
   const from = (transactionMeta?.txParams?.from ?? '0x0') as Hex;
 
   const { payToken } = useTransactionPayToken();
-  const payTokenBalance = payToken?.tokenFiatAmount ?? 0;
+  const payTokenBalance = payToken?.balanceUsd ?? 0;
 
   const predictBalance = useSelector((state: RootState) =>
     selectPredictBalanceByAddress(state, from),
