@@ -42,7 +42,10 @@ enum SUPPORTED_ACTIONS {
 /**
  * Actions that should not show the deep link modal
  */
-const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
+const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.WC,
+  SUPPORTED_ACTIONS.ONBOARDING,
+];
 const interstitialWhitelist = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
