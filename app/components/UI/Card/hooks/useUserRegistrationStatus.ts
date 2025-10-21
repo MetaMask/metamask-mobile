@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { UserResponse, VERIFICATION_STATUS } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
-import { selectOnboardingId } from '../../../../core/redux/slices/card';
+import {
+  selectOnboardingId,
+  selectUser,
+} from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 
 interface UseUserRegistrationStatusReturn {
@@ -24,8 +27,9 @@ interface UseUserRegistrationStatusReturn {
 export const useUserRegistrationStatus =
   (): UseUserRegistrationStatusReturn => {
     const { sdk } = useCardSDK();
+    const user = useSelector(selectUser);
     const [verificationState, setVerificationState] =
-      useState<VERIFICATION_STATUS | null>(null);
+      useState<VERIFICATION_STATUS>(user?.verificationState || 'PENDING');
     const [userResponse, setUserResponse] = useState<UserResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
@@ -64,7 +68,7 @@ export const useUserRegistrationStatus =
         const response = await sdk.getRegistrationStatus(onboardingId);
 
         setUserResponse(response);
-        setVerificationState(response.verificationState || null);
+        setVerificationState(response.verificationState || 'PENDING');
         setIsLoading(false);
       } catch (err) {
         const errorMessage = getErrorMessage(err);
@@ -98,9 +102,9 @@ export const useUserRegistrationStatus =
 
     // Auto-manage polling based on verification state
     useEffect(() => {
-      if (verificationState === 'PENDING' || verificationState === null) {
+      if (verificationState === 'PENDING') {
         startPolling();
-      } else if (verificationState !== null) {
+      } else if (intervalRef.current) {
         stopPolling();
       }
 
