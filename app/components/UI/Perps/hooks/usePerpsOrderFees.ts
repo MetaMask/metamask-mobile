@@ -6,6 +6,7 @@ import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagContr
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectChainId } from '../../../../selectors/networkController';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+
 import {
   EstimatePointsDto,
   EstimatedPointsDto,
@@ -69,12 +70,72 @@ interface UsePerpsOrderFeesParams {
   orderType: 'market' | 'limit';
   /** Order amount in USD */
   amount: string;
-  /** Whether this is a maker order (for protocols that differentiate) */
-  isMaker?: boolean;
   /** Coin symbol for the trade (e.g., 'BTC', 'ETH') */
   coin?: string;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
+  /** User's limit price */
+  limitPrice?: string;
+  /** Order direction */
+  direction?: 'long' | 'short';
+  /** Real ask price from L2 order book */
+  currentAskPrice?: number;
+  /** Real bid price from L2 order book */
+  currentBidPrice?: number;
+}
+
+/**
+ * Determines if a limit order will likely be a maker or taker
+ *
+ * Logic:
+ * 1. Validates price data freshness and market state
+ * 2. Market orders are always taker
+ * 3. Limit orders that would execute immediately are taker
+ * 4. Limit orders that go into order book are maker
+ *
+ * @param params Order parameters
+ * @returns boolean - true if maker, false if taker
+ */
+function determineMakerStatus(params: {
+  orderType: 'market' | 'limit';
+  limitPrice?: string;
+  direction: 'long' | 'short';
+  bestAsk?: number;
+  bestBid?: number;
+  coin?: string;
+}): boolean {
+  const { orderType, limitPrice, direction, bestAsk, bestBid, coin } = params;
+  // Market orders are always taker
+  if (orderType === 'market') {
+    return false;
+  }
+
+  // Default to taker when limit price is not specified
+  if (!limitPrice || limitPrice === '') {
+    return false;
+  }
+
+  const limitPriceNum = Number.parseFloat(limitPrice);
+
+  if (Number.isNaN(limitPriceNum) || limitPriceNum <= 0) {
+    return false;
+  }
+
+  if (bestBid !== undefined && bestAsk !== undefined) {
+    if (direction === 'long') {
+      return limitPriceNum < bestAsk;
+    }
+
+    // Short direction
+    return limitPriceNum > bestBid;
+  }
+
+  // Default to taker when no bid/ask data is available
+  DevLogger.log(
+    'Fee Calculation: No bid/ask data available, using conservative taker fee',
+    { coin },
+  );
+  return false;
 }
 
 /**
@@ -97,9 +158,12 @@ export function clearRewardsCaches(): void {
 export function usePerpsOrderFees({
   orderType,
   amount,
-  isMaker = false,
   coin = 'ETH',
   isClosing = false,
+  limitPrice,
+  direction,
+  currentAskPrice,
+  currentBidPrice,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
   const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
@@ -107,6 +171,28 @@ export function usePerpsOrderFees({
     selectSelectedInternalAccountFormattedAddress,
   );
   const currentChainId = useSelector(selectChainId);
+
+  const isMaker = useMemo(() => {
+    if (!direction) {
+      return false;
+    }
+
+    return determineMakerStatus({
+      orderType,
+      limitPrice,
+      direction,
+      bestAsk: currentAskPrice,
+      bestBid: currentBidPrice,
+      coin,
+    });
+  }, [
+    orderType,
+    limitPrice,
+    direction,
+    currentAskPrice,
+    currentBidPrice,
+    coin,
+  ]);
 
   // Clear stale cache on component mount to force fresh API call
   useEffect(() => {
@@ -625,7 +711,7 @@ export function usePerpsOrderFees({
  * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
  */
 export function formatFeeRate(rate: number | undefined | null): string {
-  if (rate === undefined || rate === null || isNaN(rate)) {
+  if (rate === undefined || rate === null || Number.isNaN(rate)) {
     return 'N/A';
   }
   return `${(rate * 100).toFixed(3)}%`;

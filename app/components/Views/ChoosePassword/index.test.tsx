@@ -53,7 +53,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('./FoxRiveLoaderAnimation/index');
+jest.mock('./FoxRiveLoaderAnimation/FoxRiveLoaderAnimation');
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),

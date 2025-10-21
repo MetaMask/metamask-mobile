@@ -240,6 +240,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       }
       style={isDisabled ? styles.controlButtonDisabled : styles.controlButton}
       disabled={isDisabled}
+      activeOpacity={0.2}
     />
   );
 
