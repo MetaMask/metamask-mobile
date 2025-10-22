@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useAppTheme } from '../../../../../util/theme';
@@ -115,6 +115,10 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
   const [lastProgress, setLastProgress] = useState(0);
   const [isAnimatingToComplete, setIsAnimatingToComplete] = useState(false);
 
+  // Use refs to track progress state without triggering re-renders
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const currentStageRef = useRef(0);
+
   // Check if there are any pending or bridging withdrawals
   const hasActiveWithdrawals = withdrawalRequests.some(
     (request) => request.status === 'pending' || request.status === 'bridging',
@@ -209,7 +213,13 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
 
   // Track withdrawal progress throughout the entire withdrawal lifecycle
   useEffect(() => {
-    if (hasActiveWithdrawals) {
+    // Clear any existing interval when effect runs
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+
+    if (hasActiveWithdrawals && activeWithdrawal?.id) {
       // Show progress bar immediately when withdrawal starts
       setShouldShow(true);
 
@@ -221,34 +231,31 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
       // Check if we have existing progress for this withdrawal
       const existingProgress = persistentWithdrawalProgress.progress;
       const isSameWithdrawal =
-        persistentWithdrawalProgress.activeWithdrawalId ===
-        activeWithdrawal?.id;
+        persistentWithdrawalProgress.activeWithdrawalId === activeWithdrawal.id;
 
       // If we have existing progress for the same withdrawal, continue from there
       // Otherwise, start fresh
-      let currentStage = 0;
-
       if (isSameWithdrawal && existingProgress > 0) {
         // Continue from existing progress
         // Find the current stage based on progress
-        currentStage = WITHDRAWAL_PROGRESS_STAGES.findIndex(
+        currentStageRef.current = WITHDRAWAL_PROGRESS_STAGES.findIndex(
           (stage) => stage > existingProgress,
         );
-        if (currentStage === -1)
-          currentStage = WITHDRAWAL_PROGRESS_STAGES.length;
+        if (currentStageRef.current === -1)
+          currentStageRef.current = WITHDRAWAL_PROGRESS_STAGES.length;
       } else {
         // Start fresh - set initial progress
         const controller = Engine.context.PerpsController;
-        if (controller && activeWithdrawal?.id) {
+        if (controller) {
           controller.updateWithdrawalProgress(25, activeWithdrawal.id);
         }
-        currentStage = 1; // Start from second stage
+        currentStageRef.current = 1; // Start from second stage
       }
 
       // Simulate withdrawal progress stages - 5 minutes total, every 30 seconds
-      const progressInterval = setInterval(() => {
-        if (currentStage < WITHDRAWAL_PROGRESS_STAGES.length) {
-          const progress = WITHDRAWAL_PROGRESS_STAGES[currentStage];
+      progressIntervalRef.current = setInterval(() => {
+        if (currentStageRef.current < WITHDRAWAL_PROGRESS_STAGES.length) {
+          const progress = WITHDRAWAL_PROGRESS_STAGES[currentStageRef.current];
 
           // Update controller with persistent progress
           const controller = Engine.context.PerpsController;
@@ -256,23 +263,33 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
             controller.updateWithdrawalProgress(progress, activeWithdrawal.id);
           }
 
-          currentStage++;
+          currentStageRef.current++;
         } else {
           // Keep at 98% until withdrawal is actually completed
           const controller = Engine.context.PerpsController;
           if (controller && activeWithdrawal?.id) {
             controller.updateWithdrawalProgress(98, activeWithdrawal.id);
           }
-          clearInterval(progressInterval);
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            progressIntervalRef.current = null;
+          }
         }
       }, HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS); // Progress every 30 seconds
-
-      return () => clearInterval(progressInterval);
     }
+
+    // Cleanup function
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+    };
   }, [
     hasActiveWithdrawals,
-    activeWithdrawal,
+    activeWithdrawal?.id,
     onWithdrawalAmountChange,
+    activeWithdrawal?.amount,
     persistentWithdrawalProgress.progress,
     persistentWithdrawalProgress.activeWithdrawalId,
   ]);
