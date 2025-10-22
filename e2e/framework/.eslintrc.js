@@ -89,57 +89,5 @@ module.exports = {
         ],
       },
     },
-    {
-      files: ['**/e2e/pages/**/*.{js,ts}'],
-      rules: {
-        'no-restricted-imports': [
-          'error',
-          {
-            paths: [
-              {
-                name: '../utils/Gestures',
-                message:
-                  'Do not import Gestures from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Gestures.js',
-                message:
-                  'Do not import Gestures from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Assertions',
-                message:
-                  'Do not import Assertions from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Assertions.js',
-                message:
-                  'Do not import Assertions from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Utilities',
-                message:
-                  'Do not import Utilities from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Utilities.js',
-                message:
-                  'Do not import Utilities from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Matchers',
-                message:
-                  'Do not import Matchers from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Matchers.js',
-                message:
-                  'Do not import Matchers from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-            ],
-          },
-        ],
-      },
-    },
   ],
 };

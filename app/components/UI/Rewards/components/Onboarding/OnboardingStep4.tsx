@@ -23,6 +23,7 @@ import TextField, {
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
+import { selectOnboardingReferralCode } from '../../../../../reducers/rewards/selectors';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import {
   REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
@@ -30,14 +31,14 @@ import {
 } from './constants';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useParams } from '../../../../../util/navigation/navUtils';
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
   const navigation = useNavigation();
   const { optin, optinError, optinLoading } = useOptin();
-  const urlParams = useParams<{ isFromDeeplink: boolean; referral?: string }>();
+
   const {
     referralCode,
     setReferralCode: handleReferralCodeChange,
@@ -45,14 +46,12 @@ const OnboardingStep4: React.FC = () => {
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
   } = useValidateReferralCode(
-    urlParams?.isFromDeeplink && urlParams?.referral
-      ? urlParams.referral.trim().toUpperCase()
+    onboardingReferralCode
+      ? onboardingReferralCode.trim().toUpperCase()
       : undefined,
   );
 
-  const isPrefilledReferral = Boolean(
-    urlParams?.isFromDeeplink && urlParams?.referral,
-  );
+  const isPrefilledReferral = Boolean(onboardingReferralCode);
 
   const handleNext = useCallback(() => {
     optin({ referralCode, isPrefilled: isPrefilledReferral });

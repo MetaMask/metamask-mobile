@@ -51,6 +51,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
 const MOCK_CHAIN_ID = '0x1';
 
 const mockInitialState = {
@@ -192,7 +197,9 @@ const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
 jest.mock('../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual('../../../components/hooks/useMetrics');
+  const actualMetrics = jest.requireActual(
+    '../../../components/hooks/useMetrics',
+  );
   return {
     ...actualMetrics,
     useMetrics: jest.fn(() => ({
@@ -264,6 +271,15 @@ describe('AssetOverview', () => {
       address: MOCK_ADDRESS_2,
       type: 'eip155:eoa',
     });
+
+    // Default mock for selectSelectedInternalAccountByScope
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
+      address: MOCK_ADDRESS_2,
+    });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
   });
 
   afterEach(() => {
@@ -543,7 +559,7 @@ describe('AssetOverview', () => {
     });
   });
 
-  it('should handle receive button press', async () => {
+  it('should handle receive button press for EVM asset with EVM address', async () => {
     // Arrange - Mock the selectors directly to ensure conditions are met
     const { selectSelectedInternalAccount } = jest.requireMock(
       '../../../selectors/accountsController',
@@ -551,8 +567,20 @@ describe('AssetOverview', () => {
     const { selectSelectedAccountGroup } = jest.requireMock(
       '../../../selectors/multichainAccounts/accountTreeController',
     );
-    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
+
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
     selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
+      address: MOCK_ADDRESS_2,
+    });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -568,7 +596,7 @@ describe('AssetOverview', () => {
     const receiveButton = getByTestId('token-receive-button');
     fireEvent.press(receiveButton);
 
-    // Assert - Should navigate to ShareAddressQR
+    // Assert - Should navigate to ShareAddressQR with EVM address
     expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenNthCalledWith(
       1,
@@ -576,7 +604,7 @@ describe('AssetOverview', () => {
       {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: expect.objectContaining({
-          address: MOCK_ADDRESS_2,
+          address: MOCK_ADDRESS_2, // Should use EVM address for EVM assets
           networkName: 'Ethereum Mainnet',
           chainId: MOCK_CHAIN_ID,
           groupId: 'group-id-123',
@@ -587,6 +615,7 @@ describe('AssetOverview', () => {
     // Cleanup mocks for isolation
     selectSelectedInternalAccount.mockReset();
     selectSelectedAccountGroup.mockReset();
+    selectSelectedInternalAccountByScope.mockReset();
   });
 
   it('should track receive button click analytics with correct properties', async () => {
@@ -636,6 +665,75 @@ describe('AssetOverview', () => {
     // Cleanup mocks for isolation
     selectSelectedInternalAccount.mockReset();
     selectSelectedAccountGroup.mockReset();
+  });
+
+  it('should handle receive button press for Solana asset with Solana address', async () => {
+    const SOLANA_ADDRESS = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
+    const SOLANA_CHAIN_ID = SolScope.Mainnet;
+
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    const { selectSelectedInternalAccountByScope } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accounts',
+    );
+
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+
+    const mockGetAccountByScope = jest.fn().mockReturnValue({
+      address: SOLANA_ADDRESS,
+      type: SolAccountType.DataAccount,
+    });
+    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
+
+    const solanaAsset = {
+      ...asset,
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      chainId: SOLANA_CHAIN_ID,
+      isNative: true,
+      symbol: 'SOL',
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={solanaAsset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Solana Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const receiveButton = getByTestId('token-receive-button');
+    fireEvent.press(receiveButton);
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenNthCalledWith(
+      1,
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: expect.objectContaining({
+          address: SOLANA_ADDRESS, // Should use Solana address, not EVM address
+          networkName: 'Solana Mainnet',
+          chainId: SOLANA_CHAIN_ID,
+          groupId: 'group-id-123',
+        }),
+      },
+    );
+
+    expect(mockGetAccountByScope).toHaveBeenCalledWith(SOLANA_CHAIN_ID);
+
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
+    selectSelectedInternalAccountByScope.mockReset();
   });
 
   it('should not render swap button if displaySwapsButton is false', async () => {

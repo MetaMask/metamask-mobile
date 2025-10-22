@@ -24,7 +24,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { TP_SL_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS, TP_SL_CONFIG } from '../../constants/perpsConfig';
 import type {
   PerpsNavigationParamList,
   Position,
@@ -40,7 +40,6 @@ import {
 } from '../../utils/formatUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
-import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsPositionCard.styles';
 
@@ -74,12 +73,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const isEligible = useSelector(selectPerpsEligibility);
 
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null,
-  );
-
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
+  const { handleUpdateTPSL } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Positions update automatically via WebSocket
       // Call parent's position update callback if provided
@@ -136,7 +130,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const roeValue = parseFloat(position.returnOnEquity || '0');
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
 
-  const handleEditTPSL = () => {
+  const handleEditTPSL = useCallback(() => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
@@ -153,9 +147,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
 
     DevLogger.log('PerpsPositionCard: Editing TPSL', { position });
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
-  };
+
+    navigation.navigate(Routes.PERPS.TPSL, {
+      asset: position.coin,
+      position,
+      initialTakeProfitPrice: position.takeProfitPrice,
+      initialStopLossPrice: position.stopLossPrice,
+      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
+        await handleUpdateTPSL(position, takeProfitPrice, stopLossPrice);
+      },
+    });
+  }, [
+    isEligible,
+    position,
+    navigation,
+    handleUpdateTPSL,
+    setIsEligibilityModalVisible,
+    setIsTPSLCountWarningVisible,
+  ]);
 
   const handleTpslCountPress = useCallback(async () => {
     if (isLoading || error) {
@@ -180,22 +189,25 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
   const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
   const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
-  const fundingColor = isNearZeroFunding
-    ? TextColor.Default
-    : fundingSinceOpen === 0
-    ? TextColor.Default
-    : fundingSinceOpen > 0
-    ? TextColor.Error
-    : TextColor.Success;
+  const fundingColorForZero = TextColor.Default;
+  const fundingColorForPositive = TextColor.Error;
+  const fundingColorForNegative = TextColor.Success;
+
+  let fundingColor = fundingColorForNegative; // default for negative values
+  if (isNearZeroFunding || fundingSinceOpen === 0) {
+    fundingColor = fundingColorForZero;
+  } else if (fundingSinceOpen > 0) {
+    fundingColor = fundingColorForPositive;
+  }
+
+  const fundingSign = fundingSinceOpen >= 0 ? '-' : '+';
   const fundingDisplay = isNearZeroFunding
     ? '$0.00'
-    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
-        Math.abs(fundingSinceOpen),
-        {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        },
-      )}`;
+    : `${fundingSign}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      })}`;
 
   const positionTakeProfitCount = position.takeProfitCount || 0;
   const positionStopLossCount = position.stopLossCount || 0;
@@ -272,7 +284,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
       return (
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {price
+          {price !== undefined && price !== null
             ? formatPerpsFiat(price, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })
@@ -385,11 +397,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.liquidationPrice
+                  {position.liquidationPrice !== undefined &&
+                  position.liquidationPrice !== null
                     ? formatPerpsFiat(position.liquidationPrice, {
                         ranges: PRICE_RANGES_UNIVERSAL,
                       })
-                    : 'N/A'}
+                    : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
                 </Text>
               </View>
               <View style={styles.bodyItem}>
@@ -491,33 +504,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </View>
         )}
       </TouchableOpacity>
-      {/* TP/SL Bottom Sheet - Wrapped in Modal to render from root */}
-      {isTPSLVisible && selectedPosition && (
-        <Modal visible transparent animationType="fade">
-          <PerpsTPSLBottomSheet
-            isVisible
-            onClose={() => {
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            onConfirm={async (takeProfitPrice, stopLossPrice) => {
-              await handleUpdateTPSL(
-                selectedPosition,
-                takeProfitPrice,
-                stopLossPrice,
-              );
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            asset={selectedPosition.coin}
-            position={selectedPosition}
-            initialTakeProfitPrice={selectedPosition.takeProfitPrice}
-            initialStopLossPrice={selectedPosition.stopLossPrice}
-            isUpdating={isUpdating}
-            orderType="market" // Default to market for existing positions
-          />
-        </Modal>
-      )}
       {isTPSLCountWarningVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>

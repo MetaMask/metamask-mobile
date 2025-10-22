@@ -4,6 +4,7 @@ import {
 } from '@metamask/keyring-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
+import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   generateTransferData,
@@ -17,23 +18,22 @@ import {
   PredictPosition,
   PredictPriceHistoryPoint,
   UnrealizedPnL,
-  Result,
+  Side,
 } from '../../types';
 import {
   AccountState,
-  CalculateBetAmountsParams,
-  CalculateBetAmountsResponse,
-  CalculateCashOutAmountsParams,
-  CalculateCashOutAmountsResponse,
   ClaimOrderParams,
   ClaimOrderResponse,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
+  OrderPreview,
+  OrderResult,
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
+  PreviewOrderParams,
   Signer,
 } from '../types';
 import {
@@ -53,35 +53,30 @@ import {
 } from './safe/utils';
 import {
   ApiKeyCreds,
-  OrderArtifactsParams,
   OrderData,
   OrderType,
   PolymarketPosition,
   PolymarketApiActivity,
   SignatureType,
+  UtilsSide,
   TickSize,
 } from './types';
 import {
-  buildMarketOrderCreationArgs,
-  calculateFeeAmount,
-  calculateMarketPrice,
   createApiKey,
   getBalance,
   getContractConfig,
   getL2Headers,
   getMarketDetailsFromGammaApi,
-  getMarketPositions,
-  getMarketsFromPolymarketApi,
-  getOrderBook,
   getOrderTypedData,
   getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
-  getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
   parsePolymarketActivity,
-  priceValid,
   submitClobOrder,
+  previewOrder,
+  generateSalt,
+  roundOrderAmount,
 } from './utils';
 
 export type SignTypedMessageFn = (
@@ -133,84 +128,6 @@ export class PolymarketProvider implements PredictProvider {
 
   public claimWinnings(): Promise<void> {
     throw new Error('Method not implemented.');
-  }
-
-  /**
-   * Builds the order artifacts for the Polymarket provider
-   * This is a private method that is used to build the order artifacts for the Polymarket provider
-   * @param address - The address of the signer
-   * @param orderParams - The order parameters
-   * @returns The order artifacts
-   */
-  private async buildOrderArtifacts({
-    address,
-    orderParams: { outcomeTokenId, side, size, outcomeId },
-  }: {
-    address: string;
-    orderParams: OrderArtifactsParams;
-  }): Promise<{
-    chainId: number;
-    price: number;
-    negRisk: boolean;
-    tickSize: TickSize;
-    order: OrderData & { salt: string };
-    contractConfig: ReturnType<typeof getContractConfig>;
-    exchangeContract: string;
-    verifyingContract: string;
-  }> {
-    const chainId = POLYGON_MAINNET_CHAIN_ID;
-    const tokenId = outcomeTokenId;
-    const conditionId = outcomeId;
-    const [tickSizeResponse, price, marketData] = await Promise.all([
-      getTickSize({ tokenId }),
-      calculateMarketPrice(tokenId, side, size, OrderType.FOK),
-      getMarketsFromPolymarketApi({ conditionIds: [conditionId] }),
-    ]);
-
-    const tickSize = tickSizeResponse.minimum_tick_size;
-
-    const negRisk = marketData[0].negRisk;
-
-    const makerAddress =
-      this.#accountStateByAddress.get(address)?.address ??
-      (await this.getAccountState({ ownerAddress: address })).address;
-
-    if (!makerAddress) {
-      throw new Error('Maker address not found');
-    }
-
-    const order = await buildMarketOrderCreationArgs({
-      signer: address,
-      maker: makerAddress,
-      signatureType: SignatureType.POLY_GNOSIS_SAFE,
-      userMarketOrder: {
-        tokenID: tokenId,
-        price,
-        size,
-        side,
-        orderType: OrderType.FOK,
-      },
-      roundConfig: ROUNDING_CONFIG[tickSize as TickSize],
-    });
-
-    const contractConfig = getContractConfig(chainId);
-
-    const exchangeContract = negRisk
-      ? contractConfig.negRiskExchange
-      : contractConfig.exchange;
-
-    const verifyingContract = exchangeContract;
-
-    return {
-      chainId,
-      price,
-      order,
-      negRisk,
-      tickSize,
-      contractConfig,
-      exchangeContract,
-      verifyingContract,
-    };
   }
 
   private async getApiKey({
@@ -424,30 +341,77 @@ export class PolymarketProvider implements PredictProvider {
     return data[0];
   }
 
-  public async placeOrder<OrderResponse>(
-    params: PlaceOrderParams & { signer: Signer },
-  ): Promise<Result<OrderResponse>> {
-    const { signer, outcomeId, outcomeTokenId, size, side } = params;
-    const { address, signTypedMessage } = signer;
+  public async previewOrder(
+    params: Omit<PreviewOrderParams, 'providerId'>,
+  ): Promise<OrderPreview> {
+    return previewOrder(params);
+  }
 
-    const { chainId, price, order, verifyingContract, tickSize } =
-      await this.buildOrderArtifacts({
-        address,
-        orderParams: {
-          outcomeId,
-          outcomeTokenId,
-          side,
-          size,
-        },
-      });
+  public async placeOrder(
+    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
+  ): Promise<OrderResult> {
+    const { signer, preview } = params;
+    const {
+      outcomeTokenId,
+      side,
+      maxAmountSpent,
+      minAmountReceived,
+      negRisk,
+      fees,
+      slippage,
+      tickSize,
+    } = preview;
 
-    if (!priceValid(price, tickSize as TickSize)) {
-      throw new Error(
-        `invalid price (${price}), min: ${parseFloat(tickSize)} - max: ${
-          1 - parseFloat(tickSize)
-        }`,
-      );
+    const chainId = POLYGON_MAINNET_CHAIN_ID;
+
+    const makerAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      (await this.getAccountState({ ownerAddress: signer.address })).address;
+
+    if (!makerAddress) {
+      throw new Error('Maker address not found');
     }
+
+    // Introduce slippage into minAmountReceived to reduce failure rate
+    const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
+    const decimals = roundConfig.amount ?? 4;
+    const minAmountWithSlippage = roundOrderAmount({
+      amount: minAmountReceived * (1 - slippage),
+      decimals,
+    });
+
+    const makerAmount = parseUnits(maxAmountSpent.toString(), 6).toString();
+    const takerAmount = parseUnits(
+      minAmountWithSlippage.toString(),
+      6,
+    ).toString();
+
+    /**
+     * Do NOT change the order below.
+     * This order needs to match the order on the relayer.
+     */
+    const order: OrderData & { salt: string } = {
+      salt: generateSalt(),
+      maker: makerAddress,
+      signer: signer.address,
+      taker: '0x0000000000000000000000000000000000000000',
+      tokenId: outcomeTokenId,
+      makerAmount,
+      takerAmount,
+      expiration: '0',
+      nonce: '0',
+      feeRateBps: '0',
+      side: side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
+      signatureType: SignatureType.POLY_GNOSIS_SAFE,
+    };
+
+    const contractConfig = getContractConfig(chainId);
+
+    const exchangeContract = negRisk
+      ? contractConfig.negRiskExchange
+      : contractConfig.exchange;
+
+    const verifyingContract = exchangeContract;
 
     const typedData = getOrderTypedData({
       order,
@@ -455,8 +419,8 @@ export class PolymarketProvider implements PredictProvider {
       verifyingContract,
     });
 
-    const signature = await signTypedMessage(
-      { data: typedData, from: address },
+    const signature = await signer.signTypedMessage(
+      { data: typedData, from: signer.address },
       SignTypedDataVersion.V4,
     );
 
@@ -465,10 +429,10 @@ export class PolymarketProvider implements PredictProvider {
       signature,
     };
 
-    const signerApiKey = await this.getApiKey({ address });
+    const signerApiKey = await this.getApiKey({ address: signer.address });
 
     const clobOrder = {
-      order: { ...signedOrder, side, salt: parseInt(signedOrder.salt, 10) },
+      order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
       owner: signerApiKey.apiKey,
       orderType: OrderType.FOK,
     };
@@ -485,14 +449,16 @@ export class PolymarketProvider implements PredictProvider {
       apiKey: signerApiKey,
     });
 
-    const feeAmount = calculateFeeAmount(order);
     let feeAuthorization;
-    if (feeAmount > 0n) {
-      const safeAddress = await computeSafeAddress(address);
+    if (fees !== undefined && fees.totalFee > 0) {
+      const safeAddress = await computeSafeAddress(signer.address);
+      const feeAmountInUsdc = BigInt(
+        parseUnits(fees.totalFee.toString(), 6).toString(),
+      );
       feeAuthorization = await createSafeFeeAuthorization({
         safeAddress,
         signer,
-        amount: feeAmount,
+        amount: feeAmountInUsdc,
         to: FEE_COLLECTOR_ADDRESS,
       });
     }
@@ -503,11 +469,23 @@ export class PolymarketProvider implements PredictProvider {
       feeAuthorization,
     });
 
+    if (!response) {
+      return {
+        success,
+        error,
+      } as OrderResult;
+    }
+
     return {
       success,
-      response,
+      response: {
+        id: response.orderID,
+        spentAmount: response.makingAmount,
+        receivedAmount: response.takingAmount,
+        txHashes: response.transactionsHashes,
+      },
       error,
-    } as Result<OrderResponse>;
+    } as OrderResult;
   }
 
   public async prepareClaim(
@@ -527,7 +505,7 @@ export class PolymarketProvider implements PredictProvider {
     });
     return {
       chainId: POLYGON_MAINNET_CHAIN_ID,
-      transactionParams: claimTransaction,
+      transactions: claimTransaction,
     };
   }
 
@@ -550,80 +528,6 @@ export class PolymarketProvider implements PredictProvider {
       });
     }
     return eligible;
-  }
-
-  public async calculateBetAmounts(
-    params: CalculateBetAmountsParams,
-  ): Promise<CalculateBetAmountsResponse> {
-    const { outcomeTokenId, userBetAmount } = params;
-    const book = await getOrderBook({ tokenId: outcomeTokenId });
-    if (!book) {
-      throw new Error('no orderbook');
-    }
-
-    const positions = book.asks;
-
-    if (!positions) {
-      throw new Error('no match');
-    }
-
-    let quantity = 0;
-    let sum = 0;
-    let lastPrice = 0;
-
-    for (let i = positions.length - 1; i >= 0; i--) {
-      const p = positions[i];
-      const positionSize = parseFloat(p.size);
-      const positionPrice = parseFloat(p.price);
-      const positionValue = positionSize * positionPrice;
-
-      lastPrice = positionPrice;
-
-      if (sum + positionValue <= userBetAmount) {
-        // If the entire position fits within remaining amount, add all of it
-        quantity += positionSize;
-        sum += positionValue;
-      } else {
-        // If this position would exceed the amount, calculate partial quantity needed
-        const remainingAmount = userBetAmount - sum;
-        const partialQuantity = remainingAmount / positionPrice;
-        quantity += partialQuantity;
-        return {
-          toWin: quantity,
-          sharePrice: positionPrice,
-        };
-      }
-    }
-
-    // If we consumed all available liquidity exactly matching the bet amount, return success
-    if (sum === userBetAmount) {
-      return {
-        toWin: quantity,
-        sharePrice: lastPrice,
-      };
-    }
-
-    throw new Error('not enough shares to match user bet amount');
-  }
-
-  public async calculateCashOutAmounts(
-    params: CalculateCashOutAmountsParams,
-  ): Promise<CalculateCashOutAmountsResponse> {
-    const { outcomeTokenId, marketId, address } = params;
-    const marketPositions = await getMarketPositions({ marketId, address });
-    const position = marketPositions.find(
-      (p) => p.outcomeTokenId === outcomeTokenId,
-    );
-
-    if (!position) {
-      throw new Error('position not found');
-    }
-
-    return {
-      currentValue: position.currentValue,
-      cashPnl: position.cashPnl,
-      percentPnl: position.percentPnl,
-    };
   }
 
   public async prepareDeposit(
