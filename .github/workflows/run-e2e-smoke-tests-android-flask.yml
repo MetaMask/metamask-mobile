@@ -1,139 +1,65 @@
-name: Android Flask E2E Smoke Tests
+name: Flask E2E Smoke Tests
 
 on:
-  workflow_call:
-    inputs:
-      changed_files:
-        description: 'Changed files'
-        required: false
-        type: string
-        default: ''
+  pull_request:
+    types: [labeled, opened, synchronize]
+  schedule:
+    # Run the full suite every 3 hours
+    # This helps to identy the flaky and failed tests on main branch
+    - cron: '0 */3 * * *'
 
-permissions:
-  contents: read
-  id-token: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
-  repack-android-flask-apps:
-    name: 'Repack Android Flask Apps'
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+  needs_e2e_build:
+    name: 'Detect Mobile Build Changes'
+    # Execution rules:
+    # - schedule: always run
+    # - merge_group: never run
+    # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label
+    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
+    uses: ./.github/workflows/needs-e2e-build.yml
+
+  build-android-flask-apps:
+    name: 'Build Android Flask Apps'
+    # Execution rules:
+    # - schedule: always run
+    # - merge_group: never run
+    # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label AND android_changed == 'true'
+    if: ${{ github.event_name != 'merge_group' && ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-flask-e2e-smoke') ) ) }}
     permissions:
       contents: read
       id-token: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'flask'
+      metamask_environment: 'e2e'
+      keystore_target: 'flask'
+    secrets: inherit
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-
-      - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-
-      - name: Setup project
-        run: yarn setup:github-ci --no-build-ios
-
-      - name: Configure Keystore
-        uses: MetaMask/github-tools/.github/actions/configure-keystore@v1
-        with:
-          aws-role-to-assume: ${{ secrets.METAMASK_MOBILE_BUILDER_SIGNER_QA }}
-          aws-region: us-east-2
-          platform: android
-          target: qa
-        env:
-          ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
-
-      - name: Download Main APK artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-          pattern: main-e2e-release*.apk
-
-      - name: Setup Main APK artifacts
-        run: |
-          mkdir -p android/app/build/outputs/apk/prod/release/
-          mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
-          cp artifacts/main-e2e-release.apk/app-prod-release.apk android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          cp artifacts/main-e2e-release-androidTest.apk/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
-
-      - name: Repack Main APK
-        run: node scripts/repack.js
-        env:
-          PLATFORM: android
-          METAMASK_ENVIRONMENT: e2e
-          METAMASK_BUILD_TYPE: flask
-          IS_TEST: 'true'
-          E2E: 'true'
-          IGNORE_BOXLOGS_DEVELOPMENT: 'true'
-          GITHUB_CI: 'true'
-          CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
-          BRIDGE_USE_DEV_APIS: 'true'
-          RAMP_INTERNAL_BUILD: 'true'
-          SEEDLESS_ONBOARDING_ENABLED: 'true'
-          MM_NOTIFICATIONS_UI_ENABLED: 'true'
-          MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
-          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
-          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
-          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
-          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
-          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
-          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
-          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-          ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
-
-      - name: Prepare artifacts for upload
-        run: |
-          # Copy APKs to workspace root with correct names (no path structure)
-          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk app-flask-release.apk
-          cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk app-flask-release-androidTest.apk
-
-      - name: Upload Repacked APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: flask-e2e-release.apk
-          path: app-flask-release.apk
-          retention-days: 1
-
-      - name: Upload Test APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: flask-e2e-release-androidTest.apk
-          path: app-flask-release-androidTest.apk
-          retention-days: 1
+  build-ios-flask-apps:
+    name: 'Build iOS Flask Apps'
+    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.ios_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-flask-e2e-smoke') ) ) }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      build_type: 'flask'
+      metamask_environment: 'e2e'
+      target: 'flask'
+    secrets: inherit
 
   flask-android-smoke:
-    needs: [repack-android-flask-apps]
     strategy:
       matrix:
         split: [1, 2, 3]
       fail-fast: false
+    needs: [build-android-flask-apps]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: flask-android-smoke-${{ matrix.split }}
@@ -141,16 +67,34 @@ jobs:
       test_suite_tag: 'FlaskBuildTests'
       split_number: ${{ matrix.split }}
       total_splits: 3
-      changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
+      metamask_environment: 'e2e'
     secrets: inherit
 
-  report-android-smoke-tests:
-    name: Report Android Smoke Tests
+  flask-ios-smoke:
+      strategy:
+        matrix:
+          split: [1, 2, 3]
+        fail-fast: false
+      needs: [build-ios-flask-apps]
+      uses: ./.github/workflows/run-e2e-workflow.yml
+      with:
+        test-suite-name: flask-ios-smoke-${{ matrix.split }}
+        platform: ios
+        test_suite_tag: 'FlaskBuildTests'
+        split_number: ${{ matrix.split }}
+        total_splits: 3
+        build_type: 'flask'
+        metamask_environment: 'e2e'
+      secrets: inherit
+  
+  report-ios-smoke-tests:
+    name: Report iOS Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.flask-ios-smoke.result != 'skipped'  }}
     needs:
-      - flask-android-smoke
+      - flask-ios-smoke
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -165,12 +109,12 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-android-*'
+          pattern: '*-ios-*-test-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
-          name: 'Android Flask E2E Smoke Test Results'
+          name: 'iOS E2E Smoke Test Results'
           path: 'all-test-artifacts/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
@@ -180,5 +124,107 @@ jobs:
       - name: Upload all test artifacts (XMLs + Screenshots)
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-smoke-android-flask-all-test-artifacts
+          name: e2e-smoke-ios-all-test-artifacts
           path: all-test-artifacts/
+
+      - name: Create mobile JSON test report
+        id: create-json-report
+        continue-on-error: true
+        run: |
+          # Create a temporary directory for xml2js to avoid conflicts
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y
+          npm install xml2js@0.5.0 --no-audit --no-fund
+
+          # Copy node_modules to workspace
+          cp -r node_modules ${{ github.workspace }}/
+
+          # Run the mobile test report generator
+          cd ${{ github.workspace }}
+          TEST_RESULTS_PATH=all-test-artifacts \
+          TEST_RUNS_PATH=test/test-results/json-test-report.json \
+          RUN_ID=${{ github.run_id }} \
+          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          node .github/scripts/e2e-create-json-test-report.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules
+
+      - name: Upload JSON test report
+        if: steps.create-json-report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-ios-json-report
+          path: test/test-results/json-test-report.json
+    
+
+  report-android-smoke-tests:
+    name: Report Android Smoke Tests
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.flask-android-smoke.result != 'skipped'  }}
+    needs:
+      - flask-android-smoke
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download shards test artifacts (XMLs + Screenshots)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: '*-android-*-test-*'
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: 'Android E2E Smoke Test Results'
+          path: 'all-test-artifacts/**/junit.xml'
+          reporter: 'jest-junit'
+          fail-on-error: false
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload all test artifacts (XMLs + Screenshots)
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-smoke-android-all-test-artifacts
+          path: all-test-artifacts/
+
+      - name: Create mobile JSON test report
+        id: create-json-report
+        continue-on-error: true
+        run: |
+          # Create a temporary directory for xml2js to avoid conflicts
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y
+          npm install xml2js@0.5.0 --no-audit --no-fund
+
+          # Copy node_modules to workspace
+          cp -r node_modules ${{ github.workspace }}/
+
+          # Run the mobile test report generator
+          cd ${{ github.workspace }}
+          TEST_RESULTS_PATH=all-test-artifacts \
+          TEST_RUNS_PATH=test/test-results/json-test-report \
+          RUN_ID=${{ github.run_id }} \
+          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          node .github/scripts/e2e-create-json-test-report.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules
+
+      - name: Upload JSON test report
+        if: steps.create-json-report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-android-json-report
+          path: test/test-results/json-test-report

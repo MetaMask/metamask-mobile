@@ -159,11 +159,11 @@ function generateExpoPlistIfNeeded(appPath) {
 /**
  * Repack iOS App
  */
-async function repackIos() {
+async function repackIos(appName) {
   const startTime = Date.now();
-  const sourceApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
-  const repackedApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-repack.app';
-  const finalApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
+  const sourceApp = `ios/build/Build/Products/Release-iphonesimulator/${appName}`;
+  const repackedApp = `ios/build/Build/Products/Release-iphonesimulator/${appName}-repack.app`;
+  const finalApp = `ios/build/Build/Products/Release-iphonesimulator/${appName}`;
   const sourcemapPath = 'sourcemaps/ios/index.js.map';
   const workingDir = 'ios/build/repack-working-main';
 
@@ -229,14 +229,16 @@ async function repackIos() {
  */
 async function main() {
   const platform = (process.env.PLATFORM || '').toLowerCase();
+  const appName = process.env.APP_NAME || 'MetaMask';
 
   logger.info(`🔧 Repack Platform: ${platform.toUpperCase()}`);
   logger.info(`📍 Working Directory: ${process.cwd()}`);
   logger.info(`🌍 Environment: ${process.env.CI ? 'CI' : 'Local'}`);
+  logger.info(`🎉 App Name: ${appName}`);
 
   try {
     if (platform === 'ios') {
-      await repackIos();
+      await repackIos(appName);
     } else if (platform === 'android') {
       await repackAndroid();
     } else {
