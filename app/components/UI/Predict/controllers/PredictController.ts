@@ -22,8 +22,10 @@ import Engine from '../../../../core/Engine';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { ensureError } from '../utils/predictErrorHandler';
 import {
   PredictEventProperties,
   PredictEventType,
@@ -287,6 +289,25 @@ export class PredictController extends BaseController<
       providerCount: this.providers.size,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  /**
+   * Generate standard error context for Logger.error calls
+   * Ensures consistent error reporting to Sentry with minimal but complete context
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields
+   * @returns Standardized error context object
+   * @private
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      feature: 'Predict',
+      context: `PredictController.${method}`,
+      ...extra,
+    };
   }
 
   /**
@@ -638,7 +659,6 @@ export class PredictController extends BaseController<
 
     // Build regular properties (common to all events)
     const regularProperties = {
-      [PredictEventProperties.TIMESTAMP]: Date.now(),
       [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
       [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]:
@@ -810,6 +830,19 @@ export class PredictController extends BaseController<
         completionDuration,
         failureReason: error instanceof Error ? error.message : 'Unknown error',
       });
+
+      // Log to Sentry with order context (excluding sensitive data like amounts)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('placeOrder', {
+          providerId,
+          marketId: analyticsProperties?.marketId,
+          marketTitle: analyticsProperties?.marketTitle,
+          transactionType: analyticsProperties?.transactionType,
+          entryPoint: analyticsProperties?.entryPoint,
+          completionDuration,
+        }),
+      );
 
       return {
         success: false,
