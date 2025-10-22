@@ -661,7 +661,9 @@ export class PredictController extends BaseController<
 
     // Build sensitive properties
     const sensitiveProperties = {
-      [PredictEventProperties.AMOUNT]: amount,
+      ...(amount !== undefined && {
+        [PredictEventProperties.AMOUNT]: amount,
+      }),
       // Add user address only if we have it
       ...(safeAddress && {
         [PredictEventProperties.USER_ADDRESS]: safeAddress,

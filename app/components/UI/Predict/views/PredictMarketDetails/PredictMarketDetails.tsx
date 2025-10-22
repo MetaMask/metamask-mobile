@@ -261,7 +261,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
     navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-      params: { position: currentPosition, outcome },
+      params: {
+        market,
+        position: currentPosition,
+        outcome,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+      },
     });
   };
 

@@ -64,10 +64,7 @@ const PredictBuyPreview = () => {
       marketTitle: market?.title,
       marketCategory: market?.categories?.[0],
       entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      transactionType:
-        outcomeToken?.title === 'Yes'
-          ? PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
-          : PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
       liquidity: market?.liquidity,
       volume: market?.volume,
       sharePrice: outcomeToken?.price,
