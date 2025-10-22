@@ -333,7 +333,7 @@ exports[`ApprovalTooltip renders correctly with given props 1`] = `
                       }
                     >
                       <SvgMock
-                        color="#b7bbc8"
+                        color="#686e7d"
                         fill="currentColor"
                         height={16}
                         name="Info"
