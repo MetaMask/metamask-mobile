@@ -348,6 +348,7 @@ const PredictBuyPreview = () => {
                   outcomeToken?.title === 'Yes'
                     ? 'text-success-default'
                     : 'text-error-default',
+                  !canPlaceBet && 'opacity-40',
                 )}
                 disabled={!canPlaceBet}
                 loading={isLoading}

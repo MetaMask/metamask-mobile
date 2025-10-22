@@ -57,6 +57,7 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
+  signer?: Signer;
 }
 
 // Fees in US dollars
