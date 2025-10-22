@@ -13,13 +13,15 @@ import {
   refreshQuote,
 } from './bridge';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { selectIsGasIncluded } from '../../../../selectors/smartTransactionsController';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { cloneDeep } from 'lodash';
+import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
 jest.mock('../../../../selectors/smartTransactionsController');
+jest.mock('../../../../util/transactions/sentinel-api');
 
 jest.useFakeTimers();
 
@@ -66,9 +68,8 @@ const QUOTE_2_MOCK = {
 
 describe('Confirmations Bridge Utils', () => {
   const selectBridgeQuotesMock = jest.mocked(selectBridgeQuotes);
-  const selectShouldUseSmartTransactionMock = jest.mocked(
-    selectShouldUseSmartTransaction,
-  );
+  const selectIsGasIncludedMock = jest.mocked(selectIsGasIncluded);
+  const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
   const engineMock = jest.mocked(Engine);
   let messengerMock: ExtendedControllerMessenger<never, BridgeControllerEvents>;
   let bridgeControllerMock: jest.Mocked<BridgeController>;
@@ -119,7 +120,8 @@ describe('Confirmations Bridge Utils', () => {
       },
     } as never);
 
-    selectShouldUseSmartTransactionMock.mockReturnValue(false);
+    selectIsGasIncludedMock.mockReturnValue(false);
+    isSendBundleSupportedMock.mockResolvedValue(false);
   });
 
   describe('getBridgeQuotes', () => {
@@ -672,7 +674,7 @@ describe('Confirmations Bridge Utils', () => {
       );
     });
 
-    it('requests quotes with gasIncluded false when smart transactions disabled', async () => {
+    it('requests quotes with gasIncluded false when neither smart transactions nor sendBundle enabled', async () => {
       await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
@@ -685,7 +687,22 @@ describe('Confirmations Bridge Utils', () => {
     });
 
     it('requests quotes with gasIncluded true when smart transactions enabled', async () => {
-      selectShouldUseSmartTransactionMock.mockReturnValue(true);
+      selectIsGasIncludedMock.mockReturnValue(true);
+
+      await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: true,
+        }),
+        undefined,
+        expect.any(String),
+      );
+    });
+
+    it('requests quotes with gasIncluded true when sendBundle supported', async () => {
+      isSendBundleSupportedMock.mockResolvedValue(true);
+      selectIsGasIncludedMock.mockReturnValue(true);
 
       await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
 
