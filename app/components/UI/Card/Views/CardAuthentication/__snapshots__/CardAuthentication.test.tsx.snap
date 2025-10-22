@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CardAuthentication Component Component Rendering matches snapshot 1`] = `
+exports[`CardAuthentication Component Login Step - Component Rendering matches login step snapshot 1`] = `
 <View
   style={
     {
@@ -812,6 +812,7 @@ exports[`CardAuthentication Component Component Rendering matches snapshot 1`] =
                                       "justifyContent": "center",
                                       "marginBottom": 32,
                                       "marginTop": 28,
+                                      "opacity": 0.6,
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
