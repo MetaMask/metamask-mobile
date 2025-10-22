@@ -297,6 +297,14 @@ const QRScanner = ({
           }
           ///: END:ONLY_INCLUDE_IF
 
+          // Skip Ethereum processing for Solana addresses when keyring-snaps is disabled
+          if (isSolanaAddress(content)) {
+            // Show error for unsupported Solana addresses when keyring-snaps is disabled
+            showAlertForInvalidAddress();
+            end();
+            return;
+          }
+
           // Extract recipient address from QR code
           const recipientAddress = content.startsWith('0x')
             ? content
