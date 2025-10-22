@@ -219,7 +219,8 @@
     "remind_later": "We’ll remind you later",
     "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy"
+    "setting_security_privacy": "Settings > Security & Privacy",
+    "wallet_ready": "Your wallet is ready!"
   },
   "social_login_ios_user": {
     "new_user_title": "You've signed up!",
@@ -1521,7 +1522,8 @@
         "total_fee": "Total fee",
         "liquidated": "Liquidated",
         "take_profit": "Take profit",
-        "stop_loss": "Stop loss"
+        "stop_loss": "Stop loss",
+        "auto_deleveraging": "Auto-Deleveraging"
       },
       "funding": {
         "date": "Date",
@@ -1582,7 +1584,22 @@
     "title": "MetaMask Predict",
     "prediction_markets": "Prediction Markets",
     "market_list": "Market List",
-    "market_details": "Market Details",
+    "loading": "Loading...",
+    "market_details": {
+      "title": "Market Details",
+      "market_ended_on": "Market ended on {{outcome}}",
+      "market_resulted_to": "Market resulted to {{outcome}}",
+      "waiting_for_final_resolution": "Waiting for final resolution",
+      "no_positions_found": "No positions found",
+      "volume": "Volume",
+      "end_date": "End date",
+      "resolver": "Resolver",
+      "powered_by": "Powered by",
+      "yes": "Yes",
+      "no": "No",
+      "on": "on",
+      "market_unavailable": "Market unavailable"
+    },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
       "explore": "Browse markets",
@@ -5992,6 +6009,8 @@
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
+      "enable_card_button_label": "Enable Card",
+      "enable_assets_button_label": "Enable Assets",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6002,6 +6021,18 @@
           "title": "You need to delegate assets",
           "description": "Delegate assets to your Card to start spending",
           "confirm_button_label": "Delegate assets"
+        },
+        "no_card": {
+          "title": "You don't have a Card",
+          "description": "Please enable your Card to start spending"
+        },
+        "frozen": {
+          "title": "Your Card is frozen",
+          "description": "Please contact support to unfreeze your Card"
+        },
+        "blocked": {
+          "title": "Your Card is blocked",
+          "description": "Please contact support to unblock your Card"
         }
       },
       "manage_card_options": {
@@ -6034,6 +6065,16 @@
         "server_error": "Server error. Please try again later.",
         "configuration_error": "Service is temporarily unavailable. Please try again later."
       }
+    },
+    "card_otp_authentication": {
+      "title": "Confirm your phone number",
+      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
+      "confirm_code_label": "Confirmation code",
+      "confirm_button": "Confirm",
+      "back_to_login_button": "Back to Login",
+      "resend_timer": "Resend code in {{seconds}}s",
+      "resend_code": "Resend code"
     }
   },
   "onboarding_error_fallback": {

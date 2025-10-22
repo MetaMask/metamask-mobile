@@ -73,6 +73,15 @@ export const PredictMarketDetailsSelectorsText = {
 } as const;
 
 // ========================================
+// PREDICT POSITIONS HEADER SELECTORS
+// ========================================
+
+export const PredictPositionsHeaderSelectorsIDs = {
+  // Claim button
+  CLAIM_BUTTON: 'predict-claim-button',
+} as const;
+
+// ========================================
 // PREDICT POSITIONS SELECTORS
 // ========================================
 
