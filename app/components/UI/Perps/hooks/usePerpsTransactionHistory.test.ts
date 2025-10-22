@@ -11,6 +11,7 @@ import {
   transformUserHistoryToTransactions,
 } from '../utils/transactionTransforms';
 import { transformArbitrumWithdrawalsToHistoryItems } from '../utils/arbitrumWithdrawalTransforms';
+import { FillType } from '../types/transactionHistory';
 import type { CaipAccountId } from '@metamask/utils';
 
 // Mock dependencies
@@ -180,6 +181,7 @@ describe('usePerpsTransactionHistory', () => {
         isLiquidation: false,
         isTakeProfit: false,
         isStopLoss: false,
+        fillType: FillType.Standard,
       },
     },
   ];
