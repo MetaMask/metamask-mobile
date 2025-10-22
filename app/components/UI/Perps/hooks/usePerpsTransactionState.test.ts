@@ -6,8 +6,7 @@ import { TransactionRecord } from '../types/transactionTypes';
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
-      'perps.multiple_transactions_in_progress':
-        'Multiple transactions in progress',
+      'perps.multiple_transactions_in_progress': 'Transactions in progress',
       'perps.deposit_in_progress': 'Deposit in progress',
       'perps.withdraw_in_progress': 'Withdraw in progress',
       'perps.available_balance': 'Available balance',
@@ -118,7 +117,7 @@ describe('usePerpsTransactionState', () => {
 
     expect(result.current.withdrawalAmount).toBe('100');
     expect(result.current.hasActiveWithdrawals).toBe(true);
-    expect(result.current.statusText).toBe('Multiple transactions in progress');
+    expect(result.current.statusText).toBe('Transactions in progress');
     expect(result.current.isAnyTransactionInProgress).toBe(true);
   });
 
@@ -180,7 +179,7 @@ describe('usePerpsTransactionState', () => {
       ],
       isDepositInProgress: true,
     });
-    expect(result.current.statusText).toBe('Multiple transactions in progress');
+    expect(result.current.statusText).toBe('Transactions in progress');
     expect(result.current.withdrawalAmount).toBe('200');
   });
 
