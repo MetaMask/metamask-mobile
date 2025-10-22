@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -18,12 +18,29 @@ import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const CardWelcome = () => {
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const theme = useTheme();
 
   const styles = createStyles(theme);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_WELCOME_VIEWED).build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
+  const handleVerifyAccountButtonPress = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.CARD_VERIFY_ACCOUNT_BUTTON_CLICKED,
+      ).build(),
+    );
+    navigate(Routes.CARD.AUTHENTICATION);
+  };
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -56,7 +73,7 @@ const CardWelcome = () => {
             label={strings('card.card_onboarding.verify_account_button')}
             size={ButtonSize.Lg}
             testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            onPress={() => navigate(Routes.CARD.AUTHENTICATION)}
+            onPress={handleVerifyAccountButtonPress}
             style={styles.button}
             width={ButtonWidthTypes.Full}
           />

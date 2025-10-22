@@ -50,6 +50,7 @@ import {
 } from 'react-native-confirmation-code-field';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const CELL_COUNT = 6;
 
@@ -82,6 +83,7 @@ const createOtpStyles = (params: { theme: Theme }) => {
 };
 
 const CardAuthentication = () => {
+  const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [email, setEmail] = useState('');
@@ -176,8 +178,24 @@ const CardAuthentication = () => {
     }
   }, [step]);
 
+  useEffect(() => {
+    const event =
+      step === 'login'
+        ? MetaMetricsEvents.CARD_AUTHENTICATION_VIEWED
+        : MetaMetricsEvents.CARD_OTP_AUTHENTICATION_VIEWED;
+
+    trackEvent(createEventBuilder(event).build());
+  }, [trackEvent, createEventBuilder, step]);
+
   const performLogin = useCallback(
     async (otpCode?: string) => {
+      const event =
+        step === 'login'
+          ? MetaMetricsEvents.CARD_AUTHENTICATION_LOGIN_BUTTON_CLICKED
+          : MetaMetricsEvents.CARD_OTP_AUTHENTICATION_CONFIRM_BUTTON_CLICKED;
+
+      trackEvent(createEventBuilder(event).build());
+
       try {
         setLoading(true);
         const loginResponse = await login({
@@ -208,7 +226,16 @@ const CardAuthentication = () => {
         setLoading(false);
       }
     },
-    [email, location, login, password, navigation],
+    [
+      email,
+      location,
+      login,
+      password,
+      navigation,
+      step,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   // Auto-submit when all OTP digits are entered
