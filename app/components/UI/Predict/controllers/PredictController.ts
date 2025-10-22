@@ -11,6 +11,7 @@ import {
 } from '@metamask/keyring-controller';
 import { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import {
+  TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
@@ -180,8 +181,9 @@ export type PredictControllerActions =
  * External actions the PredictController can call
  */
 export type AllowedActions =
-  | AccountsControllerGetSelectedAccountAction['type']
-  | NetworkControllerGetStateAction['type'];
+  | AccountsControllerGetSelectedAccountAction
+  | NetworkControllerGetStateAction
+  | TransactionControllerEstimateGasAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -197,9 +199,9 @@ export type AllowedEvents =
  */
 export type PredictControllerMessenger = RestrictedMessenger<
   'PredictController',
-  PredictControllerActions,
+  PredictControllerActions | AllowedActions,
   PredictControllerEvents | AllowedEvents,
-  AllowedActions,
+  AllowedActions['type'],
   AllowedEvents['type']
 >;
 
@@ -1318,19 +1320,14 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const isWithdrawTransaction =
-      request.transactionMeta?.nestedTransactions?.some(
-        (tx) => tx.type === TransactionType.predictWithdraw,
-      );
-
-    if (!isWithdrawTransaction) {
-      return;
-    }
-
     const withdrawTransaction =
       request.transactionMeta?.nestedTransactions?.find(
         (tx) => tx.type === TransactionType.predictWithdraw,
       );
+
+    if (!withdrawTransaction) {
+      return;
+    }
 
     const provider = this.providers.get(
       this.state.withdrawTransaction.providerId,
@@ -1342,7 +1339,8 @@ export class PredictController extends BaseController<
     if (!provider.prepareWithdrawConfirmation) {
       return;
     }
-    const { KeyringController } = Engine.context;
+
+    const { KeyringController, NetworkController } = Engine.context;
 
     const signer = {
       address: request.transactionMeta.txParams.from,
@@ -1354,10 +1352,29 @@ export class PredictController extends BaseController<
         KeyringController.signPersonalMessage(params),
     };
 
+    const chainId = this.state.withdrawTransaction.chainId;
+
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      numberToHex(chainId),
+    );
+
     const { callData, amount } = await provider.prepareWithdrawConfirmation({
       callData: withdrawTransaction?.data as Hex,
       signer,
     });
+
+    const newParams = {
+      ...withdrawTransaction,
+      from: request.transactionMeta.txParams.from,
+      data: callData,
+      to: this.state.withdrawTransaction?.predictAddress as Hex,
+    };
+
+    const { gas: updatedGas } = await this.messagingSystem.call(
+      'TransactionController:estimateGas',
+      newParams,
+      networkClientId,
+    );
 
     this.update((state) => {
       if (state.withdrawTransaction) {
@@ -1371,6 +1388,8 @@ export class PredictController extends BaseController<
         transaction.txParams.data = callData;
         transaction.txParams.to = this.state.withdrawTransaction
           ?.predictAddress as Hex;
+        transaction.txParams.gas = updatedGas;
+        transaction.txParams.gasLimit = updatedGas;
       },
     };
   }

@@ -166,11 +166,19 @@ describe('PredictController', () => {
         }),
     );
 
+    messenger.registerActionHandler(
+      'TransactionController:estimateGas',
+      jest.fn().mockResolvedValue({
+        gas: '0x5208',
+      }),
+    );
+
     const restrictedMessenger = messenger.getRestricted({
       name: 'PredictController',
       allowedActions: [
         'AccountsController:getSelectedAccount' as never,
         'NetworkController:getState' as never,
+        'TransactionController:estimateGas' as never,
       ],
       allowedEvents: [
         'AccountsController:selectedAccountChange' as never,
@@ -807,6 +815,107 @@ describe('PredictController', () => {
             }),
           }),
         );
+      });
+    });
+
+    it('tracks analytics with account state when available', async () => {
+      await withController(async ({ controller }) => {
+        const mockAccountState = {
+          address: '0xSafeAddress123',
+          isDeployed: true,
+          hasAllowances: true,
+        };
+
+        mockPolymarketProvider.getAccountState.mockResolvedValue(
+          mockAccountState,
+        );
+
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true,
+          response: {
+            id: 'order-123',
+            spentAmount: '1.5',
+            receivedAmount: '3.0',
+          },
+        } as any);
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
+          analyticsProperties: {
+            marketId: 'market-1',
+            marketTitle: 'Test Market',
+            marketCategory: 'crypto',
+            entryPoint: 'market_details',
+            transactionType: 'buy',
+            liquidity: 10000,
+            volume: 5000,
+          },
+        });
+
+        expect(mockPolymarketProvider.getAccountState).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          ownerAddress: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('tracks analytics without account state when getAccountState fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getAccountState.mockRejectedValue(
+          new Error('Failed to get account state'),
+        );
+
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true,
+          response: {
+            id: 'order-456',
+            spentAmount: '2.0',
+            receivedAmount: '4.0',
+          },
+        } as any);
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        const result = await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
+          analyticsProperties: {
+            marketId: 'market-2',
+            marketTitle: 'Another Market',
+            marketCategory: 'sports',
+            entryPoint: 'home',
+            transactionType: 'buy',
+            liquidity: 20000,
+            volume: 10000,
+          },
+        });
+
+        expect(result.success).toBe(true);
+      });
+    });
+
+    it('skips analytics tracking when analyticsProperties not provided', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true,
+          response: {
+            id: 'order-789',
+            spentAmount: '1.0',
+            receivedAmount: '2.0',
+          },
+        } as any);
+
+        const preview = createMockOrderPreview({ side: Side.SELL });
+
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
+        });
+
+        expect(mockPolymarketProvider.getAccountState).not.toHaveBeenCalled();
       });
     });
   });
@@ -1489,6 +1598,143 @@ describe('PredictController', () => {
           'Failed to fetch unrealized P&L',
         );
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe('getActivity', () => {
+    const mockActivity = [
+      {
+        id: 'activity-1',
+        providerId: 'polymarket',
+        entry: {
+          type: 'buy' as const,
+          timestamp: Date.now(),
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 1,
+          amount: 10,
+          price: 0.5,
+        },
+        title: 'Test Market 1',
+      },
+      {
+        id: 'activity-2',
+        providerId: 'polymarket',
+        entry: {
+          type: 'claimWinnings' as const,
+          timestamp: Date.now(),
+          amount: 100,
+        },
+        title: 'Test Market 2',
+      },
+    ];
+
+    it('fetches activity successfully with default address', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+
+        const result = await controller.getActivity({});
+
+        expect(result).toEqual(mockActivity);
+        expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('fetches activity successfully with custom address', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        const customAddress = '0xCustomAddress';
+
+        const result = await controller.getActivity({
+          address: customAddress,
+        });
+
+        expect(result).toEqual(mockActivity);
+        expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
+          address: customAddress,
+        });
+      });
+    });
+
+    it('fetches activity with specific provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+
+        const result = await controller.getActivity({
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockActivity);
+        expect(mockPolymarketProvider.getActivity).toHaveBeenCalled();
+      });
+    });
+
+    it('filters out undefined activity entries', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue([
+          mockActivity[0],
+          undefined,
+          mockActivity[1],
+        ] as any);
+
+        const result = await controller.getActivity({});
+
+        expect(result).toEqual(mockActivity);
+        expect(result.length).toBe(2);
+      });
+    });
+
+    it('throws error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getActivity({
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('handles error when getActivity throws', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockRejectedValue(
+          new Error('Failed to fetch activity'),
+        );
+
+        await expect(controller.getActivity({})).rejects.toThrow(
+          'Failed to fetch activity',
+        );
+
+        expect(controller.state.lastError).toBe('Failed to fetch activity');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles non-Error objects thrown by getActivity', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockRejectedValue('String error');
+
+        await expect(controller.getActivity({})).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe('ACTIVITY_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('returns empty array when no activity found', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getActivity.mockResolvedValue([]);
+
+        const result = await controller.getActivity({});
+
+        expect(result).toEqual([]);
+        expect(controller.state.lastError).toBeNull();
       });
     });
   });
