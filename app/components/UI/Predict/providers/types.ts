@@ -94,6 +94,7 @@ export interface OrderPreview {
   minOrderSize: number;
   negRisk: boolean;
   fees?: PredictFees;
+  rateLimited?: boolean;
 }
 
 export type OrderResult = Result<{

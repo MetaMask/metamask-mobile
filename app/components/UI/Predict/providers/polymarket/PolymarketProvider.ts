@@ -5,6 +5,7 @@ import {
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
+import Engine from '../../../../../core/Engine';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   generateTransferData,
@@ -37,6 +38,7 @@ import {
   Signer,
 } from '../types';
 import {
+  BUY_ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -89,6 +91,7 @@ export class PolymarketProvider implements PredictProvider {
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
+  #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
 
@@ -143,6 +146,15 @@ export class PolymarketProvider implements PredictProvider {
     const apiKeyCreds = await createApiKey({ address });
     this.#apiKeysByAddress.set(address, apiKeyCreds);
     return apiKeyCreds;
+  }
+
+  private isRateLimited(address: string): boolean {
+    const lastTimestamp = this.#lastBuyOrderTimestampByAddress.get(address);
+    if (!lastTimestamp) {
+      return false;
+    }
+    const elapsed = Date.now() - lastTimestamp;
+    return elapsed < BUY_ORDER_RATE_LIMIT_MS;
   }
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
@@ -344,7 +356,21 @@ export class PolymarketProvider implements PredictProvider {
   public async previewOrder(
     params: Omit<PreviewOrderParams, 'providerId'>,
   ): Promise<OrderPreview> {
-    return previewOrder(params);
+    const basePreview = await previewOrder(params);
+
+    if (params.side === Side.BUY) {
+      const { AccountsController } = Engine.context;
+      const address = AccountsController.getSelectedAccount().address;
+
+      if (this.isRateLimited(address)) {
+        return {
+          ...basePreview,
+          rateLimited: true,
+        };
+      }
+    }
+
+    return basePreview;
   }
 
   public async placeOrder(
@@ -474,6 +500,10 @@ export class PolymarketProvider implements PredictProvider {
         success,
         error,
       } as OrderResult;
+    }
+
+    if (side === Side.BUY) {
+      this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
     }
 
     return {
