@@ -1,5 +1,5 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { PredictCashOutSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
 
 class PredictCashOutPage {
