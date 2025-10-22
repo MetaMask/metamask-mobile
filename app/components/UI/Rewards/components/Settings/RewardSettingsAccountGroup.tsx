@@ -62,7 +62,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
     try {
       const selector = selectIconSeedAddressByAccountGroupId(accountGroup.id);
       return selector(state);
-    } catch (error) {
+    } catch {
       return undefined;
     }
   });
