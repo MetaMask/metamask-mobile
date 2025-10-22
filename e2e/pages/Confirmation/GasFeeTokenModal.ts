@@ -1,6 +1,5 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../utils/Assertions';
+import { Assertions, Gestures, Matchers } from '../../framework';
+
 import { GasFeeTokenModalSelectorsText } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 class GasFeeTokenModal {

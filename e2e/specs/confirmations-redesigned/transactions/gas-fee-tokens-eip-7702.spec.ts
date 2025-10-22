@@ -3,7 +3,7 @@ import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/RedesignedSendView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
-import { Assertions, LocalNodeType } from '../../../framework';
+import { Assertions, LocalNodeType, Matchers } from '../../../framework';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -18,7 +18,6 @@ import { TRANSACTION_RELAY_STATUS_NETWORKS_MOCK } from '../../../api-mocking/moc
 import { RelayStatus } from '../../../../app/util/transactions/transaction-relay';
 import TransactionConfirmView from '../../../pages/Send/TransactionConfirmView';
 import GasFeeTokenModal from '../../../pages/Confirmation/GasFeeTokenModal';
-import Matchers from '../../../utils/Matchers';
 
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
