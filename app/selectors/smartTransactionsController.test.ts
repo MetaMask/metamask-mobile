@@ -5,7 +5,6 @@ import {
   // Add the pending selector to test it.
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
-  selectIsGasIncluded,
 } from './smartTransactionsController';
 import { backgroundState } from '../util/test/initial-root-state';
 import { isHardwareAccount } from '../util/address';
@@ -414,36 +413,6 @@ describe('SmartTransactionsController Selectors', () => {
           },
         ]),
       );
-    });
-  });
-
-  describe('selectIsGasIncluded', () => {
-    it('returns false when neither smart transactions nor sendBundle enabled', () => {
-      const state = getDefaultState();
-      const isGasIncluded = selectIsGasIncluded(state, '0x1', false);
-      expect(isGasIncluded).toBe(false);
-    });
-
-    it('returns true when smart transactions enabled', () => {
-      const state = getDefaultState();
-      state.swaps.featureFlags.smart_transactions.mobile_active = true;
-      state.swaps.featureFlags.smartTransactions.mobileActive = true;
-      const isGasIncluded = selectIsGasIncluded(state, '0x1', false);
-      expect(isGasIncluded).toBe(true);
-    });
-
-    it('returns true when sendBundle supported', () => {
-      const state = getDefaultState();
-      const isGasIncluded = selectIsGasIncluded(state, '0x1', true);
-      expect(isGasIncluded).toBe(true);
-    });
-
-    it('returns true when both smart transactions and sendBundle enabled', () => {
-      const state = getDefaultState();
-      state.swaps.featureFlags.smart_transactions.mobile_active = true;
-      state.swaps.featureFlags.smartTransactions.mobileActive = true;
-      const isGasIncluded = selectIsGasIncluded(state, '0x1', true);
-      expect(isGasIncluded).toBe(true);
     });
   });
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import Keypad from '../../../../Base/Keypad';
@@ -82,9 +82,10 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE, formatChainIdToHex } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
+import { useGasIncluded } from '../../hooks/useGasIncluded';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -140,6 +141,15 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+
+  const sourceChainIdHex = useMemo(
+    () =>
+      sourceToken?.chainId ? formatChainIdToHex(sourceToken.chainId) : undefined,
+    [sourceToken?.chainId],
+  );
+
+  // Initialize gasIncluded state based on smart transactions and sendBundle support
+  useGasIncluded(sourceChainIdHex);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
