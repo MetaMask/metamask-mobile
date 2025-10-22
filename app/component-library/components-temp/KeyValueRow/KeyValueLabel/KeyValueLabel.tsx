@@ -53,7 +53,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
       {hasTooltip && (
         <ButtonIcon
           size={tooltip.size ?? TooltipSizes.Md}
-          iconColor={IconColor.Muted}
+          iconColor={IconColor.Alternative}
           iconName={tooltip.iconName ?? IconName.Question}
           accessibilityRole="button"
           accessibilityLabel={`${tooltip.title} tooltip`}
