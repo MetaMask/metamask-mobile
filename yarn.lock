@@ -9009,9 +9009,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nktkas/hyperliquid@npm:^0.25.1":
-  version: 0.25.1
-  resolution: "@nktkas/hyperliquid@npm:0.25.1"
+"@nktkas/hyperliquid@npm:^0.25.4":
+  version: 0.25.4
+  resolution: "@nktkas/hyperliquid@npm:0.25.4"
   dependencies:
     "@msgpack/msgpack": "npm:^3.1.2"
     "@noble/hashes": "npm:^2.0.0"
@@ -9020,7 +9020,7 @@ __metadata:
     valibot: "npm:1.1.0"
   bin:
     hyperliquid: esm/bin/cli.js
-  checksum: 10/3542cd22765340f80184d979e5028ee482313fd7f16ab591a03b90d0b21d2607902b9a1a61d4cebfbba18fef52c5aa714d95cee742b6ad4fcf2dd70e3285d5af
+  checksum: 10/8006850f8772038f6e22ec2aafe1c7284d4af4ec68393bbb78cb993299beab65e1b0e3c75f42b2b537e7c4d5caea506b047a0731435a8955a7e5ee1f74a84dec
   languageName: node
   linkType: hard
 
@@ -34203,7 +34203,7 @@ __metadata:
     "@metamask/tron-wallet-snap": "npm:^1.5.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
-    "@nktkas/hyperliquid": "npm:^0.25.1"
+    "@nktkas/hyperliquid": "npm:^0.25.4"
     "@noble/curves": "npm:1.9.6"
     "@notifee/react-native": "npm:^9.0.0"
     "@octokit/rest": "npm:^21.0.0"

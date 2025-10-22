@@ -47,6 +47,7 @@ import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -152,6 +153,10 @@ const PerpsMarketBalanceActions: React.FC<
         startBalancePulse(balanceChange);
       } catch (animationError) {
         // Silently handle animation errors to avoid disrupting UX
+        DevLogger.log(
+          'PerpsMarketBalanceActions: Balance animation error:',
+          animationError,
+        );
       }
     }
 

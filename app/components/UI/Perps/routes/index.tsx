@@ -19,6 +19,7 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
+import { HIP3DebugView } from '../Debug';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -147,6 +148,18 @@ const PerpsScreenStack = () => (
             headerShown: false,
           }}
         />
+
+        {/* Debug tools - only available in development builds */}
+        {__DEV__ && (
+          <Stack.Screen
+            name={Routes.PERPS.HIP3_DEBUG}
+            component={HIP3DebugView}
+            options={{
+              title: 'HIP-3 Debug Tools',
+              headerShown: true,
+            }}
+          />
+        )}
 
         {/* TP/SL View - Regular screen */}
         <Stack.Screen
