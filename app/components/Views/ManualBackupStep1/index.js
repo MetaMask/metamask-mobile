@@ -53,9 +53,13 @@ import TextField from '../../../component-library/components/Form/TextField/Text
 import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
-import { CommonActions } from '@react-navigation/native';
-import { TraceName, endTrace } from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
+import {
+  createTrackFunction,
+  handleSkipBackup,
+  showSeedphraseDefinition,
+  showSkipAccountSecurityModal,
+} from './utils';
 
 /**
  * View that's shown during the second step of
@@ -99,11 +103,11 @@ const ManualBackupStep1 = ({
     ),
     [colors, navigation, styles.headerLeft],
   );
-  const track = (event, properties) => {
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
-    eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
-  };
+
+  const track = useMemo(
+    () => createTrackFunction(saveOnboardingEvent),
+    [saveOnboardingEvent],
+  );
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions({
@@ -119,14 +123,13 @@ const ManualBackupStep1 = ({
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
-  const showWhatIsSeedphrase = () => {
-    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+  const showWhatIsSeedphrase = useCallback(() => {
+    showSeedphraseDefinition({
+      navigation,
+      track,
       location: 'manual_backup_step_1',
     });
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SEEDPHRASE_MODAL,
-    });
-  };
+  }, [navigation, track]);
 
   useEffect(() => {
     const getSeedphrase = async () => {
@@ -181,55 +184,24 @@ const ManualBackupStep1 = ({
     });
   };
 
-  const skip = async () => {
-    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED, {
-      wallet_setup_type: 'new',
+  const skip = useCallback(async () => {
+    await handleSkipBackup({
+      navigation,
+      routeParams: route.params,
+      isMetricsEnabled,
+      track,
     });
+  }, [navigation, route.params, isMetricsEnabled, track]);
 
-    const resetAction = CommonActions.reset({
-      index: 0,
-      routes: [
-        {
-          name: Routes.ONBOARDING.SUCCESS_FLOW,
-          params: {
-            screen: Routes.ONBOARDING.SUCCESS,
-            params: {
-              ...route.params,
-              successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-            },
-          },
-        },
-      ],
-    });
-
-    endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-    endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-    if (isMetricsEnabled()) {
-      navigation.dispatch(resetAction);
-    } else {
-      navigation.navigate('OptinMetrics', {
-        onContinue: () => {
-          navigation.dispatch(resetAction);
-        },
-      });
-    }
-  };
-
-  const showRemindLater = () => {
+  const showRemindLater = useCallback(() => {
     if (hasFunds) return;
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-      params: {
-        onConfirm: skip,
-        onCancel: () => {
-          track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
-        },
-      },
+    showSkipAccountSecurityModal({
+      navigation,
+      onConfirm: skip,
+      track,
     });
-    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
-  };
+  }, [hasFunds, navigation, skip, track]);
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
