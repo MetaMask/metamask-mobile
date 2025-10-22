@@ -34,6 +34,7 @@ enum SUPPORTED_ACTIONS {
   PERPS = ACTIONS.PERPS,
   PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
+  PREDICT = ACTIONS.PREDICT,
   REWARDS = ACTIONS.REWARDS,
   WC = ACTIONS.WC,
   ONBOARDING = ACTIONS.ONBOARDING,
@@ -45,6 +46,7 @@ enum SUPPORTED_ACTIONS {
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
 const interstitialWhitelist = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
+  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PREDICT}`,
 ] as const;
 
 async function handleUniversalLink({
@@ -216,6 +218,9 @@ async function handleUniversalLink({
   ) {
     const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handlePerps(perpsPath);
+  } else if (action === SUPPORTED_ACTIONS.PREDICT) {
+    const predictPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handlePredict(predictPath);
   } else if (action === SUPPORTED_ACTIONS.REWARDS) {
     const rewardsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleRewards(rewardsPath);

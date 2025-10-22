@@ -55,6 +55,7 @@ import TabBar from '../../../../Base/TabBar';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -98,7 +99,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
-  const { market, isFetching: isMarketFetching } = usePredictMarket({
+  const {
+    market,
+    isFetching: isMarketFetching,
+    error: marketError,
+  } = usePredictMarket({
     id: resolvedMarketId,
     providerId,
     enabled: Boolean(resolvedMarketId),
@@ -112,9 +117,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   useEffect(() => {
-    // if market is closed
+    if (marketError && !isMarketFetching && !market && resolvedMarketId) {
+      DevLogger.log(
+        '[PredictMarketDetails] Market not found, redirecting to feed',
+        { marketId: resolvedMarketId, error: marketError },
+      );
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
+    }
+  }, [marketError, isMarketFetching, market, resolvedMarketId, navigation]);
+
+  useEffect(() => {
     if (market?.status === PredictMarketStatus.CLOSED) {
-      // set the setSelectedTimeframe to PredictPriceHistoryInterval.MAX
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
     }
   }, [market?.status]);

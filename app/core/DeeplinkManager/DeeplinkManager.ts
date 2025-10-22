@@ -15,6 +15,7 @@ import { navigateToHomeUrl } from './Handlers/handleHomeUrl';
 import Routes from '../../constants/navigation/Routes';
 import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
+import { handlePredictUrl } from './Handlers/handlePredictUrl';
 import { store } from '../../store';
 import NavigationService from '../NavigationService';
 import branch from 'react-native-branch';
@@ -134,6 +135,12 @@ class DeeplinkManager {
   _handlePerps(perpsPath: string) {
     handlePerpsUrl({
       perpsPath,
+    });
+  }
+
+  _handlePredict(predictPath: string) {
+    handlePredictUrl({
+      predictPath,
     });
   }
 
