@@ -56,6 +56,7 @@ export interface BridgeState {
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
   isSelectingRecipient: boolean;
+  gasIncluded: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -70,6 +71,7 @@ export const initialState: BridgeState = {
   isSubmittingTx: false,
   bridgeViewMode: undefined,
   isSelectingRecipient: false,
+  gasIncluded: false,
 };
 
 const name = 'bridge';
@@ -129,6 +131,9 @@ const slice = createSlice({
     },
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
+    },
+    setGasIncluded: (state, action: PayloadAction<boolean>) => {
+      state.gasIncluded = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -383,6 +388,11 @@ export const selectDestAddress = createSelector(
   (bridgeState) => bridgeState.destAddress,
 );
 
+export const selectGasIncluded = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.gasIncluded,
+);
+
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
   gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
@@ -566,4 +576,5 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
+  setGasIncluded,
 } = actions;

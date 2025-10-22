@@ -7,13 +7,11 @@ import {
 import { Hex, createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
-import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
+import { selectBridgeQuotes, selectGasIncluded } from '../../../../core/redux/slices/bridge';
 import { GasFeeEstimates, GasFeeState } from '@metamask/gas-fee-controller';
 import { orderBy } from 'lodash';
 import { toChecksumAddress } from '../../../../util/address';
 import { BigNumber } from 'bignumber.js';
-import { selectIsGasIncluded } from '../../../../selectors/smartTransactionsController';
-import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 
 const ERROR_MESSAGE_NO_QUOTES = 'No quotes found';
 const ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM = 'All quotes under minimum';
@@ -209,14 +207,7 @@ async function getSingleBridgeQuote(
   const { BridgeController } = Engine.context;
 
   const state = store.getState();
-  const isSendBundleSupportedForChain = await isSendBundleSupported(
-    sourceChainId,
-  );
-  const gasIncluded = selectIsGasIncluded(
-    state,
-    sourceChainId,
-    isSendBundleSupportedForChain,
-  );
+  const gasIncluded = selectGasIncluded(state);
 
   const quoteRequest: GenericQuoteRequest = {
     destChainId: targetChainId,

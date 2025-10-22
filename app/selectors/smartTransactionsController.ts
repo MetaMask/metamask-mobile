@@ -108,26 +108,6 @@ export const selectShouldUseSmartTransaction = createDeepEqualSelector(
     smartTransactionsEnabled && smartTransactionsOptInStatus,
 );
 
-/**
- * Selects whether gasIncluded should be enabled for the given chain.
- * Returns true if either smart transactions are enabled OR sendBundle is supported.
- *
- * @param state - Redux state
- * @param chainId - Chain ID to check
- * @param isSendBundleSupportedForChain - Whether sendBundle is supported for this chain
- * @returns Whether gasIncluded should be enabled
- */
-export const selectIsGasIncluded = createDeepEqualSelector(
-  [
-    (state: RootState, chainId?: Hex) =>
-      selectShouldUseSmartTransaction(state, chainId),
-    (_state: RootState, _chainId?: Hex, isSendBundleSupportedForChain?: boolean) =>
-      isSendBundleSupportedForChain,
-  ],
-  (shouldUseSmartTransaction, isSendBundleSupportedForChain) =>
-    shouldUseSmartTransaction || Boolean(isSendBundleSupportedForChain),
-);
-
 export const selectPendingSmartTransactionsBySender = createDeepEqualSelector(
   [
     selectSelectedInternalAccountFormattedAddress,

@@ -9,12 +9,12 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
+  selectGasIncluded,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
 export const DEBOUNCE_WAIT = 700;
@@ -32,9 +32,8 @@ export const useBridgeQuoteRequest = () => {
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const context = useUnifiedSwapBridgeContext();
-  const shouldUseSmartTransaction = useSelector(
-    selectShouldUseSmartTransaction,
-  );
+  const gasIncluded = useSelector(selectGasIncluded);
+
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -66,7 +65,7 @@ export const useBridgeQuoteRequest = () => {
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
       destWalletAddress: destAddress ?? walletAddress,
-      gasIncluded: shouldUseSmartTransaction,
+      gasIncluded,
       gasIncluded7702: false, // TODO research how to handle this
     };
 
@@ -83,7 +82,7 @@ export const useBridgeQuoteRequest = () => {
     walletAddress,
     destAddress,
     context,
-    shouldUseSmartTransaction,
+    gasIncluded,
   ]);
 
   // Create a stable debounced function that persists across renders
