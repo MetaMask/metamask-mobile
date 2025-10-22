@@ -316,7 +316,9 @@ describe('EngineService', () => {
       engineService.start();
 
       // Access private property with proper typing
-      (engineService as unknown as EngineServiceWithBatcher).updateBatcher.add(INIT_BG_STATE_KEY);
+      (engineService as unknown as EngineServiceWithBatcher).updateBatcher.add(
+        INIT_BG_STATE_KEY,
+      );
 
       // Advance timers to trigger the batch flush
       jest.advanceTimersByTime(250);
@@ -338,7 +340,9 @@ describe('EngineService', () => {
 
       // Add each key - these should now be processed by updateBatcher as UPDATE actions
       keys.forEach((key) => {
-        (engineService as unknown as EngineServiceWithBatcher).updateBatcher.add(key);
+        (
+          engineService as unknown as EngineServiceWithBatcher
+        ).updateBatcher.add(key);
       });
 
       // Advance timers to trigger the batch flush
@@ -361,7 +365,8 @@ describe('EngineService', () => {
       engineService.start();
 
       // Add both INIT and UPDATE keys
-      const serviceWithBatcher = engineService as unknown as EngineServiceWithBatcher;
+      const serviceWithBatcher =
+        engineService as unknown as EngineServiceWithBatcher;
       serviceWithBatcher.updateBatcher.add(INIT_BG_STATE_KEY);
       serviceWithBatcher.updateBatcher.add('KeyringController');
       serviceWithBatcher.updateBatcher.add('PreferencesController');
@@ -385,11 +390,15 @@ describe('EngineService', () => {
     });
   });
 
-
   describe('initializeControllers edge cases', () => {
     // Type for accessing private methods
     interface EngineServiceWithInitializeControllers {
-      initializeControllers: (engine: { context: null; controllerMessenger: { subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void> } }) => void;
+      initializeControllers: (engine: {
+        context: null;
+        controllerMessenger: {
+          subscribeOnceIf: jest.MockedFunction<(...args: unknown[]) => void>;
+        };
+      }) => void;
     }
 
     it('should handle missing engine context gracefully', () => {
@@ -402,9 +411,15 @@ describe('EngineService', () => {
       };
 
       // Act & Assert - should not throw
-      expect(() => (engineService as unknown as EngineServiceWithInitializeControllers).initializeControllers(mockEngine)).not.toThrow();
+      expect(() =>
+        (
+          engineService as unknown as EngineServiceWithInitializeControllers
+        ).initializeControllers(mockEngine),
+      ).not.toThrow();
       expect(Logger.error).toHaveBeenCalledWith(
-        new Error('Engine context does not exists. Redux will not be updated from controller state updates!')
+        new Error(
+          'Engine context does not exists. Redux will not be updated from controller state updates!',
+        ),
       );
     });
 
@@ -425,7 +440,8 @@ describe('EngineService', () => {
       await engineService.start();
 
       const mockEngine = Engine as unknown as MockEngineType;
-      const mockSubscribeOnceIf = mockEngine.controllerMessenger.subscribeOnceIf;
+      const mockSubscribeOnceIf =
+        mockEngine.controllerMessenger.subscribeOnceIf;
 
       // Mock missing vault metadata
       const originalContext = mockEngine.context;
@@ -439,8 +455,8 @@ describe('EngineService', () => {
 
       // Act - trigger the subscribeOnceIf callback
       type SubscribeCall = [string, () => void, () => boolean];
-      const subscribeCall = mockSubscribeOnceIf.mock.calls.find((call: unknown[]) =>
-        call[0] === 'ComposableController:stateChange'
+      const subscribeCall = mockSubscribeOnceIf.mock.calls.find(
+        (call: unknown[]) => call[0] === 'ComposableController:stateChange',
       ) as SubscribeCall;
       expect(subscribeCall).toBeDefined();
 
@@ -448,7 +464,9 @@ describe('EngineService', () => {
       callback();
 
       // Assert
-      expect(Logger.log).toHaveBeenCalledWith('keyringController vault missing for INIT_BG_STATE_KEY');
+      expect(Logger.log).toHaveBeenCalledWith(
+        'keyringController vault missing for INIT_BG_STATE_KEY',
+      );
     });
 
     it('should handle missing vault metadata in update callback', async () => {
@@ -481,9 +499,12 @@ describe('EngineService', () => {
       };
 
       // Find a Redux update subscription (not persistence subscription)
-      type SubscribeCall = [string, () => void] | [string, () => void, () => unknown];
-      const reduxUpdateCall = mockSubscribe.mock.calls.find((call: unknown[]) =>
-        call[0] === 'KeyringController:stateChange' && call.length === 2 // Redux update has 2 args, persistence has 3
+      type SubscribeCall =
+        | [string, () => void]
+        | [string, () => void, () => unknown];
+      const reduxUpdateCall = mockSubscribe.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === 'KeyringController:stateChange' && call.length === 2, // Redux update has 2 args, persistence has 3
       ) as SubscribeCall;
       expect(reduxUpdateCall).toBeDefined();
 
@@ -492,7 +513,9 @@ describe('EngineService', () => {
       callback();
 
       // Assert
-      expect(Logger.log).toHaveBeenCalledWith('keyringController vault missing for UPDATE_BG_STATE_KEY');
+      expect(Logger.log).toHaveBeenCalledWith(
+        'keyringController vault missing for UPDATE_BG_STATE_KEY',
+      );
     });
 
     it('should skip CronjobController events', async () => {
@@ -505,7 +528,10 @@ describe('EngineService', () => {
 
       // Arrange - mock BACKGROUND_STATE_CHANGE_EVENT_NAMES to include CronjobController
       // Temporarily mock the event names array to include CronjobController
-      const mockEventNames = [...BACKGROUND_STATE_CHANGE_EVENT_NAMES, 'CronjobController:stateChange'] as const;
+      const mockEventNames = [
+        ...BACKGROUND_STATE_CHANGE_EVENT_NAMES,
+        'CronjobController:stateChange',
+      ] as const;
 
       // Mock the module to return our modified event names
       jest.doMock('../Engine/constants', () => ({
@@ -519,8 +545,8 @@ describe('EngineService', () => {
       const mockSubscribe = mockEngine.controllerMessenger.subscribe;
 
       // Assert - CronjobController should not be subscribed to
-      const cronjobSubscriptions = mockSubscribe.mock.calls.filter((call: unknown[]) =>
-        call[0] === 'CronjobController:stateChange'
+      const cronjobSubscriptions = mockSubscribe.mock.calls.filter(
+        (call: unknown[]) => call[0] === 'CronjobController:stateChange',
       );
       expect(cronjobSubscriptions).toHaveLength(0);
 
@@ -536,9 +562,9 @@ describe('EngineService', () => {
         user: { existingUser: true },
         engine: {
           backgroundState: {
-            KeyringController: { vault: 'encrypted-vault-data' }
-          }
-        }
+            KeyringController: { vault: 'encrypted-vault-data' },
+          },
+        },
       });
 
       Object.defineProperty(ReduxService.store, 'getState', {
@@ -553,7 +579,7 @@ describe('EngineService', () => {
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Is vault defined at KeyringController before Enging init: ',
-        true
+        true,
       );
     });
 
@@ -563,9 +589,9 @@ describe('EngineService', () => {
         user: { existingUser: true },
         engine: {
           backgroundState: {
-            KeyringController: {} // No vault
-          }
-        }
+            KeyringController: {}, // No vault
+          },
+        },
       });
 
       Object.defineProperty(ReduxService.store, 'getState', {
@@ -580,7 +606,7 @@ describe('EngineService', () => {
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Is vault defined at KeyringController before Enging init: ',
-        false
+        false,
       );
     });
 
@@ -601,8 +627,11 @@ describe('EngineService', () => {
 
       // Assert
       // Should not call the vault check log for new users
-      const vaultCheckLogs = (Logger.log as jest.MockedFunction<typeof Logger.log>).mock.calls
-        .filter(call => call[0]?.includes?.('Is vault defined at KeyringController'));
+      const vaultCheckLogs = (
+        Logger.log as jest.MockedFunction<typeof Logger.log>
+      ).mock.calls.filter((call) =>
+        call[0]?.includes?.('Is vault defined at KeyringController'),
+      );
       expect(vaultCheckLogs).toHaveLength(0);
     });
   });
@@ -656,8 +685,8 @@ describe('EngineService', () => {
       // Assert
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-          typeof Engine.controllerMessenger.subscribe
-        >;
+        typeof Engine.controllerMessenger.subscribe
+      >;
 
       // Should subscribe to controllers that have persistent state
       // Based on the mock setup: KeyringController, PreferencesController, NetworkController
@@ -665,7 +694,9 @@ describe('EngineService', () => {
       expect(mockSubscribe).toHaveBeenCalledTimes(4);
 
       // Should NOT subscribe to CronjobController
-      const subscribedEvents = (mockSubscribe as jest.Mock).mock.calls.map(call => call[0]);
+      const subscribedEvents = (mockSubscribe as jest.Mock).mock.calls.map(
+        (call) => call[0],
+      );
       expect(subscribedEvents).not.toContain('CronjobController:stateChange');
 
       expect(Logger.log).toHaveBeenCalledWith(
@@ -688,8 +719,8 @@ describe('EngineService', () => {
       // Assert
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-          typeof Engine.controllerMessenger.subscribe
-        >;
+        typeof Engine.controllerMessenger.subscribe
+      >;
 
       // Should not subscribe to CronjobController:stateChange (since it's not in our mocked events)
       // Our mocked BACKGROUND_STATE_CHANGE_EVENT_NAMES only includes KeyringController, PreferencesController, NetworkController
@@ -708,8 +739,8 @@ describe('EngineService', () => {
 
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-          typeof Engine.controllerMessenger.subscribe
-        >;
+        typeof Engine.controllerMessenger.subscribe
+      >;
 
       // Find the persistence subscription for KeyringController
       const keyringControllerCalls = mockSubscribe.mock.calls.filter(
@@ -719,11 +750,14 @@ describe('EngineService', () => {
       expect(keyringControllerCalls.length).toBeGreaterThan(0);
 
       // Get the LAST subscription (from setupEnginePersistence, not initializeControllers)
-      const persistenceSubscription = keyringControllerCalls[keyringControllerCalls.length - 1];
+      const persistenceSubscription =
+        keyringControllerCalls[keyringControllerCalls.length - 1];
       expect(persistenceSubscription).toBeDefined();
 
       // Extract the handler (second parameter)
-      const handler = persistenceSubscription?.[1] as (controllerState: unknown) => Promise<void>;
+      const handler = persistenceSubscription?.[1] as (
+        controllerState: unknown,
+      ) => Promise<void>;
       expect(handler).toBeDefined();
 
       // Act - call the handler with the controller state
@@ -752,8 +786,8 @@ describe('EngineService', () => {
 
       const mockSubscribe = Engine.controllerMessenger
         .subscribe as jest.MockedFunction<
-          typeof Engine.controllerMessenger.subscribe
-        >;
+        typeof Engine.controllerMessenger.subscribe
+      >;
 
       // Find the persistence subscription callback for KeyringController
       const keyringControllerCalls = mockSubscribe.mock.calls.filter(
@@ -761,16 +795,18 @@ describe('EngineService', () => {
       );
 
       // Use the last subscription callback (which should be from setupEnginePersistence)
-      const subscriptionCallback = keyringControllerCalls[keyringControllerCalls.length - 1]?.[1] as (controllerState: unknown) => Promise<void>;
+      const subscriptionCallback = keyringControllerCalls[
+        keyringControllerCalls.length - 1
+      ]?.[1] as (controllerState: unknown) => Promise<void>;
 
       expect(subscriptionCallback).toBeDefined();
 
       const controllerState = { field1: 'value1' };
 
       // Act & Assert - should throw critical error
-      await expect(
-        subscriptionCallback(controllerState),
-      ).rejects.toThrow('Critical: Failed to persist KeyringController state. User data at risk. Persistence failed');
+      await expect(subscriptionCallback(controllerState)).rejects.toThrow(
+        'Critical: Failed to persist KeyringController state. User data at risk. Persistence failed',
+      );
 
       // Should log error before throwing
       expect(Logger.error).toHaveBeenCalledWith(
@@ -807,15 +843,20 @@ describe('EngineService', () => {
 
       // Assert - Verify log messages about skipping controllers without persistent state
       expect(Logger.log).toHaveBeenCalledWith(
-        'Skipping persistence setup for KeyringController, no persistent state'
+        'Skipping persistence setup for KeyringController, no persistent state',
       );
       expect(Logger.log).toHaveBeenCalledWith(
-        'Skipping persistence setup for NetworkController, no persistent state'
+        'Skipping persistence setup for NetworkController, no persistent state',
       );
 
       // Verify that PreferencesController did NOT get skipped (it has persistent state)
-      const skipMessages = (Logger.log as jest.MockedFunction<typeof Logger.log>).mock.calls
-        .filter(call => call[0]?.includes?.('Skipping persistence setup for PreferencesController'));
+      const skipMessages = (
+        Logger.log as jest.MockedFunction<typeof Logger.log>
+      ).mock.calls.filter((call) =>
+        call[0]?.includes?.(
+          'Skipping persistence setup for PreferencesController',
+        ),
+      );
       expect(skipMessages).toHaveLength(0);
     });
 

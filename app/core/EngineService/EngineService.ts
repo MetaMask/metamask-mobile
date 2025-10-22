@@ -212,15 +212,14 @@ export class EngineService {
 
                 await persistController(filteredState, controllerName);
               } catch (error) {
+                // Log and track persistence failures but don't crash
+                // Expected failures (low disk space, I/O errors) shouldn't crash the app
+                // The error is already logged in createPersistController, this provides additional context
                 Logger.error(
                   error as Error,
-                  `Failed to process ${controllerName} state change`,
+                  `Failed to persist ${controllerName} state during state change`,
                 );
-                // Individual persistence failure could be Sev1, user data at risk
-                // Better to crash and get immediate attention than silently fail
-                throw new Error(
-                  `Critical: Failed to persist ${controllerName} state. User data at risk. ${(error as Error).message}`,
-                );
+                // Continue running - graceful degradation is better than crashing for expected failures
               }
             },
           );
