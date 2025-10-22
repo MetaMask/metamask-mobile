@@ -409,8 +409,11 @@ export const parsePolymarketEvents = (
             negRisk: market.negRisk,
             tickSize: market.orderPriceMinTickSize.toString(),
             resolvedBy: market.resolvedBy,
+            resolutionStatus: market.umaResolutionStatus,
           };
         }),
+      liquidity: event.liquidity,
+      volume: event.volume,
     }),
   );
   return parsedMarkets;

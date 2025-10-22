@@ -132,6 +132,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     leverage?: number;
     orderType?: 'market' | 'limit';
     limitPrice?: string;
+    amount?: string; // For new orders - USD amount to calculate position size for P&L
+    szDecimals?: number; // For new orders - asset decimal precision for P&L
     onConfirm: (
       takeProfitPrice?: string,
       stopLossPrice?: string,

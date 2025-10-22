@@ -18,7 +18,6 @@ import {
   PredictPosition,
   PredictPriceHistoryPoint,
   UnrealizedPnL,
-  Result,
   Side,
 } from '../../types';
 import {
@@ -29,6 +28,7 @@ import {
   GetMarketsParams,
   GetPositionsParams,
   OrderPreview,
+  OrderResult,
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
@@ -347,9 +347,9 @@ export class PolymarketProvider implements PredictProvider {
     return previewOrder(params);
   }
 
-  public async placeOrder<OrderResponse>(
+  public async placeOrder(
     params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
-  ): Promise<Result<OrderResponse>> {
+  ): Promise<OrderResult> {
     const { signer, preview } = params;
     const {
       outcomeTokenId,
@@ -469,11 +469,23 @@ export class PolymarketProvider implements PredictProvider {
       feeAuthorization,
     });
 
+    if (!response) {
+      return {
+        success,
+        error,
+      } as OrderResult;
+    }
+
     return {
       success,
-      response,
+      response: {
+        id: response.orderID,
+        spentAmount: response.makingAmount,
+        receivedAmount: response.takingAmount,
+        txHashes: response.transactionsHashes,
+      },
       error,
-    } as Result<OrderResponse>;
+    } as OrderResult;
   }
 
   public async prepareClaim(
