@@ -21,7 +21,6 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -40,6 +39,10 @@ import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 
 interface PerpsTabViewProps {}
 
@@ -50,6 +53,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { account } = usePerpsLiveAccount();
+
+  const coordinatedPress = useCoordinatedPress();
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
@@ -111,12 +116,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
+  // const memoizedPressHandler = useCallback(() => {
+  //   handleNewTrade();
+  // }, [handleNewTrade]);
   const memoizedPressHandler = useCallback(() => {
-    handleNewTrade();
-  }, [handleNewTrade]);
+    coordinatedPress(handleNewTrade);
+  }, [coordinatedPress, handleNewTrade]);
 
   const renderStartTradeCTA = () => (
-    <TempTouchableOpacity
+    <TouchablePerpsComponent
       style={styles.startTradeCTA}
       onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
@@ -133,7 +141,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TempTouchableOpacity>
+    </TouchablePerpsComponent>
   );
 
   const renderOrdersSection = () => {
