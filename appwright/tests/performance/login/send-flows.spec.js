@@ -61,7 +61,6 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
 
-
   await AmountScreen.tapOnNextButton();
   timer3.start();
   await SendScreen.isSelectAddressScreenDisplayed();
@@ -71,8 +70,6 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   timer4.start();
   await ConfirmationScreen.isVisible();
   timer4.stop();
-
-
 
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
@@ -124,7 +121,6 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.SOLANA);
 
-
   await AmountScreen.tapOnNextButton();
   timer3.start();
   await SendScreen.isSelectAddressScreenDisplayed();
@@ -134,8 +130,6 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   timer4.start();
   await ConfirmationScreen.isVisible();
   timer4.stop();
-
-
 
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);

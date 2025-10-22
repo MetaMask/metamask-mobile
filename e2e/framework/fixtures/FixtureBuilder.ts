@@ -1348,6 +1348,43 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
+  /**
+   * Configure Polygon network to route through mock server proxy
+   * This allows RPC calls to be intercepted by the mock server
+   */
+  withPolygon(chainId = CHAIN_IDS.POLYGON) {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    const polygonNetworkConfig = {
+      chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: `http://localhost:${getMockServerPort()}/proxy?url=https://polygon-rpc.com`,
+          type: 'custom',
+          name: 'Polygon Localhost',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      blockExplorerUrls: ['https://polygonscan.com'],
+      name: 'Polygon Localhost',
+      nativeCurrency: 'MATIC',
+    };
+
+    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
+      polygonNetworkConfig;
+
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
+    return this.ensureSolanaModalSuppressed();
+  }
+
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
     const networkConfigurationsByChainId = {
