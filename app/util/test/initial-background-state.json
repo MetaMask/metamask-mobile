@@ -7,9 +7,7 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accountsByChainId": {
-      "0x1": {}
-    }
+    "accountsByChainId": {}
   },
   "AccountsController": {
     "internalAccounts": {
@@ -29,6 +27,12 @@
   },
   "AddressBookController": {
     "addressBook": {}
+  },
+  "GatorPermissionsController": {
+    "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
+    "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+    "isFetchingGatorPermissions": false,
+    "isGatorPermissionsEnabled": false
   },
   "NftController": {
     "allNftContracts": {},
@@ -655,6 +659,7 @@
     "subscriptions": {}
   },
   "PredictController": {
+    "claimablePositions": [],
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
