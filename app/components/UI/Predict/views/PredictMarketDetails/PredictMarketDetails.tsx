@@ -121,12 +121,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   useEffect(() => {
     if (marketError && !isMarketFetching && !market && resolvedMarketId) {
       DevLogger.log(
-        '[PredictMarketDetails] Market not found, redirecting to feed',
+        '[PredictMarketDetails] Market not found, dismissing modal',
         { marketId: resolvedMarketId, error: marketError },
       );
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-      });
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
     }
   }, [marketError, isMarketFetching, market, resolvedMarketId, navigation]);
 

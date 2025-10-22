@@ -31,10 +31,16 @@ export const handlePredictUrl = async ({
         '[handlePredictUrl] Navigating to market details:',
         marketId,
       );
-      NavigationService.navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: { marketId },
+      NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
       });
+
+      setTimeout(() => {
+        NavigationService.navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params: { marketId },
+        });
+      }, 100);
     } else {
       DevLogger.log('[handlePredictUrl] Navigating to predict feed');
       NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
