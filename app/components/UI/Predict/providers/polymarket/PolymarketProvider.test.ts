@@ -2047,7 +2047,6 @@ describe('PolymarketProvider', () => {
         await provider.placeOrder({
           signer: mockSigner,
           preview,
-          providerId: 'polymarket',
         });
 
         // Now try to preview a SELL order - should NOT be rate limited
@@ -2103,7 +2102,6 @@ describe('PolymarketProvider', () => {
         const result = await provider.placeOrder({
           signer: mockSigner,
           preview,
-          providerId: 'polymarket',
         });
 
         expect(result.success).toBe(true);
@@ -2116,7 +2114,6 @@ describe('PolymarketProvider', () => {
         const result = await provider.placeOrder({
           signer: mockSigner,
           preview,
-          providerId: 'polymarket',
         });
 
         expect(result.success).toBe(true);
@@ -2134,7 +2131,6 @@ describe('PolymarketProvider', () => {
         const result = await provider.placeOrder({
           signer: mockSigner,
           preview,
-          providerId: 'polymarket',
         });
 
         expect(result.success).toBe(false);
@@ -2157,13 +2153,11 @@ describe('PolymarketProvider', () => {
         const result1 = await provider.placeOrder({
           signer: mockSigner1,
           preview,
-          providerId: 'polymarket',
         });
 
         const result2 = await provider.placeOrder({
           signer: mockSigner2,
           preview,
-          providerId: 'polymarket',
         });
 
         expect(result1.success).toBe(true);
