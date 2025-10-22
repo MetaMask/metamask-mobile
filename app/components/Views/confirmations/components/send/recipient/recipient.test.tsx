@@ -28,6 +28,10 @@ jest.mock('@react-navigation/native', () => {
         return cleanup;
       }, []);
     },
+    // Mock useRoute to provide navigation params
+    useRoute: () => ({
+      params: {},
+    }),
   };
 });
 
@@ -77,9 +81,18 @@ jest.mock('../../../hooks/send/useRouteParams', () => ({
   useRouteParams: jest.fn(),
 }));
 
+jest.mock('../../../hooks/send/useInitialRecipient', () => ({
+  useInitialRecipient: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useRecipientPageReset', () => ({
+  useRecipientPageReset: jest.fn(),
+}));
+
 jest.mock('./recipient.styles', () => ({
   styleSheet: jest.fn(() => ({
     container: { flex: 1 },
+    banner: {},
   })),
 }));
 

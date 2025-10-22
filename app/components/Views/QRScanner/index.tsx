@@ -5,6 +5,8 @@
 import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { CaipChainId } from '@metamask/utils';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
@@ -47,6 +49,9 @@ import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+///: END:ONLY_INCLUDE_IF
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -70,6 +75,7 @@ const QRScanner = ({
   const shouldReadBarCodeRef = useRef<boolean>(true);
   const [permissionCheckCompleted, setPermissionCheckCompleted] =
     useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(true);
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -80,6 +86,16 @@ const QRScanner = ({
   );
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  // Hook for handling non-EVM asset sending (Solana, Bitcoin, etc.)
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
+      chainId: currentChainId as CaipChainId,
+      address: undefined,
+    },
+  });
+  ///: END:ONLY_INCLUDE_IF
 
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -145,14 +161,19 @@ const QRScanner = ({
     async (codes: Code[]) => {
       if (!codes.length) return;
 
-      const response = { data: codes[0].value };
-      let content = response.data;
       /**
        * Barcode read triggers multiple times
        * shouldReadBarCodeRef controls how often the logic below runs
        * Think of this as a allow or disallow bar code reading
        */
-      if (!shouldReadBarCodeRef.current || !mountedRef.current || !content) {
+      if (!shouldReadBarCodeRef.current || !mountedRef.current) {
+        return;
+      }
+
+      const response = { data: codes[0].value };
+      let content = response.data;
+
+      if (!content) {
         return;
       }
 
@@ -242,12 +263,39 @@ const QRScanner = ({
           return;
         }
         // Handle plain addresses and ethereum: URLs by using home screen send flow
+        // Also handle non-EVM addresses like Solana
         if (
           (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
             !parse(content).function_name) ||
-          (content.startsWith('0x') && isValidAddress(content))
+          (content.startsWith('0x') && isValidAddress(content)) ||
+          isSolanaAddress(content)
         ) {
+          // Immediately stop barcode scanning to prevent multiple triggers
           shouldReadBarCodeRef.current = false;
+          setIsCameraActive(false);
+
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          // Try non-EVM first (Solana, Bitcoin, etc.), if handled, return early
+          if (isSolanaAddress(content)) {
+            const wasHandledAsNonEvm = await sendNonEvmAsset(
+              InitSendLocation.QRScanner,
+            );
+
+            if (wasHandledAsNonEvm) {
+              // Close QR scanner modal first
+              end();
+
+              // Navigate to send flow after modal closes
+              InteractionManager.runAfterInteractions(() => {
+                navigateToSendPage(InitSendLocation.QRScanner, undefined, {
+                  recipientAddress: content,
+                });
+              });
+
+              return;
+            }
+          }
+          ///: END:ONLY_INCLUDE_IF
 
           // Extract recipient address from QR code
           const recipientAddress = content.startsWith('0x')
@@ -324,6 +372,9 @@ const QRScanner = ({
       dispatch,
       navigateToSendPage,
       nativeCurrency,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      sendNonEvmAsset,
+      ///: END:ONLY_INCLUDE_IF
     ],
   );
 
@@ -389,7 +440,7 @@ const QRScanner = ({
       <Camera
         style={styles.preview}
         device={cameraDevice}
-        isActive={mountedRef.current}
+        isActive={mountedRef.current && isCameraActive}
         codeScanner={codeScanner}
         torch="off"
         onError={onError}
