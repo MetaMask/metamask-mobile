@@ -1,5 +1,5 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { PredictCashOutSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
 
 class PredictCashOutPage {
@@ -7,7 +7,9 @@ class PredictCashOutPage {
     return Matchers.getElementByID(PredictCashOutSelectorsIDs.CONTAINER);
   }
   get cashOutButton(): DetoxElement {
-    return Matchers.getElementByID(PredictCashOutSelectorsIDs.CASH_OUT_BUTTON);
+    return Matchers.getElementByID(
+      PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON,
+    );
   }
   async tapCashOutButton(): Promise<void> {
     await Gestures.waitAndTap(this.cashOutButton);

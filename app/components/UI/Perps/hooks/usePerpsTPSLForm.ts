@@ -21,6 +21,9 @@ import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
 import { regex } from '../../../../util/regex';
 import { strings } from '../../../../../locales/i18n';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
+import { calculateExpectedPnL } from '../utils/pnlCalculations';
+import { calculatePositionSize } from '../utils/orderCalculations';
+import { usePerpsOrderFees } from './usePerpsOrderFees';
 
 interface UsePerpsTPSLFormParams {
   asset: string;
@@ -34,6 +37,8 @@ interface UsePerpsTPSLFormParams {
   isVisible?: boolean;
   liquidationPrice?: string;
   orderType?: 'market' | 'limit';
+  amount?: string; // For new orders - USD amount to calculate position size
+  szDecimals?: number; // For new orders - asset decimal precision
 }
 
 interface TPSLFormState {
@@ -84,6 +89,8 @@ interface TPSLFormValidation {
 interface TPSLFormDisplay {
   formattedTakeProfitPercentage: string;
   formattedStopLossPercentage: string;
+  expectedTakeProfitPnL?: number;
+  expectedStopLossPnL?: number;
 }
 
 export interface UsePerpsTPSLFormReturn {
@@ -116,6 +123,8 @@ export function usePerpsTPSLForm(
     isVisible = false,
     liquidationPrice,
     orderType,
+    amount,
+    szDecimals,
   } = params;
 
   // Initialize form state with raw values (no currency formatting for inputs)
@@ -160,11 +169,12 @@ export function usePerpsTPSLForm(
     initialCurrentPrice ||
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
+  let actualDirection: 'long' | 'short';
+  if (position) {
+    actualDirection = parseFloat(position.size) > 0 ? 'long' : 'short';
+  } else {
+    actualDirection = direction || 'long';
+  }
 
   const leverage = position?.leverage?.value || propLeverage;
   const entryPrice = position?.entryPrice
@@ -860,6 +870,78 @@ export function usePerpsTPSLForm(
     slPercentInputFocused,
   );
 
+  // Calculate position size for expected P&L calculations
+  let positionSizeForPnL = 0;
+  if (position) {
+    // Keep the sign from the position (positive for long, negative for short)
+    positionSizeForPnL = parseFloat(position.size || '0');
+  } else if (
+    amount &&
+    entryPrice &&
+    entryPrice > 0 &&
+    szDecimals !== undefined
+  ) {
+    // calculatePositionSize returns unsigned value, apply direction sign
+    const unsignedSize = parseFloat(
+      calculatePositionSize({
+        amount,
+        price: entryPrice,
+        szDecimals,
+      }),
+    );
+    positionSizeForPnL =
+      actualDirection === 'long' ? unsignedSize : -unsignedSize;
+  }
+
+  // Calculate expected P&L for Take Profit
+  // Use fee hook for accurate closing fees
+  // Notional value must be positive for fee calculation (use abs for short positions)
+  const tpNotionalValue =
+    takeProfitPrice && positionSizeForPnL !== 0
+      ? (parseFloat(takeProfitPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
+      : '0';
+
+  const tpClosingFees = usePerpsOrderFees({
+    orderType: 'market',
+    amount: tpNotionalValue,
+    isClosing: true,
+    coin: asset,
+  });
+
+  const expectedTakeProfitPnL =
+    takeProfitPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+      ? calculateExpectedPnL({
+          triggerPrice: parseFloat(takeProfitPrice),
+          entryPrice,
+          size: positionSizeForPnL,
+          closingFee: tpClosingFees.totalFee,
+        })
+      : undefined;
+
+  // Calculate expected P&L for Stop Loss
+  // Notional value must be positive for fee calculation (use abs for short positions)
+  const slNotionalValue =
+    stopLossPrice && positionSizeForPnL !== 0
+      ? (parseFloat(stopLossPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
+      : '0';
+
+  const slClosingFees = usePerpsOrderFees({
+    orderType: 'market',
+    amount: slNotionalValue,
+    isClosing: true,
+    coin: asset,
+  });
+
+  const expectedStopLossPnL =
+    stopLossPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+      ? calculateExpectedPnL({
+          triggerPrice: parseFloat(stopLossPrice),
+          entryPrice,
+          size: positionSizeForPnL,
+          closingFee: slClosingFees.totalFee,
+        })
+      : undefined;
+
   return {
     formState: {
       takeProfitPrice,
@@ -905,6 +987,8 @@ export function usePerpsTPSLForm(
     display: {
       formattedTakeProfitPercentage,
       formattedStopLossPercentage,
+      expectedTakeProfitPnL,
+      expectedStopLossPnL,
     },
   };
 }

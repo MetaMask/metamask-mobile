@@ -105,6 +105,7 @@ import migration101 from './101';
 import migration102 from './102';
 import migration103 from './103';
 import migration104 from './104';
+import migration105 from './105';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
@@ -228,6 +229,7 @@ export const migrationList: MigrationsList = {
   102: migration102,
   103: migration103,
   104: migration104,
+  105: migration105,
 };
 
 // Enable both synchronous and asynchronous migrations
@@ -288,7 +290,7 @@ export const asyncifyMigrations = (
    * - This function "redistributes" the single object back into individual controller files
    * - Then strips engine.backgroundState from redux to maintain the new architecture
    * - "repacking" the single object back into distributed files
-   * 
+   *
    * CRITICAL: Only strips engine.backgroundState if ALL controllers save successfully.
    * Failed controllers are preserved to prevent data loss.
    */
@@ -300,7 +302,7 @@ export const asyncifyMigrations = (
         string,
         unknown,
       ][];
-      
+
       let failedControllers = 0;
       const failedControllerStates: Record<string, unknown> = {};
 
@@ -333,7 +335,7 @@ export const asyncifyMigrations = (
         const { engine: _engine, ...rest } = s;
         return rest as unknown;
       }
-      
+
       // Keep failed controllers in engine.backgroundState to prevent data loss
       captureException(
         new Error(

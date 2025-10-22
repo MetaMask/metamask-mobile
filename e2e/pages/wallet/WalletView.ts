@@ -2,7 +2,10 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import { PredictTabViewSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import {
+  PredictTabViewSelectorsIDs,
+  PredictPositionsHeaderSelectorsIDs,
+} from '../../selectors/Predict/Predict.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
@@ -471,6 +474,14 @@ class WalletView {
     const elem = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(elem, {
       elemDescription: 'Predictions Position',
+    });
+  }
+  async tapClaimButton(): Promise<void> {
+    const elem = Matchers.getElementByID(
+      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
+    );
+    await Gestures.waitAndTap(elem, {
+      elemDescription: 'Claim Button',
     });
   }
 
