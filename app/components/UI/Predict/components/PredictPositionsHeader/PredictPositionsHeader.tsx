@@ -19,6 +19,7 @@ import React, {
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { PredictPositionsHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import Icon, {
   IconColor,
   IconName,
@@ -141,6 +142,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
       <Box twClassName="gap-4 pb-4 pt-2">
         {hasClaimableAmount && (
           <Button
+            testID={PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON}
             variant={ButtonVariant.Secondary}
             onPress={handleClaim}
             twClassName="min-w-full bg-primary-default"
