@@ -39640,7 +39640,7 @@ __metadata:
       optional: true
   bin:
     react-native: cli.js
-  checksum: 10/fe1966a45523f114c7c381d6f769f3cae7a502fa2aac49bb6e46ad18bf65d19003713525b37ab6dde5af0152f6d4e89005030b6417ee8bdcdf71db75f45b39ab
+  checksum: 10/15b139e90d29e369e1d747642d6777d55c8b49149c341930f678b695e7c3e61de826774d2f049e07827a74784a509e0b4a1721b9899d04a65c85070581e7516d
   languageName: node
   linkType: hard
 
