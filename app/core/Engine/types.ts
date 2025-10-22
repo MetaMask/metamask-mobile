@@ -248,11 +248,9 @@ import {
 import {
   TokenSearchDiscoveryController,
   TokenSearchDiscoveryControllerState,
-} from '@metamask/token-search-discovery-controller';
-import {
   TokenSearchDiscoveryControllerActions,
   TokenSearchDiscoveryControllerEvents,
-} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
+} from '@metamask/token-search-discovery-controller';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   MultichainNetworkController,

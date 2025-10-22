@@ -6,6 +6,8 @@ import {
   transformWithdrawalRequestsToTransactions,
   transformDepositRequestsToTransactions,
 } from './transactionTransforms';
+import { OrderFill } from '../controllers/types';
+import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
@@ -67,9 +69,105 @@ describe('transactionTransforms', () => {
       expect(result[0].fill.isPositive).toBe(true);
     });
 
-    it('handles liquidation fills', () => {
-      const liquidationFill = {
+    it('should handle flipped positions correctly', () => {
+      const flippedFill: OrderFill = {
         ...mockFill,
+        direction: 'Short > Long',
+        pnl: '50.00',
+        fee: '10.00',
+      };
+
+      const result = transformFillsToTransactions([flippedFill]);
+
+      expect(result[0]).toMatchObject({
+        category: 'position_close', // Flips are treated as closes
+        title: 'Flipped short > long',
+        fill: {
+          shortTitle: 'Flipped short > long',
+          amount: '+$40.00', // PnL minus fee (50 - 10)
+          amountNumber: 40.0,
+          isPositive: true,
+          action: 'Flipped',
+        },
+      });
+    });
+
+    it('should handle empty fills array', () => {
+      const result = transformFillsToTransactions([]);
+      expect(result).toEqual([]);
+    });
+
+    it('should handle fills with empty direction field', () => {
+      const minimalFill: OrderFill = {
+        orderId: '',
+        symbol: 'BTC',
+        side: 'buy',
+        size: '0.1',
+        price: '50000',
+        fee: '0',
+        feeToken: 'USDC',
+        timestamp: 1640995200000,
+        pnl: '0',
+        direction: '',
+      };
+
+      const result = transformFillsToTransactions([minimalFill]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should correctly identify take profit fills', () => {
+      const tpFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '55000',
+        pnl: '500',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        detailedOrderType: 'Take Profit Market',
+      };
+
+      const result = transformFillsToTransactions([tpFill]);
+
+      expect(result[0].fill?.fillType).toBe(FillType.TakeProfit);
+    });
+
+    it('should correctly identify stop loss fills', () => {
+      const slFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '45000',
+        pnl: '-500',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        detailedOrderType: 'Stop Market',
+      };
+
+      const result = transformFillsToTransactions([slFill]);
+
+      expect(result[0].fill?.fillType).toBe(FillType.StopLoss);
+    });
+
+    it('should correctly identify liquidation fills', () => {
+      const liquidationFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '44900',
+        pnl: '-1000',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
         liquidation: {
           liquidatedUser: '0x1234567890123456789012345678901234567890',
           markPx: '2000',
@@ -80,26 +178,107 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([liquidationFill]);
 
-      if (!result[0]?.fill) {
-        return;
-      }
-
-      expect(result[0].fill.isLiquidation).toBe(true);
+      expect(result[0].fill?.fillType).toBe(FillType.Liquidation);
+      expect(result[0].fill?.liquidation).toEqual({
+        liquidatedUser: '0x1234567890123456789012345678901234567890',
+        markPx: '2000',
+        method: 'market',
+      });
     });
 
-    it('handles take profit fills', () => {
-      const takeProfitFill = {
-        ...mockFill,
-        detailedOrderType: 'Take Profit',
+    it('correctly identifies auto-deleveraging fills with positive position', () => {
+      const adlFill: OrderFill = {
+        orderId: '789',
+        symbol: 'SOL',
+        side: 'sell',
+        size: '5.0',
+        price: '150',
+        pnl: '-250',
+        direction: 'Auto-Deleveraging',
+        fee: '10',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        startPosition: '5.0',
       };
 
-      const result = transformFillsToTransactions([takeProfitFill]);
+      const result = transformFillsToTransactions([adlFill]);
 
-      if (!result[0]?.fill) {
-        return;
-      }
+      expect(result[0]).toMatchObject({
+        category: 'position_close',
+        title: 'Closed long',
+        asset: 'SOL',
+      });
+      expect(result[0].fill?.fillType).toBe(FillType.AutoDeleveraging);
+      expect(result[0].fill?.amount).toBe('-$260.00');
+      expect(result[0].fill?.amountNumber).toBe(-260);
+      expect(result[0].fill?.isPositive).toBe(false);
+    });
 
-      expect(result[0].fill.isTakeProfit).toBe(true);
+    it('correctly identifies auto-deleveraging fills with negative position', () => {
+      const adlFill: OrderFill = {
+        orderId: '456',
+        symbol: 'ETH',
+        side: 'buy',
+        size: '2.0',
+        price: '3000',
+        pnl: '400',
+        direction: 'Auto-Deleveraging',
+        fee: '15',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        startPosition: '-2.0',
+      };
+
+      const result = transformFillsToTransactions([adlFill]);
+
+      expect(result[0]).toMatchObject({
+        category: 'position_close',
+        title: 'Closed short',
+        asset: 'ETH',
+      });
+      expect(result[0].fill?.fillType).toBe(FillType.AutoDeleveraging);
+      expect(result[0].fill?.amount).toBe('+$385.00');
+      expect(result[0].fill?.amountNumber).toBe(385);
+      expect(result[0].fill?.isPositive).toBe(true);
+    });
+
+    it('filters out auto-deleveraging fills with invalid startPosition', () => {
+      const adlFillInvalid: OrderFill = {
+        orderId: '999',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.5',
+        price: '45000',
+        pnl: '-100',
+        direction: 'Auto-Deleveraging',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        startPosition: 'invalid',
+      };
+
+      const result = transformFillsToTransactions([adlFillInvalid]);
+
+      expect(result).toEqual([]);
+    });
+
+    it('filters out auto-deleveraging fills with missing startPosition', () => {
+      const adlFillMissing: OrderFill = {
+        orderId: '888',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.5',
+        price: '45000',
+        pnl: '-100',
+        direction: 'Auto-Deleveraging',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+      };
+
+      const result = transformFillsToTransactions([adlFillMissing]);
+
+      expect(result).toEqual([]);
     });
 
     it('handles stop loss fills', () => {
@@ -110,17 +289,14 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([stopLossFill]);
 
-      if (!result[0]?.fill) {
-        return;
-      }
-
-      expect(result[0].fill.isStopLoss).toBe(true);
+      expect(result[0].fill?.fillType).toBe(FillType.StopLoss);
+      expect(result[0].fill?.liquidation).toBeUndefined();
     });
 
     it('handles missing direction gracefully', () => {
       const unknownFill = {
         ...mockFill,
-        direction: undefined as unknown as string,
+        direction: '',
       };
 
       const result = transformFillsToTransactions([unknownFill]);
@@ -131,7 +307,7 @@ describe('transactionTransforms', () => {
     it('handles missing direction', () => {
       const noDirectionFill = {
         ...mockFill,
-        direction: undefined as unknown as string,
+        direction: '',
       };
 
       const result = transformFillsToTransactions([noDirectionFill]);

@@ -6,10 +6,12 @@ import {
   UserHistoryItem,
 } from '../controllers/types';
 import {
+  FillType,
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
+import { strings } from '../../../../../locales/i18n';
 
 export interface WithdrawalRequest {
   id: string;
@@ -60,12 +62,14 @@ export function transformFillsToTransactions(
     const isClosed = part1 === 'Close';
     const isFlipped = part2 === '>';
 
+    const isAutoDeleveraging = direction === 'Auto-Deleveraging';
+
     let action = '';
     let isPositive = false;
     if (isOpened) {
       action = 'Opened';
       // Will be set based on fee calculation below
-    } else if (isClosed) {
+    } else if (isClosed || isAutoDeleveraging) {
       action = 'Closed';
       // Will be set based on PnL calculation below
     } else if (isFlipped) {
@@ -94,7 +98,7 @@ export function transformFillsToTransactions(
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
-    } else if (isClosed || isFlipped) {
+    } else if (isClosed || isFlipped || isAutoDeleveraging) {
       // For closing positions: show PnL minus fee
       const pnlValue = BigNumber(fill.pnl || 0);
       const feeValue = BigNumber(fill.fee || 0);
@@ -122,13 +126,38 @@ export function transformFillsToTransactions(
     const isTakeProfit = Boolean(detailedOrderType?.includes('Take Profit'));
     const isStopLoss = Boolean(detailedOrderType?.includes('Stop'));
 
+    let title = '';
+
+    if (isFlipped) {
+      title = `${action} ${direction?.toLowerCase() || ''}`;
+    } else if (isAutoDeleveraging) {
+      const startPositionNum = Number(fill.startPosition);
+      if (Number.isNaN(startPositionNum)) return acc;
+      const directionLabel =
+        Number(fill.startPosition) > 0
+          ? strings('perps.market.long')
+          : strings('perps.market.short');
+      title = `${action} ${directionLabel?.toLowerCase() || ''}`;
+    } else {
+      title = `${action} ${part2?.toLowerCase() || ''}`;
+    }
+
+    let fillType = FillType.Standard;
+    if (isAutoDeleveraging) {
+      fillType = FillType.AutoDeleveraging;
+    } else if (isLiquidation) {
+      fillType = FillType.Liquidation;
+    } else if (isTakeProfit) {
+      fillType = FillType.TakeProfit;
+    } else if (isStopLoss) {
+      fillType = FillType.StopLoss;
+    }
+
     acc.push({
       id: orderId || `fill-${timestamp}`,
       type: 'trade',
       category: isOpened ? 'position_open' : 'position_close',
-      title: `${action} ${
-        isFlipped ? direction?.toLowerCase() || '' : part2?.toLowerCase() || ''
-      }`,
+      title,
       subtitle: `${size} ${symbol}`,
       timestamp,
       asset: symbol,
@@ -151,9 +180,7 @@ export function transformFillsToTransactions(
         feeToken,
         action,
         liquidation,
-        isLiquidation,
-        isTakeProfit,
-        isStopLoss,
+        fillType,
       },
     });
     return acc;
