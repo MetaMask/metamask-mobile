@@ -47,6 +47,7 @@ import {
   PredictPosition,
   PredictPriceHistoryInterval,
   PredictMarketStatus,
+  PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
@@ -92,9 +93,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const insets = useSafeAreaInsets();
   const { hasNoBalance } = usePredictBalance();
-  const [winningOutcomeToken, setWinningOutcomeToken] = useState<
-    PredictOutcomeToken | undefined
-  >(undefined);
 
   const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
@@ -118,15 +116,47 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     if (market?.status === PredictMarketStatus.CLOSED) {
       // set the setSelectedTimeframe to PredictPriceHistoryInterval.MAX
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
-
-      // find the winning outcome token (the one with price = 1)
-      const winningToken = market?.outcomes
-        ?.flatMap((outcome) => outcome.tokens)
-        ?.find((token) => token.price === 1);
-
-      setWinningOutcomeToken(winningToken);
     }
-  }, [market?.status, market?.outcomes]);
+  }, [market?.status]);
+
+  const { winningOutcomeToken, losingOutcomeToken, resolutionStatus } =
+    useMemo(() => {
+      // early return if no market or outcomes
+      if (!market?.outcomes?.length) {
+        return {
+          winningOutcomeToken: undefined,
+          losingOutcomeToken: undefined,
+          resolutionStatus: undefined,
+        };
+      }
+
+      let winningToken: PredictOutcomeToken | undefined;
+      let losingToken: PredictOutcomeToken | undefined;
+      let winningOutcome: PredictOutcome | undefined;
+
+      // single iteration through outcomes to find winning/losing tokens and outcome
+      for (const outcome of market.outcomes) {
+        if (!outcome.tokens?.length) continue;
+
+        for (const token of outcome.tokens) {
+          if (token.price === 1 && !winningToken) {
+            winningToken = token;
+            winningOutcome = outcome;
+          } else if (token.price === 0 && !losingToken) {
+            losingToken = token;
+          }
+        }
+
+        // early exit if we found both tokens
+        if (winningToken && losingToken) break;
+      }
+
+      return {
+        winningOutcomeToken: winningToken,
+        losingOutcomeToken: losingToken,
+        resolutionStatus: winningOutcome?.resolutionStatus,
+      };
+    }, [market]);
 
   // Determine the winning outcome (the outcome that contains the winning token)
   const winningOutcome = useMemo(
@@ -137,6 +167,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           )
         : undefined,
     [market?.outcomes, winningOutcomeToken],
+  );
+
+  const losingOutcome = useMemo(
+    () =>
+      losingOutcomeToken
+        ? market?.outcomes.find((outcome) =>
+            outcome.tokens.some((token) => token.id === losingOutcomeToken.id),
+          )
+        : undefined,
+    [market?.outcomes, losingOutcomeToken],
   );
 
   const position: PredictPosition[] = positions;
@@ -316,7 +356,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           style={tw.style('mb-1')}
         >
           {market?.title ||
-            (isMarketFetching ? 'Loading...' : 'Market title unavailable')}
+            (isMarketFetching ? strings('predict.loading') : '')}
         </Text>
       </Box>
     </Box>
@@ -331,35 +371,61 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             alignItems={BoxAlignItems.Center}
             twClassName="gap-2"
           >
-            <Icon
-              name={IconName.CheckBold}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              Market ended on {winningOutcomeToken.title}
-            </Text>
+            {resolutionStatus === 'resolved' ? (
+              <>
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Alternative}
+                >
+                  {strings('predict.market_details.market_resulted_to', {
+                    outcome: winningOutcomeToken.title,
+                  })}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Alternative}
+                >
+                  {strings('predict.market_details.market_ended_on', {
+                    outcome: winningOutcomeToken.title,
+                  })}
+                </Text>
+              </>
+            )}
           </Box>
         )}
-        {/* {market?.status === PredictMarketStatus.CLOSED && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Icon
-              name={IconName.Clock}
-              size={IconSize.Md}
-              color={colors.text.default}
-            />
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              Waiting for final resolution
-            </Text>
-          </Box>
-        )} */}
+        {market?.status === PredictMarketStatus.CLOSED &&
+          resolutionStatus !== 'resolved' && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
+            >
+              <Icon
+                name={IconName.Clock}
+                size={IconSize.Md}
+                color={colors.text.default}
+              />
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {strings('predict.market_details.waiting_for_final_resolution')}
+              </Text>
+            </Box>
+          )}
       </Box>
     </Box>
   );
@@ -413,7 +479,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   {formatPrice(currentPosition?.initialValue ?? 0, {
                     maximumDecimals: 2,
                   })}{' '}
-                  on {outcomeTitle}
+                  {strings('predict.market_details.on')} {outcomeTitle}
                 </Text>
                 <Text
                   variant={TextVariant.BodyMD}
@@ -470,7 +536,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     ) : (
       <Box twClassName="space-y-4 p-4">
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
-          No positions found.
+          {strings('predict.market_details.no_positions_found')}
         </Text>
       </Box>
     );
@@ -495,7 +561,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             color={colors.text.muted}
           />
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            Volume
+            {strings('predict.market_details.volume')}
           </Text>
         </Box>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -520,7 +586,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             color={colors.text.muted}
           />
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            End date
+            {strings('predict.market_details.end_date')}
           </Text>
         </Box>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -547,7 +613,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             color={colors.text.muted}
           />
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            Resolver
+            {strings('predict.market_details.resolver')}
           </Text>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Error}>
             UMA
@@ -561,7 +627,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           <Pressable>
             <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
               {isMarketFetching || !market?.outcomes[0]?.resolvedBy
-                ? 'Loading...'
+                ? strings('predict.loading')
                 : formatAddress(market.outcomes[0].resolvedBy)}
             </Text>
           </Pressable>
@@ -590,7 +656,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             color={colors.text.muted}
           />
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            Powered by
+            {strings('predict.market_details.powered_by')}
           </Text>
         </Box>
         <Box
@@ -648,7 +714,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             style={tw.style('flex-1 bg-success-muted')}
             label={
               <Text style={tw.style('font-bold')} color={TextColor.Success}>
-                Yes • {getYesPercentage()}¢
+                {strings('predict.market_details.yes')} • {getYesPercentage()}¢
               </Text>
             }
             onPress={handleYesPress}
@@ -660,7 +726,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             style={tw.style('flex-1 bg-error-muted')}
             label={
               <Text style={tw.style('font-bold')} color={TextColor.Error}>
-                No • {100 - getYesPercentage()}¢
+                {strings('predict.market_details.no')} •{' '}
+                {100 - getYesPercentage()}¢
               </Text>
             }
             onPress={handleNoPress}
@@ -720,6 +787,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           >
             {renderPositionsSection()}
           </ScrollView>
+          {/* only render outcomes tab if the market has multiple outcomes or is closed */}
           {(multipleOutcomes ||
             market?.status === PredictMarketStatus.CLOSED) && (
             <ScrollView
@@ -732,15 +800,22 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             >
               {market?.status === PredictMarketStatus.CLOSED ? (
                 <Box>
-                  <PredictMarketOutcome
-                    market={market}
-                    entryPoint={
-                      PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS
-                    }
-                    outcome={winningOutcome || market?.outcomes[0]}
-                    outcomeToken={winningOutcomeToken}
-                    isClosed
-                  />
+                  {winningOutcome && (
+                    <PredictMarketOutcome
+                      market={market}
+                      outcome={winningOutcome}
+                      outcomeToken={winningOutcomeToken}
+                      isClosed
+                    />
+                  )}
+                  {losingOutcome && (
+                    <PredictMarketOutcome
+                      market={market}
+                      outcome={losingOutcome}
+                      outcomeToken={losingOutcomeToken}
+                      isClosed
+                    />
+                  )}
                 </Box>
               ) : (
                 <Box>
@@ -763,6 +838,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </ScrollableTabView>
       </Box>
       <Box twClassName="px-3 bg-default border-t border-muted">
+        {/* only render action buttons if the market has a single outcome */}
+        {/* otherwise, it's handled via the buttons within tabs */}
         {singleOutcomeMarket && renderActionButtons()}
       </Box>
     </SafeAreaView>

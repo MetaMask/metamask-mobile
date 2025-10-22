@@ -73,7 +73,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     if (isClosed && outcomeToken) {
       return outcomeToken.title;
     }
-    return outcome.groupItemTitle;
+    return outcome.groupItemTitle || outcome.title || '';
   };
 
   const getImageUrl = (): string => outcome.image;
@@ -150,7 +150,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {getTitle()}
               </Text>
-              {isClosed && outcomeToken && (
+              {isClosed && outcomeToken && outcomeToken.price === 1 && (
                 <Text
                   variant={TextVariant.BodyXS}
                   color={TextColor.Success}
@@ -167,9 +167,15 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           <Text>
             {isClosed && outcomeToken ? (
               <Icon
-                name={IconName.CheckBold}
+                name={
+                  outcomeToken.price === 1
+                    ? IconName.CheckBold
+                    : IconName.CircleX
+                }
                 size={IconSize.Md}
-                color={TextColor.Success}
+                color={
+                  outcomeToken.price === 1 ? TextColor.Success : TextColor.Muted
+                }
               />
             ) : (
               <Text>{getYesPercentage()}</Text>

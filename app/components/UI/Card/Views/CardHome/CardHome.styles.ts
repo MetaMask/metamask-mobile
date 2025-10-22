@@ -97,6 +97,10 @@ const createStyles = (theme: Theme) =>
     halfWidthButton: {
       width: '50%',
     },
+    halfWidthButtonDisabled: {
+      width: '50%',
+      opacity: 0.5,
+    },
     shouldBeHidden: {
       display: 'none',
     },

@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Box } from '../../../../UI/Box/Box';
@@ -16,6 +15,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../AccountGroupDetails.styles';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 
 export interface RemoveAccountProps {
   account: InternalAccount;
@@ -34,10 +34,11 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
   }, [account, navigation]);
 
   return (
-    <TouchableOpacity
+    <TempTouchableOpacity
       style={styles.removeAccount}
       testID={AccountDetailsIds.REMOVE_ACCOUNT_BUTTON}
       onPress={handleRemoveAccountClick}
+      shouldEnableAndroidPressIn
     >
       <Text style={styles.removeAccountText} variant={TextVariant.BodyMDMedium}>
         {strings('multichain_accounts.account_details.remove_account')}
@@ -53,6 +54,6 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
           color={colors.text.alternative}
         />
       </Box>
-    </TouchableOpacity>
+    </TempTouchableOpacity>
   );
 };

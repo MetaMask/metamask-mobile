@@ -101,7 +101,7 @@ export type OrderResult = Result<{
   spentAmount: string;
   receivedAmount: string;
   txHashes?: string[];
-}>
+}>;
 
 export interface ClaimOrderParams {
   positions: PredictPosition[];
@@ -182,7 +182,9 @@ export interface PredictProvider {
 
   // Order management
   previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
-  placeOrder(params: PlaceOrderParams & { signer: Signer }): Promise<OrderResult>;
+  placeOrder(
+    params: PlaceOrderParams & { signer: Signer },
+  ): Promise<OrderResult>;
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;

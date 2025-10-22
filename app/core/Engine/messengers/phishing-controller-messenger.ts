@@ -1,8 +1,9 @@
 import { Messenger } from '@metamask/base-controller';
+import { TransactionControllerStateChangeEvent } from '@metamask/transaction-controller';
 
 type AllowedActions = never;
 
-type AllowedEvents = never;
+type AllowedEvents = TransactionControllerStateChangeEvent;
 
 export type PhishingControllerMessenger = ReturnType<
   typeof getPhishingControllerMessenger
@@ -21,6 +22,6 @@ export function getPhishingControllerMessenger(
   return messenger.getRestricted({
     name: 'PhishingController',
     allowedActions: [],
-    allowedEvents: [],
+    allowedEvents: ['TransactionController:stateChange'],
   });
 }

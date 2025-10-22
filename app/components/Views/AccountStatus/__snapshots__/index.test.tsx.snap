@@ -100,7 +100,6 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -136,7 +135,6 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -273,7 +271,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -309,7 +306,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -446,7 +442,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -482,7 +477,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -619,7 +613,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -655,7 +648,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -792,7 +784,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -828,7 +819,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -965,7 +955,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1001,7 +990,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

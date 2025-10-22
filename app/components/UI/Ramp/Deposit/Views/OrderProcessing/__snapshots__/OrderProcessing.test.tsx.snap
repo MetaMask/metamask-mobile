@@ -553,7 +553,6 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1142,7 +1141,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1181,7 +1179,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1824,7 +1821,6 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -2413,7 +2409,6 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",

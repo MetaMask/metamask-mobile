@@ -111,6 +111,7 @@ function StateSelectorModal() {
   const renderStateItem = useCallback(
     ({ item: state }: { item: { code: string; name: string } }) => (
       <ListItemSelect
+        shouldEnableAndroidPressIn
         isSelected={selectedState === state.code}
         onPress={() => handleOnStatePressCallback(state)}
         accessibilityRole="button"

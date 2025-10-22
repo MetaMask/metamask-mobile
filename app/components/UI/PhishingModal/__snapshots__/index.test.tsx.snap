@@ -217,7 +217,6 @@ exports[`PhishingModal should render correctly 1`] = `
     accessible={true}
     activeOpacity={1}
     onPressIn={[Function]}
-    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",

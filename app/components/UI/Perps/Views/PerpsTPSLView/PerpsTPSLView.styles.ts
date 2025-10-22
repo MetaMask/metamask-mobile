@@ -14,14 +14,22 @@ export const createStyles = (colors: Theme['colors']) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 16,
+      justifyContent: 'center',
       paddingHorizontal: 16,
       paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
+      position: 'relative',
+    },
+    headerBackButton: {
+      position: 'absolute',
+      left: 16,
+      zIndex: 1,
+    },
+    headerTitleContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     footer: {
-      paddingHorizontal: 16,
       paddingBottom: 16,
     },
     priceInfoContainer: {
@@ -53,10 +61,8 @@ export const createStyles = (colors: Theme['colors']) =>
       marginBottom: 8,
     },
     inputContainer: {
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.muted,
       borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
       paddingHorizontal: 16,
       paddingVertical: 12,
       flexDirection: 'row',
@@ -70,9 +76,11 @@ export const createStyles = (colors: Theme['colors']) =>
       marginLeft: 4,
     },
     inputContainerActive: {
+      borderWidth: 1,
       borderColor: colors.primary.default,
     },
     inputContainerError: {
+      borderWidth: 1,
       borderColor: colors.error.default,
     },
     input: {
@@ -81,12 +89,11 @@ export const createStyles = (colors: Theme['colors']) =>
       color: colors.text.default,
       paddingVertical: 0,
       textAlign: 'left',
-      marginRight: 8,
+      marginLeft: 8,
     },
 
     percentageRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       marginBottom: 12,
       gap: 8,
     },
@@ -94,25 +101,13 @@ export const createStyles = (colors: Theme['colors']) =>
       flex: 1,
       paddingVertical: 10,
       paddingHorizontal: 8,
-      backgroundColor: colors.background.pressed,
+      backgroundColor: colors.background.muted,
       borderRadius: 8,
       alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border.muted,
       minWidth: 50,
     },
     percentageButtonOff: {
-      backgroundColor: colors.background.pressed,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    },
-    percentageButtonActiveTP: {
-      borderWidth: 1,
-      borderColor: colors.primary.default,
-    },
-    percentageButtonActiveSL: {
-      borderWidth: 1,
-      borderColor: colors.primary.default,
+      backgroundColor: colors.background.muted,
     },
     helperText: {
       marginTop: 4,
@@ -172,7 +167,6 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     percentageButtonsContainer: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       marginBottom: 12,
       gap: 8,
     },
@@ -202,5 +196,23 @@ export const createStyles = (colors: Theme['colors']) =>
     doneButton: {
       width: '100%',
       marginBottom: 8,
+    },
+    expectedPnLText: {
+      marginTop: 8,
+      textAlign: 'right',
+    },
+    sectionTitleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    footerButtonsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      width: '100%',
+    },
+    footerButton: {
+      flex: 1,
     },
   });

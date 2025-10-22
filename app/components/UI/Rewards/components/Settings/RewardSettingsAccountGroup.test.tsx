@@ -169,7 +169,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       Lg: 'lg',
     },
     IconName: {
-      QrCode: 'qr-code',
+      Details: 'details',
       Check: 'check',
       Add: 'add',
     },
@@ -254,7 +254,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     __esModule: true,
     default: MockIcon,
     IconName: {
-      QrCode: 'qr-code',
+      Details: 'details',
       Check: 'check',
       Add: 'add',
     },
@@ -611,7 +611,7 @@ describe('RewardSettingsAccountGroup', () => {
       expect(mockLinkAccountGroup).toHaveBeenCalledWith(mockAccountGroup.id);
     });
 
-    it('should navigate to modal when QR button is pressed', () => {
+    it('navigates to modal when addresses button is pressed', () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}
@@ -619,10 +619,10 @@ describe('RewardSettingsAccountGroup', () => {
         />,
       );
 
-      const qrButton = getByTestId(
+      const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      fireEvent.press(qrButton);
+      fireEvent.press(addressesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'RewardOptInAccountGroupModal',
@@ -646,7 +646,7 @@ describe('RewardSettingsAccountGroup', () => {
       );
     });
 
-    it('should navigate to modal with unsupported accounts included in addressData', () => {
+    it('navigates to modal with unsupported accounts included in addressData', () => {
       const itemWithUnsupported: RewardSettingsAccountGroupListFlatListItem = {
         type: 'accountGroup',
         accountGroup: {
@@ -681,10 +681,10 @@ describe('RewardSettingsAccountGroup', () => {
         />,
       );
 
-      const qrButton = getByTestId(
+      const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      fireEvent.press(qrButton);
+      fireEvent.press(addressesButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'RewardOptInAccountGroupModal',
@@ -1008,7 +1008,7 @@ describe('RewardSettingsAccountGroup', () => {
       ).toBeNull();
     });
 
-    it('should disable QR button when loading', () => {
+    it('disables addresses button when loading', () => {
       // Arrange
       mockUseLinkAccountGroup.mockReturnValue({
         linkAccountGroup: mockLinkAccountGroup,
@@ -1025,10 +1025,10 @@ describe('RewardSettingsAccountGroup', () => {
       );
 
       // Assert
-      const qrButton = getByTestId(
+      const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      expect(qrButton).toHaveProp('disabled', true);
+      expect(addressesButton).toHaveProp('disabled', true);
     });
   });
 });

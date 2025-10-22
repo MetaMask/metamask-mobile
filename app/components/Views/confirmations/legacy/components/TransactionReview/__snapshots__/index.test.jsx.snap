@@ -957,7 +957,6 @@ exports[`TransactionReview should match snapshot 1`] = `
                 activeOpacity={1}
                 disabled={false}
                 onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -998,7 +997,6 @@ exports[`TransactionReview should match snapshot 1`] = `
                 disabled={false}
                 loading={false}
                 onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",

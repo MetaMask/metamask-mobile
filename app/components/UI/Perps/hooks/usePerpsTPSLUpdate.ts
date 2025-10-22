@@ -59,7 +59,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           );
 
           // Call error callback if provided
-          options?.onError?.(result.error || strings('perps.errors.unknown'));
+          options?.onError?.(errorMessage);
         }
       } catch (error) {
         DevLogger.log('Error updating position TP/SL:', error);

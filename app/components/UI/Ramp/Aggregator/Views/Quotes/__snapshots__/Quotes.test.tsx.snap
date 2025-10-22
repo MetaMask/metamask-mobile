@@ -1482,7 +1482,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -5504,7 +5503,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

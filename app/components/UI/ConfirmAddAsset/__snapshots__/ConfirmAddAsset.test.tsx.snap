@@ -298,7 +298,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -338,7 +337,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

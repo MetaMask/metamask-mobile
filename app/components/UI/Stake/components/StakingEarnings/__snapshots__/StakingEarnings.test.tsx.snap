@@ -309,7 +309,6 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -597,7 +596,6 @@ exports[`Staking Earnings should render correctly 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
