@@ -1380,7 +1380,6 @@ class FixtureBuilder {
     fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
       polygonNetworkConfig;
 
-    fixtures.NetworkController.activeNetworkClientId = newNetworkClientId;
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
     return this.ensureSolanaModalSuppressed();
