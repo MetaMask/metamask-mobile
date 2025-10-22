@@ -58,7 +58,10 @@ import {
   generateLendingDepositTransaction,
 } from '../../utils/tempLending';
 import styleSheet from './EarnInputView.styles';
-import { EarnInputViewProps } from './EarnInputView.types';
+import {
+  EARN_INPUT_VIEW_ACTIONS,
+  EarnInputViewProps,
+} from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
@@ -67,6 +70,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -102,6 +107,8 @@ const EarnInputView = () => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
   // if token is ETH, use 1 as the exchange rate
   // otherwise, use the contract exchange rate or 0 if undefined
@@ -809,7 +816,15 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          {!isStablecoinLendingEnabled && (
+          {isStablecoinLendingEnabled && !isTrxStakingEnabled ? (
+            <>
+              <View style={styles.spacer} />
+              <EarnTokenSelector
+                token={token}
+                action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+              />
+            </>
+          ) : (
             <EstimatedAnnualRewardsCard
               estimatedAnnualRewards={estimatedAnnualRewards}
               onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
