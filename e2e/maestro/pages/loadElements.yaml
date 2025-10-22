@@ -5,6 +5,7 @@
 appId: io.metamask
 ---
 - runScript: onboarding.js
+- runScript: login.js
 - runScript: home.js
 - runScript: add-wallet.js
 - runScript: browser.js
