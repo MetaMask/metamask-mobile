@@ -8,11 +8,11 @@ import {
   CardToken,
   CardError,
   CardErrorType,
-  CardLocation,
   CardLoginInitiateResponse,
   CardLoginResponse,
   CardAuthorizeResponse,
   CardExchangeTokenResponse,
+  CardLocation,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -141,18 +141,20 @@ describe('CardSDK', () => {
   });
 
   describe('constructor', () => {
-    it('should initialize with correct card feature flag and chain ID', () => {
+    it('initializes with correct card feature flag and chain ID', () => {
       expect(cardSDK.isCardEnabled).toBe(true);
-      expect(cardSDK.supportedTokens).toEqual(mockSupportedTokens);
+      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
+        mockSupportedTokens,
+      );
     });
   });
 
   describe('isCardEnabled', () => {
-    it('should return true when card is enabled for the chain', () => {
+    it('returns true when card is enabled for the chain', () => {
       expect(cardSDK.isCardEnabled).toBe(true);
     });
 
-    it('should return false when card is disabled for the chain', () => {
+    it('returns false when card is disabled for the chain', () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         constants: {
           accountsApiUrl: 'https://accounts.api.cx.metamask.io',
@@ -172,7 +174,7 @@ describe('CardSDK', () => {
       expect(disabledCardholderSDK.isCardEnabled).toBe(false);
     });
 
-    it('should return false when chain is not configured', () => {
+    it('returns false when chain is not configured', () => {
       const emptyCardFeatureFlag: CardFeatureFlag = {};
 
       const noChainCardholderSDK = new CardSDK({
@@ -183,12 +185,14 @@ describe('CardSDK', () => {
     });
   });
 
-  describe('supportedTokens', () => {
-    it('should return supported tokens when card is enabled', () => {
-      expect(cardSDK.supportedTokens).toEqual(mockSupportedTokens);
+  describe('getSupportedTokensByChainId', () => {
+    it('returns supported tokens when card is enabled', () => {
+      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
+        mockSupportedTokens,
+      );
     });
 
-    it('should return empty array when card is disabled', () => {
+    it('returns empty array when card is disabled', () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         constants: {
           accountsApiUrl: 'https://accounts.api.cx.metamask.io',
@@ -205,10 +209,14 @@ describe('CardSDK', () => {
         cardFeatureFlag: disabledCardFeatureFlag,
       });
 
-      expect(disabledCardholderSDK.supportedTokens).toEqual([]);
+      expect(
+        disabledCardholderSDK.getSupportedTokensByChainId(
+          disabledCardholderSDK.lineaChainId,
+        ),
+      ).toEqual([]);
     });
 
-    it('should return empty array when tokens array is undefined', () => {
+    it('returns empty array when tokens array is undefined', () => {
       const noTokensCardFeatureFlag: CardFeatureFlag = {
         constants: {
           accountsApiUrl: 'https://accounts.api.cx.metamask.io',
@@ -225,12 +233,47 @@ describe('CardSDK', () => {
         cardFeatureFlag: noTokensCardFeatureFlag,
       });
 
-      expect(noTokensCardSDK.supportedTokens).toEqual([]);
+      expect(
+        noTokensCardSDK.getSupportedTokensByChainId(
+          noTokensCardSDK.lineaChainId,
+        ),
+      ).toEqual([]);
+    });
+
+    it('filters out tokens with enabled=false', () => {
+      const tokensWithDisabled: SupportedToken[] = [
+        mockSupportedTokens[0],
+        {
+          ...mockSupportedTokens[1],
+          enabled: false,
+        },
+      ];
+
+      const customFeatureFlag: CardFeatureFlag = {
+        ...mockCardFeatureFlag,
+        chains: {
+          'eip155:59144': {
+            ...mockCardFeatureFlag.chains?.['eip155:59144'],
+            enabled: true,
+            tokens: tokensWithDisabled,
+          },
+        },
+      };
+
+      const customSDK = new CardSDK({
+        cardFeatureFlag: customFeatureFlag,
+      });
+
+      const tokens = customSDK.getSupportedTokensByChainId(
+        customSDK.lineaChainId,
+      );
+      expect(tokens).toHaveLength(1);
+      expect(tokens[0].address).toBe(mockSupportedTokens[0].address);
     });
   });
 
   describe('error handling for private getters', () => {
-    it('should handle error when foxConnectAddresses are missing in getSupportedTokensAllowances', async () => {
+    it('throws error when foxConnectAddresses are missing in getSupportedTokensAllowances', async () => {
       const missingFoxConnectFeatureFlag: CardFeatureFlag = {
         constants: {
           accountsApiUrl: 'https://accounts.api.cx.metamask.io',
@@ -258,7 +301,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle error when balanceScannerAddress is missing in getSupportedTokensAllowances', async () => {
+    it('throws error when balanceScannerAddress is missing in getSupportedTokensAllowances', async () => {
       const missingBalanceScannerFeatureFlag: CardFeatureFlag = {
         constants: {
           accountsApiUrl: 'https://accounts.api.cx.metamask.io',
@@ -291,26 +334,51 @@ describe('CardSDK', () => {
   });
 
   describe('supportedTokensAddresses', () => {
-    it('should return valid token addresses', () => {
-      const addresses = cardSDK.supportedTokens;
+    it('returns valid token addresses', () => {
+      const addresses = cardSDK.getSupportedTokensByChainId(
+        cardSDK.lineaChainId,
+      );
       expect(addresses).toHaveLength(2);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
       expect(addresses[1].address).toBe(mockSupportedTokens[1].address);
     });
 
-    it('should filter out invalid addresses', () => {
-      (ethers.utils.isAddress as jest.Mock).mockImplementation(
-        (address: string) => address === mockSupportedTokens[0].address,
-      );
+    it('filters out tokens with invalid addresses', () => {
+      const tokensWithInvalid: SupportedToken[] = [
+        mockSupportedTokens[0],
+        {
+          address: undefined as unknown as string,
+          symbol: 'INVALID',
+          name: 'Invalid Token',
+          decimals: 6,
+        },
+      ];
 
-      const addresses = cardSDK.supportedTokens;
+      const customFeatureFlag: CardFeatureFlag = {
+        ...mockCardFeatureFlag,
+        chains: {
+          'eip155:59144': {
+            ...mockCardFeatureFlag.chains?.['eip155:59144'],
+            enabled: true,
+            tokens: tokensWithInvalid,
+          },
+        },
+      };
+
+      const customSDK = new CardSDK({
+        cardFeatureFlag: customFeatureFlag,
+      });
+
+      const addresses = customSDK.getSupportedTokensByChainId(
+        customSDK.lineaChainId,
+      );
       expect(addresses).toHaveLength(1);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
     });
   });
 
   describe('isCardHolder', () => {
-    it('should return empty array when card is not enabled', async () => {
+    it('returns empty array when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         chains: {
           'eip155:59144': {
@@ -330,19 +398,19 @@ describe('CardSDK', () => {
       expect(result).toEqual([]);
     });
 
-    it('should return empty array when no accounts provided', async () => {
+    it('returns empty array when no accounts provided', async () => {
       const result = await cardSDK.isCardHolder([]);
       expect(result).toEqual([]);
     });
 
-    it('should return empty array when accounts array is null or undefined', async () => {
+    it('returns empty array when accounts array is null or undefined', async () => {
       const result = await cardSDK.isCardHolder(
         undefined as unknown as `eip155:${string}:0x${string}`[],
       );
       expect(result).toEqual([]);
     });
 
-    it('should handle single batch (≤50 accounts) correctly', async () => {
+    it('processes single batch (≤50 accounts) correctly', async () => {
       const singleBatchAccounts = Array(30).fill(
         mockTestAddress,
       ) as `eip155:${string}:0x${string}`[];
@@ -361,7 +429,7 @@ describe('CardSDK', () => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle multiple batches (up to 150 accounts)', async () => {
+    it('processes multiple batches (up to 150 accounts)', async () => {
       const multiBatchAccounts = Array(100).fill(
         mockTestAddress,
       ) as `eip155:${string}:0x${string}`[];
@@ -383,7 +451,7 @@ describe('CardSDK', () => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 
-    it('should limit processing to maximum 3 batches (150 accounts)', async () => {
+    it('limits processing to maximum 3 batches (150 accounts)', async () => {
       const manyAccounts = Array(200).fill(
         mockTestAddress,
       ) as `eip155:${string}:0x${string}`[];
@@ -406,7 +474,7 @@ describe('CardSDK', () => {
       expect(global.fetch).toHaveBeenCalledTimes(3);
     });
 
-    it('should return cardholder accounts when API returns accounts in is array', async () => {
+    it('returns cardholder accounts when API returns accounts in is array', async () => {
       const multipleAccounts = [
         'eip155:59144:0x1111111111111111111111111111111111111111',
         'eip155:59144:0x2222222222222222222222222222222222222222',
@@ -435,7 +503,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should return empty array when API returns empty is array', async () => {
+    it('returns empty array when API returns empty is array', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue({
@@ -447,7 +515,7 @@ describe('CardSDK', () => {
       expect(result).toEqual([]);
     });
 
-    it('should handle API error responses with status code', async () => {
+    it('handles API error responses with status code', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 404,
@@ -461,7 +529,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle network errors and return empty array', async () => {
+    it('handles network errors and returns empty array', async () => {
       const error = new Error('Network error');
       (global.fetch as jest.Mock).mockRejectedValue(error);
 
@@ -473,7 +541,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle missing accountsApiUrl gracefully', async () => {
+    it('handles missing accountsApiUrl gracefully', async () => {
       const missingAccountsApiFeatureFlag: CardFeatureFlag = {
         chains: {
           'eip155:59144': {
@@ -495,7 +563,7 @@ describe('CardSDK', () => {
       expect(Logger.log).toHaveBeenCalled();
     });
 
-    it('should construct correct API request with proper parameters', async () => {
+    it('constructs correct API request with proper parameters', async () => {
       const testAccounts = [
         'eip155:59144:0x1111111111111111111111111111111111111111',
         'eip155:59144:0x2222222222222222222222222222222222222222',
@@ -537,7 +605,7 @@ describe('CardSDK', () => {
       jest.clearAllMocks();
     });
 
-    it('should return UNKNOWN when API call fails', async () => {
+    it('returns UNKNOWN when API call fails', async () => {
       const error = new Error('Network error');
       (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
@@ -550,7 +618,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should return UNKNOWN when fetch throws an error', async () => {
+    it('returns UNKNOWN when fetch throws an error', async () => {
       const fetchError = new Error('Fetch failed');
       (global.fetch as jest.Mock).mockRejectedValueOnce(fetchError);
 
@@ -563,7 +631,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should return UNKNOWN when response.text() throws an error', async () => {
+    it('returns UNKNOWN when response.text() throws an error', async () => {
       const textError = new Error('Failed to read response text');
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
@@ -579,7 +647,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle different country codes correctly', async () => {
+    it('handles different country codes correctly', async () => {
       const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'UNKNOWN'];
 
       for (const code of countryCodes) {
@@ -593,7 +661,7 @@ describe('CardSDK', () => {
       }
     });
 
-    it('should handle empty string response from API', async () => {
+    it('handles empty string response from API', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         text: jest.fn().mockResolvedValue(''),
@@ -608,7 +676,7 @@ describe('CardSDK', () => {
   describe('getSupportedTokensAllowances', () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
 
-    it('should throw error when card is not enabled', async () => {
+    it('throws error when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         constants: {
           onRampApiUrl: '',
@@ -630,7 +698,7 @@ describe('CardSDK', () => {
       ).rejects.toThrow('Card feature is not enabled for this chain');
     });
 
-    it('should return empty array when no supported tokens', async () => {
+    it('returns empty array when no supported tokens', async () => {
       const emptyTokensCardFeatureFlag: CardFeatureFlag = {
         chains: {
           'eip155:59144': {
@@ -655,7 +723,7 @@ describe('CardSDK', () => {
       expect(result).toEqual([]);
     });
 
-    it('should return token allowances correctly', async () => {
+    it('returns token allowances correctly', async () => {
       mockContract.spendersAllowancesForTokens.mockResolvedValue([
         [
           [true, '1000'],
@@ -687,7 +755,7 @@ describe('CardSDK', () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
     const nonZeroBalanceTokens = [mockSupportedTokens[0].address as string];
 
-    it('should throw error when card is not enabled', async () => {
+    it('throws error when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         chains: {
           'eip155:59144': {
@@ -709,7 +777,7 @@ describe('CardSDK', () => {
       ).rejects.toThrow('Card feature is not enabled for this chain');
     });
 
-    it('should return the matching token when only one token has non-zero balance', async () => {
+    it('returns the matching token when only one token has non-zero balance', async () => {
       const result = await cardSDK.getPriorityToken(
         testAddress,
         nonZeroBalanceTokens,
@@ -723,7 +791,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should return null when token is not found in supported tokens', async () => {
+    it('returns null when token is not found in supported tokens', async () => {
       const unknownTokenAddress = '0xunknown1234567890123456789012345678901234';
       const result = await cardSDK.getPriorityToken(testAddress, [
         unknownTokenAddress,
@@ -732,7 +800,7 @@ describe('CardSDK', () => {
       expect(result).toBeNull();
     });
 
-    it('should analyze approval logs when multiple tokens have non-zero balances', async () => {
+    it('analyzes approval logs when multiple tokens have non-zero balances', async () => {
       const multipleTokens = [
         mockSupportedTokens[0].address as string,
         mockSupportedTokens[1].address as string,
@@ -800,7 +868,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should return first supported token when no approval logs are found', async () => {
+    it('returns first supported token when no approval logs are found', async () => {
       const multipleTokens = [
         mockSupportedTokens[0].address as string,
         mockSupportedTokens[1].address as string,
@@ -821,7 +889,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should return null when no supported tokens and no logs', async () => {
+    it('returns null when no supported tokens and no logs', async () => {
       const emptyCardFeatureFlag: CardFeatureFlag = {
         chains: {
           'eip155:59144': {
@@ -844,7 +912,7 @@ describe('CardSDK', () => {
   });
 
   describe('mapSupportedTokenToCardToken', () => {
-    it('should correctly map SupportedToken to CardToken', () => {
+    it('maps SupportedToken to CardToken correctly', () => {
       const supportedToken = mockSupportedTokens[0];
 
       // Access the private method through bracket notation
@@ -867,10 +935,10 @@ describe('CardSDK', () => {
     const mockQueryParams = {
       state: 'test-state',
       codeChallenge: 'test-challenge',
-      location: 'us' as CardLocation,
+      location: 'international' as CardLocation,
     };
 
-    it('should initiate authentication successfully', async () => {
+    it('initiates authentication successfully', async () => {
       const mockResponse: CardLoginInitiateResponse = {
         token: 'initiate-token',
         url: 'https://example.com/auth',
@@ -893,14 +961,14 @@ describe('CardSDK', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'x-us-env': 'true',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
           }),
         }),
       );
     });
 
-    it('should handle server error response', async () => {
+    it('handles server error response', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 500,
@@ -921,7 +989,7 @@ describe('CardSDK', () => {
       expect(Logger.log).toHaveBeenCalled();
     });
 
-    it('should handle network error', async () => {
+    it('handles network error', async () => {
       const networkError = new Error('Network failure');
       (global.fetch as jest.Mock).mockRejectedValue(networkError);
 
@@ -937,7 +1005,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should handle timeout error', async () => {
+    it('handles timeout error', async () => {
       const timeoutError = new Error('AbortError');
       timeoutError.name = 'AbortError';
       (global.fetch as jest.Mock).mockRejectedValue(timeoutError);
@@ -953,23 +1021,56 @@ describe('CardSDK', () => {
         message: 'Request timed out. Please check your connection.',
       });
     });
+
+    it('sets x-us-env header to true when userCardLocation is us', async () => {
+      const usCardSDK = new CardSDK({
+        cardFeatureFlag: mockCardFeatureFlag,
+        userCardLocation: 'us',
+      });
+
+      const usQueryParams = {
+        ...mockQueryParams,
+        location: 'us' as CardLocation,
+      };
+
+      const mockResponse: CardLoginInitiateResponse = {
+        token: 'initiate-token',
+        url: 'https://example.com/auth',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      await usCardSDK.initiateCardProviderAuthentication(usQueryParams);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/oauth/authorize/initiate'),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-us-env': 'true',
+          }),
+        }),
+      );
+    });
   });
 
   describe('login', () => {
     const mockLoginData = {
       email: 'test@example.com',
       password: 'password123',
-      location: 'us' as CardLocation,
+      location: 'international' as CardLocation,
     };
 
-    it('should login successfully', async () => {
+    it('logs in successfully', async () => {
       const mockResponse: CardLoginResponse = {
-        phase: 'verified',
+        phase: null,
         userId: 'user-123',
         isOtpRequired: false,
         phoneNumber: null,
         accessToken: 'login-token',
-        verificationState: 'verified',
+        verificationState: 'VERIFIED',
         isLinked: true,
       };
 
@@ -991,6 +1092,49 @@ describe('CardSDK', () => {
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
+            'x-us-env': 'false',
+            'x-client-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('logs in successfully with OTP code', async () => {
+      const mockLoginDataWithOtp = {
+        ...mockLoginData,
+        otpCode: '123456',
+        location: 'us' as CardLocation,
+      };
+
+      const mockResponse: CardLoginResponse = {
+        phase: null,
+        userId: 'user-123',
+        isOtpRequired: false,
+        phoneNumber: '+1234567890',
+        accessToken: 'login-token',
+        verificationState: 'VERIFIED',
+        isLinked: true,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.login(mockLoginDataWithOtp);
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/login'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            email: mockLoginDataWithOtp.email,
+            password: mockLoginDataWithOtp.password,
+            otpCode: mockLoginDataWithOtp.otpCode,
+          }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
             'x-us-env': 'true',
             'x-client-key': 'test-api-key',
           }),
@@ -998,7 +1142,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle invalid credentials error', async () => {
+    it('throws error with invalid credentials', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 401,
@@ -1013,7 +1157,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should handle server error', async () => {
+    it('throws error on server error', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 500,
@@ -1028,7 +1172,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should handle unknown error status', async () => {
+    it('throws error on unknown error status', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 400,
@@ -1044,14 +1188,157 @@ describe('CardSDK', () => {
     });
   });
 
+  describe('sendOtpLogin', () => {
+    const mockOtpData = {
+      userId: 'user-123',
+      location: 'international' as CardLocation,
+    };
+
+    it('sends OTP login request successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        text: jest.fn().mockResolvedValue(''),
+      });
+
+      await cardSDK.sendOtpLogin(mockOtpData);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/login/otp'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            userId: mockOtpData.userId,
+          }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-us-env': 'false',
+            'x-client-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('sends OTP login request using userCardLocation', async () => {
+      const usCardSDK = new CardSDK({
+        cardFeatureFlag: mockCardFeatureFlag,
+        userCardLocation: 'us',
+      });
+
+      const mockOtpDataInternational = {
+        userId: 'user-456',
+        location: 'us' as CardLocation,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        text: jest.fn().mockResolvedValue(''),
+      });
+
+      await usCardSDK.sendOtpLogin(mockOtpDataInternational);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/login/otp'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            userId: mockOtpDataInternational.userId,
+          }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-us-env': 'true',
+            'x-client-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('throws error on server error when sending OTP', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockResolvedValue('Internal server error'),
+      });
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to send OTP login. Please try again.',
+      });
+
+      expect(Logger.log).toHaveBeenCalled();
+    });
+
+    it('throws error when response text parsing fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockRejectedValue(new Error('Parse error')),
+      });
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to send OTP login. Please try again.',
+      });
+
+      expect(Logger.log).toHaveBeenCalled();
+    });
+
+    it('throws error on network error when sending OTP', async () => {
+      const networkError = new Error('Network failure');
+      (global.fetch as jest.Mock).mockRejectedValue(networkError);
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+        message: 'Network error. Please check your connection.',
+      });
+    });
+
+    it('throws error on timeout when sending OTP', async () => {
+      const timeoutError = new Error('AbortError');
+      timeoutError.name = 'AbortError';
+      (global.fetch as jest.Mock).mockRejectedValue(timeoutError);
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.sendOtpLogin(mockOtpData)).rejects.toMatchObject({
+        type: CardErrorType.TIMEOUT_ERROR,
+        message: 'Request timed out. Please check your connection.',
+      });
+    });
+
+    it('returns void on successful OTP send', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        text: jest.fn().mockResolvedValue(''),
+      });
+
+      const result = await cardSDK.sendOtpLogin(mockOtpData);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe('authorize', () => {
     const mockAuthorizeData = {
       initiateAccessToken: 'initiate-token',
       loginAccessToken: 'login-token',
-      location: 'us' as CardLocation,
+      location: 'international' as CardLocation,
     };
 
-    it('should authorize successfully', async () => {
+    it('authorizes successfully', async () => {
       const mockResponse: CardAuthorizeResponse = {
         state: 'auth-state',
         url: 'https://example.com/callback',
@@ -1075,7 +1362,7 @@ describe('CardSDK', () => {
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'x-us-env': 'true',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
             Authorization: `Bearer ${mockAuthorizeData.loginAccessToken}`,
           }),
@@ -1083,7 +1370,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle authorization failure with invalid credentials', async () => {
+    it('throws error when authorization fails with invalid credentials', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 403,
@@ -1100,7 +1387,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should handle server error during authorization', async () => {
+    it('throws error on server error during authorization', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 500,
@@ -1123,7 +1410,7 @@ describe('CardSDK', () => {
       code: 'auth-code',
       codeVerifier: 'code-verifier',
       grantType: 'authorization_code' as const,
-      location: 'us' as CardLocation,
+      location: 'international' as CardLocation,
     };
 
     const mockRefreshTokenExchangeData = {
@@ -1132,7 +1419,7 @@ describe('CardSDK', () => {
       location: 'international' as CardLocation,
     };
 
-    it('should exchange authorization code successfully', async () => {
+    it('exchanges authorization code successfully', async () => {
       const mockRawResponse = {
         access_token: 'new-access-token',
         token_type: 'Bearer',
@@ -1169,7 +1456,7 @@ describe('CardSDK', () => {
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'x-us-env': 'true',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
             'x-secret-key': 'test-api-key',
           }),
@@ -1177,7 +1464,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should exchange refresh token successfully', async () => {
+    it('exchanges refresh token successfully', async () => {
       const mockRawResponse = {
         access_token: 'refreshed-access-token',
         token_type: 'Bearer',
@@ -1220,7 +1507,7 @@ describe('CardSDK', () => {
       );
     });
 
-    it('should handle token exchange failure with invalid credentials', async () => {
+    it('throws error when token exchange fails with invalid credentials', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 401,
@@ -1239,7 +1526,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('should handle server error during token exchange', async () => {
+    it('throws error on server error during token exchange', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 500,
@@ -1259,78 +1546,8 @@ describe('CardSDK', () => {
     });
   });
 
-  describe('refreshLocalToken', () => {
-    it('should refresh token successfully', async () => {
-      const mockRefreshToken = 'refresh-token-123';
-      const mockLocation: CardLocation = 'international';
-
-      const mockResponse = {
-        access_token: 'refreshed-access-token',
-        token_type: 'Bearer',
-        expires_in: 3600,
-        refresh_token: 'new-refresh-token',
-        refresh_token_expires_in: 7200,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.refreshLocalToken(
-        mockRefreshToken,
-        mockLocation,
-      );
-
-      const expectedResponse: CardExchangeTokenResponse = {
-        accessToken: 'refreshed-access-token',
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        refreshToken: 'new-refresh-token',
-        refreshTokenExpiresIn: 7200,
-      };
-
-      expect(result).toEqual(expectedResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/oauth/token'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            grant_type: 'refresh_token',
-            refresh_token: mockRefreshToken,
-          }),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'false',
-            'x-client-key': 'test-api-key',
-            'x-secret-key': 'test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('should handle refresh token failure', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 401,
-        text: jest.fn().mockResolvedValue('Invalid refresh token'),
-      });
-
-      await expect(
-        cardSDK.refreshLocalToken('invalid-token', 'us'),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.refreshLocalToken('invalid-token', 'us'),
-      ).rejects.toMatchObject({
-        type: CardErrorType.INVALID_CREDENTIALS,
-        message: 'Token exchange failed. Please try logging in again.',
-      });
-    });
-  });
-
   describe('isBaanxLoginEnabled', () => {
-    it('should return true when Baanx login is enabled', () => {
+    it('returns true when Baanx login is enabled', () => {
       const enabledFeatureFlag: CardFeatureFlag = {
         ...mockCardFeatureFlag,
         isBaanxLoginEnabled: true,
@@ -1343,7 +1560,7 @@ describe('CardSDK', () => {
       expect(enabledSDK.isBaanxLoginEnabled).toBe(true);
     });
 
-    it('should return false when Baanx login is disabled', () => {
+    it('returns false when Baanx login is disabled', () => {
       const disabledFeatureFlag: CardFeatureFlag = {
         ...mockCardFeatureFlag,
         isBaanxLoginEnabled: false,
@@ -1356,7 +1573,7 @@ describe('CardSDK', () => {
       expect(disabledSDK.isBaanxLoginEnabled).toBe(false);
     });
 
-    it('should return false when Baanx login flag is undefined', () => {
+    it('returns false when Baanx login flag is undefined', () => {
       const undefinedFeatureFlag: CardFeatureFlag = {
         ...mockCardFeatureFlag,
       };
@@ -1371,7 +1588,7 @@ describe('CardSDK', () => {
   });
 
   describe('makeRequest error scenarios', () => {
-    it('should handle unknown error type', async () => {
+    it('handles unknown error type', async () => {
       const unknownError = 'string error';
       (global.fetch as jest.Mock).mockRejectedValue(unknownError);
 
@@ -1379,7 +1596,7 @@ describe('CardSDK', () => {
         cardSDK.login({
           email: 'test@example.com',
           password: 'password',
-          location: 'us',
+          location: 'international',
         }),
       ).rejects.toThrow(CardError);
 
@@ -1387,12 +1604,307 @@ describe('CardSDK', () => {
         cardSDK.login({
           email: 'test@example.com',
           password: 'password',
-          location: 'us',
+          location: 'international',
         }),
       ).rejects.toMatchObject({
         type: CardErrorType.UNKNOWN_ERROR,
         message: 'An unexpected error occurred.',
       });
+    });
+  });
+
+  describe('getCardDetails', () => {
+    it('gets card details successfully', async () => {
+      const mockCardDetails = {
+        id: 'card-123',
+        status: 'active',
+        last4: '1234',
+        expiryMonth: '12',
+        expiryYear: '2025',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockCardDetails),
+      });
+
+      const result = await cardSDK.getCardDetails();
+
+      expect(result).toEqual(mockCardDetails);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/status'),
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+    });
+
+    it('throws NO_CARD error when user has no card (404)', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(cardSDK.getCardDetails()).rejects.toThrow(CardError);
+
+      await expect(cardSDK.getCardDetails()).rejects.toMatchObject({
+        type: CardErrorType.NO_CARD,
+        message: 'User has no card. Request a card first.',
+      });
+    });
+
+    it('throws SERVER_ERROR for other error statuses', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ error: 'Internal Server Error' }),
+      });
+
+      await expect(cardSDK.getCardDetails()).rejects.toThrow(CardError);
+
+      await expect(cardSDK.getCardDetails()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to get card details. Please try again.',
+      });
+
+      expect(Logger.log).toHaveBeenCalled();
+    });
+  });
+
+  describe('getCardExternalWalletDetails', () => {
+    it('gets external wallet details successfully', async () => {
+      const mockExternalWalletResponse = [
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          balance: '1000.00',
+          allowance: '500.00',
+          network: 'linea',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDT',
+          balance: '2000.00',
+          allowance: '1000.00',
+          network: 'linea',
+        },
+      ];
+
+      const mockPriorityWalletResponse = [
+        {
+          id: 1,
+          currency: 'USDC',
+          network: 'linea',
+          priority: 1,
+        },
+        {
+          id: 2,
+          currency: 'USDT',
+          network: 'linea',
+          priority: 2,
+        },
+      ];
+
+      let callCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: true,
+            json: jest.fn().mockResolvedValue(mockExternalWalletResponse),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockPriorityWalletResponse),
+        });
+      });
+
+      const result = await cardSDK.getCardExternalWalletDetails();
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatchObject({
+        id: 1,
+        walletAddress: mockExternalWalletResponse[0].address,
+        currency: 'USDC',
+        priority: 1,
+      });
+      expect(result[1]).toMatchObject({
+        id: 2,
+        walletAddress: mockExternalWalletResponse[1].address,
+        currency: 'USDT',
+        priority: 2,
+      });
+
+      // Should call both endpoints
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/external'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/external/priority'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('returns empty array when external wallet details are empty', async () => {
+      (global.fetch as jest.Mock).mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        }),
+      );
+
+      const result = await cardSDK.getCardExternalWalletDetails();
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws error when external wallet API fails', async () => {
+      let callCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+      });
+
+      await expect(
+        cardSDK.getCardExternalWalletDetails(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message:
+          'Failed to get card external wallet details. Please try again.',
+      });
+    });
+
+    it('throws error when priority wallet API fails', async () => {
+      let callCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                currency: 'USDC',
+                balance: '1000.00',
+                allowance: '500.00',
+                network: 'linea',
+              },
+            ]),
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+        });
+      });
+
+      await expect(
+        cardSDK.getCardExternalWalletDetails(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message:
+          'Failed to get card external wallet details. Please try again.',
+      });
+    });
+
+    it('sorts results by priority (lower number = higher priority)', async () => {
+      const mockExternalWalletResponse = [
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          balance: '1000.00',
+          allowance: '500.00',
+          network: 'linea',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDT',
+          balance: '2000.00',
+          allowance: '1000.00',
+          network: 'linea',
+        },
+      ];
+
+      const mockPriorityWalletResponse = [
+        {
+          id: 1,
+          currency: 'USDC',
+          network: 'linea',
+          priority: 5, // Lower priority
+        },
+        {
+          id: 2,
+          currency: 'USDT',
+          network: 'linea',
+          priority: 1, // Higher priority
+        },
+      ];
+
+      let callCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: true,
+            json: jest.fn().mockResolvedValue(mockExternalWalletResponse),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockPriorityWalletResponse),
+        });
+      });
+
+      const result = await cardSDK.getCardExternalWalletDetails();
+
+      // Should be sorted by priority ascending (1 comes before 5)
+      expect(result[0].priority).toBe(1);
+      expect(result[0].currency).toBe('USDT');
+      expect(result[1].priority).toBe(5);
+      expect(result[1].currency).toBe('USDC');
+    });
+
+    it('handles missing priority data gracefully', async () => {
+      const mockExternalWalletResponse = [
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          balance: '1000.00',
+          allowance: '500.00',
+          network: 'linea',
+        },
+      ];
+
+      let callCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: true,
+            json: jest.fn().mockResolvedValue(mockExternalWalletResponse),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+      });
+
+      const result = await cardSDK.getCardExternalWalletDetails();
+
+      expect(result).toEqual([]);
     });
   });
 });
