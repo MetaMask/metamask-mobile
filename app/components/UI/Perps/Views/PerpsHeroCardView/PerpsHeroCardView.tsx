@@ -32,7 +32,7 @@ import ButtonIcon, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
-import PerpsReferralCode from '../../components/PerpsReferralCode';
+import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
 import { usePerpsMarkets } from '../../hooks';
 import {
   formatPerpsFiat,
@@ -68,8 +68,7 @@ const PerpsHeroCardView: React.FC = () => {
   };
   const { position, transaction } = params;
 
-  // Get referral code from Rewards
-  const referralCode = useSelector(selectReferralCode) ?? 'BUDHHA';
+  const rewardsReferralCode = useSelector(selectReferralCode);
 
   // Get markets data to fetch current market price
   const { markets } = usePerpsMarkets({
@@ -359,25 +358,29 @@ const PerpsHeroCardView: React.FC = () => {
                       </View>
 
                       {/* Referral Code Section */}
-                      <View style={styles.referralContainer}>
-                        <PerpsReferralCode referralCode={referralCode} />
-                        <View style={styles.footerTextContainer}>
-                          <Text
-                            variant={TextVariant.BodySM}
-                            style={styles.footerText}
-                          >
-                            {strings('perps.pnl_hero_card.referral_footer')}
-                          </Text>
-                          <Text
-                            variant={TextVariant.BodySM}
-                            style={styles.footerText}
-                          >
-                            {strings('perps.pnl_hero_card.referral_link', {
-                              code: referralCode,
-                            })}
-                          </Text>
+                      {rewardsReferralCode !== null && (
+                        <View style={styles.referralContainer}>
+                          <RewardsReferralCodeTag
+                            referralCode={rewardsReferralCode}
+                          />
+                          <View style={styles.footerTextContainer}>
+                            <Text
+                              variant={TextVariant.BodySM}
+                              style={styles.footerText}
+                            >
+                              {strings('perps.pnl_hero_card.referral_footer')}
+                            </Text>
+                            <Text
+                              variant={TextVariant.BodySM}
+                              style={styles.footerText}
+                            >
+                              {strings('perps.pnl_hero_card.referral_link', {
+                                code: rewardsReferralCode,
+                              })}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
+                      )}
                     </ImageBackground>
                   </View>
                 </View>
