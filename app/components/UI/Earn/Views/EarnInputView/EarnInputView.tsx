@@ -809,19 +809,21 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          <EstimatedAnnualRewardsCard
-            estimatedAnnualRewards={estimatedAnnualRewards}
-            onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-              event: MetaMetricsEvents.TOOLTIP_OPENED,
-              properties: {
-                selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                text: 'Tooltip Opened',
-                location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-                tooltip_name: 'MetaMask Pool Estimated Rewards',
-              },
-            })}
-            isLoading={isLoadingEarnMetadata}
-          />
+          {!isStablecoinLendingEnabled && (
+            <EstimatedAnnualRewardsCard
+              estimatedAnnualRewards={estimatedAnnualRewards}
+              onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+                event: MetaMetricsEvents.TOOLTIP_OPENED,
+                properties: {
+                  selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                  text: 'Tooltip Opened',
+                  location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+                  tooltip_name: 'MetaMask Pool Estimated Rewards',
+                },
+              })}
+              isLoading={isLoadingEarnMetadata}
+            />
+          )}
         </View>
       </ScrollView>
       <QuickAmounts
