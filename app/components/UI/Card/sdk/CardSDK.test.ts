@@ -1672,6 +1672,117 @@ describe('CardSDK', () => {
     });
   });
 
+  describe('provisionCard', () => {
+    it('provisions card successfully', async () => {
+      const mockResponse = { success: true };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.provisionCard();
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/order'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'VIRTUAL',
+          }),
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-us-env': 'false',
+            'x-client-key': 'test-api-key',
+            Authorization: 'Bearer mock-token',
+          }),
+        }),
+      );
+    });
+
+    it('throws SERVER_ERROR when provision fails', async () => {
+      const errorResponse = { error: 'Card provision failed' };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue(errorResponse),
+      });
+
+      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+
+      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to provision card. Please try again.',
+      });
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        errorResponse,
+        'Failed to provision card.',
+      );
+    });
+
+    it('handles error when response JSON parsing fails', async () => {
+      const parseError = new Error('Invalid JSON');
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockRejectedValue(parseError),
+      });
+
+      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+
+      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to provision card. Please try again.',
+      });
+    });
+
+    it('includes authentication token in request', async () => {
+      const mockResponse = { success: true };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      await cardSDK.provisionCard();
+
+      expect(getCardBaanxToken).toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-token',
+          }),
+        }),
+      );
+    });
+
+    it('provisions card with correct card type', async () => {
+      const mockResponse = { success: true };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      await cardSDK.provisionCard();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          body: JSON.stringify({
+            type: 'VIRTUAL',
+          }),
+        }),
+      );
+    });
+  });
+
   describe('getCardExternalWalletDetails', () => {
     it('gets external wallet details successfully', async () => {
       const mockExternalWalletResponse = [
