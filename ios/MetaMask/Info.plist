@@ -47,15 +47,7 @@
 	<integer>0</integer>
 	<key>EXUpdatesURL</key>
 	<string>https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620</string>
-	<key>EXUpdatesRuntimeVersion</key>
-	<string>7.58.99</string>
-	<key>EXUpdatesChannel</key>
-	<string>production</string>
-	<key>EXUpdatesRequestHeaders</key>
-	<dict>
-		<key>expo-channel-name</key>
-		<string>production</string>
-	</dict>
+	<!-- EXUpdatesRuntimeVersion, EXUpdatesChannel, and EXUpdatesRequestHeaders are auto-injected by build script -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>twitter</string>

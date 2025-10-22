@@ -15,6 +15,7 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
+import { channel } from 'expo-updates';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -27,6 +28,7 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
+import { getFullVersion } from '../../../../constants/ota';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -202,7 +204,9 @@ export default class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
+            <Text style={styles.versionInfo}>
+              {getFullVersion(this.state.appInfo)}
+            </Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
@@ -213,6 +217,9 @@ export default class AppInformation extends PureComponent {
               <>
                 <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`OTA Update Channel: ${channel}`}
                 </Text>
 
                 <Text style={styles.branchInfo}>
