@@ -5,13 +5,13 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import PenguinCharacter from '../../../../../images/penguin.svg';
-import styleSheet from './PerpsReferralCode.styles';
+import styleSheet from './RewardsReferralCodeTag.styles';
 
-interface PerpsReferralCodeProps {
+interface RewardsReferralCodeTagProps {
   referralCode: string;
 }
 
-const PerpsReferralCode: React.FC<PerpsReferralCodeProps> = ({
+const RewardsReferralCodeTag: React.FC<RewardsReferralCodeTagProps> = ({
   referralCode,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -28,4 +28,4 @@ const PerpsReferralCode: React.FC<PerpsReferralCodeProps> = ({
   );
 };
 
-export default PerpsReferralCode;
+export default RewardsReferralCodeTag;
