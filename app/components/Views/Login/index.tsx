@@ -149,7 +149,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const [startOnboardingAnimation, setStartOnboardingAnimation] =
     useState(false);
-  const [startFoxAnimation, setStartFoxAnimation] = useState(false);
+  const [startFoxAnimation, setStartFoxAnimation] = useState<
+    false | 'Start' | 'Loader'
+  >(false);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
@@ -160,8 +162,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const setStartFoxAnimationCallback = (value: boolean) => {
-    setStartFoxAnimation(value);
+  const setStartFoxAnimationCallback = () => {
+    setStartFoxAnimation('Start');
   };
 
   // coming from oauth onboarding flow flag
@@ -879,8 +881,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           activeOpacity={1}
         >
           <FoxAnimation
-            startFoxAnimation={startFoxAnimation}
             hasFooter={false}
+            trigger={startFoxAnimation || undefined}
           />
         </TouchableOpacity>
       </SafeAreaView>
