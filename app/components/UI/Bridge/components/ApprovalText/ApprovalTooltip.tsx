@@ -35,7 +35,7 @@ const ApprovalTooltip: React.FC<ApprovalTooltipProps> = ({
     <ButtonIcon
       iconName={IconName.Info}
       size={ButtonIconSizes.Sm}
-      iconColor={IconColor.Muted}
+      iconColor={IconColor.Alternative}
       onPress={handleTooltipPress}
       accessibilityLabel={strings('bridge.approval_tooltip_title')}
       accessibilityRole="button"
