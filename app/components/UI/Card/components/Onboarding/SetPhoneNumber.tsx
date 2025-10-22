@@ -159,6 +159,7 @@ const SetPhoneNumber = () => {
             label={strings(
               'card.card_onboarding.set_phone_number.country_area_code_label',
             )}
+            testID="set-phone-number-country-area-code-select"
           />
         </Box>
 
@@ -178,15 +179,24 @@ const SetPhoneNumber = () => {
             accessibilityLabel={strings(
               'card.card_onboarding.set_phone_number.phone_number_label',
             )}
+            testID="set-phone-number-phone-number-input"
           />
         </Box>
       </Box>
       {debouncedPhoneNumber && phoneVerificationIsError ? (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          testID="set-phone-number-phone-number-error"
+          twClassName="text-error-default"
+        >
           {phoneVerificationError}
         </Text>
       ) : isPhoneNumberError ? (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          testID="set-phone-number-phone-number-error"
+          twClassName="text-error-default"
+        >
           {strings(
             'card.card_onboarding.set_phone_number.invalid_phone_number',
           )}
@@ -199,6 +209,7 @@ const SetPhoneNumber = () => {
     <Box twClassName="flex flex-col items-center justify-center gap-2">
       <Text
         variant={TextVariant.BodySm}
+        testID="set-phone-number-legal-terms"
         twClassName="text-text-default text-center"
       >
         {strings('card.card_onboarding.set_phone_number.legal_terms')}
@@ -210,6 +221,7 @@ const SetPhoneNumber = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        testID="set-phone-number-continue-button"
       />
     </Box>
   );

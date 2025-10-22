@@ -115,7 +115,7 @@ const MailingAddress = () => {
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
-        addressLine2: addressLine2 || undefined,
+        addressLine2,
         city,
         usState: state || undefined,
         zip: zipCode,
@@ -168,9 +168,14 @@ const MailingAddress = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        testID="mailing-address-continue-button"
       />
       {!!registerError && (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          testID="mailing-address-error"
+          twClassName="text-error-default"
+        >
           {registerError}
         </Text>
       )}

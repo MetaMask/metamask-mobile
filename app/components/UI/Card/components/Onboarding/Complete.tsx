@@ -25,6 +25,7 @@ const Complete = () => {
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
+      testID="complete-confirm-button"
     />
   );
 

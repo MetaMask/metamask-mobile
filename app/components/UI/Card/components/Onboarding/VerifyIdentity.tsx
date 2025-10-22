@@ -47,6 +47,7 @@ const VerifyIdentity = () => {
       {startVerificationIsError ? (
         <Text
           variant={TextVariant.BodySm}
+          testID="verify-identity-start-verification-error"
           twClassName="text-error-default text-center"
         >
           {startVeriricationErr}
@@ -54,6 +55,7 @@ const VerifyIdentity = () => {
       ) : !sessionUrl && !startVerificationIsLoading ? (
         <Text
           variant={TextVariant.BodySm}
+          testID="verify-identity-start-verification-error"
           twClassName="text-error-default text-center"
         >
           {strings(
@@ -74,6 +76,7 @@ const VerifyIdentity = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={!sessionUrl}
+      testID="verify-identity-continue-button"
     />
   );
   return (

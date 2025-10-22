@@ -254,9 +254,14 @@ const ConfirmPhoneNumber = () => {
               </Text>
             </View>
           )}
+          testID="confirm-phone-number-code-field"
         />
         {verifyIsError && (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            variant={TextVariant.BodySm}
+            testID="confirm-phone-number-code-field-error"
+            twClassName="text-error-default"
+          >
             {verifyError}
           </Text>
         )}
@@ -279,6 +284,7 @@ const ConfirmPhoneNumber = () => {
             !contactVerificationId ||
             phoneVerificationIsLoading
           }
+          testID="confirm-phone-number-resend-verification"
         >
           {resendCooldown > 0
             ? strings(
@@ -292,7 +298,11 @@ const ConfirmPhoneNumber = () => {
               )}
         </Text>
         {phoneVerificationIsError && (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+          <Text
+            variant={TextVariant.BodySm}
+            testID="confirm-phone-number-phone-number-error"
+            twClassName="text-error-default"
+          >
             {phoneVerificationError}
           </Text>
         )}
@@ -308,6 +318,7 @@ const ConfirmPhoneNumber = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      testID="confirm-phone-number-continue-button"
     />
   );
 

@@ -90,6 +90,7 @@ export const AddressFields = ({
           accessibilityLabel={strings(
             'card.card_onboarding.physical_address.address_line_1_label',
           )}
+          testID="address-line-1-input"
         />
       </Box>
       {/* Address Line 2 */}
@@ -113,6 +114,7 @@ export const AddressFields = ({
           accessibilityLabel={strings(
             'card.card_onboarding.physical_address.address_line_2_label',
           )}
+          testID="address-line-2-input"
         />
       </Box>
       {/* City */}
@@ -134,6 +136,7 @@ export const AddressFields = ({
           accessibilityLabel={strings(
             'card.card_onboarding.physical_address.city_label',
           )}
+          testID="city-input"
         />
       </Box>
       {/* State */}
@@ -147,6 +150,7 @@ export const AddressFields = ({
             defaultValue={strings(
               'card.card_onboarding.physical_address.state_placeholder',
             )}
+            testID="state-select"
           />
         </Box>
       )}
@@ -169,6 +173,7 @@ export const AddressFields = ({
           accessibilityLabel={strings(
             'card.card_onboarding.physical_address.zip_code_label',
           )}
+          testID="zip-code-input"
         />
       </Box>
     </>
@@ -305,7 +310,7 @@ const PhysicalAddress = () => {
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
-        addressLine2: addressLine2 || undefined,
+        addressLine2,
         city,
         usState: state || undefined,
         zip: zipCode,
@@ -364,6 +369,7 @@ const PhysicalAddress = () => {
             'card.card_onboarding.physical_address.same_mailing_address_label',
           )}
           style={tw.style('h-auto')}
+          testID="physical-address-same-mailing-address-checkbox"
         />
       )}
 
@@ -375,6 +381,7 @@ const PhysicalAddress = () => {
           'card.card_onboarding.physical_address.electronic_consent',
         )}
         style={tw.style('h-auto')}
+        testID="physical-address-electronic-consent-checkbox"
       />
     </>
   );
@@ -388,13 +395,22 @@ const PhysicalAddress = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        testID="physical-address-continue-button"
       />
       {registerIsError ? (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          testID="physical-address-register-error"
+          twClassName="text-error-default"
+        >
           {registerError}
         </Text>
       ) : registerUserConsentIsError ? (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          testID="physical-address-register-user-consent-error"
+          twClassName="text-error-default"
+        >
           {registerUserConsentError}
         </Text>
       ) : null}

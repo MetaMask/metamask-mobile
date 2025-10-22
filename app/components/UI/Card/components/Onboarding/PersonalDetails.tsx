@@ -216,6 +216,7 @@ const PersonalDetails = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.personal_details.first_name_label',
           )}
+          testID="personal-details-first-name-input"
         />
       </Box>
 
@@ -238,6 +239,7 @@ const PersonalDetails = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.personal_details.last_name_label',
           )}
+          testID="personal-details-last-name-input"
         />
       </Box>
 
@@ -265,7 +267,7 @@ const PersonalDetails = () => {
             defaultValue={strings(
               'card.card_onboarding.personal_details.nationality_placeholder',
             )}
-            testID="nationality-select"
+            testID="personal-details-nationality-select"
           />
         </Box>
       </Box>
@@ -291,9 +293,14 @@ const PersonalDetails = () => {
               'card.card_onboarding.personal_details.ssn_label',
             )}
             isError={!!debouncedSSN && isSSNError}
+            testID="personal-details-ssn-input"
           />
           {debouncedSSN.length > 0 && isSSNError && (
-            <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+            <Text
+              variant={TextVariant.BodySm}
+              testID="personal-details-ssn-error"
+              twClassName="text-error-default"
+            >
               {strings('card.card_onboarding.personal_details.invalid_ssn')}
             </Text>
           )}
@@ -311,9 +318,14 @@ const PersonalDetails = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
+        testID="personal-details-continue-button"
       />
       {!!registerError && (
-        <Text variant={TextVariant.BodySm} twClassName="text-error-default">
+        <Text
+          variant={TextVariant.BodySm}
+          testID="personal-details-error"
+          twClassName="text-error-default"
+        >
           {registerError}
         </Text>
       )}

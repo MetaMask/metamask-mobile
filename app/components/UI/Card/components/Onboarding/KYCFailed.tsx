@@ -25,6 +25,7 @@ const KYCFailed = () => {
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
+      testID="kyc-failed-retry-button"
     />
   );
 

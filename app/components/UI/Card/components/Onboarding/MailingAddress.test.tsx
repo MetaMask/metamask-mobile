@@ -587,4 +587,594 @@ describe('MailingAddress Component', () => {
       expect(textFields[4].props.value).toBe('90210');
     });
   });
+
+  describe('Redux Integration', () => {
+    it('should use onboardingId from Redux state', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectOnboardingId')) {
+            return 'test-onboarding-id';
+          }
+          return null;
+        },
+      );
+
+      render(<MailingAddress />);
+
+      expect(useSelector).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('should use selectedCountry from Redux state', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectSelectedCountry')) {
+            return 'US';
+          }
+          return null;
+        },
+      );
+
+      render(<MailingAddress />);
+
+      expect(useSelector).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('should dispatch setUser action on successful registration', async () => {
+      const { useDispatch } = jest.requireMock('react-redux');
+      const mockDispatch = jest.fn();
+      useDispatch.mockReturnValue(mockDispatch);
+
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setUser'),
+          payload: { id: 'user-123', email: 'test@example.com' },
+        }),
+      );
+    });
+  });
+
+  describe('Hook Integration', () => {
+    it('should handle loading state from useRegisterMailingAddress', () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: true,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      expect(button.props.onPress).toBeUndefined(); // Button should be disabled during loading
+    });
+
+    it('should handle error state from useRegisterMailingAddress', () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isError: true,
+        error: 'Registration failed',
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      expect(button.props.onPress).toBeUndefined(); // Button should be disabled on error
+    });
+
+    it('should call reset function when form fields change', () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockReset = jest.fn();
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: mockReset,
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+
+      expect(mockReset).toHaveBeenCalled();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should display error message when registration error exists', () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isError: false,
+        error: 'Registration failed. Please try again.',
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      expect(screen.getByTestId('mailing-address-error')).toBeTruthy();
+      expect(screen.getByTestId('mailing-address-error').props.children).toBe(
+        'Registration failed. Please try again.',
+      );
+    });
+
+    it('should not display error message when no error exists', () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      expect(() => screen.getByTestId('mailing-address-error')).toThrow();
+    });
+
+    it('should handle CardError with "Onboarding ID not found" and navigate to sign up', async () => {
+      const { CardError } = jest.requireMock('../../types');
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockRegisterAddress = jest
+        .fn()
+        .mockRejectedValue(new CardError('Onboarding ID not found'));
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.SIGN_UP);
+    });
+
+    it('should handle generic errors without navigation', async () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockRegisterAddress = jest
+        .fn()
+        .mockRejectedValue(new Error('Generic error'));
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Should not navigate on generic errors
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.SIGN_UP,
+      );
+    });
+  });
+
+  describe('Conditional Rendering', () => {
+    it('should render state field when selectedCountry is US', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectSelectedCountry')) {
+            return 'US';
+          }
+          return 'test-onboarding-id';
+        },
+      );
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      expect(textFields).toHaveLength(5); // Should include state field for US
+    });
+
+    it('should not require state field when selectedCountry is not US', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectSelectedCountry')) {
+            return 'CA';
+          }
+          return 'test-onboarding-id';
+        },
+      );
+
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      // Fill required fields but leave state empty
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'Toronto');
+      fireEvent.changeText(textFields[4], 'M5V 3A8');
+
+      const button = screen.getByTestId('button');
+      expect(button.props.onPress).toBeDefined(); // Button should be enabled without state for non-US
+    });
+  });
+
+  describe('Form Validation Edge Cases', () => {
+    it('should disable continue button when onboardingId is missing', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectOnboardingId')) {
+            return null; // Missing onboardingId
+          }
+          return 'US';
+        },
+      );
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      expect(button.props.onPress).toBeUndefined(); // Button should be disabled without onboardingId
+    });
+
+    it('should require state field for US users', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectSelectedCountry')) {
+            return 'US';
+          }
+          return 'test-onboarding-id';
+        },
+      );
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      // Fill all fields except state
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      expect(button.props.onPress).toBeUndefined(); // Button should be disabled without state for US users
+    });
+
+    it('should handle empty string values correctly', () => {
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      // Set values then clear them
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[0], '');
+
+      const button = screen.getByTestId('button');
+      expect(button.props.onPress).toBeUndefined(); // Button should be disabled with empty required field
+    });
+  });
+
+  describe('Async Operations', () => {
+    it('should handle successful registration with access token', async () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        accessToken: 'test-access-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockRegisterAddress).toHaveBeenCalledWith({
+        onboardingId: expect.any(String),
+        addressLine1: '123 Main St',
+        addressLine2: '',
+        city: 'New York',
+        usState: 'NY',
+        zip: '12345',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.COMPLETE,
+      );
+    });
+
+    it('should handle registration without access token', async () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Should not navigate without access token
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.COMPLETE,
+      );
+    });
+
+    it('should handle registration with address line 2', async () => {
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        accessToken: 'test-access-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[1], 'Apt 4B');
+      fireEvent.changeText(textFields[2], 'New York');
+      fireEvent.changeText(textFields[3], 'NY');
+      fireEvent.changeText(textFields[4], '12345');
+
+      const button = screen.getByTestId('button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockRegisterAddress).toHaveBeenCalledWith({
+        onboardingId: expect.any(String),
+        addressLine1: '123 Main St',
+        addressLine2: 'Apt 4B',
+        city: 'New York',
+        usState: 'NY',
+        zip: '12345',
+      });
+    });
+
+    it('should handle registration for non-US country', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectSelectedCountry')) {
+            return 'CA';
+          }
+          return 'test-onboarding-id';
+        },
+      );
+
+      const mockUseRegisterMailingAddress = jest.requireMock(
+        '../../hooks/useRegisterMailingAddress',
+      ).default;
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        accessToken: 'test-access-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      fireEvent.changeText(textFields[0], '123 Main St');
+      fireEvent.changeText(textFields[2], 'Toronto');
+      fireEvent.changeText(textFields[4], 'M5V 3A8');
+
+      const button = screen.getByTestId('button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockRegisterAddress).toHaveBeenCalledWith({
+        onboardingId: 'test-onboarding-id',
+        addressLine1: '123 Main St',
+        addressLine2: '',
+        city: 'Toronto',
+        usState: undefined,
+        zip: 'M5V 3A8',
+      });
+    });
+  });
+
+  describe('Button Configuration Edge Cases', () => {
+    it('should have correct testID for continue button', () => {
+      render(<MailingAddress />);
+
+      const button = screen.getByTestId('mailing-address-continue-button');
+      expect(button).toBeTruthy();
+    });
+
+    it('should maintain button properties when disabled', () => {
+      render(<MailingAddress />);
+
+      const button = screen.getByTestId('mailing-address-continue-button');
+      expect(button.props.variant).toBe('primary');
+      expect(button.props.size).toBe('lg');
+      expect(button.props.width).toBe('full');
+    });
+  });
+
+  describe('Component Integration', () => {
+    it('should pass correct props to OnboardingStep component', () => {
+      render(<MailingAddress />);
+
+      const onboardingStep = screen.getByTestId('onboarding-step');
+      const title = screen.getByTestId('onboarding-step-title');
+      const description = screen.getByTestId('onboarding-step-description');
+      const formFields = screen.getByTestId('onboarding-step-form-fields');
+      const actions = screen.getByTestId('onboarding-step-actions');
+
+      expect(onboardingStep).toBeTruthy();
+      expect(title).toBeTruthy();
+      expect(description).toBeTruthy();
+      expect(formFields).toBeTruthy();
+      expect(actions).toBeTruthy();
+    });
+
+    it('should render AddressFields component with correct props', () => {
+      render(<MailingAddress />);
+
+      const textFields = screen.getAllByTestId('text-field');
+      expect(textFields).toHaveLength(5);
+
+      // Verify all address fields are rendered
+      expect(textFields[0].props.placeholder).toBe('Enter address line 1');
+      expect(textFields[1].props.placeholder).toBe(
+        'Enter address line 2 (optional)',
+      );
+      expect(textFields[2].props.placeholder).toBe('Enter city');
+      expect(textFields[3].props.placeholder).toBe('Enter state');
+      expect(textFields[4].props.placeholder).toBe('Enter ZIP code');
+    });
+  });
 });
