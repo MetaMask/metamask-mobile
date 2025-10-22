@@ -12,6 +12,7 @@ import { GasFeeEstimates, GasFeeState } from '@metamask/gas-fee-controller';
 import { orderBy } from 'lodash';
 import { toChecksumAddress } from '../../../../util/address';
 import { BigNumber } from 'bignumber.js';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 const ERROR_MESSAGE_NO_QUOTES = 'No quotes found';
 const ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM = 'All quotes under minimum';
@@ -206,11 +207,17 @@ async function getSingleBridgeQuote(
 
   const { BridgeController } = Engine.context;
 
+  const state = store.getState();
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+    state,
+    sourceChainId,
+  );
+
   const quoteRequest: GenericQuoteRequest = {
     destChainId: targetChainId,
     destTokenAddress: toChecksumAddress(targetTokenAddress),
     destWalletAddress: from,
-    gasIncluded: false,
+    gasIncluded: shouldUseSmartTransaction,
     gasIncluded7702: false,
     insufficientBal: false,
     slippage: slippage * 100,
