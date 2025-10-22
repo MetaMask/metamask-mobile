@@ -8,8 +8,8 @@ describe('convertPerpsAmountToUSD', () => {
   });
 
   it('handles USD strings correctly', () => {
-    expect(convertPerpsAmountToUSD('$10.32')).toBe('$10.32');
-    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0.50'); // Trailing zero stripped
+    expect(convertPerpsAmountToUSD('$10.32')).toBe('$10'); // Rounded down using Math.floor()
+    expect(convertPerpsAmountToUSD('$0.50')).toBe('$0'); // Rounded down using Math.floor()
     expect(convertPerpsAmountToUSD('$1000')).toBe('$1,000');
   });
 
@@ -20,8 +20,8 @@ describe('convertPerpsAmountToUSD', () => {
 
   it('handles numeric strings correctly', () => {
     expect(convertPerpsAmountToUSD('100')).toBe('$100');
-    expect(convertPerpsAmountToUSD('0.5')).toBe('$0.50'); // Trailing zero stripped
-    expect(convertPerpsAmountToUSD('1234.56')).toBe('$1,234.56');
+    expect(convertPerpsAmountToUSD('0.5')).toBe('$0'); // Rounded down using Math.floor()
+    expect(convertPerpsAmountToUSD('1234.56')).toBe('$1,234'); // Rounded down using Math.floor()
   });
 
   it('handles edge cases', () => {
@@ -35,7 +35,7 @@ describe('convertPerpsAmountToUSD', () => {
     expect(convertPerpsAmountToUSD('0x1')).toBe('$0');
 
     // Very small decimal - gets threshold formatting
-    expect(convertPerpsAmountToUSD('0.001')).toBe('<$0.01');
+    expect(convertPerpsAmountToUSD('0.001')).toBe('$0');
   });
 
   it('handles very large amounts', () => {
@@ -44,5 +44,17 @@ describe('convertPerpsAmountToUSD', () => {
 
     // Large USD string
     expect(convertPerpsAmountToUSD('$1000000')).toBe('$1,000,000');
+  });
+
+  it('rounds down dollar amounts using Math.floor()', () => {
+    // Test various decimal values to ensure they round down correctly
+    expect(convertPerpsAmountToUSD('$10.02')).toBe('$10');
+    expect(convertPerpsAmountToUSD('$10.99')).toBe('$10');
+    expect(convertPerpsAmountToUSD('$0.99')).toBe('$0');
+    expect(convertPerpsAmountToUSD('$999.99')).toBe('$999');
+    expect(convertPerpsAmountToUSD('10.02')).toBe('$10');
+    expect(convertPerpsAmountToUSD('10.99')).toBe('$10');
+    expect(convertPerpsAmountToUSD('0.99')).toBe('$0');
+    expect(convertPerpsAmountToUSD('999.99')).toBe('$999');
   });
 });
