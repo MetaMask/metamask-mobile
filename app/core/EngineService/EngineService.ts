@@ -191,9 +191,12 @@ export class EngineService {
 
           // Check if controller has any persistent state before setting up persistence
           // @ts-expect-error Engine context has stateless controllers, so metadata may not be available
-          const controllerMetadata = UntypedEngine.context[controllerName]?.metadata;
+          const controllerMetadata =
+            UntypedEngine.context[controllerName]?.metadata;
           if (!hasPersistedState(controllerMetadata)) {
-            Logger.log(`Skipping persistence setup for ${controllerName}, no persistent state`);
+            Logger.log(
+              `Skipping persistence setup for ${controllerName}, no persistent state`,
+            );
             return;
           }
 
@@ -233,10 +236,12 @@ export class EngineService {
         error as Error,
         'Failed to set up Engine persistence subscription',
       );
-      // This is a critical failure, if we can't set up persistence, 
+      // This is a critical failure, if we can't set up persistence,
       // the wallet shouldn't continue as users will lose all data
       throw new Error(
-        `Critical: Engine persistence setup failed. Cannot continue safely. ${(error as Error).message}`,
+        `Critical: Engine persistence setup failed. Cannot continue safely. ${
+          (error as Error).message
+        }`,
       );
     }
   };

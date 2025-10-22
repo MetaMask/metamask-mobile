@@ -777,7 +777,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('should throw on persistence errors (fail fast)', async () => {
+    it('logs persistence errors without crashing (graceful degradation)', async () => {
       // Arrange
       const persistError = new Error('Persistence failed');
       mockPersistController.mockRejectedValue(persistError);
@@ -803,15 +803,13 @@ describe('EngineService', () => {
 
       const controllerState = { field1: 'value1' };
 
-      // Act & Assert - should throw critical error
-      await expect(subscriptionCallback(controllerState)).rejects.toThrow(
-        'Critical: Failed to persist KeyringController state. User data at risk. Persistence failed',
-      );
+      // Act - call the handler with failing persistence
+      await subscriptionCallback(controllerState);
 
-      // Should log error before throwing
+      // Assert - logs error but does NOT throw (graceful degradation)
       expect(Logger.error).toHaveBeenCalledWith(
         persistError,
-        'Failed to process KeyringController state change',
+        'Failed to persist KeyringController state during state change',
       );
     });
 
