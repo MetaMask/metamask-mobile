@@ -20,7 +20,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import { TouchablePerpsComponent } from '../PressablePerpsComponent/PressablePerpsComponent';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 
 /**
  * PerpsCard Component
@@ -113,7 +113,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   }
 
   return (
-    <TouchablePerpsComponent
+    <TempTouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
       onPress={memoizedPressHandler}
@@ -149,7 +149,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           </Text>
         </View>
       </View>
-    </TouchablePerpsComponent>
+    </TempTouchableOpacity>
   );
 };
 
