@@ -1,14 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../utils/Assertions';
-
-const GasFeeTokenModalSelectorsText = {
-  GAS_FEE_TOKEN_ITEM: 'gas-fee-token-list-item',
-  GAS_FEE_TOKEN_AMOUNT: 'gas-fee-token-list-item-amount-token',
-  GAS_FEE_TOKEN_BALANCE: 'gas-fee-token-list-item-balance',
-  GAS_FEE_TOKEN_SYMBOL: 'gas-fee-token-list-item-symbol',
-  GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
-};
+import { GasFeeTokenModalSelectorsText } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 class GasFeeTokenModal {
   getTokenItem(symbol: string): DetoxElement {

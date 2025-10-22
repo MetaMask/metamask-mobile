@@ -19,7 +19,6 @@ import { RelayStatus } from '../../../../app/util/transactions/transaction-relay
 import TransactionConfirmView from '../../../pages/Send/TransactionConfirmView';
 import GasFeeTokenModal from '../../../pages/Confirmation/GasFeeTokenModal';
 import Matchers from '../../../utils/Matchers';
-import { GasFeeTokenSelectorIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
 
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
@@ -173,10 +172,7 @@ describe(
     };
 
     const fixtureBase = {
-      fixture: new FixtureBuilder()
-        .withGanacheNetwork('0x1')
-        .withDisabledSmartTransactions()
-        .build(),
+      fixture: new FixtureBuilder().withDisabledSmartTransactions().build(),
       restartDevice: true,
       localNodeOptions: [
         {
@@ -193,6 +189,16 @@ describe(
 
     it('should send ETH via EIP-7702', async () => {
       await withFixtures(fixtureBase, async () => {
+        const usdcValues = {
+          fiatAmount: '$3.62',
+          tokenAmount: '1.23 USDC',
+          balance: 'Bal: $14.71 USD',
+        };
+        const daiValues = {
+          fiatAmount: '$9.44',
+          tokenAmount: '3.21 DAI',
+          balance: 'Bal: $29.41 USD',
+        };
         await loginToApp();
         await device.disableSynchronization();
         await WalletView.tapWalletSendButton();
@@ -203,20 +209,20 @@ describe(
         await SendView.pressReviewButton();
 
         await Assertions.expectElementToBeVisible(
-          Matchers.getElementByID(
-            GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
-          ),
+          RowComponents.NetworkFeeGasFeeTokenArrow,
         );
+
         await TransactionConfirmView.tapGasFeeTokenPill();
 
-        await GasFeeTokenModal.checkAmountFiat('DAI', '$9.44');
-        await GasFeeTokenModal.checkAmountToken('DAI', '3.21 DAI');
-        await GasFeeTokenModal.checkBalance('DAI', 'Bal: $29.41 USD');
+        await GasFeeTokenModal.checkAmountFiat('DAI', daiValues.fiatAmount);
+        await GasFeeTokenModal.checkAmountToken('DAI', daiValues.tokenAmount);
+        await GasFeeTokenModal.checkBalance('DAI', daiValues.balance);
 
-        await GasFeeTokenModal.checkAmountFiat('USDC', '$3.62');
-        await GasFeeTokenModal.checkAmountToken('USDC', '1.23 USDC');
-        await GasFeeTokenModal.checkBalance('USDC', 'Bal: $14.71 USD');
+        await GasFeeTokenModal.checkAmountFiat('USDC', usdcValues.fiatAmount);
+        await GasFeeTokenModal.checkAmountToken('USDC', usdcValues.tokenAmount);
+        await GasFeeTokenModal.checkBalance('USDC', usdcValues.balance);
         await GasFeeTokenModal.tapToken('USDC');
+
         await Assertions.expectElementToBeVisible(
           Matchers.getElementByText('USDC'),
         );
@@ -230,7 +236,7 @@ describe(
         ).label;
 
         await Assertions.checkIfTextMatches(symbolElementLabel, 'USDC');
-        await Assertions.expectTextDisplayed('$3.62');
+        await Assertions.expectTextDisplayed(usdcValues.fiatAmount);
         await Assertions.expectTextDisplayed('Includes $1.27 fee');
 
         await FooterActions.tapConfirmButton();

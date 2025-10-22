@@ -74,6 +74,12 @@ class RowComponents {
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_SYMBOL,
     );
   }
+
+  get NetworkFeeGasFeeTokenArrow(): DetoxElement {
+    return Matchers.getElementByID(
+      GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
+    );
+  }
 }
 
 export default new RowComponents();
