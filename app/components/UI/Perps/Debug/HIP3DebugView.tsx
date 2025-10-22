@@ -268,18 +268,37 @@ const HIP3DebugView: React.FC = () => {
 
     setTransferResult({ status: 'loading' });
     DevLogger.log(
-      `=== TESTING TRANSFER FROM ${selectedDex.toUpperCase()} DEX ===`,
+      `=== TESTING TRANSFER FROM ${selectedDex.toUpperCase()} DEX (FULL RESET) ===`,
     );
 
     try {
+      // Get current balance on selected DEX
+      const accountState = await provider.getAccountState();
+      const availableBalance =
+        accountState.subAccountBreakdown?.[selectedDex]?.availableBalance;
+
+      if (!availableBalance || parseFloat(availableBalance) <= 0) {
+        const message = `⚠️ No available balance on ${selectedDex} DEX to transfer`;
+        DevLogger.log(message);
+        setTransferResult({
+          status: 'error',
+          error: message,
+        });
+        return;
+      }
+
+      DevLogger.log(
+        `Transferring ALL available balance ($${availableBalance}) from ${selectedDex} to main`,
+      );
+
       const result = await provider.transferBetweenDexs({
         sourceDex: selectedDex,
         destinationDex: '',
-        amount: '10',
+        amount: availableBalance,
       });
 
       if (result.success) {
-        const message = `✅ Transferred $10 from ${selectedDex} to main DEX`;
+        const message = `✅ Reset complete: Transferred $${availableBalance} from ${selectedDex} to main DEX`;
         DevLogger.log(message);
         setTransferResult({
           status: 'success',
@@ -329,9 +348,13 @@ const HIP3DebugView: React.FC = () => {
         throw new Error(`Could not fetch price for ${selectedMarket}`);
       }
 
-      const currentPrice = parseFloat(market.price);
+      // market.price is formatted with commas (e.g., "$25,106"), so we need to strip formatting
+      const priceString = market.price.replace(/[$,]/g, '');
+      const currentPrice = parseFloat(priceString);
       if (isNaN(currentPrice) || currentPrice <= 0) {
-        throw new Error(`Invalid price for ${selectedMarket}: ${market.price}`);
+        throw new Error(
+          `Invalid price for ${selectedMarket}: ${market.price} (parsed: ${priceString})`,
+        );
       }
 
       // Get szDecimals from already-loaded markets state
@@ -690,7 +713,7 @@ const HIP3DebugView: React.FC = () => {
               variant={TextVariant.BodyMD}
               style={[styles.buttonText, styles.buttonTextSecondary]}
             >
-              Transfer $10 ← {selectedDex || '(select DEX)'} DEX
+              Reset: Transfer ALL ← {selectedDex || '(select DEX)'} DEX
             </Text>
           </TouchableOpacity>
 

@@ -110,17 +110,9 @@ import { PERPS_ERROR_CODES } from '../PerpsController';
  * Uses the @nktkas/hyperliquid SDK for all operations.
  * Delegates to service classes for client management, wallet integration, and subscriptions.
  *
- * HIP-3 DEX Abstraction (SDK v0.25.4+)
- *
- * Supports native HyperLiquid DEX abstraction for automatic collateral management:
- * - When `useDexAbstraction=true`, HyperLiquid automatically transfers collateral
- * between DEXs for HIP-3 orders (eliminates manual transfer logic)
- * - When `useDexAbstraction=false` (default), uses manual auto-transfer with
- * explicit balance checks and rollback on failure
- *
- * Trade-offs:
- * - DEX abstraction: Simpler code, protocol-native, one-time irreversible operation
- * - Manual transfer: More control, custom rebalancing, explicit error handling
+ * HIP-3 Balance Management:
+ * Attempts to use HyperLiquid's native DEX abstraction for automatic collateral transfers.
+ * If not supported, falls back to programmatic balance management using SDK's sendAsset.
  */
 export class HyperLiquidProvider implements IPerpsProvider {
   readonly protocolId = 'hyperliquid';
@@ -189,9 +181,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     this.equityEnabled = options.equityEnabled ?? __DEV__;
     this.enabledDexs = options.enabledDexs ?? [];
 
-    // DEX abstraction: Native HyperLiquid feature for automatic collateral management
-    // When enabled, HyperLiquid automatically transfers funds between DEXs for HIP-3 orders
-    this.useDexAbstraction = options.useDexAbstraction ?? false;
+    // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
+    this.useDexAbstraction = options.useDexAbstraction ?? true;
 
     // Initialize services
     this.clientService = new HyperLiquidClientService({ isTestnet });
@@ -216,15 +207,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Ensure HIP-3 DEX abstraction is enabled for the current user
+   * Attempt to enable HIP-3 native balance abstraction
    *
-   * DEX abstraction is a native HyperLiquid feature that automatically manages
-   * collateral transfers for HIP-3 orders. When enabled:
-   * - Orders on HIP-3 perps automatically transfer collateral from main DEX or spot
-   * - Freed collateral from closed positions automatically returns to source
-   *
-   * This is a one-time, irreversible operation per user wallet.
-   * Does nothing if feature flag is disabled or already enabled.
+   * If successful, HyperLiquid automatically manages collateral transfers for HIP-3 orders.
+   * If not supported, disables the flag to trigger programmatic transfer fallback.
    *
    * @private
    */
@@ -262,12 +248,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         '✅ HyperLiquidProvider: DEX abstraction enabled successfully',
       );
     } catch (error) {
-      // Non-blocking: Log error but don't fail initialization
-      // Falls back to manual auto-transfer logic
+      // Disable DEX abstraction flag to trigger automatic fallback to manual transfer
+      // This handles cases where the backend restricts DEX abstraction (e.g., gradual rollout)
+      this.useDexAbstraction = false;
+
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureDexAbstractionEnabled', {
-          note: 'Will use manual auto-transfer as fallback',
+          note: 'Disabled DEX abstraction, will use manual auto-transfer',
         }),
       );
     }
@@ -290,7 +278,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.buildAssetMapping();
     }
 
-    // Setup DEX abstraction if enabled (one-time check per provider instance)
+    // Attempt to enable native balance abstraction
     await this.ensureDexAbstractionEnabled();
   }
 
@@ -1424,9 +1412,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       }
 
-      // HIP-3 Atomic Transaction: Auto-transfer → Order → Rollback on failure
-      // Only runs for HIP-3 markets (dexName !== null), skipped for main DEX
-      // When useDexAbstraction=true, HyperLiquid handles transfers automatically
+      // HIP-3 balance management: native abstraction or programmatic transfer
       const isHip3Order = dexName !== null;
       let transferInfo: { amount: number; sourceDex: string } | null = null;
 
@@ -2122,8 +2108,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         reduceOnly: true,
       });
 
-      // If close succeeded and this is a HIP-3 position, auto-transfer back
-      // Only run manual transfer if DEX abstraction is disabled
+      // Return freed margin using native abstraction or programmatic transfer
       if (
         result.success &&
         isHip3Position &&
