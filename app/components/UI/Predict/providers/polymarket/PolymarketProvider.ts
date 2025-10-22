@@ -620,11 +620,27 @@ export class PolymarketProvider implements PredictProvider {
     const transactions = [];
     const { signer } = params;
 
+    if (!signer?.address) {
+      throw new Error('Signer address is required for deposit preparation');
+    }
+
     const { collateral } = MATIC_CONTRACTS;
+
+    if (!collateral) {
+      throw new Error('Collateral contract address not configured');
+    }
 
     const accountState = await this.getAccountState({
       ownerAddress: signer.address,
     });
+
+    if (!accountState) {
+      throw new Error('Failed to retrieve account state');
+    }
+
+    if (!accountState.address) {
+      throw new Error('Account address not found in account state');
+    }
 
     if (!accountState.isDeployed) {
       const deployTransaction = await getDeployProxyWalletTransaction({
@@ -634,6 +650,11 @@ export class PolymarketProvider implements PredictProvider {
       if (!deployTransaction) {
         throw new Error('Failed to get deploy proxy wallet transaction params');
       }
+
+      if (!deployTransaction.params?.to || !deployTransaction.params?.data) {
+        throw new Error('Invalid deploy transaction: missing params');
+      }
+
       transactions.push(deployTransaction);
     }
 
@@ -641,6 +662,18 @@ export class PolymarketProvider implements PredictProvider {
       const allowanceTransaction = await getProxyWalletAllowancesTransaction({
         signer,
       });
+
+      if (!allowanceTransaction) {
+        throw new Error('Failed to get proxy wallet allowances transaction');
+      }
+
+      if (
+        !allowanceTransaction.params?.to ||
+        !allowanceTransaction.params?.data
+      ) {
+        throw new Error('Invalid allowance transaction: missing params');
+      }
+
       transactions.push(allowanceTransaction);
     }
 
@@ -648,6 +681,13 @@ export class PolymarketProvider implements PredictProvider {
       toAddress: accountState.address,
       amount: '0x0',
     });
+
+    if (!depositTransactionCallData) {
+      throw new Error(
+        'Failed to generate transfer data for deposit transaction',
+      );
+    }
+
     transactions.push({
       params: {
         to: collateral as Hex,

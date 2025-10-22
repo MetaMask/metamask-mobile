@@ -2028,32 +2028,130 @@ describe('PredictController', () => {
       });
     });
 
-    it('handle empty transaction array from prepareDeposit', async () => {
+    it('throw error when prepareDeposit returns empty transactions', async () => {
       // Given prepareDeposit returns empty transactions
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [],
         chainId: '0x89',
       });
 
-      (addTransactionBatch as jest.Mock).mockResolvedValue({
-        batchId: 'batch-empty',
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('No transactions returned from deposit preparation');
+
+        // And addTransactionBatch should not be called
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    // Note: Tests for account validation errors require mocking AccountsController
+    // at the module level, which is complex with the current test setup.
+    // These error paths are indirectly tested through integration tests.
+
+    it('throw error when prepareDeposit returns undefined', async () => {
+      // Given prepareDeposit returns undefined
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue(
+        undefined as never,
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Deposit preparation returned undefined');
+      });
+    });
+
+    it('throw error when chainId is not provided', async () => {
+      // Given prepareDeposit returns result without chainId
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: null as unknown as `0x${string}`,
       });
 
       await withController(async ({ controller }) => {
         // When calling depositWithConfirmation
-        const result = await controller.depositWithConfirmation({
-          providerId: 'polymarket',
-        });
-
-        // Then it should still succeed
-        expect(result.success).toBe(true);
-
-        // And addTransactionBatch should be called with empty array
-        expect(addTransactionBatch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            transactions: [],
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
           }),
-        );
+        ).rejects.toThrow('Chain ID not provided by deposit preparation');
+      });
+    });
+
+    // Note: Tests for NetworkController validation errors require mocking
+    // at the module level, which is complex with the current test setup.
+    // These error paths are indirectly tested through integration tests.
+
+    it('throw error when addTransactionBatch returns no batchId', async () => {
+      // Given addTransactionBatch returns empty result
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({});
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Failed to get batch ID from transaction submission');
+      });
+    });
+
+    it('throw error when chainId format is invalid', async () => {
+      // Given prepareDeposit returns invalid hex chainId
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: 'not-a-hex' as `0x${string}`,
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-123',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Invalid chain ID format: not-a-hex');
       });
     });
   });

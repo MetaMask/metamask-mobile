@@ -1120,7 +1120,12 @@ export class PredictController extends BaseController<
         state.depositTransaction = null;
       });
 
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAccount = AccountsController.getSelectedAccount();
+      if (!selectedAccount?.address) {
+        throw new Error('No account selected for deposit');
+      }
+
+      const selectedAddress = selectedAccount.address;
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
@@ -1131,15 +1136,33 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(_params),
       };
 
-      const { transactions, chainId } = await provider.prepareDeposit({
+      const depositPreparation = await provider.prepareDeposit({
         ...params,
         signer,
       });
 
+      if (!depositPreparation) {
+        throw new Error('Deposit preparation returned undefined');
+      }
+
+      const { transactions, chainId } = depositPreparation;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from deposit preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by deposit preparation');
+      }
+
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(chainId);
 
-      const { batchId } = await addTransactionBatch({
+      if (!networkClientId) {
+        throw new Error(`Network client not found for chain ID: ${chainId}`);
+      }
+
+      const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
@@ -1148,10 +1171,22 @@ export class PredictController extends BaseController<
         transactions,
       });
 
+      if (!batchResult?.batchId) {
+        throw new Error('Failed to get batch ID from transaction submission');
+      }
+
+      const { batchId } = batchResult;
+
+      // Validate chainId format before parsing
+      const parsedChainId = hexToNumber(chainId);
+      if (isNaN(parsedChainId)) {
+        throw new Error(`Invalid chain ID format: ${chainId}`);
+      }
+
       // Store deposit transaction for tracking (mirrors claim pattern)
       const predictDeposit: PredictDeposit = {
         batchId,
-        chainId: parseInt(chainId, 16),
+        chainId: parsedChainId,
         status: PredictDepositStatus.PENDING,
         providerId: params.providerId,
       };
@@ -1178,7 +1213,7 @@ export class PredictController extends BaseController<
       throw new Error(
         error instanceof Error
           ? error.message
-          : PREDICT_ERROR_CODES.ENABLE_WALLET_FAILED,
+          : PREDICT_ERROR_CODES.DEPOSIT_FAILED,
       );
     }
   }
