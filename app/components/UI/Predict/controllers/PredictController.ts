@@ -600,9 +600,9 @@ export class PredictController extends BaseController<
 
   /**
    * Track Predict order analytics events
-   * @private
+   * @public
    */
-  private async trackPredictOrderEvent({
+  public async trackPredictOrderEvent({
     eventType,
     amount,
     analyticsProperties,
@@ -613,7 +613,7 @@ export class PredictController extends BaseController<
     sharePrice,
   }: {
     eventType: PredictEventTypeValue;
-    amount: number;
+    amount?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
     providerId: string;
     completionDuration?: number;
@@ -677,6 +677,10 @@ export class PredictController extends BaseController<
     let eventLabel: string;
 
     switch (eventType) {
+      case PredictEventType.INITIATED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_INITIATED;
+        eventLabel = 'PREDICT_ACTION_INITIATED';
+        break;
       case PredictEventType.SUBMITTED:
         metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_SUBMITTED;
         eventLabel = 'PREDICT_ACTION_SUBMITTED';
