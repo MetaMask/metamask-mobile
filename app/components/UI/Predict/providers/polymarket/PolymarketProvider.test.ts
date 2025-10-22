@@ -34,6 +34,7 @@ import {
   parsePolymarketPositions,
   previewOrder,
   priceValid,
+  previewOrder,
   submitClobOrder,
 } from './utils';
 import { OrderPreview, PlaceOrderParams } from '../types';
@@ -101,6 +102,10 @@ jest.mock('./safe/utils', () => ({
   getDeployProxyWalletTransaction: jest.fn(),
   getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
+  getWithdrawTransactionCallData: jest
+    .fn()
+    .mockResolvedValue('0xsignedcalldata'),
+  getSafeUsdcAmount: jest.fn().mockReturnValue(1000000),
 }));
 
 jest.mock('../../../../../util/transactions', () => ({
@@ -128,6 +133,7 @@ const mockParsePolymarketPositions = parsePolymarketPositions as jest.Mock;
 const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
+const mockPreviewOrder = previewOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
 const mockComputeProxyAddress = computeProxyAddress as jest.Mock;
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
@@ -442,6 +448,38 @@ describe('PolymarketProvider', () => {
         address: '0x3333333333333333333333333333333333333333',
       }),
     ).rejects.toThrow('network failure');
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
+  it('throws error when address is missing in getPositions', async () => {
+    const provider = createProvider();
+
+    await expect(provider.getPositions({ address: '' })).rejects.toThrow(
+      'Address is required',
+    );
+  });
+
+  it('throws error when API response is not ok in getPositions', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+      .fn()
+      .mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+
+    mockComputeProxyAddress.mockReturnValue(
+      '0x9999999999999999999999999999999999999999',
+    );
+
+    await expect(
+      provider.getPositions({
+        address: '0x1234567890123456789012345678901234567890',
+      }),
+    ).rejects.toThrow('Failed to get positions');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -802,6 +840,43 @@ describe('PolymarketProvider', () => {
       // Assert
       expect(mockSignTypedMessage).toHaveBeenCalled();
       expect(mockSubmitClobOrder).toHaveBeenCalled();
+    });
+
+    it('throws error when maker address is not found', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: mockSignTypedMessage,
+        signPersonalMessage: mockSignPersonalMessage,
+      };
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      mockComputeProxyAddress.mockReturnValue('');
+      mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+      mockGetNetworkClientById.mockReturnValue({ provider: {} });
+      mockQuery.mockResolvedValue('0x0');
+
+      await expect(
+        provider.placeOrder({ signer: mockSigner, preview }),
+      ).rejects.toThrow('Maker address not found');
+    });
+  });
+
+  describe('previewOrder', () => {
+    it('calls previewOrder utility function with correct parameters', async () => {
+      const provider = createProvider();
+      const mockParams = {
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        amount: 100,
+        size: 100,
+      };
+
+      await provider.previewOrder(mockParams);
+
+      expect(mockPreviewOrder).toHaveBeenCalledWith(mockParams);
     });
   });
 
@@ -1253,6 +1328,59 @@ describe('PolymarketProvider', () => {
 
       // encodeClaim is called internally by getClaimTransaction
       // The exact call verification depends on the implementation details
+    });
+
+    it('throws error when safe address is not found', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      jest
+        .spyOn(PolymarketProvider.prototype, 'getAccountState')
+        .mockResolvedValue({
+          address: '',
+          isDeployed: false,
+          hasAllowances: false,
+        });
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await expect(
+        provider.prepareClaim({
+          positions: [position],
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Safe address not found');
     });
   });
 
@@ -2279,6 +2407,107 @@ describe('PolymarketProvider', () => {
       // Then balance is returned
       expect(result).toBe(123.45);
       expect(getBalance).toHaveBeenCalledWith({ address: '0xSafeAddress' });
+    });
+
+    it('throws error when address is missing', async () => {
+      const provider = createProvider();
+
+      await expect(
+        provider.getBalance({ address: '', providerId: 'polymarket' }),
+      ).rejects.toThrow('address is required');
+    });
+  });
+
+  describe('prepareWithdraw', () => {
+    it('prepares withdraw transaction successfully', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+      jest
+        .spyOn(PolymarketProvider.prototype, 'getAccountState')
+        .mockResolvedValue({
+          address: '0xSafeAddress',
+          isDeployed: true,
+          hasAllowances: true,
+        });
+
+      const result = await provider.prepareWithdraw({
+        signer: mockSigner,
+        providerId: 'polymarket',
+      });
+
+      expect(result).toHaveProperty('chainId');
+      expect(result).toHaveProperty('transaction');
+      expect(result).toHaveProperty('predictAddress');
+      expect(result.predictAddress).toBe('0xSafeAddress');
+    });
+
+    it('throws error when safe address is not found in prepareWithdraw', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      jest
+        .spyOn(PolymarketProvider.prototype, 'getAccountState')
+        .mockResolvedValue({
+          address: '',
+          isDeployed: false,
+          hasAllowances: false,
+        });
+
+      await expect(
+        provider.prepareWithdraw({
+          signer: mockSigner,
+          providerId: 'polymarket',
+        }),
+      ).rejects.toThrow('Safe address not found');
+    });
+  });
+
+  describe('prepareWithdrawConfirmation', () => {
+    it('prepares withdraw confirmation successfully', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+
+      const result = await provider.prepareWithdrawConfirmation({
+        callData: '0xcalldata',
+        signer: mockSigner,
+      });
+
+      expect(result).toHaveProperty('callData');
+      expect(result).toHaveProperty('amount');
+    });
+
+    it('throws error when safe address is not found in prepareWithdrawConfirmation', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue('');
+
+      await expect(
+        provider.prepareWithdrawConfirmation({
+          callData: '0xcalldata',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Safe address not found');
     });
   });
 
