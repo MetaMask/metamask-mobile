@@ -4,6 +4,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { RootState } from '../../../../../../reducers';
 import { selectPredictBalanceByAddress } from '../predict-temp';
 import { useSelector } from 'react-redux';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import Text, {
   TextColor,
@@ -14,13 +15,13 @@ import { AlignItems } from '../../../../../UI/Box/box.types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-withdraw-balance.styles';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
+import { PREDICT_CURRENCY } from '../../../constants/predict';
 
 export function PredictWithdrawBalance() {
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from as Hex;
-  const { formatFiat } = useTransactionPayFiat();
+  const formatFiat = useFiatFormatter({ currency: PREDICT_CURRENCY });
 
   const balanceFiat = useSelector((state: RootState) =>
     selectPredictBalanceByAddress(state, from),
