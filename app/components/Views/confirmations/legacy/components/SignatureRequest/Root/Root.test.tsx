@@ -23,7 +23,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
       getQRKeyringState: jest.fn(() =>
         Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
       ),
-      getOrAddQRKeyring: jest.fn(),
       state: {
         keyrings: [],
       },

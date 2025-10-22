@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
@@ -23,6 +23,15 @@ import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedl
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            metadata: { id: 'mock-keyring-id' },
+          },
+        ],
+      },
+    },
     NetworkController: {
       addNetwork: jest.fn().mockResolvedValue(undefined),
       findNetworkClientIdByChainId: jest
@@ -48,6 +57,13 @@ jest.mock('../../../core/Engine/Engine', () => ({
       updateExchangeRate: jest.fn().mockResolvedValue(undefined),
     },
   },
+}));
+
+const mockDiscoverAccounts = jest.fn().mockResolvedValue(0);
+
+jest.mock('../../../multichain-accounts/discovery', () => ({
+  discoverAccounts: (...args: Parameters<typeof mockDiscoverAccounts>) =>
+    mockDiscoverAccounts(...args),
 }));
 
 const mockNavigate = jest.fn();
@@ -151,7 +167,7 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('(state 2) - does not import additional accounts when onDone is called', () => {
+  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
@@ -164,6 +180,7 @@ describe('OnboardingSuccessComponent', () => {
     button.props.onPress();
 
     expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
+    expect(mockDiscoverAccounts).toHaveBeenCalled();
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
@@ -296,6 +313,10 @@ describe('OnboardingSuccess', () => {
       },
     });
 
+    Object.defineProperty(Platform, 'OS', {
+      get: jest.fn(() => 'ios'),
+    });
+
     // Mock the useSelector to return the Apple auth connection
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSeedlessOnboardingAuthConnection) {
@@ -322,7 +343,7 @@ describe('OnboardingSuccess', () => {
     });
 
     const description = getByText(
-      strings('onboarding_success.import_description_social_login', {
+      strings('onboarding_success.import_description_social_login_ios', {
         authConnection: capitalize(AuthConnection.Apple) || '',
       }),
     );
@@ -334,6 +355,10 @@ describe('OnboardingSuccess', () => {
       params: {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       },
+    });
+
+    Object.defineProperty(Platform, 'OS', {
+      get: jest.fn(() => 'ios'),
     });
 
     // Mock the useSelector to return the Google auth connection
@@ -362,7 +387,7 @@ describe('OnboardingSuccess', () => {
     });
 
     const description = getByText(
-      strings('onboarding_success.import_description_social_login', {
+      strings('onboarding_success.import_description_social_login_ios', {
         authConnection: capitalize(AuthConnection.Google) || '',
       }),
     );

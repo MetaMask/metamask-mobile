@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OrderProcessing Component renders created state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -353,7 +361,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>
@@ -545,7 +553,6 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -582,11 +589,19 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders error state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -934,7 +949,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>
@@ -1126,7 +1141,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1165,7 +1179,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1202,11 +1215,19 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders no order found state 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -1244,11 +1265,19 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
       />
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders processing state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -1600,7 +1629,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>
@@ -1792,7 +1821,6 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1829,11 +1857,19 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders success state correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -2181,7 +2217,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>
@@ -2373,7 +2409,6 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -2410,5 +2445,5 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

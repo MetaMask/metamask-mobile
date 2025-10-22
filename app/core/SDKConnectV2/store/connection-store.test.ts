@@ -1,5 +1,5 @@
 import { ConnectionStore } from './connection-store';
-import { PersistedConnection } from '../types/persisted-connection';
+import { ConnectionInfo } from '../types/connection-info';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 
@@ -28,7 +28,7 @@ describe('ConnectionStore', () => {
   });
 
   it('should save a connection', async () => {
-    const connection: PersistedConnection = {
+    const connection: ConnectionInfo = {
       id: 'test-id',
       metadata: {
         dapp: {
@@ -52,7 +52,7 @@ describe('ConnectionStore', () => {
   });
 
   it('should get a connection by id', async () => {
-    const connection: PersistedConnection = {
+    const connection: ConnectionInfo = {
       id: 'test-id',
       metadata: {
         dapp: {
@@ -88,7 +88,7 @@ describe('ConnectionStore', () => {
   });
 
   it('should list all connections', async () => {
-    const connections: PersistedConnection[] = [
+    const connections: ConnectionInfo[] = [
       {
         id: 'id1',
         metadata: {

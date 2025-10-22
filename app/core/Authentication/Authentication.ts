@@ -32,7 +32,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
+import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -44,7 +44,6 @@ import {
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import {
-  convertEnglishWordlistIndicesToCodepoints,
   convertMnemonicToWordlistIndices,
   uint8ArrayToMnemonic,
 } from '../../util/mnemonic';
@@ -86,7 +85,16 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private async dispatchLogin(): Promise<void> {
+  private async dispatchLogin(
+    options: {
+      clearAccountTreeState: boolean;
+    } = {
+      clearAccountTreeState: false,
+    },
+  ): Promise<void> {
+    if (options.clearAccountTreeState) {
+      AccountTreeInitService.clearState();
+    }
     await AccountTreeInitService.initializeAccountTree();
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
@@ -155,9 +163,7 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -215,9 +221,7 @@ class AuthenticationService {
     entropySource?: EntropySourceId,
   ): Promise<void> => {
     await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAndCreateAccounts(
-        entropySource ?? this.getPrimaryEntropySourceId(),
-      );
+      await discoverAccounts(entropySource ?? this.getPrimaryEntropySourceId());
     });
   };
 
@@ -257,9 +261,7 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -493,7 +495,9 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -526,7 +530,9 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -779,61 +785,68 @@ class AuthenticationService {
       throw new Error('No root SRP found');
     }
 
+    const allErrors: Error[] = [];
     for (const secret of otherSecrets) {
-      // import SRP secret
-      // Get the SRP hash, and find the hash in the local state
-      const secretDataHash =
-        SeedlessOnboardingController.getSecretDataBackupState(
-          secret.data,
-          secret.type,
-        );
-
-      if (!secretDataHash) {
-        // If SRP is not in the local state, import it to the vault
-
-        // import private key secret
-        if (secret.type === SecretType.PrivateKey) {
-          await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
-            shouldCreateSocialBackup: false,
-            shouldSelectAccount: false,
-          });
-          continue;
-        } else if (secret.type === SecretType.Mnemonic) {
-          // convert the seed phrase to a mnemonic (string)
-          const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
+      try {
+        // import SRP secret
+        // Get the SRP hash, and find the hash in the local state
+        const secretDataHash =
+          SeedlessOnboardingController.getSecretDataBackupState(
             secret.data,
-            wordlist,
-          );
-          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
-
-          // import the new mnemonic to the current vault
-          const keyringMetadata = await this.importSeedlessMnemonicToVault(
-            mnemonicToRestore,
-          );
-
-          // discover multichain accounts from imported srp
-          if (isMultichainAccountsState2Enabled()) {
-            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
-          } else {
-            this.addMultichainAccounts([keyringMetadata]);
-          }
-        } else {
-          Logger.error(
-            new Error('SeedlessOnboardingController: Unknown secret type'),
             secret.type,
           );
+
+        if (!secretDataHash) {
+          // If SRP is not in the local state, import it to the vault
+
+          // import private key secret
+          if (secret.type === SecretType.PrivateKey) {
+            await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
+              shouldCreateSocialBackup: false,
+              shouldSelectAccount: false,
+            });
+            continue;
+          } else if (secret.type === SecretType.Mnemonic) {
+            // convert the seed phrase to a mnemonic (string)
+            const encodedSrp = uint8ArrayToMnemonic(secret.data, wordlist);
+            const mnemonicToRestore = encodedSrp;
+
+            // import the new mnemonic to the current vault
+            const keyringMetadata = await this.importSeedlessMnemonicToVault(
+              mnemonicToRestore,
+            );
+
+            // discover multichain accounts from imported srp
+            if (isMultichainAccountsState2Enabled()) {
+              // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+              this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
+            } else {
+              this.addMultichainAccounts([keyringMetadata]);
+            }
+          } else {
+            Logger.error(
+              new Error('SeedlessOnboardingController: Unknown secret type'),
+              secret.type,
+            );
+          }
         }
+      } catch (error) {
+        allErrors.push(error as Error);
+        Logger.error(error as Error, 'Seedless - syncSeedPhrases error');
       }
+    }
+    if (allErrors.length > 0) {
+      // throw first error
+      throw allErrors[0];
     }
   };
 
   importSeedlessMnemonicToVault = async (
     mnemonic: string,
   ): Promise<KeyringMetadata> => {
-    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
-      ReduxService.store.getState(),
-    );
+    const isSeedlessOnboardingFlow =
+      Engine.context.SeedlessOnboardingController.state.vault != null;
+
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }

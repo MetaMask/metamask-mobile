@@ -26,6 +26,12 @@ import {
 } from '../../../constants/storage';
 import { useMetrics } from '../../hooks/useMetrics';
 
+// Mock selectors
+jest.mock('../../../selectors/seedlessOnboardingController', () => ({
+  selectIsSeedlessPasswordOutdated: jest.fn(),
+  selectSeedlessOnboardingLoginFlow: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
@@ -749,7 +755,6 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
-      Platform.OS = 'android';
     });
 
     afterEach(() => {
@@ -844,42 +849,6 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         'Error: Some unexpected error',
       );
-    });
-  });
-
-  describe('PIN Error Handling', () => {
-    beforeEach(() => {
-      Platform.OS = 'ios';
-    });
-
-    afterEach(() => {
-      Platform.OS = 'android';
-    });
-
-    it('should handle WRONG_PIN_ERROR', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Decrypt failed'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(strings('login.invalid_pin'));
     });
   });
 
@@ -1313,6 +1282,62 @@ describe('Login', () => {
       expect(mockGoBack).toHaveBeenCalled();
       expect(Authentication.lockApp).not.toHaveBeenCalled();
       expect(result).toBe(false);
+    });
+  });
+
+  describe('Social Login User Interface', () => {
+    beforeEach(() => {
+      // Platform.OS to default
+      Platform.OS = 'ios';
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should show pin placeholder on iOS for social login users', () => {
+      // Arrange
+      const {
+        selectIsSeedlessPasswordOutdated,
+        selectSeedlessOnboardingLoginFlow,
+      } = jest.requireMock('../../../selectors/seedlessOnboardingController');
+
+      selectIsSeedlessPasswordOutdated.mockReturnValue(false);
+      selectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
+      // Act
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Assert
+      expect(passwordInput.props.placeholder).toBe(
+        strings('login.pin_placeholder'),
+      );
+    });
+
+    it('should show forgot pin text on iOS for social login users', () => {
+      // Arrange
+      const {
+        selectIsSeedlessPasswordOutdated,
+        selectSeedlessOnboardingLoginFlow,
+      } = jest.requireMock('../../../selectors/seedlessOnboardingController');
+
+      selectIsSeedlessPasswordOutdated.mockReturnValue(false);
+      selectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
+      // Mock route
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(<Login />);
+
+      // Assert - "Forgot PIN?" appears
+      expect(getByText(strings('login.forgot_pin'))).toBeOnTheScreen();
     });
   });
 });

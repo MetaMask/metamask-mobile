@@ -4,6 +4,7 @@ import type { AxiosError } from 'axios';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import { MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD } from '../../testUtils';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { StackActions } from '@react-navigation/native';
@@ -27,11 +28,11 @@ const mockOrderData = {
     fiatAmount: 100,
     fiatCurrency: 'USD',
     cryptoCurrency: 'USDC',
-    network: 'ethereum',
+    network: { chainId: 'eip155:1', name: 'Ethereum' },
     status: 'created',
     orderType: 'buy',
     walletAddress: '0x123...',
-    paymentMethod: 'sepa_bank_transfer',
+    paymentMethod: MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
     paymentDetails: [
       {
         fiatCurrency: 'USD',
@@ -114,6 +115,7 @@ jest.mock('../../sdk', () => ({
       sdkMethod: jest.fn(),
     },
     logoutFromProvider: mockLogoutFromProvider,
+    selectedPaymentMethod: MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
   })),
 }));
 
@@ -345,6 +347,65 @@ describe('BankDetails Component', () => {
         destination: 'BankDetails',
       },
     });
+  });
+
+  it('does not call confirmPayment when order has no payment method', async () => {
+    const orderWithoutPaymentMethod = {
+      ...mockOrderData,
+      data: {
+        ...mockOrderData.data,
+        paymentMethod: undefined,
+      },
+    };
+
+    const mockUseSelector = jest.requireMock('react-redux').useSelector;
+    mockUseSelector.mockImplementation(() => orderWithoutPaymentMethod);
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+
+    render(BankDetails);
+
+    fireEvent.press(screen.getByTestId('main-action-button'));
+
+    await waitFor(() => {
+      expect(mockConfirmPayment).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Payment method not found or empty'),
+        'BankDetails: handleBankTransferSent',
+      );
+    });
+    mockUseSelector.mockImplementation(() => mockOrderData);
+  });
+
+  it('does not call confirmPayment when order has payment method id', async () => {
+    const orderWithoutPaymentMethod = {
+      ...mockOrderData,
+      data: {
+        ...mockOrderData.data,
+        paymentMethod: {
+          ...mockOrderData.data.paymentMethod,
+          id: undefined,
+        },
+      },
+    };
+
+    const mockUseSelector = jest.requireMock('react-redux').useSelector;
+    mockUseSelector.mockImplementation(() => orderWithoutPaymentMethod);
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+
+    render(BankDetails);
+
+    fireEvent.press(screen.getByTestId('main-action-button'));
+
+    await waitFor(() => {
+      expect(mockConfirmPayment).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Payment method not found or empty'),
+        'BankDetails: handleBankTransferSent',
+      );
+    });
+    mockUseSelector.mockImplementation(() => mockOrderData);
   });
 
   describe('401 Error Handling', () => {

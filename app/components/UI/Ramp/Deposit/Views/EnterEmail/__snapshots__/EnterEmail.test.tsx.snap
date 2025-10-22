@@ -517,7 +517,15 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -764,7 +772,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -796,7 +805,6 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -839,7 +847,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1369,7 +1377,15 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1616,7 +1632,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value="test@example.com"
@@ -1662,7 +1679,6 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -1705,7 +1721,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2235,7 +2251,15 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2482,7 +2506,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -2514,7 +2539,6 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -2557,7 +2581,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3087,7 +3111,15 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3334,7 +3366,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value="invalid-email"
@@ -3380,7 +3413,6 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -3423,7 +3455,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

@@ -13,12 +13,12 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
-import StorageWrapper from '../../../store/storage-wrapper';
 import { store } from '../../../store';
+import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -487,6 +487,7 @@ const RevealPrivateCredential = ({
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
         secureTextEntry
+        autoCapitalize="none"
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}

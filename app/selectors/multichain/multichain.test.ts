@@ -34,6 +34,11 @@ const BTC_TESTNET_NATIVE_CURRENCY =
 const SOL_NATIVE_CURRENCY =
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[SolScope.Mainnet].nativeCurrency;
 
+interface TestTransaction {
+  id: string;
+  timestamp?: number;
+}
+
 function getEvmState(
   chainId?: Hex,
   mockEvmConversionRate: number = 1500,
@@ -528,7 +533,7 @@ describe('MultichainNonEvm Selectors', () => {
 
       state.engine.backgroundState.MultichainTransactionsController = {
         nonEvmTransactions: mockTransactions,
-      };
+      } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController;
 
       expect(selectMultichainTransactions(state)).toEqual(mockTransactions);
     });
@@ -538,7 +543,7 @@ describe('MultichainNonEvm Selectors', () => {
 
       state.engine.backgroundState.MultichainTransactionsController = {
         nonEvmTransactions: {},
-      };
+      } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController;
 
       expect(selectMultichainTransactions(state)).toEqual({});
     });
@@ -781,6 +786,166 @@ describe('MultichainNonEvm Selectors', () => {
         };
 
       expect(selectNonEvmTransactions(state)).toEqual(mockDevnetData);
+    });
+  });
+
+  describe('selectNonEvmTransactionsForSelectedAccountGroup', () => {
+    beforeEach(() => {
+      jest.resetModules();
+      jest.clearAllMocks();
+    });
+
+    it('returns default empty entry when no group accounts are selected', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState();
+
+        expect(selectNonEvmTransactionsForSelectedAccountGroup(state)).toEqual({
+          transactions: [],
+          next: null,
+          lastUpdated: 0,
+        });
+      });
+    });
+
+    it('aggregates and sorts transactions across accounts and chains, using max lastUpdated', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([MOCK_ACCOUNT_BIP122_P2WPKH, MOCK_SOLANA_ACCOUNT]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
+
+        // Arrange transactions for multiple accounts/chains
+        state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+          {
+            [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+              [BtcScope.Mainnet]: {
+                transactions: [
+                  { id: 'btc-1', timestamp: 100 },
+                  { id: 'btc-2', timestamp: 300 },
+                ],
+                next: null,
+                lastUpdated: 1000,
+              },
+            },
+            [MOCK_SOLANA_ACCOUNT.id]: {
+              [SolScope.Mainnet]: {
+                transactions: [{ id: 'sol-1', timestamp: 200 }],
+                next: null,
+                lastUpdated: 1100,
+              },
+            },
+            // Noise: account not in the selected group
+            [MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET.id]: {
+              [BtcScope.Testnet]: {
+                transactions: [{ id: 'tbtc-1', timestamp: 999 }],
+                next: null,
+                lastUpdated: 1200,
+              },
+            },
+          } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
+
+        const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
+
+        expect(result.transactions.map((t: TestTransaction) => t.id)).toEqual([
+          'btc-2',
+          'sol-1',
+          'btc-1',
+        ]);
+        expect(result.lastUpdated).toBe(1100);
+        expect(result.next).toBeNull();
+      });
+    });
+
+    it('supports single-level transaction structure per account', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([MOCK_ACCOUNT_BIP122_P2WPKH]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH);
+
+        // Single-level structure (no chain nesting)
+        state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+          {
+            [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+              transactions: [
+                { id: 'a', timestamp: 1 },
+                { id: 'b', timestamp: 3 },
+                { id: 'c', timestamp: 2 },
+              ],
+              next: null,
+              lastUpdated: 500,
+            },
+          } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
+
+        const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
+
+        expect(result.transactions.map((t: TestTransaction) => t.id)).toEqual([
+          'b',
+          'c',
+          'a',
+        ]);
+        expect(result.lastUpdated).toBe(500);
+        expect(result.next).toBeNull();
+      });
+    });
+
+    it('returns empty transactions with undefined lastUpdated when group accounts have no entries', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([MOCK_ACCOUNT_BIP122_P2WPKH]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH);
+        // No entries for selected account
+        state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+          {} as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
+
+        const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
+
+        expect(result).toEqual({
+          transactions: [],
+          next: null,
+          lastUpdated: 0,
+        });
+      });
     });
   });
 

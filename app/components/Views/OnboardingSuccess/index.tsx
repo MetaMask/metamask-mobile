@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
-import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  View,
+  Linking,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
@@ -45,6 +51,7 @@ import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { capitalize } from 'lodash';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
+import { discoverAccounts } from '../../../multichain-accounts/discovery';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -91,8 +98,11 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     const onOnboardingSuccess = async () => {
       // We're not running EVM discovery on its own if state 2 is enabled. The discovery
       // will be run on every account providers (EVM included) prior to that point.
-      // See: Authentication.ts
-      if (!isMultichainAccountsState2Enabled()) {
+      if (isMultichainAccountsState2Enabled()) {
+        await discoverAccounts(
+          Engine.context.KeyringController.state.keyrings[0].metadata.id,
+        );
+      } else {
         await importAdditionalAccounts();
       }
     };
@@ -186,12 +196,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {isSocialLogin
-                  ? strings(
-                      'onboarding_success.import_description_social_login',
-                      {
-                        authConnection: capitalize(authConnection) || '',
-                      },
-                    )
+                  ? Platform.OS === 'ios'
+                    ? strings(
+                        'onboarding_success.import_description_social_login_ios',
+                        {
+                          authConnection: capitalize(authConnection) || '',
+                        },
+                      )
+                    : strings(
+                        'onboarding_success.import_description_social_login',
+                        {
+                          authConnection: capitalize(authConnection) || '',
+                        },
+                      )
                   : strings('onboarding_success.import_description')}
               </Text>
               {isSocialLogin ? (
@@ -199,9 +216,13 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {strings(
-                    'onboarding_success.import_description_social_login_2',
-                  )}
+                  {Platform.OS === 'ios'
+                    ? strings(
+                        'onboarding_success.import_description_social_login_2_pin',
+                      )
+                    : strings(
+                        'onboarding_success.import_description_social_login_2',
+                      )}
                 </Text>
               ) : (
                 <Text

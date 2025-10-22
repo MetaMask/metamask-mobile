@@ -62,7 +62,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
 
 const createStyles = (colors: Colors) =>
@@ -133,9 +133,9 @@ const AssetDetails = (props: Props) => {
   const dispatch = useDispatch();
   const providerConfig = useSelector(selectProviderConfig);
   const allTokens = useSelector(selectAllTokens);
-  const selectedAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
+  const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
+
+  const selectedAccountAddress = selectedAccountAddressEvm?.address;
   const selectedChainId = useSelector(selectEvmChainId);
   const chainId = isPortfolioViewEnabled() ? networkId : selectedChainId;
   const tokens = useSelector(selectTokens);
@@ -148,8 +148,8 @@ const AssetDetails = (props: Props) => {
   const tokenNetworkConfig = networkConfigurations[networkId]?.name;
 
   const tokensByChain = useMemo(
-    () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? [],
-    [allTokens, chainId, selectedAccountAddress],
+    () => allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? [],
+    [allTokens, networkId, selectedAccountAddress],
   );
 
   const conversionRateLegacy = useSelector(selectConversionRate);

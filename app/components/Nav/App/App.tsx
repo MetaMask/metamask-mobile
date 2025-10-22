@@ -16,7 +16,6 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
-import SocialLoginSuccess from '../../Views/SocialLoginSuccess';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -71,7 +70,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
-import ReturnToAppModal from '../../Views/ReturnToAppModal';
+import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
@@ -152,10 +151,11 @@ import { PayWithNetworkModal } from '../../Views/confirmations/components/modals
 import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
+import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
-import SecureExistingWallet from '../../Views/SecureExistingWallet';
+import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -175,6 +175,12 @@ const Stack = createStackNavigator();
 const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
 const AccountNotFound = () => <AccountStatus type="not_exist" />;
+
+const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
+
+const SocialLoginSuccessExistingUser = () => (
+  <SocialLoginIosUser type="existing" />
+);
 
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
@@ -209,8 +215,8 @@ const OnboardingNav = () => (
   <Stack.Navigator initialRouteName="Onboarding">
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen
-      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS}
-      component={SocialLoginSuccess}
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
+      component={SocialLoginSuccessNewUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
@@ -251,8 +257,8 @@ const OnboardingNav = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.ONBOARDING.SECURE_EXISTING_WALLET}
-      component={SecureExistingWallet}
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+      component={SocialLoginSuccessExistingUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -353,6 +359,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+      component={TradeWalletActions}
     />
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
@@ -469,11 +479,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ResetNotificationsModal}
     />
     <Stack.Screen
-      name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-      component={ReturnToAppModal}
-      initialParams={{ ...props.route.params }}
-    />
-    <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
       component={AmbiguousAddressSheet}
     />
@@ -553,6 +558,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
+      component={ReturnToAppNotification}
+      initialParams={{ ...props.route.params }}
     />
   </Stack.Navigator>
 );
@@ -668,6 +678,15 @@ const MultichainAccountGroupDetails = () => {
           animationEnabled: true,
         }}
       />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
+        initialParams={route?.params}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -749,25 +768,6 @@ const MultichainAccountDetailsActions = () => {
   );
 };
 
-const MultichainWalletDetails = () => {
-  const route = useRoute();
-
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: false,
-      }}
-    >
-      <Stack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        component={WalletDetails}
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
-};
-
 const MultichainAddressList = () => {
   const route = useRoute();
 
@@ -775,8 +775,9 @@ const MultichainAddressList = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animationEnabled: false,
+        animationEnabled: true,
       }}
+      mode={'modal'}
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
@@ -930,6 +931,21 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
           component={MultichainAccountGroupDetails}
+          options={{
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
@@ -940,12 +956,9 @@ const AppFlow = () => {
           component={MultichainAccountDetailsActions}
         />
         <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-          component={MultichainWalletDetails}
-        />
-        <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
           component={MultichainAddressList}
+          options={{ animationEnabled: true }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}

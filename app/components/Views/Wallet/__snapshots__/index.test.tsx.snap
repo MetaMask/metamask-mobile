@@ -678,7 +678,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={34}
+              handlerTag={36}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1039,7 +1039,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={33}
+                              handlerTag={35}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1080,7 +1080,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1116,7 +1115,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1154,7 +1152,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1879,7 +1876,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={36}
+              handlerTag={38}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2240,7 +2237,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={35}
+                              handlerTag={37}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -2281,7 +2278,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2317,7 +2313,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2355,7 +2350,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3482,7 +3476,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3518,7 +3511,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3556,7 +3548,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4683,7 +4674,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4719,7 +4709,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4757,7 +4746,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5884,7 +5872,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5920,7 +5907,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5958,7 +5944,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",

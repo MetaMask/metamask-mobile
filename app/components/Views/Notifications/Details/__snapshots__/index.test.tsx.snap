@@ -557,8 +557,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             testID="badge-wrapper-badge"
           >
             <View>
-              <Image
-                onError={[Function]}
+              <View
                 placeholderStyle={
                   {
                     "backgroundColor": "#f3f5f9",
@@ -831,7 +830,6 @@ exports[`NotificationsDetails renders correctly 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",

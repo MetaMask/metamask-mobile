@@ -7,9 +7,6 @@ import SwitchChainApproval from './SwitchChainApproval';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
-import Engine from '../../../core/Engine';
-
-const { PreferencesController } = Engine.context;
 
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
@@ -131,10 +128,6 @@ describe('SwitchChainApproval', () => {
 
   it('sets token network filter when portfolio view is enabled', () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-    const tokenNetworkFilterSpy = jest.spyOn(
-      PreferencesController,
-      'setTokenNetworkFilter',
-    );
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
       requestData: {
@@ -147,7 +140,6 @@ describe('SwitchChainApproval', () => {
     const wrapper = shallow(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');
 
-    expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(1);
     expect(networkSwitched).toHaveBeenCalledTimes(1);
     expect(networkSwitched).toHaveBeenCalledWith({
       networkUrl: URL_MOCK,

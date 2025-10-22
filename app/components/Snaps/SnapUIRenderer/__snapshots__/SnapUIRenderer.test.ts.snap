@@ -116,7 +116,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -294,7 +293,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -451,7 +451,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -544,7 +545,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -700,7 +702,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -792,7 +795,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -1289,7 +1293,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1330,7 +1333,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1541,7 +1543,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1582,7 +1583,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1940,7 +1940,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingVertical": 0,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -2134,7 +2135,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -2268,9 +2270,8 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        onPress={[Function]}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -2311,7 +2312,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

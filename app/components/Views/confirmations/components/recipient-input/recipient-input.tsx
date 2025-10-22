@@ -13,7 +13,6 @@ import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
 import ClipboardManager from '../../../../../core/ClipboardManager';
-import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
@@ -27,8 +26,6 @@ export const RecipientInput = ({
 }) => {
   const { to, updateTo } = useSendContext();
   const inputRef = useRef<TextInput>(null);
-  const { setRecipientInputMethodManual, setRecipientInputMethodPasted } =
-    useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
     resetStateOnInput();
@@ -36,7 +33,6 @@ export const RecipientInput = ({
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
         const trimmedText = clipboardText.trim();
-        setRecipientInputMethodPasted();
         updateTo(trimmedText);
         setPastedRecipient(trimmedText);
         setTimeout(() => {
@@ -50,13 +46,7 @@ export const RecipientInput = ({
       // eslint-disable-next-line no-console
       console.log('error while pasting', error);
     }
-  }, [
-    updateTo,
-    inputRef,
-    setPastedRecipient,
-    resetStateOnInput,
-    setRecipientInputMethodPasted,
-  ]);
+  }, [updateTo, inputRef, setPastedRecipient, resetStateOnInput]);
 
   const handleClearInput = useCallback(() => {
     updateTo('');
@@ -69,15 +59,9 @@ export const RecipientInput = ({
     async (toAddress: string) => {
       resetStateOnInput();
       updateTo(toAddress);
-      setRecipientInputMethodManual();
       setPastedRecipient(undefined);
     },
-    [
-      resetStateOnInput,
-      setPastedRecipient,
-      setRecipientInputMethodManual,
-      updateTo,
-    ],
+    [resetStateOnInput, setPastedRecipient, updateTo],
   );
 
   const defaultStartAccessory = useMemo(

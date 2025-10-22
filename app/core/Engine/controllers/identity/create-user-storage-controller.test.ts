@@ -21,7 +21,6 @@ describe('UserStorage Controller', () => {
         allowedActions: [
           // Keyring Controller Requests
           'KeyringController:getState',
-          'KeyringController:withKeyring',
           // Snap Controller Requests
           'SnapController:handleRequest',
           // Auth Controller Requests
@@ -29,24 +28,11 @@ describe('UserStorage Controller', () => {
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
           'AuthenticationController:performSignIn',
-          // Accounts Controller Requests
-          'AccountsController:listAccounts',
-          'AccountsController:updateAccountMetadata',
-          // Network Controller Requests
-          'NetworkController:getState',
-          'NetworkController:addNetwork',
-          'NetworkController:removeNetwork',
-          'NetworkController:updateNetwork',
         ],
         allowedEvents: [
           // Keyring Controller Events
           'KeyringController:lock',
           'KeyringController:unlock',
-          // Accounts Controller Events
-          'AccountsController:accountAdded',
-          'AccountsController:accountRenamed',
-          // Network Controller Events
-          'NetworkController:networkRemoved',
         ],
       });
 
@@ -92,7 +78,7 @@ describe('UserStorage Controller', () => {
   it('uses initial state that is provided', () => {
     const { messenger, nativeScryptCrypto, assertGetConstructorCall } =
       arrange();
-    const state = { ...defaultState, isAccountSyncingInProgress: true };
+    const state = { ...defaultState, isAccountSyncingEnabled: true };
     createUserStorageController({
       messenger,
       initialState: state,

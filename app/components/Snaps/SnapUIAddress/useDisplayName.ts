@@ -9,6 +9,9 @@ import { RootState } from '../../../reducers';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { areAddressesEqual } from '../../../util/address';
 import { selectAddressBookByChain } from '../../../selectors/addressBookController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { selectAccountGroupsByAddress } from '../../../selectors/multichainAccounts/accounts';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 export interface UseDisplayNameParams {
   chain: {
@@ -35,9 +38,7 @@ export const useDisplayName = (
   } = params;
 
   const isEip155 = namespace === KnownCaipNamespace.Eip155;
-
   const accounts = useSelector(selectInternalAccounts);
-
   const account = accounts.find((possibleAccount) =>
     areAddressesEqual(possibleAccount.address, address),
   );
@@ -53,7 +54,22 @@ export const useDisplayName = (
     areAddressesEqual(contact.address, address),
   );
 
+  const showAccountGroupName = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const parsedAddress = isEip155 ? toChecksumHexAddress(address) : address;
+  const accountGroups = useSelector((state: RootState) =>
+    selectAccountGroupsByAddress(state, [parsedAddress]),
+  );
+
+  const accountGroupName = accountGroups[0]?.metadata.name;
+  const accountName = account?.metadata?.name;
+
   return (
-    account?.metadata?.name || (isEip155 && addressBookEntry?.name) || undefined
+    (showAccountGroupName && accountGroupName) ||
+    accountName ||
+    (isEip155 && addressBookEntry?.name) ||
+    undefined
   );
 };

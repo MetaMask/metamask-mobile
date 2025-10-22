@@ -10,10 +10,7 @@ import {
   isStrictHexString,
 } from '@metamask/utils';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import {
-  addCurrencySymbol,
-  balanceToFiatNumber,
-} from '../../../../util/number';
+import { balanceToFiatNumber } from '../../../../util/number';
 import { BridgeToken } from '../types';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import {
@@ -24,6 +21,7 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { SolScope } from '@metamask/keyring-api';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
+import { formatCurrency } from '../../Ramp/Deposit/utils';
 
 interface GetDisplayCurrencyValueParams {
   token: BridgeToken | undefined;
@@ -49,7 +47,7 @@ export const getDisplayCurrencyValue = ({
   nonEvmMultichainAssetRates,
 }: GetDisplayCurrencyValueParams): string => {
   if (!token || !amount) {
-    return addCurrencySymbol('0', currentCurrency);
+    return formatCurrency('0', currentCurrency);
   }
 
   let currencyValue = 0;
@@ -95,11 +93,12 @@ export const getDisplayCurrencyValue = ({
     }
   }
 
+  const formattedCurrencyValue = formatCurrency(currencyValue, currentCurrency);
   if (currencyValue >= 0.01 || currencyValue === 0) {
-    return addCurrencySymbol(currencyValue, currentCurrency);
+    return formattedCurrencyValue;
   }
 
-  return `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+  return `< ${formatCurrency('0.01', currentCurrency)}`;
 };
 
 /**

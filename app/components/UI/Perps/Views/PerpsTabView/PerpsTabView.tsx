@@ -1,25 +1,18 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -28,27 +21,25 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
+import { TraceName } from '../../../../../util/trace';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
-  usePerpsPerformance,
 } from '../../hooks';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { PerpsEmptyState } from '../PerpsEmptyState';
 
 interface PerpsTabViewProps {}
 
@@ -58,14 +49,20 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     useState(false);
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { track } = usePerpsEventTracking();
   const { account } = usePerpsLiveAccount();
-
-  const hasTrackedHomescreen = useRef(false);
-  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
+  });
+
+  // Track Perps tab load performance - measures time from tab mount to data ready
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsTabView,
+    conditions: [
+      !isInitialLoading,
+      !!positions,
+      account?.totalBalance !== undefined,
+    ],
   });
 
   const orders = usePerpsLiveOrders({
@@ -73,81 +70,53 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
-  const isEligible = useSelector(selectPerpsEligibility);
-
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
-
-  const firstTimeUserIconSize = 48 as unknown as IconSize;
 
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Start measuring position data load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-  }, [startMeasure]);
-
-  // Track homescreen tab viewed - only once when positions and account are loaded
-  useEffect(() => {
-    if (
-      !hasTrackedHomescreen.current &&
-      !isInitialLoading &&
-      positions &&
-      account?.totalBalance !== undefined
-    ) {
-      // Track position data loaded performance
-      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-
-      // Track homescreen tab viewed event with exact property names from requirements
-      track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
-        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
-          [PerpsEventProperties.ASSET]: p.coin,
-          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
-          [PerpsEventProperties.DIRECTION]:
-            parseFloat(p.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-        })),
-      });
-
-      hasTrackedHomescreen.current = true;
-    }
-  }, [isInitialLoading, positions, account?.totalBalance, track, endMeasure]);
+  // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [
+      !isInitialLoading,
+      !!positions,
+      account?.totalBalance !== undefined,
+    ],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
+    },
+  });
 
   const handleManageBalancePress = useCallback(() => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.BALANCE_MODAL,
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKETS,
+      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
     });
-  }, [navigation, isEligible]);
+  }, [navigation]);
 
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
       // Navigate to tutorial for first-time users
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-      });
+      navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
+        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
       });
     }
   }, [navigation, isFirstTimeUser]);
 
-  const coordinatedPress = useCoordinatedPress();
-
   const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handleNewTrade);
-  }, [coordinatedPress, handleNewTrade]);
+    handleNewTrade();
+  }, [handleNewTrade]);
 
   const renderStartTradeCTA = () => (
-    <TouchablePerpsComponent
+    <TempTouchableOpacity
       style={styles.startTradeCTA}
       onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
@@ -164,7 +133,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchablePerpsComponent>
+    </TempTouchableOpacity>
   );
 
   const renderOrdersSection = () => {
@@ -182,7 +151,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {orders.map((order) => (
-            <PerpsCard key={order.orderId} order={order} />
+            <PerpsCard
+              key={order.orderId}
+              order={order}
+              source={PerpsEventValues.SOURCE.POSITION_TAB}
+            />
           ))}
           {(!positions || positions.length === 0) && renderStartTradeCTA()}
         </View>
@@ -215,14 +188,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => {
-            const sizeValue = parseFloat(position.size);
-            const directionSegment = Number.isFinite(sizeValue)
-              ? sizeValue > 0
-                ? 'long'
-                : sizeValue < 0
-                ? 'short'
-                : 'unknown'
-              : 'unknown';
+            const directionSegment = getPositionDirection(position.size);
             return (
               <View
                 key={`${position.coin}-${index}`}
@@ -231,6 +197,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 <PerpsCard
                   key={`${position.coin}-${index}`}
                   position={position}
+                  source={PerpsEventValues.SOURCE.POSITION_TAB}
                 />
               </View>
             );
@@ -252,42 +219,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         <ScrollView style={styles.content}>
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <View style={styles.firstTimeContent}>
-                <View style={styles.firstTimeContainer}>
-                  <Icon
-                    name={IconName.Details}
-                    color={IconColor.Muted}
-                    size={firstTimeUserIconSize}
-                    style={styles.firstTimeIcon}
-                  />
-                  <Text
-                    variant={TextVariant.HeadingMD}
-                    color={TextColor.Default}
-                    style={styles.firstTimeTitle}
-                  >
-                    {strings('perps.position.list.first_time_title')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.firstTimeDescription}
-                  >
-                    {strings('perps.position.list.first_time_description')}
-                  </Text>
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    label={strings('perps.position.list.start_trading')}
-                    onPress={handleNewTrade}
-                    style={styles.startTradingButton}
-                    width={ButtonWidthTypes.Full}
-                  />
-                </View>
-              </View>
+              <PerpsEmptyState
+                onAction={handleNewTrade}
+                testID="perps-empty-state"
+                twClassName="mx-auto"
+              />
             ) : (
               <View style={styles.tradeInfoContainer}>
-                <View style={styles.section}>{renderPositionsSection()}</View>
-                <View style={styles.section}>{renderOrdersSection()}</View>
+                <View>{renderPositionsSection()}</View>
+                <View>{renderOrdersSection()}</View>
               </View>
             )}
           </View>

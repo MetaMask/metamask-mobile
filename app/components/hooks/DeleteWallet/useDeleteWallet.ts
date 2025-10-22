@@ -23,6 +23,8 @@ const useDeleteWallet = () => {
 
       await depositResetProviderToken();
 
+      await Engine.controllerMessenger.call('RewardsController:resetAll');
+
       await clearAllVaultBackups();
       // lock the app but do not navigate to login screen as it should
       // navigate to onboarding screen after deleting the wallet

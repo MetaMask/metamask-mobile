@@ -70,8 +70,7 @@ export function Recipient({
             size={AvatarSize.Md}
           />
         </Box>
-
-        <Box twClassName="ml-4 h-12 justify-center">
+        <Box twClassName="ml-4 h-12 justify-center flex-1">
           <Text
             testID={`recipient-name-${recipient.address}`}
             variant={TextVariant.BodyMd}

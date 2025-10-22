@@ -3,23 +3,26 @@ import Selectors from '../helpers/Selectors';
 import {
   AccountListBottomSheetSelectorsIDs,
 } from '../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
-import { expect, ScrollDirection } from 'appwright';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import { expect } from 'appwright';
 
 class AccountListComponent {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get accountListContainer() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+      return AppwrightSelectors.getElementByText(this._device, 'Accounts');
     }
   }
 
@@ -27,16 +30,15 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT);
     }
   }
 
-  async tapAddAccountButton() {
+  async tapCreateAccountButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
-      const element = await this.addAccountButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -54,22 +56,15 @@ class AccountListComponent {
     await element.waitForExist({ reverse: true });
   }
 
+  async isAccountDisplayed(name) {
+    const element = await AppwrightSelectors.getElementByCatchAll(this.device, name);
+    await expect(element).toBeVisible({ timeout: 10000 });
+  }
+
   async tapOnAccountByName(name) {
     let account = await AppwrightSelectors.getElementByText(this.device, name);
-    await AppwrightSelectors.scrollIntoView(this.device, account);
-    await account.tap();
-    /*
-    console.log('account ->', account);
-    try {
-      await account.tap();
-    } catch (error) {
-      console.log('Error tapping on account ->', error);
-      await this.device.pause(10000000);
-      await this.device.scroll();
-      account = await AppwrightSelectors.getElementByText(this.device, name);
-
-      await account.tap();
-    }*/
+    await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
+    await AppwrightGestures.tap(account); // Tap after scrolling into view
   }
 }
 

@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GetStarted render matches snapshot 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -289,7 +297,6 @@ exports[`GetStarted render matches snapshot 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -322,11 +329,19 @@ exports[`GetStarted render matches snapshot 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`GetStarted renders blank screen when getStarted is true 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -344,5 +359,5 @@ exports[`GetStarted renders blank screen when getStarted is true 1`] = `
       ]
     }
   />
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

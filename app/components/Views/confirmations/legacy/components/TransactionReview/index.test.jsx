@@ -45,6 +45,7 @@ jest.mock('../../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
   selectPendingSmartTransactionsBySender: () => [],
+  selectPendingSmartTransactionsForSelectedAccountGroup: () => [],
 }));
 
 jest.mock('../../../../../../reducers/swaps', () => ({
@@ -60,9 +61,9 @@ jest.mock('../../../../../../reducers/swaps', () => ({
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkInfo', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-      networkImage: 1,
-      networkName: 'Ethereum Main Network',
-      networkNativeCurrency: 'ETH',
+    networkImage: 1,
+    networkName: 'Ethereum Main Network',
+    networkNativeCurrency: 'ETH',
   })),
 }));
 
@@ -70,11 +71,10 @@ const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xB374Ca013934e498e5baD3409147F34E6c462389';
 const MOCK_ADDRESS_3 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 
-const MOCK_ACCOUNTS_CONTROLLER_STATE =
-  createMockAccountsControllerState(
-    [MOCK_ADDRESS_1, MOCK_ADDRESS_2, MOCK_ADDRESS_3],
-    MOCK_ADDRESS_3,
-  );
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState(
+  [MOCK_ADDRESS_1, MOCK_ADDRESS_2, MOCK_ADDRESS_3],
+  MOCK_ADDRESS_3,
+);
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
@@ -93,7 +93,7 @@ jest.mock('../../../../../../core/Engine', () => {
               metadata: {
                 id: '01JNG71B7GTWH0J1TSJY9891S0',
                 name: '',
-              }
+              },
             },
           ],
         },
@@ -207,9 +207,7 @@ describe('TransactionReview', () => {
     const store = mockStore(mockState);
     const wrapper = shallow(
       <Provider store={store}>
-        <TransactionReview
-          generateTransform={generateTransform}
-        />
+        <TransactionReview generateTransform={generateTransform} />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -239,13 +237,11 @@ describe('TransactionReview', () => {
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
-      .mockImplementation(
-        ({ result_type, reason, providerRequestsCount }) => ({
-          security_alert_response: result_type,
-          security_alert_reason: reason,
-          security_alert_provider_requests_count: providerRequestsCount,
-        }),
-      );
+      .mockImplementation(({ result_type, reason, providerRequestsCount }) => ({
+        security_alert_response: result_type,
+        security_alert_reason: reason,
+        security_alert_provider_requests_count: providerRequestsCount,
+      }));
     const { queryByText, queryByTestId, getByText } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
