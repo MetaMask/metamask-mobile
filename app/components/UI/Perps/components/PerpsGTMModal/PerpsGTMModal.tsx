@@ -1,17 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, View, useColorScheme, ScrollView } from 'react-native';
+import { Image, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontFamily,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -28,21 +27,16 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
-import { hasNonLatinCharacters } from '../../utils/textUtils';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const theme = useTheme();
 
-  const isDarkMode = useColorScheme() === 'dark';
-
   const titleText = strings('perps.gtm_content.title');
   const subtitleText = strings('perps.gtm_content.title_description');
-  const useSystemFont =
-    hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
 
-  const styles = createStyles(theme, isDarkMode, useSystemFont);
+  const styles = createStyles(theme);
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
@@ -91,12 +85,14 @@ const PerpsGTMModal = () => {
       >
         {/* Header Section */}
         <View style={styles.headerContainer}>
-          <Text style={styles.title} variant={TextVariant.HeadingLG}>
+          <Text
+            variant={TextVariant.DisplayLg}
+            fontFamily={FontFamily.Hero}
+            twClassName="text-center"
+          >
             {titleText}
           </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
-            {subtitleText}
-          </Text>
+          <Text twClassName="text-center">{subtitleText}</Text>
         </View>
 
         {/* Content Section */}
@@ -107,39 +103,23 @@ const PerpsGTMModal = () => {
 
       {/* Footer Section */}
       <View style={styles.footerContainer}>
-        <ButtonBase
+        <Button
           onPress={() => tryPerpsNow()}
           testID={PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={styles.tryNowButton}
-          activeOpacity={0.6}
-          label={
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.tryNowButtonText}
-            >
-              {strings('perps.gtm_content.try_now')}
-            </Text>
-          }
-        />
+          isFullWidth
+        >
+          {strings('perps.gtm_content.try_now')}
+        </Button>
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           onPress={() => handleClose()}
           testID={PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           size={ButtonSize.Lg}
-          style={styles.notNowButton}
-          activeOpacity={0.6}
-          label={
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.notNowButtonText}
-            >
-              {strings('perps.gtm_content.not_now')}
-            </Text>
-          }
-        />
+        >
+          {strings('perps.gtm_content.not_now')}
+        </Button>
       </View>
     </SafeAreaView>
   );
