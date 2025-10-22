@@ -9,6 +9,7 @@ import {
   GET_QUOTE_ETH_DAI_RESPONSE,
   GET_TOKENS_MAINNET_RESPONSE,
 } from './constants';
+import { priceApiExchangeRatesMock } from '../../identity/account-syncing/mock-data';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
@@ -48,6 +49,8 @@ export const testSpecificMock: TestSpecificMock = async (
     response: GET_TOKENS_MAINNET_RESPONSE,
     responseCode: 200,
   });
+
+  await priceApiExchangeRatesMock(mockServer);
 
   await interceptProxyUrl(
     mockServer,
