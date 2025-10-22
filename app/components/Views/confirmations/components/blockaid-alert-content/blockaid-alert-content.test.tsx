@@ -8,7 +8,6 @@ import {
 } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { deflate } from 'react-native-gzip';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
-import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 import { strings } from '../../../../../../locales/i18n';
 
