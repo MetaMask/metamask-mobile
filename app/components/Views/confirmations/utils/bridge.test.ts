@@ -671,6 +671,32 @@ describe('Confirmations Bridge Utils', () => {
         expect.any(String),
       );
     });
+
+    it('requests quotes with gasIncluded false when smart transactions disabled', async () => {
+      await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: false,
+        }),
+        undefined,
+        expect.any(String),
+      );
+    });
+
+    it('requests quotes with gasIncluded true when smart transactions enabled', async () => {
+      selectShouldUseSmartTransactionMock.mockReturnValue(true);
+
+      await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: true,
+        }),
+        undefined,
+        expect.any(String),
+      );
+    });
   });
 
   describe('refreshQuote', () => {
