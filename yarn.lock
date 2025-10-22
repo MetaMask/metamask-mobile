@@ -7024,9 +7024,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^50.0.0":
-  version: 50.0.0
-  resolution: "@metamask/bridge-controller@npm:50.0.0"
+"@metamask/bridge-controller@npm:^53.1.0":
+  version: 53.1.0
+  resolution: "@metamask/bridge-controller@npm:53.1.0"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -7046,12 +7046,12 @@ __metadata:
     uuid: "npm:^8.3.2"
   peerDependencies:
     "@metamask/accounts-controller": ^33.0.0
-    "@metamask/assets-controllers": ^80.0.0
+    "@metamask/assets-controllers": ^81.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 10/3c3bae89d09ec7936a05c13472c68d3be796ef07d3bff597150f94bc9f8be0d3d7d7776145c3d97d5e7fa4e5cf77685c051be52843bae6ae54710f0f793b048f
+  checksum: 10/17ce073b19da5c7c58aaf177ca63d4fda615817612c88fb7d3c1e5ed2d14aee398e67cf808f5f9ecfe1af31c361684efddbf1cc51b73dd4964e1ffce15ff5316
   languageName: node
   linkType: hard
 
@@ -8251,15 +8251,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/preferences-controller@npm:^20.0.1":
-  version: 20.0.1
-  resolution: "@metamask/preferences-controller@npm:20.0.1"
+"@metamask/preferences-controller@npm:^20.1.0":
+  version: 20.1.0
+  resolution: "@metamask/preferences-controller@npm:20.1.0"
   dependencies:
-    "@metamask/base-controller": "npm:^8.4.0"
-    "@metamask/controller-utils": "npm:^11.14.0"
+    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/controller-utils": "npm:^11.14.1"
   peerDependencies:
     "@metamask/keyring-controller": ^23.0.0
-  checksum: 10/ca52ac4d119a588428514c00d39c0bcfcddb293630ab7b9eaefce6b84c6ae0d45c745a5846550f45ae5cf4a544e47d1a01ea99f949f6077793f8e876fe6deb47
+  checksum: 10/4bbbdbf3c5e8fdd2a2227a55d403920a922d3b6f8c1d1cf7ff09228703e5e72e8a35f9bf3668f8d1d28e86b43aa440d9ed8bcd1ae3fe6e8885cb30bd9938cb18
   languageName: node
   linkType: hard
 
@@ -34102,7 +34102,7 @@ __metadata:
     "@metamask/assets-controllers": "npm:^81.0.1"
     "@metamask/base-controller": "npm:^8.3.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.3.0"
-    "@metamask/bridge-controller": "npm:^50.0.0"
+    "@metamask/bridge-controller": "npm:^53.1.0"
     "@metamask/bridge-status-controller": "npm:^50.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/build-utils": "npm:^3.0.0"
@@ -34164,7 +34164,7 @@ __metadata:
     "@metamask/phishing-controller": "npm:^14.1.2"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/ppom-validator": "npm:^0.38.0"
-    "@metamask/preferences-controller": "npm:^20.0.1"
+    "@metamask/preferences-controller": "npm:^20.1.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.1"
     "@metamask/profile-sync-controller": "npm:^25.1.0"
     "@metamask/providers": "npm:^18.3.1"

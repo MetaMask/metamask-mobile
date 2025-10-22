@@ -90,7 +90,7 @@ export const swapsSupportedChainIds = [
   swapsUtils.LINEA_CHAIN_ID,
   swapsUtils.BASE_CHAIN_ID,
   swapsUtils.SEI_CHAIN_ID,
-  swapsUtils.MONAD_CHAIN_ID,
+  CHAIN_IDS.MONAD,
 ];
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';

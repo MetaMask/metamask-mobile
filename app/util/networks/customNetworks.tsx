@@ -149,7 +149,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('143'),
-    nickname: 'Monad Mainnet',
+    nickname: 'Monad',
     rpcUrl: `https://monad-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'MON',
