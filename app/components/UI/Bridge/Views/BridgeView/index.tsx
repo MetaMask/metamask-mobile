@@ -79,7 +79,7 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
-import { BRIDGE_MM_FEE_RATE, RequestStatus } from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 
@@ -174,7 +174,6 @@ const BridgeView = () => {
     destTokenAmount,
     quoteFetchError,
     isNoQuotesAvailable,
-    quotesLoadingStatus,
     isExpired,
     willRefresh,
     blockaidError,
@@ -218,10 +217,7 @@ const BridgeView = () => {
   });
 
   // Compute error state directly from dependencies
-  const isError =
-    quotesLoadingStatus === RequestStatus.ERROR ||
-    isNoQuotesAvailable ||
-    quoteFetchError;
+  const isError = isNoQuotesAvailable || quoteFetchError;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
