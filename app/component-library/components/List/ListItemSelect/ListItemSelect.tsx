@@ -36,90 +36,14 @@ const TouchableOpacity = ({
 }) => {
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Track accessibility state - start with null to indicate "unknown"
-  const [isAccessibilityEnabled, setIsAccessibilityEnabled] = useState<
-    boolean | null
-  >(null);
-
-  useEffect(() => {
-    // Check initial accessibility state
-    AccessibilityInfo.isScreenReaderEnabled().then(setIsAccessibilityEnabled);
-
-    // Listen for accessibility changes
-    const subscription = AccessibilityInfo.addEventListener(
-      'screenReaderChanged',
-      setIsAccessibilityEnabled,
-    );
-
-    return () => subscription?.remove();
-  }, []);
-
-  // Gesture detection for ScrollView compatibility on Android
-  const tap = Gesture.Tap()
-    .runOnJS(true)
-    .shouldCancelWhenOutside(false)
-    .maxDeltaX(20) // Allow some movement while tapping
-    .maxDeltaY(20)
-    .requireExternalGestureToFail() // Wait for other gestures to fail before activating
-    .maxDuration(300) // Tight constraint: must complete within 300ms
-    .minPointers(1)
-    .onEnd(
-      (
-        gestureEvent: GestureStateChangeEvent<TapGestureHandlerEventPayload>,
-      ) => {
-        // Only handle gesture when we KNOW accessibility is OFF
-        // When accessibility is ON or UNKNOWN, let TouchableOpacity handle the press
-        if (onPress && !isDisabled && isAccessibilityEnabled === false) {
-          // Create a proper GestureResponderEvent-like object from gesture event
-          const syntheticEvent = {
-            nativeEvent: {
-              locationX: gestureEvent.x || 0,
-              locationY: gestureEvent.y || 0,
-              pageX: gestureEvent.absoluteX || 0,
-              pageY: gestureEvent.absoluteY || 0,
-              timestamp: Date.now(),
-            },
-            persist: () => {
-              /* no-op for synthetic event */
-            },
-            preventDefault: () => {
-              /* no-op for synthetic event */
-            },
-            stopPropagation: () => {
-              /* no-op for synthetic event */
-            },
-          } as GestureResponderEvent;
-
-          onPress(syntheticEvent);
-        }
-      },
-    );
-
-  // In test environments, behave like standard TouchableOpacity
-  if (process.env.NODE_ENV === 'test') {
-    return (
-      <RNTouchableOpacity
-        disabled={isDisabled}
-        onPress={isDisabled ? undefined : onPress}
-        {...props}
-      >
-        {children}
-      </RNTouchableOpacity>
-    );
-  }
-
   return (
-    <GestureDetector gesture={tap}>
-      <RNTouchableOpacity
-        disabled={isDisabled}
-        onPress={
-          isAccessibilityEnabled !== false && !isDisabled ? onPress : undefined
-        } // Use TouchableOpacity onPress when accessibility is ON or UNKNOWN (safer for accessibility users)
-        {...props}
-      >
-        {children}
-      </RNTouchableOpacity>
-    </GestureDetector>
+    <RNTouchableOpacity
+      disabled={isDisabled}
+      onPress={isDisabled ? undefined : onPress}
+      {...props}
+    >
+      {children}
+    </RNTouchableOpacity>
   );
 };
 
