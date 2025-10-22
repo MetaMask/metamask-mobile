@@ -949,7 +949,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -1669,7 +1668,6 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -2333,7 +2331,6 @@ exports[`PermissionsSummary should render only the account permissions card when
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -2909,7 +2906,6 @@ exports[`PermissionsSummary should render only the network permissions card when
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -4044,7 +4040,6 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -5179,7 +5174,6 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
