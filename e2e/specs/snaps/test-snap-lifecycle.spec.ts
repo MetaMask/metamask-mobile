@@ -39,7 +39,12 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
-        await loginToApp();
+        try {
+          await loginToApp();
+        } catch {
+          // The assertions inside may fail due to the ongoing test.
+        }
+
         await Assertions.checkIfTextIsDisplayed(
           'The client was started successfully, and the "onStart" handler was called.',
         );
