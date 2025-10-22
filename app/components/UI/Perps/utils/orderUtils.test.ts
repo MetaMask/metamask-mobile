@@ -1,4 +1,8 @@
-import { getOrderDirection, willFlipPosition } from './orderUtils';
+import {
+  getOrderDirection,
+  willFlipPosition,
+  determineMakerStatus,
+} from './orderUtils';
 import { strings } from '../../../../../locales/i18n';
 import { OrderParams } from '../controllers/types';
 import { Position } from '../hooks';
@@ -6,6 +10,13 @@ import { Position } from '../hooks';
 // Mock the i18n module
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn(),
+}));
+
+// Mock DevLogger
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: {
+    log: jest.fn(),
+  },
 }));
 
 describe('getOrderDirection', () => {
@@ -191,5 +202,181 @@ describe('willFlipPosition', () => {
 
     const result = willFlipPosition(currentPosition, orderParams);
     expect(result).toBe(true);
+  });
+});
+
+describe('determineMakerStatus', () => {
+  describe('Market Orders', () => {
+    it('treats market orders as taker regardless of price', () => {
+      const result = determineMakerStatus({
+        orderType: 'market',
+        direction: 'long',
+        limitPrice: '50000',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('Limit Orders - Long Direction', () => {
+    it('treats buy limit above ask as taker', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '50100',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('treats buy limit at ask price as taker', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '50001',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('treats buy limit below ask as maker', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '49500',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('Limit Orders - Short Direction', () => {
+    it('treats sell limit below bid as taker', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'short',
+        limitPrice: '49900',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('treats sell limit at bid price as taker', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'short',
+        limitPrice: '49999',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('treats sell limit above bid as maker', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'short',
+        limitPrice: '50500',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('defaults to taker when limitPrice is missing', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to taker when limitPrice is empty string', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to taker when limitPrice is NaN', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: 'invalid',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to taker when limitPrice is zero', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '0',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to taker when limitPrice is negative', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '-1000',
+        bestAsk: 50001,
+        bestBid: 49999,
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to taker when bid/ask data is unavailable', () => {
+      const result = determineMakerStatus({
+        orderType: 'limit',
+        direction: 'long',
+        limitPrice: '49500',
+        coin: 'BTC',
+      });
+
+      expect(result).toBe(false);
+    });
   });
 });
