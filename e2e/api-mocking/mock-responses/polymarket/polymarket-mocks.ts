@@ -14,7 +14,7 @@ import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import { POLYMARKET_ACTIVITY_RESPONSE } from './polymarket-activity-response';
 import { POLYMARKET_SPORTS_FEED } from './market-feed-responses/polymarket-sports-feed';
 import { POLYMARKET_CRYPTO_FEED } from './market-feed-responses/polymarket-crypto-feed';
-import { POLYMARKET_POLITCS_FEED } from './market-feed-responses/polymarket-politics-feed';
+import { POLYMARKET_POLITICS_FEED } from './market-feed-responses/polymarket-politics-feed';
 import { POLYMARKET_TRENDING_FEED } from './market-feed-responses/polymarket-trending-feed';
 import { POLYMARKET_NEW_FEED } from './market-feed-responses/polymarket-new-feed';
 import {
@@ -441,7 +441,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
             selectedFeed = POLYMARKET_CRYPTO_FEED;
             break;
           case 'politics':
-            selectedFeed = POLYMARKET_POLITCS_FEED;
+            selectedFeed = POLYMARKET_POLITICS_FEED;
             break;
           default:
             selectedFeed = POLYMARKET_TRENDING_FEED;
@@ -461,7 +461,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
       // Return the feed data in the correct API structure
       console.log('Market feed mock returning:', {
         feedType:
-          selectedFeed === POLYMARKET_POLITCS_FEED
+          selectedFeed === POLYMARKET_POLITICS_FEED
             ? 'POLITICS'
             : selectedFeed === POLYMARKET_SPORTS_FEED
             ? 'SPORTS'

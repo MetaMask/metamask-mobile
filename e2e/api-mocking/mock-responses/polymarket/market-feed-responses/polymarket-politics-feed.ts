@@ -4,7 +4,7 @@
  * Based on real Polymarket API structure from gamma-api.polymarket.com
  */
 
-export const POLYMARKET_POLITCS_FEED = {
+export const POLYMARKET_POLITICS_FEED = {
   data: [
     {
       id: '31759',
