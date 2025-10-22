@@ -12,6 +12,15 @@ import PredictBuyPreview from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 
+// Mock Engine
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictOrderEvent: jest.fn(),
+    },
+  },
+}));
+
 // Mock navigation hooks
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
