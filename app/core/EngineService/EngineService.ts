@@ -190,8 +190,8 @@ export class EngineService {
           const controllerName = eventName.split(':')[0];
 
           // Check if controller has any persistent state before setting up persistence
-          // @ts-expect-error Engine context has stateless controllers, so metadata may not be available
           const controllerMetadata =
+            // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
             UntypedEngine.context[controllerName]?.metadata;
           if (!hasPersistedState(controllerMetadata)) {
             Logger.log(
