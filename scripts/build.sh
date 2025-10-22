@@ -630,7 +630,7 @@ buildAndroid() {
 	elif [ "$METAMASK_BUILD_TYPE" == "flaskDebugE2E" ] ; then
 		buildAndroidFlaskDev
 	else
-		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized."
+		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized."
 		exit 1
 	fi
 }
@@ -689,7 +689,7 @@ buildIos() {
 	elif [ "$METAMASK_BUILD_TYPE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
 	else
-		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized"
+		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized"
 		exit 1
 	fi
 }
