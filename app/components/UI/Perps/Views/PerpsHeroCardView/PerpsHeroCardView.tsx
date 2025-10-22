@@ -1,7 +1,6 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useCallback } from 'react';
 import {
   View,
-  ScrollView,
   Image,
   TouchableOpacity,
   Text as RNText,
@@ -12,6 +11,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import { useSelector } from 'react-redux';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -54,7 +54,8 @@ const CARD_IMAGES = {
 const PerpsHeroCardView: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const viewShotRef = useRef<View>(null);
+  const viewShotRefs = useRef<(View | null)[]>([null, null, null]);
+  const [currentTab, setCurrentTab] = useState(0);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [backgroundImage, setBackgroundImage] =
@@ -145,6 +146,10 @@ const PerpsHeroCardView: React.FC = () => {
     return null;
   }, [position, transaction, markets]);
 
+  const handleTabChange = useCallback((obj: { i: number }) => {
+    setCurrentTab(obj.i);
+  }, []);
+
   const { styles } = useStyles(styleSheet, { isLong: Boolean(data?.isLong) });
 
   // TODO: Handle graceful failure. We don't want fallback data since it won't be accurate.
@@ -203,6 +208,20 @@ const PerpsHeroCardView: React.FC = () => {
     }
   };
 
+  const renderTabBar = () => (
+    <View style={styles.progressContainer}>
+      {[0, 1, 2].map((dotIndex) => (
+        <View
+          key={dotIndex}
+          style={[
+            styles.progressDot,
+            currentTab === dotIndex && styles.progressDotActive,
+          ]}
+        />
+      ))}
+    </View>
+  );
+
   const pnlSign = data.pnl >= 0 ? '+' : '';
   const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
   const directionText =
@@ -232,112 +251,141 @@ const PerpsHeroCardView: React.FC = () => {
       </View>
 
       {/* Content */}
-      <ScrollView
-        style={styles.contentScrollView}
-        contentContainerStyle={styles.cardWrapper}
-      >
-        {/* Card to be captured */}
-        <View ref={viewShotRef} collapsable={false}>
-          <ImageBackground
-            source={backgroundImage}
-            style={styles.cardContainer}
-            contentFit="contain"
-            contentPosition="right center"
+      <View style={styles.carouselWrapper}>
+        <View style={styles.carouselContainer}>
+          <ScrollableTabView
+            renderTabBar={renderTabBar}
+            tabBarPosition="bottom"
+            onChangeTab={handleTabChange}
+            initialPage={0}
+            prerenderingSiblingsNumber={1}
           >
-            {/* MetaMask Logo */}
-            <View style={styles.logoContainer}>
-              <Image
-                source={MetaMaskLogo}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-            </View>
+            {[0, 1, 2].map((index) => (
+              <View key={index}>
+                <View style={styles.cardWrapper}>
+                  {/* Card to be captured */}
+                  <View
+                    ref={(ref) => {
+                      viewShotRefs.current[index] = ref;
+                    }}
+                    collapsable={false}
+                  >
+                    <ImageBackground
+                      source={backgroundImage}
+                      style={styles.cardContainer}
+                      contentFit="contain"
+                      contentPosition="right center"
+                    >
+                      {/* MetaMask Logo */}
+                      <View style={styles.logoContainer}>
+                        <Image
+                          source={MetaMaskLogo}
+                          style={styles.logo}
+                          resizeMode="contain"
+                        />
+                      </View>
 
-            {/* Asset Info Row */}
-            <View style={styles.assetRow}>
-              <PerpsTokenLogo
-                symbol={data.asset}
-                size={14.5}
-                style={styles.assetIcon}
-              />
-              <Text variant={TextVariant.BodySMMedium} style={styles.assetName}>
-                {data.asset}
-              </Text>
-              <View style={styles.directionBadge}>
-                <Text
-                  variant={TextVariant.BodyXSMedium}
-                  style={styles.directionBadgeText}
-                >
-                  {directionBadgeText}
-                </Text>
+                      {/* Asset Info Row */}
+                      <View style={styles.assetRow}>
+                        <PerpsTokenLogo
+                          symbol={data.asset}
+                          size={14.5}
+                          style={styles.assetIcon}
+                        />
+                        <Text
+                          variant={TextVariant.BodySMMedium}
+                          style={styles.assetName}
+                        >
+                          {data.asset}
+                        </Text>
+                        <View style={styles.directionBadge}>
+                          <Text
+                            variant={TextVariant.BodyXSMedium}
+                            style={styles.directionBadgeText}
+                          >
+                            {directionBadgeText}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* P&L Percentage */}
+                      <RNText
+                        style={[
+                          styles.pnlText,
+                          data.roe >= 0
+                            ? styles.pnlPositive
+                            : styles.pnlNegative,
+                        ]}
+                      >
+                        {pnlDisplay}
+                      </RNText>
+
+                      <View>
+                        {/* Entry Price */}
+                        <View style={styles.priceRow}>
+                          <Text
+                            style={styles.priceLabel}
+                            variant={TextVariant.BodyXSMedium}
+                          >
+                            {strings('perps.pnl_hero_card.entry_price')}
+                          </Text>
+                          <Text
+                            style={styles.priceValue}
+                            variant={TextVariant.BodySMMedium}
+                          >
+                            {formatPerpsFiat(data.entryPrice, {
+                              ranges: PRICE_RANGES_UNIVERSAL,
+                            })}
+                          </Text>
+                        </View>
+
+                        {/* Mark Price */}
+                        <View style={styles.priceRow}>
+                          <Text
+                            style={styles.priceLabel}
+                            variant={TextVariant.BodyXSMedium}
+                          >
+                            {strings('perps.pnl_hero_card.mark_price')}
+                          </Text>
+                          <Text
+                            style={styles.priceValue}
+                            variant={TextVariant.BodySMMedium}
+                          >
+                            {formatPerpsFiat(data.markPrice as string, {
+                              ranges: PRICE_RANGES_UNIVERSAL,
+                            })}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Referral Code Section */}
+                      <View style={styles.referralContainer}>
+                        <PerpsReferralCode referralCode={referralCode} />
+                        <View style={styles.footerTextContainer}>
+                          <Text
+                            variant={TextVariant.BodySM}
+                            style={styles.footerText}
+                          >
+                            {strings('perps.pnl_hero_card.referral_footer')}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodySM}
+                            style={styles.footerText}
+                          >
+                            {strings('perps.pnl_hero_card.referral_link', {
+                              code: referralCode,
+                            })}
+                          </Text>
+                        </View>
+                      </View>
+                    </ImageBackground>
+                  </View>
+                </View>
               </View>
-            </View>
-
-            {/* P&L Percentage */}
-            <RNText
-              style={[
-                styles.pnlText,
-                data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
-              ]}
-            >
-              {pnlDisplay}
-            </RNText>
-
-            <View>
-              {/* Entry Price */}
-              <View style={styles.priceRow}>
-                <Text
-                  style={styles.priceLabel}
-                  variant={TextVariant.BodyXSMedium}
-                >
-                  {strings('perps.pnl_hero_card.entry_price')}
-                </Text>
-                <Text
-                  style={styles.priceValue}
-                  variant={TextVariant.BodySMMedium}
-                >
-                  {formatPerpsFiat(data.entryPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })}
-                </Text>
-              </View>
-
-              {/* Mark Price */}
-              <View style={styles.priceRow}>
-                <Text
-                  style={styles.priceLabel}
-                  variant={TextVariant.BodyXSMedium}
-                >
-                  {strings('perps.pnl_hero_card.mark_price')}
-                </Text>
-                <Text
-                  style={styles.priceValue}
-                  variant={TextVariant.BodySMMedium}
-                >
-                  {formatPerpsFiat(data.markPrice as string, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })}
-                </Text>
-              </View>
-            </View>
-
-            {/* Referral Code Section */}
-            <View style={styles.referralContainer}>
-              <PerpsReferralCode referralCode={referralCode} />
-              <View style={styles.footerTextContainer}>
-                <Text variant={TextVariant.BodySM} style={styles.footerText}>
-                  {strings('perps.pnl_hero_card.referral_footer')}
-                </Text>
-                <Text variant={TextVariant.BodySM} style={styles.footerText}>
-                  {strings('perps.pnl_hero_card.referral_link', {
-                    code: referralCode,
-                  })}
-                </Text>
-              </View>
-            </View>
-          </ImageBackground>
+            ))}
+          </ScrollableTabView>
         </View>
-      </ScrollView>
+      </View>
 
       {/* Footer Buttons */}
       <View style={styles.buttonsContainer}>

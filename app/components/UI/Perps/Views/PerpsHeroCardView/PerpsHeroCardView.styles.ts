@@ -29,14 +29,37 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    contentScrollView: {
+    carouselWrapper: {
       flex: 1,
+      justifyContent: 'center',
+    },
+    carouselContainer: {
+      height: 400,
     },
     cardWrapper: {
-      flex: 1,
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    progressContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 16,
+      gap: 4,
+    },
+    progressDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: darkTheme.colors.background.muted,
+    },
+    progressDotActive: {
+      width: 23,
+      height: 12,
+      borderRadius: 9,
+      backgroundColor: darkTheme.colors.text.default,
     },
     cardContainer: {
       backgroundColor: darkTheme.colors.accent04.dark,
