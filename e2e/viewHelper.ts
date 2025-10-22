@@ -24,6 +24,7 @@ import TestDApp from './pages/Browser/TestDApp';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './framework/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
+import { ManualBackUpStepsSelectorsIDs } from './selectors/Onboarding/ManualBackUpSteps.selectors';
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
 
@@ -235,9 +236,12 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  // Check that we are on the Secure your wallet screen
-  await Assertions.expectElementToBeVisible(ProtectYourWalletView.container, {
-    description: 'Protect Your Wallet View should be visible',
+  // Check that we are on the Manual Backup Step 1 screen
+  const manualBackupStep1Container = Matchers.getElementByID(
+    ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER,
+  );
+  await Assertions.expectElementToBeVisible(manualBackupStep1Container, {
+    description: 'Manual Backup Step 1 View should be visible',
   });
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
