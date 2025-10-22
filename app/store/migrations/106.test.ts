@@ -1,11 +1,11 @@
 import { MMKV } from 'react-native-mmkv';
-import migrate from './105';
+import migrate from './106';
 
 jest.mock('react-native-mmkv', () => ({
   MMKV: jest.fn(),
 }));
 
-describe('Migration #105', () => {
+describe('Migration #106', () => {
   const mockMMKVInstance = {
     getAllKeys: jest.fn(),
     clearAll: jest.fn(),

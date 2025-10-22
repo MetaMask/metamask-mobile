@@ -2,10 +2,10 @@ import { captureException } from '@sentry/react-native';
 import { MMKV } from 'react-native-mmkv';
 import { ensureValidState } from './util';
 
-const migrationVersion = 105;
+const migrationVersion = 106;
 
 /**
- * Migration 105: Clean up PPOM MMKV storage after removing PPOM local execution
+ * Migration 106: Clean up PPOM MMKV storage after removing PPOM local execution
  *
  * This migration removes any lingering PPOM data stored in MMKV storage
  * when the PPOM controller is removed from the codebase.
