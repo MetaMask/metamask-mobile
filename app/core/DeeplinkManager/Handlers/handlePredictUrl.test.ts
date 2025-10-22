@@ -40,7 +40,7 @@ describe('handlePredictUrl', () => {
     const marketId = 'test-market-123';
     await handlePredictUrl({ predictPath: `/${marketId}` });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: { marketId },
     });
@@ -50,7 +50,7 @@ describe('handlePredictUrl', () => {
     const marketId = 'test-market-456';
     await handlePredictUrl({ predictPath: marketId });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: { marketId },
     });
@@ -73,7 +73,7 @@ describe('handlePredictUrl', () => {
     const marketId = '0xabc123-market-id';
     await handlePredictUrl({ predictPath: `/${marketId}` });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: { marketId },
     });

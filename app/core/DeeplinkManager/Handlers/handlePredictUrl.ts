@@ -31,7 +31,7 @@ export const handlePredictUrl = async ({
         '[handlePredictUrl] Navigating to market details:',
         marketId,
       );
-      NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
+      NavigationService.navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: { marketId },
       });
