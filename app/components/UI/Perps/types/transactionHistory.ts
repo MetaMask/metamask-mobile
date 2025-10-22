@@ -16,6 +16,14 @@ export enum PerpsOrderTransactionStatusType {
   Pending = 'pending',
 }
 
+export enum FillType {
+  Standard = 'standard',
+  Liquidation = 'liquidation',
+  TakeProfit = 'take_profit',
+  StopLoss = 'stop_loss',
+  AutoDeleveraging = 'auto_deleveraging',
+}
+
 export interface PerpsTransaction {
   id: string;
   type: 'trade' | 'order' | 'funding';
@@ -42,9 +50,7 @@ export interface PerpsTransaction {
       markPx: string; // Mark price at liquidation
       method: string; // Liquidation method (e.g., 'market')
     };
-    isLiquidation: boolean;
-    isTakeProfit: boolean;
-    isStopLoss: boolean;
+    fillType: FillType;
   };
   // For orders: order info
   order?: {
