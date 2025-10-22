@@ -97,7 +97,7 @@ function ListItem({
         <View style={styles.gasFeeTokenListItemTextContainer}>
           <View style={styles.gasFeeTokenListItemSymbol}>
             <Text
-              testID="gas-fee-token-list-item-symbol"
+              testID={`gas-fee-token-list-item-symbol-${leftPrimary}`}
               variant={TextVariant.BodyMDMedium}
               style={styles.gasFeeTokenListItemSymbolText}
             >
@@ -106,7 +106,7 @@ function ListItem({
             {warning}
           </View>
           <Text
-            testID="gas-fee-token-list-item-balance"
+            testID={`gas-fee-token-list-item-balance-${leftPrimary}`}
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
@@ -116,13 +116,13 @@ function ListItem({
       </View>
       <View style={styles.gasFeeTokenListItemAmountContainer}>
         <Text
-          testID="gas-fee-token-list-item-amount-fiat"
+          testID={`gas-fee-token-list-item-amount-fiat-${leftPrimary}`}
           variant={TextVariant.BodySMMedium}
         >
           {rightPrimary}
         </Text>
         <Text
-          testID="gas-fee-token-list-item-amount-token"
+          testID={`gas-fee-token-list-item-amount-token-${leftPrimary}`}
           variant={TextVariant.BodySMMedium}
           color={TextColor.Alternative}
         >

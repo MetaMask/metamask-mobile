@@ -9,6 +9,7 @@ import {
   TransactionConfirmViewSelectorsIDs,
   TransactionConfirmViewSelectorsText,
 } from '../../selectors/SendFlow/TransactionConfirmView.selectors';
+import RowComponents from '../Browser/Confirmations/RowComponents';
 
 class TransactionConfirmationView {
   get confirmButton(): DetoxElement {
@@ -138,6 +139,12 @@ class TransactionConfirmationView {
   async tapAdvancedOptionsPriorityGasOption(): Promise<void> {
     await Gestures.waitAndTap(this.EditPriorityAdvancedOptionsText, {
       elemDescription: 'Advanced Options Priority Gas Option',
+    });
+  }
+
+  async tapGasFeeTokenPill(): Promise<void> {
+    await Gestures.waitAndTap(RowComponents.NetworkFeeGasFeeTokenPill, {
+      elemDescription: 'Gas Fee Token Pill in Confirmation View',
     });
   }
 }
