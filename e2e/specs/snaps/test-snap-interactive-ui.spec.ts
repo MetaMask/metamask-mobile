@@ -5,7 +5,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import { Assertions } from '../../framework';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers';
 
 jest.setTimeout(150_000);
 
@@ -15,6 +15,7 @@ describe(FlaskBuildTests('Interactive UI Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -30,6 +31,7 @@ describe(FlaskBuildTests('Interactive UI Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('createDialogButton');
@@ -56,6 +58,7 @@ describe(FlaskBuildTests('Interactive UI Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('createDialogDisabledButton');

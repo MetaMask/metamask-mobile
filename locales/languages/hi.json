@@ -221,6 +221,12 @@
     "remind_later_description2": "आप अपने वॉलेट का बैकअप ले सकते हैं या इसमें अपना सीक्रेट रिकवरी फ्रेज़ देख सकते हैं",
     "setting_security_privacy": "सेटिंग > सुरक्षा और गोपनीयता"
   },
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
+  },
   "onboarding_carousel": {
     "title1": "MetaMask में आपका स्वागत है",
     "title2": "अपनी डिजिटल संपत्तियों को प्रबंधित करें",
@@ -389,6 +395,7 @@
     "description": "केवल इस डिवाइस पर MetaMask को अनलॉक करता है।",
     "description_social_login": "सभी डिवाइसों पर वॉलेट रिकवरी के लिए इसका उपयोग करें।",
     "description_social_login_update": "यदि आप यह पासवर्ड खो देते हैं, तो आप अपने वॉलेट तक सभी डिवाइसों पर पहुँच खो देंगे। इसे कहीं सुरक्षित स्थान पर रखें,",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask इसे रीसेट नहीं कर सकता।",
     "subtitle": "यह पासवर्ड आपके MetaMask वॉलेट को केवल इसी डिवाइस पर अनलॉक करेगा।",
     "password": "पासवर्ड बनाएं",
@@ -664,7 +671,14 @@
       "bullet_2_description": "USDC को स्थिर रहने के लिए डिज़ाइन किया गया है, जिससे योजना बनाना, सेव करना और खर्च करना आसान हो जाता है।",
       "bullet_3_title": "बैंकों से भी तेज़",
       "bullet_3_description": "मिनटों में भेजें और प्राप्त करें — न बैंक के समय का, न ही अंतरराष्ट्रीय देरी का इंतज़ार।",
-      "button": "शुरू करें"
+      "button": "शुरू करें",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
@@ -855,6 +869,7 @@
       "fetch_regions": "क्षेत्रों को प्राप्त करने में समस्या हुई।",
       "fetch_tokens": "टोकन को प्राप्त करने में समस्या हुई।",
       "fetch_payment_methods": "भुगतान विधियों को प्राप्त करने में समस्या हुई।",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "फिर से प्रयास करें",
       "error_details_title": "गड़बड़ी का विवरण",
       "see_more": "अधिक देखें"
@@ -1665,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1775,6 +1799,8 @@
     "alphabetically": "वर्णानुक्रम में (A-Z)",
     "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
     "token_is_needed_to_continue": "जारी रखने के लिए {{tokenSymbol}} की आवश्यकता है",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Web3 में शुरू करने के लिए अपने वॉलेट को फंड करें",
     "add_funds": "फंड जोड़ें",
     "next": "आगे",
@@ -2849,12 +2875,13 @@
   },
   "gas_fee_token_modal": {
     "title": "कोई टोकन चुनें",
-    "title_pay_eth": "ETH के साथ भुगतान करें",
     "native_toggle_wallet": "अपने वॉलेट में बैलेंस का उपयोग करके नेटवर्क फीस के लिए भुगतान करें।",
     "list_balance": "बैलेंस:",
     "insufficient_balance": "अपर्याप्त फंड",
-    "native_toggle_metamask": "इस ट्रांसेक्शन को पूरा करने के लिए MetaMask बैलेंस को पूरा कर रहा है।",
-    "title_pay_with_other_tokens": "अन्य टोकन के साथ भुगतान करें"
+    "native_toggle_metamask": "इस ट्रांसेक्शन को पूरा करने के लिए MetaMask बैलेंस को पूरा कर रहा है।"
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ट्रांसेक्शन आईडी",
@@ -3136,9 +3163,10 @@
     "tx_review_staking_unstake": "अनस्टेक करें",
     "tx_review_lending_deposit": "डिपॉज़िट उधार दिया जा रहा है",
     "tx_review_lending_withdraw": "विदड्रॉवल उधार दिया जा रहा है",
-    "tx_review_perps_deposit": "फंडेड पर्प्स अकाउंट",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Ether भेजे गए",
     "self_sent_ether": "खुद को Ether भेजें",
     "received_ether": "Ether प्राप्त किया",
@@ -3212,6 +3240,7 @@
     "network_fee": "नेटवर्क फीस",
     "network_fee_tooltip": "नेटवर्क पर ट्रांसेक्शन को प्रोसेस करने के लिए भुगतान की गई राशि।",
     "confirm_gas_fee_token_tooltip": "यह आपके ट्रांसेक्शन को प्रोसेस करने के लिए नेटवर्क को भुगतान किया जाता है। इसमें गैर-ETH टोकन या पहले से फंड किए गए ETH के लिए {{metamaskFeeFiat}} MetaMask फीस शामिल है।",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "इसमें {{metamaskFeeFiat}} फीस शामिल है",
     "smart_account_upgrade": "स्मार्ट अकाउंट में अपग्रेड करें",
     "smart_account_downgrade": "मानक अकाउंट पर स्विच करें",
@@ -5345,7 +5374,9 @@
       "transfer": "ट्रांसफर अनुरोध",
       "switch_account_type": "अकाउंट अपडेट",
       "approve": "अनुरोध एप्रूव करें",
-      "perps_deposit": "फंड जोड़ें"
+      "perps_deposit": "फंड जोड़ें",
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -5363,6 +5394,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "फीस"
@@ -5590,7 +5624,9 @@
     "account_not_found": "वॉलेट नहीं मिला",
     "account_not_found_description": "हमें \"{{accountName}}\" के लिए कोई वॉलेट नहीं मिला। क्या आप इस लॉगिन से एक नया वॉलेट बनाना चाहते हैं?",
     "create_new_wallet": "एक नया वॉलेट बनाएं",
-    "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें"
+    "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "अभी तक वहीं हैं?",
@@ -5946,6 +5982,18 @@
       "limited_spending_warning": "आपकी वास्तविक खर्च करने की क्षमता सीमित हो सकती है। अपनी सीमा समायोजित करने के लिए, {{manageCard}} पर जाएँ",
       "add_funds": "फंड जोड़ें",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
@@ -6317,6 +6365,7 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "ट्रांसेक्शन",
       "perps_deposit": "फंड जोड़ें",
+      "predict_deposit": "Add funds",
       "swap": "टोकन स्वैप करें",
       "swap_approval": "टोकन एप्रूव करें"
     },
@@ -6330,6 +6379,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

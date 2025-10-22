@@ -161,7 +161,7 @@ export const createPerpsHooksMocks = (overrides = {}) => ({
   usePerpsClosePosition: jest.fn(() => defaultPerpsClosePositionMock),
   usePerpsEventTracking: jest.fn(() => defaultPerpsEventTrackingMock),
   useMinimumOrderAmount: jest.fn(() => defaultMinimumOrderAmountMock),
-  usePerpsLiveAccount: jest.fn(() => defaultPerpsAccountMock),
+  usePerpsAccount: jest.fn(() => defaultPerpsAccountMock),
   usePerpsNetwork: jest.fn(() => defaultPerpsNetworkMock),
   usePerpsTrading: jest.fn(() => defaultPerpsTradingMock),
   usePerpsConnection: jest.fn(() => defaultPerpsConnectionMock),

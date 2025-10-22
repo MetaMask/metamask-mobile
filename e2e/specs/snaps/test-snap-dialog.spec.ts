@@ -3,7 +3,7 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { Matchers } from '../../framework';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -16,6 +16,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -32,6 +33,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendAlertButton');
@@ -51,6 +53,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -66,6 +69,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -83,6 +87,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendCustomButton');

@@ -102,6 +102,7 @@ describe('Engine', () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
     await Engine.destroyEngine();
+    await EngineClass.instance?.destroyEngineInstance();
   });
 
   it('should expose an API', () => {
@@ -220,12 +221,13 @@ describe('Engine', () => {
         currentMigrationVersion,
       },
       PredictController: {
-        activeOrders: {},
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        notifications: [],
-        claimTransactions: {},
+        claimTransaction: null,
+        claimablePositions: [],
+        depositTransaction: null,
+        isOnboarded: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({

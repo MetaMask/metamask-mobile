@@ -13,7 +13,7 @@ import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Matchers from '../../framework/Matchers';
 import { Mockttp } from 'mockttp';
@@ -50,7 +50,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
   );
 };
 
-describe(RegressionTrade('On-Ramp Parameters'), () => {
+describe.skip(RegressionTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });

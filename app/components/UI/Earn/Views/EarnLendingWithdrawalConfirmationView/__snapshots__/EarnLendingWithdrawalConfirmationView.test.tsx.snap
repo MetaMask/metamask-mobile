@@ -512,7 +512,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                         }
                         testID="tagbase-text"
                       >
-                        Account 2
+                        Test Wallet Group
                       </Text>
                     </View>
                   </View>

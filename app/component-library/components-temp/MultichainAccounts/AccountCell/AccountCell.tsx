@@ -20,15 +20,23 @@ import I18n from '../../../../../locales/i18n';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+import Avatar, { AvatarVariant } from '../../../components/Avatars/Avatar';
 import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
-import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import {
+  selectIconSeedAddressByAccountGroupId,
+  selectInternalAccountByAccountGroupAndScope,
+} from '../../../../selectors/multichainAccounts/accounts';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { renderShortAddress } from '../../../../util/address';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
+  chainId?: string;
   onSelectAccount?: () => void;
 }
 
@@ -37,6 +45,7 @@ const AccountCell = ({
   avatarAccountType,
   hideMenu = false,
   startAccessory,
+  chainId,
   onSelectAccount,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -70,6 +79,22 @@ const AccountCell = ({
     });
   }, [totalBalance, userCurrency]);
 
+  // Determine which account address and network avatar to display based on the chainId
+  let networkAccountAddress;
+  let networkImageSource;
+  const getInternalAccountByAccountGroupAndScope = useSelector(
+    selectInternalAccountByAccountGroupAndScope,
+  );
+  if (chainId) {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const internalAccountFromAccountGroupForChainId =
+      getInternalAccountByAccountGroupAndScope(caipChainId, accountGroup.id);
+    networkAccountAddress = internalAccountFromAccountGroupForChainId?.address
+      ? renderShortAddress(internalAccountFromAccountGroupForChainId.address, 4)
+      : undefined;
+    networkImageSource = getNetworkImageSource({ chainId });
+  }
+
   return (
     <Box
       style={styles.container}
@@ -87,26 +112,50 @@ const AccountCell = ({
           testID={AccountCellIds.AVATAR}
         />
         <View style={styles.accountName}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            numberOfLines={1}
-            style={styles.accountNameText}
-            testID={AccountCellIds.ADDRESS}
-          >
-            {accountGroup.metadata.name}
-          </Text>
+          <View style={styles.accountNameRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              numberOfLines={1}
+              style={styles.accountNameText}
+              testID={AccountCellIds.ADDRESS}
+            >
+              {accountGroup.metadata.name}
+            </Text>
+          </View>
+          {networkAccountAddress && (
+            <View style={styles.accountSubRow}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                numberOfLines={1}
+                style={styles.accountSubText}
+              >
+                {networkAccountAddress}
+              </Text>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
       <View style={styles.endContainer}>
         <TouchableOpacity onPress={onSelectAccount}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            testID={AccountCellIds.BALANCE}
-          >
-            {totalBalance ? displayBalance : null}
-          </Text>
+          <View style={styles.balanceContainer}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              testID={AccountCellIds.BALANCE}
+            >
+              {totalBalance ? displayBalance : null}
+            </Text>
+            {networkImageSource && (
+              <Avatar
+                variant={AvatarVariant.Network}
+                size={AvatarSize.Xs}
+                style={styles.networkBadge}
+                imageSource={networkImageSource}
+              />
+            )}
+          </View>
         </TouchableOpacity>
         {!hideMenu && (
           <TouchableOpacity

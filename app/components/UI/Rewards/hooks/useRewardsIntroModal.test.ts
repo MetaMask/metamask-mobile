@@ -12,6 +12,7 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { setOnboardingActiveStep } from '../../../../reducers/rewards';
 import { OnboardingStep } from '../../../../reducers/rewards/types';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { REWARDS_GTM_MODAL_SHOWN } from '../../../../constants/storage';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -33,7 +34,6 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 }));
 
 import StorageWrapper from '../../../../store/storage-wrapper';
-import { REWARDS_GTM_MODAL_SHOWN } from '../../../../constants/storage';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
@@ -79,8 +79,7 @@ describe('useRewardsIntroModal', () => {
 
   it('navigates to Rewards Intro Modal when all conditions are met and modal not seen', async () => {
     // Mock app version to simulate an update (not fresh install)
-    jest
-      .spyOn(StorageWrapper, 'getItem')
+    (StorageWrapper.getItem as jest.Mock)
       .mockResolvedValueOnce('false') // hasSeenRewardsIntroModal
       .mockResolvedValueOnce('1.0.0') // CURRENT_APP_VERSION
       .mockResolvedValueOnce('0.9.0'); // LAST_APP_VERSION
@@ -211,8 +210,7 @@ describe('useRewardsIntroModal', () => {
 
   it('navigates when BIP-44 modal was seen in previous session', async () => {
     // Mock app version to simulate an update (not fresh install)
-    jest
-      .spyOn(StorageWrapper, 'getItem')
+    (StorageWrapper.getItem as jest.Mock)
       .mockResolvedValueOnce('false') // hasSeenRewardsIntroModal
       .mockResolvedValueOnce('1.0.0') // CURRENT_APP_VERSION
       .mockResolvedValueOnce('0.9.0'); // LAST_APP_VERSION
@@ -242,8 +240,7 @@ describe('useRewardsIntroModal', () => {
 
   it('does not set bip44SeenInCurrentSession when BIP-44 modal was already seen initially', async () => {
     // Mock app version to simulate an update (not fresh install)
-    jest
-      .spyOn(StorageWrapper, 'getItem')
+    (StorageWrapper.getItem as jest.Mock)
       .mockResolvedValueOnce('false') // hasSeenRewardsIntroModal
       .mockResolvedValueOnce('1.0.0') // CURRENT_APP_VERSION
       .mockResolvedValueOnce('0.9.0'); // LAST_APP_VERSION
@@ -274,8 +271,7 @@ describe('useRewardsIntroModal', () => {
 
   it('sets bip44SeenInCurrentSession when BIP-44 modal state changes from false to true', async () => {
     // Mock app version to simulate an update (not fresh install)
-    jest
-      .spyOn(StorageWrapper, 'getItem')
+    (StorageWrapper.getItem as jest.Mock)
       .mockResolvedValueOnce('false') // hasSeenRewardsIntroModal
       .mockResolvedValueOnce('1.0.0') // CURRENT_APP_VERSION
       .mockResolvedValueOnce('0.9.0'); // LAST_APP_VERSION

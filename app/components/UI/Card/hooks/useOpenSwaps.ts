@@ -24,7 +24,7 @@ export interface OpenSwapsParams {
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
-  priorityToken?: CardTokenAllowance;
+  priorityToken?: CardTokenAllowance | null;
 }
 
 export const useOpenSwaps = ({
@@ -70,7 +70,7 @@ export const useOpenSwaps = ({
       dispatch(setDestToken(destToken));
 
       const navigate = () => {
-        goToSwaps(sourceToken);
+        goToSwaps();
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties({

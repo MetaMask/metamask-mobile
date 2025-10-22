@@ -200,7 +200,15 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -563,7 +571,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                   <View
                     collapsable={false}
@@ -882,7 +890,15 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -1245,7 +1261,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                   <View
                     collapsable={false}
@@ -1676,7 +1692,15 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -2039,7 +2063,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

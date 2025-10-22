@@ -206,7 +206,7 @@ describe('usePerpsDepositStatus', () => {
           isTransactionUpdating: {},
         },
       };
-      return selector(state as unknown as RootState);
+      return selector(state as RootState);
     });
   });
 
@@ -548,7 +548,7 @@ describe('usePerpsDepositStatus', () => {
             isTransactionUpdating: {},
           },
         };
-        return selector(state as unknown as RootState);
+        return selector(state as RootState);
       });
 
       renderHook(() => usePerpsDepositStatus());
@@ -588,7 +588,7 @@ describe('usePerpsDepositStatus', () => {
             isTransactionUpdating: {},
           },
         };
-        return selector(state as unknown as RootState);
+        return selector(state as RootState);
       });
 
       renderHook(() => usePerpsDepositStatus());
@@ -616,7 +616,7 @@ describe('usePerpsDepositStatus', () => {
             isTransactionUpdating: {},
           },
         };
-        return selector(state as unknown as RootState);
+        return selector(state as RootState);
       });
 
       renderHook(() => usePerpsDepositStatus());
@@ -647,7 +647,7 @@ describe('usePerpsDepositStatus', () => {
             isTransactionUpdating: {},
           },
         };
-        return selector(state as unknown as RootState);
+        return selector(state as RootState);
       });
 
       renderHook(() => usePerpsDepositStatus());
@@ -682,7 +682,7 @@ describe('usePerpsDepositStatus', () => {
             isTransactionUpdating: {},
           },
         };
-        return selector(state as unknown as RootState);
+        return selector(state as RootState);
       });
 
       const { result } = renderHook(() => usePerpsDepositStatus());
@@ -710,7 +710,7 @@ describe('usePerpsDepositStatus', () => {
             isTransactionUpdating: {},
           },
         };
-        return selector(state as unknown as RootState);
+        return selector(state as RootState);
       });
 
       const { result } = renderHook(() => usePerpsDepositStatus());
@@ -743,7 +743,7 @@ describe('usePerpsDepositStatus', () => {
             isTransactionUpdating: {},
           },
         };
-        return selector(state as unknown as RootState);
+        return selector(state as RootState);
       });
 
       const { unmount } = renderHook(() => usePerpsDepositStatus());

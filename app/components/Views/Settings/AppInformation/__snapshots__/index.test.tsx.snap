@@ -435,8 +435,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                       <RCTScrollView
                         contentContainerStyle={
                           {
-                            "paddingLeft": 24,
-                            "paddingRight": 24,
+                            "paddingHorizontal": 16,
                             "paddingVertical": 24,
                           }
                         }

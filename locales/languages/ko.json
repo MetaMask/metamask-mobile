@@ -221,6 +221,12 @@
     "remind_later_description2": "설정 > 보호 및 보안에서 지갑을 백업하거나",
     "setting_security_privacy": "설정 > 보안 & 개인정보 보호"
   },
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
+  },
   "onboarding_carousel": {
     "title1": "MetaMask에 오신 것을 환영합니다",
     "title2": "디지털 자산을 관리하세요",
@@ -389,6 +395,7 @@
     "description": "이 장치에서만 MetaMask 잠금해제에 사용됩니다.",
     "description_social_login": "이를 모든 기기에서 지갑을 복구하는 데 사용하세요.",
     "description_social_login_update": "이 비밀번호를 잃어버리면 모든 기기에서 지갑에 접근할 수 없게 됩니다. 안전한 곳에 보관하세요.",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask는 비밀번호를 재설정해 드릴 수 없습니다.",
     "subtitle": "이 비밀번호는 이 기기에서 귀하의 MetaMask 지갑을 잠금 해제할 때만 사용됩니다.",
     "password": "비밀번호 생성",
@@ -664,7 +671,14 @@
       "bullet_2_description": "가치가 안정적으로 유지되도록 만들어진 USDC를 사용하면 더 쉽게 계획하고 저축하고 지출할 수 있습니다.",
       "bullet_3_title": "은행보다 빠른 속도",
       "bullet_3_description": "몇 분 만에 송금하고 받을 수 있으며, 은행 업무 시간을 기다릴 필요가 없고, 국제 전신망 문제로 인한 지연이 발생하지 않습니다.",
-      "button": "지금 시작하세요"
+      "button": "지금 시작하세요",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "본인 인증",
@@ -855,6 +869,7 @@
       "fetch_regions": "지역을 불러오는 동안 문제가 발생했습니다.",
       "fetch_tokens": "토큰을 불러오는 동안 문제가 발생했습니다.",
       "fetch_payment_methods": "결제 수단을 불러오는 동안 문제가 발생했습니다.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "다시 시도해 주세요",
       "error_details_title": "오류 세부 정보",
       "see_more": "자세히 보기"
@@ -1665,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1775,6 +1799,8 @@
     "alphabetically": "알파벳순(A-Z)",
     "add_to_get_started": "암호화폐를 추가하여 시작하세요",
     "token_is_needed_to_continue": "계속하려면 {{tokenSymbol}}이(가) 필요합니다",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "웹3를 시작하려면 지갑에 입금하세요",
     "add_funds": "자금 추가",
     "next": "다음",
@@ -2849,12 +2875,13 @@
   },
   "gas_fee_token_modal": {
     "title": "토큰 선택",
-    "title_pay_eth": "ETH로 결제",
     "native_toggle_wallet": "지갑에 있는 잔액으로 네트워크 수수료를 지불하세요.",
     "list_balance": "잔액:",
     "insufficient_balance": "자금 부족",
-    "native_toggle_metamask": "MetaMask가 이 트랜잭션을 완료하기 위해 잔액을 보충하고 있습니다.",
-    "title_pay_with_other_tokens": "다른 토큰으로 결제"
+    "native_toggle_metamask": "MetaMask가 이 트랜잭션을 완료하기 위해 잔액을 보충하고 있습니다."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "트랜잭션 ID",
@@ -3136,9 +3163,10 @@
     "tx_review_staking_unstake": "언스테이크",
     "tx_review_lending_deposit": "대출 예치",
     "tx_review_lending_withdraw": "대출 출금",
-    "tx_review_perps_deposit": "자금이 입금된 무기한 선물 계정",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "보낸 이더",
     "self_sent_ether": "나에게 보낸 이더",
     "received_ether": "받은 이더",
@@ -3212,6 +3240,7 @@
     "network_fee": "네트워크 수수료",
     "network_fee_tooltip": "네트워크에서 트랜잭션 처리를 위해 지불된 금액입니다.",
     "confirm_gas_fee_token_tooltip": "이 비용은 사용자 트랜잭션을 처리하는 대가로 네트워크에 지불됩니다. 여기에는 ETH 계열이 아닌 토큰이나 사전 충전된 ETH에 대한 {{metamaskFeeFiat}} MetaMask 수수료가 포함됩니다.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "{{metamaskFeeFiat}} 수수료 포함",
     "smart_account_upgrade": "스마트 계정으로 업그레이드",
     "smart_account_downgrade": "일반 계정으로 전환",
@@ -5345,7 +5374,9 @@
       "transfer": "전송 요청",
       "switch_account_type": "계정 업데이트",
       "approve": "요청 승인",
-      "perps_deposit": "자금 추가"
+      "perps_deposit": "자금 추가",
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
@@ -5363,6 +5394,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "수수료"
@@ -5590,7 +5624,9 @@
     "account_not_found": "지갑을 찾을 수 없음",
     "account_not_found_description": "'{{accountName}}'에 대한 지갑을 찾을 수 없습니다. 로그인한 상태에서 새 지갑을 만드시겠습니까?",
     "create_new_wallet": "새 지갑 생성",
-    "use_different_login_method": "다른 로그인 방법 사용"
+    "use_different_login_method": "다른 로그인 방법 사용",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "아직 자리에 계세요?",
@@ -5946,6 +5982,18 @@
       "limited_spending_warning": "실제 사용 가능 금액이 제한될 수 있습니다. 한도를 조정하려면 {{manageCard}}(으)로 이동하세요",
       "add_funds": "자금 추가",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",
@@ -6317,6 +6365,7 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "트랜잭션",
       "perps_deposit": "자금 추가",
+      "predict_deposit": "Add funds",
       "swap": "토큰 스왑",
       "swap_approval": "토큰 승인"
     },
@@ -6330,6 +6379,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

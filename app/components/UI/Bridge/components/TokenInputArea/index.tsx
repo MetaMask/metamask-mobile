@@ -26,12 +26,12 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
   selectIsGaslessSwapEnabled,
@@ -85,8 +85,8 @@ const createStyles = ({
     },
     input: {
       borderWidth: 0,
-      lineHeight: 50,
-      height: 50,
+      lineHeight: vars.fontSize * 1.25,
+      height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
     },
     currencyContainer: {
@@ -112,6 +112,37 @@ const formatAddress = (address?: string) => {
   return renderShortAddress(address, 4);
 };
 
+/**
+ * Formats a number string with locale-appropriate separators
+ * Uses Intl.NumberFormat to respect user's locale (e.g., en-US uses commas, de-DE uses periods)
+ */
+const formatWithLocaleSeparators = (value: string): string => {
+  if (!value || value === '0') return value;
+
+  const numericValue = parseFloat(value);
+  if (isNaN(numericValue)) return value;
+
+  // Determine the number of decimal places in the original value
+  const decimalPlaces = value.includes('.')
+    ? value.split('.')[1]?.length || 0
+    : 0;
+
+  try {
+    // Format with locale-appropriate separators using user's locale
+    const formatted = getIntlNumberFormatter(I18n.locale, {
+      useGrouping: true,
+      minimumFractionDigits: decimalPlaces,
+      maximumFractionDigits: decimalPlaces,
+    }).format(numericValue);
+
+    return formatted;
+  } catch (error) {
+    // Fallback to simple comma formatting if Intl fails
+    console.error('Number formatting error:', error);
+    return value;
+  }
+};
+
 export const getDisplayAmount = (
   amount?: string,
   tokenType?: TokenInputAreaType,
@@ -122,6 +153,11 @@ export const getDisplayAmount = (
     tokenType === TokenInputAreaType.Source
       ? amount
       : parseAmount(amount, MAX_DECIMALS);
+
+  // Format with locale-appropriate separators
+  if (displayAmount && displayAmount !== '0') {
+    return formatWithLocaleSeparators(displayAmount);
+  }
 
   return displayAmount;
 };
@@ -176,7 +212,6 @@ export const TokenInputArea = forwardRef<
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
     const isGaslessSwapEnabled = useSelector((state: RootState) =>
       token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
     );
@@ -273,13 +308,9 @@ export const TokenInputArea = forwardRef<
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
-    let tokenButtonText = isUnifiedSwapsEnabled
-      ? 'bridge.swap_to'
-      : 'bridge.bridge_to';
+    let tokenButtonText = 'bridge.swap_to';
     if (isSourceToken) {
-      tokenButtonText = isUnifiedSwapsEnabled
-        ? 'bridge.swap_from'
-        : 'bridge.bridge_from';
+      tokenButtonText = 'bridge.swap_from';
     }
 
     return (

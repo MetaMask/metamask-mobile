@@ -5,12 +5,10 @@ import { appendFileSync } from 'fs';
 /**
  * AI E2E Analysis Script
  * This script handles the complex logic for running AI analysis and processing results
- * Usage: node ai-e2e-analysis.mjs <event_name> <changed_files>
+ * Usage: node ai-e2e-analysis.mjs <event_name> <changed_files> <pr_number>
  */
 
-const args = process.argv.slice(2);
-const EVENT_NAME = args[0];
-const CHANGED_FILES = args[1] || process.env.CHANGED_FILES || '';
+const PR_NUMBER = process.env.PR_NUMBER || '';
 
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 const GITHUB_STEP_SUMMARY = process.env.GITHUB_STEP_SUMMARY;
@@ -56,11 +54,10 @@ function appendStepSummary(content) {
 }
 
 console.log('🤖 Running AI analysis...');
-console.log(`📋 Event name: ${EVENT_NAME}`);
-console.log('📋 Using pre-computed changed files from needs_e2e_build');
+console.log(`📋 PR number: ${PR_NUMBER}`);
 
-// Build command with changed files from needs_e2e_build job
-const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --changed-files '${CHANGED_FILES}'`;
+// Build command - use --pr flag for better analysis (agent will fetch diffs from GitHub)
+const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --pr ${PR_NUMBER}`
 
 console.log(`🤖 Running AI analysis with command: ${baseCmd}`);
 
@@ -80,10 +77,10 @@ try {
 console.log('📊 AI analysis completed successfully (builds running in parallel)');
 
 // Parse results
-const tags = parsedResult.selectedTags?.join('|') || '';  // Use pipe separator for grep regex
+const tags = parsedResult.selectedTags?.join('|') || '';
 const tagCount = parsedResult.selectedTags?.length || 0;
 const riskLevel = parsedResult.riskLevel || '';
-const tagDisplay = parsedResult.selectedTags?.join(', ') || '';  // Human-readable format
+const tagDisplay = parsedResult.selectedTags?.join(', ') || '';
 const reasoning = parsedResult.reasoning || 'AI analysis completed';
 const confidence = parsedResult.confidence || 75;
 
@@ -141,20 +138,20 @@ if (tagCount === 0) {
 // Create readable test plan with file breakdown
 appendStepSummary('## 🔍 AI E2E Analysis Report');
 if (tagCount === 0) {
-  appendStepSummary('- **Selected Tags**: None (no tests recommended)');
+  appendStepSummary('- **Selected E2E tags**: None (no tests recommended)');
   appendStepSummary(`- **Risk Level**: ${riskLevel}`);
   appendStepSummary(`- **AI Confidence**: ${confidence}%`);
-  appendStepSummary('- **Matrix Jobs**: 0 (AI determined changes are very low risk)');
 } else {
-  appendStepSummary(`- **Selected Tags**: ${tagDisplay}`);
+  appendStepSummary(`- **Selected E2E tags**: ${tagDisplay}`);
   appendStepSummary(`- **Risk Level**: ${riskLevel}`);
   appendStepSummary(`- **AI Confidence**: ${confidence}%`);
-  appendStepSummary(`- **Matrix Jobs**: ${matrixLength} (dynamically generated based on test files)`);
 }
 
-// Add AI reasoning
+// Add AI reasoning in expandable section
 appendStepSummary('');
-appendStepSummary('### 🤖 AI Analysis Reasoning');
+appendStepSummary('<details>');
+appendStepSummary('<summary>click to see 🤖 AI reasoning details</summary>');
+appendStepSummary('');
 appendStepSummary(reasoning);
 
 // Add test file breakdown if available
@@ -169,5 +166,8 @@ if (parsedResult.testFileBreakdown && parsedResult.testFileBreakdown.length > 0)
     appendStepSummary(breakdown);
   }
 }
+
+appendStepSummary('');
+appendStepSummary('</details>');
 
 console.log('✅ AI analysis script completed successfully');
