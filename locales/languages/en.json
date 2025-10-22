@@ -2770,6 +2770,10 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
+    "tron": {
+      "bandwidth": "Bandwidth",
+      "energy": "Energy"
+    },
     "disabled_button": {
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
@@ -5155,6 +5159,10 @@
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
+    "tron": {
+      "bandwidth": "Bandwidth",
+      "energy": "Energy"
+    },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
     "staked_balance": "Staked balance",
