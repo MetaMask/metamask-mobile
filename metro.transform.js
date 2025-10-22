@@ -30,6 +30,7 @@ const mainFeatureSet = new Set([
   'keyring-snaps',
   'multi-srp',
   'solana',
+  'bitcoin',
 ]);
 const betaFeatureSet = new Set([
   'beta',
