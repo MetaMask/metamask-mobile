@@ -12,8 +12,19 @@ const { PreferencesController } = Engine.context;
 // Mock the useMultichainBalances hook
 const mockSelectedAccountMultichainBalance = {
   displayBalance: '$123.45',
-  totalFiatBalance: '123.45',
+  displayCurrency: 'USD',
+  totalFiatBalance: 123.45,
+  totalNativeTokenBalance: '0.1',
+  nativeTokenUnit: 'ETH',
   shouldShowAggregatedPercentage: true,
+  isPortfolioVieEnabled: false,
+  aggregatedBalance: {
+    ethFiat: 123.45,
+    tokenFiat: 0,
+    tokenFiat1dAgo: 0,
+    ethFiat1dAgo: 100.0,
+  },
+  isLoadingAccount: false,
   tokenFiatBalancesCrossChains: [],
 };
 
@@ -246,8 +257,19 @@ describe('PortfolioBalance', () => {
     // Mock zero balance
     const mockSelectedAccountMultichainBalanceZero = {
       displayBalance: '$0.00',
+      displayCurrency: 'USD',
       totalFiatBalance: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
       shouldShowAggregatedPercentage: false,
+      isPortfolioVieEnabled: false,
+      aggregatedBalance: {
+        ethFiat: 123.45,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+        ethFiat1dAgo: 100.0,
+      },
+      isLoadingAccount: false,
       tokenFiatBalancesCrossChains: [],
     };
 
@@ -265,10 +287,10 @@ describe('PortfolioBalance', () => {
   });
 
   it('displays loader when balance is not available', () => {
-    // Mock null balance
+    // Mock undefined balance
     const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
     mockedHook.mockReturnValue({
-      selectedAccountMultichainBalance: null,
+      selectedAccountMultichainBalance: undefined,
     });
 
     const { queryByTestId } = renderPortfolioBalance(initialState);
