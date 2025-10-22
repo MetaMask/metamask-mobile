@@ -32,7 +32,7 @@ import {
   SEED_PHRASE,
   CONFIRM_PASSWORD,
   WRONG_PASSWORD_ERROR,
-} from '../../../constants/onboarding';
+ ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
@@ -52,6 +52,9 @@ import TextField from '../../../component-library/components/Form/TextField/Text
 import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
+import { CommonActions } from '@react-navigation/native';
+import { TraceName, endTrace } from '../../../util/trace';
+import { useMetrics } from '../../hooks/useMetrics';
 
 /**
  * View that's shown during the second step of
@@ -70,8 +73,10 @@ const ManualBackupStep1 = ({
   const [ready, setReady] = useState(false);
   const [view, setView] = useState(SEED_PHRASE);
   const [words, setWords] = useState([]);
+  const [hasFunds, setHasFunds] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const backupFlow = route?.params?.backupFlow || false;
   const settingsBackup = route?.params?.settingsBackup || false;
@@ -100,17 +105,10 @@ const ManualBackupStep1 = ({
   };
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-        },
-        colors,
-        false,
-      ),
-    );
-  }, [colors, navigation, route, headerLeft]);
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
@@ -164,6 +162,11 @@ const ManualBackupStep1 = ({
     updateNavBar();
   }, [updateNavBar]);
 
+  useEffect(() => {
+    // Check if user has funds
+    if (Engine.hasFunds()) setHasFunds(true);
+  }, []);
+
   const onPasswordChange = (password) => {
     setPassword(password);
   };
@@ -175,6 +178,56 @@ const ManualBackupStep1 = ({
       backupFlow,
       settingsBackup,
     });
+  };
+
+  const skip = async () => {
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED, {
+      wallet_setup_type: 'new',
+    });
+
+    const resetAction = CommonActions.reset({
+      index: 1,
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
+          params: {
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              ...route.params,
+              successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+            },
+          },
+        },
+      ],
+    });
+
+    endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+    endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+    if (isMetricsEnabled()) {
+      navigation.dispatch(resetAction);
+    } else {
+      navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          navigation.dispatch(resetAction);
+        },
+      });
+    }
+  };
+
+  const showRemindLater = () => {
+    if (hasFunds) return;
+
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
+      params: {
+        onConfirm: skip,
+        onCancel: () => {
+          track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
+        },
+      },
+    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 
   const revealSeedPhrase = () => {
@@ -287,95 +340,101 @@ const ManualBackupStep1 = ({
   );
 
   const renderSeedphraseView = () => (
-    <ActionView
-      confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-      confirmText={strings('manual_backup_step_1.continue')}
-      onConfirmPress={goNext}
-      confirmDisabled={seedPhraseHidden}
-      showCancelButton={false}
-      confirmButtonMode={'confirm'}
-      contentContainerStyle={styles.actionView}
-      buttonContainerStyle={styles.buttonContainer}
-    >
-      <View
-        style={styles.wrapper}
-        testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
-      >
-        <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-          {strings('manual_backup_step_1.action')}
-        </Text>
-        <View style={styles.infoWrapper}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('manual_backup_step_1.info-1')}{' '}
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
-              onPress={showWhatIsSeedphrase}
-            >
-              {strings('manual_backup_step_1.info-2')}{' '}
-            </Text>
-            {strings('manual_backup_step_1.info-3')}{' '}
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {strings('manual_backup_step_1.info-4')}
-            </Text>
+    <View style={styles.actionViewContainer}>
+      <View style={styles.actionView}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
+        >
+          <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+            {strings('manual_backup_step_1.action')}
           </Text>
+          <View style={styles.infoWrapper}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('manual_backup_step_1.info-1')}{' '}
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Primary}
+                onPress={showWhatIsSeedphrase}
+              >
+                {strings('manual_backup_step_1.info-2')}{' '}
+              </Text>
+              {strings('manual_backup_step_1.info-3')}{' '}
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
+              >
+                {strings('manual_backup_step_1.info-4')}
+              </Text>
+            </Text>
+          </View>
+          {seedPhraseHidden ? (
+            <View style={styles.seedPhraseWrapper}>
+              {renderSeedPhraseConcealer()}
+            </View>
+          ) : (
+            <View style={styles.seedPhraseContainer}>
+              <FlatList
+                data={words}
+                numColumns={3}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item, index }) => (
+                  <View style={[styles.inputContainer]}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                    >
+                      {index + 1}.
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                      key={index}
+                      ellipsizeMode="tail"
+                      numberOfLines={1}
+                      style={styles.word}
+                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+                      adjustsFontSizeToFit
+                      allowFontScaling
+                      minimumFontScale={0.1}
+                      maxFontSizeMultiplier={0}
+                    >
+                      {item}
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
+          )}
         </View>
-        {seedPhraseHidden ? (
-          <View style={styles.seedPhraseWrapper}>
-            {renderSeedPhraseConcealer()}
-          </View>
-        ) : (
-          <View style={styles.seedPhraseContainer}>
-            <FlatList
-              data={words}
-              numColumns={3}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item, index }) => (
-                <View style={[styles.inputContainer]}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {index + 1}.
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
-                    key={index}
-                    ellipsizeMode="tail"
-                    numberOfLines={1}
-                    style={styles.word}
-                    testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                    adjustsFontSizeToFit
-                    allowFontScaling
-                    minimumFontScale={0.1}
-                    maxFontSizeMultiplier={0}
-                  >
-                    {item}
-                  </Text>
-                </View>
-              )}
-            />
-          </View>
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          onPress={goNext}
+          label={strings('manual_backup_step_1.continue')}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          isDisabled={seedPhraseHidden}
+          testID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
+        />
+        {!hasFunds && !backupFlow && !settingsBackup && (
+          <Button
+            variant={ButtonVariants.Link}
+            onPress={showRemindLater}
+            label={strings('account_backup_step_1.remind_me_later')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
+          />
         )}
       </View>
-    </ActionView>
+    </View>
   );
 
   return ready ? (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.mainWrapper}>
       <View style={[styles.container]}>
-        {seedPhrase && (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('choose_password.steps', {
-              currentStep: 2,
-              totalSteps: 3,
-            })}
-          </Text>
-        )}
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}

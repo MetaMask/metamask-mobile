@@ -697,26 +697,121 @@ describe('ManualBackupStep2', () => {
       mockNavigation.mockRestore();
     });
 
-    it('render header left button', () => {
-      const { mockGoBack, mockSetOptions } = setupTest();
+    it('shows header with back button for onboarding flow', () => {
+      const { mockSetOptions } = setupTest();
 
       expect(mockSetOptions).toHaveBeenCalled();
       const setOptionsCall = mockSetOptions.mock.calls[0][0];
 
-      // Get the headerLeft function from the options
+      expect(setOptionsCall.headerShown).toBeUndefined();
+      expect(setOptionsCall.headerLeft).toBeDefined();
+    });
+  });
+
+  describe('Header visibility based on flow type', () => {
+    it('shows header with back button for backup flow', () => {
+      const mockNavigate = jest.fn();
+      const mockGoBack = jest.fn();
+      const mockSetOptions = jest.fn();
+
+      const mockRouteWithBackup = {
+        params: {
+          words: mockWords,
+          backupFlow: true,
+          settingsBackup: false,
+          steps: ['one', 'two', 'three'],
+        },
+      };
+
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        goBack: mockGoBack,
+        setOptions: mockSetOptions,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        isFocused: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      renderWithProvider(
+        <Provider store={store}>
+          <ManualBackupStep2
+            route={mockRouteWithBackup}
+            navigation={{
+              navigate: mockNavigate,
+              goBack: mockGoBack,
+              setOptions: mockSetOptions,
+              addListener: jest.fn(),
+              removeListener: jest.fn(),
+              isFocused: jest.fn(),
+            }}
+          />
+        </Provider>,
+      );
+
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+
+      // For backup flow, header is shown with back button
+      expect(setOptionsCall.headerShown).toBeUndefined();
+      expect(setOptionsCall.headerLeft).toBeDefined();
+
+      // Verify headerLeft renders back button
       const headerLeftComponent = setOptionsCall.headerLeft();
-
-      // Verify the headerLeft component renders correctly
       expect(headerLeftComponent).toBeTruthy();
-
-      // The headerLeft component should be a TouchableOpacity
       expect(headerLeftComponent.type).toBe('TouchableOpacity');
 
-      // Simulate pressing the back button by calling onPress directly
+      // Verify back button calls goBack
       headerLeftComponent.props.onPress();
-
-      // Verify that goBack was called
       expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('shows header with back button for settings backup flow', () => {
+      const mockNavigate = jest.fn();
+      const mockGoBack = jest.fn();
+      const mockSetOptions = jest.fn();
+
+      const mockRouteWithSettings = {
+        params: {
+          words: mockWords,
+          backupFlow: false,
+          settingsBackup: true,
+          steps: ['one', 'two', 'three'],
+        },
+      };
+
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        goBack: mockGoBack,
+        setOptions: mockSetOptions,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        isFocused: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      renderWithProvider(
+        <Provider store={store}>
+          <ManualBackupStep2
+            route={mockRouteWithSettings}
+            navigation={{
+              navigate: mockNavigate,
+              goBack: mockGoBack,
+              setOptions: mockSetOptions,
+              addListener: jest.fn(),
+              removeListener: jest.fn(),
+              isFocused: jest.fn(),
+            }}
+          />
+        </Provider>,
+      );
+
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+
+      // For settings backup flow, header is shown with back button
+      expect(setOptionsCall.headerShown).toBeUndefined();
+      expect(setOptionsCall.headerLeft).toBeDefined();
     });
   });
 });
