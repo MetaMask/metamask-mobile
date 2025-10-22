@@ -14,6 +14,12 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.background.default,
       paddingHorizontal: 16,
     },
+    containerSpaceAround: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+      justifyContent: 'space-around',
+      paddingHorizontal: 16,
+    },
     title: {
       marginTop: 24,
       textAlign: 'center',
