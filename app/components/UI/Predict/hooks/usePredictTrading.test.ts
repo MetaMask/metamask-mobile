@@ -15,6 +15,7 @@ jest.mock('../../../../core/Engine', () => ({
       calculateBetAmounts: jest.fn(),
       calculateCashOutAmounts: jest.fn(),
       getBalance: jest.fn(),
+      deposit: jest.fn(),
     },
   },
 }));

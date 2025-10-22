@@ -7,6 +7,12 @@ import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { strings } from '../../../../../locales/i18n';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { useAppThemeFromContext } from '../../../../util/theme';
+import { usePredictTrading } from './usePredictTrading';
 
 interface UsePredictDepositParams {
   providerId?: string;
@@ -16,6 +22,14 @@ export const usePredictDeposit = ({
   providerId = 'polymarket',
 }: UsePredictDepositParams = {}) => {
   const { navigateToConfirmation } = useConfirmNavigation();
+  const theme = useAppThemeFromContext();
+  const { toastRef } = useContext(ToastContext);
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { isEligible } = usePredictEligibility({
+    providerId,
+  });
+  const { deposit: depositWithConfirmation } = usePredictTrading();
 
   const selectDepositTransaction = createSelector(
     (state: RootState) => state.engine.backgroundState.PredictController,
@@ -52,6 +66,30 @@ export const usePredictDeposit = ({
       });
     } catch (err) {
       console.error('Failed to proceed with deposit:', err);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.PREDICT.MARKET_LIST }],
+      });
+      // Re-throw to allow testing of this error path
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('predict.deposit.error_title'), isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: strings('predict.deposit.error_description'),
+            isBold: false,
+          },
+        ],
+        iconName: IconName.Error,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.accent04.normal,
+        hasNoTimeout: false,
+        linkButtonOptions: {
+          label: strings('predict.deposit.try_again'),
+          onPress: () => deposit(),
+        },
+      });
 
       // Capture exception with deposit navigation context
       captureException(err instanceof Error ? err : new Error(String(err)), {
@@ -67,7 +105,16 @@ export const usePredictDeposit = ({
         },
       });
     }
-  }, [navigateToConfirmation, providerId]);
+  }, [
+    depositWithConfirmation,
+    isEligible,
+    navigateToConfirmation,
+    navigation,
+    providerId,
+    theme.colors.accent04.normal,
+    theme.colors.error.default,
+    toastRef,
+  ]);
 
   return {
     deposit,
