@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Box } from '../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';

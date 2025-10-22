@@ -1,14 +1,8 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useState, useEffect } from 'react';
-import {
-  TouchableOpacity as RNTouchableOpacity,
-  TouchableOpacityProps,
-  Platform,
-  GestureResponderEvent,
-  AccessibilityInfo,
-} from 'react-native';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -25,35 +19,6 @@ import {
   DEFAULT_BUTTONBASE_ICON_SIZE,
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
 } from './ButtonBase.constants';
-import {
-  Pressable,
-  Gesture,
-  GestureDetector,
-  type GestureStateChangeEvent,
-  type TapGestureHandlerEventPayload,
-} from 'react-native-gesture-handler';
-
-export const TouchableOpacity = ({
-  onPress,
-  disabled,
-  children,
-  ...props
-}: TouchableOpacityProps & {
-  children?: React.ReactNode;
-}) => {
-  // Handle both 'disabled' and 'isDisabled' props for compatibility
-  const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
-
-  return (
-    <RNTouchableOpacity
-      disabled={isDisabled}
-      onPress={isDisabled ? undefined : onPress}
-      {...props}
-    >
-      {children}
-    </RNTouchableOpacity>
-  );
-};
 
 const ButtonBase = ({
   label,
@@ -62,7 +27,6 @@ const ButtonBase = ({
   startIconName,
   endIconName,
   size = DEFAULT_BUTTONBASE_SIZE,
-  onPress,
   style,
   width = DEFAULT_BUTTONBASE_WIDTH,
   isDisabled,
@@ -75,21 +39,10 @@ const ButtonBase = ({
     isDisabled,
   });
 
-  // Disable gesture wrapper in test environments to prevent test interference
-  const isE2ETest =
-    process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e';
-  const isUnitTest = process.env.NODE_ENV === 'test';
-  const TouchableComponent =
-    Platform.OS === 'android' && !isE2ETest && !isUnitTest
-      ? TouchableOpacity
-      : RNTouchableOpacity;
-
   return (
-    <TouchableComponent
+    <TouchableOpacity
       disabled={isDisabled}
       activeOpacity={1}
-      onPress={isDisabled ? undefined : onPress}
       style={styles.base}
       accessibilityRole="button"
       accessible
@@ -122,7 +75,7 @@ const ButtonBase = ({
           style={styles.endIcon}
         />
       )}
-    </TouchableComponent>
+    </TouchableOpacity>
   );
 };
 

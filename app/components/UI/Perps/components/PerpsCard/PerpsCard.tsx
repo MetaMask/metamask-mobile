@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -10,16 +10,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
-  formatPerpsFiat,
+  formatPrice,
   formatPnl,
   formatPercentage,
-  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import { TouchablePerpsComponent } from '../PressablePerpsComponent/PressablePerpsComponent';
 
 /**
  * PerpsCard Component
@@ -59,8 +57,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     // Calculate PnL display
     const pnlValue = parseFloat(position.unrealizedPnl);
     valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
-    valueText = formatPerpsFiat(position.positionValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
+    valueText = formatPrice(position.positionValue, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
     });
     const roeValue = parseFloat(position.returnOnEquity) * 100;
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
@@ -68,9 +67,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     primaryText = `${order.symbol} ${order.side === 'buy' ? 'long' : 'short'}`;
     secondaryText = `${order.originalSize} ${order.symbol}`;
     const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
-    valueText = formatPerpsFiat(orderValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    });
+    valueText = formatPrice(orderValue, { maximumDecimals: 2 });
     labelText = strings('perps.order.limit');
   }
 
@@ -105,7 +102,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   }
 
   return (
-    <TouchablePerpsComponent
+    <TouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
       onPress={memoizedPressHandler}
@@ -141,7 +138,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           </Text>
         </View>
       </View>
-    </TouchablePerpsComponent>
+    </TouchableOpacity>
   );
 };
 

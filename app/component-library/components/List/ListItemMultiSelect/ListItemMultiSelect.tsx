@@ -1,15 +1,8 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef, useState, useEffect } from 'react';
-import {
-  TouchableOpacity as RNTouchableOpacity,
-  TouchableOpacityProps,
-  View,
-  Platform,
-  GestureResponderEvent,
-  AccessibilityInfo,
-} from 'react-native';
+import React from 'react';
+import { View, TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Checkbox from '../../Checkbox';
@@ -20,33 +13,6 @@ import ListItem from '../../List/ListItem/ListItem';
 import styleSheet from './ListItemMultiSelect.styles';
 import { ListItemMultiSelectProps } from './ListItemMultiSelect.types';
 import { DEFAULT_LISTITEMMULTISELECT_GAP } from './ListItemMultiSelect.constants';
-import {
-  Gesture,
-  GestureDetector,
-  type GestureStateChangeEvent,
-  type TapGestureHandlerEventPayload,
-} from 'react-native-gesture-handler';
-
-const TouchableOpacity = ({
-  onPress,
-  disabled,
-  children,
-  ...props
-}: TouchableOpacityProps & {
-  children?: React.ReactNode;
-}) => {
-  const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
-
-  return (
-    <RNTouchableOpacity
-      disabled={isDisabled}
-      onPress={isDisabled ? undefined : onPress}
-      {...props}
-    >
-      {children}
-    </RNTouchableOpacity>
-  );
-};
 
 const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   style,
@@ -54,105 +20,24 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
-  onPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
-  // iOS checkbox coordination: For iOS/other platforms, we need coordination between checkbox and main component
-  const lastCheckboxGestureTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
-
-  // Disable gesture wrapper in test environments to prevent test interference
-  const isE2ETest =
-    process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e';
-  const isUnitTest = process.env.NODE_ENV === 'test';
-  const TouchableComponent =
-    Platform.OS === 'android' && !isE2ETest && !isUnitTest
-      ? TouchableOpacity
-      : RNTouchableOpacity;
-
-  // iOS checkbox coordination: Set timestamp FIRST, then call raw parent function
-  // This ensures main component's onPress coordination sees the recent timestamp and skips
-  const checkboxOnPressIn = (pressEvent: GestureResponderEvent) => {
-    if (onPress && !isDisabled) {
-      // Skip coordination logic in test environments
-      if (process.env.NODE_ENV === 'test') {
-        onPress(pressEvent);
-        return;
-      }
-
-      // Set timestamp BEFORE calling parent function (timestamp-first pattern)
-      lastCheckboxGestureTime.current = Date.now();
-      // Call raw parent function directly (bypasses main component coordination)
-      onPress(pressEvent);
-    }
-  };
-
-  // Android: Pass onPress directly to custom TouchableOpacity (it handles coordination)
-  // iOS/other platforms: coordinate with checkbox to prevent double firing
-  const getOnPress = () => {
-    if (isDisabled) return undefined;
-
-    // Android: Pass onPress directly to custom TouchableOpacity
-    if (Platform.OS === 'android' && !isE2ETest && !isUnitTest) {
-      return onPress;
-    }
-
-    // iOS/other platforms: coordinate with checkbox
-    return (pressEvent?: GestureResponderEvent) => {
-      // Skip coordination logic in test environments
-      if (process.env.NODE_ENV === 'test') {
-        onPress?.(pressEvent as GestureResponderEvent);
-        return;
-      }
-
-      // iOS/other platforms: coordinate with checkbox
-      const now = Date.now();
-      const timeSinceLastGesture = now - lastCheckboxGestureTime.current;
-
-      if (onPress && timeSinceLastGesture > COORDINATION_WINDOW) {
-        lastCheckboxGestureTime.current = now;
-        onPress(pressEvent as GestureResponderEvent);
-      }
-    };
-  };
-
   return (
-    <TouchableComponent
-      style={styles.base}
-      disabled={isDisabled}
-      onPress={getOnPress()}
-      {...props}
-    >
+    <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
       <ListItem gap={gap} style={styles.listItem}>
-        <View
-          pointerEvents={
-            Platform.OS === 'android' && !isE2ETest && !isUnitTest
-              ? 'none' // On Android, make checkbox non-interactive to prevent double firing
-              : 'auto' // On other platforms, allow normal interaction
-          }
-        >
-          <Checkbox
-            style={styles.checkbox}
-            isChecked={isSelected}
-            isDisabled={isDisabled}
-            onPressIn={
-              Platform.OS === 'android'
-                ? undefined // Android uses main gesture handler only
-                : isDisabled
-                ? undefined
-                : checkboxOnPressIn // iOS/other platforms use checkbox onPressIn
-            }
-          />
-        </View>
+        <Checkbox
+          style={styles.checkbox}
+          isChecked={isSelected}
+          isDisabled={isDisabled}
+        />
         {children}
       </ListItem>
       {isSelected && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
-    </TouchableComponent>
+    </TouchableOpacity>
   );
 };
 

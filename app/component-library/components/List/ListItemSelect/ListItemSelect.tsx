@@ -1,15 +1,8 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useState, useEffect } from 'react';
-import {
-  TouchableOpacity as RNTouchableOpacity,
-  TouchableOpacityProps,
-  View,
-  Platform,
-  GestureResponderEvent,
-  AccessibilityInfo,
-} from 'react-native';
+import React from 'react';
+import { View, TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -19,40 +12,12 @@ import ListItem from '../../List/ListItem/ListItem';
 import styleSheet from './ListItemSelect.styles';
 import { ListItemSelectProps } from './ListItemSelect.types';
 import { DEFAULT_SELECTITEM_GAP } from './ListItemSelect.constants';
-import {
-  Gesture,
-  GestureDetector,
-  type GestureStateChangeEvent,
-  type TapGestureHandlerEventPayload,
-} from 'react-native-gesture-handler';
-
-const TouchableOpacity = ({
-  onPress,
-  disabled,
-  children,
-  ...props
-}: TouchableOpacityProps & {
-  children?: React.ReactNode;
-}) => {
-  const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
-
-  return (
-    <RNTouchableOpacity
-      disabled={isDisabled}
-      onPress={isDisabled ? undefined : onPress}
-      {...props}
-    >
-      {children}
-    </RNTouchableOpacity>
-  );
-};
 
 const ListItemSelect: React.FC<ListItemSelectProps> = ({
   style,
   isSelected = false,
   isDisabled = false,
   children,
-  onPress,
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
@@ -60,21 +25,10 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
-  // Disable gesture wrapper in test environments to prevent test interference
-  const isE2ETest =
-    process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e';
-  const isUnitTest = process.env.NODE_ENV === 'test';
-  const TouchableComponent =
-    Platform.OS === 'android' && !isE2ETest && !isUnitTest
-      ? TouchableOpacity
-      : RNTouchableOpacity;
-
   return (
-    <TouchableComponent
+    <TouchableOpacity
       style={styles.base}
       disabled={isDisabled}
-      onPress={isDisabled ? undefined : onPress}
       onLongPress={onLongPress}
       {...props}
     >
@@ -86,7 +40,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
           <View style={styles.underlayBar} />
         </View>
       )}
-    </TouchableComponent>
+    </TouchableOpacity>
   );
 };
 
