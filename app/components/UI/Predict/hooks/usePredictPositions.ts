@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
@@ -30,6 +30,11 @@ interface UsePredictPositionsOptions {
    * The parameters to load positions for
    */
   claimable?: boolean;
+  /**
+   * Auto-refresh interval in milliseconds
+   * If provided, positions will be automatically refreshed at this interval
+   */
+  autoRefreshTimeout?: number;
 }
 
 interface UsePredictPositionsReturn {
@@ -54,6 +59,7 @@ export function usePredictPositions(
     refreshOnFocus = true,
     claimable = false,
     marketId,
+    autoRefreshTimeout,
   } = options;
 
   const { getPositions } = usePredictTrading();
@@ -137,6 +143,25 @@ export function usePredictPositions(
       }
     }, [refreshOnFocus, loadPositions]),
   );
+
+  // Store loadPositions in a ref for auto-refresh
+  const loadPositionsRef = useRef(loadPositions);
+  loadPositionsRef.current = loadPositions;
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!autoRefreshTimeout) {
+      return;
+    }
+
+    const refreshTimer = setInterval(() => {
+      loadPositionsRef.current({ isRefresh: true });
+    }, autoRefreshTimeout);
+
+    return () => {
+      clearInterval(refreshTimer);
+    };
+  }, [autoRefreshTimeout]);
 
   return {
     positions,

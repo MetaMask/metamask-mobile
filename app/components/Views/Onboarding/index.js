@@ -59,6 +59,7 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FoxAnimation from './FoxAnimation';
@@ -324,11 +325,7 @@ class Onboarding extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
-        this.props.setLoading(strings('onboarding.delete_current'));
-        setTimeout(() => {
-          this.showNotification();
-          this.props.unsetLoading();
-        }, 2000);
+        this.showNotification();
       }
       this.setState({ startOnboardingAnimation: true });
     });
@@ -717,8 +714,8 @@ class Onboarding extends PureComponent {
     }
   };
 
-  setStartFoxAnimation = (value) => {
-    this.setState({ startFoxAnimation: value });
+  setStartFoxAnimation = () => {
+    this.setState({ startFoxAnimation: 'Start' });
   };
 
   renderLoader = () => {
@@ -885,13 +882,16 @@ class Onboarding extends PureComponent {
 
           <FadeOutOverlay />
 
-          <FoxAnimation
-            hasFooter={hasFooter}
-            startFoxAnimation={startFoxAnimation}
-            isLoading={loading}
-          />
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
 
           <View>{this.handleSimpleNotification()}</View>
+
+          <FastOnboarding
+            onPressContinueWithGoogle={this.onPressContinueWithGoogle}
+            onPressContinueWithApple={this.onPressContinueWithApple}
+            onPressImport={this.onPressImport}
+            onPressCreate={this.onPressCreate}
+          />
         </SafeAreaView>
       </ErrorBoundary>
     );

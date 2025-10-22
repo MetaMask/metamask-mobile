@@ -28,7 +28,6 @@ const mockTransaction = {
   },
 };
 
-// Mock dependencies
 const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
 
@@ -138,7 +137,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('MetaMask fee')).toBeTruthy();
     expect(getByText('Hyperliquid fee')).toBeTruthy();
     expect(getByText('Total fee')).toBeTruthy();
-    expect(getByText('$3.00')).toBeTruthy();
+    expect(getByText('$3')).toBeTruthy();
     expect(getByText('$7.50')).toBeTruthy();
     expect(getByText('$10.50')).toBeTruthy();
   });

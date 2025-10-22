@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import { Animated } from 'react-native';
 import FoxAnimation from './FoxAnimation';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
@@ -13,8 +12,13 @@ import {
 // Mock dependencies
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/device');
-jest.mock('../../../util/test/utils', () => ({
-  isE2E: false,
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: jest.fn(() => ({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  })),
 }));
 
 // Use the proper mock from __mocks__ directory
@@ -31,15 +35,6 @@ describe('FoxAnimation', () => {
     __clearLastMockedMethods();
     __resetAllMocks();
     mockedDevice.isMediumDevice.mockReturnValue(false);
-
-    // Mock Animated.timing to return a mock animation with required CompositeAnimation methods
-    jest.spyOn(Animated, 'timing').mockImplementation(() => ({
-      start: jest.fn((callback) => {
-        if (callback) callback({ finished: true });
-      }),
-      stop: jest.fn(),
-      reset: jest.fn(),
-    }));
   });
 
   afterEach(() => {
@@ -50,9 +45,7 @@ describe('FoxAnimation', () => {
   describe('rendering', () => {
     it('renders fox animation container', () => {
       // Arrange & Act
-      const { root } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter={false} />,
-      );
+      const { root } = render(<FoxAnimation hasFooter={false} />);
 
       // Assert - Check that the component renders without crashing
       expect(root).toBeTruthy();
@@ -60,9 +53,7 @@ describe('FoxAnimation', () => {
 
     it('renders fox animation with correct testID', () => {
       // Arrange & Act
-      const { getByTestId } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter={false} />,
-      );
+      const { getByTestId } = render(<FoxAnimation hasFooter={false} />);
 
       // Assert - The testID is passed through to the Rive component mock
       expect(getByTestId('fox-animation')).toBeTruthy();
@@ -70,9 +61,7 @@ describe('FoxAnimation', () => {
 
     it('renders Rive component with correct props', () => {
       // Arrange & Act
-      const { getByTestId } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter={false} />,
-      );
+      const { getByTestId } = render(<FoxAnimation hasFooter={false} />);
 
       // Assert - Verify the Rive component is rendered with the expected testID
       const riveElement = getByTestId('fox-animation');
@@ -90,9 +79,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(false);
 
       // Act
-      const { root } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter />,
-      );
+      const { root } = render(<FoxAnimation hasFooter />);
 
       // Assert
       expect(root).toBeTruthy();
@@ -103,9 +90,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(false);
 
       // Act
-      const { root } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter={false} />,
-      );
+      const { root } = render(<FoxAnimation hasFooter={false} />);
 
       // Assert
       expect(root).toBeTruthy();
@@ -116,7 +101,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(true);
 
       // Act
-      render(<FoxAnimation startFoxAnimation={false} hasFooter />);
+      render(<FoxAnimation hasFooter />);
 
       // Assert
       expect(mockedDevice.isMediumDevice).toHaveBeenCalled();
@@ -127,7 +112,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(true);
 
       // Act
-      render(<FoxAnimation startFoxAnimation={false} hasFooter={false} />);
+      render(<FoxAnimation hasFooter={false} />);
 
       // Assert
       expect(mockedDevice.isMediumDevice).toHaveBeenCalled();
@@ -135,49 +120,33 @@ describe('FoxAnimation', () => {
   });
 
   describe('animation behavior', () => {
-    it('does not start animation when startFoxAnimation is false', () => {
+    it('does not fire animation when trigger is not provided', async () => {
       // Arrange & Act
-      render(<FoxAnimation startFoxAnimation={false} hasFooter={false} />);
+      render(<FoxAnimation hasFooter={false} />);
 
-      // Assert
-      expect(Animated.timing).not.toHaveBeenCalled();
+      await act(async () => {
+        // Wait for useEffect to trigger
+      });
+
+      // Assert - No trigger means no animation
+      const mockedMethods = __getLastMockedMethods();
+      if (mockedMethods) {
+        expect(mockedMethods.fireState).not.toHaveBeenCalled();
+      }
     });
 
-    it('starts animation when startFoxAnimation is true', async () => {
+    it('fires Start trigger when trigger prop is "Start"', async () => {
       // Arrange & Act
-      render(<FoxAnimation startFoxAnimation hasFooter={false} />);
+      render(<FoxAnimation trigger="Start" hasFooter={false} />);
 
       await act(async () => {
         // Wait for useEffect to trigger
       });
 
       // Assert
-      expect(Animated.timing).toHaveBeenCalledWith(
-        expect.any(Animated.Value),
-        expect.objectContaining({
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      );
-    });
-
-    it('fires Rive state after animation completes', async () => {
-      // Arrange & Act
-      render(<FoxAnimation startFoxAnimation hasFooter={false} />);
-
-      await act(async () => {
-        // Wait for useEffect to trigger and animation to complete
-      });
-
-      // Assert
-      expect(Animated.timing).toHaveBeenCalled();
-
-      // Check if the Rive methods are available and fireState is called
       const mockedMethods = __getLastMockedMethods();
       expect(mockedMethods).toBeDefined();
       if (mockedMethods) {
-        // The fireState call happens in the animation callback
         expect(mockedMethods.fireState).toHaveBeenCalledWith(
           'FoxRaiseUp',
           'Start',
@@ -185,42 +154,15 @@ describe('FoxAnimation', () => {
       }
     });
 
-    it('handles Rive animation errors gracefully', async () => {
+    it('fires Loader trigger when trigger prop is "Loader"', async () => {
       // Arrange & Act
-      render(<FoxAnimation startFoxAnimation hasFooter={false} />);
+      render(<FoxAnimation trigger="Loader" hasFooter={false} />);
 
       await act(async () => {
         // Wait for useEffect to trigger
       });
 
       // Assert
-      expect(Animated.timing).toHaveBeenCalled();
-      expect(mockedLogger.error).toBeDefined();
-    });
-
-    it('calls animation in normal mode (not E2E)', async () => {
-      // Arrange & Act
-      render(<FoxAnimation startFoxAnimation hasFooter={false} />);
-
-      await act(async () => {
-        // Wait for useEffect to trigger
-      });
-
-      // Assert - In normal mode (E2E is mocked as false), animation should be called
-      expect(Animated.timing).toHaveBeenCalled();
-    });
-
-    it('fires Loader trigger when isLoading is true', async () => {
-      // Arrange & Act
-      render(<FoxAnimation startFoxAnimation isLoading hasFooter={false} />);
-
-      await act(async () => {
-        // Wait for useEffect to trigger and animation to complete
-      });
-
-      // Assert
-      expect(Animated.timing).toHaveBeenCalled();
-
       const mockedMethods = __getLastMockedMethods();
       expect(mockedMethods).toBeDefined();
       if (mockedMethods) {
@@ -231,48 +173,27 @@ describe('FoxAnimation', () => {
       }
     });
 
-    it('fires Start trigger when isLoading is false (default behavior)', async () => {
-      // Arrange & Act
-      render(
-        <FoxAnimation startFoxAnimation isLoading={false} hasFooter={false} />,
+    it('handles Rive animation errors gracefully', async () => {
+      // Arrange
+      const mockError = new Error('Animation failed');
+      const { getByTestId } = render(
+        <FoxAnimation trigger="Start" hasFooter={false} />,
       );
 
+      // Act
       await act(async () => {
-        // Wait for useEffect to trigger and animation to complete
+        const mockedMethods = __getLastMockedMethods();
+        if (mockedMethods) {
+          // Simulate error by making fireState throw
+          mockedMethods.fireState.mockImplementationOnce(() => {
+            throw mockError;
+          });
+        }
       });
 
-      // Assert
-      expect(Animated.timing).toHaveBeenCalled();
-
-      const mockedMethods = __getLastMockedMethods();
-      expect(mockedMethods).toBeDefined();
-      if (mockedMethods) {
-        expect(mockedMethods.fireState).toHaveBeenCalledWith(
-          'FoxRaiseUp',
-          'Start',
-        );
-      }
-    });
-
-    it('uses Start trigger when isLoading prop is not provided (backward compatibility)', async () => {
-      // Arrange & Act
-      render(<FoxAnimation startFoxAnimation hasFooter={false} />);
-
-      await act(async () => {
-        // Wait for useEffect to trigger and animation to complete
-      });
-
-      // Assert
-      expect(Animated.timing).toHaveBeenCalled();
-
-      const mockedMethods = __getLastMockedMethods();
-      expect(mockedMethods).toBeDefined();
-      if (mockedMethods) {
-        expect(mockedMethods.fireState).toHaveBeenCalledWith(
-          'FoxRaiseUp',
-          'Start',
-        );
-      }
+      // Assert - Component should still render despite error
+      expect(getByTestId('fox-animation')).toBeTruthy();
+      expect(mockedLogger.error).toBeDefined();
     });
   });
 
@@ -282,7 +203,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(true);
 
       // Act
-      render(<FoxAnimation startFoxAnimation={false} hasFooter />);
+      render(<FoxAnimation hasFooter />);
 
       // Assert
       expect(mockedDevice.isMediumDevice).toHaveBeenCalled();
@@ -293,7 +214,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(false);
 
       // Act
-      render(<FoxAnimation startFoxAnimation={false} hasFooter />);
+      render(<FoxAnimation hasFooter />);
 
       // Assert
       expect(mockedDevice.isMediumDevice).toHaveBeenCalled();
@@ -304,7 +225,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(true);
 
       // Act
-      render(<FoxAnimation startFoxAnimation={false} hasFooter={false} />);
+      render(<FoxAnimation hasFooter={false} />);
 
       // Assert
       expect(mockedDevice.isMediumDevice).toHaveBeenCalled();
@@ -315,7 +236,7 @@ describe('FoxAnimation', () => {
       mockedDevice.isMediumDevice.mockReturnValue(false);
 
       // Act
-      render(<FoxAnimation startFoxAnimation={false} hasFooter={false} />);
+      render(<FoxAnimation hasFooter={false} />);
 
       // Assert
       expect(mockedDevice.isMediumDevice).toHaveBeenCalled();
@@ -323,42 +244,56 @@ describe('FoxAnimation', () => {
   });
 
   describe('prop changes', () => {
-    it('triggers animation when startFoxAnimation changes from false to true', async () => {
+    it('triggers animation when trigger changes from undefined to "Start"', async () => {
       // Arrange
-      const { rerender } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter={false} />,
-      );
+      const { rerender } = render(<FoxAnimation hasFooter={false} />);
+      __clearLastMockedMethods();
 
       // Act
       await act(async () => {
-        rerender(<FoxAnimation startFoxAnimation hasFooter={false} />);
+        rerender(<FoxAnimation trigger="Start" hasFooter={false} />);
       });
 
       // Assert
-      expect(Animated.timing).toHaveBeenCalled();
+      const mockedMethods = __getLastMockedMethods();
+      expect(mockedMethods).toBeDefined();
+      if (mockedMethods) {
+        expect(mockedMethods.fireState).toHaveBeenCalledWith(
+          'FoxRaiseUp',
+          'Start',
+        );
+      }
     });
 
-    it('does not trigger animation when startFoxAnimation remains false', () => {
+    it('triggers animation when trigger changes from "Start" to "Loader"', async () => {
       // Arrange
       const { rerender } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter={false} />,
+        <FoxAnimation trigger="Start" hasFooter={false} />,
       );
+      __clearLastMockedMethods();
 
       // Act
-      rerender(<FoxAnimation startFoxAnimation={false} hasFooter />);
+      await act(async () => {
+        rerender(<FoxAnimation trigger="Loader" hasFooter={false} />);
+      });
 
       // Assert
-      expect(Animated.timing).not.toHaveBeenCalled();
+      const mockedMethods = __getLastMockedMethods();
+      expect(mockedMethods).toBeDefined();
+      if (mockedMethods) {
+        expect(mockedMethods.fireState).toHaveBeenCalledWith(
+          'FoxRaiseUp',
+          'Loader',
+        );
+      }
     });
 
     it('adapts styles when hasFooter prop changes', () => {
       // Arrange
-      const { rerender, root } = render(
-        <FoxAnimation startFoxAnimation={false} hasFooter={false} />,
-      );
+      const { rerender, root } = render(<FoxAnimation hasFooter={false} />);
 
       // Act
-      rerender(<FoxAnimation startFoxAnimation={false} hasFooter />);
+      rerender(<FoxAnimation hasFooter />);
 
       // Assert
       expect(root).toBeTruthy();

@@ -33,6 +33,20 @@ jest.mock('../pay/useTransactionRequiredTokens', () => ({
   ],
 }));
 
+jest.mock('../transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: () => ({
+    chainId: '0x1',
+  }),
+}));
+
+jest.mock('./useInsufficientPredictBalanceAlert', () => ({
+  useInsufficientPredictBalanceAlert: () => [
+    {
+      id: 'alert-4',
+    },
+  ],
+}));
+
 describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>
@@ -47,6 +61,7 @@ describe('usePendingAmountAlerts', () => {
       {
         id: 'alert-3',
       },
+      { id: 'alert-4' },
     ]);
   });
 });

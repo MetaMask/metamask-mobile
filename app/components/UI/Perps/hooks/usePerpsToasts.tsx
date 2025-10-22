@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
-import { OrderDirection } from '../types';
+import { OrderDirection } from '../types/perps-types';
 import { formatDurationForDisplay } from '../utils/time';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';

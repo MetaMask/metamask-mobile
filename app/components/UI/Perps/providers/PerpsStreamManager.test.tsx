@@ -12,7 +12,6 @@ import Logger from '../../../../util/Logger';
 import type { PriceUpdate, PerpsMarketData } from '../controllers/types';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
-// Mock dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
@@ -522,6 +521,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP'],
         callback: expect.any(Function),
+        includeOrderBook: true,
       });
     });
   });
@@ -1135,6 +1135,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP', 'ETH-PERP'],
         callback: expect.any(Function),
+        includeOrderBook: true,
       });
     });
   });

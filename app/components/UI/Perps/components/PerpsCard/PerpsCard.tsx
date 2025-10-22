@@ -10,18 +10,16 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
-  formatPrice,
+  formatPerpsFiat,
   formatPnl,
   formatPercentage,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../PressablePerpsComponent/PressablePerpsComponent';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 
 /**
  * PerpsCard Component
@@ -38,8 +36,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-
-  const coordinatedPress = useCoordinatedPress();
 
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
@@ -63,9 +59,8 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     // Calculate PnL display
     const pnlValue = parseFloat(position.unrealizedPnl);
     valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
-    valueText = formatPrice(position.positionValue, {
-      minimumDecimals: 2,
-      maximumDecimals: 2,
+    valueText = formatPerpsFiat(position.positionValue, {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
     });
     const roeValue = parseFloat(position.returnOnEquity) * 100;
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
@@ -73,7 +68,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     primaryText = `${order.symbol} ${order.side === 'buy' ? 'long' : 'short'}`;
     secondaryText = `${order.originalSize} ${order.symbol}`;
     const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
-    valueText = formatPrice(orderValue, { maximumDecimals: 2 });
+    valueText = formatPerpsFiat(orderValue, {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
+    });
     labelText = strings('perps.order.limit');
   }
 
@@ -100,15 +97,15 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   }, [onPress, markets, symbol, navigation, order, position, source]);
 
   const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handlePress);
-  }, [coordinatedPress, handlePress]);
+    handlePress();
+  }, [handlePress]);
 
   if (!position && !order) {
     return null;
   }
 
   return (
-    <TouchablePerpsComponent
+    <TempTouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
       onPress={memoizedPressHandler}
@@ -144,7 +141,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           </Text>
         </View>
       </View>
-    </TouchablePerpsComponent>
+    </TempTouchableOpacity>
   );
 };
 

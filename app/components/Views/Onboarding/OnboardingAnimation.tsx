@@ -32,12 +32,12 @@ const createStyles = () =>
     },
     createWrapper: {
       flexDirection: 'column',
-      rowGap: Device.isMediumDevice() ? 6 : 8,
+      rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
       position: 'absolute',
       top: '50%',
-      left: 8,
-      right: 8,
+      left: Device.isMediumDevice() ? 26 : 36,
+      right: Device.isMediumDevice() ? 26 : 36,
       marginTop: 180,
       alignItems: 'stretch',
     },
@@ -68,16 +68,9 @@ const OnboardingAnimation = ({
   const styles = createStyles();
 
   const moveLogoUp = useCallback(() => {
-    if (isE2E) {
-      logoPosition.setValue(-240);
-      buttonsOpacity.setValue(1);
-      setStartFoxAnimation(true);
-      return;
-    }
-
     Animated.parallel([
       Animated.timing(logoPosition, {
-        toValue: -240,
+        toValue: -180,
         duration: 1200,
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,
@@ -88,14 +81,14 @@ const OnboardingAnimation = ({
         easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         useNativeDriver: true,
       }),
-    ]).start(() => {
-      setStartFoxAnimation(true);
-    });
-  }, [logoPosition, buttonsOpacity, setStartFoxAnimation]);
+    ]).start();
+  }, [logoPosition, buttonsOpacity]);
 
   const startRiveAnimation = useCallback(() => {
     if (isE2E) {
-      moveLogoUp();
+      logoPosition.setValue(-180);
+      buttonsOpacity.setValue(1);
+      setStartFoxAnimation(true);
       return;
     }
 
@@ -107,11 +100,22 @@ const OnboardingAnimation = ({
         setTimeout(() => {
           moveLogoUp();
         }, 1000);
+
+        setTimeout(() => {
+          setStartFoxAnimation(true);
+        }, 1200);
       }
     } catch (error) {
       Logger.error(error as Error, 'Error triggering Rive animation');
     }
-  }, [themeAppearance, moveLogoUp, logoRef]);
+  }, [
+    themeAppearance,
+    moveLogoUp,
+    logoRef,
+    setStartFoxAnimation,
+    logoPosition,
+    buttonsOpacity,
+  ]);
 
   useEffect(() => {
     if (startOnboardingAnimation) {

@@ -5,13 +5,13 @@ import TestHelpers from '../../helpers';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { FlaskBuildTests } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../viewHelper';
 
 jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
-  it('runs the `onInstall` lifecycle hook when the Snap is installed', async () => {
+  it('runs the onInstall lifecycle hook when the Snap is installed', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -31,7 +31,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
     );
   });
 
-  it('runs the `onStart` lifecycle hook when the client is started', async () => {
+  it('runs the onStart lifecycle hook when the client is started', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),

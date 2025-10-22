@@ -11,7 +11,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 
-// Mock dependencies
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockUseRoute = jest.fn();
@@ -359,7 +358,7 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('Total fees')).toBeOnTheScreen();
-    expect(getByText('$5.00')).toBeOnTheScreen();
+    expect(getByText('$5')).toBeOnTheScreen();
   });
 
   it('should display fees with $ prefix directly for amounts < 0.01', () => {
