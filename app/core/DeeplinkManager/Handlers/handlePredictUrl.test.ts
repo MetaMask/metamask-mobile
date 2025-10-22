@@ -37,23 +37,41 @@ describe('handlePredictUrl', () => {
   });
 
   it('should navigate to market details with market ID', async () => {
+    jest.useFakeTimers();
     const marketId = 'test-market-123';
     await handlePredictUrl({ predictPath: `/${marketId}` });
 
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
+
+    jest.runAllTimers();
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: { marketId },
     });
+
+    jest.useRealTimers();
   });
 
   it('should navigate to market details without leading slash', async () => {
+    jest.useFakeTimers();
     const marketId = 'test-market-456';
     await handlePredictUrl({ predictPath: marketId });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
+
+    jest.runAllTimers();
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: { marketId },
     });
+
+    jest.useRealTimers();
   });
 
   it('should fallback to feed on error', async () => {
@@ -70,12 +88,21 @@ describe('handlePredictUrl', () => {
   });
 
   it('should handle complex market IDs with special characters', async () => {
+    jest.useFakeTimers();
     const marketId = '0xabc123-market-id';
     await handlePredictUrl({ predictPath: `/${marketId}` });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
+
+    jest.runAllTimers();
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: { marketId },
     });
+
+    jest.useRealTimers();
   });
 });
