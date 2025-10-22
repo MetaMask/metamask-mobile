@@ -10,12 +10,29 @@ import {
   getDefaultPerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
+import {
+  createMockHyperLiquidProvider,
+  createMockOrder,
+  createMockPosition,
+} from '../__mocks__/providerMocks';
 import { MetaMetrics } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 
 // Mock the HyperLiquidProvider
 jest.mock('./providers/HyperLiquidProvider');
+
+// Mock stream manager
+const mockStreamManager = {
+  positions: { pause: jest.fn(), resume: jest.fn() },
+  account: { pause: jest.fn(), resume: jest.fn() },
+  orders: { pause: jest.fn(), resume: jest.fn() },
+  prices: { pause: jest.fn(), resume: jest.fn() },
+  orderFills: { pause: jest.fn(), resume: jest.fn() },
+};
+
+jest.mock('../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: jest.fn(() => mockStreamManager),
+}));
 
 // Mock Logger
 jest.mock('../../../../util/Logger', () => ({
@@ -701,6 +718,144 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('cancelOrders', () => {
+    beforeEach(() => {
+      (controller as any).isInitialized = true;
+      (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
+      (controller as any).isCancelingOrders = false;
+      jest.clearAllMocks();
+    });
+
+    it('blocks concurrent calls when already canceling orders', async () => {
+      (controller as any).isCancelingOrders = true;
+
+      const result = await controller.cancelOrders({ cancelAll: true });
+
+      expect(result).toEqual({
+        success: false,
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+      expect(mockProvider.getOpenOrders).not.toHaveBeenCalled();
+    });
+
+    it('cancels all orders when cancelAll is true', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({ cancelAll: true });
+
+      expect(mockProvider.getOpenOrders).toHaveBeenCalled();
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(result.successCount).toBe(2);
+      expect(result.failureCount).toBe(0);
+      expect(result.success).toBe(true);
+    });
+
+    it('cancels specific order IDs when provided', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+        createMockOrder({ orderId: 'order-3', symbol: 'SOL' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({
+        orderIds: ['order-1', 'order-3'],
+      });
+
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'BTC',
+        orderId: 'order-1',
+      });
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'SOL',
+        orderId: 'order-3',
+      });
+      expect(result.successCount).toBe(2);
+    });
+
+    it('cancels orders for specific coins when provided', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+        createMockOrder({ orderId: 'order-3', symbol: 'BTC' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({ coins: ['BTC'] });
+
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(result.successCount).toBe(2);
+    });
+
+    it('returns empty results when no orders match filters', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+
+      const result = await controller.cancelOrders({ coins: ['ETH'] });
+
+      expect(mockProvider.cancelOrder).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        success: false,
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+    });
+
+    it('handles partial failures gracefully', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder
+        .mockResolvedValueOnce({ success: true })
+        .mockResolvedValueOnce({ success: false, error: 'Network error' });
+
+      const result = await controller.cancelOrders({ cancelAll: true });
+
+      expect(result.successCount).toBe(1);
+      expect(result.failureCount).toBe(1);
+      expect(result.success).toBe(true);
+    });
+
+    it('pauses and resumes streams during batch cancellation', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      await controller.cancelOrders({ cancelAll: true });
+
+      expect(mockStreamManager.orders.pause).toHaveBeenCalled();
+      expect(mockStreamManager.orders.resume).toHaveBeenCalled();
+    });
+
+    it('resumes streams even when operation throws error', async () => {
+      mockProvider.getOpenOrders.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        controller.cancelOrders({ cancelAll: true }),
+      ).rejects.toThrow('Network error');
+
+      expect(mockStreamManager.orders.pause).toHaveBeenCalled();
+      expect(mockStreamManager.orders.resume).toHaveBeenCalled();
+    });
+  });
+
   describe('closePosition', () => {
     it('should close position successfully', async () => {
       const closeParams = {
@@ -823,6 +978,82 @@ describe('PerpsController', () => {
         expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
         expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
       });
+    });
+  });
+
+  describe('closePositions', () => {
+    beforeEach(() => {
+      (controller as any).isInitialized = true;
+      (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
+    });
+
+    it('closes all positions when closeAll is true', async () => {
+      const mockPositions = [
+        createMockPosition({ coin: 'BTC' }),
+        createMockPosition({ coin: 'ETH' }),
+      ];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+      mockProvider.closePosition.mockResolvedValue({ success: true });
+
+      const result = await controller.closePositions({ closeAll: true });
+
+      expect(mockProvider.getPositions).toHaveBeenCalled();
+      expect(mockProvider.closePosition).toHaveBeenCalledTimes(2);
+      expect(result.successCount).toBe(2);
+      expect(result.failureCount).toBe(0);
+      expect(result.success).toBe(true);
+    });
+
+    it('closes specific coins when provided', async () => {
+      const mockPositions = [
+        createMockPosition({ coin: 'BTC' }),
+        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ coin: 'SOL' }),
+      ];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+      mockProvider.closePosition.mockResolvedValue({ success: true });
+
+      const result = await controller.closePositions({ coins: ['BTC', 'SOL'] });
+
+      expect(mockProvider.closePosition).toHaveBeenCalledTimes(2);
+      expect(mockProvider.closePosition).toHaveBeenCalledWith({ coin: 'BTC' });
+      expect(mockProvider.closePosition).toHaveBeenCalledWith({ coin: 'SOL' });
+      expect(result.successCount).toBe(2);
+    });
+
+    it('returns empty results when no positions match', async () => {
+      const mockPositions = [createMockPosition({ coin: 'BTC' })];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+
+      const result = await controller.closePositions({ coins: ['ETH'] });
+
+      expect(mockProvider.closePosition).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        success: false,
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+    });
+
+    it('handles partial failures gracefully', async () => {
+      const mockPositions = [
+        createMockPosition({ coin: 'BTC' }),
+        createMockPosition({ coin: 'ETH' }),
+      ];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+      mockProvider.closePosition
+        .mockResolvedValueOnce({ success: true })
+        .mockResolvedValueOnce({
+          success: false,
+          error: 'Insufficient margin',
+        });
+
+      const result = await controller.closePositions({ closeAll: true });
+
+      expect(result.successCount).toBe(1);
+      expect(result.failureCount).toBe(1);
+      expect(result.success).toBe(true);
     });
   });
 
