@@ -12,6 +12,11 @@ import {
 import { POLYMARKET_EVENT_DETAILS_RESPONSE } from './polymarket-event-details-response';
 import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import { POLYMARKET_ACTIVITY_RESPONSE } from './polymarket-activity-response';
+import { POLYMARKET_SPORTS_FEED } from './market-feed-responses/polymarket-sports-feed';
+import { POLYMARKET_CRYPTO_FEED } from './market-feed-responses/polymarket-crypto-feed';
+import { POLYMARKET_POLITICS_FEED } from './market-feed-responses/polymarket-politics-feed';
+import { POLYMARKET_TRENDING_FEED } from './market-feed-responses/polymarket-trending-feed';
+import { POLYMARKET_NEW_FEED } from './market-feed-responses/polymarket-new-feed';
 import {
   PROXY_WALLET_ADDRESS,
   USER_WALLET_ADDRESS,
@@ -396,6 +401,90 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket market feeds API
+ * Returns market feed data using the proxy pattern (consistent with other mocks)
+ * Intercepts proxy calls to gamma-api.polymarket.com/events/pagination
+ */
+export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
+  // Mock proxy calls to gamma-api.polymarket.com (consistent with other mocks)
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/gamma-api\.polymarket\.com\/events\/pagination/.test(url),
+      );
+    })
+    .asPriority(999)
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+
+      // Parse the actual Polymarket API URL to get query parameters
+      const polymarketUrl = new URL(url || '');
+      const tagSlug = polymarketUrl.searchParams.get('tag_slug');
+      const order = polymarketUrl.searchParams.get('order');
+      const excludeTagId = polymarketUrl.searchParams.get('exclude_tag_id');
+
+      // Return appropriate feed based on query parameters
+      let selectedFeed;
+      if (tagSlug) {
+        // Categories that use tag_slug parameter
+        switch (tagSlug) {
+          case 'sports':
+            selectedFeed = POLYMARKET_SPORTS_FEED;
+            break;
+          case 'crypto':
+            selectedFeed = POLYMARKET_CRYPTO_FEED;
+            break;
+          case 'politics':
+            selectedFeed = POLYMARKET_POLITICS_FEED;
+            break;
+          default:
+            selectedFeed = POLYMARKET_TRENDING_FEED;
+            break;
+        }
+      } else if (order === 'volume24hr' && excludeTagId === '100639') {
+        // Trending category: order=volume24hr&exclude_tag_id=100639
+        selectedFeed = POLYMARKET_TRENDING_FEED;
+      } else if (order === 'startDate' && excludeTagId === '100639') {
+        // New category: order=startDate&exclude_tag_id=100639&exclude_tag_id=102169
+        selectedFeed = POLYMARKET_NEW_FEED;
+      } else {
+        // Default fallback
+        selectedFeed = POLYMARKET_TRENDING_FEED;
+      }
+
+      // Return the feed data in the correct API structure
+      return {
+        statusCode: 200,
+        json: {
+          data: selectedFeed.data,
+          pagination: selectedFeed.pagination,
+        },
+      };
+    });
+
+  // Also mock the search endpoint for market feeds
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url && /^https:\/\/gamma-api\.polymarket\.com\/public-search/.test(url),
+      );
+    })
+    .asPriority(999)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        events: POLYMARKET_TRENDING_FEED.data,
+        pagination: POLYMARKET_TRENDING_FEED.pagination,
+      },
+    }));
+};
+
+/**
  * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, and value)
  * Returns data for proxy wallet: 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
@@ -405,7 +494,6 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_UPNL_MOCKS(mockServer);
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Re-enabled for predictions testing
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
-
-  // Note: Gamma API mocks removed - feed data should come from real Polymarket API
+  await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   // Only user-specific data (positions, activity, UpNL) should be mocked
 };
