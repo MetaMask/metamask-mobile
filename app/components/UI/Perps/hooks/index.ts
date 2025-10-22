@@ -41,6 +41,8 @@ export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
 export { usePerpsRewards } from './usePerpsRewards';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
+export { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
+export { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
 export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';

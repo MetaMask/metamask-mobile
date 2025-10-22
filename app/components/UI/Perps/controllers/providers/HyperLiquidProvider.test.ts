@@ -4366,4 +4366,79 @@ describe('HyperLiquidProvider', () => {
       expect(fills[0].liquidation).toBeUndefined();
     });
   });
+
+  describe('HIP-3 Private Methods', () => {
+    interface ProviderWithPrivateMethods {
+      getUsdcTokenId(): Promise<string>;
+      getBalanceForDex(params: { dex: string | null }): Promise<number>;
+      findSourceDexWithBalance(params: {
+        targetDex: string;
+        requiredAmount: number;
+      }): Promise<{ sourceDex: string; available: number } | null>;
+      cachedUsdcTokenId?: string;
+      enabledDexs: string[];
+    }
+
+    let testableProvider: ProviderWithPrivateMethods;
+
+    beforeEach(() => {
+      testableProvider = provider as unknown as ProviderWithPrivateMethods;
+      // Reset cache
+      testableProvider.cachedUsdcTokenId = undefined;
+    });
+
+    describe('getUsdcTokenId', () => {
+      it('returns cached token ID when available', async () => {
+        // Arrange
+        testableProvider.cachedUsdcTokenId = 'USDC:0xabc123';
+
+        // Act
+        const result = await testableProvider.getUsdcTokenId();
+
+        // Assert
+        expect(result).toBe('USDC:0xabc123');
+        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+      });
+
+      it('fetches and caches token ID on first call', async () => {
+        // Arrange
+        const mockSpotMeta = {
+          tokens: [
+            { name: 'USDC', tokenId: '0xdef456' },
+            { name: 'USDT', tokenId: '0x789abc' },
+          ],
+        };
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            spotMeta: jest.fn().mockResolvedValue(mockSpotMeta),
+          }),
+        );
+
+        // Act
+        const result = await testableProvider.getUsdcTokenId();
+
+        // Assert
+        expect(result).toBe('USDC:0xdef456');
+        expect(testableProvider.cachedUsdcTokenId).toBe('USDC:0xdef456');
+        expect(mockClientService.getInfoClient).toHaveBeenCalledTimes(1);
+      });
+
+      it('throws error when USDC token not found in metadata', async () => {
+        // Arrange
+        const mockSpotMeta = {
+          tokens: [{ name: 'USDT', tokenId: '0x789abc' }],
+        };
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            spotMeta: jest.fn().mockResolvedValue(mockSpotMeta),
+          }),
+        );
+
+        // Act & Assert
+        await expect(testableProvider.getUsdcTokenId()).rejects.toThrow(
+          'USDC token not found in spot metadata',
+        );
+      });
+    });
+  });
 });

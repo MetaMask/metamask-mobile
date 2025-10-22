@@ -92,7 +92,6 @@ const PerpsCloseAllPositionsModal: React.FC<
   // Use the fixed hook for accurate fee and rewards calculations
   const calculations = usePerpsCloseAllCalculations({
     positions,
-    currentPrices: {}, // Could pass live prices here if available
   });
 
   const handleCloseAll = useCallback(async () => {

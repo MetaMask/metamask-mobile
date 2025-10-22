@@ -1,5 +1,6 @@
 import type { PerpsMarketData } from '../controllers/types';
 import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
+import { parseVolume } from '../hooks/usePerpsMarkets';
 
 export type SortField = 'volume' | 'priceChange' | 'fundingRate';
 export type SortDirection = 'asc' | 'desc';
@@ -26,9 +27,9 @@ export const sortMarkets = ({
 
     switch (sortBy) {
       case MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME: {
-        // Parse volume strings (e.g., '$1.2B', '$850M')
-        const volumeA = parseFloat(a.volume?.replace(/[$,]/g, '') || '0');
-        const volumeB = parseFloat(b.volume?.replace(/[$,]/g, '') || '0');
+        // Parse volume strings with magnitude suffixes (e.g., '$1.2B', '$850M')
+        const volumeA = parseVolume(a.volume);
+        const volumeB = parseVolume(b.volume);
         compareValue = volumeA - volumeB;
         break;
       }

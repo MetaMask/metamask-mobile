@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useState, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NotificationFeedbackType } from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,8 +20,7 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
-import Engine from '../../../../../core/Engine';
-import { usePerpsLiveOrders } from '../../hooks';
+import { usePerpsLiveOrders, usePerpsCancelAllOrders } from '../../hooks';
 import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
@@ -33,13 +32,13 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
+import type { CancelOrdersResult } from '../../controllers/types';
 
 const PerpsCancelAllOrdersView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [isCanceling, setIsCanceling] = useState(false);
   const { showToast } = usePerpsToasts();
 
   // Fetch orders from live stream (excluding TP/SL orders)
@@ -59,6 +58,7 @@ const PerpsCancelAllOrdersView: React.FC = () => {
     },
   });
 
+  // Toast helper for success
   const showSuccessToast = useCallback(
     (title: string, message?: string) => {
       const toastConfig: PerpsToastOptions = {
@@ -81,6 +81,7 @@ const PerpsCancelAllOrdersView: React.FC = () => {
     [showToast, theme.colors.accent03],
   );
 
+  // Toast helper for errors
   const showErrorToast = useCallback(
     (title: string, message?: string) => {
       const toastConfig: PerpsToastOptions = {
@@ -103,17 +104,9 @@ const PerpsCancelAllOrdersView: React.FC = () => {
     [showToast, theme.colors.accent01],
   );
 
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleCancelAll = useCallback(async () => {
-    setIsCanceling(true);
-    try {
-      const result = await Engine.context.PerpsController.cancelOrders({
-        cancelAll: true,
-      });
-
+  // Handle success callback from hook
+  const handleSuccess = useCallback(
+    (result: CancelOrdersResult) => {
       if (result.success && result.successCount > 0) {
         showSuccessToast(
           strings('perps.cancel_all_modal.success_title'),
@@ -121,7 +114,6 @@ const PerpsCancelAllOrdersView: React.FC = () => {
             count: result.successCount,
           }),
         );
-        navigation.goBack();
       } else if (result.successCount > 0 && result.failureCount > 0) {
         showSuccessToast(
           strings('perps.cancel_all_modal.success_title'),
@@ -130,26 +122,30 @@ const PerpsCancelAllOrdersView: React.FC = () => {
             totalCount: result.successCount + result.failureCount,
           }),
         );
-        navigation.goBack();
-      } else {
-        showErrorToast(
-          strings('perps.cancel_all_modal.error_title'),
-          strings('perps.cancel_all_modal.error_message', {
-            count: result.failureCount,
-          }),
-        );
       }
-    } catch (error) {
+    },
+    [showSuccessToast],
+  );
+
+  // Handle error callback from hook
+  const handleError = useCallback(
+    (error: Error) => {
       showErrorToast(
         strings('perps.cancel_all_modal.error_title'),
-        error instanceof Error ? error.message : 'Unknown error',
+        error.message || 'Unknown error',
       );
-    } finally {
-      setIsCanceling(false);
-    }
-  }, [showSuccessToast, showErrorToast, navigation]);
+    },
+    [showErrorToast],
+  );
 
-  const handleKeepOrders = useCallback(() => {
+  // Use cancel all orders hook for business logic
+  const { isCanceling, handleCancelAll, handleKeepOrders } =
+    usePerpsCancelAllOrders(orders, {
+      onSuccess: handleSuccess,
+      onError: handleError,
+    });
+
+  const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 

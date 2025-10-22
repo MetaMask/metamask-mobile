@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useState, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NotificationFeedbackType } from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,10 +20,10 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
-import Engine from '../../../../../core/Engine';
 import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
+  usePerpsCloseAllPositions,
 } from '../../hooks';
 import usePerpsToasts, {
   type PerpsToastOptions,
@@ -37,16 +37,37 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import type { ClosePositionsResult } from '../../controllers/types';
 
 const PerpsCloseAllPositionsView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [isClosing, setIsClosing] = useState(false);
   const { showToast } = usePerpsToasts();
 
+  // Fetch positions from live stream
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000,
+  });
+
+  // Use hook for accurate fee and rewards calculations
+  const calculations = usePerpsCloseAllCalculations({
+    positions: positions || [],
+  });
+
+  // Track screen viewed event
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [!isInitialLoading],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
+      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
+    },
+  });
+
+  // Toast helper for success
   const showSuccessToast = useCallback(
     (title: string, message?: string) => {
       const toastConfig: PerpsToastOptions = {
@@ -69,6 +90,7 @@ const PerpsCloseAllPositionsView: React.FC = () => {
     [showToast, theme.colors.accent03],
   );
 
+  // Toast helper for errors
   const showErrorToast = useCallback(
     (title: string, message?: string) => {
       const toastConfig: PerpsToastOptions = {
@@ -91,79 +113,17 @@ const PerpsCloseAllPositionsView: React.FC = () => {
     [showToast, theme.colors.accent01],
   );
 
-  // Fetch positions from live stream
-  const { positions, isInitialLoading } = usePerpsLivePositions({
-    throttleMs: 1000,
-  });
-
-  // Use hook for accurate fee and rewards calculations
-  const calculations = usePerpsCloseAllCalculations({
-    positions: positions || [],
-    currentPrices: {}, // Could pass live prices here if available
-  });
-
-  // Track screen viewed event
-  usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    conditions: [!isInitialLoading],
-    properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
-      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
-    },
-  });
-
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleCloseAll = useCallback(async () => {
-    const startTime = Date.now();
-    setIsClosing(true);
-
-    DevLogger.log('[PerpsCloseAllPositionsView] Starting close all positions', {
-      positionCount: positions?.length || 0,
-      totalMargin: calculations.totalMargin,
-      totalPnl: calculations.totalPnl,
-      estimatedTotalFees: calculations.totalFees,
-      estimatedReceiveAmount: calculations.receiveAmount,
-    });
-
-    try {
-      const result = await Engine.context.PerpsController.closePositions({
-        closeAll: true,
-      });
-
-      const executionTime = Date.now() - startTime;
-
+  // Handle success callback from hook
+  const handleSuccess = useCallback(
+    (result: ClosePositionsResult) => {
       if (result.success && result.successCount > 0) {
-        DevLogger.log(
-          '[PerpsCloseAllPositionsView] Close all positions succeeded',
-          {
-            successCount: result.successCount,
-            failureCount: result.failureCount,
-            executionTimeMs: executionTime,
-          },
-        );
-
         showSuccessToast(
           strings('perps.close_all_modal.success_title'),
           strings('perps.close_all_modal.success_message', {
             count: result.successCount,
           }),
         );
-        navigation.goBack();
       } else if (result.successCount > 0 && result.failureCount > 0) {
-        DevLogger.log(
-          '[PerpsCloseAllPositionsView] Close all positions partially succeeded',
-          {
-            successCount: result.successCount,
-            failureCount: result.failureCount,
-            totalCount: result.successCount + result.failureCount,
-            executionTimeMs: executionTime,
-          },
-        );
-
         showSuccessToast(
           strings('perps.close_all_modal.success_title'),
           strings('perps.close_all_modal.partial_success', {
@@ -171,41 +131,36 @@ const PerpsCloseAllPositionsView: React.FC = () => {
             totalCount: result.successCount + result.failureCount,
           }),
         );
-        navigation.goBack();
-      } else {
-        DevLogger.log(
-          '[PerpsCloseAllPositionsView] Close all positions failed',
-          {
-            failureCount: result.failureCount,
-            executionTimeMs: executionTime,
-          },
-        );
-
-        showErrorToast(
-          strings('perps.close_all_modal.error_title'),
-          strings('perps.close_all_modal.error_message', {
-            count: result.failureCount,
-          }),
-        );
       }
-    } catch (error) {
-      const executionTime = Date.now() - startTime;
-      DevLogger.log('[PerpsCloseAllPositionsView] Close all positions error', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        errorStack: error instanceof Error ? error.stack : undefined,
-        executionTimeMs: executionTime,
-      });
+    },
+    [showSuccessToast],
+  );
 
+  // Handle error callback from hook
+  const handleError = useCallback(
+    (error: Error) => {
       showErrorToast(
         strings('perps.close_all_modal.error_title'),
-        error instanceof Error ? error.message : 'Unknown error',
+        error.message || 'Unknown error',
       );
-    } finally {
-      setIsClosing(false);
-    }
-  }, [showSuccessToast, showErrorToast, navigation, positions, calculations]);
+    },
+    [showErrorToast],
+  );
 
-  const handleKeepPositions = useCallback(() => {
+  // Use close all positions hook for business logic
+  const { isClosing, handleCloseAll, handleKeepPositions } =
+    usePerpsCloseAllPositions(positions, {
+      onSuccess: handleSuccess,
+      onError: handleError,
+      calculations: {
+        totalMargin: String(calculations.totalMargin),
+        totalPnl: String(calculations.totalPnl),
+        totalFees: String(calculations.totalFees),
+        receiveAmount: String(calculations.receiveAmount),
+      },
+    });
+
+  const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
