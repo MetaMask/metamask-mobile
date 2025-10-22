@@ -606,9 +606,7 @@ export class PredictController extends BaseController<
     eventType,
     amount,
     analyticsProperties,
-    provider,
     providerId,
-    ownerAddress,
     completionDuration,
     orderId,
     failureReason,
@@ -617,9 +615,7 @@ export class PredictController extends BaseController<
     eventType: PredictEventTypeValue;
     amount: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-    provider?: PredictProvider;
     providerId: string;
-    ownerAddress?: string;
     completionDuration?: number;
     orderId?: string;
     failureReason?: string;
@@ -629,18 +625,15 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Get safe address from account state for analytics (only if provider and ownerAddress available)
+    // Get safe address from getAccountState for analytics
     let safeAddress: string | undefined;
-    if (provider && ownerAddress) {
-      try {
-        const accountState = await provider.getAccountState({
-          providerId,
-          ownerAddress,
-        });
-        safeAddress = accountState.address;
-      } catch {
-        // If we can't get safe address, continue without it
-      }
+    try {
+      const accountState = await this.getAccountState({
+        providerId,
+      });
+      safeAddress = accountState.address;
+    } catch {
+      // If we can't get safe address, continue without it
     }
 
     // Build regular properties (common to all events)
@@ -750,9 +743,7 @@ export class PredictController extends BaseController<
         eventType: PredictEventType.SUBMITTED,
         amount,
         analyticsProperties,
-        provider,
         providerId,
-        ownerAddress: selectedAddress,
         sharePrice,
       });
 
@@ -782,9 +773,7 @@ export class PredictController extends BaseController<
           eventType: PredictEventType.COMPLETED,
           amount: spentAmount ? parseFloat(spentAmount) : amount,
           analyticsProperties,
-          provider,
           providerId,
-          ownerAddress: selectedAddress,
           completionDuration,
           orderId,
           sharePrice: realSharePrice,
@@ -795,9 +784,7 @@ export class PredictController extends BaseController<
           eventType: PredictEventType.FAILED,
           amount,
           analyticsProperties,
-          provider,
           providerId,
-          ownerAddress: selectedAddress,
           sharePrice,
           completionDuration,
           failureReason: result.error || 'Unknown error',
@@ -808,19 +795,11 @@ export class PredictController extends BaseController<
     } catch (error) {
       const completionDuration = performance.now() - startTime;
 
-      // Track Predict Action Failed (fire and forget)
-      // Note: If provider/ownerAddress unavailable, we'll track without user_address
-      const provider = this.providers.get(providerId);
-      const selectedAddress =
-        Engine.context?.AccountsController?.getSelectedAccount()?.address;
-
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
         amount,
         analyticsProperties,
-        provider,
         providerId,
-        ownerAddress: selectedAddress,
         sharePrice,
         completionDuration,
         failureReason: error instanceof Error ? error.message : 'Unknown error',
