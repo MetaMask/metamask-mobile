@@ -8,6 +8,8 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
+import { priceApiExchangeRatesMock } from '../identity/account-syncing/mock-data';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
@@ -21,6 +23,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         restartDevice: true,
         permissions: {
           notifications: 'YES',
+        },
+        testSpecificMock: async (mockServer: Mockttp) => {
+          priceApiExchangeRatesMock(mockServer);
         },
       },
       async () => {

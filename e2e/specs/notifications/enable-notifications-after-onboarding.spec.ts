@@ -10,6 +10,8 @@ import {
 } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { Mockttp } from 'mockttp';
+import { priceApiExchangeRatesMock } from '../identity/account-syncing/mock-data';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
@@ -25,6 +27,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         restartDevice: true,
         permissions: {
           notifications: 'YES',
+        },
+        testSpecificMock: async (mockServer: Mockttp) => {
+          priceApiExchangeRatesMock(mockServer);
         },
       },
       async () => {
