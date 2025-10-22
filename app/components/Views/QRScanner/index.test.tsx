@@ -464,5 +464,44 @@ describe('QrScanner', () => {
         expect(mockGoBack).toHaveBeenCalled();
       });
     });
+
+    it('should show error when Solana address is not handled by sendNonEvmAsset', async () => {
+      const solanaAddress = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
+      mockSendNonEvmAsset.mockResolvedValue(false);
+
+      renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+        state: initialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUseCodeScanner).toHaveBeenCalled();
+      });
+
+      const codeScannerConfig =
+        mockUseCodeScanner.mock.calls[
+          mockUseCodeScanner.mock.calls.length - 1
+        ][0];
+
+      await act(async () => {
+        await codeScannerConfig.onCodeScanned(
+          [{ value: solanaAddress, type: 'qr' }],
+          {} as CodeScannerFrame,
+        );
+      });
+
+      // Verify sendNonEvmAsset was called
+      await waitFor(() => {
+        expect(mockSendNonEvmAsset).toHaveBeenCalledWith('qr_scanner');
+      });
+
+      // Should not call EVM methods when Solana address is not handled
+      expect(getEther).not.toHaveBeenCalled();
+      expect(newAssetTransaction).not.toHaveBeenCalled();
+
+      // Verify scanner closes
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+    });
   });
 });

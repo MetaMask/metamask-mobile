@@ -89,12 +89,15 @@ const QRScanner = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Hook for handling non-EVM asset sending (Solana, Bitcoin, etc.)
-  const { sendNonEvmAsset } = useSendNonEvmAsset({
-    asset: {
-      chainId: currentChainId as CaipChainId,
-      address: undefined,
-    },
-  });
+  const {
+    sendNonEvmAsset,
+  }: { sendNonEvmAsset: (location: string) => Promise<boolean> } =
+    useSendNonEvmAsset({
+      asset: {
+        chainId: currentChainId as CaipChainId,
+        address: undefined,
+      },
+    });
   ///: END:ONLY_INCLUDE_IF
 
   const theme = useTheme();
@@ -294,6 +297,11 @@ const QRScanner = ({
 
               return;
             }
+
+            // Solana address was not handled by sendNonEvmAsset, show error
+            showAlertForInvalidAddress();
+            end();
+            return;
           }
           ///: END:ONLY_INCLUDE_IF
 
