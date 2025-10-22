@@ -1,7 +1,14 @@
-import { useMemo } from 'react';
-import type { Position } from '../controllers/types';
-import { usePerpsOrderFees } from './usePerpsOrderFees';
-import { usePerpsRewards } from './usePerpsRewards';
+import { useMemo, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import type { Position, FeeCalculationResult } from '../controllers/types';
+import type {
+  EstimatePointsDto,
+  EstimatedPointsDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
+import Engine from '../../../../core/Engine';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectChainId } from '../../../../selectors/networkController';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 /**
  * Aggregated calculations result for closing all positions
@@ -38,8 +45,16 @@ export interface CloseAllCalculationsResult {
 interface UsePerpsCloseAllCalculationsParams {
   /** Array of positions to close */
   positions: Position[];
-  /** Current market prices for each coin */
-  currentPrices?: Record<string, number>;
+}
+
+/**
+ * Per-position calculation result
+ */
+interface PerPositionResult {
+  position: Position;
+  fees: FeeCalculationResult;
+  points: EstimatedPointsDto | null;
+  error?: string;
 }
 
 /**
@@ -47,15 +62,18 @@ interface UsePerpsCloseAllCalculationsParams {
  *
  * This hook:
  * - Calculates total margin and P&L across all positions
- * - Uses usePerpsOrderFees for each position to get accurate fee calculations
- * - Aggregates points estimation using usePerpsRewards
+ * - Calculates fees PER POSITION for accuracy (coin-specific rewards)
+ * - Aggregates points estimation per position
  * - Handles loading states and errors across all calculations
+ *
+ * TODO(rewards-batch-api): Replace per-position loop with single batch call when
+ * https://github.com/consensys-vertical-apps/va-mmcx-rewards/pull/247 is merged.
+ * The backend will support `payload | payload[]` for batch estimation.
  *
  * @example
  * ```tsx
  * const calculations = usePerpsCloseAllCalculations({
  *   positions,
- *   currentPrices: priceData,
  * });
  *
  * return (
@@ -69,18 +87,19 @@ interface UsePerpsCloseAllCalculationsParams {
  */
 export function usePerpsCloseAllCalculations({
   positions,
-  currentPrices = {},
 }: UsePerpsCloseAllCalculationsParams): CloseAllCalculationsResult {
-  // Calculate position values using current prices or fallback to position values
-  const positionValues = useMemo(
-    () =>
-      positions.map((pos) => {
-        const price = currentPrices[pos.coin] ?? parseFloat(pos.entryPrice);
-        const size = Math.abs(parseFloat(pos.size));
-        return size * price;
-      }),
-    [positions, currentPrices],
+  // Selectors for account and chain
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
   );
+  const currentChainId = useSelector(selectChainId);
+
+  // State for per-position calculations
+  const [perPositionResults, setPerPositionResults] = useState<
+    PerPositionResult[]
+  >([]);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [hasCalculationError, setHasCalculationError] = useState(false);
 
   // Calculate total margin (including P&L)
   const totalMargin = useMemo(
@@ -103,91 +122,219 @@ export function usePerpsCloseAllCalculations({
     [positions],
   );
 
-  // Get aggregated fee results for all positions with a single hook call
-  const feeResult = usePerpsOrderFees(
-    positions.map((pos, index) => ({
-      orderType: 'market' as const,
-      amount: positionValues[index]?.toString() || '0',
-      isMaker: false,
-      coin: pos.coin,
-      isClosing: true,
-    })),
-  );
+  // Per-position fee and rewards calculation
+  // This ensures accurate coin-specific rewards calculation
+  useEffect(() => {
+    async function calculatePerPosition() {
+      if (positions.length === 0) {
+        setPerPositionResults([]);
+        setHasCalculationError(false);
+        return;
+      }
 
-  // Fee calculations are already aggregated by usePerpsOrderFees
-  const {
-    totalFees,
-    avgFeeDiscountPercentage,
-    avgMetamaskFeeRate,
-    avgProtocolFeeRate,
-    avgOriginalMetamaskFeeRate,
-    isLoadingFees,
-    hasFeesError,
-  } = useMemo(
-    () => ({
-      totalFees: feeResult.totalFee,
-      avgFeeDiscountPercentage: feeResult.feeDiscountPercentage ?? 0,
-      avgMetamaskFeeRate: feeResult.metamaskFeeRate,
-      avgProtocolFeeRate: feeResult.protocolFeeRate,
-      avgOriginalMetamaskFeeRate:
-        feeResult.originalMetamaskFeeRate ?? feeResult.metamaskFeeRate,
-      isLoadingFees: feeResult.isLoadingMetamaskFee,
-      hasFeesError: feeResult.error !== null,
-    }),
-    [feeResult],
-  );
+      if (!selectedAddress || !currentChainId) {
+        setHasCalculationError(true);
+        return;
+      }
 
-  // Get rewards state for the aggregated fee result
-  const hasValidAmount = positions.length > 0;
-  const totalAmount = positions.reduce(
-    (sum, _pos, index) => sum + (positionValues[index] || 0),
-    0,
-  );
+      setIsCalculating(true);
+      setHasCalculationError(false);
 
-  const rewardsState = usePerpsRewards({
-    feeResults: feeResult,
-    hasValidAmount,
-    isFeesLoading: feeResult.isLoadingMetamaskFee,
-    orderAmount: totalAmount.toString(),
-  });
+      try {
+        // Convert address to CAIP format for rewards API
+        const caipAccountId = formatAccountToCaipAccountId(
+          selectedAddress,
+          currentChainId,
+        );
+        if (!caipAccountId) {
+          throw new Error('Failed to format account to CAIP ID');
+        }
 
-  // Rewards are already aggregated by usePerpsOrderFees and usePerpsRewards
-  const {
-    totalEstimatedPoints,
-    avgBonusBips,
-    isLoadingRewards,
-    hasRewardsError,
-    shouldShowRewards,
-  } = useMemo(
-    () => ({
-      totalEstimatedPoints: rewardsState.estimatedPoints ?? 0,
-      avgBonusBips: rewardsState.bonusBips ?? 0,
-      isLoadingRewards: rewardsState.isLoading,
-      hasRewardsError: rewardsState.hasError,
-      shouldShowRewards: rewardsState.shouldShowRewardsRow,
-    }),
-    [rewardsState],
-  );
+        const results = await Promise.all(
+          positions.map(async (pos): Promise<PerPositionResult> => {
+            try {
+              // Calculate position value using entry price (not currentPrices)
+              // This prevents re-calculation on every price tick
+              const price = parseFloat(pos.entryPrice);
+              const size = Math.abs(parseFloat(pos.size));
+              const positionValue = size * price;
+
+              // Calculate fees via PerpsController
+              const fees = await Engine.context.PerpsController.calculateFees({
+                orderType: 'market',
+                isMaker: false, // Market close orders are always taker
+                amount: positionValue.toString(),
+              });
+
+              // Calculate rewards points per position with coin-specific parameters
+              let points: EstimatedPointsDto | null = null;
+              try {
+                const estimateBody: EstimatePointsDto = {
+                  activityType: 'PERPS',
+                  account: caipAccountId,
+                  activityContext: {
+                    perpsContext: {
+                      type: 'CLOSE_POSITION',
+                      usdFeeValue: (fees.feeAmount ?? 0).toString(),
+                      coin: pos.coin, // ✅ Accurate per-position coin
+                    },
+                  },
+                };
+
+                points = await Engine.context.RewardsController.estimatePoints(
+                  estimateBody,
+                );
+              } catch (pointsError) {
+                // Log but don't fail the entire calculation if rewards estimation fails
+                console.warn(
+                  `Failed to estimate points for ${pos.coin}:`,
+                  pointsError,
+                );
+              }
+
+              return {
+                position: pos,
+                fees,
+                points,
+              };
+            } catch (error) {
+              return {
+                position: pos,
+                fees: {
+                  feeRate: 0,
+                  feeAmount: 0,
+                  protocolFeeRate: 0,
+                  protocolFeeAmount: 0,
+                  metamaskFeeRate: 0,
+                  metamaskFeeAmount: 0,
+                },
+                points: null,
+                error: error instanceof Error ? error.message : 'Unknown error',
+              };
+            }
+          }),
+        );
+
+        setPerPositionResults(results);
+
+        // Check if any calculation had errors
+        const hasErrors = results.some((r) => r.error);
+        setHasCalculationError(hasErrors);
+      } catch (error) {
+        console.error('Failed to calculate per-position fees:', error);
+        setHasCalculationError(true);
+      } finally {
+        setIsCalculating(false);
+      }
+    }
+
+    calculatePerPosition().catch((error) => {
+      console.error('Unhandled error in calculatePerPosition:', error);
+      setHasCalculationError(true);
+    });
+  }, [positions, selectedAddress, currentChainId]);
+
+  // Aggregate results from per-position calculations
+  const aggregatedResults = useMemo(() => {
+    if (perPositionResults.length === 0) {
+      return {
+        totalFees: 0,
+        totalEstimatedPoints: 0,
+        avgFeeDiscountPercentage: 0,
+        avgBonusBips: 0,
+        avgMetamaskFeeRate: 0,
+        avgProtocolFeeRate: 0,
+        avgOriginalMetamaskFeeRate: 0,
+        shouldShowRewards: false,
+      };
+    }
+
+    // Sum fees and points
+    const totalFees = perPositionResults.reduce(
+      (sum, result) => sum + (result.fees.feeAmount ?? 0),
+      0,
+    );
+
+    const totalEstimatedPoints = perPositionResults.reduce(
+      (sum, result) => sum + (result.points?.pointsEstimate ?? 0),
+      0,
+    );
+
+    // Calculate weighted averages based on fee amounts
+    let weightedMetamaskFeeRate = 0;
+    let weightedProtocolFeeRate = 0;
+    let totalWeight = 0;
+
+    perPositionResults.forEach((result) => {
+      const weight = result.fees.feeAmount ?? 0;
+      if (weight > 0) {
+        weightedMetamaskFeeRate += result.fees.metamaskFeeRate * weight;
+        weightedProtocolFeeRate += result.fees.protocolFeeRate * weight;
+        totalWeight += weight;
+      }
+    });
+
+    const avgMetamaskFeeRate =
+      totalWeight > 0 ? weightedMetamaskFeeRate / totalWeight : 0;
+    const avgProtocolFeeRate =
+      totalWeight > 0 ? weightedProtocolFeeRate / totalWeight : 0;
+
+    // For fee discount calculation, we need original rates from breakdown if available
+    // Otherwise avgOriginalMetamaskFeeRate equals avgMetamaskFeeRate (no discount)
+    const avgOriginalMetamaskFeeRate = avgMetamaskFeeRate; // Simplified for now
+
+    // Calculate average fee discount percentage (currently 0 as we don't have original rates)
+    const avgFeeDiscountPercentage = 0;
+
+    // Calculate average bonus bips (weighted by points)
+    let weightedBonusBips = 0;
+    let totalPointsWeight = 0;
+    perPositionResults.forEach((result) => {
+      const pointsWeight = result.points?.pointsEstimate ?? 0;
+      if (pointsWeight > 0 && result.points) {
+        weightedBonusBips += result.points.bonusBips * pointsWeight;
+        totalPointsWeight += pointsWeight;
+      }
+    });
+    const avgBonusBips =
+      totalPointsWeight > 0 ? weightedBonusBips / totalPointsWeight : 0;
+
+    // Show rewards if at least one position has valid points
+    const shouldShowRewards = perPositionResults.some(
+      (result) => result.points !== null && result.points.pointsEstimate > 0,
+    );
+
+    return {
+      totalFees,
+      totalEstimatedPoints,
+      avgFeeDiscountPercentage,
+      avgBonusBips,
+      avgMetamaskFeeRate,
+      avgProtocolFeeRate,
+      avgOriginalMetamaskFeeRate,
+      shouldShowRewards,
+    };
+  }, [perPositionResults]);
 
   // Calculate final receive amount
   const receiveAmount = useMemo(
-    () => totalMargin - totalFees,
-    [totalMargin, totalFees],
+    () => totalMargin - aggregatedResults.totalFees,
+    [totalMargin, aggregatedResults.totalFees],
   );
 
   return {
     totalMargin,
     totalPnl,
-    totalFees,
+    totalFees: aggregatedResults.totalFees,
     receiveAmount,
-    totalEstimatedPoints,
-    avgFeeDiscountPercentage,
-    avgBonusBips,
-    avgMetamaskFeeRate,
-    avgProtocolFeeRate,
-    avgOriginalMetamaskFeeRate,
-    isLoading: isLoadingFees || isLoadingRewards,
-    hasError: hasFeesError || hasRewardsError,
-    shouldShowRewards,
+    totalEstimatedPoints: aggregatedResults.totalEstimatedPoints,
+    avgFeeDiscountPercentage: aggregatedResults.avgFeeDiscountPercentage,
+    avgBonusBips: aggregatedResults.avgBonusBips,
+    avgMetamaskFeeRate: aggregatedResults.avgMetamaskFeeRate,
+    avgProtocolFeeRate: aggregatedResults.avgProtocolFeeRate,
+    avgOriginalMetamaskFeeRate: aggregatedResults.avgOriginalMetamaskFeeRate,
+    isLoading: isCalculating,
+    hasError: hasCalculationError,
+    shouldShowRewards: aggregatedResults.shouldShowRewards,
   };
 }

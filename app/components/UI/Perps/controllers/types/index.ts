@@ -469,6 +469,7 @@ export interface GetOrdersParams {
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetFundingParams {

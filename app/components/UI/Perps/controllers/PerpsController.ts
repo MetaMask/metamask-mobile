@@ -45,6 +45,10 @@ import {
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import {
+  getStreamManagerInstance,
+  type PerpsStreamManager,
+} from '../providers/PerpsStreamManager';
 import type {
   AccountState,
   AssetRoute,
@@ -497,6 +501,9 @@ export class PerpsController extends BaseController<
   private readonly equityEnabled: boolean;
   private readonly enabledDexs: string[];
 
+  // Guard flag to prevent concurrent cancelOrders calls
+  private isCancelingOrders = false;
+
   constructor({
     messenger,
     state = {},
@@ -596,6 +603,54 @@ export class PerpsController extends BaseController<
 
     if (Array.isArray(remoteBlockedRegions)) {
       this.setBlockedRegionList(remoteBlockedRegions, 'remote');
+    }
+  }
+
+  /**
+   * Execute an operation while temporarily pausing specified stream channels
+   * to prevent WebSocket updates from triggering UI re-renders during operations.
+   *
+   * WebSocket connections remain alive but updates are not emitted to subscribers.
+   * This prevents race conditions where UI re-renders fetch stale data during operations.
+   *
+   * @param operation - The async operation to execute
+   * @param channels - Array of stream channel names to pause
+   * @returns The result of the operation
+   *
+   * @example
+   * ```typescript
+   * // Cancel orders without stream interference
+   * await this.withStreamPause(
+   *   async () => this.provider.cancelOrders({ cancelAll: true }),
+   *   ['orders']
+   * );
+   *
+   * // Close positions and pause multiple streams
+   * await this.withStreamPause(
+   *   async () => this.provider.closePositions(positions),
+   *   ['positions', 'account', 'orders']
+   * );
+   * ```
+   */
+  private async withStreamPause<T>(
+    operation: () => Promise<T>,
+    channels: (keyof PerpsStreamManager)[],
+  ): Promise<T> {
+    const streamManager = getStreamManagerInstance();
+
+    // Pause emission on specified channels (WebSocket stays connected)
+    channels.forEach((channel) => {
+      streamManager[channel].pause();
+    });
+
+    try {
+      // Execute operation without stream interference
+      return await operation();
+    } finally {
+      // Resume emission on all channels
+      channels.forEach((channel) => {
+        streamManager[channel].resume();
+      });
     }
   }
 
@@ -1336,6 +1391,27 @@ export class PerpsController extends BaseController<
    * Batch version of cancelOrder() that cancels multiple orders simultaneously
    */
   async cancelOrders(params: CancelOrdersParams): Promise<CancelOrdersResult> {
+    DevLogger.log('[cancelOrders] === ENTRY ===', {
+      timestamp: Date.now(),
+      cancelAll: params.cancelAll,
+      guardStatus: this.isCancelingOrders,
+    });
+
+    // Guard: Prevent concurrent calls to cancelOrders
+    if (this.isCancelingOrders) {
+      DevLogger.log('[cancelOrders] === BLOCKED ===', {
+        timestamp: Date.now(),
+        cancelAll: params.cancelAll,
+      });
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      };
+    }
+
+    this.isCancelingOrders = true;
     const traceId = uuidv4();
     const startTime = performance.now();
 
@@ -1356,83 +1432,88 @@ export class PerpsController extends BaseController<
         },
       });
 
-      // Get all open orders
-      const orders = await this.getOrders();
+      // Pause orders stream to prevent WebSocket updates during cancellation
+      return await this.withStreamPause(async () => {
+        // Get all open orders (using getOpenOrders to avoid duplicates from historicalOrders)
+        const orders = await this.getOpenOrders();
 
-      // Filter orders based on params
-      let ordersToCancel = orders;
-      if (params.cancelAll || (!params.coins && !params.orderIds)) {
-        // Cancel all orders
-        ordersToCancel = orders;
-      } else if (params.orderIds && params.orderIds.length > 0) {
-        // Cancel specific order IDs
-        ordersToCancel = orders.filter((o) =>
-          params.orderIds?.includes(o.orderId),
+        // Filter orders based on params
+        let ordersToCancel = orders;
+        if (params.cancelAll || (!params.coins && !params.orderIds)) {
+          // Cancel all orders
+          ordersToCancel = orders;
+        } else if (params.orderIds && params.orderIds.length > 0) {
+          // Cancel specific order IDs
+          ordersToCancel = orders.filter((o) =>
+            params.orderIds?.includes(o.orderId),
+          );
+        } else if (params.coins && params.coins.length > 0) {
+          // Cancel orders for specific coins
+          ordersToCancel = orders.filter((o) =>
+            params.coins?.includes(o.symbol),
+          );
+        }
+
+        if (ordersToCancel.length === 0) {
+          return {
+            success: false,
+            successCount: 0,
+            failureCount: 0,
+            results: [],
+          };
+        }
+
+        // Cancel all orders in parallel using Promise.allSettled
+        const results = await Promise.allSettled(
+          ordersToCancel.map((order) =>
+            this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
+          ),
         );
-      } else if (params.coins && params.coins.length > 0) {
-        // Cancel orders for specific coins
-        ordersToCancel = orders.filter((o) => params.coins?.includes(o.symbol));
-      }
 
-      if (ordersToCancel.length === 0) {
+        // Aggregate results
+        const successCount = results.filter(
+          (r) => r.status === 'fulfilled' && r.value.success,
+        ).length;
+        const failureCount = results.length - successCount;
+
+        const completionDuration = performance.now() - startTime;
+
+        // Track batch cancel event (using available properties)
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]:
+                successCount > 0
+                  ? PerpsEventValues.STATUS.EXECUTED
+                  : PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
+              // can be added to PerpsEventProperties if needed for analytics
+            })
+            .build(),
+        );
+
         return {
-          success: false,
-          successCount: 0,
-          failureCount: 0,
-          results: [],
+          success: successCount > 0,
+          successCount,
+          failureCount,
+          results: results.map((result, index) => ({
+            orderId: ordersToCancel[index].orderId,
+            coin: ordersToCancel[index].symbol,
+            success: !!(result.status === 'fulfilled' && result.value.success),
+            error:
+              result.status === 'rejected'
+                ? result.reason instanceof Error
+                  ? result.reason.message
+                  : 'Unknown error'
+                : result.status === 'fulfilled' && !result.value.success
+                ? result.value.error
+                : undefined,
+          })),
         };
-      }
-
-      // Cancel all orders in parallel using Promise.allSettled
-      const results = await Promise.allSettled(
-        ordersToCancel.map((order) =>
-          this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
-        ),
-      );
-
-      // Aggregate results
-      const successCount = results.filter(
-        (r) => r.status === 'fulfilled' && r.value.success,
-      ).length;
-      const failureCount = results.length - successCount;
-
-      const completionDuration = performance.now() - startTime;
-
-      // Track batch cancel event (using available properties)
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]:
-              successCount > 0
-                ? PerpsEventValues.STATUS.EXECUTED
-                : PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
-            // can be added to PerpsEventProperties if needed for analytics
-          })
-          .build(),
-      );
-
-      return {
-        success: successCount > 0,
-        successCount,
-        failureCount,
-        results: results.map((result, index) => ({
-          orderId: ordersToCancel[index].orderId,
-          coin: ordersToCancel[index].symbol,
-          success: !!(result.status === 'fulfilled' && result.value.success),
-          error:
-            result.status === 'rejected'
-              ? result.reason instanceof Error
-                ? result.reason.message
-                : 'Unknown error'
-              : result.status === 'fulfilled' && !result.value.success
-              ? result.value.error
-              : undefined,
-        })),
-      };
+      }, ['orders']); // Disconnect orders stream during operation
     } catch (error) {
       const completionDuration = performance.now() - startTime;
 
@@ -1452,6 +1533,10 @@ export class PerpsController extends BaseController<
 
       throw error;
     } finally {
+      this.isCancelingOrders = false;
+      DevLogger.log('[cancelOrders] === EXIT ===', {
+        timestamp: Date.now(),
+      });
       endTrace({
         name: TraceName.PerpsCancelOrder,
         id: traceId,

@@ -1078,6 +1078,15 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Get cached open orders from WebSocket stream
+   * Returns immediately without API call
+   * @returns Cached open orders or empty array if not yet loaded
+   */
+  public getCachedOpenOrders(): Order[] {
+    return this.cachedOrders || [];
+  }
+
+  /**
    * Create subscription with common error handling
    */
   private createSubscription<T>(

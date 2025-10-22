@@ -2465,14 +2465,28 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Get currently open orders (real-time status)
-   * Uses frontendOpenOrders API to get only currently active orders
+   * Uses WebSocket cache by default for instant access (<1ms)
+   * Falls back to API call if cache unavailable or skipCache requested
    * Aggregates orders from all enabled DEXs (main + HIP-3)
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (!params?.skipCache) {
+        const cachedOrders = this.subscriptionService.getCachedOpenOrders();
+        if (cachedOrders.length > 0) {
+          DevLogger.log('Using cached open orders from WebSocket', {
+            count: cachedOrders.length,
+          });
+          return cachedOrders;
+        }
+        // Cache empty - WebSocket might not be connected yet, fall through to API
+      }
+
+      // Fallback to API call
       DevLogger.log(
-        'Getting currently open orders via HyperLiquid SDK',
-        params || '(no params)',
+        'Fetching open orders via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache unavailable)',
       );
       await this.ensureReady();
 
