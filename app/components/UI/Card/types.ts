@@ -263,7 +263,7 @@ export interface UserResponse {
   lastName?: string;
   dateOfBirth?: string; // Format: YYYY-MM-DD
   email?: string;
-  verificationState?: VERIFICATION_STATUS;
+  verificationState?: CardVerificationState;
   phoneNumber?: string; // Format: 2345678901
   phoneCountryCode?: string; // Format: +1
   addressLine1?: string;
@@ -279,12 +279,6 @@ export interface UserResponse {
   mailingZip?: string;
   mailingUsState?: string; // Required for US users
 }
-
-export type VERIFICATION_STATUS =
-  | 'PENDING'
-  | 'VERIFIED'
-  | 'REJECTED'
-  | 'UNVERIFIED';
 
 // Country type definition
 export interface RegistrationSettingsResponse {

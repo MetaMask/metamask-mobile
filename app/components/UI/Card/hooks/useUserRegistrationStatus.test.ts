@@ -5,7 +5,7 @@ import { useUserRegistrationStatus } from './useUserRegistrationStatus';
 import { CardSDK } from '../sdk/CardSDK';
 import {
   UserResponse,
-  VERIFICATION_STATUS,
+  CardVerificationState,
   CardError,
   CardErrorType,
 } from '../types';
@@ -43,7 +43,7 @@ describe('useUserRegistrationStatus', () => {
     firstName: 'John',
     lastName: 'Doe',
     email: 'john.doe@example.com',
-    verificationState: 'VERIFIED' as VERIFICATION_STATUS,
+    verificationState: 'VERIFIED' as CardVerificationState,
     phoneNumber: '1234567890',
     phoneCountryCode: '+1',
   };
@@ -90,7 +90,7 @@ describe('useUserRegistrationStatus', () => {
       // Given: Mock API response with PENDING verification state for initial auto-polling
       const pendingUserResponse: UserResponse = {
         ...mockUserResponse,
-        verificationState: 'PENDING' as VERIFICATION_STATUS,
+        verificationState: 'PENDING' as CardVerificationState,
       };
       mockGetRegistrationStatus.mockResolvedValue(pendingUserResponse);
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCardSDK } from '../sdk';
-import { UserResponse, VERIFICATION_STATUS } from '../types';
+import { UserResponse, CardVerificationState } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import {
   selectOnboardingId,
@@ -10,7 +10,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 
 interface UseUserRegistrationStatusReturn {
-  verificationState: VERIFICATION_STATUS | null;
+  verificationState: CardVerificationState | null;
   userResponse: UserResponse | null;
   isLoading: boolean;
   isError: boolean;
@@ -31,7 +31,7 @@ export const useUserRegistrationStatus =
     const user = useSelector(selectUser);
     const dispatch = useDispatch();
     const [verificationState, setVerificationState] =
-      useState<VERIFICATION_STATUS>(user?.verificationState || 'PENDING');
+      useState<CardVerificationState>(user?.verificationState || 'PENDING');
     const [userResponse, setUserResponse] = useState<UserResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
