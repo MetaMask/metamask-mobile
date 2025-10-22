@@ -258,7 +258,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
       disabled={false}
       onPress={[MockFunction]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -299,7 +298,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
       disabled={false}
       onPress={[MockFunction]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",

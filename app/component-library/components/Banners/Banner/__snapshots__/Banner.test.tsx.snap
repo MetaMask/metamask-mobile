@@ -154,7 +154,6 @@ exports[`Banner should render correctly with a close button 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -386,7 +385,6 @@ exports[`Banner should render correctly with an action button 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
