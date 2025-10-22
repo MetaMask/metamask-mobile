@@ -805,7 +805,6 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -1680,7 +1679,6 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -2541,7 +2539,6 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -3416,7 +3413,6 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

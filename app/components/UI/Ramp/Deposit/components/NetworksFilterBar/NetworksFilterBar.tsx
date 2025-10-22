@@ -78,6 +78,7 @@ function NetworksFilterBar({
       {networkFilter && networkFilter.length !== networks.length ? (
         <>
           <Button
+            shouldEnableAndroidPressIn
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Sm}
             label={
@@ -103,6 +104,7 @@ function NetworksFilterBar({
               allNetworkConfigurations[chainId]?.name;
             return (
               <Button
+                shouldEnableAndroidPressIn
                 key={chainId}
                 variant={
                   isSelected ? ButtonVariants.Primary : ButtonVariants.Secondary
@@ -141,6 +143,7 @@ function NetworksFilterBar({
         </>
       ) : (
         <Button
+          shouldEnableAndroidPressIn
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Sm}
           label={

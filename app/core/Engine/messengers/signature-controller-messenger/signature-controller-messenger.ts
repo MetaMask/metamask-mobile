@@ -10,6 +10,7 @@ import {
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 
 import type { SignatureControllerMessenger } from '@metamask/signature-controller';
+import { GatorPermissionsControllerDecodePermissionFromPermissionContextForOriginAction } from '@metamask/gator-permissions-controller';
 
 type MessengerActions =
   | AccountsControllerGetStateAction
@@ -18,7 +19,8 @@ type MessengerActions =
   | NetworkControllerGetNetworkClientByIdAction
   | KeyringControllerSignMessageAction
   | KeyringControllerSignPersonalMessageAction
-  | KeyringControllerSignTypedMessageAction;
+  | KeyringControllerSignTypedMessageAction
+  | GatorPermissionsControllerDecodePermissionFromPermissionContextForOriginAction;
 
 type MessengerEvents = never;
 
@@ -35,6 +37,7 @@ export function getSignatureControllerMessenger(
       'KeyringController:signMessage',
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
+      'GatorPermissionsController:decodePermissionFromPermissionContextForOrigin',
     ],
     allowedEvents: [],
   });
