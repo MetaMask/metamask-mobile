@@ -1,23 +1,23 @@
+import type { Hex } from '@metamask/utils';
+import { isEqual } from 'lodash';
 import { useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { isEqual } from 'lodash';
-import type { Hex } from '@metamask/utils';
-import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
-import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
-import { usePerpsNetwork } from './index';
-import { usePerpsLiveAccount } from './stream';
+import { selectTokenList } from '../../../../selectors/tokenListController';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
-  USDC_SYMBOL,
-  USDC_DECIMALS,
   TRADING_DEFAULTS,
   USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_DECIMALS,
+  USDC_SYMBOL,
 } from '../constants/hyperLiquidConfig';
 import type { PerpsToken } from '../types/perps-types';
+import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
+import { usePerpsNetwork } from './index';
+import { usePerpsLiveAccount } from './stream';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -129,7 +129,7 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     // Sort tokens by priority:
     // 1. USDC tokens first (faster to bridge)
     // 2. Then by balance (highest first)
-    const sortedTokens = otherFundedTokens.sort((a, b) => {
+    const sortedTokens = [...otherFundedTokens].sort((a, b) => {
       // Prioritize USDC
       if (a.symbol === USDC_SYMBOL && b.symbol !== USDC_SYMBOL) return -1;
       if (b.symbol === USDC_SYMBOL && a.symbol !== USDC_SYMBOL) return 1;
