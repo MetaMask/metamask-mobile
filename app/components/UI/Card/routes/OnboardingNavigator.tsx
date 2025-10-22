@@ -40,6 +40,9 @@ const OnboardingNavigator: React.FC = () => {
       }
       return Routes.CARD.ONBOARDING.COMPLETE;
     }
+    if (onboardingId) {
+      return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
+    }
     return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
   };
 
