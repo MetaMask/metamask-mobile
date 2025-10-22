@@ -44,6 +44,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { Linking } from 'react-native';
+import { isInternalDeepLink } from '../../../util/deeplinks';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -342,13 +344,26 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   const openUrl =
     (href: string): (() => Promise<boolean>) =>
-    () =>
-      SharedDeeplinkManager.parse(href, {
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-      }).catch((error) => {
-        console.error('Failed to open URL:', error);
-        return false;
-      });
+    () => {
+      // Check if this is an internal MetaMask deeplink
+      if (isInternalDeepLink(href)) {
+        // Handle internal deeplinks through SharedDeeplinkManager
+        return SharedDeeplinkManager.parse(href, {
+          origin: 'carousel',
+        }).catch((error) => {
+          console.error('Failed to handle internal deeplink:', error);
+          return false;
+        });
+      }
+      
+      // For external URLs, use the OS linking system
+      return Linking.openURL(href)
+        .then(() => true)
+        .catch((error) => {
+          console.error('Failed to open external URL:', error);
+          return false;
+        });
+    };
 
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {

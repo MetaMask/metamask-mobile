@@ -54,6 +54,8 @@ import {
   sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { isInternalDeepLink } from '../../../util/deeplinks';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -792,6 +794,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }: {
       url: string;
     }) => {
+      console.log('onShouldStartLoadWithRequest', urlToLoad);
       webStates.current[urlToLoad] = {
         ...webStates.current[urlToLoad],
         requested: true,
@@ -811,6 +814,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           handleNotAllowedUrl(urlToLoad);
           return false;
         }
+      }
+
+      // Check if this is an internal MetaMask deeplink that should be handled within the app
+      if (isInternalDeepLink(urlToLoad)) {
+        // Handle the deeplink internally instead of passing to OS
+        SharedDeeplinkManager.parse(urlToLoad, {
+          origin: 'in-app-browser',
+          browserCallBack: (url: string) => {
+            // If the deeplink handler wants to navigate to a different URL in the browser
+            if (url && webviewRef.current) {
+              webviewRef.current.loadRequest({ uri: url });
+            }
+          },
+        });
+        return false; // Stop the webview from loading this URL
       }
 
       const { protocol } = new URLParse(urlToLoad);
