@@ -419,15 +419,12 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     .asPriority(999)
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      console.log('Market feed mock triggered:', { url, fullUrl: request.url });
 
       // Parse the actual Polymarket API URL to get query parameters
       const polymarketUrl = new URL(url || '');
       const tagSlug = polymarketUrl.searchParams.get('tag_slug');
       const order = polymarketUrl.searchParams.get('order');
       const excludeTagId = polymarketUrl.searchParams.get('exclude_tag_id');
-
-      console.log('Market feed mock params:', { tagSlug, order, excludeTagId });
 
       // Return appropriate feed based on query parameters
       let selectedFeed;
@@ -459,22 +456,6 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
       }
 
       // Return the feed data in the correct API structure
-      console.log('Market feed mock returning:', {
-        feedType:
-          selectedFeed === POLYMARKET_POLITICS_FEED
-            ? 'POLITICS'
-            : selectedFeed === POLYMARKET_SPORTS_FEED
-            ? 'SPORTS'
-            : selectedFeed === POLYMARKET_CRYPTO_FEED
-            ? 'CRYPTO'
-            : selectedFeed === POLYMARKET_NEW_FEED
-            ? 'NEW'
-            : 'TRENDING',
-        dataLength: selectedFeed?.data?.length || 0,
-        hasData: !!selectedFeed?.data,
-        hasPagination: !!selectedFeed?.pagination,
-      });
-
       return {
         statusCode: 200,
         json: {
