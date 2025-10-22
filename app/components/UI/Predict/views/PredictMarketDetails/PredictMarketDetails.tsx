@@ -53,6 +53,7 @@ import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -76,7 +77,7 @@ const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
 
 // Use theme tokens instead of hex values for multi-series charts
 
-interface PredictMarketDetailsProps {}
+interface PredictMarketDetailsProps { }
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
@@ -100,7 +101,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     navigation,
   });
 
-  const { market, isFetching: isMarketFetching } = usePredictMarket({
+  const {
+    market,
+    isFetching: isMarketFetching,
+    error: marketError,
+  } = usePredictMarket({
     id: resolvedMarketId,
     providerId,
     enabled: Boolean(resolvedMarketId),
@@ -114,9 +119,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   useEffect(() => {
-    // if market is closed
+    if (marketError && !isMarketFetching && !market && resolvedMarketId) {
+      DevLogger.log(
+        '[PredictMarketDetails] Market not found, redirecting to feed',
+        { marketId: resolvedMarketId, error: marketError },
+      );
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
+    }
+  }, [marketError, isMarketFetching, market, resolvedMarketId, navigation]);
+
+  useEffect(() => {
     if (market?.status === PredictMarketStatus.CLOSED) {
-      // set the setSelectedTimeframe to PredictPriceHistoryInterval.MAX
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
     }
   }, [market?.status]);
@@ -171,8 +186,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     () =>
       winningOutcomeToken
         ? market?.outcomes.find((outcome) =>
-            outcome.tokens.some((token) => token.id === winningOutcomeToken.id),
-          )
+          outcome.tokens.some((token) => token.id === winningOutcomeToken.id),
+        )
         : undefined,
     [market?.outcomes, winningOutcomeToken],
   );
@@ -181,8 +196,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     () =>
       losingOutcomeToken
         ? market?.outcomes.find((outcome) =>
-            outcome.tokens.some((token) => token.id === losingOutcomeToken.id),
-          )
+          outcome.tokens.some((token) => token.id === losingOutcomeToken.id),
+        )
         : undefined,
     [market?.outcomes, losingOutcomeToken],
   );
