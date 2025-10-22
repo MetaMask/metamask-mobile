@@ -32,6 +32,7 @@ import {
   getPolymarketEndpoints,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  previewOrder,
   priceValid,
   submitClobOrder,
 } from './utils';
@@ -88,6 +89,7 @@ jest.mock('./utils', () => {
     submitClobOrder: jest.fn(),
     getMarketPositions: jest.fn(),
     getBalance: jest.fn(),
+    previewOrder: jest.fn(),
     POLYGON_MAINNET_CHAIN_ID: 137,
   };
 });
@@ -132,6 +134,7 @@ const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 const mockGetClaimTransaction = getClaimTransaction as jest.Mock;
 const mockHasAllowances = hasAllowances as jest.Mock;
 const mockQuery = query as jest.Mock;
+const mockPreviewOrder = previewOrder as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const createProvider = () => new PolymarketProvider();
@@ -1043,14 +1046,19 @@ describe('PolymarketProvider', () => {
   describe('getActivity', () => {
     it('fetches activity and resolves without throwing', async () => {
       const provider = createProvider();
-      // Mock network and account state used internally
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (global as any).fetch = jest
-        .fn()
-        .mockResolvedValue({ ok: true, json: () => [] });
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => [] });
       const getAccountStateSpy = jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(provider as any, 'getAccountState')
+        .spyOn(
+          provider as unknown as {
+            getAccountState: (p: { ownerAddress: string }) => Promise<{
+              address: string;
+              isDeployed: boolean;
+              hasAllowances: boolean;
+              balance: number;
+            }>;
+          },
+          'getAccountState',
+        )
         .mockResolvedValue({
           address: '0xSAFE',
           isDeployed: true,
@@ -2002,6 +2010,168 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('Rate Limiting', () => {
+    describe('previewOrder with rate limiting', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      const setupPreviewOrderMock = () => {
+        mockPreviewOrder.mockResolvedValue({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          timestamp: Date.now(),
+          side: Side.BUY,
+          sharePrice: 0.5,
+          maxAmountSpent: 100,
+          minAmountReceived: 200,
+          slippage: 0.005,
+          tickSize: 0.01,
+          minOrderSize: 1,
+          negRisk: false,
+          fees: {
+            metamaskFee: 0.5,
+            providerFee: 0.5,
+            totalFee: 1,
+          },
+        });
+      };
+
+      it('does not set rateLimited for SELL orders', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        // Place a BUY order first to set rate limit state
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+          providerId: 'polymarket',
+        });
+
+        // Now try to preview a SELL order - should NOT be rate limited
+        const sellPreview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.SELL,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(sellPreview.rateLimited).toBeUndefined();
+      });
+
+      it('does not set rateLimited when signer is not provided', async () => {
+        setupPreviewOrderMock();
+        const { provider } = setupPlaceOrderTest();
+
+        const preview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+        });
+
+        expect(preview.rateLimited).toBeUndefined();
+      });
+
+      it('does not set rateLimited when address has never placed an order', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        const preview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(preview.rateLimited).toBeUndefined();
+      });
+    });
+
+    describe('placeOrder rate limiting behavior', () => {
+      it('successfully places BUY order', async () => {
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const result = await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(true);
+      });
+
+      it('successfully places SELL order', async () => {
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        const preview = createMockOrderPreview({ side: Side.SELL });
+        const result = await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(true);
+      });
+
+      it('handles failed BUY orders', async () => {
+        const { provider, mockSigner } = setupPlaceOrderTest();
+        mockSubmitClobOrder.mockResolvedValue({
+          success: false,
+          response: undefined,
+          error: 'Order submission failed',
+        });
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const result = await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(false);
+      });
+
+      it('handles different addresses independently', async () => {
+        const { provider } = setupPlaceOrderTest();
+        const mockSigner1 = {
+          address: '0x1111111111111111111111111111111111111111',
+          signTypedMessage: mockSignTypedMessage,
+          signPersonalMessage: mockSignPersonalMessage,
+        };
+        const mockSigner2 = {
+          address: '0x2222222222222222222222222222222222222222',
+          signTypedMessage: mockSignTypedMessage,
+          signPersonalMessage: mockSignPersonalMessage,
+        };
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const result1 = await provider.placeOrder({
+          signer: mockSigner1,
+          preview,
+          providerId: 'polymarket',
+        });
+
+        const result2 = await provider.placeOrder({
+          signer: mockSigner2,
+          preview,
+          providerId: 'polymarket',
+        });
+
+        expect(result1.success).toBe(true);
+        expect(result2.success).toBe(true);
+      });
+    });
+  });
+
   describe('getAccountState', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -2197,7 +2367,7 @@ describe('PolymarketProvider', () => {
     });
   });
 
-  describe('fetchActivity', () => {
+  describe('Activity', () => {
     const provider = createProvider();
 
     beforeEach(() => {
