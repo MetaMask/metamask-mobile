@@ -69,11 +69,11 @@ describe('useSamplePetNames', () => {
     jest.clearAllMocks();
     // Mock trace to return the result of the callback
     mockTrace.mockImplementation(
-      (_request: unknown, callback?: () => unknown) => {
+      <T>(_request: unknown, callback?: () => T): T | undefined => {
         if (callback) {
           return callback();
         }
-        return undefined;
+        return undefined as T | undefined;
       },
     );
   });

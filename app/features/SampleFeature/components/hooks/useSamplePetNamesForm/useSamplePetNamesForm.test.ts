@@ -43,11 +43,11 @@ describe('useSamplePetNamesForm', () => {
     jest.clearAllMocks();
     // Mock trace to execute the callback
     mockTrace.mockImplementation(
-      (_request: unknown, callback?: () => unknown) => {
+      <T>(_request: unknown, callback?: () => T): T | undefined => {
         if (callback) {
           return callback();
         }
-        return undefined;
+        return undefined as T | undefined;
       },
     );
   });
