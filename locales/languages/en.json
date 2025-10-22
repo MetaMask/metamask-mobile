@@ -1627,6 +1627,11 @@
       "new_prediction": "New prediction",
       "resolved_markets": "Resolved markets"
     },
+    "tabs": {
+      "about": "About",
+      "positions": "Positions",
+      "outcomes": "Outcomes"
+    },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
     "buy_yes": "Yes",
