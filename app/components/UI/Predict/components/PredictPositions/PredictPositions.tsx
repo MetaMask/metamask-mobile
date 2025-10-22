@@ -1,25 +1,26 @@
 import React, {
-  useCallback,
-  useRef,
   forwardRef,
+  useCallback,
   useImperativeHandle,
+  useRef,
 } from 'react';
 
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { ActivityIndicator, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { IconColor } from '../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../constants/navigation/Routes';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
-import PredictPosition from '../PredictPosition/PredictPosition';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
-import Routes from '../../../../../constants/navigation/Routes';
-import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictNewButton from '../PredictNewButton';
-import { ActivityIndicator, View } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { IconColor } from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
+import PredictPosition from '../PredictPosition/PredictPosition';
+import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
+import { PredictPositionsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
@@ -40,6 +41,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
+    refreshOnFocus: true,
   });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
 
@@ -102,19 +104,22 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     );
   }
 
+  const isTrulyEmpty =
+    positions.length === 0 && claimablePositions.length === 0;
+
   // TODO: Sort positions in the controller (business logic)
   return (
     <>
       <FlashList
-        testID="active-positions-list"
+        testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}
         ref={listRef}
-        data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
+        data={positions}
         renderItem={renderPosition}
         scrollEnabled={false}
         keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
         removeClippedSubviews
         decelerationRate={0}
-        ListEmptyComponent={<PredictPositionEmpty />}
+        ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
         ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
       />
       {claimablePositions.length > 0 && (
@@ -128,7 +133,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             </Text>
           </Box>
           <FlashList
-            testID="claimable-positions-list"
+            testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}
             data={claimablePositions.sort(
               (a, b) =>
                 new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),

@@ -17,7 +17,7 @@ export function usePredictTrading() {
 
   const claim = useCallback(async (claimParams: ClaimParams) => {
     const controller = Engine.context.PredictController;
-    return controller.claim(claimParams);
+    return controller.claimWithConfirmation(claimParams);
   }, []);
 
   const placeOrder = useCallback(async (params: PlaceOrderParams) => {

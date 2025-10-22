@@ -984,7 +984,7 @@ describe('PolymarketProvider', () => {
         safeAddress: '0x9999999999999999999999999999999999999999',
         signer: mockSigner,
         amount: expect.any(BigInt),
-        to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+        to: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
       });
     });
 
@@ -1034,7 +1034,7 @@ describe('PolymarketProvider', () => {
 
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
         expect.objectContaining({
-          to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+          to: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
         }),
       );
     });
@@ -1152,7 +1152,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137, // POLYGON_MAINNET_CHAIN_ID
-        transactionParams: {
+        transactions: {
           data: '0xencodedclaim',
           to: '0xConditionalTokensAddress',
           value: '0x0',
@@ -1200,7 +1200,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137,
-        transactionParams: {
+        transactions: {
           data: '0xencodedclaim',
           to: '0xConditionalTokensAddress',
           value: '0x0',
