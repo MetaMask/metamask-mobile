@@ -6009,6 +6009,8 @@
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
+      "enable_card_button_label": "Enable Card",
+      "enable_assets_button_label": "Enable Assets",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6019,6 +6021,18 @@
           "title": "You need to delegate assets",
           "description": "Delegate assets to your Card to start spending",
           "confirm_button_label": "Delegate assets"
+        },
+        "no_card": {
+          "title": "You don't have a Card",
+          "description": "Please enable your Card to start spending"
+        },
+        "frozen": {
+          "title": "Your Card is frozen",
+          "description": "Please contact support to unfreeze your Card"
+        },
+        "blocked": {
+          "title": "Your Card is blocked",
+          "description": "Please contact support to unblock your Card"
         }
       },
       "manage_card_options": {
