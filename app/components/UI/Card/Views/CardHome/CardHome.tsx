@@ -58,6 +58,7 @@ import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
 import useCardDetails from '../../hooks/useCardDetails';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
+import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { ethers } from 'ethers';
 
 /**
@@ -109,6 +110,9 @@ const CardHome = () => {
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
+  const isSwapEnabledForPriorityToken = useIsSwapEnabledForPriorityToken(
+    priorityToken?.walletAddress,
+  );
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -274,11 +278,16 @@ const CardHome = () => {
         <View style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Primary}
-            style={styles.halfWidthButton}
+            style={
+              !isSwapEnabledForPriorityToken
+                ? styles.halfWidthButtonDisabled
+                : styles.halfWidthButton
+            }
             label={strings('card.card_home.add_funds')}
             size={ButtonSize.Lg}
             onPress={addFundsAction}
             width={ButtonWidthTypes.Full}
+            disabled={!isSwapEnabledForPriorityToken}
             loading={isLoading}
             testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
           />
@@ -309,7 +318,12 @@ const CardHome = () => {
     );
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addFundsAction, priorityTokenWarning, isLoading]);
+  }, [
+    addFundsAction,
+    priorityTokenWarning,
+    isLoading,
+    isSwapEnabledForPriorityToken,
+  ]);
 
   const error = useMemo(
     () => priorityTokenError || cardDetailsError,
