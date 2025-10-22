@@ -382,6 +382,7 @@ export class CardSDK {
     endpoint: string,
     options: RequestInit & { query?: string } = {},
     authenticated: boolean = false,
+    location: CardLocation = this.userCardLocation,
     timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
   ): Promise<Response> {
     const apiKey = this.cardBaanxApiKey;
@@ -393,7 +394,7 @@ export class CardSDK {
       );
     }
 
-    const isUSEnv = this.userCardLocation === 'us';
+    const isUSEnv = location === 'us';
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'x-us-env': String(isUSEnv),
@@ -468,6 +469,7 @@ export class CardSDK {
   initiateCardProviderAuthentication = async (queryParams: {
     state: string;
     codeChallenge: string;
+    location: CardLocation;
   }): Promise<CardLoginInitiateResponse> => {
     if (!this.cardBaanxApiKey) {
       throw new CardError(
@@ -495,6 +497,7 @@ export class CardSDK {
         query: queryParamsString.toString(),
       },
       false,
+      queryParams.location,
     );
 
     if (!response.ok) {
@@ -523,8 +526,10 @@ export class CardSDK {
   login = async (body: {
     email: string;
     password: string;
+    location: CardLocation;
+    otpCode?: string;
   }): Promise<CardLoginResponse> => {
-    const { email, password } = body;
+    const { email, password, otpCode, location } = body;
 
     const response = await this.makeRequest(
       '/v1/auth/login',
@@ -533,9 +538,11 @@ export class CardSDK {
         body: JSON.stringify({
           email,
           password,
+          ...(otpCode ? { otpCode } : {}),
         }),
       },
       false,
+      location,
     );
 
     if (!response.ok) {
@@ -544,19 +551,6 @@ export class CardSDK {
         responseBody = await response.json();
       } catch {
         // If we can't parse response, continue without it
-      }
-
-      if (response.status === 422) {
-        const error = new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid email or password, check your credentials and try again.',
-        );
-        Logger.log(
-          error,
-          `CardSDK: Invalid email or password during login. Status: ${response.status}`,
-          JSON.stringify(responseBody, null, 2),
-        );
-        throw error;
       }
 
       // Handle specific HTTP status codes
@@ -606,11 +600,50 @@ export class CardSDK {
     return data as CardLoginResponse;
   };
 
+  sendOtpLogin = async (body: {
+    userId: string;
+    location: CardLocation;
+  }): Promise<void> => {
+    const { userId } = body;
+    const response = await this.makeRequest(
+      '/v1/auth/login/otp',
+      {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+      },
+      false,
+      body.location,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to send OTP login. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to send OTP login. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    return;
+  };
+
   authorize = async (body: {
     initiateAccessToken: string;
     loginAccessToken: string;
+    location: CardLocation;
   }): Promise<CardAuthorizeResponse> => {
-    const { initiateAccessToken, loginAccessToken } = body;
+    const { initiateAccessToken, loginAccessToken, location } = body;
     const response = await this.makeRequest(
       '/v1/auth/oauth/authorize',
       {
@@ -623,6 +656,7 @@ export class CardSDK {
         },
       },
       false,
+      location,
     );
 
     if (!response.ok) {
@@ -666,6 +700,7 @@ export class CardSDK {
     code?: string;
     codeVerifier?: string;
     grantType: 'authorization_code' | 'refresh_token';
+    location: CardLocation;
   }): Promise<CardExchangeTokenResponse> => {
     let requestBody = null;
 
@@ -695,6 +730,7 @@ export class CardSDK {
         },
       },
       false,
+      body.location,
     );
 
     if (!response.ok) {
@@ -781,6 +817,21 @@ export class CardSDK {
       const responses = await Promise.all(promises);
 
       if (!responses[0].ok || !responses[1].ok) {
+        try {
+          const errorResponse0 = await responses[0].json();
+          const errorResponse1 = await responses[1].json();
+          Logger.log(
+            errorResponse0,
+            'Failed to get card external wallet details. Please try again.',
+          );
+          Logger.log(
+            errorResponse1,
+            'Failed to get card priority wallet details. Please try again.',
+          );
+        } catch (error) {
+          // If we can't parse response, continue without it
+        }
+
         throw new CardError(
           CardErrorType.SERVER_ERROR,
           'Failed to get card external wallet details. Please try again.',

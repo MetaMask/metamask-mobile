@@ -17,6 +17,19 @@ export enum CardWarning {
   NoCard = 'no_card',
 }
 
+export type CardUserPhase =
+  | 'ACCOUNT'
+  | 'PHONE_NUMBER'
+  | 'PERSONAL_INFORMATION'
+  | 'PHYSICAL_ADDRESS'
+  | 'MAILING_ADDRESS';
+
+export type CardVerificationState =
+  | 'VERIFIED'
+  | 'UNVERIFIED'
+  | 'PENDING'
+  | 'REJECTED';
+
 // Helper interface for token balances
 export interface CardToken {
   address: string | null;
@@ -55,12 +68,12 @@ export interface CardLoginInitiateResponse {
 export type CardLocation = 'us' | 'international';
 
 export interface CardLoginResponse {
-  phase: string | null;
+  phase: CardUserPhase | null;
   userId: string;
   isOtpRequired: boolean;
   phoneNumber: string | null;
   accessToken: string;
-  verificationState: string;
+  verificationState: CardVerificationState;
   isLinked: boolean;
 }
 
@@ -139,6 +152,7 @@ export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
 
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  OTP_REQUIRED = 'OTP_REQUIRED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   API_KEY_MISSING = 'API_KEY_MISSING',
