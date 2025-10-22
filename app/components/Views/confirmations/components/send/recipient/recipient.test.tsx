@@ -29,9 +29,9 @@ jest.mock('@react-navigation/native', () => {
       }, []);
     },
     // Mock useRoute to provide navigation params
-    useRoute: () => ({
+    useRoute: jest.fn(() => ({
       params: {},
-    }),
+    })),
   };
 });
 
@@ -463,9 +463,9 @@ describe('Recipient', () => {
   });
 
   it('button is disabled if loading returned by validating hook is true', () => {
-    const mockHandleSubmitPress = jest.fn();
+    const mockHandleSubmitPressFunc = jest.fn();
     mockUseSendActions.mockReturnValue({
-      handleSubmitPress: mockHandleSubmitPress,
+      handleSubmitPress: mockHandleSubmitPressFunc,
       handleCancelPress: jest.fn(),
       handleBackPress: jest.fn(),
     });
@@ -495,7 +495,7 @@ describe('Recipient', () => {
     const { getByText } = renderWithProvider(<Recipient />);
     fireEvent.press(getByText('Review'));
 
-    expect(mockHandleSubmitPress).not.toHaveBeenCalled();
+    expect(mockHandleSubmitPressFunc).not.toHaveBeenCalled();
   });
 });
 
