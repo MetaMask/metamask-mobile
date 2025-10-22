@@ -291,8 +291,9 @@ const QRScanner = ({
                   recipientAddress: content,
                 });
               });
+
+              return;
             }
-            return;
           }
           ///: END:ONLY_INCLUDE_IF
 
