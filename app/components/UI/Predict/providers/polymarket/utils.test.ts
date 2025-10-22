@@ -882,8 +882,11 @@ describe('polymarket utils', () => {
           status: 'open',
           active: true,
           resolvedBy: '0x0000000000000000000000000000000000000000',
+          umaResolutionStatus: 'unresolved',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     };
 
     it('parse events correctly', () => {
@@ -912,6 +915,7 @@ describe('polymarket utils', () => {
             groupItemTitle: 'Weather',
             status: 'open',
             volume: 1000,
+            resolutionStatus: 'unresolved',
             tokens: [
               {
                 id: 'token-1',
@@ -929,6 +933,8 @@ describe('polymarket utils', () => {
             resolvedBy: '0x0000000000000000000000000000000000000000',
           },
         ],
+        liquidity: 1000000,
+        volume: 1000000,
       });
     });
 
@@ -1276,6 +1282,8 @@ describe('polymarket utils', () => {
             tags: [],
             series: [],
             markets: [],
+            liquidity: 1000000,
+            volume: 1000000,
           },
         ],
       },
@@ -1420,8 +1428,11 @@ describe('polymarket utils', () => {
           status: 'open',
           active: true,
           resolvedBy: '0x0000000000000000000000000000000000000000',
+          umaResolutionStatus: 'unresolved',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     };
 
     it('fetch markets without search parameters', async () => {
@@ -1531,6 +1542,7 @@ describe('polymarket utils', () => {
       status: 'open',
       active: true,
       resolvedBy: '0x0000000000000000000000000000000000000000',
+      umaResolutionStatus: 'unresolved',
     };
 
     it('fetch single market successfully', async () => {

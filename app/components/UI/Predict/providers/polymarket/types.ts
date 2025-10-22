@@ -141,6 +141,7 @@ export interface PolymarketApiMarket {
   resolvedBy: string;
   orderPriceMinTickSize: number;
   events?: PolymarketApiEvent[];
+  umaResolutionStatus: string;
 }
 
 export interface PolymarketApiSeries {
@@ -171,6 +172,8 @@ export interface PolymarketApiEvent {
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
   tags: PolymarketApiTag[];
+  liquidity: number;
+  volume: number;
 }
 
 export interface PolymarketApiActivity {

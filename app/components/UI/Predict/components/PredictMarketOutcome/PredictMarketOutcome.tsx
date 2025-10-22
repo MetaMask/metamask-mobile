@@ -28,13 +28,18 @@ import {
   PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
 } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
+  entryPoint?: PredictEntryPoint;
   outcomeToken?: PredictOutcomeToken;
   isClosed?: boolean;
 }
@@ -42,6 +47,7 @@ interface PredictMarketOutcomeProps {
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   market,
   outcome,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isClosed = false,
   outcomeToken,
 }) => {
@@ -67,7 +73,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     if (isClosed && outcomeToken) {
       return outcomeToken.title;
     }
-    return outcome.groupItemTitle;
+    return outcome.groupItemTitle || outcome.title || '';
   };
 
   const getImageUrl = (): string => outcome.image;
@@ -88,6 +94,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[0],
+        entryPoint,
       },
     });
   };
@@ -106,6 +113,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         market,
         outcome,
         outcomeToken: outcome.tokens[1],
+        entryPoint,
       },
     });
   };
@@ -142,7 +150,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {getTitle()}
               </Text>
-              {isClosed && outcomeToken && (
+              {isClosed && outcomeToken && outcomeToken.price === 1 && (
                 <Text
                   variant={TextVariant.BodyXS}
                   color={TextColor.Success}
@@ -159,9 +167,15 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           <Text>
             {isClosed && outcomeToken ? (
               <Icon
-                name={IconName.CheckBold}
+                name={
+                  outcomeToken.price === 1
+                    ? IconName.CheckBold
+                    : IconName.CircleX
+                }
                 size={IconSize.Md}
-                color={TextColor.Success}
+                color={
+                  outcomeToken.price === 1 ? TextColor.Success : TextColor.Muted
+                }
               />
             ) : (
               <Text>{getYesPercentage()}</Text>

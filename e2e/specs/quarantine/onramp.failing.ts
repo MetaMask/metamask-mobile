@@ -9,7 +9,7 @@ import Assertions from '../../framework/Assertions';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import QuotesView from '../../pages/Ramps/QuotesView';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
