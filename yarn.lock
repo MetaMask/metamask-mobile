@@ -8410,6 +8410,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/sample-controllers@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/sample-controllers@npm:0.1.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^8.0.0"
+    "@metamask/utils": "npm:^11.2.0"
+  peerDependencies:
+    "@metamask/network-controller": ^23.0.0
+  checksum: 10/016bf9f68117e2cd25b69d11a341a57c5783bdbb4de4e311e9b04d2db2ff8d078efffa4a7b3d206d8b4fffe96af914a9457b10d7eb3db3a8873fee94f031701c
+  languageName: node
+  linkType: hard
+
 "@metamask/scure-bip39@npm:^2.1.0, @metamask/scure-bip39@npm:^2.1.1":
   version: 2.1.1
   resolution: "@metamask/scure-bip39@npm:2.1.1"
@@ -34155,6 +34167,7 @@ __metadata:
     "@metamask/react-native-webview": "npm:^14.5.0"
     "@metamask/remote-feature-flag-controller": "npm:^1.9.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
+    "@metamask/sample-controllers": "npm:^0.1.0"
     "@metamask/scure-bip39": "npm:^2.1.0"
     "@metamask/sdk-analytics": "npm:0.0.5"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
