@@ -21,6 +21,7 @@ import {
 } from '@metamask/account-tree-controller';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { priceApiExchangeRatesMock } from './mock-data';
 
 describe(SmokeIdentity('Account syncing - Setting'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -54,6 +55,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
             mockServer,
             remoteFeatureMultichainAccountsAccountDetailsV2(true),
           );
+          priceApiExchangeRatesMock(mockServer);
         },
       },
       async ({ userStorageMockttpController }) => {

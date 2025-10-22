@@ -19,6 +19,7 @@ import {
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
 import TestHelpers from '../../../helpers';
+import { priceApiExchangeRatesMock } from './mock-data';
 
 describe(
   SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
@@ -54,6 +55,7 @@ describe(
               mockServer,
               remoteFeatureMultichainAccountsAccountDetailsV2(true),
             );
+            priceApiExchangeRatesMock(mockServer);
           },
         },
         async ({ userStorageMockttpController }) => {

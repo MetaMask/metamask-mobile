@@ -3,6 +3,8 @@ import { createEncryptedResponse } from '../utils/user-storage/generateEncrypted
 import { IDENTITY_TEAM_STORAGE_KEY } from '../utils/constants';
 import { UserStorageAccount } from '../utils/helpers';
 import { UserStorageResponseData } from '../utils/user-storage/userStorageMockttpController';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 
 /**
  * This array represents the accounts mock data before it is encrypted and sent to UserStorage.
@@ -54,4 +56,32 @@ export const getAccountsSyncMockResponse = async (): Promise<
   );
 
   return encryptedResponse;
+};
+
+export const priceApiExchangeRatesMock = async (mockServer: Mockttp) => {
+  await setupMockRequest(mockServer, {
+    url: 'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
+    response: {
+      btc: {
+        name: 'Bitcoin',
+        ticker: 'btc',
+        value: 0.000009242330049077512,
+        currencyType: 'crypto',
+      },
+      eth: {
+        name: 'Ether',
+        ticker: 'eth',
+        value: 0.0002602178025317774,
+        currencyType: 'crypto',
+      },
+      ltc: {
+        name: 'Litecoin',
+        ticker: 'ltc',
+        value: 0.01074950453717073,
+        currencyType: 'crypto',
+      },
+    },
+    requestMethod: 'GET',
+    responseCode: 200,
+  });
 };
