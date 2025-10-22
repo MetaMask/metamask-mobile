@@ -1,3 +1,5 @@
+const { RUNTIME_VERSION } = require('./ota.config.js');
+
 module.exports = {
   name: 'MetaMask',
   displayName: 'MetaMask',
@@ -42,7 +44,7 @@ module.exports = {
   },
   expo: {
     owner: 'metamask-test',
-    runtimeVersion: '7.58.99',
+    runtimeVersion: RUNTIME_VERSION,
     updates: {
       url: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
       // Channel is set by requestHeaders, will be overridden at runtime for RC builds

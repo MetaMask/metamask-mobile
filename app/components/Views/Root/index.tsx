@@ -19,7 +19,6 @@ import FontLoadingGate from './FontLoadingGate';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
-import { setupRCUpdates } from '../../../util/updates/setupRCUpdates';
 
 /**
  * Top level of the component hierarchy
@@ -51,8 +50,6 @@ const Root = ({ foxCode }: RootProps) => {
     SecureKeychain.init(foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
-    // Setup EAS Updates channel override for RC builds
-    setupRCUpdates();
     // Wait for store to be initialized in Detox tests
     if (isTest) {
       waitForStore();
