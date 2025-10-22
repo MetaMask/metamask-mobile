@@ -155,11 +155,22 @@ export class AsyncLogger {
 
       if (extra) {
         withScope((scope) => {
-          // Detect new format: has tags, context, or extras keys
+          // Detect new format: has valid tags, context, or extras with correct types
+          // Type guards prevent misclassifying legacy objects with same key names
           const isNewFormat =
             typeof extra === 'object' &&
             extra !== null &&
-            ('tags' in extra || 'context' in extra || 'extras' in extra);
+            (('tags' in extra &&
+              typeof extra.tags === 'object' &&
+              extra.tags !== null) ||
+              ('context' in extra &&
+                typeof extra.context === 'object' &&
+                extra.context !== null &&
+                'name' in extra.context &&
+                typeof extra.context.name === 'string') ||
+              ('extras' in extra &&
+                typeof extra.extras === 'object' &&
+                extra.extras !== null));
 
           if (isNewFormat) {
             // New API: Set tags, context, and extras separately

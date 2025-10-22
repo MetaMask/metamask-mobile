@@ -170,6 +170,74 @@ describe('Logger', () => {
           message: 'Additional error context',
         });
       });
+
+      it('treats legacy object with tags string as legacy format', async () => {
+        const error = new Error('Test error');
+        const legacyExtra = { tags: 'some-string-tag', userId: '123' };
+
+        await AsyncLogger.error(error, legacyExtra);
+
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          tags: 'some-string-tag',
+          userId: '123',
+        });
+        expect(mockScope.setTag).not.toHaveBeenCalled();
+        expect(mockScope.setContext).not.toHaveBeenCalled();
+      });
+
+      it('treats legacy object with context string as legacy format', async () => {
+        const error = new Error('Test error');
+        const legacyExtra = { context: 'user checkout flow', userId: '123' };
+
+        await AsyncLogger.error(error, legacyExtra);
+
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          context: 'user checkout flow',
+          userId: '123',
+        });
+        expect(mockScope.setTag).not.toHaveBeenCalled();
+        expect(mockScope.setContext).not.toHaveBeenCalled();
+      });
+
+      it('treats legacy object with extras string as legacy format', async () => {
+        const error = new Error('Test error');
+        const legacyExtra = { extras: 'debug info', userId: '123' };
+
+        await AsyncLogger.error(error, legacyExtra);
+
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          extras: 'debug info',
+          userId: '123',
+        });
+        expect(mockScope.setTag).not.toHaveBeenCalled();
+        expect(mockScope.setContext).not.toHaveBeenCalled();
+      });
+
+      it('treats legacy object with tags null as legacy format', async () => {
+        const error = new Error('Test error');
+        const legacyExtra = { tags: null, userId: '123' };
+
+        await AsyncLogger.error(error, legacyExtra);
+
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          tags: null,
+          userId: '123',
+        });
+        expect(mockScope.setTag).not.toHaveBeenCalled();
+      });
+
+      it('treats legacy object with context missing name as legacy format', async () => {
+        const error = new Error('Test error');
+        const legacyExtra = { context: { data: 'test' }, userId: '123' };
+
+        await AsyncLogger.error(error, legacyExtra);
+
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          context: { data: 'test' },
+          userId: '123',
+        });
+        expect(mockScope.setContext).not.toHaveBeenCalled();
+      });
     });
   });
 });
