@@ -104,6 +104,9 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     );
   }
 
+  const isTrulyEmpty =
+    positions.length === 0 && claimablePositions.length === 0;
+
   // TODO: Sort positions in the controller (business logic)
   return (
     <>
@@ -116,7 +119,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
         keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
         removeClippedSubviews
         decelerationRate={0}
-        ListEmptyComponent={<PredictPositionEmpty />}
+        ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
         ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
       />
       {claimablePositions.length > 0 && (
