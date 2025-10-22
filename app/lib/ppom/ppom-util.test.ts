@@ -155,6 +155,17 @@ const mockSignatureRequest = {
   origin: 'metamask.github.io',
 };
 
+const mockSecurityAlertResponse = {
+  chainId: CHAIN_ID_REQUEST_MOCK,
+  providerRequestsCount: {
+    eth_call: 2,
+    eth_getCode: 2,
+  },
+  reason: undefined as unknown as Reason,
+  req: mockRequest,
+  result_type: ResultType.Benign,
+};
+
 jest.useFakeTimers();
 
 describe('PPOM Utils', () => {
@@ -273,7 +284,7 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
-    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid, securityAlertId is not defined', async () => {
+    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid and securityAlertId is not defined', async () => {
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
@@ -281,6 +292,11 @@ describe('PPOM Utils', () => {
       await PPOMUtil.validateRequest(mockRequest);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(0);
       expect(spyTransactionAction).toHaveBeenCalledTimes(1);
+      expect(spyTransactionAction).toHaveBeenCalledWith(undefined, {
+        result_type: ResultType.Failed,
+        reason: Reason.failed,
+        description: 'Validating the confirmation failed by throwing error.',
+      });
     });
 
     it('should update transaction with validation result', async () => {
@@ -288,10 +304,19 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
+
+      validateWithSecurityAlertsAPIMock.mockResolvedValue(
+        mockSecurityAlertResponse,
+      );
+
       await PPOMUtil.validateRequest(mockRequest, {
         transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
       });
       expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenNthCalledWith(2, TRANSACTION_ID_MOCK, {
+        ...mockSecurityAlertResponse,
+        source: SecurityAlertSource.API,
+      });
     });
 
     it('should update transaction with validation result if only securityAlertId is provided', async () => {
@@ -366,26 +391,10 @@ describe('PPOM Utils', () => {
       );
 
       expect(normalizeTransactionParamsMock).toHaveBeenCalledTimes(1);
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        mockTransactionNormalizedWithGasAndGasPrice.params[0],
-      );
-
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
         expect.any(String),
         mockTransactionNormalizedWithGasAndGasPrice,
-      );
-    });
-
-    it('uses security alerts API if enabled', async () => {
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
-
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        expect.any(String),
-        mockTransactionNormalized,
       );
     });
 
@@ -431,22 +440,16 @@ describe('PPOM Utils', () => {
       );
     });
 
-    it('validates correctly if security alerts API throws', async () => {
+    it('sets security alerts response to failed when security alerts API throws', async () => {
       const spy = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
-      expect(spy).toHaveBeenCalledTimes(2);
-    });
 
-    it('sets security alerts response to failed when security alerts API and controller PPOM throws', async () => {
-      const spy = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
-      );
+      const spyLogger = jest.spyOn(Logger, 'log');
+
+      const error = new Error('Test Error');
+      validateWithSecurityAlertsAPIMock.mockRejectedValue(error);
 
       await PPOMUtil.validateRequest(mockRequest, {
         transactionMeta: mockTransactionMeta,
@@ -461,6 +464,11 @@ describe('PPOM Utils', () => {
         description: 'Validating the confirmation failed by throwing error.',
         source: SecurityAlertSource.API,
       });
+
+      expect(spyLogger).toHaveBeenCalledTimes(1);
+      expect(spyLogger).toHaveBeenCalledWith(
+        `Error validating request with security alerts API: ${error}`,
+      );
     });
 
     it.each([METHOD_SIGN_TYPED_DATA_V3, METHOD_SIGN_TYPED_DATA_V4])(
