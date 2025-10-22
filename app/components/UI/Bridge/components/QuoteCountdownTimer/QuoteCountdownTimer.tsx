@@ -68,7 +68,7 @@ const QuoteCountdownTimer: React.FC = () => {
 
   return (
     <Box style={styles.container}>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {`(${formattedSeconds}s)`}
       </Text>
     </Box>
