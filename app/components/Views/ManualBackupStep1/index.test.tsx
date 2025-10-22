@@ -700,7 +700,7 @@ describe('ManualBackupStep1', () => {
         expect.objectContaining({
           type: 'RESET',
           payload: expect.objectContaining({
-            index: 1,
+            index: 0,
             routes: expect.arrayContaining([
               expect.objectContaining({
                 name: 'OnboardingSuccessFlow',

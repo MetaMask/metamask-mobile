@@ -32,7 +32,8 @@ import {
   SEED_PHRASE,
   CONFIRM_PASSWORD,
   WRONG_PASSWORD_ERROR,
- ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
@@ -186,7 +187,7 @@ const ManualBackupStep1 = ({
     });
 
     const resetAction = CommonActions.reset({
-      index: 1,
+      index: 0,
       routes: [
         {
           name: Routes.ONBOARDING.SUCCESS_FLOW,
