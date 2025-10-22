@@ -98,7 +98,6 @@ describe('BlockaidAlertContent', () => {
           classification: Reason.other,
           resultType: BlockaidResultType.Malicious,
           reproduce: '["Detail 1","Detail 2"]',
-          blockaidVersion: BlockaidVersionInfo.BlockaidVersion,
         }),
       );
     });
