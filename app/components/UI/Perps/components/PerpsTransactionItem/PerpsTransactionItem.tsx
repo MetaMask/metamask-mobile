@@ -16,6 +16,15 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
+
+export enum FillType {
+  Standard = 'standard',
+  Liquidation = 'liquidation',
+  TakeProfit = 'take_profit',
+  StopLoss = 'stop_loss',
+  AutoDeleveraging = 'auto_deleveraging',
+}
+
 interface PerpsTransactionItemProps {
   item: PerpsTransaction;
   styles: {
@@ -43,55 +52,67 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
+
   const fillTag = useMemo(() => {
-    let label = '';
+    const { fill } = item;
 
-    if (
-      item.fill?.isLiquidation &&
-      // liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
-      // We only want to show the liquidated tag if the liquidation event is for the current user.
-      item.fill?.liquidation?.liquidatedUser === selectedAccount?.address
-    ) {
-      label = strings('perps.transactions.order.liquidated');
-    } else if (item.fill?.isTakeProfit) {
-      label = strings('perps.transactions.order.take_profit');
-    } else if (item.fill?.isStopLoss) {
-      label = strings('perps.transactions.order.stop_loss');
-    }
-
-    if (!label) {
+    if (!fill) {
       return null;
     }
 
-    let severity = TagSeverity.Default;
-
-    if (item.fill?.isLiquidation) {
-      severity = TagSeverity.Danger;
+    if (fill.fillType === FillType.Standard) {
+      return null;
     }
 
-    let textColor = TextColor.Alternative;
-    if (item.fill?.isLiquidation) {
-      textColor = TextColor.Error;
+    const tagConfig = {
+      [FillType.AutoDeleveraging]: {
+        label: strings('perps.transactions.order.auto_deleveraging'),
+        severity: TagSeverity.Info,
+        textColor: TextColor.Default,
+        includesBorder: false,
+      },
+      [FillType.Liquidation]: {
+        // Only show if liquidated user is current user
+        condition:
+          fill.liquidation?.liquidatedUser === selectedAccount?.address,
+        label: strings('perps.transactions.order.liquidated'),
+        severity: TagSeverity.Danger,
+        textColor: TextColor.Error,
+        includesBorder: false,
+      },
+      [FillType.TakeProfit]: {
+        label: strings('perps.transactions.order.take_profit'),
+        severity: TagSeverity.Default,
+        textColor: TextColor.Alternative,
+        includesBorder: true,
+      },
+      [FillType.StopLoss]: {
+        label: strings('perps.transactions.order.stop_loss'),
+        severity: TagSeverity.Default,
+        textColor: TextColor.Alternative,
+        includesBorder: true,
+      },
+    }[fill.fillType];
+
+    if (
+      !tagConfig ||
+      (tagConfig.condition !== undefined && !tagConfig.condition)
+    ) {
+      return null;
     }
 
     return (
       <TagBase
         shape={TagShape.Pill}
-        severity={severity}
-        includesBorder={Boolean(!item.fill?.liquidation)}
+        severity={tagConfig.severity}
+        includesBorder={tagConfig.includesBorder}
       >
-        <Text variant={TextVariant.BodyXSMedium} color={textColor}>
-          {label}
+        <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
+          {tagConfig.label}
         </Text>
       </TagBase>
     );
-  }, [
-    item.fill?.isLiquidation,
-    item.fill?.isStopLoss,
-    item.fill?.isTakeProfit,
-    item.fill?.liquidation,
-    selectedAccount?.address,
-  ]);
+  }, [item, selectedAccount?.address]);
 
   return (
     <TouchableOpacity

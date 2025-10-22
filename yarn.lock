@@ -7006,14 +7006,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0, @metamask/base-controller@npm:^8.4.1":
-  version: 8.4.1
-  resolution: "@metamask/base-controller@npm:8.4.1"
+"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0, @metamask/base-controller@npm:^8.4.1, @metamask/base-controller@npm:^8.4.2":
+  version: 8.4.2
+  resolution: "@metamask/base-controller@npm:8.4.2"
   dependencies:
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
     immer: "npm:^9.0.6"
-  checksum: 10/d720638b6a640f43e06b37bd77b7291be20df2f3cc89ab571ee47c895313ba2521cd49e6dede02dd7e06971c351f88eec2c39b65d8f46ba09492d89131d640b9
+  checksum: 10/e5c4d97a35952072dc8e93c90a334ea60a8d9faa7c15584b5ce8f60b151cf56a7dd5304cb8549b183cdd61d53421b45e3c4688170fcd0a3e2c6a184aeb942067
   languageName: node
   linkType: hard
 
@@ -8810,13 +8810,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/token-search-discovery-controller@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "@metamask/token-search-discovery-controller@npm:3.1.0"
+"@metamask/token-search-discovery-controller@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "@metamask/token-search-discovery-controller@npm:3.5.0"
   dependencies:
-    "@metamask/base-controller": "npm:^8.0.0"
-    "@metamask/utils": "npm:^11.2.0"
-  checksum: 10/0bfb84e638e75c84def9e832d4d3def060fb13a594dfe38500e0f381a91d8435f34417747425b141a696f0987720a3fb7809017c5cf277dcf7138723b3fad296
+    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/utils": "npm:^11.8.1"
+  checksum: 10/6db85c29f2200192e0e88ddd307ef49728385dee04f99d3b7299bdccff6e24277b4a39592a5d7752e9f2ab11737a1b0bfa0e19147df4a294a6605335aaa87850
   languageName: node
   linkType: hard
 
@@ -34113,7 +34113,7 @@ __metadata:
     "@metamask/app-metadata-controller": "npm:^1.0.0"
     "@metamask/approval-controller": "npm:^7.1.3"
     "@metamask/assets-controllers": "npm:^81.0.1"
-    "@metamask/base-controller": "npm:^8.3.0"
+    "@metamask/base-controller": "npm:^8.4.2"
     "@metamask/bitcoin-wallet-snap": "npm:^1.3.0"
     "@metamask/bridge-controller": "npm:^50.0.0"
     "@metamask/bridge-status-controller": "npm:^50.0.0"
@@ -34211,7 +34211,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/token-search-discovery-controller": "npm:^3.1.0"
+    "@metamask/token-search-discovery-controller": "npm:^3.5.0"
     "@metamask/transaction-controller": "npm:^60.9.0"
     "@metamask/tron-wallet-snap": "npm:^1.5.0"
     "@metamask/utils": "npm:^11.8.1"
