@@ -4,6 +4,20 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictFeedHeader from './PredictFeedHeader';
 
+// Mock navigation
+const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    canGoBack: mockCanGoBack,
+    goBack: mockGoBack,
+  }),
+}));
+
 // Mock SearchBox component
 jest.mock('../SearchBox', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -43,6 +57,10 @@ describe('PredictFeedHeader', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
+    mockCanGoBack.mockClear();
+    mockGoBack.mockClear();
+    mockCanGoBack.mockReturnValue(true);
   });
 
   describe('default view', () => {
