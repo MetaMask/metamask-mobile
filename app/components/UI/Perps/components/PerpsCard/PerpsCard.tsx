@@ -108,6 +108,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       activeOpacity={0.7}
       onPress={memoizedPressHandler}
       testID={testID}
+      shouldEnableAndroidPressIn
     >
       <View style={styles.cardContent}>
         {/* Left side: Icon and info */}
