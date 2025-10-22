@@ -267,6 +267,9 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   {
     predictEnabled: false,
   },
+  {
+    additionalNetworksBlacklist: [], // Empty by default, can be overridden in tests
+  },
 ];
 
 /**
