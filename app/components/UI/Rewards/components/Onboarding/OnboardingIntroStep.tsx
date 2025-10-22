@@ -41,6 +41,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Device from '../../../../../util/device';
 import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import storageWrapper from '../../../../../store/storage-wrapper';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 /**
  * OnboardingIntroStep Component
@@ -332,6 +333,7 @@ const OnboardingIntroStep: React.FC<{
         }
         loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
         onPress={handleNext}
+        testID={REWARDS_VIEW_SELECTORS.CLAIM_BUTTON}
         twClassName="w-full bg-primary-default"
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
@@ -344,6 +346,7 @@ const OnboardingIntroStep: React.FC<{
         isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
+        testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}
