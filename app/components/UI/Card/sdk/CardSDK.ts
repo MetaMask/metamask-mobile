@@ -20,6 +20,7 @@ import {
   CardLoginInitiateResponse,
   CardLoginResponse,
   CardToken,
+  CardType,
   CardWalletExternalPriorityResponse,
   CardWalletExternalResponse,
 } from '../types';
@@ -882,6 +883,35 @@ export class CardSDK {
       // Sort - lower number = higher priority
       return combinedDetails.sort((a, b) => a.priority - b.priority);
     };
+
+  provisionCard = async (): Promise<{ success: boolean }> => {
+    const response = await this.makeRequest(
+      '/v1/card/order',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          type: CardType.VIRTUAL,
+        }),
+      },
+      true,
+    );
+
+    if (!response.ok) {
+      try {
+        const errorResponse = await response.json();
+        Logger.log(errorResponse, 'Failed to provision card.');
+      } catch (error) {
+        // If we can't parse response, continue without it
+      }
+
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to provision card. Please try again.',
+      );
+    }
+
+    return (await response.json()) as { success: boolean };
+  };
 
   private mapAPINetworkToCaipChainId(network: 'linea' | 'solana'): CaipChainId {
     switch (network) {
