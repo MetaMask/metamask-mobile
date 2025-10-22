@@ -3,14 +3,12 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 import { useUserHistory } from './useUserHistory';
-import { useArbitrumTransactionMonitor } from './useArbitrumTransactionMonitor';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
 } from '../utils/transactionTransforms';
-import { transformArbitrumWithdrawalsToHistoryItems } from '../utils/arbitrumWithdrawalTransforms';
 import { FillType } from '../types/transactionHistory';
 import type { CaipAccountId } from '@metamask/utils';
 
@@ -18,19 +16,13 @@ import type { CaipAccountId } from '@metamask/utils';
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./useUserHistory');
-jest.mock('./useArbitrumTransactionMonitor');
 jest.mock('../utils/transactionTransforms');
-jest.mock('../utils/arbitrumWithdrawalTransforms');
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 const mockUseUserHistory = useUserHistory as jest.MockedFunction<
   typeof useUserHistory
 >;
-const mockUseArbitrumTransactionMonitor =
-  useArbitrumTransactionMonitor as jest.MockedFunction<
-    typeof useArbitrumTransactionMonitor
-  >;
 const mockTransformFillsToTransactions =
   transformFillsToTransactions as jest.MockedFunction<
     typeof transformFillsToTransactions
@@ -46,10 +38,6 @@ const mockTransformFundingToTransactions =
 const mockTransformUserHistoryToTransactions =
   transformUserHistoryToTransactions as jest.MockedFunction<
     typeof transformUserHistoryToTransactions
-  >;
-const mockTransformArbitrumWithdrawalsToHistoryItems =
-  transformArbitrumWithdrawalsToHistoryItems as jest.MockedFunction<
-    typeof transformArbitrumWithdrawalsToHistoryItems
   >;
 
 describe('usePerpsTransactionHistory', () => {
@@ -123,39 +111,6 @@ describe('usePerpsTransactionHistory', () => {
     },
   ];
 
-  const mockArbitrumWithdrawals = [
-    {
-      id: 'arbitrum-withdrawal-0x456',
-      timestamp: 1640995204000,
-      amount: '500',
-      txHash: '0x456',
-      from: '0xbridge',
-      to: '0xuser',
-      status: 'completed' as const,
-      blockNumber: '12345',
-    },
-  ];
-
-  const mockArbitrumWithdrawalHistory = [
-    {
-      id: 'arbitrum-history-1',
-      timestamp: 1640995204000,
-      type: 'withdrawal' as const,
-      amount: '500',
-      asset: 'USDC',
-      status: 'completed' as const,
-      txHash: '0x456',
-      details: {
-        source: 'arbitrum',
-        bridgeContract: '0x1234567890123456789012345678901234567890',
-        recipient: '0x9876543210987654321098765432109876543210',
-        blockNumber: '12345',
-        chainId: '42161',
-        synthetic: false,
-      },
-    },
-  ];
-
   const mockTransformedTransactions = [
     {
       id: 'fill-1',
@@ -216,13 +171,6 @@ describe('usePerpsTransactionHistory', () => {
       refetch: jest.fn().mockResolvedValue(undefined),
     });
 
-    mockUseArbitrumTransactionMonitor.mockReturnValue({
-      withdrawals: mockArbitrumWithdrawals,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn().mockResolvedValue(undefined),
-    });
-
     // Mock transform functions
     mockTransformFillsToTransactions.mockReturnValue(
       mockTransformedTransactions,
@@ -230,9 +178,6 @@ describe('usePerpsTransactionHistory', () => {
     mockTransformOrdersToTransactions.mockReturnValue([]);
     mockTransformFundingToTransactions.mockReturnValue([]);
     mockTransformUserHistoryToTransactions.mockReturnValue([]);
-    mockTransformArbitrumWithdrawalsToHistoryItems.mockReturnValue(
-      mockArbitrumWithdrawalHistory,
-    );
   });
 
   describe('initial state', () => {
@@ -287,9 +232,6 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockTransformUserHistoryToTransactions).toHaveBeenCalledWith(
         mockUserHistory,
       );
-      expect(
-        mockTransformArbitrumWithdrawalsToHistoryItems,
-      ).toHaveBeenCalledWith(mockArbitrumWithdrawals);
     });
 
     it('uses provided parameters', async () => {
@@ -395,7 +337,6 @@ describe('usePerpsTransactionHistory', () => {
       mockTransformUserHistoryToTransactions.mockReturnValue(
         duplicateTransactions,
       );
-      mockTransformArbitrumWithdrawalsToHistoryItems.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -406,9 +347,9 @@ describe('usePerpsTransactionHistory', () => {
       expect(result.current.transactions).toHaveLength(2);
     });
 
-    it('prefers user history over other sources for deposits/withdrawals', async () => {
+    it('combines transactions from different sources without duplicates', async () => {
       const userHistoryTx = {
-        id: 'tx1',
+        id: 'deposit-tx1',
         timestamp: 1000,
         type: 'deposit' as const,
         category: 'deposit' as const,
@@ -416,9 +357,9 @@ describe('usePerpsTransactionHistory', () => {
         subtitle: '100 USDC',
         asset: 'USDC',
       };
-      const otherTx = {
-        id: 'tx1',
-        timestamp: 1000,
+      const fillTx = {
+        id: 'fill-tx2',
+        timestamp: 2000,
         type: 'trade' as const,
         category: 'position_open' as const,
         title: 'Trade',
@@ -427,7 +368,9 @@ describe('usePerpsTransactionHistory', () => {
       };
 
       mockTransformUserHistoryToTransactions.mockReturnValue([userHistoryTx]);
-      mockTransformFillsToTransactions.mockReturnValue([otherTx]);
+      mockTransformFillsToTransactions.mockReturnValue([fillTx]);
+      mockTransformOrdersToTransactions.mockReturnValue([]);
+      mockTransformFundingToTransactions.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -435,7 +378,10 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(result.current.transactions[0]).toEqual(userHistoryTx);
+      // Should contain both transactions (no duplicates since IDs are different)
+      expect(result.current.transactions).toHaveLength(2);
+      expect(result.current.transactions[0]).toEqual(fillTx); // Newest first (timestamp 2000)
+      expect(result.current.transactions[1]).toEqual(userHistoryTx); // Older (timestamp 1000)
     });
   });
 
@@ -507,13 +453,6 @@ describe('usePerpsTransactionHistory', () => {
         refetch: jest.fn(),
       });
 
-      mockUseArbitrumTransactionMonitor.mockReturnValue({
-        withdrawals: [],
-        isLoading: true,
-        error: null,
-        refetch: jest.fn(),
-      });
-
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
       expect(result.current.isLoading).toBe(true);
@@ -522,13 +461,6 @@ describe('usePerpsTransactionHistory', () => {
     it('returns false when all hooks are not loading', async () => {
       mockUseUserHistory.mockReturnValue({
         userHistory: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      mockUseArbitrumTransactionMonitor.mockReturnValue({
-        withdrawals: [],
         isLoading: false,
         error: null,
         refetch: jest.fn(),
@@ -554,13 +486,6 @@ describe('usePerpsTransactionHistory', () => {
         refetch: jest.fn(),
       });
 
-      mockUseArbitrumTransactionMonitor.mockReturnValue({
-        withdrawals: [],
-        isLoading: false,
-        error: 'Arbitrum error',
-        refetch: jest.fn(),
-      });
-
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
       expect(result.current.error).toBe('User history error');
@@ -574,48 +499,14 @@ describe('usePerpsTransactionHistory', () => {
         refetch: jest.fn(),
       });
 
-      mockUseArbitrumTransactionMonitor.mockReturnValue({
-        withdrawals: [],
-        isLoading: false,
-        error: 'Arbitrum error',
-        refetch: jest.fn(),
-      });
-
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
       expect(result.current.error).toBe('User history error');
     });
 
-    it('returns arbitrum error when others are null', () => {
-      mockUseUserHistory.mockReturnValue({
-        userHistory: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      mockUseArbitrumTransactionMonitor.mockReturnValue({
-        withdrawals: [],
-        isLoading: false,
-        error: 'Arbitrum error',
-        refetch: jest.fn(),
-      });
-
-      const { result } = renderHook(() => usePerpsTransactionHistory());
-
-      expect(result.current.error).toBe('Arbitrum error');
-    });
-
     it('returns null when no errors', () => {
       mockUseUserHistory.mockReturnValue({
         userHistory: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      mockUseArbitrumTransactionMonitor.mockReturnValue({
-        withdrawals: [],
         isLoading: false,
         error: null,
         refetch: jest.fn(),
@@ -630,20 +521,12 @@ describe('usePerpsTransactionHistory', () => {
   describe('refetch functionality', () => {
     it('refetches all data sources', async () => {
       const mockRefetchUserHistory = jest.fn().mockResolvedValue(undefined);
-      const mockRefetchArbitrum = jest.fn().mockResolvedValue(undefined);
 
       mockUseUserHistory.mockReturnValue({
         userHistory: [],
         isLoading: false,
         error: null,
         refetch: mockRefetchUserHistory,
-      });
-
-      mockUseArbitrumTransactionMonitor.mockReturnValue({
-        withdrawals: [],
-        isLoading: false,
-        error: null,
-        refetch: mockRefetchArbitrum,
       });
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
@@ -653,7 +536,6 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       expect(mockRefetchUserHistory).toHaveBeenCalled();
-      expect(mockRefetchArbitrum).toHaveBeenCalled();
       expect(mockProvider.getOrderFills).toHaveBeenCalled();
     });
   });

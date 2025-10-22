@@ -20,14 +20,7 @@ import { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
-import {
-  usePerpsConnection,
-  usePerpsFunding,
-  usePerpsOrderFills,
-  usePerpsOrders,
-  useWithdrawalRequests,
-  useDepositRequests,
-} from '../../hooks';
+import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
 import {
   FilterTab,
   ListItem,
@@ -36,17 +29,9 @@ import {
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
-import {
-  transformFillsToTransactions,
-  transformFundingToTransactions,
-  transformOrdersToTransactions,
-  transformWithdrawalRequestsToTransactions,
-  transformDepositRequestsToTransactions,
-} from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
-import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -66,68 +51,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   const { isConnected, isConnecting } = usePerpsConnection();
 
-  // Use new hooks for data fetching
+  // Use single source of truth for all transaction data (includes deposits/withdrawals from user history)
   const {
-    orderFills: fillsData,
-    isLoading: fillsLoading,
-    refresh: refreshFills,
-  } = usePerpsOrderFills({
+    transactions: allTransactions,
+    isLoading: transactionsLoading,
+    refetch: refreshTransactions,
+  } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
   });
-
-  const {
-    orders: ordersData,
-    isLoading: ordersLoading,
-    refresh: refreshOrders,
-  } = usePerpsOrders({
-    skipInitialFetch: !isConnected,
-  });
-
-  // Memoize the funding params to prevent infinite re-renders
-  const fundingParams = useMemo(
-    () => ({
-      startTime: getUserFundingsListTimePeriod(),
-    }),
-    [], // Empty dependency array since we want this to be stable
-  );
-
-  const {
-    funding: fundingData,
-    isLoading: fundingLoading,
-    refresh: refreshFunding,
-  } = usePerpsFunding({
-    params: fundingParams,
-    skipInitialFetch: !isConnected,
-  });
-
-  // Memoize the withdrawal params to prevent infinite re-renders
-  const withdrawalParams = useMemo(
-    () => ({
-      startTime: (() => {
-        // Get start of 30 days ago to see recent deposits/withdrawals
-        const now = new Date();
-        const thirtyDaysAgo = new Date(
-          now.getTime() - 30 * 24 * 60 * 60 * 1000,
-        );
-        return thirtyDaysAgo.getTime();
-      })(),
-    }),
-    [], // Empty dependency array since we want this to be stable
-  );
-
-  // Get withdrawal requests
-  const { withdrawalRequests, refetch: refreshWithdrawalRequests } =
-    useWithdrawalRequests({
-      startTime: withdrawalParams.startTime,
-      skipInitialFetch: !isConnected,
-    });
-
-  // Get deposit requests
-  const { depositRequests, refetch: refreshDepositRequests } =
-    useDepositRequests({
-      startTime: withdrawalParams.startTime, // Use same time range as withdrawals
-      skipInitialFetch: !isConnected,
-    });
 
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
@@ -174,75 +105,37 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return flattened;
   };
 
-  // Create a map of orderId to order for fast lookup
-  const orderMap = useMemo(() => {
-    const map = new Map<string, (typeof ordersData)[0]>();
-    (ordersData || []).forEach((order) => {
-      map.set(order.orderId, order);
-    });
-    return map;
-  }, [ordersData]);
-
-  // Enrich fills with order data to determine TP/SL
-  const enrichedFills = useMemo(
-    () =>
-      (fillsData || []).map((fill) => {
-        const enrichedFill = { ...fill };
-
-        // Cross-reference with historical orders
-        const matchingOrder = orderMap.get(fill.orderId);
-        if (matchingOrder?.detailedOrderType) {
-          // Add the detailed order type to the fill
-          enrichedFill.detailedOrderType = matchingOrder.detailedOrderType;
-        }
-
-        return enrichedFill;
-      }),
-    [fillsData, orderMap],
-  );
-
-  // Transform raw data from hooks into transaction format
+  // Filter transactions by type from the single source of truth
   const fillTransactions = useMemo(
-    () => transformFillsToTransactions(enrichedFills),
-    [enrichedFills],
+    () => allTransactions.filter((tx) => tx.type === 'trade'),
+    [allTransactions],
   );
 
   const orderTransactions = useMemo(
-    () => transformOrdersToTransactions(ordersData || []),
-    [ordersData],
+    () => allTransactions.filter((tx) => tx.type === 'order'),
+    [allTransactions],
   );
 
   const fundingTransactions = useMemo(
-    () => transformFundingToTransactions(fundingData || []),
-    [fundingData],
+    () => allTransactions.filter((tx) => tx.type === 'funding'),
+    [allTransactions],
   );
 
-  // Transform withdrawal requests to transactions
-  const withdrawalTransactions = useMemo(() => {
-    const transformed =
-      transformWithdrawalRequestsToTransactions(withdrawalRequests);
-    return transformed;
-  }, [withdrawalRequests]);
-
-  // Transform deposit requests to transactions
-  const depositTransactions = useMemo(() => {
-    const transformed = transformDepositRequestsToTransactions(depositRequests);
-    return transformed;
-  }, [depositRequests]);
+  const depositWithdrawalTransactions = useMemo(
+    () =>
+      allTransactions.filter(
+        (tx) => tx.type === 'deposit' || tx.type === 'withdrawal',
+      ),
+    [allTransactions],
+  );
 
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(() => {
-    // Combine deposits and withdrawals into a single "Deposits" category
-    const combinedDepositsAndWithdrawals = [
-      ...depositTransactions,
-      ...withdrawalTransactions,
-    ].sort((a, b) => b.timestamp - a.timestamp); // Sort chronologically (newest first)
-
     const grouped = {
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
       Funding: groupTransactionsByDate(fundingTransactions),
-      Deposits: groupTransactionsByDate(combinedDepositsAndWithdrawals),
+      Deposits: groupTransactionsByDate(depositWithdrawalTransactions),
     };
 
     return grouped;
@@ -250,8 +143,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     fillTransactions,
     orderTransactions,
     fundingTransactions,
-    depositTransactions,
-    withdrawalTransactions,
+    depositWithdrawalTransactions,
     groupTransactionsByDate,
   ]);
 
@@ -274,27 +166,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
     setRefreshing(true);
     try {
-      // Refresh all data sources in parallel
-      await Promise.all([
-        refreshFills(),
-        refreshOrders(),
-        refreshFunding(),
-        refreshWithdrawalRequests(),
-        refreshDepositRequests(),
-      ]);
+      // Refresh all transaction data from single source
+      await refreshTransactions();
     } catch (error) {
       console.warn('Failed to refresh transaction data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [
-    isConnected,
-    refreshFills,
-    refreshOrders,
-    refreshFunding,
-    refreshWithdrawalRequests,
-    refreshDepositRequests,
-  ]);
+  }, [isConnected, refreshTransactions]);
 
   // Initial loading is handled by the hooks themselves
 
@@ -463,9 +342,9 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Determine if we should show loading skeleton
   const isInitialLoading = useMemo(
     () =>
-      // Show loading if we're connecting or if any data sources are loading
-      isConnecting || fillsLoading || ordersLoading || fundingLoading,
-    [isConnecting, fillsLoading, ordersLoading, fundingLoading],
+      // Show loading if we're connecting or if transaction data is loading
+      isConnecting || transactionsLoading,
+    [isConnecting, transactionsLoading],
   );
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive

@@ -4,14 +4,12 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
-import { useArbitrumTransactionMonitor } from './useArbitrumTransactionMonitor';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
 } from '../utils/transactionTransforms';
-import { transformArbitrumWithdrawalsToHistoryItems } from '../utils/arbitrumWithdrawalTransforms';
 
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
@@ -30,6 +28,7 @@ interface UsePerpsTransactionHistoryResult {
 /**
  * Comprehensive hook to fetch and combine all perps transaction data
  * Includes trades, orders, funding, and user history (deposits/withdrawals)
+ * Uses HyperLiquid user history as the single source of truth for withdrawals
  */
 export const usePerpsTransactionHistory = ({
   startTime,
@@ -41,21 +40,13 @@ export const usePerpsTransactionHistory = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get user history (includes deposits/withdrawals)
+  // Get user history (includes deposits/withdrawals) - single source of truth
   const {
     userHistory,
     isLoading: userHistoryLoading,
     error: userHistoryError,
     refetch: refetchUserHistory,
   } = useUserHistory({ startTime, endTime, accountId });
-
-  // Get Arbitrum withdrawal transactions
-  const {
-    withdrawals: arbitrumWithdrawals,
-    isLoading: arbitrumLoading,
-    error: arbitrumError,
-    refetch: refetchArbitrum,
-  } = useArbitrumTransactionMonitor();
 
   const fetchAllTransactions = useCallback(async () => {
     try {
@@ -97,36 +88,22 @@ export const usePerpsTransactionHistory = ({
       const userHistoryTransactions =
         transformUserHistoryToTransactions(userHistory);
 
-      // Transform Arbitrum withdrawals
-      const arbitrumWithdrawalHistory =
-        transformArbitrumWithdrawalsToHistoryItems(arbitrumWithdrawals);
-      const arbitrumWithdrawalTransactions = transformUserHistoryToTransactions(
-        arbitrumWithdrawalHistory,
-      );
-
-      // Combine all transactions
+      // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
       const allTransactions = [
         ...fillTransactions,
         ...orderTransactions,
         ...fundingTransactions,
         ...userHistoryTransactions,
-        ...arbitrumWithdrawalTransactions,
       ];
 
       // Sort by timestamp descending (newest first)
       allTransactions.sort((a, b) => b.timestamp - a.timestamp);
 
-      // Remove duplicates based on ID (in case same transaction appears in multiple sources)
+      // Remove duplicates based on ID (simplified - no longer needed for withdrawals since we use single source)
       const uniqueTransactions = allTransactions.reduce((acc, transaction) => {
         const existingIndex = acc.findIndex((t) => t.id === transaction.id);
         if (existingIndex === -1) {
           acc.push(transaction);
-        } else if (
-          transaction.type === 'deposit' ||
-          transaction.type === 'withdrawal'
-        ) {
-          // Keep the more detailed version (prefer user history over other sources)
-          acc[existingIndex] = transaction;
         }
         return acc;
       }, [] as PerpsTransaction[]);
@@ -144,15 +121,11 @@ export const usePerpsTransactionHistory = ({
     } finally {
       setIsLoading(false);
     }
-  }, [startTime, endTime, accountId, userHistory, arbitrumWithdrawals]);
+  }, [startTime, endTime, accountId, userHistory]);
 
   const refetch = useCallback(async () => {
-    await Promise.all([
-      fetchAllTransactions(),
-      refetchUserHistory(),
-      refetchArbitrum(),
-    ]);
-  }, [fetchAllTransactions, refetchUserHistory, refetchArbitrum]);
+    await Promise.all([fetchAllTransactions(), refetchUserHistory()]);
+  }, [fetchAllTransactions, refetchUserHistory]);
 
   useEffect(() => {
     if (!skipInitialFetch) {
@@ -161,15 +134,17 @@ export const usePerpsTransactionHistory = ({
   }, [fetchAllTransactions, skipInitialFetch]);
 
   // Combine loading states
-  const combinedIsLoading = useMemo(() => isLoading || userHistoryLoading || arbitrumLoading, [isLoading, userHistoryLoading, arbitrumLoading]);
+  const combinedIsLoading = useMemo(
+    () => isLoading || userHistoryLoading,
+    [isLoading, userHistoryLoading],
+  );
 
   // Combine error states
   const combinedError = useMemo(() => {
     if (error) return error;
     if (userHistoryError) return userHistoryError;
-    if (arbitrumError) return arbitrumError;
     return null;
-  }, [error, userHistoryError, arbitrumError]);
+  }, [error, userHistoryError]);
 
   return {
     transactions,
