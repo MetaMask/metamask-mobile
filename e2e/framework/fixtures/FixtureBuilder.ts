@@ -2135,9 +2135,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withSnapController(data: unknown) {
-    this.fixture.state.engine.backgroundState.SnapController ??= {};
-
+  withSnapController(data: Record<string, unknown> = {}) {
     merge(this.fixture.state.engine.backgroundState.SnapController, data);
     return this;
   }
