@@ -546,12 +546,8 @@ describe('EarnInputView', () => {
       // "0" in the input display and on the keypad
       expect(getAllByText('0').length).toBe(2);
       // "USDC" in the input display and in the token selector
-      expect(getAllByText('USDC').length).toBe(2);
+      expect(getAllByText('USDC').length).toBe(1);
       expect(getByText('$0')).toBeDefined();
-
-      // Token Selector should display USDC as selected token
-      expect(getByText('2.5% APR')).toBeDefined();
-      expect(getByText('100 USDC')).toBeDefined();
 
       await act(async () => {
         fireEvent.press(getByText('1'));

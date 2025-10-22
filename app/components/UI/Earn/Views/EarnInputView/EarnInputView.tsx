@@ -44,7 +44,6 @@ import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
-import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
@@ -59,10 +58,7 @@ import {
   generateLendingDepositTransaction,
 } from '../../utils/tempLending';
 import styleSheet from './EarnInputView.styles';
-import {
-  EARN_INPUT_VIEW_ACTIONS,
-  EarnInputViewProps,
-} from './EarnInputView.types';
+import { EarnInputViewProps } from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
@@ -813,29 +809,19 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          {isStablecoinLendingEnabled ? (
-            <>
-              <View style={styles.spacer} />
-              <EarnTokenSelector
-                token={token}
-                action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
-              />
-            </>
-          ) : (
-            <EstimatedAnnualRewardsCard
-              estimatedAnnualRewards={estimatedAnnualRewards}
-              onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-                event: MetaMetricsEvents.TOOLTIP_OPENED,
-                properties: {
-                  selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                  text: 'Tooltip Opened',
-                  location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-                  tooltip_name: 'MetaMask Pool Estimated Rewards',
-                },
-              })}
-              isLoading={isLoadingEarnMetadata}
-            />
-          )}
+          <EstimatedAnnualRewardsCard
+            estimatedAnnualRewards={estimatedAnnualRewards}
+            onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+              event: MetaMetricsEvents.TOOLTIP_OPENED,
+              properties: {
+                selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                text: 'Tooltip Opened',
+                location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+                tooltip_name: 'MetaMask Pool Estimated Rewards',
+              },
+            })}
+            isLoading={isLoadingEarnMetadata}
+          />
         </View>
       </ScrollView>
       <QuickAmounts
