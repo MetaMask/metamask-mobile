@@ -63,6 +63,7 @@ import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
 } from '../../../../../core/redux/slices/card';
+import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -173,6 +174,10 @@ jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 
 jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
+}));
+
+jest.mock('../../hooks/useIsSwapEnabledForPriorityToken', () => ({
+  useIsSwapEnabledForPriorityToken: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useMetrics', () => ({
@@ -463,6 +468,8 @@ describe('CardHome Component', () => {
       isLoading: false,
       error: null,
     });
+
+    (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
 
     // Setup default selectors
     setupMockSelectors();
@@ -1074,6 +1081,81 @@ describe('CardHome Component', () => {
         token_fiat_balance_priority: undefined,
       }),
     );
+  });
+
+  describe('Swap Enabled for Priority Token', () => {
+    it('disables add funds button when swap is not enabled for priority token', () => {
+      // Given: swap is not enabled for the priority token
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(
+        false,
+      );
+
+      // When: component renders
+      render();
+
+      // Then: add funds button should exist and be disabled
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      expect(addFundsButton).toBeTruthy();
+      // Button should have disabled styling applied
+      expect(addFundsButton.props.disabled).toBe(true);
+    });
+
+    it('enables add funds button when swap is enabled for priority token', () => {
+      // Given: swap is enabled for the priority token
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(true);
+
+      // When: component renders
+      render();
+
+      // Then: add funds button should be enabled
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      expect(addFundsButton).toBeTruthy();
+      expect(addFundsButton.props.disabled).toBe(false);
+    });
+
+    it('applies disabled styling when swap is not enabled', () => {
+      // Given: swap is not enabled for the priority token
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(
+        false,
+      );
+
+      // When: component renders
+      render();
+
+      // Then: button should have disabled prop set to true
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      expect(addFundsButton).toBeTruthy();
+      expect(addFundsButton.props.disabled).toBe(true);
+    });
+
+    it('does not disable button when swap is enabled for priority token', async () => {
+      // Given: swap is enabled for the priority token
+      (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(true);
+
+      // When: component renders
+      render();
+
+      // Then: add funds button should be enabled and callable
+      const addFundsButton = screen.getByTestId(
+        CardHomeSelectors.ADD_FUNDS_BUTTON,
+      );
+      expect(addFundsButton.props.disabled).toBe(false);
+
+      mockTrackEvent.mockClear();
+      fireEvent.press(addFundsButton);
+
+      // When: user presses add funds button
+      // Then: should track event
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('Baanx Login Features', () => {
