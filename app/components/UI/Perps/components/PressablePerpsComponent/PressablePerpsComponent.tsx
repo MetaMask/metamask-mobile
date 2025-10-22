@@ -21,9 +21,9 @@ import {
  * SOLUTION APPROACH:
  *
  * 1. Custom AndroidTouchableOpacity with optimized thresholds on Android
- * - MAX_DURATION: 500ms (vs 150ms default) - allows longer touches
- * - MAX_MOVEMENT: 25px (vs 5px default) - allows more finger movement
- * - MAX_VELOCITY: 0.3 px/ms (vs 0.2 default) - more restrictive for scroll detection
+ * - MAX_DURATION: 900ms (vs 150ms default) - allows much longer touches
+ * - MAX_MOVEMENT: 50px (vs 5px default) - allows significant finger movement
+ * - MAX_VELOCITY: 0.15 px/ms (vs 0.2 default) - very restrictive for scroll detection
  * - These thresholds prevent accidental taps while scrolling
  * 2. Use standard TouchableOpacity on iOS and in test environments
  * 3. Maintains accessibility support and TalkBack compatibility
@@ -116,11 +116,11 @@ const AndroidTouchableOpacity = ({
         timeoutRef.current = null;
       }
 
-      // Less sensitive thresholds for better scroll experience
-      const MAX_DURATION = 900; // Increased from 300ms to 900ms
-      const MAX_MOVEMENT = 50; // Increased from 15px to 25px
+      // Very conservative thresholds to prevent accidental taps while scrolling
+      const MAX_DURATION = 900; // Very long duration - only deliberate taps
+      const MAX_MOVEMENT = 50; // Large movement allowance - natural finger positioning
       const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY) / duration;
-      const MAX_VELOCITY = 0.3; // Decreased from 0.5 to 0.3 px/ms (more restrictive)
+      const MAX_VELOCITY = 0.15; // Very restrictive velocity - distinguishes scrolls from taps
 
       if (
         duration < MAX_DURATION &&
