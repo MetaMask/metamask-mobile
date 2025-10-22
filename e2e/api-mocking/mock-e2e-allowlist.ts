@@ -9,12 +9,14 @@ export const ALLOWLISTED_HOSTS = [
   'api.tenderly.co',
   'rpc.tenderly.co',
   'virtual.mainnet.rpc.tenderly.co',
-  '*.infura.io',
   'testnet-rpc.monad.xyz',
   'virtual.linea.rpc.tenderly.co',
   'portfolio.dev-api.cx.metamask.io',
   'portfolio.uat-api.cx.metamask.io',
   'portfolio.api.cx.metamask.io',
+  'gamma-api.polymarket.com',
+  'clob.polymarket.com',
+  '*.polymarket.com',
 ];
 
 export const ALLOWLISTED_URLS = [

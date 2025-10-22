@@ -11,8 +11,8 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../context/ledger-context/ledger-context';
-import { useConfirmActions } from './useConfirmActions';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+import { useConfirmActions } from './useConfirmActions';
 
 jest.mock('./transactions/useTransactionConfirm');
 
@@ -35,6 +35,13 @@ jest.mock('../../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+jest.mock('./gas/useGasFeeToken');
+
+jest.mock('../../../../util/transaction-controller', () => ({
+  ...jest.requireActual('../../../../util/transaction-controller'),
+  updateTransaction: jest.fn(),
 }));
 
 const mockCaptureSignatureMetrics = jest.fn();
@@ -79,7 +86,7 @@ describe('useConfirmAction', () => {
     );
     const mockSetScannerVisible = jest.fn().mockResolvedValue(undefined);
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isQRSigningInProgress: true,
+      isSigningQRObject: true,
       setScannerVisible: mockSetScannerVisible,
     } as unknown as QRHardwareHook.QRHardwareContextType);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {

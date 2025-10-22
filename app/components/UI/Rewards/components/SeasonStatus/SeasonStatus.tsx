@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   BoxFlexDirection,
   TextVariant,
   Text,
+  FontWeight,
+  BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import ProgressBar from 'react-native-progress/Bar';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-rewards-points.svg';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import SeasonTierImage from '../SeasonTierImage';
 import { capitalize } from 'lodash';
 import { useSelector } from 'react-redux';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 import {
   selectSeasonStatusLoading,
   selectSeasonTiers,
@@ -21,18 +23,41 @@ import {
   selectNextTierPointsNeeded,
   selectCurrentTier,
   selectNextTier,
+  selectSeasonStatusError,
+  selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import RewardsThemeImageComponent from '../ThemeImageComponent';
+import { Image, TouchableOpacity } from 'react-native';
+import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
+import { useSeasonStatus } from '../../hooks/useSeasonStatus';
+import RewardsImageModal from '../RewardsImageModal';
 
 const SeasonStatus: React.FC = () => {
+  const tw = useTailwind();
   const currentTier = useSelector(selectCurrentTier);
   const nextTier = useSelector(selectNextTier);
   const nextTierPointsNeeded = useSelector(selectNextTierPointsNeeded);
   const tiers = useSelector(selectSeasonTiers);
   const balanceTotal = useSelector(selectBalanceTotal);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
+  const seasonStatusError = useSelector(selectSeasonStatusError);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
   const seasonEndDate = useSelector(selectSeasonEndDate);
   const theme = useTheme();
+
+  const { fetchSeasonStatus } = useSeasonStatus({ onlyForExplicitFetch: true });
+
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
+
+  const handleImagePress = () => {
+    setIsImageExpanded(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsImageExpanded(false);
+  };
 
   const progress = React.useMemo(() => {
     if (!currentTier || !balanceTotal) {
@@ -71,22 +96,55 @@ const SeasonStatus: React.FC = () => {
     return tiers.findIndex((tier) => tier.id === currentTier.id) + 1;
   }, [tiers, currentTier]);
 
-  if (seasonStatusLoading) {
-    return <Skeleton height={115} width="100%" />;
+  if ((seasonStatusLoading || !currentTier) && !seasonStatusError) {
+    return (
+      <Box twClassName="px-4">
+        <Skeleton height={115} width="100%" />
+      </Box>
+    );
+  }
+
+  if (seasonStatusError && !seasonStartDate) {
+    return (
+      <Box twClassName="px-4">
+        <RewardsErrorBanner
+          title={strings('rewards.season_status_error.error_fetching_title')}
+          description={strings(
+            'rewards.season_status_error.error_fetching_description',
+          )}
+          onConfirm={() => {
+            fetchSeasonStatus();
+          }}
+          confirmButtonLabel={strings(
+            'rewards.season_status_error.retry_button',
+          )}
+        />
+      </Box>
+    );
   }
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4 w-full">
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      twClassName="gap-4 w-full px-4"
+    >
       {/* Top Row - season name, tier name, and tier image */}
-      <Box twClassName="flex-row justify-between items-center">
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
-          {/* Tier image */}
-          <Box twClassName="h-[42px] w-[55px] flex align-center">
-            <SeasonTierImage
-              tierOrder={currentTierOrder}
-              twClassName="w-full h-full"
-            />
-          </Box>
+      <Box twClassName="flex-row justify-between items-center -mb-2">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-4 items-center"
+        >
+          {/* Tier image - tappable to expand */}
+          <TouchableOpacity onPress={handleImagePress} activeOpacity={0.7}>
+            {currentTier?.image ? (
+              <RewardsThemeImageComponent
+                themeImage={currentTier.image}
+                style={tw.style('h-15 w-15')}
+              />
+            ) : (
+              <Image source={fallbackTierImage} style={tw.style('h-15 w-15')} />
+            )}
+          </TouchableOpacity>
 
           {/* Tier name */}
           <Box flexDirection={BoxFlexDirection.Column}>
@@ -130,6 +188,7 @@ const SeasonStatus: React.FC = () => {
               height={16}
               borderColor={theme.colors.accent01.normal}
               borderRadius={10}
+              borderWidth={0}
               unfilledColor="transparent"
             />
           </Box>
@@ -145,6 +204,7 @@ const SeasonStatus: React.FC = () => {
               height={16}
               borderColor={theme.colors.background.section}
               borderRadius={10}
+              borderWidth={0}
               unfilledColor={theme.colors.background.section}
             />
           </Box>
@@ -154,20 +214,30 @@ const SeasonStatus: React.FC = () => {
       {/* Bottom Row - Points Summary */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="gap-2 justify-between items-center -mt-2"
+        twClassName="gap-2 justify-between items-center"
       >
-        <Box twClassName="flex-row items-center gap-2">
-          <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+        <Box
+          alignItems={BoxAlignItems.Start}
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-2"
+        >
+          <MetamaskRewardsPointsImage
+            name="MetamaskRewardsPoints"
+            style={tw.style('mt-0.5')}
+          />
 
-          <Box twClassName="flex-row items-center gap-1">
-            <Text variant={TextVariant.HeadingLg} twClassName="text-default">
+          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+            <Text
+              style={tw.style({
+                fontSize: 22,
+                fontWeight: FontWeight.Bold,
+                marginTop: 2,
+              })}
+            >
               {formatNumber(balanceTotal)}
             </Text>
 
-            <Text
-              variant={TextVariant.HeadingSm}
-              twClassName="text-default text-left -mb-1"
-            >
+            <Text variant={TextVariant.HeadingMd}>
               {!balanceTotal || balanceTotal > 1
                 ? strings('rewards.points').toLowerCase()
                 : strings('rewards.point').toLowerCase()}
@@ -176,12 +246,23 @@ const SeasonStatus: React.FC = () => {
         </Box>
 
         {!!nextTierPointsNeeded && (
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative w-[50%] text-right"
+          >
             {formatNumber(nextTierPointsNeeded)}{' '}
             {strings('rewards.to_level_up').toLowerCase()}
           </Text>
         )}
       </Box>
+
+      {/* Full-screen image modal */}
+      <RewardsImageModal
+        visible={isImageExpanded}
+        onClose={handleCloseModal}
+        themeImage={currentTier?.image}
+        fallbackImage={fallbackTierImage}
+      />
     </Box>
   );
 };

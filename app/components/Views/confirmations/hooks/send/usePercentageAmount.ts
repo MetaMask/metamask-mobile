@@ -28,9 +28,8 @@ export const getEstimatedTotalGas = (
   if (!gasFeeEstimates) {
     return new BN(0);
   }
-  const {
-    medium: { suggestedMaxFeePerGas },
-  } = gasFeeEstimates;
+  const suggestedMaxFeePerGas =
+    gasFeeEstimates?.medium?.suggestedMaxFeePerGas ?? '0';
   const totalGas = new BN(suggestedMaxFeePerGas * NATIVE_TRANSFER_GAS_LIMIT);
   const conversionrate = new BN(GWEI_TO_WEI_CONVERSION_RATE);
   return totalGas.mul(conversionrate).add(hexToBN(layer1GasFee));
@@ -84,12 +83,12 @@ export const usePercentageAmount = () => {
     if (!isEvmNativeSendType || asset?.chainId === CHAIN_IDS.MAINNET || !from) {
       return '0x0';
     }
-    return await getLayer1GasFeeForSend({
+    return (await getLayer1GasFeeForSend({
       asset: asset as AssetType,
       chainId: chainId as Hex,
       from: from as Hex,
       value: (value ?? '0') as string,
-    });
+    })) as Hex;
   }, [asset, chainId, from, value]);
 
   const getPercentageAmount = useCallback(

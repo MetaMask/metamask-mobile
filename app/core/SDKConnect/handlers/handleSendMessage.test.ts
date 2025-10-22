@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import Device from '../../../util/device';
 import { Connection } from '../Connection';
 import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import handleSendMessage from './handleSendMessage'; // Adjust the import path as necessary
 import { analytics } from '@metamask/sdk-analytics';
@@ -11,6 +9,7 @@ import {
   isAnalyticsTrackedRpcMethod,
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
+import Routes from '../../../constants/navigation/Routes';
 
 // --- Start of Mocks ---
 jest.mock('@metamask/sdk-analytics', () => ({
@@ -39,7 +38,6 @@ jest.mock('../../../util/device');
 describe('handleSendMessage', () => {
   let mockConnection = {} as unknown as Connection;
   const mockHandleBatchRpcResponse = handleBatchRpcResponse as jest.Mock;
-  const mockWait = wait as jest.Mock;
   const mockDevLogger = DevLogger.log as jest.MockedFunction<
     typeof DevLogger.log
   >;
@@ -235,21 +233,6 @@ describe('handleSendMessage', () => {
 
       expect(mockRemove).toHaveBeenCalledWith('1');
     });
-
-    it('should check if redirection is allowed for the method', async () => {
-      await handleSendMessage({
-        msg: {
-          data: {
-            id: 1,
-          },
-        },
-        connection: mockConnection,
-      });
-
-      expect(mockCanRedirect).toHaveBeenCalledWith({
-        method: 'metamask_batch',
-      });
-    });
   });
 
   describe('Message sending', () => {
@@ -275,60 +258,79 @@ describe('handleSendMessage', () => {
     });
   });
 
-  describe('Redirection logic', () => {
-    describe('When redirection is allowed', () => {
-      beforeEach(() => {
-        mockRpcQueueManagerGetId.mockReturnValue('1');
-        mockCanRedirect.mockReturnValue(true);
-        mockConnection.trigger = 'deeplink';
-      });
-      it('should wait for specific methods', async () => {
-        mockRpcQueueManagerGetId.mockReturnValue(RPC_METHODS.METAMASK_BATCH);
-
-        await handleSendMessage({
-          msg: {
-            data: {
-              id: 1,
-            },
-          },
-          connection: mockConnection,
-        });
-
-        expect(mockWait).toHaveBeenCalledWith(1200);
-      });
-      it('should handle platform-specific behavior for iOS 17 and above', async () => {
-        const spyIsIos = jest.spyOn(Device, 'isIos');
-        spyIsIos.mockReturnValue(true);
-
-        jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-          OS: 'ios',
-          Version: 17,
-        }));
-
-        await handleSendMessage({
-          msg: {
-            data: {
-              id: 1,
-            },
-          },
-          connection: mockConnection,
-        });
-
-        expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-          isPostNetworkSwitch: false,
-          screen: 'ReturnToDappModal',
-        });
-      });
-    });
-  });
-
-  describe('Final state update', () => {
+  describe('Navigation with hideReturnToApp parameter', () => {
     beforeEach(() => {
-      mockRpcQueueManagerGetId.mockReturnValue('1');
+      mockRpcQueueManagerGetId.mockReturnValue('test-method');
       mockCanRedirect.mockReturnValue(true);
+      // Make sure there are no batch RPCs for navigation tests
+      mockBatchRPCManagerGetById.mockReturnValue(null);
+      mockConnection.originatorInfo = {
+        url: 'https://example.com',
+      } as OriginatorInfo;
     });
-    it('should update the trigger to resume after processing', async () => {
-      mockConnection.trigger = 'deeplink';
+
+    it('should navigate with hideReturnToApp set to true when connection has hideReturnToApp true', async () => {
+      mockConnection.hideReturnToApp = true;
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        method: 'test-method',
+        origin: 'https://example.com',
+        hideReturnToApp: true,
+      });
+    });
+
+    it('should navigate with hideReturnToApp set to false when connection has hideReturnToApp false', async () => {
+      mockConnection.hideReturnToApp = false;
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        method: 'test-method',
+        origin: 'https://example.com',
+        hideReturnToApp: false,
+      });
+    });
+
+    it('should navigate with hideReturnToApp set to undefined when connection does not have hideReturnToApp', async () => {
+      mockConnection.hideReturnToApp = undefined;
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        method: 'test-method',
+        origin: 'https://example.com',
+        hideReturnToApp: undefined,
+      });
+    });
+
+    it('should set connection trigger to resume before navigation', async () => {
+      mockConnection.hideReturnToApp = true;
 
       await handleSendMessage({
         msg: {
@@ -340,33 +342,6 @@ describe('handleSendMessage', () => {
       });
 
       expect(mockConnection.trigger).toBe('resume');
-    });
-  });
-
-  describe('Confirmation popup message', () => {
-    beforeEach(() => {
-      mockRpcQueueManagerGetId.mockReturnValue(
-        RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
-      );
-      // mockCanRedirect.mockReturnValue(true);
-      mockBatchRPCManagerGetById.mockReturnValue(undefined);
-    });
-    it('should handle specific behavior for network switch', async () => {
-      mockConnection.trigger = 'deeplink';
-
-      await handleSendMessage({
-        msg: {
-          data: {
-            id: 1,
-          },
-        },
-        connection: mockConnection,
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        isPostNetworkSwitch: true,
-        screen: 'ReturnToDappModal',
-      });
     });
   });
 });

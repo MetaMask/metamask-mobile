@@ -11,7 +11,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 
-// Mock dependencies
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockUseRoute = jest.fn();
@@ -55,6 +54,7 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
   selectHasCreatedSolanaMainnetAccount: jest.fn(),
   selectInternalAccounts: jest.fn(() => []),
+  selectCanSignTransactions: jest.fn(() => true),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
@@ -358,7 +358,7 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('Total fees')).toBeOnTheScreen();
-    expect(getByText('$5.00')).toBeOnTheScreen();
+    expect(getByText('$5')).toBeOnTheScreen();
   });
 
   it('should display fees with $ prefix directly for amounts < 0.01', () => {
@@ -541,7 +541,7 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('+$12,500.75')).toBeOnTheScreen();
-    expect(getByText('$125.50')).toBeOnTheScreen();
+    expect(getByText('$125.5')).toBeOnTheScreen();
   });
 
   it('should handle different asset types', () => {

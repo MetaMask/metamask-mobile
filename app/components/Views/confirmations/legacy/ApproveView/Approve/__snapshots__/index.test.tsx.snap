@@ -606,9 +606,8 @@ exports[`Approve renders transaction approval 1`] = `
                                                         style={
                                                           {
                                                             "color": "#121314",
-                                                            "fontFamily": "CentraNo1-Bold",
+                                                            "fontFamily": "Geist Bold",
                                                             "fontSize": 18,
-                                                            "fontWeight": "600",
                                                             "letterSpacing": 0,
                                                             "lineHeight": 34,
                                                             "marginVertical": 3,
@@ -746,9 +745,8 @@ exports[`Approve renders transaction approval 1`] = `
                                                                 style={
                                                                   {
                                                                     "color": "#4459ff",
-                                                                    "fontFamily": "CentraNo1-Book",
+                                                                    "fontFamily": "Geist Regular",
                                                                     "fontSize": 12,
-                                                                    "fontWeight": "400",
                                                                     "letterSpacing": 0,
                                                                     "lineHeight": 16,
                                                                     "marginHorizontal": 4,

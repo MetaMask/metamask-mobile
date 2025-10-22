@@ -35,13 +35,11 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
-  formatPrice,
   PRICE_RANGES_MINIMAL_VIEW,
-  PRICE_RANGES_POSITION_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
-import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsPositionCard.styles';
 
@@ -75,12 +73,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const isEligible = useSelector(selectPerpsEligibility);
 
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null,
-  );
-
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
+  const { handleUpdateTPSL } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Positions update automatically via WebSocket
       // Call parent's position update callback if provided
@@ -137,7 +130,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const roeValue = parseFloat(position.returnOnEquity || '0');
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
 
-  const handleEditTPSL = () => {
+  const handleEditTPSL = useCallback(() => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
@@ -154,9 +147,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
 
     DevLogger.log('PerpsPositionCard: Editing TPSL', { position });
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
-  };
+
+    navigation.navigate(Routes.PERPS.TPSL, {
+      asset: position.coin,
+      position,
+      initialTakeProfitPrice: position.takeProfitPrice,
+      initialStopLossPrice: position.stopLossPrice,
+      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
+        await handleUpdateTPSL(position, takeProfitPrice, stopLossPrice);
+      },
+    });
+  }, [
+    isEligible,
+    position,
+    navigation,
+    handleUpdateTPSL,
+    setIsEligibilityModalVisible,
+    setIsTPSLCountWarningVisible,
+  ]);
 
   const handleTpslCountPress = useCallback(async () => {
     if (isLoading || error) {
@@ -227,7 +235,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           return (
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {formatPerpsFiat(price, {
-                ranges: PRICE_RANGES_POSITION_VIEW,
+                ranges: PRICE_RANGES_UNIVERSAL,
               })}
             </Text>
           );
@@ -275,7 +283,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {price
             ? formatPerpsFiat(price, {
-                ranges: PRICE_RANGES_POSITION_VIEW,
+                ranges: PRICE_RANGES_UNIVERSAL,
               })
             : strings('perps.position.card.not_set')}
         </Text>
@@ -323,7 +331,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {position.coin} {position.leverage.value}x{' '}
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {direction}
+                  {direction === 'long'
+                    ? strings('perps.market.long_lowercase')
+                    : strings('perps.market.short_lowercase')}
                 </Text>
               </Text>
             </View>
@@ -337,9 +347,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerRight}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(position.positionValue, {
-                  minimumDecimals: 2,
-                  maximumDecimals: 2,
+                {formatPerpsFiat(position.positionValue, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
                 })}
               </Text>
             </View>
@@ -373,7 +382,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {formatPerpsFiat(position.entryPrice, {
-                    ranges: PRICE_RANGES_POSITION_VIEW,
+                    ranges: PRICE_RANGES_UNIVERSAL,
                   })}
                 </Text>
               </View>
@@ -387,7 +396,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.liquidationPrice
                     ? formatPerpsFiat(position.liquidationPrice, {
-                        ranges: PRICE_RANGES_POSITION_VIEW,
+                        ranges: PRICE_RANGES_UNIVERSAL,
                       })
                     : 'N/A'}
                 </Text>
@@ -491,71 +500,51 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </View>
         )}
       </TouchableOpacity>
-      {/* TP/SL Bottom Sheet - Wrapped in Modal to render from root */}
-      {isTPSLVisible && selectedPosition && (
-        <Modal visible transparent animationType="fade">
-          <PerpsTPSLBottomSheet
-            isVisible
-            onClose={() => {
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            onConfirm={async (takeProfitPrice, stopLossPrice) => {
-              await handleUpdateTPSL(
-                selectedPosition,
-                takeProfitPrice,
-                stopLossPrice,
-              );
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            asset={selectedPosition.coin}
-            position={selectedPosition}
-            initialTakeProfitPrice={selectedPosition.takeProfitPrice}
-            initialStopLossPrice={selectedPosition.stopLossPrice}
-            isUpdating={isUpdating}
-          />
-        </Modal>
-      )}
       {isTPSLCountWarningVisible && (
-        <Modal visible transparent animationType="fade">
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsTPSLCountWarningVisible(false)}
-            contentKey={'tpsl_count_warning'}
-            buttonConfig={[
-              {
-                label: strings(
-                  'perps.tooltips.tpsl_count_warning.got_it_button',
-                ),
-                onPress: () => setIsTPSLCountWarningVisible(false),
-                variant: ButtonVariants.Secondary,
-                size: ButtonSize.Lg,
-                testID:
-                  PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON,
-              },
-              {
-                label: strings(
-                  'perps.tooltips.tpsl_count_warning.view_orders_button',
-                ),
-                onPress: () => handleTpslCountPress(),
-                variant: ButtonVariants.Primary,
-                size: ButtonSize.Lg,
-                testID:
-                  PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON,
-              },
-            ]}
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsTPSLCountWarningVisible(false)}
+              contentKey={'tpsl_count_warning'}
+              buttonConfig={[
+                {
+                  label: strings(
+                    'perps.tooltips.tpsl_count_warning.got_it_button',
+                  ),
+                  onPress: () => setIsTPSLCountWarningVisible(false),
+                  variant: ButtonVariants.Secondary,
+                  size: ButtonSize.Lg,
+                  testID:
+                    PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON,
+                },
+                {
+                  label: strings(
+                    'perps.tooltips.tpsl_count_warning.view_orders_button',
+                  ),
+                  onPress: () => handleTpslCountPress(),
+                  variant: ButtonVariants.Primary,
+                  size: ButtonSize.Lg,
+                  testID:
+                    PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON,
+                },
+              ]}
+            />
+          </Modal>
+        </View>
       )}
       {isEligibilityModalVisible && (
-        <Modal visible transparent animationType="fade">
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsEligibilityModalVisible(false)}
-            contentKey={'geo_block'}
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+            />
+          </Modal>
+        </View>
       )}
     </>
   );

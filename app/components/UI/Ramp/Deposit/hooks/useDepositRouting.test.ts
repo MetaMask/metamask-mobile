@@ -2,11 +2,7 @@ import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import {
-  WIRE_TRANSFER_PAYMENT_METHOD,
-  KycStatus,
-  REDIRECTION_URL,
-} from '../constants';
+import { KycStatus, REDIRECTION_URL } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { endTrace } from '../../../../../util/trace';
@@ -38,7 +34,7 @@ let mockGetOrder = jest.fn().mockResolvedValue({
   id: 'order-id',
   walletAddress: '0x123',
   cryptoCurrency: 'USDC',
-  network: 'eip155:1',
+  network: { chainId: 'eip155:1', name: 'Ethereum' },
   fiatAmount: '100',
   cryptoAmount: '0.05',
   exchangeRate: '2000',
@@ -47,6 +43,13 @@ let mockGetOrder = jest.fn().mockResolvedValue({
   partnerFees: '2.50',
   paymentMethod: 'credit_debit_card',
   fiatCurrency: 'USD',
+});
+let mockGetUserLimits = jest.fn().mockResolvedValue({
+  exceeded: { 1: false, 30: false, 365: false },
+  limits: { 1: 300, 30: 1000, 365: 3000 },
+  remaining: { 1: 300, 30: 1000, 365: 3000 },
+  shortage: {},
+  spent: { 1: 0, 30: 0, 365: 0 },
 });
 
 const mockNavigate = jest.fn();
@@ -82,45 +85,85 @@ const verifyPopToBuildQuoteCalled = () => {
   );
 };
 
+const wrapParams = (customParams: unknown[], params: unknown[]) =>
+  customParams.length > 0 ? customParams : params;
+
 jest.mock('./useDepositSdkMethod', () => ({
-  useDepositSdkMethod: jest.fn((config) => {
+  useDepositSdkMethod: jest.fn((config, ...params) => {
     if (config?.method === 'getKycRequirement') {
-      return [mockUseDepositSdkMethodInitialState, mockGetKycRequirement];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockGetKycRequirement(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'getAdditionalRequirements') {
       return [
         mockUseDepositSdkMethodInitialState,
-        mockGetAdditionalRequirements,
+        (...customParams: unknown[]) =>
+          mockGetAdditionalRequirements(...wrapParams(customParams, params)),
       ];
     }
     if (config?.method === 'getUserDetails') {
-      return [mockUseDepositSdkMethodInitialState, mockFetchUserDetails];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockFetchUserDetails(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'createOrder') {
-      return [mockUseDepositSdkMethodInitialState, mockCreateOrder];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockCreateOrder(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'submitPurposeOfUsageForm') {
-      return [mockUseDepositSdkMethodInitialState, mockSubmitPurposeOfUsage];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockSubmitPurposeOfUsage(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'requestOtt') {
-      return [mockUseDepositSdkMethodInitialState, mockRequestOtt];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockRequestOtt(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'generatePaymentWidgetUrl') {
-      return [mockUseDepositSdkMethodInitialState, mockGeneratePaymentUrl];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockGeneratePaymentUrl(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'getOrder') {
-      return [mockUseDepositSdkMethodInitialState, mockGetOrder];
+      const wrappedGetOrder = (...customParams: unknown[]) =>
+        mockGetOrder(...wrapParams(customParams, params));
+      return [mockUseDepositSdkMethodInitialState, wrappedGetOrder];
+    }
+    if (config?.method === 'getUserLimits') {
+      const wrappedGetUserLimits = (...customParams: unknown[]) =>
+        mockGetUserLimits(...wrapParams(customParams, params));
+      return [mockUseDepositSdkMethodInitialState, wrappedGetUserLimits];
     }
     return [mockUseDepositSdkMethodInitialState, jest.fn()];
   }),
 }));
 
 const mockLogoutFromProvider = jest.fn();
-const mockSelectedRegion = { isoCode: 'US' };
+const mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
+let mockSelectedPaymentMethod = {
+  isManualBankTransfer: false,
+  id: 'credit_debit_card',
+};
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
     selectedRegion: mockSelectedRegion,
+    selectedPaymentMethod: mockSelectedPaymentMethod,
     logoutFromProvider: mockLogoutFromProvider,
     selectedWalletAddress: '0x123',
   })),
@@ -175,6 +218,11 @@ describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockSelectedPaymentMethod = {
+      isManualBankTransfer: false,
+      id: 'credit_debit_card',
+    };
+
     mockGetKycRequirement = jest.fn().mockResolvedValue({ status: 'APPROVED' });
     mockGetAdditionalRequirements = jest
       .fn()
@@ -192,9 +240,16 @@ describe('useDepositRouting', () => {
       id: 'order-id',
       walletAddress: '0x123',
       cryptoCurrency: 'USDC',
-      network: 'ethereum',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       networkFees: '5.99',
       partnerFees: '5.99',
+    });
+    mockGetUserLimits = jest.fn().mockResolvedValue({
+      exceeded: { 1: false, 30: false, 365: false },
+      limits: { 1: 300, 30: 1000, 365: 3000 },
+      remaining: { 1: 300, 30: 1000, 365: 3000 },
+      shortage: {},
+      spent: { 1: 0, 30: 0, 365: 0 },
     });
 
     mockUseHandleNewOrder.mockReturnValue(
@@ -220,12 +275,7 @@ describe('useDepositRouting', () => {
   });
 
   it('should create the hook with correct parameters', () => {
-    const mockParams = {
-      cryptoCurrencyChainId: 'eip155:1',
-      paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
-    };
-
-    const { result } = renderHook(() => useDepositRouting(mockParams));
+    const { result } = renderHook(() => useDepositRouting());
 
     expect(result.current.routeAfterAuthentication).toBeDefined();
     expect(result.current.navigateToKycWebview).toBeDefined();
@@ -237,13 +287,14 @@ describe('useDepositRouting', () => {
 
   describe('Manual bank transfer payment method routing', () => {
     it('should navigate to BankDetails when manual bank transfer payment method is used and KYC is approved', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
       };
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -254,7 +305,7 @@ describe('useDepositRouting', () => {
       expect(mockCreateOrder).toHaveBeenCalledWith(
         mockQuote,
         '0x123',
-        WIRE_TRANSFER_PAYMENT_METHOD.id,
+        'sepa_bank_transfer',
       );
 
       expect(mockReset).toHaveBeenCalledWith({
@@ -269,15 +320,15 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when manual bank transfer createOrder fails', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
+      };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -285,15 +336,11 @@ describe('useDepositRouting', () => {
     });
   });
 
-  describe('Non-SEPA payment method routing', () => {
-    it('should navigate to WebviewModal when non-SEPA payment method is used and KYC is approved', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+  describe('Non-manual bank transfer payment method routing', () => {
+    it('should navigate to WebviewModal when non-manual bank transfer payment method is used and KYC is approved', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -326,16 +373,12 @@ describe('useDepositRouting', () => {
     });
 
     it('should call endTrace for both DepositContinueFlow and DepositInputOtp when navigating to WebviewModal', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
       mockEndTrace.mockClear();
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -360,18 +403,14 @@ describe('useDepositRouting', () => {
 
   describe('KYC forms routing', () => {
     it('should navigate to BasicInfo when personalDetails form is not submitted', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -387,18 +426,14 @@ describe('useDepositRouting', () => {
     });
 
     it('should navigate to BasicInfo when address form is not submitted', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -414,18 +449,14 @@ describe('useDepositRouting', () => {
     });
 
     it('should navigate to BasicInfo when SSN form is not submitted for US user', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -441,11 +472,7 @@ describe('useDepositRouting', () => {
     });
 
     it('should auto-submit purpose of usage form when it is not submitted', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest
         .fn()
@@ -464,7 +491,7 @@ describe('useDepositRouting', () => {
         formsRequired: [{ type: 'PURPOSE_OF_USAGE' }],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -487,11 +514,7 @@ describe('useDepositRouting', () => {
     });
 
     it('should navigate to AdditionalVerification when idProof form is not submitted', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -509,7 +532,7 @@ describe('useDepositRouting', () => {
         ],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -525,17 +548,11 @@ describe('useDepositRouting', () => {
         quote: mockQuote,
         kycUrl: 'test-kyc-url',
         workFlowRunId: 'test-workflow-run-id',
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
       });
     });
 
     it('should throw error when idProof form is not submitted but no form data is returned', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -545,7 +562,7 @@ describe('useDepositRouting', () => {
         formsRequired: [{ type: 'IDPROOF' }],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -553,11 +570,7 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when all forms are submitted but no clear next step exists', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -567,7 +580,7 @@ describe('useDepositRouting', () => {
         formsRequired: [],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -580,18 +593,14 @@ describe('useDepositRouting', () => {
     });
 
     it('should not auto-submit purpose of usage form when it is already submitted', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -606,13 +615,8 @@ describe('useDepositRouting', () => {
     });
 
     it('should not auto-submit purpose of usage form when depth limit is exceeded', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      // Always return the unsubmitted form, so recursion hits the depth limit
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
       });
@@ -621,31 +625,26 @@ describe('useDepositRouting', () => {
         formsRequired: [{ type: 'PURPOSE_OF_USAGE' }],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      // The function should log an error but not throw
       expect(mockSubmitPurposeOfUsage).toHaveBeenCalledTimes(5);
     });
   });
 
   describe('KYC status handling', () => {
     it('should navigate to KycProcessing when KYC is not approved', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const success = await result.current.routeAfterAuthentication(mockQuote);
 
@@ -661,30 +660,23 @@ describe('useDepositRouting', () => {
 
   describe('Error handling', () => {
     it('should throw error when user details are missing', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
       mockFetchUserDetails = jest.fn().mockResolvedValue(null);
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
       ).rejects.toThrow('Missing user details');
     });
 
     it('should throw error when KYC forms fetch fails', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest
         .fn()
         .mockRejectedValue(new Error('KYC forms fetch failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -692,15 +684,11 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when payment URL generation fails', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGeneratePaymentUrl = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -708,15 +696,11 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when OTT token request fails', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockRequestOtt = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -724,15 +708,15 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when createOrder fails for manual bank transfer flow', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
+      };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -740,17 +724,17 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when createOrder throws for manual bank transfer flow', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
+      };
       mockCreateOrder = jest
         .fn()
         .mockRejectedValue(new Error('Order creation failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -758,17 +742,13 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when requestOtt throws for non-manual bank transfer flow', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockRequestOtt = jest
         .fn()
         .mockRejectedValue(new Error('OTT request failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -776,17 +756,13 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when generatePaymentUrl throws for non-manual bank transfer flow', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGeneratePaymentUrl = jest
         .fn()
         .mockRejectedValue(new Error('Payment URL generation failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -794,17 +770,13 @@ describe('useDepositRouting', () => {
     });
 
     it('should throw error when fetchUserDetails throws', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockFetchUserDetails = jest
         .fn()
         .mockRejectedValue(new Error('User details fetch failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -814,18 +786,14 @@ describe('useDepositRouting', () => {
 
   describe('401 Unauthorized handling', () => {
     it('navigates to Login when user is unauthorized', async () => {
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
       mockGetKycRequirement = jest.fn().mockImplementation(() => {
         const error = new Error('Unauthorized');
         (error as AxiosError).status = 401;
         throw error;
       });
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
       await result.current.routeAfterAuthentication(mockQuote);
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
 
@@ -838,16 +806,13 @@ describe('useDepositRouting', () => {
 
   describe('handleNavigationStateChange', () => {
     it('processes order and navigates when URL contains orderId', async () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      // Set payment method to non-manual bank transfer
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
       const navigateCall = mockNavigate.mock.calls.find(
@@ -871,32 +836,28 @@ describe('useDepositRouting', () => {
     });
 
     it('tracks RAMPS_TRANSACTION_CONFIRMED event when order is processed successfully', async () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
       const testOrder = {
         id: 'order-id',
         walletAddress: '0x123',
-        cryptoCurrency: 'USDC',
-        network: 'ethereum',
+        cryptoCurrency: { assetId: 'USDC' },
+        network: { chainId: 'eip155:1', name: 'Ethereum' },
         fiatAmount: '100',
         cryptoAmount: '0.05',
         exchangeRate: '2000',
         totalFeesFiat: '2.50',
         networkFees: '0',
         partnerFees: '0',
-        paymentMethod: 'credit_debit_card',
+        paymentMethod: { id: 'credit_debit_card' },
         fiatCurrency: 'USD',
       };
       mockGetOrder.mockResolvedValue(testOrder);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
       const navigateCall = mockNavigate.mock.calls.find(
@@ -925,26 +886,21 @@ describe('useDepositRouting', () => {
           payment_method_id: 'credit_debit_card',
           country: 'US',
           chain_id: 'eip155:1',
-          currency_destination:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_destination: 'USDC',
           currency_source: 'USD',
         },
       );
     });
 
     it('does not track analytics when order processing fails', async () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest
         .fn()
         .mockRejectedValue(new Error('Processing failed'));
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
       const navigateCall = mockNavigate.mock.calls.find(
@@ -968,14 +924,9 @@ describe('useDepositRouting', () => {
     });
 
     it('does nothing when URL does not start with REDIRECTION_URL', async () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const { result } = renderHook(() => useDepositRouting());
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
-
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
       const navigateCall = mockNavigate.mock.calls.find(
@@ -997,14 +948,9 @@ describe('useDepositRouting', () => {
     });
 
     it('does nothing when REDIRECTION_URL has no orderId', async () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const { result } = renderHook(() => useDepositRouting());
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
-
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
       const navigateCall = mockNavigate.mock.calls.find(
@@ -1024,18 +970,14 @@ describe('useDepositRouting', () => {
     });
 
     it('handles error when getOrder fails', async () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
       mockGetOrder = jest.fn().mockRejectedValue(new Error('Get order failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
       const navigateCall = mockNavigate.mock.calls.find(
@@ -1059,18 +1001,14 @@ describe('useDepositRouting', () => {
     });
 
     it('handles error when getOrder returns null', async () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
       mockGetOrder = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
-      const mockQuote = {} as BuyQuote;
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
       const navigateCall = mockNavigate.mock.calls.find(
@@ -1096,32 +1034,22 @@ describe('useDepositRouting', () => {
 
   describe('Navigation callback methods', () => {
     it('should call popToBuildQuote before navigating in navigateToVerifyIdentity', () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       result.current.navigateToVerifyIdentity({ quote: mockQuote });
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('VerifyIdentity', {
         quote: mockQuote,
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
       });
     });
 
     it('should call popToBuildQuote before navigating in navigateToKycWebview', () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       result.current.navigateToKycWebview({
         quote: mockQuote,
@@ -1136,8 +1064,6 @@ describe('useDepositRouting', () => {
           quote: mockQuote,
           sourceUrl: 'test-url',
           workFlowRunId: 'test-workflow-id',
-          cryptoCurrencyChainId: 'eip155:1',
-          paymentMethodId: 'credit_debit_card',
         },
       });
     });
@@ -1145,18 +1071,14 @@ describe('useDepositRouting', () => {
 
   describe('Analytics tracking', () => {
     it('tracks RAMPS_KYC_STARTED event when personalDetails form is required', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -1170,23 +1092,210 @@ describe('useDepositRouting', () => {
     });
 
     it('does not track analytics event when no KYC forms are required', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'APPROVED',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('User limits checking', () => {
+    it('should check user limits and proceed when within limits', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        'credit_debit_card',
+        'SIMPLE',
+      );
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalled();
+    });
+
+    it('should pass real kycType from requirements to getUserLimits', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'STANDARD',
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        'credit_debit_card',
+        'STANDARD',
+      );
+    });
+
+    it('should throw error when deposit exceeds daily limit', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 150,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 100, 30: 1000, 365: 3000 },
+        remaining: { 1: 100, 30: 1000, 365: 3000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow(/daily.*100.*USD/);
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when deposit exceeds monthly limit', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 600,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 1000, 30: 500, 365: 3000 },
+        remaining: { 1: 1000, 30: 500, 365: 3000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow(/monthly.*500.*USD/);
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when deposit exceeds yearly limit', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 1100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 2000, 30: 5000, 365: 1000 },
+        remaining: { 1: 2000, 30: 5000, 365: 1000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow(/yearly.*1000.*USD/);
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when getUserLimits returns null', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue(null);
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Failed to check your deposit limits');
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when any limit value is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 300, 365: 3000 },
+        remaining: { 1: 300, 365: 3000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Failed to check your deposit limits');
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
     });
   });
 });

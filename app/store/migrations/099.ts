@@ -1,13 +1,11 @@
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import { isObject } from '@metamask/utils';
-import { BridgeStatusControllerState } from '@metamask/bridge-status-controller';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import StorageWrapper from '../storage-wrapper';
 
 /**
- * Migration: Update bridge txHistory for solana to use txHash as key and txMetaId
+ * Migration: Remove SOLANA_FEATURE_MODAL_SHOWN from Storage
  */
-const migration = (state: unknown) => {
+const migration = async (state: unknown): Promise<unknown> => {
   const migrationVersion = 99;
 
   // Ensure the state is valid for migration
@@ -16,44 +14,12 @@ const migration = (state: unknown) => {
   }
 
   try {
-    const bridgeStatusControllerState =
-      state.engine.backgroundState.BridgeStatusController;
-
-    if (!isObject(bridgeStatusControllerState)) {
-      return state;
-    }
-
-    if (!isObject(bridgeStatusControllerState.txHistory)) {
-      return state;
-    }
-
-    const { txHistory } =
-      bridgeStatusControllerState as BridgeStatusControllerState;
-
-    if (!isObject(txHistory)) {
-      return state;
-    }
-
-    Object.entries(txHistory).forEach(([key, historyItem]) => {
-      const srcChainId =
-        historyItem.status?.srcChain?.chainId ?? historyItem.quote?.srcChainId;
-      const isSolanaTx = isSolanaChainId(srcChainId);
-      const newId = historyItem.status?.srcChain?.txHash;
-      // If solana tx, use the src chain tx hash as the key and txMetaId
-      if (isSolanaTx && newId && newId !== key) {
-        txHistory[newId] = {
-          ...historyItem,
-          txMetaId: newId,
-        };
-        delete txHistory[key];
-      }
-    });
-
+    await StorageWrapper.removeItem('SOLANA_FEATURE_MODAL_SHOWN');
     return state;
   } catch (error) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Failed to update bridge txHistory for solana to use txHash as key and txMetaId. Error: ${error}`,
+        `Migration ${migrationVersion}: Failed to remove SOLANA_FEATURE_MODAL_SHOWN from Storage. Error: ${error}`,
       ),
     );
     return state;

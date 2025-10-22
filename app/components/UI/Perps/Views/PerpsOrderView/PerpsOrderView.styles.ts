@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -25,7 +25,6 @@ const createStyles = (colors: Colors) =>
       borderTopColor: colors.border.muted,
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     },
     sliderSection: {
       paddingHorizontal: 32,
@@ -99,6 +98,9 @@ const createStyles = (colors: Colors) =>
     keypad: {
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
+    },
+    pointsRightContainer: {
+      alignItems: 'flex-end',
     },
   });
 export default createStyles;

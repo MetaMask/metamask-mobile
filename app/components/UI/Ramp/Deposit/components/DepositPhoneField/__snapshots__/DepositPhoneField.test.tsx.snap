@@ -139,7 +139,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="123 456 7890"
+        placeholder="30 12345678"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -153,7 +153,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -304,7 +305,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="123 456 7890"
+        placeholder="30 12345678"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -318,7 +319,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -469,7 +471,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="(555) 555-1234"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -483,7 +485,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -634,7 +637,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="123 456 7890"
+        placeholder="30 12345678"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -648,7 +651,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -799,7 +803,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="(555) 555-1234"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -813,7 +817,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -959,7 +964,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             }
           }
         >
-          +999
+          +1
         </Text>
       </TouchableOpacity>
     </View>
@@ -979,7 +984,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="123 456 789"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -993,12 +998,13 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
         textContentType="telephoneNumber"
-        value="155512345678901234"
+        value="55512345678901234"
       />
     </View>
   </View>
@@ -1145,7 +1151,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
-        placeholder="123 456 7890"
+        placeholder="30 12345678"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -1159,7 +1165,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -1290,7 +1297,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             }
           }
         >
-          +999
+          +1
         </Text>
       </TouchableOpacity>
     </View>
@@ -1310,7 +1317,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="123 456 789"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -1324,12 +1331,13 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
         textContentType="telephoneNumber"
-        value="15551234567"
+        value="5551234567"
       />
     </View>
   </View>
@@ -1455,7 +1463,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             }
           }
         >
-          +999
+          +1
         </Text>
       </TouchableOpacity>
     </View>
@@ -1475,7 +1483,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="123 456 789"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -1489,7 +1497,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
@@ -1640,7 +1649,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
-        placeholder="(555) 555-1234"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {
@@ -1654,12 +1663,13 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"
         textContentType="telephoneNumber"
-        value="(555) 123-4567"
+        value="5551234567"
       />
     </View>
   </View>

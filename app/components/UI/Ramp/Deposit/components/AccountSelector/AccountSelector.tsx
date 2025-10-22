@@ -9,9 +9,8 @@ import Avatar, {
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useAccountName } from '../../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { createAddressSelectorNavDetails } from '../../../../../Views/AddressSelector/AddressSelector';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import Icon, {
   IconName,
@@ -20,6 +19,7 @@ import Icon, {
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import stylesheet from './AccountSelector.styles';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
 
 interface AccountSelectorProps {
   isEvmOnly?: boolean;
@@ -32,19 +32,15 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const accountName = useAccountName();
+  const accountName = useAccountGroupName();
   const { styles, theme } = useStyles(stylesheet, {});
 
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  const selectedFormattedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-
   const openAccountSelector = useCallback(
     () =>
       navigation.navigate(
-        ...createAddressSelectorNavDetails({
+        ...createAccountSelectorNavDetails({
           disablePrivacyMode: true,
           isEvmOnly,
         }),
@@ -58,7 +54,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
     >
-      {selectedAddress && selectedFormattedAddress ? (
+      {selectedAddress ? (
         <>
           <Avatar
             variant={AvatarVariant.Account}

@@ -3,7 +3,7 @@ import {
   InfoClient,
   SubscriptionClient,
   WebSocketTransport,
-} from '@deeeed/hyperliquid-node20';
+} from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   getWebSocketEndpoint,
@@ -11,9 +11,12 @@ import {
 } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
 import { strings } from '../../../../../locales/i18n';
-import type { CandleData } from '../types';
+import type { CandleData } from '../types/perps-types';
 
 import { CandlePeriod } from '../constants/chartConfig';
+import { ensureError } from '../utils/perpsErrorHandler';
+import Logger from '../../../../util/Logger';
+import { Hex } from '@metamask/utils';
 
 /**
  * Valid time intervals for historical candle data
@@ -22,15 +25,28 @@ import { CandlePeriod } from '../constants/chartConfig';
 export type ValidCandleInterval = CandlePeriod;
 
 /**
+ * Connection states for WebSocket management
+ */
+export enum WebSocketConnectionState {
+  DISCONNECTED = 'disconnected',
+  CONNECTING = 'connecting',
+  CONNECTED = 'connected',
+  DISCONNECTING = 'disconnecting',
+}
+
+/**
  * Service for managing HyperLiquid SDK clients
  * Handles initialization, transport creation, and client lifecycle
  */
 export class HyperLiquidClientService {
   private exchangeClient?: ExchangeClient;
   private infoClient?: InfoClient;
-  private subscriptionClient?: SubscriptionClient;
+  private subscriptionClient?: SubscriptionClient<WebSocketTransport>;
   private transport?: WebSocketTransport;
   private isTestnet: boolean;
+  private connectionState: WebSocketConnectionState =
+    WebSocketConnectionState.DISCONNECTED;
+  private disconnectionPromise: Promise<void> | null = null;
 
   constructor(options: { isTestnet?: boolean } = {}) {
     this.isTestnet = options.isTestnet || false;
@@ -40,15 +56,29 @@ export class HyperLiquidClientService {
    * Initialize all HyperLiquid SDK clients
    */
   public initialize(wallet: {
-    request: (args: { method: string; params: unknown[] }) => Promise<unknown>;
+    signTypedData: (params: {
+      domain: {
+        name: string;
+        version: string;
+        chainId: number;
+        verifyingContract: Hex;
+      };
+      types: {
+        [key: string]: { name: string; type: string }[];
+      };
+      primaryType: string;
+      message: Record<string, unknown>;
+    }) => Promise<Hex>;
+    getChainId?: () => Promise<number>;
   }): void {
     try {
+      this.connectionState = WebSocketConnectionState.CONNECTING;
       this.transport = this.createTransport();
 
+      // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
       this.exchangeClient = new ExchangeClient({
-        wallet,
+        wallet: wallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
         transport: this.transport,
-        isTestnet: this.isTestnet,
       });
 
       this.infoClient = new InfoClient({ transport: this.transport });
@@ -56,12 +86,16 @@ export class HyperLiquidClientService {
         transport: this.transport,
       });
 
+      this.connectionState = WebSocketConnectionState.CONNECTED;
+
       DevLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.isTestnet,
         endpoint: getWebSocketEndpoint(this.isTestnet),
         timestamp: new Date().toISOString(),
+        connectionState: this.connectionState,
       });
     } catch (error) {
+      this.connectionState = WebSocketConnectionState.DISCONNECTED;
       DevLogger.log('Failed to initialize HyperLiquid SDK clients:', error);
       throw error;
     }
@@ -82,6 +116,9 @@ export class HyperLiquidClientService {
     return new WebSocketTransport({
       url: wsUrl,
       ...HYPERLIQUID_TRANSPORT_CONFIG,
+      reconnect: {
+        WebSocket, // Use React Native's global WebSocket
+      },
     });
   }
 
@@ -89,7 +126,20 @@ export class HyperLiquidClientService {
    * Toggle testnet mode and reinitialize clients
    */
   public async toggleTestnet(wallet: {
-    request: (args: { method: string; params: unknown[] }) => Promise<unknown>;
+    signTypedData: (params: {
+      domain: {
+        name: string;
+        version: string;
+        chainId: number;
+        verifyingContract: Hex;
+      };
+      types: {
+        [key: string]: { name: string; type: string }[];
+      };
+      primaryType: string;
+      message: Record<string, unknown>;
+    }) => Promise<Hex>;
+    getChainId?: () => Promise<number>;
   }): Promise<HyperLiquidNetwork> {
     this.isTestnet = !this.isTestnet;
     this.initialize(wallet);
@@ -120,7 +170,20 @@ export class HyperLiquidClientService {
    * Recreate subscription client if needed (for reconnection scenarios)
    */
   public ensureSubscriptionClient(wallet: {
-    request: (args: { method: string; params: unknown[] }) => Promise<unknown>;
+    signTypedData: (params: {
+      domain: {
+        name: string;
+        version: string;
+        chainId: number;
+        verifyingContract: Hex;
+      };
+      types: {
+        [key: string]: { name: string; type: string }[];
+      };
+      primaryType: string;
+      message: Record<string, unknown>;
+    }) => Promise<Hex>;
+    getChainId?: () => Promise<number>;
   }): void {
     if (!this.subscriptionClient) {
       DevLogger.log(
@@ -155,7 +218,9 @@ export class HyperLiquidClientService {
   /**
    * Get the subscription client
    */
-  public getSubscriptionClient(): SubscriptionClient | undefined {
+  public getSubscriptionClient():
+    | SubscriptionClient<WebSocketTransport>
+    | undefined {
     if (!this.subscriptionClient) {
       DevLogger.log('SubscriptionClient not initialized');
       return undefined;
@@ -270,30 +335,47 @@ export class HyperLiquidClientService {
    * Disconnect and cleanup all clients
    */
   public async disconnect(): Promise<void> {
+    // Return existing promise if already disconnecting
+    if (this.disconnectionPromise) {
+      return this.disconnectionPromise;
+    }
+
+    // If already disconnected, return immediately
+    if (this.connectionState === WebSocketConnectionState.DISCONNECTED) {
+      return;
+    }
+
+    // Create and store the disconnection promise
+    this.disconnectionPromise = this.performDisconnection();
+
     try {
+      await this.disconnectionPromise;
+    } finally {
+      this.disconnectionPromise = null;
+    }
+  }
+
+  private async performDisconnection(): Promise<void> {
+    try {
+      this.connectionState = WebSocketConnectionState.DISCONNECTING;
+
       DevLogger.log('HyperLiquid: Disconnecting SDK clients', {
         isTestnet: this.isTestnet,
         endpoint: getWebSocketEndpoint(this.isTestnet),
         timestamp: new Date().toISOString(),
+        connectionState: this.connectionState,
       });
 
-      // Properly close the WebSocket connection using SDK's AsyncDisposable
-      if (this.subscriptionClient) {
+      // Close the WebSocket connection via transport
+      if (this.transport) {
         try {
-          await this.subscriptionClient[Symbol.asyncDispose]();
-          DevLogger.log(
-            'HyperLiquid: Properly closed WebSocket connection via asyncDispose',
-            {
-              timestamp: new Date().toISOString(),
-            },
-          );
-        } catch (error) {
-          DevLogger.log('HyperLiquid: Error closing WebSocket connection', {
-            error:
-              error instanceof Error
-                ? error.message
-                : strings('perps.errors.unknownError'),
+          await this.transport.close();
+          DevLogger.log('HyperLiquid: Closed WebSocket transport', {
             timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          Logger.error(ensureError(error), {
+            context: 'HyperLiquidClientService.performDisconnection',
           });
         }
       }
@@ -304,12 +386,32 @@ export class HyperLiquidClientService {
       this.infoClient = undefined;
       this.transport = undefined;
 
+      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+
       DevLogger.log('HyperLiquid: SDK clients fully disconnected', {
         timestamp: new Date().toISOString(),
+        connectionState: this.connectionState,
       });
     } catch (error) {
-      DevLogger.log('HyperLiquid: Error during client disconnect:', error);
+      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+      Logger.error(ensureError(error), {
+        context: 'HyperLiquidClientService.performDisconnection',
+      });
       throw error;
     }
+  }
+
+  /**
+   * Get current WebSocket connection state
+   */
+  public getConnectionState(): WebSocketConnectionState {
+    return this.connectionState;
+  }
+
+  /**
+   * Check if WebSocket is fully disconnected
+   */
+  public isDisconnected(): boolean {
+    return this.connectionState === WebSocketConnectionState.DISCONNECTED;
   }
 }

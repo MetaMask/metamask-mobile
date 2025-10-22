@@ -8,8 +8,7 @@ export type {
   RewardsDataServiceMessenger,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
-  RewardsDataServiceGenerateChallengeAction,
-  RewardsDataServiceOptinAction,
+  RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
   RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
@@ -17,6 +16,7 @@ export type {
   RewardsDataServiceGetOptInStatusAction,
   RewardsDataServiceOptOutAction,
   RewardsDataServiceGetUnlockedRewardsAction,
+  RewardsDataServiceClaimRewardAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

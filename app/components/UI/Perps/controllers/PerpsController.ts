@@ -15,20 +15,35 @@ import {
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
+import type { Span } from '@sentry/core';
+import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import { generateTransferData } from '../../../../util/transactions';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import {
   trace,
   endTrace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import type { CandleData } from '../types';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
+import { ensureError } from '../utils/perpsErrorHandler';
+import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
+import {
+  DATA_LAKE_API_CONFIG,
+  PERPS_CONSTANTS,
+} from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -69,33 +84,22 @@ import type {
   HistoricalPortfolioResult,
 } from './types';
 import { getEnvironment } from './utils';
-import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
-import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.d.cts';
+import type {
+  RemoteFeatureFlagControllerState,
+  RemoteFeatureFlagControllerStateChangeEvent,
+  RemoteFeatureFlagControllerGetStateAction,
+} from '@metamask/remote-feature-flag-controller';
 
-/**
- * Error codes for PerpsController
- * These codes are returned to the UI layer for translation
- */
-export const PERPS_ERROR_CODES = {
-  CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
-  CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
-  PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
-  TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
-  BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
-  WITHDRAW_FAILED: 'WITHDRAW_FAILED',
-  POSITIONS_FAILED: 'POSITIONS_FAILED',
-  ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
-  MARKETS_FAILED: 'MARKETS_FAILED',
-  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-  // Provider-agnostic order errors
-  ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
-} as const;
+// Simple wait utility
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
-export type PerpsErrorCode =
-  (typeof PERPS_ERROR_CODES)[keyof typeof PERPS_ERROR_CODES];
+// Re-export error codes from separate file to avoid circular dependencies
+export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
 
 const ON_RAMP_GEO_BLOCKING_URLS = {
-  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  // Use UAT endpoint since DEV endpoint is less reliable.
+  DEV: 'https://on-ramp.uat-api.cx.metamask.io/geolocation',
   PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
 };
 
@@ -113,10 +117,12 @@ export type PerpsControllerState = {
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Account data (persisted) - using HyperLiquid property names
-  positions: Position[];
   accountState: AccountState | null;
 
-  // Perps balances per provider for portfolio display
+  // Current positions
+  positions: Position[];
+
+  // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
     [provider: string]: {
       totalValue: string; // Current total account value (cash + positions) in USD
@@ -126,12 +132,11 @@ export type PerpsControllerState = {
     };
   };
 
-  // Order management
-  pendingOrders: OrderParams[];
+  // Order management (trackingData never stored, only used for analytics)
+  pendingOrders: Omit<OrderParams, 'trackingData'>[];
 
   // Simple deposit state (transient, for UI feedback)
   depositInProgress: boolean;
-  // TODO: Update tests
   // Internal transaction id for the deposit transaction
   // We use this to fetch the bridge quotes and get the estimated time.
   lastDepositTransactionId: string | null;
@@ -177,8 +182,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: __DEV__, // Default to testnet in dev
   connectionStatus: 'disconnected',
-  positions: [],
   accountState: null,
+  positions: [],
   perpsBalances: {},
   pendingOrders: [],
   depositInProgress: false,
@@ -203,15 +208,15 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
  * State metadata for the PerpsController
  */
 const metadata = {
-  positions: {
+  accountState: {
     includeInStateLogs: true,
     persist: true,
     anonymous: false,
     usedInUi: true,
   },
-  accountState: {
+  positions: {
     includeInStateLogs: true,
-    persist: true,
+    persist: false,
     anonymous: false,
     usedInUi: true,
   },
@@ -409,7 +414,8 @@ export type PerpsControllerActions =
  */
 export type AllowedActions =
   | NetworkControllerGetStateAction
-  | AuthenticationController.AuthenticationControllerGetBearerToken;
+  | AuthenticationController.AuthenticationControllerGetBearerToken
+  | RemoteFeatureFlagControllerGetStateAction;
 
 /**
  * External events the PerpsController can subscribe to
@@ -492,7 +498,31 @@ export class PerpsController extends BaseController<
       'fallback',
     );
 
-    // RemoteFeatureFlagController state is empty by default so we must wait for it to be populated.
+    /**
+     * Immediately read current state to catch any flags already loaded
+     * This is necessary to avoid race conditions where the RemoteFeatureFlagController fetches flags
+     * before the PerpsController initializes its RemoteFeatureFlagController subscription.
+     *
+     * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
+     */
+    try {
+      const currentRemoteFeatureFlagState = this.messagingSystem.call(
+        'RemoteFeatureFlagController:getState',
+      );
+
+      this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
+    } catch (error) {
+      // If we can't read the remote feature flags at construction time, we'll rely on:
+      // 1. The fallback blocked regions already set above
+      // 2. The subscription to catch updates when RemoteFeatureFlagController is ready
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('constructor', {
+          operation: 'readRemoteFeatureFlags',
+        }),
+      );
+    }
+
     this.messagingSystem.subscribe(
       'RemoteFeatureFlagController:stateChange',
       this.refreshEligibilityOnFeatureFlagChange.bind(this),
@@ -501,13 +531,7 @@ export class PerpsController extends BaseController<
     this.providers = new Map();
 
     this.initializeProviders().catch((error) => {
-      DevLogger.log('PerpsController: Error initializing providers', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(ensureError(error), this.getErrorContext('constructor'));
     });
   }
 
@@ -523,7 +547,12 @@ export class PerpsController extends BaseController<
       };
     }
 
-    this.refreshEligibility();
+    this.refreshEligibility().catch((error) => {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('setBlockedRegionList', { source }),
+      );
+    });
   }
 
   /**
@@ -536,8 +565,9 @@ export class PerpsController extends BaseController<
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
     const perpsGeoBlockedRegionsFeatureFlag =
+      // NOTE: Do not use perpsPerpTradingGeoBlockedCountries as it is deprecated.
       remoteFeatureFlagControllerState.remoteFeatureFlags
-        ?.perpsPerpTradingGeoBlockedCountries;
+        ?.perpsPerpTradingGeoBlockedCountriesV2;
 
     const remoteBlockedRegions = (
       perpsGeoBlockedRegionsFeatureFlag as { blockedRegions?: string[] }
@@ -545,6 +575,131 @@ export class PerpsController extends BaseController<
 
     if (Array.isArray(remoteBlockedRegions)) {
       this.setBlockedRegionList(remoteBlockedRegions, 'remote');
+    }
+  }
+
+  /**
+   * Calculate user fee discount from RewardsController
+   * Used to apply MetaMask reward discounts to trading fees
+   * @param parentSpan - Optional parent span to attach measurement to (for order traces)
+   * @returns Fee discount in basis points (e.g., 550 for 5.5% off) or undefined if no discount
+   * @private
+   */
+  private async calculateUserFeeDiscount(
+    parentSpan?: Span,
+  ): Promise<number | undefined> {
+    // Only create standalone trace if no parent span provided
+    const traceId = parentSpan ? undefined : uuidv4();
+    let traceData: Record<string, string | number | boolean> | undefined;
+
+    try {
+      // Start standalone trace only if no parent span
+      const traceSpan =
+        parentSpan ||
+        (traceId
+          ? trace({
+              name: TraceName.PerpsRewardsAPICall,
+              id: traceId,
+              op: TraceOperation.PerpsOperation,
+            })
+          : undefined);
+
+      const { RewardsController, NetworkController } = Engine.context;
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
+
+      if (!evmAccount) {
+        DevLogger.log('PerpsController: No EVM account found for fee discount');
+        return undefined;
+      }
+
+      // Get the chain ID using proper NetworkController method
+      const networkState = this.messagingSystem.call(
+        'NetworkController:getState',
+      );
+      const selectedNetworkClientId = networkState.selectedNetworkClientId;
+      const networkClient = NetworkController.getNetworkClientById(
+        selectedNetworkClientId,
+      );
+      const chainId = networkClient?.configuration?.chainId;
+
+      if (!chainId) {
+        Logger.error(
+          new Error('Chain ID not found for fee discount calculation'),
+          this.getErrorContext('calculateUserFeeDiscount', {
+            selectedNetworkClientId,
+            networkClientExists: !!networkClient,
+          }),
+        );
+        return undefined;
+      }
+
+      const caipAccountId = formatAccountToCaipAccountId(
+        evmAccount.address,
+        chainId,
+      );
+
+      if (!caipAccountId) {
+        Logger.error(
+          new Error('Failed to format CAIP account ID for fee discount'),
+          this.getErrorContext('calculateUserFeeDiscount', {
+            address: evmAccount.address,
+            chainId,
+            selectedNetworkClientId,
+          }),
+        );
+        return undefined;
+      }
+
+      const orderExecutionFeeDiscountStartTime = performance.now();
+      const discountBips = await RewardsController.getPerpsDiscountForAccount(
+        caipAccountId,
+      );
+      const orderExecutionFeeDiscountDuration =
+        performance.now() - orderExecutionFeeDiscountStartTime;
+
+      // Attach measurement once to the appropriate span
+      setMeasurement(
+        PerpsMeasurementName.PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
+        orderExecutionFeeDiscountDuration,
+        'millisecond',
+        traceSpan,
+      );
+
+      DevLogger.log('PerpsController: Fee discount calculated', {
+        address: evmAccount.address,
+        caipAccountId,
+        discountBips,
+        discountPercentage: discountBips / 100,
+        duration: `${orderExecutionFeeDiscountDuration.toFixed(0)}ms`,
+      });
+
+      traceData = {
+        success: true,
+        discountBips,
+      };
+
+      return discountBips;
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('calculateUserFeeDiscount'),
+      );
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
+      return undefined;
+    } finally {
+      // Only end trace if we created one (no parent span)
+      if (!parentSpan && traceId) {
+        endTrace({
+          name: TraceName.PerpsRewardsAPICall,
+          id: traceId,
+          data: traceData,
+        });
+      }
     }
   }
 
@@ -598,12 +753,36 @@ export class PerpsController extends BaseController<
     // - Some might use different wallet patterns: new GMXProvider({ signer })
     // - Some might not need auth at all: new DydxProvider()
 
+    // Wait for WebSocket transport to be ready before marking as initialized
+    await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+
     this.isInitialized = true;
     DevLogger.log('PerpsController: Providers initialized successfully', {
       providerCount: this.providers.size,
       activeProvider: this.state.activeProvider,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  /**
+   * Generate standard error context for Logger.error calls
+   * Ensures consistent error reporting to Sentry with minimal but complete context
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields
+   * @returns Standardized error context object
+   * @private
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+      context: `PerpsController.${method}`,
+      provider: this.state.activeProvider,
+      network: this.state.isTestnet ? 'testnet' : 'mainnet',
+      ...extra,
+    };
   }
 
   /**
@@ -646,39 +825,104 @@ export class PerpsController extends BaseController<
    * Place a new order
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
-    // Start trace for the entire operation
-    trace({
-      name: TraceName.PerpsOrderExecution,
-      op: TraceOperation.PerpsOrderSubmission,
-      tags: {
-        provider: this.state.activeProvider,
-        orderType: params.orderType,
-        market: params.coin,
-        leverage: params.leverage || 1,
-        isTestnet: this.state.isTestnet,
-      },
-      data: {
-        isBuy: params.isBuy,
-        orderPrice: params.price || '',
-      },
-    });
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let traceData:
+      | { success: boolean; error?: string; orderId?: string }
+      | undefined;
 
     try {
+      // Start trace for the entire operation
+      const traceSpan = trace({
+        name: TraceName.PerpsPlaceOrder,
+        id: traceId,
+        op: TraceOperation.PerpsOrderSubmission,
+        tags: {
+          provider: this.state.activeProvider,
+          orderType: params.orderType,
+          market: params.coin,
+          leverage: params.leverage || 1,
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          isBuy: params.isBuy,
+          orderPrice: params.price || '',
+        },
+      });
       const provider = this.getActiveProvider();
 
-      // Optimistic update
+      // Calculate fee discount at execution time (fresh, secure)
+      const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
+
+      // Set discount context in provider for this order
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
+      }
+
+      // Optimistic update - exclude trackingData to avoid persisting analytics data
+      const { trackingData, ...orderWithoutTracking } = params;
       this.update((state) => {
-        state.pendingOrders.push(params);
+        state.pendingOrders.push(orderWithoutTracking);
       });
 
-      const result = await provider.placeOrder(params);
+      let result: OrderResult;
+      try {
+        result = await provider.placeOrder(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      }
 
       // Update state only on success
       if (result.success) {
         this.update((state) => {
-          state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
+          state.pendingOrders = state.pendingOrders.filter(
+            (o) => o !== orderWithoutTracking,
+          );
           state.lastUpdateTimestamp = Date.now();
         });
+
+        // Track trade transaction executed
+        const completionDuration = performance.now() - startTime;
+
+        const eventBuilder = MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        ).addProperties({
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+          [PerpsEventProperties.ASSET]: params.coin,
+          [PerpsEventProperties.DIRECTION]: params.isBuy
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: params.orderType,
+          [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
+          [PerpsEventProperties.ORDER_SIZE]: result.filledSize || params.size,
+          [PerpsEventProperties.ASSET_PRICE]:
+            result.averagePrice || params.trackingData?.marketPrice,
+          [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
+          [PerpsEventProperties.METAMASK_FEE]: params.trackingData?.metamaskFee,
+          [PerpsEventProperties.METAMASK_FEE_RATE]:
+            params.trackingData?.metamaskFeeRate,
+          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+            params.trackingData?.feeDiscountPercentage,
+          [PerpsEventProperties.ESTIMATED_REWARDS]:
+            params.trackingData?.estimatedPoints,
+          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          // Add TP/SL if set (for new orders)
+          ...(params.takeProfitPrice && {
+            [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+              params.takeProfitPrice,
+            ),
+          }),
+          ...(params.stopLossPrice && {
+            [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+              params.stopLossPrice,
+            ),
+          }),
+        });
+
+        MetaMetrics.getInstance().trackEvent(eventBuilder.build());
 
         // Report to data lake (fire-and-forget with retry)
         this.reportOrderToDataLake({
@@ -690,43 +934,114 @@ export class PerpsController extends BaseController<
           tp_price: params.takeProfitPrice
             ? parseFloat(params.takeProfitPrice)
             : undefined,
+        }).catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('placeOrder', {
+              operation: 'reportOrderToDataLake',
+              coin: params.coin,
+            }),
+          );
         });
 
-        // End trace with success data
-        endTrace({
-          name: TraceName.PerpsOrderExecution,
-          data: {
-            success: true,
-            orderId: result.orderId || '',
-          },
-        });
+        traceData = { success: true, orderId: result.orderId || '' };
       } else {
+        // Track trade transaction failed
+        const completionDuration = performance.now() - startTime;
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.DIRECTION]: params.isBuy
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.ORDER_TYPE]: params.orderType,
+              [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
+              [PerpsEventProperties.ORDER_SIZE]: params.size,
+              [PerpsEventProperties.MARGIN_USED]:
+                params.trackingData?.marginUsed,
+              [PerpsEventProperties.LIMIT_PRICE]:
+                params.orderType === 'limit' ? params.price : null,
+              [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData?.marketPrice,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+            })
+            .build(),
+        );
+
         // Remove from pending orders even on failure since the attempt is complete
         this.update((state) => {
-          state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
+          state.pendingOrders = state.pendingOrders.filter(
+            (o) => o !== orderWithoutTracking,
+          );
         });
 
-        // End trace with error data
-        endTrace({
-          name: TraceName.PerpsOrderExecution,
-          data: {
-            success: false,
-            error: result.error || 'Unknown error',
-          },
-        });
+        traceData = { success: false, error: result.error || 'Unknown error' };
       }
 
       return result;
     } catch (error) {
-      // End trace with error data
-      endTrace({
-        name: TraceName.PerpsOrderExecution,
-        data: {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-      });
+      // Track trade transaction failed (catch block)
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.DIRECTION]: params.isBuy
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_TYPE]: params.orderType,
+            [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
+            [PerpsEventProperties.ORDER_SIZE]: params.size,
+            [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
+            [PerpsEventProperties.LIMIT_PRICE]:
+              params.orderType === 'limit' ? params.price : null,
+            [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
+            [PerpsEventProperties.ASSET_PRICE]:
+              params.trackingData?.marketPrice,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              error instanceof Error ? error.message : 'Unknown error',
+          })
+          .build(),
+      );
+
+      // Clear discount context in case of error
+      try {
+        const provider = this.getActiveProvider();
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      } catch (cleanupError) {
+        Logger.error(
+          ensureError(cleanupError),
+          this.getErrorContext('placeOrder', {
+            operation: 'clearFeeDiscount',
+          }),
+        );
+      }
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
       throw error;
+    } finally {
+      // Always end trace on exit (success or failure)
+      endTrace({
+        name: TraceName.PerpsPlaceOrder,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -734,88 +1049,534 @@ export class PerpsController extends BaseController<
    * Edit an existing order
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
-    const provider = this.getActiveProvider();
-    const result = await provider.editOrder(params);
-
-    if (result.success) {
-      this.update((state) => {
-        state.lastUpdateTimestamp = Date.now();
-      });
-    }
-
-    return result;
-  }
-
-  /**
-   * Cancel an existing order
-   */
-  async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
-    const provider = this.getActiveProvider();
-    const result = await provider.cancelOrder(params);
-
-    if (result.success) {
-      this.update((state) => {
-        state.lastUpdateTimestamp = Date.now();
-      });
-    }
-
-    return result;
-  }
-
-  /**
-   * Close a position (partial or full)
-   */
-  async closePosition(params: ClosePositionParams): Promise<OrderResult> {
-    trace({
-      name: TraceName.PerpsClosePosition,
-      op: TraceOperation.PerpsPositionManagement,
-      tags: {
-        provider: this.state.activeProvider,
-        coin: params.coin,
-        closeSize: params.size || 'full',
-        isTestnet: this.state.isTestnet,
-      },
-    });
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let traceData:
+      | { success: boolean; error?: string; orderId?: string }
+      | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsEditOrder,
+        id: traceId,
+        op: TraceOperation.PerpsOrderSubmission,
+        tags: {
+          provider: this.state.activeProvider,
+          orderType: params.newOrder.orderType,
+          market: params.newOrder.coin,
+          leverage: params.newOrder.leverage || 1,
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          isBuy: params.newOrder.isBuy,
+          orderPrice: params.newOrder.price || '',
+        },
+      });
+
       const provider = this.getActiveProvider();
-      const result = await provider.closePosition(params);
+      const result = await provider.editOrder(params);
+      const completionDuration = performance.now() - startTime;
 
       if (result.success) {
         this.update((state) => {
           state.lastUpdateTimestamp = Date.now();
         });
 
-        // Report to data lake (fire-and-forget with retry)
-        this.reportOrderToDataLake({ action: 'close', coin: params.coin });
+        // Track order edit executed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.ASSET]: params.newOrder.coin,
+              [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
+              [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
+              [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              ...(params.newOrder.price && {
+                [PerpsEventProperties.LIMIT_PRICE]: parseFloat(
+                  params.newOrder.price,
+                ),
+              }),
+            })
+            .build(),
+        );
 
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: true,
-            filledSize: result.filledSize || '',
-          },
-        });
+        traceData = { success: true, orderId: result.orderId || '' };
       } else {
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: false,
-            error: result.error || 'Unknown error',
-          },
-        });
+        // Track order edit failed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: params.newOrder.coin,
+              [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
+              [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
+              [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+            })
+            .build(),
+        );
+
+        traceData = { success: false, error: result.error || 'Unknown error' };
       }
 
       return result;
     } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track order edit exception
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.newOrder.coin,
+            [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
+            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
+            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              error instanceof Error ? error.message : 'Unknown error',
+          })
+          .build(),
+      );
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
       endTrace({
-        name: TraceName.PerpsClosePosition,
+        name: TraceName.PerpsEditOrder,
+        id: traceId,
+        data: traceData,
+      });
+    }
+  }
+
+  /**
+   * Cancel an existing order
+   */
+  async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let traceData:
+      | { success: boolean; error?: string; orderId?: string }
+      | undefined;
+
+    try {
+      trace({
+        name: TraceName.PerpsCancelOrder,
+        id: traceId,
+        op: TraceOperation.PerpsOrderSubmission,
+        tags: {
+          provider: this.state.activeProvider,
+          market: params.coin,
+          isTestnet: this.state.isTestnet,
+        },
         data: {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          orderId: params.orderId,
         },
       });
+
+      const provider = this.getActiveProvider();
+      const result = await provider.cancelOrder(params);
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success) {
+        this.update((state) => {
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        // Track order cancel executed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            })
+            .build(),
+        );
+
+        traceData = { success: true, orderId: params.orderId };
+      } else {
+        // Track order cancel failed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+            })
+            .build(),
+        );
+
+        traceData = { success: false, error: result.error || 'Unknown error' };
+      }
+
+      return result;
+    } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track order cancel exception
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              error instanceof Error ? error.message : 'Unknown error',
+          })
+          .build(),
+      );
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsCancelOrder,
+        id: traceId,
+        data: traceData,
+      });
+    }
+  }
+
+  /**
+   * Close a position (partial or full)
+   */
+  async closePosition(params: ClosePositionParams): Promise<OrderResult> {
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    // Get position data for event tracking
+    let position: Position | undefined;
+    let traceData:
+      | { success: boolean; error?: string; filledSize?: string }
+      | undefined;
+
+    try {
+      const traceSpan = trace({
+        name: TraceName.PerpsClosePosition,
+        id: traceId,
+        op: TraceOperation.PerpsPositionManagement,
+        tags: {
+          provider: this.state.activeProvider,
+          coin: params.coin,
+          closeSize: params.size || 'full',
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
+      // Measure position loading time
+      const positionLoadStart = performance.now();
+      try {
+        const positions = await this.getPositions();
+        position = positions.find((p) => p.coin === params.coin);
+        setMeasurement(
+          PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+          performance.now() - positionLoadStart,
+          'millisecond',
+          traceSpan,
+        );
+      } catch (err) {
+        DevLogger.log(
+          'PerpsController: Could not get position data for tracking',
+          err,
+        );
+      }
+
+      const provider = this.getActiveProvider();
+
+      // Calculate fee discount at execution time (same as placeOrder)
+      const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
+
+      // Set discount context in provider for this close operation
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
+      }
+
+      let result: OrderResult;
+      try {
+        result = await provider.closePosition(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      }
+
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success && position) {
+        this.update((state) => {
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        // Report to data lake (fire-and-forget with retry)
+        this.reportOrderToDataLake({
+          action: 'close',
+          coin: params.coin,
+        }).catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('closePosition', {
+              operation: 'reportOrderToDataLake',
+              coin: params.coin,
+            }),
+          );
+        });
+
+        // Determine direction from position size
+        const direction =
+          parseFloat(position.size) > 0
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT;
+
+        // Check if partially filled
+        const filledSize = result.filledSize
+          ? parseFloat(result.filledSize)
+          : 0;
+        const requestedSize = params.size
+          ? parseFloat(params.size)
+          : Math.abs(parseFloat(position.size));
+        const isPartiallyFilled = filledSize > 0 && filledSize < requestedSize;
+
+        if (isPartiallyFilled) {
+          // Track partially filled event
+          MetaMetrics.getInstance().trackEvent(
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+            )
+              .addProperties({
+                [PerpsEventProperties.STATUS]:
+                  PerpsEventValues.STATUS.PARTIALLY_FILLED,
+                [PerpsEventProperties.ASSET]: position.coin,
+                [PerpsEventProperties.DIRECTION]: direction,
+                [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+                  parseFloat(position.size),
+                ),
+                [PerpsEventProperties.ORDER_SIZE]: requestedSize,
+                [PerpsEventProperties.ORDER_TYPE]:
+                  params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
+                [PerpsEventProperties.AMOUNT_FILLED]: filledSize,
+                [PerpsEventProperties.REMAINING_AMOUNT]:
+                  requestedSize - filledSize,
+                [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              })
+              .build(),
+          );
+        }
+
+        // Track position close executed event
+        const orderType =
+          params.orderType || PerpsEventValues.ORDER_TYPE.MARKET;
+        const closePercentage = params.size
+          ? (parseFloat(params.size) / Math.abs(parseFloat(position.size))) *
+            100
+          : 100;
+        const closeType =
+          closePercentage === 100
+            ? PerpsEventValues.CLOSE_TYPE.FULL
+            : PerpsEventValues.CLOSE_TYPE.PARTIAL;
+
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.DIRECTION]: direction,
+              [PerpsEventProperties.ORDER_TYPE]: orderType,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.PERCENTAGE_CLOSED]: closePercentage,
+              [PerpsEventProperties.CLOSE_TYPE]: closeType,
+              // Add missing properties per specification
+              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+                parseFloat(position.size),
+              ),
+              [PerpsEventProperties.ORDER_SIZE]: params.size
+                ? parseFloat(params.size)
+                : Math.abs(parseFloat(position.size)),
+              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
+                ? parseFloat(position.unrealizedPnl)
+                : null,
+              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
+                ? parseFloat(position.returnOnEquity) * 100
+                : null,
+              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
+              [PerpsEventProperties.METAMASK_FEE]:
+                params.trackingData?.metamaskFee || null,
+              [PerpsEventProperties.METAMASK_FEE_RATE]:
+                params.trackingData?.metamaskFeeRate || null,
+              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+                params.trackingData?.feeDiscountPercentage || null,
+              [PerpsEventProperties.ESTIMATED_REWARDS]:
+                params.trackingData?.estimatedPoints || null,
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData?.marketPrice || result.averagePrice || null,
+              [PerpsEventProperties.LIMIT_PRICE]:
+                params.orderType === 'limit' ? params.price : null,
+              [PerpsEventProperties.RECEIVED_AMOUNT]:
+                params.trackingData?.receivedAmount || null,
+            })
+            .build(),
+        );
+
+        traceData = { success: true, filledSize: result.filledSize || '' };
+      } else if (!result.success && position) {
+        // Track position close failed event
+        const direction =
+          parseFloat(position.size) > 0
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT;
+
+        traceData = { success: false, error: result.error || 'Unknown error' };
+
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.DIRECTION]: direction,
+              [PerpsEventProperties.ORDER_SIZE]:
+                params.size || Math.abs(parseFloat(position.size)),
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+              // Add missing properties per specification
+              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+                parseFloat(position.size),
+              ),
+              [PerpsEventProperties.ORDER_TYPE]:
+                params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
+              [PerpsEventProperties.PERCENTAGE_CLOSED]: params.size
+                ? (parseFloat(params.size) /
+                    Math.abs(parseFloat(position.size))) *
+                  100
+                : 100,
+              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
+                ? parseFloat(position.unrealizedPnl)
+                : null,
+              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
+                ? parseFloat(position.returnOnEquity) * 100
+                : null,
+              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
+              [PerpsEventProperties.METAMASK_FEE]:
+                params.trackingData?.metamaskFee || null,
+              [PerpsEventProperties.METAMASK_FEE_RATE]:
+                params.trackingData?.metamaskFeeRate || null,
+              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+                params.trackingData?.feeDiscountPercentage || null,
+              [PerpsEventProperties.ESTIMATED_REWARDS]:
+                params.trackingData?.estimatedPoints || null,
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData?.marketPrice || result.averagePrice || null,
+              [PerpsEventProperties.LIMIT_PRICE]:
+                params.orderType === 'limit' ? params.price : null,
+              [PerpsEventProperties.RECEIVED_AMOUNT]:
+                params.trackingData?.receivedAmount || null,
+            })
+            .build(),
+        );
+      }
+
+      return result;
+    } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
+      if (position) {
+        // Track position close failed event for exceptions
+        const direction =
+          parseFloat(position.size) > 0
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT;
+
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.DIRECTION]: direction,
+              [PerpsEventProperties.ORDER_SIZE]:
+                params.size || Math.abs(parseFloat(position.size)),
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                error instanceof Error ? error.message : 'Unknown error',
+              // Add missing properties per specification
+              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+                parseFloat(position.size),
+              ),
+              [PerpsEventProperties.ORDER_TYPE]:
+                params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
+              [PerpsEventProperties.PERCENTAGE_CLOSED]: params.size
+                ? (parseFloat(params.size) /
+                    Math.abs(parseFloat(position.size))) *
+                  100
+                : 100,
+              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
+                ? parseFloat(position.unrealizedPnl)
+                : null,
+              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
+                ? parseFloat(position.returnOnEquity) * 100
+                : null,
+              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData?.marketPrice || null,
+              [PerpsEventProperties.LIMIT_PRICE]:
+                params.orderType === 'limit' ? params.price : null,
+              [PerpsEventProperties.RECEIVED_AMOUNT]:
+                params.trackingData?.receivedAmount || null,
+            })
+            .build(),
+        );
+      }
+      throw error;
+    } finally {
+      // Always end trace on exit (success or failure)
+      endTrace({
+        name: TraceName.PerpsClosePosition,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -825,16 +1586,147 @@ export class PerpsController extends BaseController<
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
-    const provider = this.getActiveProvider();
-    const result = await provider.updatePositionTPSL(params);
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let traceData: { success: boolean; error?: string } | undefined;
 
-    if (result.success) {
-      this.update((state) => {
-        state.lastUpdateTimestamp = Date.now();
+    try {
+      const traceSpan = trace({
+        name: TraceName.PerpsUpdateTPSL,
+        id: traceId,
+        op: TraceOperation.PerpsPositionManagement,
+        tags: {
+          provider: this.state.activeProvider,
+          market: params.coin,
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          takeProfitPrice: params.takeProfitPrice || '',
+          stopLossPrice: params.stopLossPrice || '',
+        },
+      });
+
+      const provider = this.getActiveProvider();
+
+      // Get fee discount from rewards
+      const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
+
+      // Set discount context in provider for this operation
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
+      }
+
+      let result: OrderResult;
+      try {
+        result = await provider.updatePositionTPSL(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      }
+
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success) {
+        this.update((state) => {
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        // Track TP/SL update executed - ONE event with both properties
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              ...(params.takeProfitPrice && {
+                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+                  params.takeProfitPrice,
+                ),
+              }),
+              ...(params.stopLossPrice && {
+                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+                  params.stopLossPrice,
+                ),
+              }),
+            })
+            .build(),
+        );
+
+        traceData = { success: true };
+      } else {
+        // Track TP/SL update failed - ONE event with both properties
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+              ...(params.takeProfitPrice && {
+                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+                  params.takeProfitPrice,
+                ),
+              }),
+              ...(params.stopLossPrice && {
+                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+                  params.stopLossPrice,
+                ),
+              }),
+            })
+            .build(),
+        );
+
+        traceData = { success: false, error: result.error || 'Unknown error' };
+      }
+
+      return result;
+    } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track TP/SL update exception
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              error instanceof Error ? error.message : 'Unknown error',
+            ...(params.takeProfitPrice && {
+              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+                params.takeProfitPrice,
+              ),
+            }),
+            ...(params.stopLossPrice && {
+              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+                params.stopLossPrice,
+              ),
+            }),
+          })
+          .build(),
+      );
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsUpdateTPSL,
+        id: traceId,
+        data: traceData,
       });
     }
-
-    return result;
   }
 
   /**
@@ -842,8 +1734,7 @@ export class PerpsController extends BaseController<
    * No complex state tracking - just sets a loading flag
    */
   async depositWithConfirmation() {
-    const { AccountTreeController, NetworkController, TransactionController } =
-      Engine.context;
+    const { NetworkController, TransactionController } = Engine.context;
 
     try {
       // Clear any stale results when starting a new deposit flow
@@ -862,11 +1753,7 @@ export class PerpsController extends BaseController<
         amount: '0x0',
       });
 
-      const accounts =
-        AccountTreeController.getAccountsFromSelectedAccountGroup();
-      const evmAccount = accounts.find((account) =>
-        account.type.startsWith('eip155:'),
-      );
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
       if (!evmAccount) {
         throw new Error(
           'No EVM-compatible account found in selected account group',
@@ -929,6 +1816,7 @@ export class PerpsController extends BaseController<
           setTimeout(() => {
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
             });
           }, 100);
         })
@@ -1018,17 +1906,28 @@ export class PerpsController extends BaseController<
    * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
-    trace({
-      name: TraceName.PerpsWithdraw,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        assetId: params.assetId || '',
-        provider: this.state.activeProvider,
-        isTestnet: this.state.isTestnet,
-      },
-    });
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let traceData:
+      | {
+          success: boolean;
+          error?: string;
+          txHash?: string;
+          withdrawalId?: string;
+        }
+      | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsWithdraw,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          assetId: params.assetId || '',
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
       DevLogger.log('PerpsController: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
@@ -1081,27 +1980,38 @@ export class PerpsController extends BaseController<
           withdrawalId: result.withdrawalId,
         });
 
+        // Track withdrawal transaction executed
+        const completionDuration = performance.now() - startTime;
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            })
+            .build(),
+        );
+
         // Note: The withdrawal result will be cleared by usePerpsWithdrawStatus hook
         // after showing the appropriate toast messages
 
         // Trigger account state refresh after withdrawal
-        this.getAccountState().catch((error) => {
-          DevLogger.log(
-            '⚠️ PerpsController: Failed to refresh after withdrawal',
-            {
-              error: error instanceof Error ? error.message : 'Unknown error',
-            },
+        this.getAccountState({ source: 'post_withdrawal' }).catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('withdraw', {
+              operation: 'refreshAccountState',
+            }),
           );
         });
 
-        endTrace({
-          name: TraceName.PerpsWithdraw,
-          data: {
-            success: true,
-            txHash: result.txHash || '',
-            withdrawalId: result.withdrawalId || '',
-          },
-        });
+        traceData = {
+          success: true,
+          txHash: result.txHash || '',
+          withdrawalId: result.withdrawalId || '',
+        };
 
         return result;
       }
@@ -1121,13 +2031,26 @@ export class PerpsController extends BaseController<
         params,
       });
 
-      endTrace({
-        name: TraceName.PerpsWithdraw,
-        data: {
-          success: false,
-          error: result.error || 'Unknown error',
-        },
-      });
+      // Track withdrawal transaction failed
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              result.error || 'Unknown error',
+          })
+          .build(),
+      );
+
+      traceData = {
+        success: false,
+        error: result.error || 'Unknown error',
+      };
 
       return result;
     } catch (error) {
@@ -1136,14 +2059,13 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
-      DevLogger.log('PerpsController: WITHDRAWAL EXCEPTION', {
-        error: errorMessage,
-        errorType:
-          error instanceof Error ? error.constructor.name : typeof error,
-        stack: error instanceof Error ? error.stack : undefined,
-        params,
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('withdraw', {
+          assetId: params.assetId,
+          amount: params.amount,
+        }),
+      );
 
       this.update((state) => {
         state.lastError = errorMessage;
@@ -1155,15 +2077,33 @@ export class PerpsController extends BaseController<
         };
       });
 
-      endTrace({
-        name: TraceName.PerpsWithdraw,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
-      });
+      // Track withdrawal transaction failed (catch block)
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+          })
+          .build(),
+      );
+
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
 
       return { success: false, error: errorMessage };
+    } finally {
+      endTrace({
+        name: TraceName.PerpsWithdraw,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1171,50 +2111,30 @@ export class PerpsController extends BaseController<
    * Get current positions
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
-    trace({
-      name: TraceName.PerpsAccountStateUpdate,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        provider: this.state.activeProvider,
-        operation: 'getPositions',
-        isTestnet: this.state.isTestnet,
-      },
-    });
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsGetPositions,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       const provider = this.getActiveProvider();
       const positions = await provider.getPositions(params);
 
       // Only update state if the provider call succeeded
       this.update((state) => {
-        state.positions = positions;
-        // Update perps balances if we have account state
-        if (state.accountState) {
-          const providerKey = this.state.activeProvider;
-          // Preserve existing historical data if available
-          const existingBalance = state.perpsBalances[providerKey];
-          state.perpsBalances[providerKey] = {
-            totalValue: state.accountState.totalValue || '0',
-            unrealizedPnl: state.accountState.unrealizedPnl || '0',
-            accountValue1dAgo:
-              existingBalance?.accountValue1dAgo ||
-              state.accountState.totalValue ||
-              '0',
-            lastUpdated: Date.now(),
-          };
-        }
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
 
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: true,
-          positionsCount: positions.length,
-        },
-      });
-
+      traceData = { success: true };
       return positions;
     } catch (error) {
       const errorMessage =
@@ -1222,22 +2142,27 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.POSITIONS_FAILED;
 
+      Logger.error(ensureError(error), this.getErrorContext('getPositions'));
+
       // Update error state but don't modify positions (keep existing data)
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
 
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
-      });
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
 
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetPositions,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1245,60 +2170,202 @@ export class PerpsController extends BaseController<
    * Get historical user fills (trade executions)
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
-    const provider = this.getActiveProvider();
-    return provider.getOrderFills(params);
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    try {
+      trace({
+        name: TraceName.PerpsOrderFillsFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
+      const provider = this.getActiveProvider();
+      const result = await provider.getOrderFills(params);
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getOrderFills'));
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsOrderFillsFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Get historical user orders (order lifecycle)
    */
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
-    const provider = this.getActiveProvider();
-    return provider.getOrders(params);
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    try {
+      trace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
+      const provider = this.getActiveProvider();
+      const result = await provider.getOrders(params);
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getOrders'));
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Get currently open orders (real-time status)
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
-    const provider = this.getActiveProvider();
-    return provider.getOpenOrders(params);
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    try {
+      const traceSpan = trace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
+      const provider = this.getActiveProvider();
+      const result = await provider.getOpenOrders(params);
+
+      const completionDuration = performance.now() - startTime;
+      setMeasurement(
+        PerpsMeasurementName.PERPS_GET_OPEN_ORDERS_OPERATION,
+        completionDuration,
+        'millisecond',
+        traceSpan,
+      );
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getOpenOrders'));
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Get historical user funding history (funding payments)
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
-    const provider = this.getActiveProvider();
-    return provider.getFunding(params);
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
+
+    try {
+      trace({
+        name: TraceName.PerpsFundingFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
+      const provider = this.getActiveProvider();
+      const result = await provider.getFunding(params);
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getFunding'));
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsFundingFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Get account state (balances, etc.)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
-    trace({
-      name: TraceName.PerpsAccountStateUpdate,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        provider: this.state.activeProvider,
-        operation: 'getAccountState',
-        isTestnet: this.state.isTestnet,
-      },
-    });
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsGetAccountState,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+          source: params?.source || 'unknown',
+        },
+      });
+
       const provider = this.getActiveProvider();
 
       // Get both current account state and historical portfolio data
       const [accountState, historicalPortfolio] = await Promise.all([
         provider.getAccountState(params),
         provider.getHistoricalPortfolio(params).catch((error) => {
-          DevLogger.log(
-            'Failed to get historical portfolio, continuing without it:',
-            error,
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('getAccountState', {
+              operation: 'getHistoricalPortfolio',
+            }),
           );
-          return;
         }),
       ]);
 
@@ -1309,12 +2376,12 @@ export class PerpsController extends BaseController<
         );
 
         // Track null account state errors in Sentry for API monitoring
-        Logger.error(error, {
-          message: 'Received null/undefined account state from provider',
-          context: 'PerpsController.getAccountState',
-          provider: this.state.activeProvider,
-          isTestnet: this.state.isTestnet,
-        });
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('getAccountState', {
+            operation: 'nullAccountStateCheck',
+          }),
+        );
 
         throw error;
       }
@@ -1334,29 +2401,12 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.accountState = accountState;
-        // Update perps balances for the active provider
-        const providerKey = this.state.activeProvider;
-        state.perpsBalances[providerKey] = {
-          totalValue: accountState.totalValue || '0',
-          unrealizedPnl: accountState.unrealizedPnl || '0',
-          accountValue1dAgo: historicalPortfolioToUse.accountValue1dAgo || '0',
-          lastUpdated: Date.now(),
-        };
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
       DevLogger.log('PerpsController: Redux store updated successfully');
 
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: true,
-          hasBalance: parseFloat(accountState.totalBalance) > 0,
-          hasHistoricalData:
-            parseFloat(historicalPortfolioToUse?.accountValue1dAgo || '0') > 0,
-        },
-      });
-
+      traceData = { success: true };
       return accountState;
     } catch (error) {
       const errorMessage =
@@ -1370,16 +2420,19 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
-      });
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
 
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetAccountState,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1389,13 +2442,27 @@ export class PerpsController extends BaseController<
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
+
     try {
+      trace({
+        name: TraceName.PerpsGetHistoricalPortfolio,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       const provider = this.getActiveProvider();
       const result = await provider.getHistoricalPortfolio(params);
 
       // Return the result without storing it in state
       // Historical data can be fetched when needed
 
+      traceData = { success: true };
       return result;
     } catch (error) {
       const errorMessage =
@@ -1403,14 +2470,30 @@ export class PerpsController extends BaseController<
           ? error.message
           : 'Failed to get historical portfolio';
 
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getHistoricalPortfolio'),
+      );
+
       // Update error state
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
+
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetHistoricalPortfolio,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1418,18 +2501,20 @@ export class PerpsController extends BaseController<
    * Get available markets with optional filtering
    */
   async getMarkets(params?: { symbols?: string[] }): Promise<MarketInfo[]> {
-    trace({
-      name: TraceName.PerpsMarketDataUpdate,
-      op: TraceOperation.PerpsMarketData,
-      tags: {
-        provider: this.state.activeProvider,
-        operation: 'getMarkets',
-        isTestnet: this.state.isTestnet,
-        symbolsRequested: params?.symbols?.length || 0,
-      },
-    });
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsGetMarkets,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       const provider = this.getActiveProvider();
       const allMarkets = await provider.getMarkets();
 
@@ -1447,27 +2532,11 @@ export class PerpsController extends BaseController<
           ),
         );
 
-        endTrace({
-          name: TraceName.PerpsMarketDataUpdate,
-          data: {
-            success: true,
-            marketsCount: filtered.length,
-            totalMarkets: allMarkets.length,
-          },
-        });
-
+        traceData = { success: true };
         return filtered;
       }
 
-      endTrace({
-        name: TraceName.PerpsMarketDataUpdate,
-        data: {
-          success: true,
-          marketsCount: allMarkets.length,
-          totalMarkets: allMarkets.length,
-        },
-      });
-
+      traceData = { success: true };
       return allMarkets;
     } catch (error) {
       const errorMessage =
@@ -1475,22 +2544,27 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.MARKETS_FAILED;
 
+      Logger.error(ensureError(error), this.getErrorContext('getMarkets'));
+
       // Update error state
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
 
-      endTrace({
-        name: TraceName.PerpsMarketDataUpdate,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
-      });
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
 
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetMarkets,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1502,7 +2576,22 @@ export class PerpsController extends BaseController<
     interval: CandlePeriod,
     limit: number = 100,
   ): Promise<CandleData> {
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
+
     try {
+      trace({
+        name: TraceName.PerpsFetchHistoricalCandles,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+          coin,
+          interval,
+        },
+      });
+
       const provider = this.getActiveProvider() as IPerpsProvider & {
         clientService?: {
           fetchHistoricalCandles: (
@@ -1515,11 +2604,14 @@ export class PerpsController extends BaseController<
 
       // Check if provider has a client service with fetchHistoricalCandles
       if (provider.clientService?.fetchHistoricalCandles) {
-        return await provider.clientService.fetchHistoricalCandles(
+        const result = await provider.clientService.fetchHistoricalCandles(
           coin,
           interval,
           limit,
         );
+
+        traceData = { success: true };
+        return result;
       }
 
       // Fallback: throw error if method not available
@@ -1530,14 +2622,34 @@ export class PerpsController extends BaseController<
           ? error.message
           : 'Failed to fetch historical candles';
 
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('fetchHistoricalCandles', {
+          coin,
+          interval,
+          limit,
+        }),
+      );
+
       // Update error state
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
+
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsFetchHistoricalCandles,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -1609,10 +2721,10 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.getWithdrawalRoutes();
     } catch (error) {
-      DevLogger.log('PerpsController: Error getting withdrawal routes', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getWithdrawalRoutes'),
+      );
       // Return empty array if provider is not available
       return [];
     }
@@ -1718,10 +2830,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to prices', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToPrices', {
+          symbols: params.symbols?.join(','),
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -1737,10 +2851,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to positions', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToPositions', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -1756,10 +2872,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to order fills', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderFills', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -1775,10 +2893,12 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to orders', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrders', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
@@ -1794,40 +2914,17 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToAccount(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to account', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToAccount', {
+          accountId: params.accountId,
+        }),
+      );
       // Return a no-op unsubscribe function
       return () => {
         // No-op: Provider not initialized
       };
     }
-  }
-
-  /**
-   * Update perps balances for the current provider
-   * Called when account state changes
-   */
-  updatePerpsBalances(
-    accountState: AccountState,
-    accountValue1dAgo?: string,
-  ): void {
-    const providerKey = this.state.activeProvider;
-    this.update((state) => {
-      // Preserve existing historical data if not provided
-      const existingBalance = state.perpsBalances[providerKey];
-      state.perpsBalances[providerKey] = {
-        totalValue: accountState.totalValue || '0',
-        unrealizedPnl: accountState.unrealizedPnl || '0',
-        accountValue1dAgo:
-          accountValue1dAgo ||
-          existingBalance?.accountValue1dAgo ||
-          accountState.totalValue ||
-          '0',
-        lastUpdated: Date.now(),
-      };
-    });
   }
 
   /**
@@ -1838,10 +2935,10 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       provider.setLiveDataConfig(config);
     } catch (error) {
-      DevLogger.log('PerpsController: Error setting live data config', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('setLiveDataConfig'),
+      );
     }
   }
 
@@ -1876,63 +2973,13 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        DevLogger.log(
-          'PerpsController: Error getting provider during disconnect',
-          {
-            error: error instanceof Error ? error.message : 'Unknown error',
-            timestamp: new Date().toISOString(),
-          },
-        );
+        Logger.error(ensureError(error), this.getErrorContext('disconnect'));
       }
     }
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
-  }
-
-  /**
-   * Reconnect with new account/network context
-   * Called when user switches accounts or networks
-   */
-  async reconnectWithNewContext(): Promise<void> {
-    // Prevent concurrent reinitializations
-    if (this.isReinitializing) {
-      DevLogger.log('PerpsController: Already reinitializing, waiting...', {
-        timestamp: new Date().toISOString(),
-      });
-      // Wait for the current reinitialization to complete
-      if (this.initializationPromise) {
-        await this.initializationPromise;
-      }
-      return;
-    }
-
-    this.isReinitializing = true;
-
-    try {
-      DevLogger.log('PerpsController: Reconnecting with new account/network', {
-        timestamp: new Date().toISOString(),
-      });
-
-      // Clear Redux state immediately to reset UI
-      this.update((state) => {
-        state.positions = [];
-        state.accountState = null;
-        state.pendingOrders = [];
-        state.lastError = null;
-      });
-
-      // Clear state and force reinitialization
-      // initializeProviders() will handle disconnection if needed
-      this.isInitialized = false;
-      this.initializationPromise = null;
-
-      // Reinitialize with new context
-      await this.initializeProviders();
-    } finally {
-      this.isReinitializing = false;
-    }
   }
 
   /**
@@ -2011,9 +3058,10 @@ export class PerpsController extends BaseController<
 
       return location;
     } catch (e) {
-      DevLogger.log('PerpsController: Failed to fetch geo location', {
-        error: e,
-      });
+      Logger.error(
+        ensureError(e),
+        this.getErrorContext('performGeoLocationFetch'),
+      );
       // Don't cache failures
       return location;
     }
@@ -2039,13 +3087,10 @@ export class PerpsController extends BaseController<
         );
       }
     } catch (error) {
-      DevLogger.log('PerpsController: Eligibility refresh failed', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('refreshEligibility'),
+      );
     } finally {
       this.update((state) => {
         state.isEligible = isEligible;
@@ -2137,6 +3182,7 @@ export class PerpsController extends BaseController<
     sl_price?: number;
     tp_price?: number;
     retryCount?: number;
+    _traceId?: string;
   }): Promise<{ success: boolean; error?: string }> {
     // Skip data lake reporting for testnet as the API doesn't handle testnet data
     const isTestnet = this.state.isTestnet;
@@ -2151,10 +3197,31 @@ export class PerpsController extends BaseController<
 
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 1000;
-    const { action, coin, sl_price, tp_price, retryCount = 0 } = params;
+    const {
+      action,
+      coin,
+      sl_price,
+      tp_price,
+      retryCount = 0,
+      _traceId,
+    } = params;
 
-    // Start performance measurement for initial call or log retry
-    const startTime = performance.now();
+    // Generate trace ID once on first call
+    const traceId = _traceId || uuidv4();
+
+    // Start trace only on first attempt
+    let traceSpan: Span | undefined;
+    if (retryCount === 0) {
+      traceSpan = trace({
+        name: TraceName.PerpsDataLakeReport,
+        op: TraceOperation.PerpsOperation,
+        id: traceId,
+        tags: {
+          action,
+          coin,
+        },
+      });
+    }
 
     // Log the attempt
     DevLogger.log('DataLake API: Starting order report', {
@@ -2167,16 +3234,13 @@ export class PerpsController extends BaseController<
       timestamp: new Date().toISOString(),
     });
 
+    const apiCallStartTime = performance.now();
+
     try {
       const token = await this.messagingSystem.call(
         'AuthenticationController:getBearerToken',
       );
-      const { AccountTreeController } = Engine.context;
-      const accounts =
-        AccountTreeController.getAccountsFromSelectedAccountGroup();
-      const evmAccount = accounts.find((account) =>
-        account.type.startsWith('eip155:'),
-      );
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
 
       if (!evmAccount || !token) {
         DevLogger.log('DataLake API: Missing requirements', {
@@ -2202,8 +3266,6 @@ export class PerpsController extends BaseController<
         }),
       });
 
-      const duration = performance.now() - startTime;
-
       if (!response.ok) {
         throw new Error(`DataLake API error: ${response.status}`);
       }
@@ -2211,39 +3273,52 @@ export class PerpsController extends BaseController<
       // Consume response body (might be empty for 201, but good to check)
       const responseBody = await response.text();
 
-      // Success logging and metrics
-      DevLogger.log('DataLake API: Order reported successfully', {
-        action,
-        coin,
-        duration: `${duration.toFixed(0)}ms`,
-        status: response.status,
-        attempt: retryCount + 1,
-        responseBody: responseBody || 'empty',
-      });
+      const apiCallDuration = performance.now() - apiCallStartTime;
 
-      // Report performance metric to Sentry (only on success)
-      if (retryCount === 0) {
+      // Add measurement to trace if span exists
+      if (traceSpan) {
         setMeasurement(
-          PerpsMeasurementName.DATA_LAKE_API_CALL,
-          duration,
+          PerpsMeasurementName.PERPS_DATA_LAKE_API_CALL,
+          apiCallDuration,
           'millisecond',
+          traceSpan,
         );
       }
 
+      // Success logging
+      DevLogger.log('DataLake API: Order reported successfully', {
+        action,
+        coin,
+        status: response.status,
+        attempt: retryCount + 1,
+        responseBody: responseBody || 'empty',
+        duration: `${apiCallDuration.toFixed(0)}ms`,
+      });
+
+      // End trace on success
+      endTrace({
+        name: TraceName.PerpsDataLakeReport,
+        id: traceId,
+        data: {
+          success: true,
+          retries: retryCount,
+        },
+      });
+
       return { success: true };
     } catch (error) {
-      const duration = performance.now() - startTime;
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      DevLogger.log('DataLake API: Request failed', {
-        error: errorMessage,
-        duration: `${duration.toFixed(0)}ms`,
-        retryCount,
-        action,
-        coin,
-        willRetry: retryCount < MAX_RETRIES,
-      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('reportOrderToDataLake', {
+          action,
+          coin,
+          retryCount,
+          willRetry: retryCount < MAX_RETRIES,
+        }),
+      );
 
       // Retry logic
       if (retryCount < MAX_RETRIES) {
@@ -2262,36 +3337,52 @@ export class PerpsController extends BaseController<
             sl_price,
             tp_price,
             retryCount: retryCount + 1,
+            _traceId: traceId,
+          }).catch((err) => {
+            Logger.error(
+              ensureError(err),
+              this.getErrorContext('reportOrderToDataLake', {
+                operation: 'retry',
+                retryCount: retryCount + 1,
+                action,
+                coin,
+              }),
+            );
           });
         }, retryDelay);
-      } else {
-        // Final failure - report to Sentry with performance metric
-        DevLogger.log('DataLake API: All retries exhausted', {
-          action,
-          coin,
-          totalAttempts: retryCount + 1,
-          finalError: errorMessage,
-        });
 
-        // Report total retry duration as a metric
-        const totalRetryDuration =
-          duration + RETRY_DELAY_MS * (Math.pow(2, retryCount) - 1); // Include retry delays
-        setMeasurement(
-          PerpsMeasurementName.DATA_LAKE_API_RETRY,
-          totalRetryDuration,
-          'millisecond',
-        );
+        return { success: false, error: errorMessage };
+      }
 
-        Logger.error(error as Error, {
-          message: 'Failed to report perps order to data lake after retries',
+      endTrace({
+        name: TraceName.PerpsDataLakeReport,
+        id: traceId,
+        data: {
+          success: false,
+          error: errorMessage,
+          totalRetries: retryCount,
+        },
+      });
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('reportOrderToDataLake', {
+          operation: 'finalFailure',
           action,
           coin,
           retryCount,
-          totalDuration: `${totalRetryDuration.toFixed(0)}ms`,
-        });
-      }
+        }),
+      );
 
       return { success: false, error: errorMessage };
     }
+  }
+
+  /**
+   * Check if the controller is currently reinitializing
+   * @returns true if providers are being reinitialized
+   */
+  public isCurrentlyReinitializing(): boolean {
+    return this.isReinitializing;
   }
 }

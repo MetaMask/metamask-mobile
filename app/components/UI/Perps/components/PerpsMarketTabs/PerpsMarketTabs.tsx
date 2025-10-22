@@ -34,7 +34,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
-import { OrderDirection } from '../../types';
+import { OrderDirection } from '../../types/perps-types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   symbol,
@@ -43,6 +43,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   isLoadingPosition,
   unfilledOrders = [],
   onActiveTabChange,
+  activeTabId: externalActiveTabId,
   initialTab,
   nextFundingTime,
   fundingIntervalHours,
@@ -56,6 +57,15 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
 
+  // State to track which orders are being cancelled for UI display
+  const [cancellingOrderIds, setCancellingOrderIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  // State to track orders that were successfully cancelled but not yet removed from unfilledOrders
+  const [successfullyCancelledOrderIds, setSuccessfullyCancelledOrderIds] =
+    useState<Set<string>>(new Set());
+
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [selectedTooltip, setSelectedTooltip] =
@@ -65,8 +75,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     // Pre-compute current price to avoid repeated calculations
     const currentPrice = marketStats.currentPrice || 0;
 
+    // Filter out successfully cancelled orders that haven't been removed by WebSocket yet
+    const filteredOrders = unfilledOrders.filter(
+      (order) => !successfullyCancelledOrderIds.has(order.orderId),
+    );
+
     // Pre-compute order metadata for efficient sorting
-    const ordersWithMetadata = unfilledOrders.map((order) => {
+    const ordersWithMetadata = filteredOrders.map((order) => {
       const orderType = order.detailedOrderType || order.orderType || 'Unknown';
       const triggerPrice = parseFloat(
         order.takeProfitPrice || order.stopLossPrice || order.price || '0',
@@ -85,24 +100,44 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       };
     });
 
-    // Sort with pre-computed metadata
-    return ordersWithMetadata
-      .sort((a, b) => {
-        // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
-        if (a.orderType !== b.orderType) {
-          return a.orderType.localeCompare(b.orderType);
-        }
+    // Sort with pre-computed metadata (separate statement to satisfy SonarCloud)
+    const sortedMetadata = ordersWithMetadata.sort((a, b) => {
+      // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
+      if (a.orderType !== b.orderType) {
+        return a.orderType.localeCompare(b.orderType);
+      }
 
-        // Secondary sort: by execution priority within same detailedOrderType
-        if (a.executionPriority !== b.executionPriority) {
-          return a.executionPriority - b.executionPriority;
-        }
+      // Secondary sort: by execution priority within same detailedOrderType
+      if (a.executionPriority !== b.executionPriority) {
+        return a.executionPriority - b.executionPriority;
+      }
 
-        // Final tiebreaker: order ID
-        return a.order.orderId.localeCompare(b.order.orderId);
-      })
-      .map((item) => item.order);
-  }, [unfilledOrders, marketStats.currentPrice]);
+      // Final tiebreaker: order ID
+      return a.order.orderId.localeCompare(b.order.orderId);
+    });
+
+    return sortedMetadata.map((item) => item.order);
+  }, [marketStats.currentPrice, unfilledOrders, successfullyCancelledOrderIds]);
+
+  // Clean up successfully cancelled orders when they're actually removed from unfilledOrders
+  useEffect(() => {
+    if (successfullyCancelledOrderIds.size > 0) {
+      const currentOrderIds = new Set(
+        unfilledOrders.map((order) => order.orderId),
+      );
+      const orderIdsToCleanup = Array.from(
+        successfullyCancelledOrderIds,
+      ).filter((orderId) => !currentOrderIds.has(orderId));
+
+      if (orderIdsToCleanup.length > 0) {
+        setSuccessfullyCancelledOrderIds((prev) => {
+          const newSet = new Set(prev);
+          orderIdsToCleanup.forEach((orderId) => newSet.delete(orderId));
+          return newSet;
+        });
+      }
+    }
+  }, [unfilledOrders, successfullyCancelledOrderIds]);
 
   // Fade in animation when loading completes
   useEffect(() => {
@@ -117,12 +152,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
-
-    // Always show statistics tab
-    dynamicTabs.push({
-      id: 'statistics',
-      label: strings('perps.market.statistics'),
-    });
 
     // Only show position tab if there's a position
     if (position) {
@@ -139,6 +168,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         label: strings('perps.market.orders'),
       });
     }
+
+    // Always show statistics tab
+    dynamicTabs.push({
+      id: 'statistics',
+      label: strings('perps.market.statistics'),
+    });
 
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
@@ -222,6 +257,17 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     }
   }, [tabs, activeTabId, onActiveTabChange]);
 
+  // Handle programmatic tab control from external activeTabId prop
+  useEffect(() => {
+    if (externalActiveTabId) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(externalActiveTabId)) {
+        setActiveTabId(externalActiveTabId as PerpsTabId);
+        onActiveTabChange?.(externalActiveTabId);
+      }
+    }
+  }, [externalActiveTabId, tabs, onActiveTabChange]);
+
   // Notify parent when tab changes
   const handleTabChange = useCallback(
     (tabId: string) => {
@@ -246,7 +292,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const handleOrderCancel = useCallback(
     async (orderToCancel: Order) => {
       try {
+        // Update UI state to show loading spinner
+        setCancellingOrderIds((prev) =>
+          new Set(prev).add(orderToCancel.orderId),
+        );
+
         DevLogger.log('Canceling order:', orderToCancel.orderId);
+
         const controller = Engine.context.PerpsController;
 
         const orderDirection = getOrderDirection(
@@ -255,10 +307,11 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         );
 
         showToast(
-          PerpsToastOptions.orderManagement.limit.cancellationInProgress(
+          PerpsToastOptions.orderManagement.shared.cancellationInProgress(
             orderDirection as OrderDirection,
             orderToCancel.remainingSize,
             orderToCancel.symbol,
+            orderToCancel.detailedOrderType,
           ),
         );
 
@@ -267,39 +320,35 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           coin: orderToCancel.symbol,
         });
 
+        // Order cancellation successful
         if (result.success) {
-          if (orderToCancel.reduceOnly) {
-            // Distinction is important since reduce-only orders don't require margin.
-            // So we shouldn't display "Your funds are available to trade" in the toast.
-            showToast(
-              PerpsToastOptions.orderManagement.limit.reduceOnlyClose
-                .cancellationSuccess,
-            );
-          } else {
-            // In regular limit order, funds are "locked up" and the "funds are available to trade" text in toast makes sense.
-            showToast(
-              PerpsToastOptions.orderManagement.limit.cancellationSuccess,
-            );
-          }
+          // Mark order as successfully cancelled to hide it from UI until WebSocket updates arrive
+          setSuccessfullyCancelledOrderIds((prev) =>
+            new Set(prev).add(orderToCancel.orderId),
+          );
+
+          showToast(
+            PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+              orderToCancel.reduceOnly,
+              orderToCancel.detailedOrderType,
+              orderDirection as OrderDirection,
+              orderToCancel.remainingSize,
+              orderToCancel.symbol,
+            ),
+          );
 
           // Notify parent component that order was cancelled to update chart
           onOrderCancelled?.(orderToCancel.orderId);
+
           return;
         }
 
-        // Open order cancellation failed
-        // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
-        if (orderToCancel.reduceOnly) {
-          showToast(
-            PerpsToastOptions.orderManagement.limit.reduceOnlyClose
-              .cancellationFailed,
-          );
-        } else {
-          // Display "Funds have been returned to you" toast
-          showToast(PerpsToastOptions.orderManagement.limit.cancellationFailed);
-        }
+        // Order cancellation failed
+        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
+
+        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
 
         // Capture exception with order context
         captureException(
@@ -323,12 +372,19 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             },
           },
         );
+      } finally {
+        // Remove from UI loading state
+        setCancellingOrderIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(orderToCancel.orderId);
+          return newSet;
+        });
       }
     },
     [
-      PerpsToastOptions.orderManagement.limit,
       position?.size,
       showToast,
+      PerpsToastOptions.orderManagement.shared,
       onOrderCancelled,
     ],
   );
@@ -337,15 +393,18 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!selectedTooltip) return null;
 
     return (
-      <Modal visible transparent animationType="none" statusBarTranslucent>
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey={selectedTooltip}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-          key={selectedTooltip}
-        />
-      </Modal>
+      // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+      <View>
+        <Modal visible transparent animationType="none" statusBarTranslucent>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey={selectedTooltip}
+            testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+            key={selectedTooltip}
+          />
+        </Modal>
+      </View>
     );
   }, [selectedTooltip, handleTooltipClose]);
 
@@ -384,7 +443,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.HeadingSM}
           color={TextColor.Default}
           style={styles.statisticsTitle}
           testID={PerpsMarketTabsSelectorsIDs.STATISTICS_ONLY_TITLE}
@@ -526,6 +585,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
                       onSelect={onOrderSelect}
                       isActiveOnChart={isActive}
                       activeType={activeType}
+                      isCancelling={cancellingOrderIds.has(order.orderId)}
                     />
                   );
                 })}

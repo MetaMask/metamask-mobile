@@ -1,5 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { LayoutRectangle, Pressable, PressableProps } from 'react-native';
+import {
+  LayoutRectangle,
+  Pressable,
+  PressableProps,
+  useWindowDimensions,
+} from 'react-native';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import Icon, { IconColor, IconName, IconSize } from '../../Icons/Icon';
 import { useTheme } from '../../../../util/theme';
@@ -32,6 +37,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
   const tw = useTailwind(); // Gets theme from ThemeProvider context
   const navigation = useNavigation();
   const [buttonLayout, setButtonLayout] = useState<LayoutRectangle>();
+  const fontScale = useWindowDimensions().fontScale;
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -89,6 +95,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
       onPress={handleOnPress}
     >
       <Animated.View
+        key={fontScale}
         style={[
           tw.style('items-center justify-center', {
             width: TRADE_BUTTON_SIZE,

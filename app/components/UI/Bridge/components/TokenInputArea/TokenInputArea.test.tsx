@@ -134,7 +134,7 @@ describe('TokenInputArea', () => {
     expect(queryByText('Max')).toBeNull();
   });
 
-  it('does not display max button for native assets', () => {
+  it('does not display max button for native assets when gasless swaps are disabled', () => {
     // Arrange
     const nativeToken: BridgeToken = {
       address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
@@ -143,6 +143,39 @@ describe('TokenInputArea', () => {
       chainId: '0x1' as `0x${string}`,
     };
     const tokenBalance = '1.5';
+
+    // Create state without gasless swap enabled
+    const stateWithoutGasless = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              ...initialState.engine.backgroundState.RemoteFeatureFlagController
+                .remoteFeatureFlags,
+              bridgeConfigV2: {
+                ...initialState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags
+                  .bridgeConfigV2,
+                chains: {
+                  ...initialState.engine.backgroundState
+                    .RemoteFeatureFlagController.remoteFeatureFlags
+                    .bridgeConfigV2.chains,
+                  'eip155:1': {
+                    ...initialState.engine.backgroundState
+                      .RemoteFeatureFlagController.remoteFeatureFlags
+                      .bridgeConfigV2.chains['eip155:1'],
+                    isGaslessSwapEnabled: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
 
     const { queryByText } = renderScreen(
       () => (
@@ -157,11 +190,57 @@ describe('TokenInputArea', () => {
       {
         name: 'TokenInputArea',
       },
-      { state: initialState },
+      { state: stateWithoutGasless },
     );
 
     // Assert
     expect(queryByText('Max')).toBeNull();
+  });
+
+  it('displays max button for native assets when gasless swaps are enabled', () => {
+    // Arrange
+    const nativeToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const destToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001', // Different token on same chain
+      symbol: 'TOKEN1',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '1.5';
+
+    // Create state with swap setup (both source and dest tokens on same chain)
+    const stateWithSwap = {
+      ...initialState,
+      bridge: {
+        ...initialState.bridge,
+        sourceToken: nativeToken,
+        destToken,
+      },
+    };
+
+    const { getByText } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          token={nativeToken}
+          tokenBalance={tokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: stateWithSwap },
+    );
+
+    // Assert
+    expect(getByText('Max')).toBeTruthy();
   });
 });
 
@@ -199,18 +278,22 @@ describe('getDisplayAmount', () => {
 
   it('returns full amount for source type when under max length', () => {
     const amount = '123456789012345678';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(
+      '123,456,789,012,345,680',
+    );
   });
 
   it('returns full amount for source type when over max length', () => {
     const amount = '1234567890123456789';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(
+      '1,234,567,890,123,456,800',
+    );
   });
 
   it('parses amount for destination type', () => {
     const amount = '1234567890123456789.12345';
     expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe(
-      '1234567890123456789.12345',
+      '1,234,567,890,123,456,800.00000',
     );
   });
 });

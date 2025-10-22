@@ -38,6 +38,7 @@ const ConfirmationLocationMap = {
       case TransactionType.simpleSend:
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
+      case TransactionType.tokenMethodSafeTransferFrom:
         return CONFIRMATION_EVENT_LOCATIONS.TRANSFER;
       case TransactionType.tokenMethodApprove:
       case TransactionType.tokenMethodIncreaseAllowance:

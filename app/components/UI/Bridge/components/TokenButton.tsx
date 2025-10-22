@@ -42,7 +42,7 @@ const createStyles = (params: StylesParams) => {
       borderRadius: 16,
     },
     pillContainer: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 100,
       paddingLeft: 8,
       paddingVertical: 8,
@@ -52,6 +52,9 @@ const createStyles = (params: StylesParams) => {
     tokenSymbol: {
       color: theme.colors.text.default,
       fontSize: 24,
+    },
+    networkBadge: {
+      borderColor: theme.colors.background.muted,
     },
   });
 };
@@ -72,7 +75,7 @@ export const TokenButton: React.FC<TokenProps> = ({
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.flexEnd}
         justifyContent={JustifyContent.flexEnd}
-        gap={4}
+        gap={8}
       >
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
@@ -81,6 +84,7 @@ export const TokenButton: React.FC<TokenProps> = ({
               variant={BadgeVariant.Network}
               imageSource={networkImageSource}
               name={networkName}
+              style={styles.networkBadge}
             />
           }
         >

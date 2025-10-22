@@ -48,18 +48,27 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-// Mock format utilities
-jest.mock('../../utils/formatUtils', () => ({
-  ...jest.requireActual('../../utils/formatUtils'),
-  formatPrice: jest.fn((value) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
-  }),
-}));
-
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key) => key),
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+    if (key === 'perps.order.leverage_modal.set_leverage' && params?.leverage) {
+      return `Set ${params.leverage}x`;
+    }
+    if (
+      key === 'perps.order.leverage_modal.liquidation_warning' &&
+      params?.direction &&
+      params?.percentage
+    ) {
+      return `You will be liquidated if price ${params.direction} by ${params.percentage}`;
+    }
+    if (key === 'perps.order.leverage_modal.drops') {
+      return 'drops';
+    }
+    if (key === 'perps.order.leverage_modal.rises') {
+      return 'rises';
+    }
+    return key;
+  }),
 }));
 
 // Mock DevLogger
@@ -101,10 +110,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-// Mock usePerpsScreenTracking hook
-jest.mock('../../hooks/usePerpsScreenTracking', () => ({
-  usePerpsScreenTracking: jest.fn(),
-}));
+// usePerpsScreenTracking removed - migrated to usePerpsMeasurement
 
 // Mock BottomSheet components from component library
 jest.mock(
@@ -586,7 +592,7 @@ describe('PerpsLeverageBottomSheet', () => {
       );
     });
 
-    it('truncates liquidation price to 2 decimals when price is above 1', () => {
+    it('formats liquidation price with PRICE_RANGES_UNIVERSAL', () => {
       // Arrange - Mock hook to return liquidation price with many decimal places
       const mockUsePerpsLiquidationPrice = jest.requireMock(
         '../../hooks/usePerpsLiquidationPrice',
@@ -608,8 +614,8 @@ describe('PerpsLeverageBottomSheet', () => {
       // Act
       render(<PerpsLeverageBottomSheet {...props} />);
 
-      // Assert - Should display truncated price with 2 decimal places
-      expect(screen.getByText('$1,234.36')).toBeOnTheScreen();
+      // Assert - Should display formatted price with 5 sig figs, max 1 decimal for $1k-$10k range
+      expect(screen.getByText('$1,234.4')).toBeOnTheScreen();
     });
   });
 

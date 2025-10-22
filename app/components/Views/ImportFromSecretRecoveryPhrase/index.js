@@ -7,16 +7,10 @@ import React, {
   useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Alert,
-  View,
-  Keyboard,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
+import { Alert, View, Keyboard, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import zxcvbn from 'zxcvbn';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -28,7 +22,6 @@ import {
 } from '../../../util/validators';
 import Logger from '../../../util/Logger';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
@@ -93,12 +86,6 @@ import SrpInput from '../SrpInput';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
-// Custom masking function to replace characters with dots (avoids iOS ellipsis)
-const maskText = (text) => {
-  if (!text) return '';
-  return '••••';
-};
-
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -130,7 +117,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState();
   const [biometryType, setBiometryType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -140,7 +126,6 @@ const ImportFromSecretRecoveryPhrase = ({
     useState(null);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
     useState(null);
-  const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
@@ -171,7 +156,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleClear = useCallback(() => {
     setSeedPhrase(['']);
     setErrorWordIndexes({});
-    setShowAllSeedPhrase(false);
     setError('');
     setSeedPhraseInputFocusedIndex(0);
     setNextSeedPhraseInputFocusedIndex(0);
@@ -447,10 +431,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPasswordChange = (value) => {
-    const passInfo = zxcvbn(value);
-
     setPassword(value);
-    setPasswordStrength(passInfo.score);
     if (value === '') {
       setConfirmPassword('');
     }
@@ -465,20 +446,12 @@ const ImportFromSecretRecoveryPhrase = ({
     current && current.focus();
   };
 
-  const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
-
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
       handleSeedPhraseChange(text);
     }
   }, [handleSeedPhraseChange]);
-
-  const toggleShowAllSeedPhrase = () => {
-    seedPhraseInputRefs.current.get(seedPhraseInputFocusedIndex)?.blur();
-    setSeedPhraseInputFocusedIndex(null);
-    setShowAllSeedPhrase((prev) => !prev);
-  };
 
   const validateSeedPhrase = () => {
     // Trim each word before joining to ensure proper validation
@@ -687,24 +660,13 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
-  const canShowSeedPhraseWord = useCallback(
-    (index) =>
-      showAllSeedPhrase ||
-      errorWordIndexes[index] ||
-      index === seedPhraseInputFocusedIndex,
-    [showAllSeedPhrase, seedPhraseInputFocusedIndex, errorWordIndexes],
-  );
-
   const getInputValue = (isFirstInput, index, item) => {
     if (isFirstInput) {
       return seedPhrase?.[0] || '';
     }
 
-    if (canShowSeedPhraseWord(index)) {
-      return item;
-    }
-
-    return maskText(item);
+    // Show all words by default
+    return item;
   };
 
   const learnMoreLink = () => {
@@ -777,7 +739,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
@@ -843,7 +805,7 @@ const ImportFromSecretRecoveryPhrase = ({
                           startAccessory={
                             !isFirstInput && (
                               <Text
-                                variant={TextVariant.BodyMD}
+                                variant={TextVariant.BodyMDBold}
                                 color={TextColor.Alternative}
                                 style={styles.inputIndex}
                               >
@@ -918,37 +880,23 @@ const ImportFromSecretRecoveryPhrase = ({
                       ))}
                     </View>
                   </View>
-                  <View style={styles.seedPhraseContainerCta}>
-                    <Button
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={toggleShowAllSeedPhrase}
-                      label={
-                        showAllSeedPhrase
-                          ? strings('import_from_seed.hide_all')
-                          : strings('import_from_seed.show_all')
-                      }
-                      width={ButtonWidthTypes.Full}
-                    />
-                    <Button
-                      label={
-                        trimmedSeedPhraseLength >= 1
-                          ? strings('import_from_seed.clear_all')
-                          : strings('import_from_seed.paste')
-                      }
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={() => {
-                        if (trimmedSeedPhraseLength >= 1) {
-                          handleClear();
-                        } else {
-                          handlePaste();
-                        }
-                      }}
-                      width={ButtonWidthTypes.Full}
-                    />
-                  </View>
                 </View>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Primary}
+                  style={styles.pasteText}
+                  onPress={() => {
+                    if (trimmedSeedPhraseLength >= 1) {
+                      handleClear();
+                    } else {
+                      handlePaste();
+                    }
+                  }}
+                >
+                  {trimmedSeedPhraseLength >= 1
+                    ? strings('import_from_seed.clear_all')
+                    : strings('import_from_seed.paste')}
+                </Text>
                 {Boolean(error) && (
                   <Text
                     variant={TextVariant.BodySMMedium}
@@ -1036,25 +984,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   {strings('choose_password.must_be_at_least', {
                     number: MIN_PASSWORD_LENGTH,
                   })}
-                </Text>
-              )}
-              {Boolean(password) && password.length >= MIN_PASSWORD_LENGTH && (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
-                >
-                  {strings('choose_password.password_strength')}
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles[`strength_${passwordStrengthWord}`]}
-                  >
-                    {' '}
-                    {strings(
-                      `choose_password.strength_${passwordStrengthWord}`,
-                    )}
-                  </Text>
                 </Text>
               )}
             </View>

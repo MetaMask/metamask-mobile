@@ -11,6 +11,10 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
+import {
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+} from '../constants/hyperLiquidConfig';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -64,6 +68,12 @@ export const usePerpsDepositStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
+      const { metamaskPay } = transactionMeta;
+
+      const isArbUSDCDeposit =
+        metamaskPay?.chainId === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        metamaskPay?.tokenAddress === USDC_ARBITRUM_MAINNET_ADDRESS;
+
       if (
         transactionMeta.type === TransactionType.perpsDeposit &&
         transactionMeta.status === TransactionStatus.approved
@@ -71,8 +81,7 @@ export const usePerpsDepositStatus = () => {
         expectingDepositRef.current = true;
         prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
 
-        const processingTimeSeconds =
-          bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
+        const processingTimeSeconds = isArbUSDCDeposit ? 0 : 60; // hardcoded to 1 minute to avoid estimation failures of multiple bridges
 
         showToast(
           PerpsToastOptions.accountManagement.deposit.inProgress(
@@ -131,10 +140,12 @@ export const usePerpsDepositStatus = () => {
 
       expectingDepositRef.current = false;
 
-      // Clear the error after showing toast
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         clearDepositResult();
       }, 500);
+
+      // Clear the error after showing toast
+      return () => clearTimeout(timeout);
     }
   }, [
     lastDepositResult,

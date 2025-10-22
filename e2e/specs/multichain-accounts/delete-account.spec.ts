@@ -28,19 +28,15 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,
       );
-      if (device.getPlatform() === 'android') {
-        await AccountListBottomSheet.scrollToBottomOfAccountList();
-      } else {
-        await AccountListBottomSheet.scrollToAccount(
-          SIMPLE_KEYPAIR_ACCOUNT.index,
-        );
-      }
+
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list
       await WalletView.tapIdenticon();
-      const name = Matchers.getElementByText(SIMPLE_KEYPAIR_ACCOUNT.name);
-      await Assertions.expectElementToNotBeVisible(name);
+
+      const importedAccountsSection =
+        Matchers.getElementByText('Imported Accounts');
+      await Assertions.expectElementToNotBeVisible(importedAccountsSection);
     });
   });
 });

@@ -70,9 +70,6 @@ import {
 
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
 import CardButton from '../Card/components/CardButton';
 
 const trackEvent = (event, params = {}) => {
@@ -150,6 +147,9 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginHorizontal: 24,
+  },
+  hidden: {
+    opacity: 0,
   },
 });
 
@@ -550,7 +550,7 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(
+export function getSendFlowTitle({
   title,
   navigation,
   route,
@@ -560,7 +560,7 @@ export function getSendFlowTitle(
   disableNetwork = true,
   showSelectedNetwork = false,
   globalChainId = '',
-) {
+} = {}) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -915,6 +915,8 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
+ * @param {boolean} shouldDisplayCardButton - Whether to display the card button
+ * @param {boolean} isRewardsEnabled - Whether rewards are enabled
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -930,17 +932,10 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
-  isCardholder = false,
+  shouldDisplayCardButton,
   isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
-    headerContainer: {
-      height: 72,
-      backgroundColor: themeColors.background,
-      borderBottomWidth: 1,
-      borderBottomColor: themeColors.border.muted,
-      alignItems: 'center',
-    },
     headerIcon: {
       color: themeColors.primary.default,
     },
@@ -996,7 +991,7 @@ export function getWalletNavbarOptions(
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
-              } catch (e) {
+              } catch {
                 Alert.alert(
                   strings('import_private_key.error_title'),
                   strings('import_private_key.error_message'),
@@ -1085,7 +1080,6 @@ export function getWalletNavbarOptions(
       <HeaderBase
         includesTopInset
         variant={HeaderBaseVariant.Display}
-        style={innerStyles.headerContainer}
         startAccessory={
           !isFeatureFlagEnabled && (
             <View style={innerStyles.startAccessoryContainer}>
@@ -1113,12 +1107,12 @@ export function getWalletNavbarOptions(
                     hitSlop={innerStyles.touchAreaSlop}
                   />
                 </View>
-                {isCardholder ? (
+                {shouldDisplayCardButton && (
                   <CardButton
                     onPress={handleCardPress}
                     touchAreaSlop={innerStyles.touchAreaSlop}
                   />
-                ) : null}
+                )}
                 <ButtonIcon
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={openQRScanner}
@@ -1850,8 +1844,6 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  const leftAction = () => navigation.pop();
-
   return {
     headerTitle: () => (
       <NavbarTitle
@@ -1861,20 +1853,26 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-        <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
-    ),
+    // Render an empty left header action that matches the dimensions of the close button.
+    // This allows us to center align the title on Android devices.
+    headerLeft: Device.isAndroid()
+      ? () => (
+          <View style={[styles.closeButton, styles.hidden]}>
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Lg}
+              color={IconColor.Muted}
+            />
+          </View>
+        )
+      : null,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => navigation.dangerouslyGetParent()?.pop()}
         style={styles.closeButton}
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
+        <Icon name={IconName.Close} size={IconSize.Lg} />
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
@@ -2051,7 +2049,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true, showCancel = true, showNetwork = true } = {},
+  { title = '', showBack = true, showCancel = true, showNetwork = false } = {},
   themeColors,
   onCancel,
 ) {
@@ -2202,7 +2200,7 @@ export const getSettingsNavigationOptions = (
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Close}
-          onPress={() => navigation && navigation.goBack()}
+          onPress={() => navigation?.goBack()}
           style={innerStyles.accessories}
           testID={NetworksViewSelectorsIDs.CLOSE_ICON}
         />
@@ -2352,6 +2350,39 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />
+    ),
+  };
+}
+
+/**
+ * Function that returns the navigation options for the Address List screen
+ *
+ * @param {Object} navigation - Navigation object required to push new views
+ * @param {string} title - Title in string format
+ * @param {string} testID - Test ID for the back button
+ * @returns {Object} - Corresponding navbar options
+ */
+export function getAddressListNavbarOptions(navigation, title, testID) {
+  const innerStyles = StyleSheet.create({
+    headerLeft: {
+      marginHorizontal: 8,
+    },
+  });
+  return {
+    headerTitleAlign: 'center',
+    headerTitle: () => (
+      <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
+    ),
+    headerLeft: () => (
+      <View style={innerStyles.headerLeft}>
+        <ButtonIcon
+          testID={testID}
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Md}
+          iconProps={{ color: MMDSIconColor.IconDefault }}
+          onPress={() => navigation.goBack()}
+        />
+      </View>
     ),
   };
 }

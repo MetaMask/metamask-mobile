@@ -108,7 +108,10 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
     });
 
     it('triggers Disable when hasRewardsError is true', () => {
@@ -121,7 +124,10 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
     });
 
     it('triggers Start when estimatedPoints > 0 and not loading/error', () => {
@@ -134,7 +140,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
     });
 
     it('does not trigger Start when estimatedPoints is 0', () => {
@@ -189,7 +195,10 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
     });
 
     it('prioritizes loading state over positive points', () => {
@@ -203,7 +212,10 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
     });
 
     it('prioritizes error state over positive points', () => {
@@ -217,7 +229,10 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
     });
   });
 
@@ -233,7 +248,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert initial call
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
 
       // Clear and setup for second render
       mockFireState.mockClear();
@@ -252,7 +267,10 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert - should trigger Disable for loading state
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
     });
 
     it('does not retrigger when points remain unchanged', () => {
@@ -265,7 +283,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert initial call
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
 
       // Setup for rerender - set previous points to same value and setup fresh mocks
       mockFireState.mockClear();
@@ -299,7 +317,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
     });
 
     it('triggers when transitioning from loading to points', () => {
@@ -316,7 +334,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
     });
   });
 
@@ -377,7 +395,10 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert - should prioritize error state
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
       // Should set currentPoints to 0 due to error, then update previousPointsRef
       expect(mockPreviousPointsRef.current).toBe(0);
     });
@@ -396,7 +417,161 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
+    });
+  });
+
+  describe('refresh animation trigger', () => {
+    it('triggers Refresh when isRefresh is true and has positive points', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Refresh_left',
+      );
+    });
+
+    it('does not trigger Refresh when estimatedPoints is 0', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRefresh: true,
+          estimatedPoints: 0,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+    });
+
+    it('does not trigger Refresh when estimatedPoints is null', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRefresh: true,
+          estimatedPoints: null,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+    });
+
+    it('prioritizes loading state over refresh', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRewardsLoading: true,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
+    });
+
+    it('prioritizes error state over refresh', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          hasRewardsError: true,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith(
+        'Rewards_Icon',
+        'Disable_left',
+      );
+    });
+  });
+
+  describe('additional edge cases for complete coverage', () => {
+    it('handles when shouldShowRewardsRow is false with refresh state', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          shouldShowRewardsRow: false,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+    });
+
+    it('handles points change from 0 to positive value', () => {
+      // Arrange
+      mockPreviousPointsRef.current = 0 as any;
+
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          estimatedPoints: 50,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockPreviousPointsRef.current).toBe(50);
+    });
+
+    it('handles points change from positive to 0', () => {
+      // Arrange
+      mockPreviousPointsRef.current = 100 as any;
+
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          estimatedPoints: 0,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+      expect(mockPreviousPointsRef.current).toBe(0);
+    });
+
+    it('handles points change from null to positive', () => {
+      // Arrange
+      mockPreviousPointsRef.current = null as any;
+
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          estimatedPoints: 75,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockPreviousPointsRef.current).toBe(75);
     });
   });
 });

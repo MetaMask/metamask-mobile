@@ -1,14 +1,49 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { ActivityEventRow } from './ActivityEventRow';
 import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
+import { formatRewardsDate } from '../../../utils/formatUtils';
+import { getEventDetails } from '../../../utils/eventDetailsUtils';
 import { IconName } from '@metamask/design-system-react-native';
+import TEST_ADDRESS from '../../../../../../constants/address';
+import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
 
 // Mock the utility functions
 jest.mock('../../../utils/formatUtils', () => ({
-  getEventDetails: jest.fn(),
   formatRewardsDate: jest.fn(),
+  formatNumber: jest
+    .fn()
+    .mockImplementation((value) => value?.toString() || '0'),
+}));
+
+jest.mock('../../../utils/eventDetailsUtils', () => ({
+  getEventDetails: jest.fn(),
+}));
+
+// Mock selectors
+jest.mock('../../../../../../selectors/networkController', () => ({
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+// Mock navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
+// Mock useActivityDetailsConfirmAction hook
+jest.mock('../../../hooks/useActivityDetailsConfirmAction', () => ({
+  useActivityDetailsConfirmAction: jest.fn(),
 }));
 
 const mockGetEventDetails = getEventDetails as jest.MockedFunction<
@@ -17,6 +52,10 @@ const mockGetEventDetails = getEventDetails as jest.MockedFunction<
 const mockFormatRewardsDate = formatRewardsDate as jest.MockedFunction<
   typeof formatRewardsDate
 >;
+const mockUseActivityDetailsConfirmAction =
+  useActivityDetailsConfirmAction as jest.MockedFunction<
+    typeof useActivityDetailsConfirmAction
+  >;
 
 describe('ActivityEventRow', () => {
   // Helper to create a valid PointsEventDto for all event types
@@ -106,7 +145,6 @@ describe('ActivityEventRow', () => {
               decimals: 0,
               name: 'BIO',
               symbol: 'BIO',
-              iconUrl: 'https://app.hyperliquid.xyz/coins/BIO.svg',
               amount: '287',
             },
           },
@@ -131,6 +169,31 @@ describe('ActivityEventRow', () => {
           ...overrides,
         } as PointsEventDto;
 
+      case 'CARD':
+        return {
+          id: 'card-event-1',
+          timestamp: new Date('2025-09-15T10:30:00.000Z'),
+          type: 'CARD' as const,
+          value: 15,
+          bonus: {
+            bips: 5000,
+            bonuses: ['card-bonus-1'],
+          },
+          accountAddress: '0x069060A475c76C77427CcC8CbD7eCB0B293f5beD',
+          payload: {
+            asset: {
+              amount: '43250000',
+              type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+            txHash: '0xabc123def456789012345678901234567890abcd',
+          },
+          updatedAt: new Date('2025-09-15T10:30:00.000Z'),
+          ...overrides,
+        } as PointsEventDto;
+
       default:
         throw new Error(`Unsupported event type: ${eventType}`);
     }
@@ -146,6 +209,8 @@ describe('ActivityEventRow', () => {
     jest.clearAllMocks();
     mockGetEventDetails.mockReturnValue(defaultEventDetails);
     mockFormatRewardsDate.mockReturnValue('Sep 9, 2025');
+    mockUseSelector.mockReturnValue({});
+    mockUseActivityDetailsConfirmAction.mockReturnValue(undefined);
   });
 
   describe('event details display', () => {
@@ -159,7 +224,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Custom Event Title')).toBeOnTheScreen();
@@ -172,7 +239,9 @@ describe('ActivityEventRow', () => {
       mockFormatRewardsDate.mockReturnValue('Dec 25, 2023');
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Dec 25, 2023')).toBeOnTheScreen();
@@ -185,7 +254,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ type: 'SIGN_UP_BONUS' }); // Uses value: 250
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('+250')).toBeOnTheScreen();
@@ -196,7 +267,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ value: 0 });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('0')).toBeOnTheScreen();
@@ -207,7 +280,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ type: 'SWAP' }); // Uses value: 2
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('+2')).toBeOnTheScreen();
@@ -218,7 +293,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ type: 'LOYALTY_BONUS' }); // Uses value: 500
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('+500')).toBeOnTheScreen();
@@ -231,7 +308,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ type: 'SWAP' }); // Uses bips: 10000 = 100%
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('+100%')).toBeOnTheScreen();
@@ -242,7 +321,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ type: 'LOYALTY_BONUS' }); // Uses bips: 15000 = 150%
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('+150%')).toBeOnTheScreen();
@@ -253,7 +334,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ type: 'REFERRAL' }); // Uses bonus: null
 
       // Act
-      const { queryByText } = render(<ActivityEventRow event={event} />);
+      const { queryByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(queryByText(/\+.*%/)).toBeNull();
@@ -264,7 +347,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent({ type: 'SIGN_UP_BONUS' }); // Uses bonus: {}
 
       // Act
-      const { queryByText } = render(<ActivityEventRow event={event} />);
+      const { queryByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(queryByText(/\+.*%/)).toBeNull();
@@ -277,7 +362,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { queryByText } = render(<ActivityEventRow event={event} />);
+      const { queryByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(queryByText(/\+.*%/)).toBeNull();
@@ -295,7 +382,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Swap')).toBeOnTheScreen();
@@ -314,13 +403,15 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Opened position')).toBeOnTheScreen();
       expect(getByText('Opened SHORT BIO position')).toBeOnTheScreen();
       expect(getByText('+1')).toBeOnTheScreen();
-      expect(mockGetEventDetails).toHaveBeenCalledWith(event);
+      expect(mockGetEventDetails).toHaveBeenCalledWith(event, TEST_ADDRESS);
     });
 
     it('should render SIGN_UP_BONUS event correctly', () => {
@@ -333,7 +424,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Sign up bonus')).toBeOnTheScreen();
@@ -351,7 +444,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Referral')).toBeOnTheScreen();
@@ -369,7 +464,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('One-time bonus')).toBeOnTheScreen();
@@ -387,13 +484,37 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Loyalty bonus')).toBeOnTheScreen();
       expect(getByText('Early staker bonus')).toBeOnTheScreen();
       expect(getByText('+500')).toBeOnTheScreen();
       expect(getByText('+150%')).toBeOnTheScreen();
+    });
+
+    it('should render CARD event correctly', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'CARD' });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Card spend',
+        details: '43.25 USDC',
+        icon: IconName.Card,
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert
+      expect(getByText('Card spend')).toBeOnTheScreen();
+      expect(getByText('43.25 USDC')).toBeOnTheScreen();
+      expect(getByText('+15')).toBeOnTheScreen();
+      expect(getByText('+50%')).toBeOnTheScreen();
+      expect(mockGetEventDetails).toHaveBeenCalledWith(event, TEST_ADDRESS);
     });
   });
 
@@ -409,7 +530,7 @@ describe('ActivityEventRow', () => {
 
       // Act
       const { getByText, queryByText } = render(
-        <ActivityEventRow event={event} />,
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
       );
 
       // Assert
@@ -427,7 +548,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Event Title')).toBeOnTheScreen();
@@ -445,7 +568,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText(longTitle)).toBeOnTheScreen();
@@ -462,7 +587,9 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText(specialTitle)).toBeOnTheScreen();
@@ -475,7 +602,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent();
 
       // Act & Assert
-      expect(() => render(<ActivityEventRow event={event} />)).not.toThrow();
+      expect(() =>
+        render(<ActivityEventRow event={event} accountName={TEST_ADDRESS} />),
+      ).not.toThrow();
     });
 
     it('should render with minimal required props', () => {
@@ -483,7 +612,9 @@ describe('ActivityEventRow', () => {
       const minimalEvent = createMockEvent();
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={minimalEvent} />);
+      const { getByText } = render(
+        <ActivityEventRow event={minimalEvent} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Swap Event')).toBeOnTheScreen();
@@ -497,7 +628,9 @@ describe('ActivityEventRow', () => {
       const event = createMockEvent();
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       const titleElement = getByText('Swap Event');
@@ -523,11 +656,13 @@ describe('ActivityEventRow', () => {
       });
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('Test Event')).toBeOnTheScreen();
-      expect(mockGetEventDetails).toHaveBeenCalledWith(event);
+      expect(mockGetEventDetails).toHaveBeenCalledWith(event, TEST_ADDRESS);
     });
 
     it('should handle formatRewardsDate returning different date formats', () => {
@@ -536,13 +671,143 @@ describe('ActivityEventRow', () => {
       mockFormatRewardsDate.mockReturnValue('15/01/2024');
 
       // Act
-      const { getByText } = render(<ActivityEventRow event={event} />);
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
 
       // Assert
       expect(getByText('15/01/2024')).toBeOnTheScreen();
-      expect(mockFormatRewardsDate).toHaveBeenCalledWith(
-        event.timestamp.getTime(),
+      expect(mockFormatRewardsDate).toHaveBeenCalledWith(event.timestamp);
+    });
+  });
+
+  describe('network image source extraction', () => {
+    it('should extract chainId from SWAP event srcAsset type', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'SWAP' });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Swap',
+        details: 'Swapped USDC for ETH',
+        icon: IconName.SwapHorizontal,
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
       );
+
+      // Assert - Component should render without error
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByText('Swapped USDC for ETH')).toBeOnTheScreen();
+    });
+
+    it('should extract chainId from PERPS event asset type', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'PERPS' });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Opened position',
+        details: 'Opened SHORT BIO position',
+        icon: IconName.Candlestick,
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert - Component should render without error
+      expect(getByText('Opened position')).toBeOnTheScreen();
+      expect(getByText('Opened SHORT BIO position')).toBeOnTheScreen();
+    });
+
+    it('should extract chainId from CARD event asset type', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'CARD' });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Card spend',
+        details: '43.25 USDC',
+        icon: IconName.Card,
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert - Component should render without error
+      expect(getByText('Card spend')).toBeOnTheScreen();
+      expect(getByText('43.25 USDC')).toBeOnTheScreen();
+    });
+
+    it('should handle CARD event without asset type gracefully', () => {
+      // Arrange
+      const event = createMockEvent({
+        type: 'CARD',
+        payload: {
+          asset: {
+            amount: '50000000',
+            type: '' as never,
+            decimals: 6,
+            name: 'USD Coin',
+            symbol: 'USDC',
+          },
+          txHash: '0xabc123def456789012345678901234567890abcd',
+        },
+      });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Card spend',
+        details: '50 USDC',
+        icon: IconName.Card,
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert - Component should render without error
+      expect(getByText('Card spend')).toBeOnTheScreen();
+      expect(getByText('50 USDC')).toBeOnTheScreen();
+    });
+
+    it('should handle events without payload gracefully', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'SIGN_UP_BONUS' });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Sign up bonus',
+        details: 'Welcome bonus',
+        icon: IconName.Gift,
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert - Component should render without error
+      expect(getByText('Sign up bonus')).toBeOnTheScreen();
+      expect(getByText('Welcome bonus')).toBeOnTheScreen();
+    });
+
+    it('should handle CARD event with missing payload fields', () => {
+      // Arrange
+      const event = createMockEvent({
+        type: 'CARD',
+        payload: null,
+      });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Card spend',
+        details: undefined,
+        icon: IconName.Card,
+      });
+
+      // Act
+      const { getByText } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert - Component should render without error
+      expect(getByText('Card spend')).toBeOnTheScreen();
     });
   });
 });

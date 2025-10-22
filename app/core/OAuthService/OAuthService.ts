@@ -123,7 +123,10 @@ export class OAuthService {
           accessToken: data.access_token,
           metadataAccessToken: data.metadata_access_token,
         });
-      Logger.log('handleCodeFlow: result', result);
+      Logger.log(
+        'handleCodeFlow: success seedless authenticate. isNewUser',
+        result.isNewUser,
+      );
       return {
         type: OAuthLoginResultType.SUCCESS,
         existingUser: !result.isNewUser,
@@ -181,7 +184,7 @@ export class OAuthService {
 
       const authConnection = loginHandler.authConnection;
 
-      Logger.log('handleOAuthLogin: result', result);
+      Logger.log('handleOAuthLogin: before getAuthToken');
       if (result) {
         let getAuthTokensSuccess = false;
         try {

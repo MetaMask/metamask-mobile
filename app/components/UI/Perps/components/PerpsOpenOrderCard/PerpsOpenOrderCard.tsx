@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
@@ -18,11 +18,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
-  formatPrice,
   formatPositionSize,
-  PRICE_RANGES_DETAILED_VIEW,
+  PRICE_RANGES_UNIVERSAL,
   formatPerpsFiat,
   formatOrderCardDate,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -71,16 +71,19 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   rightAccessory,
   isActiveOnChart = false,
   activeType,
+  isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  // Used to prevent rapid clicks on the cancel button before it has time to re-render.
+  const isLocallyCancellingRef = useRef(false);
+
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
   const isEligible = useSelector(selectPerpsEligibility);
 
-  // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
-    // For reduce-only orders (TP/SL), show them as closing positions
     let direction: OpenOrderCardDerivedData['direction'];
     if (order.reduceOnly || order.isTrigger) {
       // This is a TP/SL order closing a position
@@ -109,37 +112,56 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       sizeInUSD,
       fillPercentage,
     };
-  }, [order]);
+  }, [
+    order.reduceOnly,
+    order.isTrigger,
+    order.side,
+    order.originalSize,
+    order.price,
+    order.filledSize,
+  ]);
 
-  // Early return for non-open orders - this component only handles open orders
-  if (order.status !== 'open') {
-    return null;
+  // Allows for retries if cancellation fails.
+  if (!isCancelling) {
+    isLocallyCancellingRef.current = false;
   }
 
-  const handleCancelPress = () => {
+  const handleCancelPress = useCallback(() => {
+    if (isLocallyCancellingRef.current) {
+      return;
+    }
+
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
     }
+
+    // Set local state immediately to prevent rapid clicks
+    isLocallyCancellingRef.current = true;
 
     DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
       orderId: order.orderId,
     });
 
     onCancel?.(order);
-  };
+  }, [isEligible, onCancel, order]);
 
-  const handleCardPress = () => {
-    if (onSelect && !disabled) {
+  const handleCardPress = useCallback(() => {
+    if (onSelect) {
       onSelect(order.orderId);
     }
-  };
+  }, [onSelect, order.orderId]);
+
+  // Early return for non-open orders - this component only handles open orders
+  if (order.status !== 'open') {
+    return null;
+  }
 
   return (
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={disabled}
+      disabled={isLocallyCancellingRef.current || disabled}
       onPress={handleCardPress}
     >
       {/* Header - Always shown */}
@@ -168,7 +190,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                       variant={TextVariant.BodyXS}
                       color={TextColor.Inverse}
                     >
-                      TP on Chart
+                      {strings('perps.tp_on_chart')}
                     </Text>
                   </View>
                 ) : null}
@@ -180,7 +202,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                       variant={TextVariant.BodyXS}
                       color={TextColor.Default}
                     >
-                      SL on Chart
+                      {strings('perps.sl_on_chart')}
                     </Text>
                   </View>
                 ) : null}
@@ -214,7 +236,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         <View style={styles.headerRight}>
           <View style={styles.headerRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {formatPrice(derivedData.sizeInUSD)}
+              {formatPerpsFiat(derivedData.sizeInUSD, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -240,7 +264,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPerpsFiat(order.price, {
-                  ranges: PRICE_RANGES_DETAILED_VIEW,
+                  ranges: PRICE_RANGES_UNIVERSAL,
                 })}
               </Text>
             </View>
@@ -257,7 +281,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {order.takeProfitPrice
                       ? formatPerpsFiat(order.takeProfitPrice, {
-                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                          ranges: PRICE_RANGES_UNIVERSAL,
                         })
                       : strings('perps.position.card.not_set')}
                   </Text>
@@ -272,7 +296,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {order.stopLossPrice
                       ? formatPerpsFiat(order.stopLossPrice, {
-                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                          ranges: PRICE_RANGES_UNIVERSAL,
                         })
                       : strings('perps.position.card.not_set')}
                   </Text>
@@ -283,15 +307,12 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             {order.isTrigger && order.reduceOnly && (
               <View style={[styles.bodyItem, styles.bodyItemReduceOnly]}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.order.reduce_only')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.order.yes')}
                 </Text>
               </View>
@@ -309,7 +330,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             width={ButtonWidthTypes.Full}
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
-            disabled={disabled}
+            isDisabled={isLocallyCancellingRef.current || disabled}
+            loading={isLocallyCancellingRef.current || disabled}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
@@ -317,13 +339,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       )}
 
       {isEligibilityModalVisible && (
-        <Modal visible transparent animationType="fade">
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsEligibilityModalVisible(false)}
-            contentKey={'geo_block'}
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+            />
+          </Modal>
+        </View>
       )}
     </TouchableOpacity>
   );

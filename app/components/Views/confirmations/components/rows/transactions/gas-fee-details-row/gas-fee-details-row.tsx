@@ -25,30 +25,55 @@ import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './gas-fee-details-row.styles';
+import { SelectedGasFeeToken } from '../../../gas/selected-gas-fee-token';
+import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text';
+import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
+import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
 
+const PaidByMetaMask = () => (
+  <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
+    {strings('transactions.paid_by_metamask')}
+  </Text>
+);
 const EstimationInfo = ({
   hideFiatForTestnet,
   feeCalculations,
   fiatOnly,
+  isGasFeeSponsored,
 }: {
   hideFiatForTestnet: boolean;
   feeCalculations:
     | ReturnType<typeof useFeeCalculations>
     | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
+  isGasFeeSponsored?: boolean;
 }) => {
+  const gasFeeToken = useSelectedGasFeeToken();
   const { styles } = useStyles(styleSheet, {});
+
+  const fiatValue = gasFeeToken?.amountFiat ?? feeCalculations.estimatedFeeFiat;
+  const nativeValue = feeCalculations.estimatedFeeNative;
+
+  const displayValue =
+    hideFiatForTestnet || !fiatValue ? nativeValue : fiatValue;
+  const displayStyle =
+    hideFiatForTestnet || !fiatValue
+      ? styles.primaryValue
+      : styles.secondaryValue;
+
   return (
     <View style={styles.estimationContainer}>
-      {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
-        <Text style={styles.secondaryValue}>
-          {feeCalculations.estimatedFeeFiat}
-        </Text>
-      )}
-      {!fiatOnly && (
-        <Text style={styles.primaryValue}>
-          {feeCalculations.estimatedFeeNative}
-        </Text>
+      {isGasFeeSponsored ? (
+        <PaidByMetaMask />
+      ) : (
+        <>
+          {displayValue && <Text style={displayStyle}>{displayValue}</Text>}
+          {!fiatOnly && <SelectedGasFeeToken />}
+        </>
       )}
     </View>
   );
@@ -57,9 +82,11 @@ const EstimationInfo = ({
 const SingleEstimateInfo = ({
   hideFiatForTestnet,
   fiatOnly,
+  isGasFeeSponsored,
 }: {
   hideFiatForTestnet: boolean;
   fiatOnly: boolean;
+  isGasFeeSponsored?: boolean;
 }) => {
   const transactionMetadata = useTransactionMetadataRequest();
   const feeCalculations = useFeeCalculations(
@@ -71,6 +98,7 @@ const SingleEstimateInfo = ({
       hideFiatForTestnet={hideFiatForTestnet}
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
+      isGasFeeSponsored={isGasFeeSponsored}
     />
   );
 };
@@ -78,9 +106,11 @@ const SingleEstimateInfo = ({
 const BatchEstimateInfo = ({
   hideFiatForTestnet,
   fiatOnly,
+  isGasFeeSponsored,
 }: {
   hideFiatForTestnet: boolean;
   fiatOnly: boolean;
+  isGasFeeSponsored?: boolean;
 }) => {
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const feeCalculations = useFeeCalculationsTransactionBatch(
@@ -92,6 +122,7 @@ const BatchEstimateInfo = ({
       hideFiatForTestnet={hideFiatForTestnet}
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
+      isGasFeeSponsored={isGasFeeSponsored}
     />
   );
 };
@@ -133,16 +164,19 @@ const RenderEstimationInfo = ({
   transactionBatchesMetadata,
   hideFiatForTestnet,
   fiatOnly,
+  isGasFeeSponsored,
 }: {
   transactionBatchesMetadata: TransactionBatchMeta | undefined;
   hideFiatForTestnet: boolean;
   fiatOnly: boolean;
+  isGasFeeSponsored?: boolean;
 }) => {
   if (transactionBatchesMetadata) {
     return (
       <BatchEstimateInfo
         hideFiatForTestnet={hideFiatForTestnet}
         fiatOnly={fiatOnly}
+        isGasFeeSponsored={isGasFeeSponsored}
       />
     );
   }
@@ -150,6 +184,7 @@ const RenderEstimationInfo = ({
     <SingleEstimateInfo
       hideFiatForTestnet={hideFiatForTestnet}
       fiatOnly={fiatOnly}
+      isGasFeeSponsored={isGasFeeSponsored}
     />
   );
 };
@@ -162,9 +197,12 @@ const GasFeesDetailsRow = ({
 }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
+  useAutomaticGasFeeTokenSelect();
 
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
+  const gasFeeToken = useSelectedGasFeeToken();
+  const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
@@ -172,6 +210,7 @@ const GasFeesDetailsRow = ({
   const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
 
   const isUserFeeLevelExists = transactionMetadata?.userFeeLevel;
+  const isGasFeeSponsored = transactionMetadata?.isGasFeeSponsored;
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({
@@ -179,23 +218,29 @@ const GasFeesDetailsRow = ({
     });
   };
 
-  const Container = noSection ? View : InfoSection;
+  const confirmGasFeeTokenTooltip = gasFeeToken
+    ? strings('transactions.confirm_gas_fee_token_tooltip', {
+        metamaskFeeFiat,
+      })
+    : strings('transactions.network_fee_tooltip');
 
+  const Container = noSection ? View : InfoSection;
   return (
     <>
       <Container testID={ConfirmationRowComponentIDs.GAS_FEES_DETAILS}>
         <AlertRow
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
-          tooltip={strings('transactions.network_fee_tooltip')}
+          tooltip={confirmGasFeeTokenTooltip}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
-            {disableUpdate ? (
+            {disableUpdate || gasFeeToken || isGasFeeSponsored ? (
               <RenderEstimationInfo
                 transactionBatchesMetadata={transactionBatchesMetadata}
                 hideFiatForTestnet={hideFiatForTestnet}
                 fiatOnly={fiatOnly}
+                isGasFeeSponsored={isGasFeeSponsored}
               />
             ) : (
               <ClickableEstimationInfo
@@ -205,6 +250,22 @@ const GasFeesDetailsRow = ({
               />
             )}
           </View>
+          {gasFeeToken && (
+            <View style={styles.gasFeeTokenContainer}>
+              <Text
+                data-testid="gas-fee-token-fee"
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                style={styles.gasFeeTokenText}
+              >
+                {gasFeeToken
+                  ? strings('transactions.confirm_gas_fee_token_metamask_fee', {
+                      metamaskFeeFiat,
+                    })
+                  : ' '}
+              </Text>
+            </View>
+          )}
         </AlertRow>
         {isUserFeeLevelExists && !hideSpeed && (
           <AlertRow
@@ -218,6 +279,7 @@ const GasFeesDetailsRow = ({
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}
+      <GasFeeTokenToast />
     </>
   );
 };

@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useEffect } from 'react';
-import { Image, TouchableOpacity, Animated } from 'react-native';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
+import { TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -8,112 +8,62 @@ import {
   Icon,
   IconName,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
 import {
   selectSeasonTiers,
   selectCurrentTier,
+  selectSeasonStatusLoading,
+  selectSeasonStatusError,
+  selectSeasonStartDate,
 } from '../../../../../../reducers/rewards/selectors';
 import {
   SeasonTierDto,
   SeasonRewardDto,
+  ThemeImage,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
-import { formatNumber, getIconName } from '../../../utils/formatUtils';
+import { formatNumber } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
+import RewardItem from './RewardItem';
+import RewardsThemeImageComponent from '../../ThemeImageComponent';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import RewardsImageModal from '../../RewardsImageModal';
+import fallbackTierImage from '../../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
   isExpanded: boolean;
   onToggle: () => void;
+  onImagePress: (image?: ThemeImage) => void;
 }
 
-interface RewardItemProps {
-  reward: SeasonRewardDto;
-  isLast?: boolean;
-}
-
-export const RewardItem: React.FC<RewardItemProps> = ({
-  reward,
-  isLast = false,
-}) => (
-  <Box
-    twClassName={`flex-row items-center py-3 px-4 gap-4 ${
-      !isLast ? 'border-b border-muted' : ''
-    }`}
-  >
-    {/* Reward Icon */}
-    <Box
-      twClassName={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
-      testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
-    >
-      <Icon
-        name={getIconName(reward.iconName)}
-        size={IconSize.Lg}
-        twClassName="text-icon-alternative"
-      />
-    </Box>
-
-    {/* Reward Info */}
-    <Box twClassName="flex-1">
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-text-default mb-1"
-        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
-      >
-        {reward.name}
-      </Text>
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName="text-text-alternative"
-        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}
-      >
-        {reward.shortDescription}
-      </Text>
-    </Box>
-  </Box>
-);
 const TierAccordion: React.FC<TierAccordionProps> = ({
   tier,
   isExpanded,
   onToggle,
+  onImagePress,
 }) => {
   const tw = useTailwind();
   const { themeAppearance, brandColors } = useTheme();
-  const animatedHeight = useRef(new Animated.Value(0)).current;
   const animatedRotation = useRef(new Animated.Value(0)).current;
 
-  // Get appropriate image URL based on theme
-  const imageUrl = useMemo(
-    () =>
-      themeAppearance === AppThemeKey.light
-        ? tier.image?.lightModeUrl
-        : tier.image?.darkModeUrl,
-    [tier.image, themeAppearance],
-  );
-
-  const rewards = useMemo(() => tier.rewards || [], [tier.rewards]);
+  const seasonRewards = useMemo(() => tier.rewards || [], [tier.rewards]);
 
   // Animate height and rotation when expanded state changes
   useEffect(() => {
-    const targetHeight = isExpanded ? rewards.length * 74 : 0; // Approximate height per reward item
     const targetRotation = isExpanded ? 1 : 0;
 
-    Animated.parallel([
-      Animated.timing(animatedHeight, {
-        toValue: targetHeight,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(animatedRotation, {
-        toValue: targetRotation,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [isExpanded, rewards.length, animatedHeight, animatedRotation]);
+    Animated.timing(animatedRotation, {
+      toValue: targetRotation,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isExpanded, animatedRotation]);
 
   const rotateInterpolate = animatedRotation.interpolate({
     inputRange: [0, 1],
@@ -131,33 +81,39 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
       >
         {/* Tier Image */}
         <Box twClassName="mr-4" testID={REWARDS_VIEW_SELECTORS.TIER_IMAGE}>
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              resizeMode="contain"
-              style={tw.style('h-12 w-12')}
-            />
-          ) : (
-            <Box
-              twClassName={`h-12 w-12 rounded-full bg-[${
-                themeAppearance === AppThemeKey.light
-                  ? brandColors.grey100
-                  : brandColors.grey700
-              }] items-center justify-center`}
-            >
-              <Icon
-                name={IconName.Star}
-                size={IconSize.Md}
-                twClassName="text-icon-muted"
+          <TouchableOpacity
+            onPress={() => onImagePress(tier.image)}
+            activeOpacity={0.7}
+            disabled={!tier.image}
+          >
+            {tier.image ? (
+              <RewardsThemeImageComponent
+                themeImage={tier.image}
+                style={tw.style('h-12 w-12')}
               />
-            </Box>
-          )}
+            ) : (
+              <Box
+                twClassName={`h-12 w-12 rounded-full bg-[${
+                  themeAppearance === AppThemeKey.light
+                    ? brandColors.grey100
+                    : brandColors.grey700
+                }] items-center justify-center`}
+              >
+                <Icon
+                  name={IconName.Star}
+                  size={IconSize.Md}
+                  twClassName="text-icon-muted"
+                />
+              </Box>
+            )}
+          </TouchableOpacity>
         </Box>
 
         {/* Tier Info */}
         <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             twClassName="text-text-default"
             testID={REWARDS_VIEW_SELECTORS.TIER_NAME}
           >
@@ -174,6 +130,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
               {strings('rewards.upcoming_rewards.points_needed', {
@@ -184,7 +141,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         </Box>
 
         {/* Expand/Collapse Button */}
-        {rewards.length > 0 && (
+        {seasonRewards.length > 0 && (
           <TouchableOpacity onPress={onToggle}>
             <Box twClassName="ml-4 p-2">
               <Animated.View
@@ -204,31 +161,54 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
       </Box>
 
       {/* Expandable Rewards List */}
-      {rewards.length > 0 && (
-        <Animated.View
-          style={[tw.style('overflow-hidden'), { height: animatedHeight }]}
+      {seasonRewards.length > 0 && isExpanded && (
+        <Box
+          twClassName="bg-background-muted"
+          testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
         >
-          <Box
-            twClassName="bg-background-muted"
-            testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
-          >
-            {rewards.map((reward: SeasonRewardDto, index: number) => (
-              <RewardItem
-                key={reward.id}
-                reward={reward}
-                isLast={index === rewards.length - 1}
-              />
-            ))}
-          </Box>
-        </Animated.View>
+          {seasonRewards.map((seasonReward: SeasonRewardDto, index: number) => (
+            <RewardItem
+              key={seasonReward.id}
+              seasonReward={seasonReward}
+              isLast={index === seasonRewards.length - 1}
+              isLocked
+            />
+          ))}
+        </Box>
       )}
     </Box>
   );
 };
 
+const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
+  count,
+  isLoading,
+}) => (
+  <Box>
+    <Box twClassName="flex-row items-center gap-2">
+      <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+        {strings('rewards.upcoming_rewards.title')}
+      </Text>
+      {isLoading && <ActivityIndicator size="small" />}
+      {count !== null && !isLoading && (
+        <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
+          <Text variant={TextVariant.BodySm} twClassName="text-default">
+            {count}
+          </Text>
+        </Box>
+      )}
+    </Box>
+  </Box>
+);
+
 const UpcomingRewards: React.FC = () => {
+  const tw = useTailwind();
   const seasonTiers = useSelector(selectSeasonTiers) as SeasonTierDto[];
   const currentTier = useSelector(selectCurrentTier);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
+  const isLoading = useSelector(selectSeasonStatusLoading);
+  const hasError = useSelector(selectSeasonStatusError);
+
   // Filter tiers to show only those above current tier
   const upcomingTiers = useMemo(() => {
     if (!currentTier) {
@@ -247,6 +227,12 @@ const UpcomingRewards: React.FC = () => {
     () => new Set(upcomingTiers.map((tier) => tier.id)),
   );
 
+  // Modal state for expanded image
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<ThemeImage | undefined>(
+    undefined,
+  );
+
   const handleTierToggle = (tierId: string) => {
     setExpandedTiers((prev) => {
       const newSet = new Set(prev);
@@ -259,30 +245,92 @@ const UpcomingRewards: React.FC = () => {
     });
   };
 
-  if (!upcomingTiers.length) {
+  const handleImagePress = (image?: ThemeImage) => {
+    if (image) {
+      setSelectedImage(image);
+      setIsImageExpanded(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsImageExpanded(false);
+    setSelectedImage(undefined);
+  };
+
+  const totalUpcomingRewardsCount = useMemo(
+    () =>
+      seasonStartDate != null
+        ? upcomingTiers.reduce((acc, tier) => acc + tier.rewards.length, 0)
+        : null,
+    [upcomingTiers, seasonStartDate],
+  );
+
+  if (
+    seasonStartDate != null &&
+    !upcomingTiers?.length &&
+    !hasError &&
+    !isLoading
+  ) {
+    // Not pending and empty, shouldn't happen but in this case nothing is returned.
     return null;
   }
 
-  return (
-    <Box twClassName="py-4">
-      {/* Section Title */}
-      <Box twClassName="mb-4">
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.upcoming_rewards.title')}
-        </Text>
-      </Box>
+  const renderMainContent = () => {
+    const shouldShowSkeleton =
+      (isLoading || seasonStartDate === null) &&
+      !upcomingTiers?.length &&
+      !hasError;
 
-      {/* Tier Accordions */}
-      <Box twClassName="rounded-xl overflow-hidden">
-        {upcomingTiers.map((tier) => (
-          <TierAccordion
-            key={tier.id}
-            tier={tier}
-            isExpanded={expandedTiers.has(tier.id)}
-            onToggle={() => handleTierToggle(tier.id)}
-          />
-        ))}
-      </Box>
+    if (shouldShowSkeleton) {
+      return <Skeleton style={tw.style('h-32 bg-rounded')} />;
+    }
+
+    if (upcomingTiers?.length) {
+      return (
+        <Box twClassName="rounded-xl overflow-hidden">
+          {upcomingTiers.map((tier) => (
+            <TierAccordion
+              key={tier.id}
+              tier={tier}
+              isExpanded={expandedTiers.has(tier.id)}
+              onToggle={() => handleTierToggle(tier.id)}
+              onImagePress={handleImagePress}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    return <></>;
+  };
+
+  return (
+    <Box twClassName="pt-2 pb-4 px-4 gap-4">
+      {/* Always show section header */}
+      <SectionHeader
+        count={totalUpcomingRewardsCount}
+        isLoading={isLoading && !hasError}
+      />
+
+      {/* Show error banner if there's an error */}
+      {hasError && !seasonStartDate && !isLoading && (
+        <RewardsErrorBanner
+          title={strings('rewards.upcoming_rewards_error.error_fetching_title')}
+          description={strings(
+            'rewards.upcoming_rewards_error.error_fetching_description',
+          )}
+        />
+      )}
+
+      {renderMainContent()}
+
+      {/* Full-screen image modal */}
+      <RewardsImageModal
+        visible={isImageExpanded}
+        onClose={handleCloseModal}
+        themeImage={selectedImage}
+        fallbackImage={fallbackTierImage}
+      />
     </Box>
   );
 };

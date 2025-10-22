@@ -2,9 +2,9 @@ const tags = {
   smokeAccounts: 'SmokeAccounts:',
   regressionAccounts: 'RegressionAccounts:',
   smokeCore: 'SmokeCore:',
-  smokeConfirmations: 'SmokeConfirmations:',
   regressionConfirmations: 'RegressionConfirmations:',
   smokeConfirmationsRedesigned: 'SmokeConfirmationsRedesigned:',
+  regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
   SmokeSwaps: 'SmokeSwaps:',
   smokeWalletUX: 'SmokeWalletUX:',
   regressionWalletUX: 'RegressionWalletUX:',
@@ -36,12 +36,12 @@ const RegressionAccounts = (testName) =>
   `${tags.regressionAccounts} ${testName}`;
 const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
 const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
-const SmokeConfirmations = (testName) =>
-  `${tags.smokeConfirmations} ${testName}`;
 const RegressionConfirmations = (testName) =>
   `${tags.regressionConfirmations} ${testName}`;
 const SmokeConfirmationsRedesigned = (testName) =>
   `${tags.smokeConfirmationsRedesigned} ${testName}`;
+const RegressionConfirmationsRedesigned = (testName) =>
+  `${tags.regressionConfirmationsRedesigned} ${testName}`;
 const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
@@ -86,9 +86,9 @@ export {
   RegressionAccounts,
   SmokeAccounts,
   SmokeCore,
-  SmokeConfirmations,
   RegressionConfirmations,
   SmokeConfirmationsRedesigned,
+  RegressionConfirmationsRedesigned,
   SmokeSwaps,
   SmokeStake,
   SmokeAssets,
@@ -113,4 +113,5 @@ export {
   SmokeWalletUX,
   RegressionWalletUX,
   RegressionSampleFeature,
+  tags,
 };

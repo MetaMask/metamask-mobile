@@ -24,6 +24,7 @@ const handleDeeplink = async ({
   protocolVersion,
   otherPublicKey,
   context,
+  hideReturnToApp,
 }: {
   sdkConnect: SDKConnect;
   channelId: string;
@@ -34,6 +35,7 @@ const handleDeeplink = async ({
   protocolVersion: number;
   otherPublicKey: string;
   context: string;
+  hideReturnToApp?: boolean;
 }) => {
   if (!sdkConnect.hasInitialized()) {
     DevLogger.log(
@@ -75,6 +77,8 @@ const handleDeeplink = async ({
     }
   }
   DevLogger.log(`handleDeeplink:: url=${url}`);
+  let connection = sdkConnect.getConnected()[channelId];
+  let message;
   const connections = sdkConnect.getConnections();
   const channelExists = connections[channelId] !== undefined;
 
@@ -131,7 +135,7 @@ const handleDeeplink = async ({
       );
       // If msg contains rpc calls, handle them
       if (rpc) {
-        const connection = sdkConnect.getConnected()[channelId];
+        connection = sdkConnect.getConnected()[channelId];
         if (!connection) {
           DevLogger.log(`handleDeeplink:: connection not found`);
           return;
@@ -145,7 +149,7 @@ const handleDeeplink = async ({
         const clearRPC = connection.remote.decrypt(decodedRPC);
         DevLogger.log(`handleDeeplink:: clearRPC rpc`, clearRPC);
 
-        const message = JSON.parse(clearRPC) as CommunicationLayerMessage;
+        message = JSON.parse(clearRPC) as CommunicationLayerMessage;
         DevLogger.log(`handleDeeplink:: message`, message);
 
         // Check if already received via websocket
@@ -173,6 +177,7 @@ const handleDeeplink = async ({
       DevLogger.log(
         `handleDeeplink:: connectToChannel - trigger=${trigger} origin=${origin} platform=${Platform.OS} rpc=${rpc}`,
       );
+
       await sdkConnect.connectToChannel({
         id: channelId,
         origin,
@@ -181,11 +186,13 @@ const handleDeeplink = async ({
         protocolVersion,
         trigger,
         otherPublicKey,
+        hideReturnToApp,
       });
+
+      connection = sdkConnect.getConnected()[channelId];
 
       // When RPC is provided on new connection, it means connectWith.
       if (rpc) {
-        const connection = sdkConnect.getConnected()[channelId];
         if (!connection) {
           DevLogger.log(`handleDeeplink:: connection not found`);
           return;
@@ -199,9 +206,12 @@ const handleDeeplink = async ({
         // Decode rpc and directly process it - simulate network reception
         const decodedRPC = Buffer.from(rpc, 'base64').toString('utf-8');
 
-        DevLogger.log(`decoded rpc`, decodedRPC);
+        // Decode rpc and directly process it - simulate network reception
+        const clearRPC = connection.remote.decrypt(decodedRPC);
 
-        const message = JSON.parse(decodedRPC) as CommunicationLayerMessage;
+        DevLogger.log(`decoded rpc`, clearRPC);
+
+        message = JSON.parse(clearRPC) as CommunicationLayerMessage;
         DevLogger.log(`handleDeeplink:: message`, message);
 
         await handleConnectionMessage({
@@ -211,6 +221,10 @@ const handleDeeplink = async ({
         });
       }
     }
+
+    DevLogger.log(
+      `[handleSendMessage] method=${message?.method} trigger=${connection.trigger} origin=${connection.origin} id=${message?.id} goBack()`,
+    );
   } catch (error) {
     Logger.error(error as Error, 'Failed to connect to channel');
   }

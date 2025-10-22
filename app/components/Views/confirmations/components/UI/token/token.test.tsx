@@ -1,4 +1,5 @@
 import React from 'react';
+import { BtcAccountType } from '@metamask/keyring-api';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { AssetType } from '../../../types/token';
@@ -38,7 +39,7 @@ describe('Token', () => {
     );
 
     expect(getByText('USD Coin')).toBeOnTheScreen();
-    expect(getByText('1000.0 USDC')).toBeOnTheScreen();
+    expect(getByText('1,000 USDC')).toBeOnTheScreen();
   });
 
   it('displays fallback name when name is missing', () => {
@@ -53,7 +54,7 @@ describe('Token', () => {
     );
 
     expect(queryByText('Ethereum')).not.toBeOnTheScreen();
-    expect(getByText('50.0 TOKEN')).toBeOnTheScreen();
+    expect(getByText('50 TOKEN')).toBeOnTheScreen();
   });
 
   it('displays fallback symbol when both name and symbol are missing', () => {
@@ -68,7 +69,7 @@ describe('Token', () => {
     );
 
     expect(getByText('Unknown Token')).toBeOnTheScreen();
-    expect(getByText('25.0')).toBeOnTheScreen();
+    expect(getByText('25')).toBeOnTheScreen();
   });
 
   it('displays network badge when networkBadgeSource is provided', () => {
@@ -98,7 +99,7 @@ describe('Token', () => {
     );
 
     expect(getByText('$1,000.00')).toBeOnTheScreen();
-    expect(getByText('1000.0 USDC')).toBeOnTheScreen();
+    expect(getByText('1,000 USDC')).toBeOnTheScreen();
   });
 
   it('does not display balance in selected currency when not provided', () => {
@@ -114,6 +115,18 @@ describe('Token', () => {
     );
 
     expect(queryByText('$')).not.toBeOnTheScreen();
-    expect(getByText('1000.0 USDC')).toBeOnTheScreen();
+    expect(getByText('1,000 USDC')).toBeOnTheScreen();
+  });
+
+  it('renders BTC account type label when account type is BTC', () => {
+    const mockToken = createMockToken({
+      accountType: BtcAccountType.P2wpkh,
+    });
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('Native SegWit')).toBeOnTheScreen();
   });
 });

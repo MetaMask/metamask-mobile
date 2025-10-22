@@ -11,7 +11,11 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import { AGREED, METRICS_OPT_IN } from '../constants/storage';
+import {
+  AGREED,
+  METRICS_OPT_IN,
+  METRICS_OPT_IN_SOCIAL_LOGIN,
+} from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
@@ -65,7 +69,6 @@ export enum TraceName {
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
-  CollectibleContractsComponent = 'Collectible Contracts Component',
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
@@ -134,16 +137,36 @@ export enum TraceName {
   PerpsClosePosition = 'Perps Close Position',
   PerpsDeposit = 'Perps Deposit',
   PerpsWithdraw = 'Perps Withdraw',
-  PerpsOrderExecution = 'Perps Order Execution',
+  PerpsPlaceOrder = 'Perps Place Order',
+  PerpsEditOrder = 'Perps Edit Order',
   PerpsCancelOrder = 'Perps Cancel Order',
+  PerpsUpdateTPSL = 'Perps Update TP/SL',
+  PerpsOrderSubmissionToast = 'Perps Order Submission Toast',
   PerpsMarketDataUpdate = 'Perps Market Data Update',
-  PerpsAccountStateUpdate = 'Perps Account State Update',
   PerpsOrderView = 'Perps Order View',
-  PerpsPositionsView = 'Perps Positions View',
+  PerpsTabView = 'Perps Tab View',
   PerpsMarketListView = 'Perps Market List View',
   PerpsPositionDetailsView = 'Perps Position Details View',
+  PerpsTransactionsView = 'Perps Transactions View',
+  PerpsOrderFillsFetch = 'Perps Order Fills Fetch',
+  PerpsOrdersFetch = 'Perps Orders Fetch',
+  PerpsFundingFetch = 'Perps Funding Fetch',
+  PerpsGetPositions = 'Perps Get Positions',
+  PerpsGetAccountState = 'Perps Get Account State',
+  PerpsGetHistoricalPortfolio = 'Perps Get Historical Portfolio',
+  PerpsGetMarkets = 'Perps Get Markets',
+  PerpsFetchHistoricalCandles = 'Perps Fetch Historical Candles',
   PerpsWebSocketConnected = 'Perps WebSocket Connected',
   PerpsWebSocketDisconnected = 'Perps WebSocket Disconnected',
+  PerpsWebSocketFirstPositions = 'Perps WebSocket First Positions',
+  PerpsWebSocketFirstOrders = 'Perps WebSocket First Orders',
+  PerpsWebSocketFirstAccount = 'Perps WebSocket First Account',
+  PerpsDataLakeReport = 'Perps Data Lake Report',
+  PerpsRewardsAPICall = 'Perps Rewards API Call',
+  PerpsClosePositionView = 'Perps Close Position View',
+  PerpsWithdrawView = 'Perps Withdraw View',
+  PerpsConnectionEstablishment = 'Perps Connection Establishment',
+  PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
 }
 
 export enum TraceOperation {
@@ -204,8 +227,9 @@ export interface PendingTrace {
 }
 /**
  * A context object to associate traces with each other and generate nested traces.
+ * When trace() is called without a callback, it returns a Span that can be manually ended.
  */
-export type TraceContext = unknown;
+export type TraceContext = Span | undefined;
 /**
  * A callback function that can be traced.
  */
@@ -463,7 +487,10 @@ let cachedConsent: boolean | null = null;
  */
 export async function hasMetricsConsent(): Promise<boolean> {
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
-  const hasConsent = metricsOptIn === AGREED;
+  const socialLoginOptIn = await StorageWrapper.getItem(
+    METRICS_OPT_IN_SOCIAL_LOGIN,
+  );
+  const hasConsent = metricsOptIn === AGREED || socialLoginOptIn === AGREED;
   cachedConsent = hasConsent;
   return hasConsent;
 }
@@ -552,7 +579,7 @@ function startTrace(request: TraceRequest): TraceContext {
     }
 
     bufferTraceStartCallLocal(request, parentTraceName);
-    return { _buffered: true, _name: name, _id: id, _local: true };
+    return undefined;
   }
 
   const callback = (span: Span | undefined) => {

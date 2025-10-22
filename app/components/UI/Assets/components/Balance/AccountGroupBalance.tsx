@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
@@ -14,14 +14,13 @@ import SensitiveText, {
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { formatWithThreshold } from '../../../../../util/assets';
-import I18n from '../../../../../../locales/i18n';
+import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 
 const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
-
+  const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
   const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
   const balanceChange1d = useSelector(
@@ -35,21 +34,14 @@ const AccountGroupBalance = () => {
     [PreferencesController],
   );
 
-  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
-  const userCurrency = groupBalance?.userCurrency;
-
-  const displayBalance = useMemo(() => {
-    if (totalBalance == null || !userCurrency) return undefined;
-    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: userCurrency.toUpperCase(),
-    });
-  }, [totalBalance, userCurrency]);
+  const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
+  const userCurrency = groupBalance?.userCurrency ?? '';
+  const displayBalance = formatCurrency(totalBalance, userCurrency);
 
   return (
     <View style={styles.accountGroupBalance}>
       <View>
-        {displayBalance ? (
+        {groupBalance ? (
           <TouchableOpacity
             onPress={() => togglePrivacy(!privacyMode)}
             testID="balance-container"

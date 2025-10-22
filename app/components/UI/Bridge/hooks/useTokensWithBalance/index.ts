@@ -3,12 +3,6 @@ import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import {
-  selectLastSelectedEvmAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectLastSelectedSolanaAccount,
-  ///: END:ONLY_INCLUDE_IF
-} from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
@@ -20,9 +14,6 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
@@ -31,6 +22,10 @@ import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { toChecksumAddress } from '../../../../../util/address';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { EthScope } from '@metamask/keyring-api';
+import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
+import { getTokenIconUrl } from '../../utils';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -133,11 +128,9 @@ export const calculateEvmBalances = ({
     };
   });
 
-// TODO Look into useMultichainBalances hook, or useGetFormattedTokensPerChain hook
-// the above hooks don't return icon info, just balance and fiat values
-
 /**
  * Hook to get tokens with fiat balances
+ * TODO refactor to use selectAssetsBySelectedAccountGroup or selectSortedAssetsBySelectedAccountGroup (BIP44 only and it does pretty much everything for you, fiat value, etc) and also use Asset type
  * @param {Object} params - The parameters object
  * @param {Hex[]} params.chainIds - Array of chain IDs to filter by
  * @returns {BridgeToken[]} Array of tokens (native and non-native) with sortable fiat balances
@@ -153,12 +146,12 @@ export const useTokensWithBalance: ({
     selectNetworkConfigurations,
   );
 
-  const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const lastSelectedSolanaAccount = useSelector(
-    selectLastSelectedSolanaAccount,
+  const selectedAccountGroupInternalAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
   );
-  ///: END:ONLY_INCLUDE_IF
+  const evmAddress = selectedAccountGroupInternalAccounts.find((account) =>
+    account.scopes.includes(EthScope.Eoa),
+  )?.address;
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -167,23 +160,16 @@ export const useTokensWithBalance: ({
   // All EVM tokens across chains and their balances
   // Includes native and non-native ERC20 tokens in TokenI format, i.e. balance is possibly to be "< 0.00001"
   const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChainsForAddress(
-      state,
-      lastSelectedEvmAccount?.address,
-    ),
+    selectAccountTokensAcrossChainsForAddress(state, evmAddress),
   );
   // EVM native token balances in atomic hex amount
   const evmAccountsByChainId = useSelector(selectAccountsByChainId);
   // EVM non-native token balances in atomic hex amount
   const evmTokenBalances = useSelector(selectTokensBalances);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, lastSelectedSolanaAccount?.id),
-  );
-  ///: END:ONLY_INCLUDE_IF
+  const nonEvmTokens = useNonEvmTokensWithBalance();
 
   const sortedTokens = useMemo(() => {
     if (!chainIds) {
@@ -196,11 +182,9 @@ export const useTokensWithBalance: ({
       .filter((token) => chainIds.includes(token.chainId as Hex))
       .filter((token) => !token.isStaked);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allNonEvmAccountTokens = Object.values(nonEvmTokens)
       .flat()
       .filter((token) => chainIds.includes(token.chainId));
-    ///: END:ONLY_INCLUDE_IF
 
     const evmBalances = calculateEvmBalances({
       assets: allEvmAccountTokens,
@@ -209,16 +193,11 @@ export const useTokensWithBalance: ({
       networkConfigurationsByChainId,
       multiChainCurrencyRates,
       currentCurrency,
-      selectedAddress: lastSelectedEvmAccount?.address as Hex,
+      selectedAddress: evmAddress as Hex,
       evmAccountsByChainId,
     });
 
-    const allTokens = [
-      ...allEvmAccountTokens,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      ...allNonEvmAccountTokens,
-      ///: END:ONLY_INCLUDE_IF
-    ];
+    const allTokens = [...allEvmAccountTokens, ...allNonEvmAccountTokens];
 
     const properTokens: BridgeToken[] = allTokens
       .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
@@ -241,10 +220,15 @@ export const useTokensWithBalance: ({
           decimals: token.decimals,
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
           chainId: token.chainId as Hex | CaipChainId,
-          image: token.image,
+          image:
+            getTokenIconUrl(
+              token.address,
+              token.chainId as Hex | CaipChainId,
+            ) || token.image,
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+          accountType: token.accountType,
         };
       });
     return sortAssets(properTokens, tokenSortConfig);
@@ -256,12 +240,10 @@ export const useTokensWithBalance: ({
     multiChainCurrencyRates,
     currentCurrency,
     tokenSortConfig,
-    lastSelectedEvmAccount?.address,
+    evmAddress,
     chainIds,
     evmAccountsByChainId,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmTokens,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return sortedTokens;

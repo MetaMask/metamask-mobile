@@ -6,7 +6,12 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
+import { strings } from '../../../../../../locales/i18n';
+import {
+  formatPerpsFiat,
+  formatPositionSize,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {
@@ -26,7 +31,7 @@ interface PerpsAmountDisplayProps {
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   amount,
   showWarning = false,
-  warningMessage = 'No funds available. Please deposit first.',
+  warningMessage = strings('perps.deposit.no_funds_available'),
   onPress,
   isActive = false,
   label,
@@ -92,7 +97,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
             : amount
-            ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
+            ? formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW })
             : '$0'}
         </Text>
         {isActive && (

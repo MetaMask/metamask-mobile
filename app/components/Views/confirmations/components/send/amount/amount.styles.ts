@@ -40,7 +40,7 @@ export const styleSheet = (params: {
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginBottom: 40,
+      marginBottom: isNFT ? 40 : 60,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -66,7 +66,7 @@ export const styleSheet = (params: {
     inputText: {
       fontSize: getFontSizeForInputLength(contentLength),
       lineHeight: 75,
-      fontWeight: '500',
+      fontFamily: 'Geist Medium',
     },
     inputWrapper: {
       alignItems: 'center',

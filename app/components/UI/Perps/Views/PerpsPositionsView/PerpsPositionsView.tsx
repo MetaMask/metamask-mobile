@@ -3,7 +3,7 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
@@ -19,14 +19,14 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import type { Position } from '../../controllers/types';
+import { usePerpsLivePositions } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
-  usePerpsAccount,
-  usePerpsLivePositions,
-  usePerpsTPSLUpdate,
-} from '../../hooks';
-import { formatPnl, formatPrice } from '../../utils/formatUtils';
+  formatPnl,
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,12 +36,7 @@ const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  const cachedAccountState = usePerpsAccount();
-
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null,
-  );
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
+  const { account } = usePerpsLiveAccount();
 
   // Get real-time positions via WebSocket
   const { positions, isInitialLoading } = usePerpsLivePositions({
@@ -49,14 +44,6 @@ const PerpsPositionsView: React.FC = () => {
   });
 
   const error = null;
-
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      setIsTPSLVisible(false);
-      setSelectedPosition(null);
-    },
-  });
 
   // Memoize position count text to avoid recalculating on every render
   const positionCountText = useMemo(() => {
@@ -128,14 +115,7 @@ const PerpsPositionsView: React.FC = () => {
           </Text>
         </View>
         {positions.map((position, index) => {
-          const sizeValue = parseFloat(position.size);
-          const directionSegment = Number.isFinite(sizeValue)
-            ? sizeValue > 0
-              ? 'long'
-              : sizeValue < 0
-              ? 'short'
-              : 'unknown'
-            : 'unknown';
+          const directionSegment = getPositionDirection(position.size);
           return (
             <View
               key={`${position.coin}-${index}`}
@@ -177,7 +157,9 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.totalBalance || '0')}
+              {formatPerpsFiat(account?.totalBalance || '0', {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
 
@@ -186,7 +168,9 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.availableBalance || '0')}
+              {formatPerpsFiat(account?.availableBalance || '0', {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
 
@@ -195,7 +179,9 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.marginUsed || '0')}
+              {formatPerpsFiat(account?.marginUsed || '0', {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
 
@@ -215,31 +201,6 @@ const PerpsPositionsView: React.FC = () => {
         </View>
         {renderContent()}
       </ScrollView>
-
-      {/* TP/SL Bottom Sheet - Rendered outside ScrollView to fix layering issue */}
-      {isTPSLVisible && selectedPosition && (
-        <PerpsTPSLBottomSheet
-          isVisible
-          onClose={() => {
-            setIsTPSLVisible(false);
-            setSelectedPosition(null);
-          }}
-          onConfirm={async (takeProfitPrice, stopLossPrice) => {
-            await handleUpdateTPSL(
-              selectedPosition,
-              takeProfitPrice,
-              stopLossPrice,
-            );
-            setIsTPSLVisible(false);
-            setSelectedPosition(null);
-          }}
-          asset={selectedPosition.coin}
-          position={selectedPosition}
-          initialTakeProfitPrice={selectedPosition.takeProfitPrice}
-          initialStopLossPrice={selectedPosition.stopLossPrice}
-          isUpdating={isUpdating}
-        />
-      )}
     </SafeAreaView>
   );
 };

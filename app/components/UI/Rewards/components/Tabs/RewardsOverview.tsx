@@ -3,7 +3,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import ActiveBoosts from './OverviewTab/ActiveBoosts';
 import { useActivePointsBoosts } from '../../hooks/useActivePointsBoosts';
 import { WaysToEarn } from './OverviewTab/WaysToEarn/WaysToEarn';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface RewardsOverviewProps {
@@ -11,7 +11,7 @@ interface RewardsOverviewProps {
 }
 
 const RewardsOverview: React.FC<RewardsOverviewProps> = () => {
-  useActivePointsBoosts();
+  const { fetchActivePointsBoosts } = useActivePointsBoosts();
   const tw = useTailwind();
 
   return (
@@ -20,7 +20,7 @@ const RewardsOverview: React.FC<RewardsOverviewProps> = () => {
       showsVerticalScrollIndicator={false}
       testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW}
     >
-      <ActiveBoosts />
+      <ActiveBoosts fetchActivePointsBoosts={fetchActivePointsBoosts} />
 
       <WaysToEarn />
     </ScrollView>

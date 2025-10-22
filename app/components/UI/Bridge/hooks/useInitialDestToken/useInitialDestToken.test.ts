@@ -4,7 +4,7 @@ import { useInitialDestToken } from '.';
 import { waitFor } from '@testing-library/react-native';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
   selectBridgeViewMode,
@@ -24,6 +24,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     default: actual.default,
     setDestToken: jest.fn(actual.setDestToken),
     selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
+    selectBip44DefaultPair: jest.fn(actual.selectBip44DefaultPair),
   };
 });
 
@@ -54,6 +55,14 @@ describe('useInitialDestToken', () => {
     decimals: 18,
     name: 'Mock Token',
     chainId: SolScope.Mainnet,
+  };
+
+  const mockBitcoinSourceToken: BridgeToken = {
+    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    symbol: 'BTC',
+    decimals: 8,
+    name: 'Bitcoin',
+    chainId: BtcScope.Mainnet,
   };
 
   beforeEach(() => {
@@ -106,27 +115,33 @@ describe('useInitialDestToken', () => {
     });
   });
 
-  it('should not set dest token when source token address matches default token address', () => {
-    const matchingSourceToken: BridgeToken = {
-      ...mockSourceToken,
-      address: DefaultSwapDestTokens[SolScope.Mainnet].address,
-    };
+  describe('BIP44 Bitcoin functionality', () => {
+    it('should set bip44 default pair dest asset when source token is Bitcoin and bip44DefaultPair exists', async () => {
+      // Arrange - Bitcoin source token from Asset Details page
+      (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+        BridgeViewMode.Unified,
+      );
+      // Set chainId to Bitcoin to ensure correct bip44 pair selection
+      (selectChainId as unknown as jest.Mock).mockReturnValue(BtcScope.Mainnet);
 
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
-      BridgeViewMode.Swap,
-    );
-    (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
+      // Act - Bitcoin source token
+      renderHookWithProvider(
+        () => useInitialDestToken(mockBitcoinSourceToken),
+        { state: initialState },
+      );
 
-    renderHookWithProvider(() => useInitialDestToken(matchingSourceToken), {
-      state: initialState,
-    });
-
-    expect(setDestToken).toHaveBeenCalledWith({
-      address: '0x456',
-      symbol: 'NATIVE',
-      decimals: 18,
-      name: 'Native Token',
-      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      // Assert - Should set Ethereum as destination token based on bip44DefaultPair
+      await waitFor(() => {
+        expect(setDestToken).toHaveBeenCalledWith({
+          symbol: 'ETH',
+          name: 'Ethereum',
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+          chainId: '0x1',
+        });
+      });
     });
   });
 });

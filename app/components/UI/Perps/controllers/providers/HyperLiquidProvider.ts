@@ -1,9 +1,9 @@
-import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { captureException } from '@sentry/react-native';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../utils/perpsErrorHandler';
 import {
   BUILDER_FEE_CONFIG,
   FEE_RATES,
@@ -31,8 +31,10 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from '../../utils/hyperLiquidAdapter';
+import type { SDKOrderParams } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
+  getMaxOrderValue,
   getSupportedPaths,
   validateAssetSupport,
   validateBalance,
@@ -41,6 +43,7 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
+import { formatPerpsFiat } from '../../utils/formatUtils';
 import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
@@ -91,7 +94,7 @@ import { PERPS_ERROR_CODES } from '../PerpsController';
  * HyperLiquid provider implementation
  *
  * Implements the IPerpsProvider interface for HyperLiquid protocol.
- * Uses the @deeeed/hyperliquid-node20 SDK for all operations.
+ * Uses the @nktkas/hyperliquid SDK for all operations.
  * Delegates to service classes for client management, wallet integration, and subscriptions.
  */
 export class HyperLiquidProvider implements IPerpsProvider {
@@ -123,6 +126,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     string,
     { value: number; timestamp: number }
   >();
+
+  // Fee discount context for MetaMask reward discounts (in basis points)
+  private userFeeDiscountBips?: number;
 
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
@@ -181,6 +187,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Set user fee discount context for next operations
+   * Used by PerpsController to apply MetaMask reward discounts
+   * @param discountBips - The discount in basis points (e.g., 550 = 5.5%)
+   */
+  setUserFeeDiscount(discountBips: number | undefined): void {
+    this.userFeeDiscountBips = discountBips;
+
+    DevLogger.log('HyperLiquid: Fee discount context updated', {
+      discountBips,
+      discountPercentage: discountBips ? discountBips / 100 : undefined,
+      isActive: discountBips !== undefined,
+    });
+  }
+
+  /**
    * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
    */
   private mapError(error: unknown): Error {
@@ -194,6 +215,25 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Return original error to preserve stack trace for unmapped errors
     return error instanceof Error ? error : new Error(String(error));
+  }
+
+  /**
+   * Get error context for logging with consistent metadata
+   * @param method - The method name where the error occurred
+   * @param extra - Additional context to include
+   * @returns Object with standardized error context
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+      context: `HyperLiquidProvider.${method}`,
+      provider: this.protocolId,
+      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      ...extra,
+    };
   }
 
   /**
@@ -512,14 +552,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params.grouping ||
         (params.takeProfitPrice || params.stopLossPrice ? 'normalTpsl' : 'na');
 
-      // 5. Submit via SDK exchange client instead of direct fetch
+      // 5. Calculate discounted builder fee if reward discount is active
+      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      if (this.userFeeDiscountBips !== undefined) {
+        builderFee = Math.floor(
+          builderFee * (1 - this.userFeeDiscountBips / 10000),
+        );
+        DevLogger.log('HyperLiquid: Applying builder fee discount', {
+          originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          discountBips: this.userFeeDiscountBips,
+          discountedFee: builderFee,
+        });
+      }
+
+      // 6. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
       const result = await exchangeClient.order({
         orders,
         grouping,
         builder: {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          f: builderFee,
         },
       });
 
@@ -539,7 +592,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         averagePrice: filledOrder?.avgPx,
       };
     } catch (error) {
-      DevLogger.log('Order placement failed:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('placeOrder', {
+          coin: params.coin,
+          orderType: params.orderType,
+          isBuy: params.isBuy,
+        }),
+      );
       const mappedError = this.mapError(error);
       return createErrorResult(mappedError, { success: false });
     }
@@ -644,7 +704,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderId: params.orderId.toString(),
       };
     } catch (error) {
-      DevLogger.log('Order modification failed:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('editOrder', {
+          orderId: params.orderId,
+          coin: params.newOrder.coin,
+          orderType: params.newOrder.orderType,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -690,7 +757,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error: success ? undefined : 'Order cancellation failed',
       };
     } catch (error) {
-      DevLogger.log('Order cancellation failed:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('cancelOrder', {
+          orderId: params.orderId,
+          coin: params.coin,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -726,34 +799,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         positions = await this.getPositions();
       } catch (error) {
-        DevLogger.log('Error getting positions:', error);
-
-        // Capture exception with data context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'HyperLiquidProvider',
-              action: 'data_fetch',
-              operation: 'data_management',
-              dataType: 'positions',
-            },
-            extra: {
-              dataContext: {
-                dataType: 'positions',
-                timestamp: new Date().toISOString(),
-                method: 'updatePositionTPSL',
-              },
-            },
-          },
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('updatePositionTPSL > getPositions', {
+            coin,
+          }),
         );
-
-        // If it's a WebSocket error, try to provide a more helpful message
-        if (error instanceof Error && error.message.includes('WebSocket')) {
-          throw new Error(
-            'Connection error. Please check your network and try again.',
-          );
-        }
         throw error;
       }
 
@@ -907,13 +958,26 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
+      // Calculate discounted builder fee if reward discount is active
+      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      if (this.userFeeDiscountBips !== undefined) {
+        builderFee = Math.floor(
+          builderFee * (1 - this.userFeeDiscountBips / 10000),
+        );
+        DevLogger.log('HyperLiquid: Applying builder fee discount to TP/SL', {
+          originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          discountBips: this.userFeeDiscountBips,
+          discountedFee: builderFee,
+        });
+      }
+
       // Submit via SDK exchange client with positionTpsl grouping
       const result = await exchangeClient.order({
         orders,
         grouping: 'positionTpsl',
         builder: {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          f: builderFee,
         },
       });
 
@@ -926,7 +990,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderId: 'TP/SL orders placed',
       };
     } catch (error) {
-      DevLogger.log('Position TP/SL update failed:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('updatePositionTPSL', {
+          coin: params.coin,
+          hasTakeProfit: params.takeProfitPrice !== undefined,
+          hasStopLoss: params.stopLossPrice !== undefined,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -960,7 +1031,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return result;
     } catch (error) {
-      DevLogger.log('Position closing failed:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('closePosition', {
+          coin: params.coin,
+          orderType: params.orderType,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -1070,7 +1147,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
               childrenCount: parentOrder.children.length,
             });
 
-            parentOrder.children.forEach((childOrder) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Child order structure not exported by SDK
+            parentOrder.children.forEach((childOrder: any) => {
               if (childOrder.isTrigger && childOrder.reduceOnly) {
                 if (
                   childOrder.orderType === 'Take Profit Market' ||
@@ -1146,6 +1224,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
             pnl: fill.closedPnl,
             direction: fill.dir,
             success: true,
+            liquidation: fill.liquidation
+              ? {
+                  liquidatedUser: fill.liquidation.liquidatedUser,
+                  markPx: fill.liquidation.markPx,
+                  method: fill.liquidation.method,
+                }
+              : undefined,
           });
         }
 
@@ -1237,6 +1322,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           status: normalizedStatus,
           timestamp: statusTimestamp,
           lastUpdated: statusTimestamp,
+          detailedOrderType: order.orderType, // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
         };
       });
 
@@ -1432,7 +1518,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return accountState;
     } catch (error) {
-      DevLogger.log('Error getting account state:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getAccountState', {
+          accountId: params?.accountId,
+        }),
+      );
       // Re-throw the error so the controller can handle it properly
       // This allows the UI to show proper error messages instead of zeros
       throw error;
@@ -1454,7 +1545,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return markets;
     } catch (error) {
-      DevLogger.log('Error getting markets:', error);
+      Logger.error(ensureError(error), this.getErrorContext('getMarkets'));
       return [];
     }
   }
@@ -1463,39 +1554,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get market data with prices, volumes, and 24h changes
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
-    try {
-      DevLogger.log('Getting market data with prices via HyperLiquid SDK');
+    DevLogger.log('Getting market data with prices via HyperLiquid SDK');
 
-      await this.ensureReady();
+    await this.ensureReady();
 
-      const infoClient = this.clientService.getInfoClient();
+    const infoClient = this.clientService.getInfoClient();
 
-      // Fetch all required data in parallel for better performance
-      const [perpsMeta, allMids, predictedFundings] = await Promise.all([
-        infoClient.meta(),
-        infoClient.allMids(),
-        infoClient.predictedFundings(),
-      ]);
+    // Fetch all required data in parallel for better performance
+    const [perpsMeta, allMids, predictedFundings] = await Promise.all([
+      infoClient.meta(),
+      infoClient.allMids(),
+      infoClient.predictedFundings(),
+    ]);
 
-      if (!perpsMeta?.universe || !allMids) {
-        throw new Error('Failed to fetch market data - no data received');
-      }
-
-      // Also fetch asset contexts for additional data like volume and previous day prices
-      const metaAndCtxs = await infoClient.metaAndAssetCtxs();
-      const assetCtxs = metaAndCtxs?.[1] || [];
-
-      // Transform to UI-friendly format using standalone utility
-      return transformMarketData({
-        universe: perpsMeta.universe,
-        assetCtxs,
-        allMids,
-        predictedFundings,
-      });
-    } catch (error) {
-      DevLogger.log('Error getting market data with prices:', error);
-      return [];
+    if (!perpsMeta?.universe || !allMids) {
+      throw new Error('Failed to fetch market data - no data received');
     }
+
+    // Also fetch asset contexts for additional data like volume and previous day prices
+    const metaAndCtxs = await infoClient.metaAndAssetCtxs();
+    const assetCtxs = metaAndCtxs?.[1] || [];
+
+    // Transform to UI-friendly format using standalone utility
+    return transformMarketData({
+      universe: perpsMeta.universe,
+      assetCtxs,
+      allMids,
+      predictedFundings,
+    });
   }
 
   /**
@@ -1593,6 +1679,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
           isValid: false,
           error: strings('perps.order.validation.limit_price_required'),
         };
+      }
+
+      // Validate order value against max limits
+      if (params.currentPrice && params.leverage) {
+        try {
+          const maxLeverage = await this.getMaxLeverage(params.coin);
+
+          const maxOrderValue = getMaxOrderValue(maxLeverage, params.orderType);
+          const orderValue = parseFloat(params.size) * params.currentPrice;
+
+          if (orderValue > maxOrderValue) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.max_order_value', {
+                maxValue: formatPerpsFiat(maxOrderValue, {
+                  minimumDecimals: 0,
+                  maximumDecimals: 0,
+                }).replace('$', ''),
+              }),
+            };
+          }
+        } catch (error) {
+          DevLogger.log('Failed to validate max order value', error);
+          // Continue without max order validation if we can't get leverage
+        }
       }
 
       return { isValid: true };
@@ -1906,6 +2017,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params,
         timestamp: new Date().toISOString(),
       });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('withdraw', {
+          assetId: params.assetId,
+          amount: params.amount,
+          destination: params.destination,
+        }),
+      );
       return createErrorResult(error, { success: false });
     }
   }
@@ -1930,7 +2049,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       })
       .catch((error) => {
-        DevLogger.log('Error subscribing to prices:', error);
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('subscribeToPrices', {
+            symbols: params.symbols,
+          }),
+        );
       });
 
     return () => {
@@ -2126,7 +2250,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Ensure liquidation price is non-negative
       return String(Math.max(0, liquidationPrice));
     } catch (error) {
-      DevLogger.log('Error calculating liquidation price:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('calculateLiquidationPrice', {
+          asset: params.asset,
+          entryPrice: params.entryPrice,
+          leverage: params.leverage,
+          direction: params.direction,
+        }),
+      );
       return '0.00';
     }
   }
@@ -2194,7 +2326,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return assetInfo.maxLeverage;
     } catch (error) {
-      DevLogger.log('Error getting max leverage:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getMaxLeverage', {
+          asset,
+        }),
+      );
       return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
     }
   }
@@ -2407,8 +2544,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
           : parsedAmount * protocolFeeRate
         : undefined;
 
-    // MetaMask builder fee (0.1% = 0.001)
-    const metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+    // MetaMask builder fee (0.1% = 0.001) with optional reward discount
+    let metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+
+    // Apply MetaMask reward discount if active
+    if (this.userFeeDiscountBips !== undefined) {
+      const discount = this.userFeeDiscountBips / 10000; // Convert basis points to decimal
+      metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal * (1 - discount);
+
+      DevLogger.log('HyperLiquid: Applied MetaMask fee discount', {
+        originalRate: BUILDER_FEE_CONFIG.maxFeeDecimal,
+        discountBips: this.userFeeDiscountBips,
+        discountPercentage: this.userFeeDiscountBips / 100,
+        adjustedRate: metamaskFeeRate,
+        discountAmount: BUILDER_FEE_CONFIG.maxFeeDecimal * discount,
+      });
+    }
+
     const metamaskFeeAmount =
       amount !== undefined
         ? isNaN(parsedAmount)
@@ -2506,6 +2658,58 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return { success: true };
     } catch (error) {
       return createErrorResult(error, { success: false });
+    }
+  }
+
+  /**
+   * Lightweight WebSocket health check using SDK's built-in ready() method
+   * Checks if WebSocket connection is open without making expensive API calls
+   *
+   * @param timeoutMs - Optional timeout in milliseconds (defaults to WEBSOCKET_PING_TIMEOUT_MS)
+   * @throws {Error} If WebSocket connection times out or fails
+   */
+  async ping(timeoutMs?: number): Promise<void> {
+    await this.ensureReady();
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    const timeout = timeoutMs ?? PERPS_CONSTANTS.WEBSOCKET_PING_TIMEOUT_MS;
+
+    DevLogger.log(
+      `HyperLiquid: WebSocket health check ping starting (timeout: ${timeout}ms)`,
+    );
+
+    const controller = new AbortController();
+    let didTimeout = false;
+
+    const timeoutId = setTimeout(() => {
+      didTimeout = true;
+      controller.abort();
+    }, timeout);
+
+    try {
+      // Use SDK's built-in ready() method which checks socket.readyState === OPEN
+      // This is much more efficient than creating a subscription just for health check
+      await subscriptionClient.transport.ready(controller.signal);
+
+      DevLogger.log('HyperLiquid: WebSocket health check ping succeeded');
+    } catch (error) {
+      // Check if we timed out first
+      if (didTimeout) {
+        DevLogger.log(
+          `HyperLiquid: WebSocket health check ping timed out after ${timeout}ms`,
+        );
+        throw new Error(PERPS_ERROR_CODES.CONNECTION_TIMEOUT);
+      }
+
+      // Otherwise throw the actual error
+      DevLogger.log('HyperLiquid: WebSocket health check ping failed', error);
+      throw ensureError(error);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

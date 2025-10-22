@@ -93,4 +93,42 @@ describe('HeroNft', () => {
       collectible: mockNft,
     });
   });
+
+  it('renders NFT image correctly when image is defined in collection.imageUrl', () => {
+    const { getByText, getByTestId } = renderWithProvider(<HeroNft />, {
+      state: merge({}, MOCK_STATE_NFT, {
+        engine: {
+          backgroundState: {
+            NftController: {
+              allNfts: {
+                [MOCK_ADDRESS_1.toLowerCase()]: {
+                  '0x1': [
+                    {
+                      ...mockNft,
+                      image: undefined,
+                      collection: { imageUrl: 'testURI//:333' },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      }),
+    });
+
+    expect(getByTestId('nft-image')).toBeDefined();
+    expect(getByTestId('network-avatar-image')).toBeDefined();
+    expect(getByText('Test Dapp NFTs')).toBeDefined();
+    expect(getByText('#12345')).toBeDefined();
+
+    fireEvent.press(getByTestId('nft-image'));
+    expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
+      collectible: {
+        ...mockNft,
+        image: undefined,
+        collection: { imageUrl: 'testURI//:333' },
+      },
+    });
+  });
 });

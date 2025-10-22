@@ -6,6 +6,7 @@ import type {
   PerpsMarketData,
 } from '../controllers/types';
 import { PerpsTransaction } from './transactionHistory';
+import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 
 /**
  * PERPS navigation parameter types
@@ -65,9 +66,15 @@ export interface PerpsNavigationParamList extends ParamListBase {
   // Market and position management routes
   PerpsMarketList: undefined;
 
+  PerpsMarketListView: {
+    source?: string;
+  };
+
   PerpsMarketDetails: {
     market: PerpsMarketData;
     initialTab?: 'position' | 'orders' | 'info';
+    monitoringIntent?: Partial<DataMonitorParams>;
+    source?: string;
   };
 
   PerpsPositions: undefined;
@@ -107,6 +114,23 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+  };
+
+  // TP/SL screen
+  PerpsTPSL: {
+    asset: string;
+    currentPrice?: number;
+    direction?: 'long' | 'short';
+    position?: Position;
+    initialTakeProfitPrice?: string;
+    initialStopLossPrice?: string;
+    leverage?: number;
+    orderType?: 'market' | 'limit';
+    limitPrice?: string;
+    onConfirm: (
+      takeProfitPrice?: string,
+      stopLossPrice?: string,
+    ) => Promise<void>;
   };
 
   // Root perps view

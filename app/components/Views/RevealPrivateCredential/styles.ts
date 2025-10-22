@@ -8,6 +8,7 @@ export const createStyles = (theme: Theme) =>
     wrapper: {
       backgroundColor: theme.colors.background.default,
       flex: 1,
+      paddingBottom: 16,
     },
     normalText: {
       color: theme.colors.text.default,
@@ -129,7 +130,6 @@ export const createStyles = (theme: Theme) =>
       fontSize: 12,
       letterSpacing: 0.5,
       fontFamily: fontStyles.bold.fontFamily,
-      fontWeight: fontStyles.bold.fontWeight,
     },
     revealModalText: {
       marginBottom: 24,

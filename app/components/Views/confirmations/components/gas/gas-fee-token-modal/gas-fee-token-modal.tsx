@@ -11,9 +11,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import styleSheet from './gas-fee-token-modal.styles';
 import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
 import { Hex } from '@metamask/utils';
@@ -38,7 +36,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
   ];
 
   const handleTokenClick = useCallback(
-    async (token: GasFeeToken) => {
+    (token: GasFeeToken) => {
       const selectedAddress =
         token.tokenAddress === NATIVE_TOKEN_ADDRESS
           ? undefined
@@ -67,7 +65,6 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
             <ButtonIcon
               iconName={IconName.ArrowLeft}
               onPress={onClose}
-              size={ButtonIconSizes.Sm}
               testID="back-button"
             />
           </View>

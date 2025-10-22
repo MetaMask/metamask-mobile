@@ -12,10 +12,9 @@ import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
-import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
-import PerpsBalanceModal from '../Views/PerpsBalanceModal';
 import PerpsGTMModal from '../components/PerpsGTMModal';
+import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 
 const Stack = createStackNavigator();
@@ -34,10 +33,6 @@ const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
       component={PerpsQuoteExpiredModal}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.BALANCE_MODAL}
-      component={PerpsBalanceModal}
     />
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.GTM_MODAL}
@@ -116,11 +111,12 @@ const PerpsScreenStack = () => (
           }}
         />
 
+        {/* TP/SL View - Regular screen */}
         <Stack.Screen
-          name={Routes.PERPS.TUTORIAL}
-          component={PerpsTutorialCarousel}
+          name={Routes.PERPS.TPSL}
+          component={PerpsTPSLView}
           options={{
-            title: 'Tutorial',
+            title: strings('perps.tpsl.title'),
             headerShown: false,
           }}
         />
@@ -141,6 +137,9 @@ const PerpsScreenStack = () => (
         <Stack.Screen
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
           component={Confirm}
+          options={{
+            title: '',
+          }}
         />
       </Stack.Navigator>
     </PerpsStreamProvider>

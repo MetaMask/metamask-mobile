@@ -10,13 +10,14 @@ import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { selectAccountBalanceByChainId } from '../../../../../selectors/accountTrackerController';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const fiatFormatter = useFiatFormatter();
+  const nativeTokenAddress = getNativeTokenAddress(chainId);
 
   const token = useSelector((state: RootState) =>
     selectSingleTokenByAddressAndChainId(state, tokenAddress, chainId),
@@ -50,8 +51,9 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   );
 
   const nativeBalanceHex = (nativeBalanceResult?.balance as Hex) ?? '0x0';
-  const nativeAddress = getNativeTokenAddress(chainId);
-  const isNative = tokenAddress.toLowerCase() === nativeAddress.toLowerCase();
+
+  const isNative =
+    tokenAddress.toLowerCase() === nativeTokenAddress.toLowerCase();
 
   return useMemo(() => {
     if (!token && !isNative) {
@@ -62,7 +64,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       isNative ? nativeBalanceHex : tokenBalanceHex,
     );
 
-    const decimals = token?.decimals ?? 18;
+    const decimals = Number(token?.decimals ?? 18);
     const balanceValue = balanceRawValue.shiftedBy(-decimals);
     const fiatRate = isNative ? conversionRate : tokenFiatRate;
 

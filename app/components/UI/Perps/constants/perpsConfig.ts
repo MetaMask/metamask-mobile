@@ -3,14 +3,18 @@
  */
 export const PERPS_CONSTANTS = {
   FEATURE_FLAG_KEY: 'perpsEnabled',
+  FEATURE_NAME: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
   WEBSOCKET_TIMEOUT: 5000, // 5 seconds
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
   BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
   CONNECTION_TIMEOUT_MS: 10_000, // 10 seconds timeout for connection and position loading states
+  DEFAULT_MONITORING_TIMEOUT_MS: 10_000, // 10 seconds default timeout for data monitoring operations
 
   // Connection timing constants
   CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
-  RECONNECTION_CLEANUP_DELAY_MS: 200, // Platform-agnostic delay to ensure cleanup is complete
+  CONNECTION_ATTEMPT_TIMEOUT_MS: 30_000, // 30 seconds timeout for connection attempts to prevent indefinite hanging
+  WEBSOCKET_PING_TIMEOUT_MS: 5_000, // 5 seconds timeout for WebSocket health check ping
+  RECONNECTION_CLEANUP_DELAY_MS: 500, // Platform-agnostic delay to ensure WebSocket is ready
   RECONNECTION_DELAY_ANDROID_MS: 300, // Android-specific reconnection delay for better reliability on slower devices
   RECONNECTION_DELAY_IOS_MS: 100, // iOS-specific reconnection delay for optimal performance
 
@@ -21,6 +25,7 @@ export const PERPS_CONSTANTS = {
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
   FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
+  FALLBACK_PERCENTAGE_DISPLAY: '--%', // Display when change data is unavailable
   FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
 } as const;
 
@@ -86,6 +91,10 @@ export const PERFORMANCE_CONFIG = {
   // This ensures navigation context is available when programmatically selecting tabs
   NAVIGATION_PARAMS_DELAY_MS: 200,
 
+  // Tab control reset delay (milliseconds)
+  // Delay to reset programmatic tab control after tab switching to prevent render loops
+  TAB_CONTROL_RESET_DELAY_MS: 500,
+
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
   MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
@@ -97,6 +106,35 @@ export const PERFORMANCE_CONFIG = {
   // Max leverage cache duration (milliseconds)
   // How long to cache max leverage values per asset (leverage rarely changes)
   MAX_LEVERAGE_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
+
+  // Rewards cache durations (milliseconds)
+  // How long to cache fee discount data from rewards API
+  FEE_DISCOUNT_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+  // How long to cache points calculation parameters from rewards API
+  POINTS_CALCULATION_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+
+  /**
+   * Performance logging markers for filtering logs during development and debugging
+   * These markers help isolate performance-related logs from general application logs
+   * Usage: Use in DevLogger calls to easily filter specific performance areas
+   * Impact: Development only (uses DevLogger) - zero production performance cost
+   *
+   * Examples:
+   * - Filter Sentry performance logs: `adb logcat | grep PERPSMARK_SENTRY`
+   * - Filter MetaMetrics events: `adb logcat | grep PERPSMARK_METRICS`
+   * - Filter WebSocket performance: `adb logcat | grep PERPSMARK_WS`
+   * - Filter all Perps performance: `adb logcat | grep PERPSMARK_`
+   */
+  LOGGING_MARKERS: {
+    // Sentry performance measurement logs (screen loads, bottom sheets, API timing)
+    SENTRY_PERFORMANCE: 'PERPSMARK_SENTRY',
+
+    // MetaMetrics event tracking logs (user interactions, business analytics)
+    METAMETRICS_EVENTS: 'PERPSMARK_METRICS',
+
+    // WebSocket performance logs (connection timing, data flow, reconnections)
+    WEBSOCKET_PERFORMANCE: 'PERPSMARK_SENTRY_WS',
+  } as const,
 } as const;
 
 /**
@@ -119,6 +157,33 @@ export const TP_SL_CONFIG = {
 } as const;
 
 /**
+ * TP/SL View UI configuration
+ * Controls the Take Profit / Stop Loss screen behavior and display options
+ */
+export const TP_SL_VIEW_CONFIG = {
+  // Quick percentage button presets for Take Profit (positive RoE percentages)
+  TAKE_PROFIT_ROE_PRESETS: [10, 25, 50, 100], // +10%, +25%, +50%, +100% RoE
+
+  // Quick percentage button presets for Stop Loss (negative RoE percentages)
+  STOP_LOSS_ROE_PRESETS: [-5, -10, -25, -50], // -5%, -10%, -25%, -50% RoE
+
+  // WebSocket price update throttle delay (milliseconds)
+  // Reduces re-renders by batching price updates in the TP/SL screen
+  PRICE_THROTTLE_MS: 1000,
+
+  // Maximum number of digits allowed in price/percentage input fields
+  // Prevents overflow and maintains reasonable input constraints
+  MAX_INPUT_DIGITS: 9,
+
+  // Keypad configuration for price inputs
+  // USD_PERPS is not a real currency - it's a custom configuration
+  // that allows 5 decimal places for crypto prices, overriding the
+  // default USD configuration which only allows 2 decimal places
+  KEYPAD_CURRENCY_CODE: 'USD_PERPS' as const,
+  KEYPAD_DECIMALS: 5,
+} as const;
+
+/**
  * Limit price configuration
  * Controls preset percentages and behavior for limit orders
  */
@@ -133,6 +198,26 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations
   LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
   SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+} as const;
+
+/**
+ * HyperLiquid order limits based on leverage
+ * From: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/contract-specifications
+ */
+export const HYPERLIQUID_ORDER_LIMITS = {
+  // Market orders
+  MARKET_ORDER_LIMITS: {
+    // $15,000,000 for max leverage >= 25
+    HIGH_LEVERAGE: 15_000_000,
+    // $5,000,000 for max leverage in [20, 25)
+    MEDIUM_HIGH_LEVERAGE: 5_000_000,
+    // $2,000,000 for max leverage in [10, 20)
+    MEDIUM_LEVERAGE: 2_000_000,
+    // $500,000 for max leverage < 10
+    LOW_LEVERAGE: 500_000,
+  },
+  // Limit orders are 10x market order limits
+  LIMIT_ORDER_MULTIPLIER: 10,
 } as const;
 
 /**
@@ -178,6 +263,33 @@ export const FUNDING_RATE_CONFIG = {
   PERCENTAGE_MULTIPLIER: 100,
 } as const;
 
+/**
+ * Decimal precision configuration
+ * Controls maximum decimal places for price and input validation
+ */
+export const DECIMAL_PRECISION_CONFIG = {
+  // Maximum decimal places for price input (matches Hyperliquid limit)
+  // Used in TP/SL forms, limit price inputs, and price validation
+  MAX_PRICE_DECIMALS: 6,
+} as const;
+
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
+
+/**
+ * Development-only configuration for testing and debugging
+ * These constants are only active when __DEV__ is true
+ */
+export const DEVELOPMENT_CONFIG = {
+  // Magic number to simulate fee discount state (20% discount)
+  SIMULATE_FEE_DISCOUNT_AMOUNT: 41,
+
+  // Magic number to simulate rewards error state (set order amount to this value)
+  SIMULATE_REWARDS_ERROR_AMOUNT: 42,
+
+  // Magic number to simulate rewards loading state
+  SIMULATE_REWARDS_LOADING_AMOUNT: 43,
+
+  // Future: Add other development helpers as needed
+} as const;

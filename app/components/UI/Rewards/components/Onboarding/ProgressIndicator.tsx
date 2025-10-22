@@ -38,14 +38,14 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Center}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        twClassName="gap-4"
         testID="progress-indicator-container"
       >
         {Array.from({ length: totalSteps }, (_, index) => (
           <Box
             key={index}
             style={tw.style(
-              'w-2 h-2 rounded-full',
+              'w-[12px] h-[12px] rounded-full',
               index === currentStep - 1 ? activeColor : 'bg-border-muted',
             )}
           />
@@ -67,10 +67,10 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
         <Box
           key={index}
           style={tw.style(
-            'h-2 rounded-xl',
+            'h-[12px] rounded-xl',
             index === currentStep - 1
-              ? `w-6 ${activeColor} ` // Current step is wider
-              : 'w-2 bg-border-muted', // Future steps
+              ? `w-[23px] ${activeColor} ` // Current step is wider
+              : 'w-[12px] h-[12px] bg-border-muted', // Future steps
           )}
         />
       ))}

@@ -567,6 +567,20 @@ class FixtureBuilder {
               },
             },
             NetworkEnablementController: {},
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: false,
+                  featureVersion: null,
+                  minimumVersion: null,
+                },
+                enableMultichainAccountsState2: {
+                  enabled: false,
+                  featureVersion: null,
+                  minimumVersion: null,
+                },
+              },
+            },
           },
         },
         privacy: {
@@ -624,6 +638,7 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
           existingUser: true,
+          multichainAccountsIntroModalSeen: true,
         },
         onboarding: {
           events: [],

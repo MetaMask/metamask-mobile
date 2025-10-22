@@ -1,20 +1,20 @@
 import React, {
   createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
   useRef,
 } from 'react';
-import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
+import type { ReconnectOptions } from '../types/perps-types';
+import Logger from '../../../../util/Logger';
 
-interface PerpsConnectionContextValue {
+export interface PerpsConnectionContextValue {
   isConnected: boolean;
   isConnecting: boolean;
   isInitialized: boolean;
@@ -22,10 +22,10 @@ interface PerpsConnectionContextValue {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   resetError: () => void;
-  reconnectWithNewContext: () => Promise<void>;
+  reconnectWithNewContext: (options?: ReconnectOptions) => Promise<void>;
 }
 
-const PerpsConnectionContext =
+export const PerpsConnectionContext =
   createContext<PerpsConnectionContextValue | null>(null);
 
 interface PerpsConnectionProviderProps {
@@ -98,8 +98,10 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.connect();
     } catch (err) {
-      // Error is already handled by connection manager
-      // Just let it propagate for components that need to handle it
+      Logger.error(err as Error, {
+        message: 'PerpsConnectionProvider: Error during connect',
+        context: 'PerpsConnectionProvider.connect',
+      });
     }
     // Always update state after connect attempt
     const state = PerpsConnectionManager.getConnectionState();
@@ -124,8 +126,10 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.disconnect();
     } catch (err) {
-      // Error is already handled by connection manager
-      // Just let it propagate for components that need to handle it
+      Logger.error(err as Error, {
+        message: 'PerpsConnectionProvider: Error during disconnect',
+        context: 'PerpsConnectionProvider.disconnect',
+      });
     }
     // Always update state after disconnect attempt
     const state = PerpsConnectionManager.getConnectionState();
@@ -154,19 +158,23 @@ export const PerpsConnectionProvider: React.FC<
   }, []);
 
   // Reconnect with new context for stuck connections
-  const reconnectWithNewContext = useCallback(async () => {
-    try {
-      // Use the existing reconnectWithNewContext method from the singleton
-      await PerpsConnectionManager.reconnectWithNewContext();
-      // Update state to reflect changes
+  const reconnectWithNewContext = useCallback(
+    async (options?: ReconnectOptions) => {
+      try {
+        // Use the existing reconnectWithNewContext method from the singleton
+        await PerpsConnectionManager.reconnectWithNewContext(options);
+      } catch (err) {
+        Logger.error(err as Error, {
+          message: 'PerpsConnectionProvider: Error during reconnect',
+          context: 'PerpsConnectionProvider.reconnectWithNewContext',
+        });
+      }
+      // Always update state after reconnection attempt
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState(state);
-    } catch (err) {
-      // Error is handled by connection manager, just update state
-      const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
-    }
-  }, []);
+    },
+    [],
+  );
 
   // Use the connection lifecycle hook to manage visibility and app state
   usePerpsConnectionLifecycle({
@@ -175,7 +183,11 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.connect();
       } catch (err) {
-        // Error is handled by connection manager
+        Logger.error(err as Error, {
+          message: 'PerpsConnectionProvider: Error in lifecycle onConnect',
+          context:
+            'PerpsConnectionProvider.usePerpsConnectionLifecycle.onConnect',
+        });
       }
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState(state);
@@ -184,7 +196,11 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.disconnect();
       } catch (err) {
-        // Error is handled by connection manager
+        Logger.error(err as Error, {
+          message: 'PerpsConnectionProvider: Error in lifecycle onDisconnect',
+          context:
+            'PerpsConnectionProvider.usePerpsConnectionLifecycle.onDisconnect',
+        });
       }
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState(state);
@@ -234,9 +250,9 @@ export const PerpsConnectionProvider: React.FC<
       setRetryAttempts((prev) => prev + 1);
 
       try {
-        // Attempt to connect directly using the singleton
-        // This will either succeed or throw an error
-        await PerpsConnectionManager.connect();
+        // Use reconnectWithNewContext with force flag for full reset including WebSocket and cached data
+        // This ensures we properly recover from stuck connection states by canceling any pending operations
+        await PerpsConnectionManager.reconnectWithNewContext({ force: true });
 
         // If we reach here, connection succeeded
         // Reset retry attempts and let polling update the state
@@ -279,15 +295,4 @@ export const PerpsConnectionProvider: React.FC<
       {children}
     </PerpsConnectionContext.Provider>
   );
-};
-
-/**
- * Hook to access the Perps connection context
- */
-export const usePerpsConnection = (): PerpsConnectionContextValue => {
-  const context = useContext(PerpsConnectionContext);
-  if (!context) {
-    throw new Error(strings('perps.errors.connectionRequired'));
-  }
-  return context;
 };

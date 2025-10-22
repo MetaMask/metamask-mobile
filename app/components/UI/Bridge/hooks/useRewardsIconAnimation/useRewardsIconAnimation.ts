@@ -2,11 +2,11 @@ import { useRef, useEffect } from 'react';
 import { RiveRef } from 'rive-react-native';
 
 // These come from the Rive file, need to go into the Rive Editor to see them, or talk to designers
-const STATE_MACHINE_NAME = 'State Machine 1';
+const STATE_MACHINE_NAME = 'Rewards_Icon';
 enum RewardsIconTriggers {
-  Disable = 'Disable',
+  Disable = 'Disable_left',
   Start = 'Start',
-  Refresh = 'Refresh',
+  Refresh = 'Refresh_left',
 }
 
 interface UseRewardsIconAnimationParams {
@@ -14,6 +14,7 @@ interface UseRewardsIconAnimationParams {
   estimatedPoints: number | null;
   hasRewardsError: boolean;
   shouldShowRewardsRow: boolean;
+  isRefresh?: boolean;
 }
 
 interface UseRewardsIconAnimationResult {
@@ -25,6 +26,7 @@ export const useRewardsIconAnimation = ({
   estimatedPoints,
   hasRewardsError,
   shouldShowRewardsRow,
+  isRefresh = false,
 }: UseRewardsIconAnimationParams): UseRewardsIconAnimationResult => {
   const riveRef = useRef<RiveRef>(null);
   const previousPointsRef = useRef<number | null>(null);
@@ -53,6 +55,15 @@ export const useRewardsIconAnimation = ({
         return;
       }
 
+      if (isRefresh && currentPoints && currentPoints > 0) {
+        // Refresh state - trigger spin animation
+        riveRef.current.fireState(
+          STATE_MACHINE_NAME,
+          RewardsIconTriggers.Refresh,
+        );
+        return;
+      }
+
       if (currentPoints && currentPoints > 0) {
         // Has points - trigger Start
         riveRef.current.fireState(
@@ -71,6 +82,7 @@ export const useRewardsIconAnimation = ({
     hasRewardsError,
     isRewardsLoading,
     shouldShowRewardsRow,
+    isRefresh,
   ]);
 
   return {

@@ -22,6 +22,7 @@ const availableFeatures = new Set([
   'bitcoin',
   'solana',
   'sample-feature',
+  'tron',
   'experimental',
 ]);
 
@@ -47,6 +48,7 @@ const flaskFeatureSet = new Set([
   'multi-srp',
   'bitcoin',
   'solana',
+  'tron',
 ]);
 // Experimental feature set includes all main features plus experimental
 const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);

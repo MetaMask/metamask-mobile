@@ -15,6 +15,7 @@ import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeatu
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -54,6 +55,7 @@ const DeveloperOptions = () => {
         ///: END:ONLY_INCLUDE_IF
       }
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
+      <ConfirmationsDeveloperOptions />
     </ScrollView>
   );
 };
