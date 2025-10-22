@@ -13,6 +13,8 @@ import { arrangeTestUtils } from '../utils/helpers';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { createUserStorageController } from '../utils/mocks';
+import { Mockttp } from 'mockttp';
+import { priceApiExchangeRatesMock } from '../account-syncing/mock-data';
 
 describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -32,6 +34,9 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
           USER_STORAGE_FEATURE_NAMES.accounts,
         ],
         sharedUserStorageController,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          priceApiExchangeRatesMock(mockServer);
+        },
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
