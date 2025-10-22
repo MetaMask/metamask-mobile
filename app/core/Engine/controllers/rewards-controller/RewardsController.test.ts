@@ -4579,6 +4579,367 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('shouldSkipSilentAuth', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+    });
+
+    it('should return false when account has no state (never checked before)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {}, // No account state
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return true when account has opted in', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: true,
+        subscriptionId: 'sub123',
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when account has not opted in and lastFreshOptInStatusCheck is missing', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        // No lastFreshOptInStatusCheck
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return true when account has not opted in but cache is fresh (within 24 hours)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const recentTime = Date.now() - 1000 * 60 * 60 * 12; // 12 hours ago (within 24 hour threshold)
+
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: recentTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when account has not opted in and cache is stale (beyond 24 hours)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const staleTime = Date.now() - 1000 * 60 * 60 * 24 * 2; // 2 days ago (beyond 24 hour threshold)
+
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: staleTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should handle CAIP ID normalization correctly (eip155:0 format)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0xABC',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Store with normalized format (eip155:0)
+      const normalizedCaipAccount = 'eip155:0:0xabc' as CaipAccountId;
+      const accountState: RewardsAccountState = {
+        account: normalizedCaipAccount,
+        hasOptedIn: true,
+        subscriptionId: 'sub123',
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [normalizedCaipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      const lookupCaipAccount = 'eip155:1:0xABC' as CaipAccountId;
+
+      // Act - Should find account even with different chain ID format
+      const result = controller.shouldSkipSilentAuth(
+        lookupCaipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when account state exists but hasOptedIn is undefined', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const accountState = {
+        account: caipAccount,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        // hasOptedIn is undefined
+      } as unknown as RewardsAccountState;
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+  });
+
   // Removed outdated 'reset' tests; behavior covered by 'resetAll' and 'logout' tests
 
   describe('logout', () => {
@@ -5650,6 +6011,53 @@ describe('RewardsController', () => {
         subscriptionId: null,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
+      });
+    });
+
+    it('should ensure account field is never undefined after invalidation', async () => {
+      // Arrange
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_3,
+            hasOptedIn: false,
+            subscriptionId: null,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: null,
+          },
+          accounts: {
+            [CAIP_ACCOUNT_3]: {
+              account: CAIP_ACCOUNT_3,
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: null,
+            },
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      await testController.invalidateAccountsAndSubscriptions();
+
+      // Assert - the account field must be preserved and never undefined
+      expect(testController.state.activeAccount).not.toBeNull();
+      expect(testController.state.activeAccount?.account).toBe(CAIP_ACCOUNT_3);
+      expect(testController.state.activeAccount?.account).toBeDefined();
+
+      // All reset fields should have their expected null/false values
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
       });
     });
   });

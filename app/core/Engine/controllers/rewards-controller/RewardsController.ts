@@ -664,7 +664,7 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  #shouldSkipSilentAuth(
+  shouldSkipSilentAuth(
     account: CaipAccountId,
     internalAccount: InternalAccount,
   ): boolean {
@@ -763,7 +763,7 @@ export class RewardsController extends BaseController<
       this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
-      ? this.#shouldSkipSilentAuth(account, internalAccount)
+      ? this.shouldSkipSilentAuth(account, internalAccount)
       : false;
 
     if (shouldSkip && respectSkipSilentAuth) {
