@@ -96,7 +96,8 @@ jest.mock('../../../selectors/assets/assets-list', () => ({
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
   selectSelectedInternalAccountByScope: jest.fn(),
-  
+}));
+
 const MOCK_CHAIN_ID = '0x1';
 
 const mockInitialState = {
