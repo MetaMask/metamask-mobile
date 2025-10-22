@@ -869,6 +869,7 @@
       "fetch_regions": "Nagkaproblema sa pagkuha ng mga rehiyon.",
       "fetch_tokens": "Nagkaproblema sa pagkuha ng mga token.",
       "fetch_payment_methods": "Nagkaproblema sa pagkuha ng mga paraan ng pagbabayad.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Subukang Muli",
       "error_details_title": "Mga Detalye ng Error",
       "see_more": "Tingnan pa"
@@ -1679,6 +1680,15 @@
           "try_again": "Try again"
         }
       }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1789,6 +1799,8 @@
     "alphabetically": "Paalpabeto (A-Z)",
     "add_to_get_started": "Magdagdag ng crypto upang makapagsimula",
     "token_is_needed_to_continue": "Kinakailangan ng {{tokenSymbol}} para makapagpatuloy",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Pondohan ang wallet mo para makapagsimula sa web3",
     "add_funds": "Magdagdag ng pondo",
     "next": "Susunod",
@@ -3151,9 +3163,10 @@
     "tx_review_staking_unstake": "I-unstake",
     "tx_review_lending_deposit": "Deposito sa Pagpapautang",
     "tx_review_lending_withdraw": "Pag-withdraw sa Pagpapautang",
-    "tx_review_perps_deposit": "Pinondohang Perps account",
-    "tx_review_predict_deposit": "Funded Predict account",
-    "tx_review_predict_claim": "Claimed Predict winnings",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Nagpadala ng Ether",
     "self_sent_ether": "Nagpadala ka sa sarili mo ng Ether",
     "received_ether": "Nakatanggap ng Ether",
@@ -3227,6 +3240,7 @@
     "network_fee": "Bayad sa Network",
     "network_fee_tooltip": "Halagang binayaran para maproseso ang transaksyon sa network.",
     "confirm_gas_fee_token_tooltip": "Binabayaran ito sa network para iproseso ang iyong transaksyon. Kabilang dito ang {{metamaskFeeFiat}} na bayad sa MetaMask para sa mga token na hindi ETH o ETH na may paunang pondo.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Kabilang ang bayad na {{metamaskFeeFiat}}",
     "smart_account_upgrade": "I-upgrade sa smart account",
     "smart_account_downgrade": "Lumipat sa standard account",
@@ -5361,7 +5375,8 @@
       "switch_account_type": "Pag-update ng account",
       "approve": "Aprubahan ang kahilingan",
       "perps_deposit": "Magdagdag ng mga pondo",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
@@ -5967,6 +5982,18 @@
       "limited_spending_warning": "Posibleng limitado ang aktwal na kakayahan mong gumastos. Para ayusin ang limitasyon mo, pumunta sa {{manageCard}}",
       "add_funds": "Magdagdag ng mga pondo",
       "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Restricted spending limit is on",

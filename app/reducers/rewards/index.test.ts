@@ -10,6 +10,7 @@ import rewardsReducer, {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setOnboardingReferralCode,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
@@ -59,6 +60,7 @@ describe('rewardsReducer', () => {
     balanceUpdatedAt: null,
 
     onboardingActiveStep: OnboardingStep.INTRO,
+    onboardingReferralCode: null,
     candidateSubscriptionId: 'pending',
     geoLocation: null,
     optinAllowedForGeo: null,
@@ -822,11 +824,12 @@ describe('rewardsReducer', () => {
     });
 
     describe('resetOnboarding', () => {
-      it('should reset onboarding to INTRO step', () => {
+      it('should reset onboarding to INTRO step and clear referral code', () => {
         // Arrange
         const stateWithStep = {
           ...initialState,
           onboardingActiveStep: OnboardingStep.STEP_3,
+          onboardingReferralCode: 'REF123',
         };
         const action = resetOnboarding();
 
@@ -835,6 +838,7 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
+        expect(state.onboardingReferralCode).toBeNull();
       });
 
       it('should not affect other state properties', () => {
@@ -842,6 +846,7 @@ describe('rewardsReducer', () => {
         const stateWithData = {
           ...initialState,
           onboardingActiveStep: OnboardingStep.STEP_4,
+          onboardingReferralCode: 'REF456',
           referralCode: 'KEEP123',
           balanceTotal: 1500,
         };
@@ -852,6 +857,70 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
+        expect(state.onboardingReferralCode).toBeNull();
+        expect(state.referralCode).toBe('KEEP123');
+        expect(state.balanceTotal).toBe(1500);
+      });
+    });
+
+    describe('setOnboardingReferralCode', () => {
+      it('should set onboarding referral code', () => {
+        // Arrange
+        const action = setOnboardingReferralCode('REF123');
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.onboardingReferralCode).toBe('REF123');
+      });
+
+      it('should update existing onboarding referral code', () => {
+        // Arrange
+        const stateWithCode = {
+          ...initialState,
+          onboardingReferralCode: 'OLD_REF',
+        };
+        const action = setOnboardingReferralCode('NEW_REF');
+
+        // Act
+        const state = rewardsReducer(stateWithCode, action);
+
+        // Assert
+        expect(state.onboardingReferralCode).toBe('NEW_REF');
+      });
+
+      it('should set onboarding referral code to null', () => {
+        // Arrange
+        const stateWithCode = {
+          ...initialState,
+          onboardingReferralCode: 'REF123',
+        };
+        const action = setOnboardingReferralCode(null);
+
+        // Act
+        const state = rewardsReducer(stateWithCode, action);
+
+        // Assert
+        expect(state.onboardingReferralCode).toBeNull();
+      });
+
+      it('should not affect other state properties', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          onboardingActiveStep: OnboardingStep.STEP_2,
+          referralCode: 'KEEP123',
+          balanceTotal: 1500,
+        };
+        const action = setOnboardingReferralCode('REF789');
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.onboardingReferralCode).toBe('REF789');
+        expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
         expect(state.referralCode).toBe('KEEP123');
         expect(state.balanceTotal).toBe(1500);
       });
@@ -1143,6 +1212,8 @@ describe('rewardsReducer', () => {
             balanceTotal: 1500,
             balanceRefereePortion: 300,
             balanceUpdatedAt: new Date('2024-06-01'),
+            onboardingActiveStep: OnboardingStep.STEP_2,
+            onboardingReferralCode: 'ONBOARDING_REF',
             activeBoosts: [
               {
                 id: 'boost-1',
@@ -1204,6 +1275,9 @@ describe('rewardsReducer', () => {
           expect(state.activeBoosts).toBe(initialState.activeBoosts);
           expect(state.pointsEvents).toBe(initialState.pointsEvents);
           expect(state.unlockedRewards).toBe(initialState.unlockedRewards);
+          // Onboarding state should NOT be reset
+          expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
+          expect(state.onboardingReferralCode).toBe('ONBOARDING_REF');
         });
 
         it('should NOT reset UI state when changing from pending to valid ID', () => {
@@ -1767,6 +1841,7 @@ describe('rewardsReducer', () => {
             },
           ],
           onboardingActiveStep: OnboardingStep.STEP_1,
+          onboardingReferralCode: 'REF123',
           candidateSubscriptionId: 'some-id',
           geoLocation: 'US',
           optinAllowedForGeo: true,
@@ -1853,6 +1928,7 @@ describe('rewardsReducer', () => {
             },
           ],
           onboardingActiveStep: OnboardingStep.STEP_2,
+          onboardingReferralCode: 'PERSISTED_REF',
           candidateSubscriptionId: 'some-id',
           geoLocation: 'CA',
           optinAllowedForGeo: true,
@@ -2059,6 +2135,8 @@ describe('rewardsReducer', () => {
           balanceRefereePortion: 100, // This should be preserved
           activeTab: 'levels' as const, // This should be reset to initial
           seasonStatusLoading: true, // This should be reset to initial
+          onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
+          onboardingReferralCode: 'CURRENT_REF', // This should be reset to initial
         };
         const persistedRewardsState: RewardsState = {
           ...initialState,
@@ -2067,6 +2145,8 @@ describe('rewardsReducer', () => {
           referralCode: 'PERSISTED123',
           balanceTotal: 2000,
           hideUnlinkedAccountsBanner: true,
+          onboardingActiveStep: OnboardingStep.STEP_4, // This should NOT be persisted
+          onboardingReferralCode: 'PERSISTED_REF', // This should NOT be persisted
         };
         const rehydrateAction = {
           type: 'persist/REHYDRATE',
@@ -2093,6 +2173,12 @@ describe('rewardsReducer', () => {
         expect(state.activeTab).toBe(initialState.activeTab);
         expect(state.seasonStatusLoading).toBe(
           initialState.seasonStatusLoading,
+        );
+        expect(state.onboardingActiveStep).toBe(
+          initialState.onboardingActiveStep,
+        );
+        expect(state.onboardingReferralCode).toBe(
+          initialState.onboardingReferralCode,
         );
       });
 
