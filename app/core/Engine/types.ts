@@ -1,3 +1,10 @@
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import {
+  SamplePetnamesController,
+  SamplePetnamesControllerState,
+  SamplePetnamesControllerEvents,
+} from '@metamask/sample-controllers';
+///: END:ONLY_INCLUDE_IF
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   AccountTrackerController,
@@ -308,12 +315,6 @@ import {
 import { EncryptionKey } from '../Encryptor/types';
 
 import { Hex } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import {
-  SamplePetnamesController,
-  SamplePetnamesControllerState,
-} from '@metamask/sample-controllers';
-///: END:ONLY_INCLUDE_IF
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
@@ -464,6 +465,9 @@ type GlobalActions =
   | DelegationControllerActions;
 
 type GlobalEvents =
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  | SamplePetnamesControllerEvents
+  ///: END:ONLY_INCLUDE_IF
   | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
@@ -524,10 +528,7 @@ type GlobalEvents =
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
-  | DelegationControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | SamplePetnamesControllerEvents;
-///: END:ONLY_INCLUDE_IF
+  | DelegationControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -545,6 +546,9 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SamplePetnamesController: SamplePetnamesController;
+  ///: END:ONLY_INCLUDE_IF
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
@@ -570,9 +574,6 @@ export type Controllers = {
   PreferencesController: PreferencesController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   PPOMController: PPOMController;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesController;
-  ///: END:ONLY_INCLUDE_IF
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
@@ -726,6 +727,9 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  | 'SamplePetnamesController'
+  ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
@@ -783,9 +787,6 @@ export type ControllersToInitialize =
   | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | 'SamplePetnamesController'
-  ///: END:ONLY_INCLUDE_IF
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
@@ -953,11 +954,3 @@ export type InitModularizedControllersFunction = (
 ) => {
   controllersByName: ControllerByName;
 };
-
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-// Add event type for SamplePetnamesController
-export interface SamplePetnamesControllerEvents {
-  type: 'SamplePetnamesController:stateChange';
-  payload: [SamplePetnamesControllerState];
-}
-///: END:ONLY_INCLUDE_IF
