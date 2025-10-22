@@ -8,6 +8,11 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  FillType,
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
+} from '../../types/transactionHistory';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -42,31 +47,56 @@ const mockTransactions = [
   {
     id: 'fill-1',
     type: 'trade' as const,
+    category: 'position_open' as const,
+    title: 'Opened Long Position',
+    subtitle: '1.5 ETH',
     timestamp: 1640995200000,
-    symbol: 'ETH',
+    asset: 'ETH',
     fill: {
+      shortTitle: 'Opened long',
       amount: '+$150.75',
+      amountNumber: 150.75,
       isPositive: true,
+      size: '1.5',
+      entryPrice: '2000',
+      points: '0',
+      pnl: '0',
+      fee: '5.00',
+      action: 'open',
+      feeToken: 'USDC',
+      fillType: FillType.Standard,
     },
   },
   {
     id: 'order-1',
     type: 'order' as const,
+    category: 'limit_order' as const,
+    title: 'Limit Order',
+    subtitle: '0.5 BTC',
     timestamp: 1640995200000,
-    symbol: 'BTC',
+    asset: 'BTC',
     order: {
-      text: 'Filled',
-      statusType: 'filled' as const,
+      text: PerpsOrderTransactionStatus.Filled,
+      statusType: PerpsOrderTransactionStatusType.Filled,
+      type: 'limit' as const,
+      size: '0.5',
+      limitPrice: '45000',
+      filled: '0.5',
     },
   },
   {
     id: 'funding-1',
     type: 'funding' as const,
+    category: 'funding_fee' as const,
+    title: 'Funding Fee',
+    subtitle: 'ETH',
     timestamp: 1640995200000,
-    symbol: 'ETH',
+    asset: 'ETH',
     fundingAmount: {
       isPositive: false,
       fee: '-$25.00',
+      feeNumber: -25.0,
+      rate: '0.0001',
     },
   },
 ];
