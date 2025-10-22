@@ -8798,13 +8798,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/token-search-discovery-controller@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "@metamask/token-search-discovery-controller@npm:3.1.0"
+"@metamask/token-search-discovery-controller@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "@metamask/token-search-discovery-controller@npm:3.5.0"
   dependencies:
-    "@metamask/base-controller": "npm:^8.0.0"
-    "@metamask/utils": "npm:^11.2.0"
-  checksum: 10/0bfb84e638e75c84def9e832d4d3def060fb13a594dfe38500e0f381a91d8435f34417747425b141a696f0987720a3fb7809017c5cf277dcf7138723b3fad296
+    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/utils": "npm:^11.8.1"
+  checksum: 10/6db85c29f2200192e0e88ddd307ef49728385dee04f99d3b7299bdccff6e24277b4a39592a5d7752e9f2ab11737a1b0bfa0e19147df4a294a6605335aaa87850
   languageName: node
   linkType: hard
 
@@ -34198,7 +34198,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/token-search-discovery-controller": "npm:^3.1.0"
+    "@metamask/token-search-discovery-controller": "npm:^3.5.0"
     "@metamask/transaction-controller": "npm:^60.9.0"
     "@metamask/tron-wallet-snap": "npm:^1.5.0"
     "@metamask/utils": "npm:^11.8.1"
