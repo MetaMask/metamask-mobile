@@ -1,12 +1,11 @@
 import {
   createWalletConnectAction,
-  createEthereumProtocolAction,
   createFocusAction,
   createEmptyAction,
   registerProtocolActions,
 } from './ProtocolActions';
 import { ActionRegistry, DeeplinkParams } from '../ActionRegistry';
-import { ACTIONS, PROTOCOLS } from '../../../../constants/deeplinks';
+import { ACTIONS } from '../../../../constants/deeplinks';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { DeeplinkUrlParams } from '../../ParseManager/extractURLParams';
@@ -19,7 +18,9 @@ jest.mock('../../../../util/Logger');
 jest.mock('../../../WalletConnect/WalletConnectV2');
 
 // Helper function to create default DeeplinkUrlParams
-const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUrlParams => ({
+const createDefaultParams = (
+  overrides?: Partial<DeeplinkUrlParams>,
+): DeeplinkUrlParams => ({
   uri: '',
   redirect: '',
   channelId: '',
@@ -30,16 +31,19 @@ const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUr
 });
 
 describe('ProtocolActions', () => {
-  const mockNavigation = { navigate: jest.fn() } as unknown as NavigationProp<ParamListBase>;
+  const mockNavigation = {
+    navigate: jest.fn(),
+  } as unknown as NavigationProp<ParamListBase>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockWC2Manager: any;
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockWC2Manager = {
       connect: jest.fn(),
     };
-    
+
     (WC2Manager.getInstance as jest.Mock).mockResolvedValue(mockWC2Manager);
   });
 
@@ -70,10 +74,13 @@ describe('ProtocolActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('ProtocolActions: Handling WalletConnect action', {
-        uri: 'wc:connection-string',
-        originalUrl: params.originalUrl,
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'ProtocolActions: Handling WalletConnect action',
+        {
+          uri: 'wc:connection-string',
+          originalUrl: params.originalUrl,
+        },
+      );
       expect(WC2Manager.getInstance).toHaveBeenCalled();
       expect(mockWC2Manager.connect).toHaveBeenCalledWith({
         wcUri: 'wc:connection-string',
@@ -121,7 +128,7 @@ describe('ProtocolActions', () => {
       await expect(action.handler(params)).rejects.toThrow('Connection failed');
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'DeepLinkManager failed to connect via WalletConnect'
+        'DeepLinkManager failed to connect via WalletConnect',
       );
     });
   });
@@ -135,7 +142,9 @@ describe('ProtocolActions', () => {
 
       expect(action.name).toBe(ACTIONS.FOCUS);
       expect(action.supportedSchemes).toEqual(['metamask://']);
-      expect(action.description).toBe('Focuses the app without specific action');
+      expect(action.description).toBe(
+        'Focuses the app without specific action',
+      );
       expect(action.handler).toBeDefined();
     });
 
@@ -153,7 +162,9 @@ describe('ProtocolActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('ProtocolActions: Handling focus action');
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'ProtocolActions: Handling focus action',
+      );
       // No navigation or other side effects
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
@@ -183,7 +194,9 @@ describe('ProtocolActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('ProtocolActions: Handling empty action');
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'ProtocolActions: Handling empty action',
+      );
       // No navigation or other side effects
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
@@ -211,9 +224,10 @@ describe('ProtocolActions', () => {
       } as unknown as ActionRegistry;
 
       registerProtocolActions(mockRegistry);
-      
+
       expect(mockRegistry.registerMany).toHaveBeenCalledTimes(1);
-      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock.calls[0][0];
+      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock
+        .calls[0][0];
       expect(registeredActions).toHaveLength(3);
     });
   });

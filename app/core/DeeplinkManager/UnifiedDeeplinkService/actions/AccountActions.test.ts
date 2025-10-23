@@ -18,7 +18,9 @@ jest.mock('../../Handlers/handleRewardsUrl');
 jest.mock('../../../SDKConnect/utils/DevLogger');
 
 // Helper function to create default DeeplinkUrlParams
-const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUrlParams => ({
+const createDefaultParams = (
+  overrides?: Partial<DeeplinkUrlParams>,
+): DeeplinkUrlParams => ({
   uri: '',
   redirect: '',
   channelId: '',
@@ -29,8 +31,10 @@ const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUr
 });
 
 describe('AccountActions', () => {
-  const mockNavigation = { navigate: jest.fn() } as unknown as NavigationProp<ParamListBase>;
-  
+  const mockNavigation = {
+    navigate: jest.fn(),
+  } as unknown as NavigationProp<ParamListBase>;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -59,10 +63,13 @@ describe('AccountActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('AccountActions: Handling create account action', {
-        path: '/hardware',
-        queryParams: createDefaultParams(),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'AccountActions: Handling create account action',
+        {
+          path: '/hardware',
+          queryParams: createDefaultParams(),
+        },
+      );
       expect(handleCreateAccountUrl).toHaveBeenCalledWith({
         path: '/hardware',
         navigation: mockNavigation,
@@ -133,10 +140,13 @@ describe('AccountActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('AccountActions: Handling rewards action', {
-        path: '/claim',
-        queryParams: createDefaultParams(),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'AccountActions: Handling rewards action',
+        {
+          path: '/claim',
+          queryParams: createDefaultParams(),
+        },
+      );
       expect(handleRewardsUrl).toHaveBeenCalledWith({
         rewardsPath: '/claim',
       });
@@ -233,7 +243,7 @@ describe('AccountActions', () => {
 
     it('only supports metamask scheme', () => {
       const action = createFastOnboardingAction();
-      
+
       expect(action.supportedSchemes).toEqual(['metamask://']);
       expect(action.supportedSchemes).not.toContain('https://');
     });
@@ -262,9 +272,10 @@ describe('AccountActions', () => {
       } as unknown as ActionRegistry;
 
       registerAccountActions(mockRegistry);
-      
+
       expect(mockRegistry.registerMany).toHaveBeenCalledTimes(1);
-      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock.calls[0][0];
+      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock
+        .calls[0][0];
       expect(registeredActions).toHaveLength(3);
     });
 

@@ -6,9 +6,15 @@ jest.mock('react-native', () => ({
     alert: mockAlert,
   },
   Platform: { OS: 'ios' },
-  StyleSheet: { 
-    create: (styles: any) => styles,
-    absoluteFillObject: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
+  StyleSheet: {
+    create: (styles: StyleSheet) => styles,
+    absoluteFillObject: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+    },
   },
   AppState: {
     currentState: 'active',
@@ -43,15 +49,22 @@ jest.mock('react-native-gesture-handler', () => ({
 }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SafeAreaProvider: ({ children }: any) => children,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SafeAreaView: ({ children }: any) => children,
 }));
 jest.mock('react-native-reanimated', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createAnimatedComponent: (component: any) => component,
   useAnimatedStyle: () => ({}),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSharedValue: (value: any) => ({ value }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   withTiming: (value: any) => value,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   withSpring: (value: any) => value,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   withSequence: (...values: any[]) => values[0],
   Easing: {
     linear: jest.fn(),
@@ -68,7 +81,7 @@ jest.mock('react-native-mmkv', () => {
     clearAll: jest.fn(),
     contains: jest.fn().mockReturnValue(false),
   }));
-  
+
   return { MMKV: MMKVMock };
 });
 jest.mock('../UnifiedDeeplinkService', () => ({
@@ -96,14 +109,14 @@ jest.mock('../../../../locales/i18n', () => ({
 jest.mock('./extractURLParams');
 
 // Imports after mocks
-import parseDeeplinkUnified, { initializeDeeplinkService } from './parseDeeplinkUnified';
+import parseDeeplinkUnified, {
+  initializeDeeplinkService,
+} from './parseDeeplinkUnified';
 import { deeplinkService } from '../UnifiedDeeplinkService';
 import SDKConnectV2 from '../../SDKConnectV2';
 import { connectWithWC } from './connectWithWC';
 import handleEthereumUrl from '../Handlers/handleEthereumUrl';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import { strings } from '../../../../locales/i18n';
-import { PROTOCOLS } from '../../../constants/deeplinks';
 import extractURLParams from './extractURLParams';
 import DeeplinkManager from '../DeeplinkManager';
 import { Alert } from 'react-native';
@@ -118,16 +131,19 @@ describe('parseDeeplinkUnified', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAlert.mockClear();
-    
+
     // Spy on Alert.alert
     alertSpy = jest.spyOn(Alert, 'alert');
-    
+
     // Reset the mocked deeplinkService
-    (deeplinkService.handleDeeplink as jest.Mock).mockResolvedValue({ success: true });
-    
+    (deeplinkService.handleDeeplink as jest.Mock).mockResolvedValue({
+      success: true,
+    });
+
     mockInstance = {
       navigation: mockNavigation,
       _handleEthereumUrl: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     // Default mock for extractURLParams
@@ -140,9 +156,13 @@ describe('parseDeeplinkUnified', () => {
   describe('SDKConnectV2 fast path', () => {
     it('handles SDKConnectV2 deeplinks immediately without initializing service', async () => {
       const url = 'metamask://sdk-connect?channelId=123';
-      
-      (SDKConnectV2.isConnectDeeplink as jest.Mock).mockReturnValue(true);
-      (SDKConnectV2.handleConnectDeeplink as jest.Mock).mockResolvedValue(undefined);
+
+      (SDKConnectV2.isConnectDeeplink as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+      (
+        SDKConnectV2.handleConnectDeeplink as unknown as jest.Mock
+      ).mockResolvedValue(undefined);
 
       const result = await parseDeeplinkUnified({
         deeplinkManager: mockInstance,
@@ -160,13 +180,15 @@ describe('parseDeeplinkUnified', () => {
 
     it('continues to regular flow when not an SDK connect deeplink', async () => {
       const url = 'metamask://buy';
-      
-      (SDKConnectV2.isConnectDeeplink as jest.Mock).mockReturnValue(false);
+
+      (SDKConnectV2.isConnectDeeplink as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
       });
-      deeplinkService.handleDeeplink.mockResolvedValue({
+      (deeplinkService.handleDeeplink as jest.Mock).mockResolvedValue({
         success: true,
         action: 'buy',
       });
@@ -192,7 +214,7 @@ describe('parseDeeplinkUnified', () => {
     it('handles WalletConnect protocol directly', async () => {
       const url = 'wc:connection-string-with-params';
       const mockParams = { uri: 'wc:connection', channelId: '123' };
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: mockParams,
@@ -218,7 +240,7 @@ describe('parseDeeplinkUnified', () => {
 
     it('handles Ethereum protocol directly', async () => {
       const url = 'ethereum:0x123456789abcdef?value=1000000000000000000';
-      
+
       const result = await parseDeeplinkUnified({
         deeplinkManager: mockInstance,
         url,
@@ -238,13 +260,13 @@ describe('parseDeeplinkUnified', () => {
 
     it('delegates http/https protocols to unified service', async () => {
       const url = 'https://link.metamask.io/buy';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
       });
-      
-      deeplinkService.handleDeeplink.mockResolvedValue({
+
+      (deeplinkService.handleDeeplink as jest.Mock).mockResolvedValue({
         success: true,
         action: 'buy',
       });
@@ -269,8 +291,8 @@ describe('parseDeeplinkUnified', () => {
   describe('unified service integration', () => {
     it('passes all options to unified service', async () => {
       const url = 'metamask://send/0x123';
-      
-      deeplinkService.handleDeeplink.mockResolvedValue({
+
+      (deeplinkService.handleDeeplink as jest.Mock).mockResolvedValue({
         success: true,
         action: 'send',
       });
@@ -293,7 +315,7 @@ describe('parseDeeplinkUnified', () => {
 
     it('returns false when unified service fails without user interaction', async () => {
       const url = 'metamask://invalid-action';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
@@ -303,7 +325,9 @@ describe('parseDeeplinkUnified', () => {
         error: 'Unknown action',
         shouldProceed: true, // Explicitly set to true to show alert
       };
-      (deeplinkService.handleDeeplink as jest.Mock).mockResolvedValue(handleDeeplinkResult);
+      (deeplinkService.handleDeeplink as jest.Mock).mockResolvedValue(
+        handleDeeplinkResult,
+      );
 
       const result = await parseDeeplinkUnified({
         deeplinkManager: mockInstance,
@@ -314,14 +338,17 @@ describe('parseDeeplinkUnified', () => {
       expect(result).toBe(false);
       expect(DevLogger.log).toHaveBeenCalledWith(
         'parseDeeplinkUnified: Failed to handle deeplink',
-        'Unknown action'
+        'Unknown action',
       );
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Unknown action');
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Unknown action',
+      );
     });
 
     it('returns false when user declines modal without showing alert', async () => {
       const url = 'https://link.metamask.io/buy';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
@@ -346,7 +373,7 @@ describe('parseDeeplinkUnified', () => {
     it('logs and alerts for Error objects', async () => {
       const url = 'metamask://buy';
       const error = new Error('Network error');
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
@@ -359,15 +386,22 @@ describe('parseDeeplinkUnified', () => {
         origin: 'deeplink',
       });
 
-      expect(DevLogger.log).toHaveBeenNthCalledWith(2, 'parseDeeplinkUnified: Error', error);
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Error: Network error');
+      expect(DevLogger.log).toHaveBeenNthCalledWith(
+        2,
+        'parseDeeplinkUnified: Error',
+        error,
+      );
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Error: Network error',
+      );
       expect(result).toBe(false);
     });
 
     it('handles string errors', async () => {
       const url = 'metamask://buy';
       const error = 'String error message';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
@@ -380,14 +414,21 @@ describe('parseDeeplinkUnified', () => {
         origin: 'deeplink',
       });
 
-      expect(DevLogger.log).toHaveBeenNthCalledWith(2, 'parseDeeplinkUnified: Error', error);
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Unknown error');
+      expect(DevLogger.log).toHaveBeenNthCalledWith(
+        2,
+        'parseDeeplinkUnified: Error',
+        error,
+      );
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Unknown error',
+      );
       expect(result).toBe(false);
     });
 
     it('handles falsy errors by showing unknown error', async () => {
       const url = 'metamask://buy';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
@@ -400,14 +441,21 @@ describe('parseDeeplinkUnified', () => {
         origin: 'deeplink',
       });
 
-      expect(DevLogger.log).toHaveBeenNthCalledWith(2, 'parseDeeplinkUnified: Error', false);
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Unknown error');
+      expect(DevLogger.log).toHaveBeenNthCalledWith(
+        2,
+        'parseDeeplinkUnified: Error',
+        false,
+      );
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Unknown error',
+      );
       expect(result).toBe(false);
     });
 
     it('handles null errors', async () => {
       const url = 'metamask://buy';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
@@ -420,34 +468,29 @@ describe('parseDeeplinkUnified', () => {
         origin: 'deeplink',
       });
 
-      expect(DevLogger.log).toHaveBeenNthCalledWith(2, 'parseDeeplinkUnified: Error', null);
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Unknown error');
+      expect(DevLogger.log).toHaveBeenNthCalledWith(
+        2,
+        'parseDeeplinkUnified: Error',
+        null,
+      );
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Unknown error',
+      );
       expect(result).toBe(false);
     });
 
     it('handles undefined errors', async () => {
       const url = 'metamask://buy';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
       });
-      (deeplinkService.handleDeeplink as jest.Mock).mockRejectedValue(undefined);
+      (deeplinkService.handleDeeplink as jest.Mock).mockRejectedValue(
+        undefined,
+      );
 
-      const result = await parseDeeplinkUnified({
-        deeplinkManager: mockInstance,
-        url,
-        origin: 'deeplink',
-      });
-
-      expect(DevLogger.log).toHaveBeenNthCalledWith(2, 'parseDeeplinkUnified: Error', undefined);
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Unknown error');
-      expect(result).toBe(false);
-    });
-
-    it('handles malformed URLs', async () => {
-      const url = 'not-a-valid-url';
-      
       const result = await parseDeeplinkUnified({
         deeplinkManager: mockInstance,
         url,
@@ -455,14 +498,38 @@ describe('parseDeeplinkUnified', () => {
       });
 
       expect(DevLogger.log).toHaveBeenNthCalledWith(
-        2, 
-        'parseDeeplinkUnified: Error', 
+        2,
+        'parseDeeplinkUnified: Error',
+        undefined,
+      );
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Unknown error',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('handles malformed URLs', async () => {
+      const url = 'not-a-valid-url';
+
+      const result = await parseDeeplinkUnified({
+        deeplinkManager: mockInstance,
+        url,
+        origin: 'deeplink',
+      });
+
+      expect(DevLogger.log).toHaveBeenNthCalledWith(
+        2,
+        'parseDeeplinkUnified: Error',
         expect.objectContaining({
           name: 'TypeError',
-          message: expect.stringContaining('Invalid URL')
-        })
+          message: expect.stringContaining('Invalid URL'),
+        }),
       );
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Unknown error');
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Unknown error',
+      );
       expect(result).toBe(false);
     });
   });
@@ -470,7 +537,7 @@ describe('parseDeeplinkUnified', () => {
   describe('edge cases', () => {
     it('handles empty URL', async () => {
       const url = '';
-      
+
       const result = await parseDeeplinkUnified({
         deeplinkManager: mockInstance,
         url,
@@ -478,12 +545,15 @@ describe('parseDeeplinkUnified', () => {
       });
 
       expect(result).toBe(false);
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'Unknown error');
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'Unknown error',
+      );
     });
 
     it('handles URL with only protocol', async () => {
       const url = 'metamask://';
-      
+
       (extractURLParams as jest.Mock).mockReturnValue({
         urlObj: new URL(url),
         params: {},
@@ -501,12 +571,15 @@ describe('parseDeeplinkUnified', () => {
       });
 
       expect(result).toBe(false);
-      expect(alertSpy).toHaveBeenCalledWith('deeplink.invalid', 'No action specified');
+      expect(alertSpy).toHaveBeenCalledWith(
+        'deeplink.invalid',
+        'No action specified',
+      );
     });
   });
 });
 
-  describe('initializeDeeplinkService', () => {
+describe('initializeDeeplinkService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAlert.mockClear();
@@ -515,7 +588,9 @@ describe('parseDeeplinkUnified', () => {
   it('initializes service by calling registerDefaultActions', () => {
     initializeDeeplinkService();
 
-    expect(DevLogger.log).toHaveBeenCalledWith('Initializing unified deeplink service');
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      'Initializing unified deeplink service',
+    );
     expect(deeplinkService.registerDefaultActions).toHaveBeenCalled();
   });
 });

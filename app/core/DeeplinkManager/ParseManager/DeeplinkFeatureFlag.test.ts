@@ -1,4 +1,4 @@
-import { isUnifiedDeeplinkServiceEnabled, initializeDeeplinkServiceIfEnabled } from './DeeplinkFeatureFlag';
+import { isUnifiedDeeplinkServiceEnabled } from './DeeplinkFeatureFlag';
 import { store } from '../../../store';
 import { selectUnifiedDeeplinksEnabled } from '../../../selectors/featureFlagController/unifiedDeeplinks';
 
@@ -14,7 +14,10 @@ jest.mock('./parseDeeplinkUnified', () => ({
 
 describe('DeeplinkFeatureFlag', () => {
   const mockStore = store as jest.Mocked<typeof store>;
-  const mockSelectUnifiedDeeplinksEnabled = selectUnifiedDeeplinksEnabled as jest.MockedFunction<typeof selectUnifiedDeeplinksEnabled>;
+  const mockSelectUnifiedDeeplinksEnabled =
+    selectUnifiedDeeplinksEnabled as jest.MockedFunction<
+      typeof selectUnifiedDeeplinksEnabled
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -23,7 +26,8 @@ describe('DeeplinkFeatureFlag', () => {
 
   describe('isUnifiedDeeplinkServiceEnabled', () => {
     it('returns true when feature flag is enabled', () => {
-      const mockState = { featureFlags: { unifiedDeeplinks: true } };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockState = { featureFlags: { unifiedDeeplinks: true } } as any;
       mockStore.getState.mockReturnValue(mockState);
       mockSelectUnifiedDeeplinksEnabled.mockReturnValue(true);
 
@@ -35,7 +39,8 @@ describe('DeeplinkFeatureFlag', () => {
     });
 
     it('returns false when feature flag is disabled', () => {
-      const mockState = { featureFlags: { unifiedDeeplinks: false } };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockState = { featureFlags: { unifiedDeeplinks: false } } as any;
       mockStore.getState.mockReturnValue(mockState);
       mockSelectUnifiedDeeplinksEnabled.mockReturnValue(false);
 
@@ -47,7 +52,8 @@ describe('DeeplinkFeatureFlag', () => {
     });
 
     it('returns false when feature flag is undefined', () => {
-      const mockState = { featureFlags: {} };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockState = { featureFlags: {} } as any;
       mockStore.getState.mockReturnValue(mockState);
       mockSelectUnifiedDeeplinksEnabled.mockReturnValue(false);
 
@@ -59,19 +65,19 @@ describe('DeeplinkFeatureFlag', () => {
 
   describe('initializeDeeplinkServiceIfEnabled', () => {
     it('attempts to initialize service when feature is enabled', async () => {
-      const mockState = { featureFlags: { unifiedDeeplinks: true } };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockState = { featureFlags: { unifiedDeeplinks: true } } as any;
       mockStore.getState.mockReturnValue(mockState);
       mockSelectUnifiedDeeplinksEnabled.mockReturnValue(true);
 
       // Mock the dynamic import to prevent the error
-      const originalImport = jest.requireActual('./DeeplinkFeatureFlag').initializeDeeplinkServiceIfEnabled;
       const mockImport = jest.fn().mockImplementation(() => {
         // Just check the state without actually importing
         if (isUnifiedDeeplinkServiceEnabled()) {
           return Promise.resolve();
         }
       });
-      
+
       await mockImport();
 
       expect(mockStore.getState).toHaveBeenCalled();
@@ -79,7 +85,8 @@ describe('DeeplinkFeatureFlag', () => {
     });
 
     it('does not initialize when feature is disabled', async () => {
-      const mockState = { featureFlags: { unifiedDeeplinks: false } };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockState = { featureFlags: { unifiedDeeplinks: false } } as any;
       mockStore.getState.mockReturnValue(mockState);
       mockSelectUnifiedDeeplinksEnabled.mockReturnValue(false);
 
@@ -89,7 +96,7 @@ describe('DeeplinkFeatureFlag', () => {
           return Promise.resolve();
         }
       });
-      
+
       await mockImport();
 
       expect(mockStore.getState).toHaveBeenCalled();

@@ -1,4 +1,8 @@
-import { createBuyCryptoAction, createSellCryptoAction, registerRampActions } from './RampActions';
+import {
+  createBuyCryptoAction,
+  createSellCryptoAction,
+  registerRampActions,
+} from './RampActions';
 import { ActionRegistry, DeeplinkParams } from '../ActionRegistry';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import handleRampUrl from '../../Handlers/handleRampUrl';
@@ -12,7 +16,9 @@ jest.mock('../../Handlers/handleRampUrl', () => jest.fn());
 jest.mock('../../../SDKConnect/utils/DevLogger');
 
 // Helper function to create default DeeplinkUrlParams
-const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUrlParams => ({
+const createDefaultParams = (
+  overrides?: Partial<DeeplinkUrlParams>,
+): DeeplinkUrlParams => ({
   uri: '',
   redirect: '',
   channelId: '',
@@ -23,8 +29,10 @@ const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUr
 });
 
 describe('RampActions', () => {
-  const mockNavigation = { navigate: jest.fn() } as unknown as NavigationProp<ParamListBase>;
-  
+  const mockNavigation = {
+    navigate: jest.fn(),
+  } as unknown as NavigationProp<ParamListBase>;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -53,10 +61,13 @@ describe('RampActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('RampActions: Handling buy crypto action', {
-        path: '/test',
-        queryParams: createDefaultParams(),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'RampActions: Handling buy crypto action',
+        {
+          path: '/test',
+          queryParams: createDefaultParams(),
+        },
+      );
       expect(handleRampUrl).toHaveBeenCalledWith({
         rampPath: '/test',
         navigation: mockNavigation,
@@ -130,10 +141,13 @@ describe('RampActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('RampActions: Handling sell crypto action', {
-        path: '/usdc',
-        queryParams: createDefaultParams(),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'RampActions: Handling sell crypto action',
+        {
+          path: '/usdc',
+          queryParams: createDefaultParams(),
+        },
+      );
       expect(handleRampUrl).toHaveBeenCalledWith({
         rampPath: '/usdc',
         navigation: mockNavigation,
@@ -207,9 +221,10 @@ describe('RampActions', () => {
       } as unknown as ActionRegistry;
 
       registerRampActions(mockRegistry);
-      
+
       expect(mockRegistry.registerMany).toHaveBeenCalledTimes(1);
-      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock.calls[0][0];
+      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock
+        .calls[0][0];
       expect(registeredActions).toHaveLength(4);
     });
   });

@@ -12,7 +12,6 @@ import handleDeeplink from '../../../SDKConnect/handlers/handleDeeplink';
 import parseOriginatorInfo from '../../parseOriginatorInfo';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { DeeplinkUrlParams } from '../../ParseManager/extractURLParams';
-import AppConstants from '../../../../core/AppConstants';
 
 // Mock dependencies
 jest.mock('../../../SDKConnect/utils/DevLogger');
@@ -33,7 +32,9 @@ jest.mock('../../../../core/AppConstants', () => ({
 }));
 
 // Helper function to create default DeeplinkUrlParams
-const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUrlParams => ({
+const createDefaultParams = (
+  overrides?: Partial<DeeplinkUrlParams>,
+): DeeplinkUrlParams => ({
   uri: '',
   redirect: '',
   channelId: '',
@@ -44,26 +45,30 @@ const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUr
 });
 
 describe('SDKActions', () => {
-  const mockNavigation = { navigate: jest.fn() } as unknown as NavigationProp<ParamListBase>;
+  const mockNavigation = {
+    navigate: jest.fn(),
+  } as unknown as NavigationProp<ParamListBase>;
   let mockSDKConnect: jest.Mocked<SDKConnect>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockDeeplinkingService: any;
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockDeeplinkingService = {
       handleConnection: jest.fn(),
       handleMessage: jest.fn(),
       bindAndroidSDK: jest.fn(),
     };
-    
+
     mockSDKConnect = {
       state: {
         deeplinkingService: mockDeeplinkingService,
       },
       bindAndroidSDK: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
-    
+
     (SDKConnect.getInstance as jest.Mock).mockReturnValue(mockSDKConnect);
     (parseOriginatorInfo as jest.Mock).mockReturnValue({
       title: 'Test App',
@@ -108,7 +113,7 @@ describe('SDKActions', () => {
           channelId: 'test-channel',
           comm: 'deeplinking',
           redirect: '',
-        }
+        },
       );
       expect(mockDeeplinkingService.handleConnection).toHaveBeenCalledWith({
         channelId: 'test-channel',
@@ -134,7 +139,8 @@ describe('SDKActions', () => {
           hr: true,
           rpc: 'https://rpc.test.com',
         }),
-        originalUrl: 'metamask://connect?channelId=socket-channel&comm=socket&v=2',
+        originalUrl:
+          'metamask://connect?channelId=socket-channel&comm=socket&v=2',
         scheme: 'metamask:',
         navigation: mockNavigation,
         origin: 'qr-code',
@@ -172,7 +178,7 @@ describe('SDKActions', () => {
       };
 
       await expect(action.handler(params)).rejects.toThrow(
-        'DeepLinkManager failed to connect - Invalid channelId, pubkey or communication layer'
+        'DeepLinkManager failed to connect - Invalid channelId, pubkey or communication layer',
       );
     });
 
@@ -194,7 +200,7 @@ describe('SDKActions', () => {
       };
 
       await expect(action.handler(params)).rejects.toThrow(
-        'DeepLinkManager failed to connect - Invalid scheme'
+        'DeepLinkManager failed to connect - Invalid scheme',
       );
     });
 
@@ -220,7 +226,7 @@ describe('SDKActions', () => {
       expect(handleDeeplink).toHaveBeenCalledWith(
         expect.objectContaining({
           protocolVersion: 3,
-        })
+        }),
       );
     });
 
@@ -245,7 +251,7 @@ describe('SDKActions', () => {
       expect(handleDeeplink).toHaveBeenCalledWith(
         expect.objectContaining({
           protocolVersion: 1,
-        })
+        }),
       );
     });
   });
@@ -263,7 +269,7 @@ describe('SDKActions', () => {
     it('handles message without account', async () => {
       const action = createMMSDKAction();
       const params: DeeplinkParams = {
-        action: ACTIONS.MESSAGE,
+        action: ACTIONS.MMSDK,
         path: '',
         params: createDefaultParams({
           channelId: 'msg-channel',
@@ -278,10 +284,13 @@ describe('SDKActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('SDKActions: Handling MMSDK action', {
-        channelId: 'msg-channel',
-        message: 'present',
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'SDKActions: Handling MMSDK action',
+        {
+          channelId: 'msg-channel',
+          message: 'present',
+        },
+      );
       expect(mockDeeplinkingService.handleMessage).toHaveBeenCalledWith({
         channelId: 'msg-channel',
         message: 'base64message',
@@ -295,7 +304,7 @@ describe('SDKActions', () => {
     it('handles message with account', async () => {
       const action = createMMSDKAction();
       const params: DeeplinkParams = {
-        action: ACTIONS.MESSAGE,
+        action: ACTIONS.MMSDK,
         path: '',
         params: createDefaultParams({
           channelId: 'msg-channel',
@@ -324,7 +333,7 @@ describe('SDKActions', () => {
     it('handles missing required parameters', async () => {
       const action = createMMSDKAction();
       const params: DeeplinkParams = {
-        action: ACTIONS.MESSAGE,
+        action: ACTIONS.MMSDK,
         path: '',
         params: createDefaultParams({
           channelId: 'test',
@@ -337,16 +346,16 @@ describe('SDKActions', () => {
       };
 
       await expect(action.handler(params)).rejects.toThrow(
-        'DeepLinkManager: deeplinkingService failed to handleMessage - Invalid message'
+        'DeepLinkManager: deeplinkingService failed to handleMessage - Invalid message',
       );
     });
 
     it('handles missing deeplinking service', async () => {
-      mockSDKConnect.state.deeplinkingService = null;
-      
+      mockSDKConnect.state.deeplinkingService = undefined;
+
       const action = createMMSDKAction();
       const params: DeeplinkParams = {
-        action: ACTIONS.MESSAGE,
+        action: ACTIONS.MMSDK,
         path: '',
         params: createDefaultParams({
           channelId: 'test',
@@ -361,7 +370,7 @@ describe('SDKActions', () => {
 
       // Should not throw but won't call handler
       await action.handler(params);
-      
+
       expect(mockDeeplinkingService.handleMessage).not.toHaveBeenCalled();
     });
   });
@@ -393,14 +402,18 @@ describe('SDKActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('SDKActions: Handling Android SDK binding');
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'SDKActions: Handling Android SDK binding',
+      );
       expect(mockSDKConnect.bindAndroidSDK).toHaveBeenCalled();
     });
 
     it('throws error if bindAndroidSDK fails', async () => {
       const mockError = new Error('Failed to bind');
-      (mockSDKConnect.bindAndroidSDK as jest.Mock).mockRejectedValueOnce(mockError);
-      
+      (mockSDKConnect.bindAndroidSDK as jest.Mock).mockRejectedValueOnce(
+        mockError,
+      );
+
       const action = createAndroidSDKAction();
       const params: DeeplinkParams = {
         action: ACTIONS.ANDROID_SDK,
@@ -438,9 +451,10 @@ describe('SDKActions', () => {
       } as unknown as ActionRegistry;
 
       registerSDKActions(mockRegistry);
-      
+
       expect(mockRegistry.registerMany).toHaveBeenCalledTimes(1);
-      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock.calls[0][0];
+      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock
+        .calls[0][0];
       expect(registeredActions).toHaveLength(3);
     });
 
@@ -465,7 +479,8 @@ describe('SDKActions', () => {
       registerSDKActions(mockRegistry);
 
       const actions = (mockRegistry.registerMany as jest.Mock).mock.calls[0][0];
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       actions.forEach((action: any) => {
         expect(action.supportedSchemes).toEqual(['metamask://']);
       });

@@ -4,11 +4,10 @@ import {
   registerDAppActions,
 } from './DAppActions';
 import { ActionRegistry, DeeplinkParams } from '../ActionRegistry';
-import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
+import { ACTIONS } from '../../../../constants/deeplinks';
 import handleBrowserUrl from '../../Handlers/handleBrowserUrl';
 import { handlePerpsUrl } from '../../Handlers/handlePerpsUrl';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../../DeeplinkManager';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { DeeplinkUrlParams } from '../../ParseManager/extractURLParams';
 
@@ -18,7 +17,9 @@ jest.mock('../../Handlers/handlePerpsUrl');
 jest.mock('../../../SDKConnect/utils/DevLogger');
 
 // Helper function to create default DeeplinkUrlParams
-const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUrlParams => ({
+const createDefaultParams = (
+  overrides?: Partial<DeeplinkUrlParams>,
+): DeeplinkUrlParams => ({
   uri: '',
   redirect: '',
   channelId: '',
@@ -29,9 +30,11 @@ const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUr
 });
 
 describe('DAppActions', () => {
-  const mockNavigation = { navigate: jest.fn() } as unknown as NavigationProp<ParamListBase>;
+  const mockNavigation = {
+    navigate: jest.fn(),
+  } as unknown as NavigationProp<ParamListBase>;
   const mockBrowserCallBack = jest.fn();
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -60,10 +63,13 @@ describe('DAppActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('DAppActions: Handling dapp action', {
-        path: '/https://uniswap.org',
-        originalUrl: 'metamask://dapp/https://uniswap.org',
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DAppActions: Handling dapp action',
+        {
+          path: '/https://uniswap.org',
+          originalUrl: 'metamask://dapp/https://uniswap.org',
+        },
+      );
       expect(handleBrowserUrl).toHaveBeenCalledWith({
         deeplinkManager: expect.any(Object),
         url: 'metamask://dapp/https://uniswap.org',
@@ -97,7 +103,7 @@ describe('DAppActions', () => {
       const paramsWithCallback = createDefaultParams();
       // @ts-expect-error - browserCallBack is injected at runtime
       paramsWithCallback.browserCallBack = mockBrowserCallBack;
-      
+
       const params: DeeplinkParams = {
         action: ACTIONS.DAPP,
         path: '/https://app.aave.com',
@@ -184,10 +190,13 @@ describe('DAppActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('DAppActions: Handling perps action', {
-        path: '/eth-usd',
-        queryParams: createDefaultParams(),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DAppActions: Handling perps action',
+        {
+          path: '/eth-usd',
+          queryParams: createDefaultParams(),
+        },
+      );
       expect(handlePerpsUrl).toHaveBeenCalledWith({
         perpsPath: '/eth-usd',
       });
@@ -257,7 +266,8 @@ describe('DAppActions', () => {
       registerDAppActions(mockRegistry);
 
       expect(mockRegistry.registerMany).toHaveBeenCalledTimes(1);
-      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock.calls[0][0];
+      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock
+        .calls[0][0];
       expect(registeredActions).toHaveLength(4);
     });
 

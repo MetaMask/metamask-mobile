@@ -28,7 +28,9 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
 }));
 
 // Helper function to create default DeeplinkUrlParams
-const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUrlParams => ({
+const createDefaultParams = (
+  overrides?: Partial<DeeplinkUrlParams>,
+): DeeplinkUrlParams => ({
   uri: '',
   redirect: '',
   channelId: '',
@@ -39,8 +41,10 @@ const createDefaultParams = (overrides?: Partial<DeeplinkUrlParams>): DeeplinkUr
 });
 
 describe('FinancialActions', () => {
-  const mockNavigation = { navigate: jest.fn() } as unknown as NavigationProp<ParamListBase>;
-  
+  const mockNavigation = {
+    navigate: jest.fn(),
+  } as unknown as NavigationProp<ParamListBase>;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -69,10 +73,13 @@ describe('FinancialActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('FinancialActions: Handling deposit action', {
-        path: '/eth',
-        queryParams: createDefaultParams(),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'FinancialActions: Handling deposit action',
+        {
+          path: '/eth',
+          queryParams: createDefaultParams(),
+        },
+      );
       expect(handleDepositCashUrl).toHaveBeenCalledWith({
         navigation: mockNavigation,
         depositPath: '/eth',
@@ -123,10 +130,13 @@ describe('FinancialActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('FinancialActions: Handling swap action', {
-        path: '/eth-to-usdc',
-        queryParams: createDefaultParams(),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'FinancialActions: Handling swap action',
+        {
+          path: '/eth-to-usdc',
+          queryParams: createDefaultParams(),
+        },
+      );
       expect(handleSwapUrl).toHaveBeenCalledWith({
         swapPath: '/eth-to-usdc',
       });
@@ -297,9 +307,12 @@ describe('FinancialActions', () => {
 
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('FinancialActions: Handling home action', {
-        path: '/dashboard'
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'FinancialActions: Handling home action',
+        {
+          path: '/dashboard',
+        },
+      );
       expect(navigateToHomeUrl).toHaveBeenCalledWith({
         homePath: '/dashboard',
       });
@@ -347,9 +360,10 @@ describe('FinancialActions', () => {
       } as unknown as ActionRegistry;
 
       registerFinancialActions(mockRegistry);
-      
+
       expect(mockRegistry.registerMany).toHaveBeenCalledTimes(1);
-      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock.calls[0][0];
+      const registeredActions = (mockRegistry.registerMany as jest.Mock).mock
+        .calls[0][0];
       expect(registeredActions).toHaveLength(3);
     });
   });
