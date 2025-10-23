@@ -28,7 +28,7 @@ describe(
         },
         async () => {
           await loginToApp();
-
+          await device.disableSynchronization();
           // Go to Perps tab from Wallet
           await TabBarComponent.tapTrade();
           await WalletActionsBottomSheet.tapPerpsButton();
