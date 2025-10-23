@@ -21,8 +21,6 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import TestHelpers from '../../../helpers';
-import { Mockttp } from 'mockttp';
-import { priceApiExchangeRatesMock } from './mock-data';
 
 describe(SmokeIdentity('Account syncing - Accounts with activity'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -45,12 +43,11 @@ describe(SmokeIdentity('Account syncing - Accounts with activity'), () => {
           USER_STORAGE_WALLETS_FEATURE_KEY,
         ],
         sharedUserStorageController,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             remoteFeatureMultichainAccountsAccountDetailsV2(true),
           );
-          priceApiExchangeRatesMock(mockServer);
         },
       },
       async ({ mockServer: _mockServer, userStorageMockttpController }) => {

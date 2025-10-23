@@ -12,8 +12,6 @@ import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import { createUserStorageController } from '../utils/mocks.ts';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView.ts';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView.ts';
-import { priceApiExchangeRatesMock } from '../account-syncing/mock-data.ts';
-import { Mockttp } from 'mockttp';
 
 describe(SmokeIdentity('Contacts syncing - Settings'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -37,9 +35,6 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
           USER_STORAGE_FEATURE_NAMES.accounts,
         ],
         sharedUserStorageController,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          priceApiExchangeRatesMock(mockServer);
-        },
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();

@@ -12,8 +12,6 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { priceApiExchangeRatesMock } from '../identity/account-syncing/mock-data';
-import { Mockttp } from 'mockttp';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -131,9 +129,6 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           ])
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          priceApiExchangeRatesMock(mockServer);
-        },
       },
       async () => {
         await loginToApp();
@@ -191,9 +186,6 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           ])
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          priceApiExchangeRatesMock(mockServer);
-        },
       },
       async () => {
         await loginToApp();
@@ -246,9 +238,6 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           .withPopularNetworks()
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          priceApiExchangeRatesMock(mockServer);
-        },
       },
       async () => {
         await loginToApp();

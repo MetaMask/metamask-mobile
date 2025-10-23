@@ -11,7 +11,6 @@ import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { priceApiExchangeRatesMock } from '../identity/account-syncing/mock-data';
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await POLYMARKET_API_DOWN(mockServer);
@@ -19,7 +18,6 @@ const testSpecificMock = async (mockServer: Mockttp) => {
     mockServer,
     remoteFeatureFlagPredictEnabled(true),
   );
-  await priceApiExchangeRatesMock(mockServer);
 };
 
 describe(SmokeTrade('Prediction Markets'), () => {

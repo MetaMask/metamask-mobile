@@ -11,14 +11,12 @@ import Assertions from '../../framework/Assertions';
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { priceApiExchangeRatesMock } from '../identity/account-syncing/mock-data';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     remoteFeatureFlagPredictEnabled(true),
   );
-  await priceApiExchangeRatesMock(mockServer);
 };
 
 describe(SmokeTrade('Predictions'), () => {

@@ -9,7 +9,6 @@ import {
   GET_QUOTE_ETH_BASE_RESPONSE,
   GET_TOP_ASSETS_BASE_RESPONSE,
 } from './constants';
-import { priceApiExchangeRatesMock } from '../../identity/account-syncing/mock-data';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
@@ -61,6 +60,4 @@ export const testSpecificMock: TestSpecificMock = async (
     response: GET_QUOTE_ETH_BASE_RESPONSE,
     responseCode: 200,
   });
-
-  await priceApiExchangeRatesMock(mockServer);
 };

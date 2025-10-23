@@ -22,7 +22,6 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
-import { priceApiExchangeRatesMock } from './mock-data';
 
 describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -56,7 +55,6 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
             mockServer,
             remoteFeatureMultichainAccountsAccountDetailsV2(true),
           );
-          priceApiExchangeRatesMock(mockServer);
         },
       },
       async ({ userStorageMockttpController }) => {
