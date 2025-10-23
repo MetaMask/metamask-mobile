@@ -18,9 +18,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
@@ -80,13 +78,6 @@ const PerpsPositionTransactionView: React.FC = () => {
       params: {
         url: explorerUrl,
       },
-    });
-  };
-
-  const handleSharePnL = () => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PNL_HERO_CARD,
-      params: { transaction },
     });
   };
 
@@ -229,16 +220,6 @@ const PerpsPositionTransactionView: React.FC = () => {
               width={ButtonWidthTypes.Full}
               label={strings('perps.transactions.view_on_explorer')}
               onPress={handleViewOnBlockExplorer}
-            />
-
-            {/* Share P&L button */}
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.pnl_hero_card.share_pnl')}
-              startIconName={IconName.Share}
-              onPress={handleSharePnL}
             />
           </View>
         </View>
