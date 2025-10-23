@@ -5,6 +5,7 @@ import {
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
+  getPredictPositionSelector,
 } from '../../selectors/Predict/Predict.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -158,6 +159,12 @@ class WalletView {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
       1,
+    );
+  }
+  getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
+    return Matchers.getElementByID(
+      getPredictPositionSelector.currentPositionCard,
+      index,
     );
   }
 
@@ -471,9 +478,9 @@ class WalletView {
   }
 
   async tapOnPredictionsPosition(positionName: string): Promise<void> {
-    const elem = Matchers.getElementByText(positionName);
+    const elem = this.getPredictCurrentPositionCardByIndex();
     await Gestures.waitAndTap(elem, {
-      elemDescription: 'Predictions Position',
+      elemDescription: `tapping Predictions Position: ${positionName}`,
     });
   }
   async tapClaimButton(): Promise<void> {

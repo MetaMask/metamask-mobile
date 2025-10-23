@@ -7,11 +7,13 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../helpers/mockHelpers';
 import {
   POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-  POLYMARKET_REDEEMABLE_POSITIONS_RESPONSE,
+  POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE,
+  createPositionsWithWinnings,
 } from './polymarket-positions-response';
 import { POLYMARKET_EVENT_DETAILS_RESPONSE } from './polymarket-event-details-response';
 import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import { POLYMARKET_ACTIVITY_RESPONSE } from './polymarket-activity-response';
+import { POLYMARKET_ORDER_BOOK_RESPONSE } from './polymarket-order-book-response';
 import {
   PROXY_WALLET_ADDRESS,
   USER_WALLET_ADDRESS,
@@ -27,7 +29,6 @@ import { MOCK_RPC_RESPONSES } from './polymarket-rpc-response';
  * This simulates the Polymarket API being down
  */
 export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
-  // Mock specific Polymarket endpoints first (more specific patterns)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /^https:\/\/gamma-api\.polymarket\.com\/events\/pagination/,
@@ -82,49 +83,6 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
       message: 'Service temporarily unavailable',
       statusCode: 500,
     },
-  });
-};
-
-/**
- * Mock for Polymarket API returning successful responses
- * Returns empty arrays for basic functionality
- */
-export const POLYMARKET_API_SUCCESS_MOCKS = async (mockServer: Mockttp) => {
-  // Mock specific Polymarket endpoints first (more specific patterns)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /^https:\/\/gamma-api\.polymarket\.com\/events\/pagination/,
-    responseCode: 200,
-    response: [],
-  });
-
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /^https:\/\/gamma-api\.polymarket\.com\/events\/\d+/,
-    responseCode: 200,
-    response: {},
-  });
-
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /^https:\/\/clob\.polymarket\.com\/prices-history/,
-    responseCode: 200,
-    response: [],
-  });
-
-  // Mock broader patterns last (less specific patterns)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /^https:\/\/gamma-api\.polymarket\.com/,
-    responseCode: 200,
-    response: [],
-  });
-
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /^https:\/\/clob\.polymarket\.com/,
-    responseCode: 200,
-    response: [],
   });
 };
 
@@ -152,7 +110,9 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
  * Mock for Polymarket positions API with test user positions
  * Returns positions data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
-export const POLYMARKET_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
+  mockServer: Mockttp,
+) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -186,17 +146,91 @@ export const POLYMARKET_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket positions API with controllable winning positions
+ * Returns positions data for user with optional winning positions
+ * This mock will trigger the CLAIM button
+ */
+export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
+  mockServer: Mockttp,
+  includeWinnings: boolean = false,
+) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
+            url,
+          ),
+      );
+    })
+    .asPriority(999)
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Use the new function to control whether to include winning positions
+      const positionsData = createPositionsWithWinnings(includeWinnings);
+
+      // Update the mock response with the actual user address
+      const dynamicResponse = positionsData.map((position) => ({
+        ...position,
+        proxyWallet: userAddress,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+};
+
+/**
+ * Mock for Polymarket CLOB order book API
+ * Returns order book data for specific token IDs
+ */
+export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/clob\.polymarket\.com\/book\?token_id=\d+$/.test(url),
+      );
+    })
+    .asPriority(999)
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const tokenIdMatch = url?.match(/token_id=(\d+)/);
+      const tokenId = tokenIdMatch ? tokenIdMatch[1] : '';
+
+      // Use the imported order book response and update the asset_id
+      const orderBookResponse = {
+        ...POLYMARKET_ORDER_BOOK_RESPONSE,
+        asset_id: tokenId,
+      };
+
+      return {
+        statusCode: 200,
+        json: orderBookResponse,
+      };
+    });
+};
+
+/**
  * Mock for Polymarket redeemable positions API
  * Returns redeemable positions data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
-export const POLYMARKET_REDEEMABLE_POSITIONS_MOCKS = async (
+export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
   mockServer: Mockttp,
 ) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      // More flexible pattern - just check if it's a positions endpoint with redeemable=true
       const matches = Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -210,13 +244,11 @@ export const POLYMARKET_REDEEMABLE_POSITIONS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Update the mock response with the actual user address
-      const dynamicResponse = POLYMARKET_REDEEMABLE_POSITIONS_RESPONSE.map(
-        (position) => ({
+      const dynamicResponse =
+        POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE.map((position) => ({
           ...position,
           proxyWallet: userAddress,
-        }),
-      );
+        }));
 
       return {
         statusCode: 200,
@@ -247,7 +279,6 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Update the mock response with the actual user address
       const dynamicResponse = POLYMARKET_ACTIVITY_RESPONSE.map((activity) => ({
         ...activity,
         proxyWallet: userAddress,
@@ -300,8 +331,8 @@ export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
  * Returns both types of positions data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
 export const POLYMARKET_ALL_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
-  await POLYMARKET_POSITIONS_MOCKS(mockServer);
-  await POLYMARKET_REDEEMABLE_POSITIONS_MOCKS(mockServer);
+  await POLYMARKET_CURRENT_POSITIONS_MOCKS(mockServer);
+  await POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS(mockServer);
 };
 
 /**
@@ -323,7 +354,6 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (mockServer: Mockttp) => {
       if (isPolygonRPC || isEthereumRPC || isInfuraRPC) {
         try {
           await request.body.getText();
-          // Return true to intercept this request
           return true;
         } catch (error) {
           return false;
@@ -332,7 +362,7 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (mockServer: Mockttp) => {
 
       return false;
     })
-    .asPriority(999) // High priority to ensure this mock takes precedence
+    .asPriority(999)
     .thenCallback(async (request) => {
       const bodyText = await request.body.getText();
       const body = bodyText ? JSON.parse(bodyText) : undefined;
@@ -360,17 +390,13 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (mockServer: Mockttp) => {
           toAddress?.toLowerCase() ===
           CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()
         ) {
-          // Conditional Tokens contract - return mock approval result
           result = MOCK_RPC_RESPONSES.APPROVAL_RESULT;
         } else {
-          // Unknown contract - return empty result for now
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
         }
       } else if (body?.method === 'eth_blockNumber') {
-        // Return a mock block number
         result = MOCK_RPC_RESPONSES.BLOCK_NUMBER_RESULT;
       } else if (body?.method === 'eth_getBalance') {
-        // Return a mock ETH balance
         result = MOCK_RPC_RESPONSES.ETH_BALANCE_RESULT;
       } else if (body?.method === 'eth_getCode') {
         // Return mock contract code for deployed contracts
@@ -396,16 +422,14 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
- * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, and value)
+ * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, order book, and value)
  * Returns data for proxy wallet: 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
 export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_ALL_POSITIONS_MOCKS(mockServer);
   await POLYMARKET_ACTIVITY_MOCKS(mockServer);
   await POLYMARKET_UPNL_MOCKS(mockServer);
-  await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Re-enabled for predictions testing
+  await POLYMARKET_USDC_BALANCE_MOCKS(mockServer);
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
-
-  // Note: Gamma API mocks removed - feed data should come from real Polymarket API
-  // Only user-specific data (positions, activity, UpNL) should be mocked
+  await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
 };

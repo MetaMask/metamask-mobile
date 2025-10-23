@@ -9,6 +9,37 @@ export const POLYMARKET_CURRENT_POSITIONS_RESPONSE = [
   {
     proxyWallet: PROXY_WALLET_ADDRESS,
     asset:
+      '36588252805891405622192021663682911922795750993518578680902576500086169492917',
+    conditionId:
+      '0xc327d77934fbb448fb89523640d0d1245c3df45b478ba9a9fd2c3d475760604d',
+    size: 10,
+    avgPrice: 0.37,
+    initialValue: 3.7,
+    currentValue: 3.4499999999999997,
+    cashPnl: -0.25000000000000044,
+    percentPnl: -6.7567567567567695,
+    totalBought: 10,
+    realizedPnl: 0,
+    percentRealizedPnl: -6.7567567567567695,
+    curPrice: 0.345,
+    redeemable: false,
+    mergeable: false,
+    title: '76ers vs. Celtics',
+    slug: 'nba-phi-bos-2025-10-22',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/super+cool+basketball+in+red+and+blue+wow.png',
+    eventId: '62537',
+    eventSlug: 'nba-phi-bos-2025-10-22',
+    outcome: '76ers',
+    outcomeIndex: 0,
+    oppositeOutcome: 'Celtics',
+    oppositeAsset:
+      '100817983155645135914427425000052191526937581260586344595125224952921936370920',
+    endDate: '2025-10-22',
+    negativeRisk: false,
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    asset:
       '33945469250963963541781051637999677727672635213493648594066577298999471399137',
     conditionId:
       '0xebddfcf7b4401dade8b4031770a1ab942b01854f3bed453d5df9425cd9f211a9',
@@ -131,70 +162,11 @@ export const POLYMARKET_CURRENT_POSITIONS_RESPONSE = [
     negativeRisk: true,
   },
 ];
-// endpoint: /positions?user&redeemable=true
-export const POLYMARKET_REDEEMABLE_POSITIONS_RESPONSE = [
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    asset:
-      '42939601076825532550105235762150970758026025994237741085435131668957359315522',
-    conditionId:
-      '0xbf97a1420a810787dc6ffa2810f1d1d91977267e542b8685ecd21e622567a46c',
-    size: 10,
-    avgPrice: 0.34,
-    initialValue: 3.4,
-    currentValue: 15,
-    cashPnl: 15,
-    percentPnl: 441.1764705882353,
-    totalBought: 10,
-    realizedPnl: 0,
-    percentRealizedPnl: 441.1764705882353,
-    curPrice: 1,
-    redeemable: true,
-    mergeable: true,
-    title: 'Blue Jays vs. Mariners',
-    slug: 'mlb-tor-sea-2025-10-17',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg',
-    eventId: '60362',
-    eventSlug: 'mlb-tor-sea-2025-10-17',
-    outcome: 'Mariners',
-    outcomeIndex: 1,
-    oppositeOutcome: 'Blue Jays',
-    oppositeAsset:
-      '58716612325563573083695434995001914264547326571961868286450107533347570622844',
-    endDate: '2025-10-24',
-    negativeRisk: false,
-  },
-  {
-    proxyWallet: PROXY_WALLET_ADDRESS,
-    asset:
-      '59150913444791937395008354786292078116254188377353450247628754012368453377076',
-    conditionId:
-      '0xa13312b2cc64532aed2a446b66e5a2d8d8b440b24d7213d33b6dae6a58c33223',
-    size: 5,
-    avgPrice: 0.32,
-    initialValue: 1.6,
-    currentValue: 5,
-    cashPnl: 3.4,
-    percentPnl: 212.5,
-    totalBought: 5,
-    realizedPnl: 0,
-    percentRealizedPnl: 212.5,
-    curPrice: 1,
-    redeemable: true,
-    mergeable: false,
-    title: 'Steelers vs. Bengals',
-    slug: 'nfl-pit-cin-2025-10-16',
-    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/nfl.png',
-    eventId: '58288',
-    eventSlug: 'nfl-pit-cin-2025-10-16',
-    outcome: 'Bengals',
-    outcomeIndex: 1,
-    oppositeOutcome: 'Steelers',
-    oppositeAsset:
-      '43316042420532542168140438864501868551184980388178338105513819372697332591887',
-    endDate: '2025-10-24',
-    negativeRisk: false,
-  },
+/*
+*endpoint: /positions?user&redeemable=true
+This is all your positions in resolved markets
+*/
+export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE = [
   {
     proxyWallet: PROXY_WALLET_ADDRESS,
     asset:
@@ -537,3 +509,82 @@ export const POLYMARKET_REDEEMABLE_POSITIONS_RESPONSE = [
     negativeRisk: false,
   },
 ];
+
+// Separate mock data for winning positions that can be claimed
+export const POLYMARKET_WINNING_POSITIONS_RESPONSE = [
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    asset:
+      '42939601076825532550105235762150970758026025994237741085435131668957359315522',
+    conditionId:
+      '0xbf97a1420a810787dc6ffa2810f1d1d91977267e542b8685ecd21e622567a46c',
+    size: 10,
+    avgPrice: 0.34,
+    initialValue: 3.4,
+    currentValue: 15,
+    cashPnl: 15,
+    percentPnl: 441.1764705882353,
+    totalBought: 10,
+    realizedPnl: 0,
+    percentRealizedPnl: 441.1764705882353,
+    curPrice: 1,
+    redeemable: true,
+    mergeable: true,
+    title: 'Blue Jays vs. Mariners',
+    slug: 'mlb-tor-sea-2025-10-17',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg',
+    eventId: '60362',
+    eventSlug: 'mlb-tor-sea-2025-10-17',
+    outcome: 'Mariners',
+    outcomeIndex: 1,
+    oppositeOutcome: 'Blue Jays',
+    oppositeAsset:
+      '58716612325563573083695434995001914264547326571961868286450107533347570622844',
+    endDate: '2025-10-24',
+    negativeRisk: false,
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    asset:
+      '59150913444791937395008354786292078116254188377353450247628754012368453377076',
+    conditionId:
+      '0xa13312b2cc64532aed2a446b66e5a2d8d8b440b24d7213d33b6dae6a58c33223',
+    size: 5,
+    avgPrice: 0.32,
+    initialValue: 1.6,
+    currentValue: 5,
+    cashPnl: 3.4,
+    percentPnl: 212.5,
+    totalBought: 5,
+    realizedPnl: 0,
+    percentRealizedPnl: 212.5,
+    curPrice: 1,
+    redeemable: true,
+    mergeable: false,
+    title: 'Steelers vs. Bengals',
+    slug: 'nfl-pit-cin-2025-10-16',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/nfl.png',
+    eventId: '58288',
+    eventSlug: 'nfl-pit-cin-2025-10-16',
+    outcome: 'Bengals',
+    outcomeIndex: 1,
+    oppositeOutcome: 'Steelers',
+    oppositeAsset:
+      '43316042420532542168140438864501868551184980388178338105513819372697332591887',
+    endDate: '2025-10-24',
+    negativeRisk: false,
+  },
+];
+
+// Mock function to combine current positions with winning positions. This will trigger the Claimable Positions and activate the claim button
+export const createPositionsWithWinnings = (
+  includeWinnings: boolean = false,
+) => {
+  const basePositions = [...POLYMARKET_CURRENT_POSITIONS_RESPONSE];
+
+  if (includeWinnings) {
+    return [...basePositions, ...POLYMARKET_WINNING_POSITIONS_RESPONSE];
+  }
+
+  return basePositions;
+};

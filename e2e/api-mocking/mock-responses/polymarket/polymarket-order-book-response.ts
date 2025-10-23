@@ -1,0 +1,56 @@
+/**
+ * Mock response data for Polymarket CLOB order book API
+ * Endpoint: /book?token_id=<token_id>
+ */
+
+export const POLYMARKET_ORDER_BOOK_RESPONSE = {
+  market: '0xc327d77934fbb448fb89523640d0d1245c3df45b478ba9a9fd2c3d475760604d',
+  asset_id:
+    '36588252805891405622192021663682911922795750993518578680902576500086169492917',
+  timestamp: '1761177638154',
+  hash: '97f541df6e9baa53e3583f8ebe69d06e86a2198c',
+  bids: [
+    { price: '0.01', size: '21342' },
+    { price: '0.02', size: '155' },
+    { price: '0.03', size: '852' },
+    { price: '0.04', size: '150' },
+    { price: '0.05', size: '200' },
+    { price: '0.06', size: '1483' },
+    { price: '0.1', size: '20' },
+    { price: '0.14', size: '3000' },
+    { price: '0.19', size: '20' },
+    { price: '0.25', size: '40' },
+    { price: '0.27', size: '16509' },
+    { price: '0.28', size: '2025' },
+    { price: '0.29', size: '3500' },
+    { price: '0.3', size: '8583.33' },
+    { price: '0.31', size: '36350' },
+    { price: '0.32', size: '29258.57' },
+    { price: '0.33', size: '2200' },
+    { price: '0.34', size: '200' },
+  ],
+  asks: [
+    { price: '0.99', size: '21517' },
+    { price: '0.98', size: '160' },
+    { price: '0.97', size: '923' },
+    { price: '0.96', size: '150' },
+    { price: '0.95', size: '287' },
+    { price: '0.94', size: '150' },
+    { price: '0.93', size: '150' },
+    { price: '0.92', size: '2250' },
+    { price: '0.9', size: '20' },
+    { price: '0.68', size: '15' },
+    { price: '0.45', size: '153' },
+    { price: '0.43', size: '15192' },
+    { price: '0.41', size: '250' },
+    { price: '0.4', size: '2808' },
+    { price: '0.39', size: '27651' },
+    { price: '0.38', size: '3219.45' },
+    { price: '0.37', size: '200' },
+    { price: '0.36', size: '7793.72' },
+    { price: '0.35', size: '638.42' },
+  ],
+  min_order_size: '5',
+  tick_size: '0.01',
+  neg_risk: false,
+};

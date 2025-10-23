@@ -1,5 +1,4 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../utils/Gestures';
+import { Matchers, Gestures } from '../../framework';
 import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
@@ -30,16 +29,24 @@ class PredictDetailsPage {
   }
 
   async tapPositionsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.positionsTab);
+    await Gestures.waitAndTap(this.positionsTab, {
+      elemDescription: 'Positions tab',
+    });
   }
   async tapAboutTab(): Promise<void> {
-    await Gestures.waitAndTap(this.aboutTab);
+    await Gestures.waitAndTap(this.aboutTab, {
+      elemDescription: 'About tab',
+    });
   }
   async tapOutcomesTab(): Promise<void> {
-    await Gestures.waitAndTap(this.outcomesTab);
+    await Gestures.waitAndTap(this.outcomesTab, {
+      elemDescription: 'Outcomes tab',
+    });
   }
   async tapCashOutButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cashOutButton);
+    await Gestures.waitAndTap(this.cashOutButton, {
+      elemDescription: 'Cash out button',
+    });
   }
 }
 

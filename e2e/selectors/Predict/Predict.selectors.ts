@@ -94,12 +94,11 @@ export const PredictPositionsSelectorsIDs = {
   RESOLVED_MARKETS_HEADER: 'predict-resolved-markets-header',
 } as const;
 
-// Helper functions for position selectors with index
+// Helper functions for position selectors with unique identifiers
 export const getPredictPositionSelector = {
-  currentPositionCard: (outcomeIndex: number) =>
-    `predict-current-position-card-${outcomeIndex}`,
-  resolvedPositionCard: (outcomeIndex: number) =>
-    `predict-resolved-position-card-${outcomeIndex}`,
+  currentPositionCard: 'predict-current-position-card',
+  resolvedPositionCard: (positionId: string) =>
+    `predict-resolved-position-card-${positionId}`,
 };
 
 // ========================================
