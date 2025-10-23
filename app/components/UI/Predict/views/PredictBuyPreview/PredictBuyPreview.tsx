@@ -26,15 +26,13 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictEventProperties,
+  PredictEventType,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
@@ -52,7 +50,6 @@ import { strings } from '../../../../../../locales/i18n';
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -67,10 +64,7 @@ const PredictBuyPreview = () => {
       marketTitle: market?.title,
       marketCategory: market?.categories?.[0],
       entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      transactionType:
-        outcomeToken?.title === 'Yes'
-          ? PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
-          : PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
       liquidity: market?.liquidity,
       volume: market?.volume,
       sharePrice: outcomeToken?.price,
@@ -106,29 +100,14 @@ const PredictBuyPreview = () => {
 
   // Track Predict Action Initiated when screen mounts
   useEffect(() => {
-    const regularProperties = {
-      [PredictEventProperties.TIMESTAMP]: Date.now(),
-      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
-      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
-      [PredictEventProperties.MARKET_CATEGORY]:
-        analyticsProperties.marketCategory,
-      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
-      [PredictEventProperties.TRANSACTION_TYPE]:
-        analyticsProperties.transactionType,
-      [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
-      [PredictEventProperties.SHARE_PRICE]: outcomeToken?.price,
-      [PredictEventProperties.VOLUME]: analyticsProperties.volume,
-    };
+    const controller = Engine.context.PredictController;
 
-    DevLogger.log('📊 [Analytics] PREDICT_ACTION_INITIATED', {
-      regularProperties,
+    controller.trackPredictOrderEvent({
+      eventType: PredictEventType.INITIATED,
+      analyticsProperties,
+      providerId: outcome.providerId,
+      sharePrice: outcomeToken?.price,
     });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PREDICT_ACTION_INITIATED)
-        .addProperties(regularProperties)
-        .build(),
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
