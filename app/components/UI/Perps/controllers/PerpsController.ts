@@ -61,6 +61,7 @@ import type {
   FeeCalculationResult,
   Funding,
   GetAccountStateParams,
+  GetAvailableDexsParams,
   GetFundingParams,
   GetOrderFillsParams,
   GetOrdersParams,
@@ -131,7 +132,7 @@ export type PerpsControllerState = {
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
     [provider: string]: {
-      totalValue: string; // Current total account value (cash + positions) in USD
+      totalBalance: string; // Current total account value (cash + positions) in USD
       unrealizedPnl: string; // Current P&L from open positions in USD
       accountValue1dAgo: string; // Account value 24h ago for daily change calculation in USD
       lastUpdated: number; // Timestamp of last update
@@ -541,10 +542,14 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
+  // Store HIP-3 configuration from client
+  private readonly equityEnabled: boolean;
+  private readonly enabledDexs: string[];
+
   constructor({
     messenger,
     state = {},
-    clientConfig = { fallbackBlockedRegions: [] },
+    clientConfig = {},
   }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
@@ -552,6 +557,10 @@ export class PerpsController extends BaseController<
       messenger,
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
+
+    // Store HIP-3 configuration from client (immutable after construction)
+    this.equityEnabled = clientConfig.equityEnabled ?? false;
+    this.enabledDexs = clientConfig.enabledDexs ?? [];
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
@@ -804,9 +813,23 @@ export class PerpsController extends BaseController<
       );
     }
     this.providers.clear();
+
+    DevLogger.log(
+      'PerpsController: Creating provider with HIP-3 configuration',
+      {
+        equityEnabled: this.equityEnabled,
+        enabledDexs: this.enabledDexs,
+        isTestnet: this.state.isTestnet,
+      },
+    );
+
     this.providers.set(
       'hyperliquid',
-      new HyperLiquidProvider({ isTestnet: this.state.isTestnet }),
+      new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        equityEnabled: this.equityEnabled,
+        enabledDexs: this.enabledDexs,
+      }),
     );
 
     // Future providers can be added here with their own authentication patterns:
@@ -928,9 +951,17 @@ export class PerpsController extends BaseController<
       // Calculate fee discount at execution time (fresh, secure)
       const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
 
+      DevLogger.log('PerpsController: Fee discount calculated', {
+        feeDiscountBips,
+        hasDiscount: feeDiscountBips !== undefined,
+      });
+
       // Set discount context in provider for this order
       if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
         provider.setUserFeeDiscount(feeDiscountBips);
+        DevLogger.log('PerpsController: Fee discount set in provider', {
+          feeDiscountBips,
+        });
       }
 
       // Optimistic update - exclude trackingData to avoid persisting analytics data
@@ -939,13 +970,30 @@ export class PerpsController extends BaseController<
         state.pendingOrders.push(orderWithoutTracking);
       });
 
+      DevLogger.log('PerpsController: Submitting order to provider', {
+        coin: params.coin,
+        orderType: params.orderType,
+        isBuy: params.isBuy,
+        size: params.size,
+        leverage: params.leverage,
+        hasTP: !!params.takeProfitPrice,
+        hasSL: !!params.stopLossPrice,
+      });
+
       let result: OrderResult;
       try {
         result = await provider.placeOrder(params);
+
+        DevLogger.log('PerpsController: Provider response received', {
+          success: result.success,
+          orderId: result.orderId,
+          error: result.error,
+        });
       } finally {
         // Always clear discount context, even on exception
         if (provider.setUserFeeDiscount) {
           provider.setUserFeeDiscount(undefined);
+          DevLogger.log('PerpsController: Fee discount cleared from provider');
         }
       }
 
@@ -2660,7 +2708,7 @@ export class PerpsController extends BaseController<
       // fallback to the current account total value if possible
       const historicalPortfolioToUse: HistoricalPortfolioResult =
         historicalPortfolio ?? {
-          accountValue1dAgo: accountState.totalValue || '0',
+          accountValue1dAgo: accountState.totalBalance || '0',
           timestamp: 0,
         };
 
@@ -2770,8 +2818,13 @@ export class PerpsController extends BaseController<
 
   /**
    * Get available markets with optional filtering
+   * Delegates to provider which handles all multi-DEX logic transparently
+   * @param params - Optional parameters for filtering (symbols, dex)
    */
-  async getMarkets(params?: { symbols?: string[] }): Promise<MarketInfo[]> {
+  async getMarkets(params?: {
+    symbols?: string[];
+    dex?: string;
+  }): Promise<MarketInfo[]> {
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -2783,11 +2836,13 @@ export class PerpsController extends BaseController<
         tags: {
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
+          ...(params?.symbols && { symbolCount: params.symbols.length }),
+          ...(params?.dex !== undefined && { dex: params.dex }),
         },
       });
 
       const provider = this.getActiveProvider();
-      const allMarkets = await provider.getMarkets();
+      const markets = await provider.getMarkets(params);
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -2795,20 +2850,8 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
-      // Filter by symbols if provided
-      if (params?.symbols && params.symbols.length > 0) {
-        const filtered = allMarkets.filter((market) =>
-          params.symbols?.some(
-            (symbol) => market.name.toLowerCase() === symbol.toLowerCase(),
-          ),
-        );
-
-        traceData = { success: true };
-        return filtered;
-      }
-
       traceData = { success: true };
-      return allMarkets;
+      return markets;
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -2837,6 +2880,21 @@ export class PerpsController extends BaseController<
         data: traceData,
       });
     }
+  }
+
+  /**
+   * Get list of available HIP-3 builder-deployed DEXs
+   * @param params - Optional parameters for filtering
+   * @returns Array of DEX names
+   */
+  async getAvailableDexs(params?: GetAvailableDexsParams): Promise<string[]> {
+    const provider = this.getActiveProvider();
+
+    if (!provider.getAvailableDexs) {
+      throw new Error('Provider does not support HIP-3 DEXs');
+    }
+
+    return provider.getAvailableDexs(params);
   }
 
   /**
