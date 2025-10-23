@@ -117,7 +117,7 @@ function determineMakerStatus(params: {
 
   const limitPriceNum = Number.parseFloat(limitPrice);
 
-  if (isNaN(limitPriceNum) || limitPriceNum <= 0) {
+  if (Number.isNaN(limitPriceNum) || limitPriceNum <= 0) {
     return false;
   }
 
@@ -460,7 +460,7 @@ export function usePerpsOrderFees({
           pointsCalculationCache.address === userAddress &&
           now - pointsCalculationCache.timestamp < pointsCalculationCache.ttl &&
           pointsCalculationCache.basePointsPerDollar > 0 &&
-          isFinite(pointsCalculationCache.basePointsPerDollar);
+          Number.isFinite(pointsCalculationCache.basePointsPerDollar);
 
         if (cacheValid && pointsCalculationCache) {
           // Calculate points locally using cached data
@@ -502,7 +502,7 @@ export function usePerpsOrderFees({
           const basePointsPerDollar =
             denominator > 0 ? pointsData.pointsEstimate / denominator : 0;
 
-          if (isFinite(basePointsPerDollar)) {
+          if (Number.isFinite(basePointsPerDollar)) {
             pointsCalculationCache = {
               address: userAddress,
               bonusBips: pointsData.bonusBips,
@@ -711,7 +711,7 @@ export function usePerpsOrderFees({
  * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
  */
 export function formatFeeRate(rate: number | undefined | null): string {
-  if (rate === undefined || rate === null || isNaN(rate)) {
+  if (rate === undefined || rate === null || Number.isNaN(rate)) {
     return 'N/A';
   }
   return `${(rate * 100).toFixed(3)}%`;

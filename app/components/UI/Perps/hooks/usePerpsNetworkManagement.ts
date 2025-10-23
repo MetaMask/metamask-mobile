@@ -43,7 +43,9 @@ export const usePerpsNetworkManagement = () => {
    */
   const ensureArbitrumNetworkExists = useCallback(async () => {
     const arbitrumCaipChainId = getArbitrumChainId();
-    const chainId = toHex(parseInt(arbitrumCaipChainId.split(':')[1], 10));
+    const chainId = toHex(
+      Number.parseInt(arbitrumCaipChainId.split(':')[1], 10),
+    );
 
     // Check if network already exists
     if (networkConfigurations[chainId]) {
