@@ -25,9 +25,17 @@ export interface NavigationItem {
    */
   label: string;
   /**
-   * Icon to display on the left
+   * Optional icon to display on the left
    */
-  iconName: IconName;
+  iconName?: IconName;
+  /**
+   * Optional flag to show/hide the right arrow icon (defaults to true)
+   */
+  showArrow?: boolean;
+  /**
+   * Optional color for the right arrow icon (defaults to IconColor.Alternative)
+   */
+  arrowColor?: IconColor;
   /**
    * Callback function when the item is pressed
    */
@@ -72,23 +80,27 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
           <View key={`${item.label}-${index}`} style={itemStyle}>
             <TouchableOpacity onPress={item.onPress} testID={item.testID}>
               <ListItem style={styles.listItem}>
-                <Icon
-                  name={item.iconName}
-                  size={IconSize.Md}
-                  color={IconColor.Default}
-                />
+                {item.iconName && (
+                  <Icon
+                    name={item.iconName}
+                    size={IconSize.Md}
+                    color={IconColor.Default}
+                  />
+                )}
                 <ListItemColumn widthType={WidthType.Fill}>
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {item.label}
                   </Text>
                 </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Auto}>
-                  <Icon
-                    name={IconName.ArrowRight}
-                    size={IconSize.Md}
-                    color={IconColor.Default}
-                  />
-                </ListItemColumn>
+                {(item.showArrow ?? true) && (
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Icon
+                      name={IconName.ArrowRight}
+                      size={IconSize.Md}
+                      color={item.arrowColor ?? IconColor.Alternative}
+                    />
+                  </ListItemColumn>
+                )}
               </ListItem>
             </TouchableOpacity>
           </View>

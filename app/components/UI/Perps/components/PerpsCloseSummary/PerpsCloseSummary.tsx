@@ -59,6 +59,9 @@ export interface PerpsCloseSummaryProps {
   /** Whether input is focused (for padding adjustment) */
   isInputFocused?: boolean;
 
+  /** Whether to enable tooltips (default: true) */
+  enableTooltips?: boolean;
+
   /** Optional test IDs for tooltips */
   testIDs?: {
     feesTooltip?: string;
@@ -76,7 +79,8 @@ export interface PerpsCloseSummaryProps {
  * - Receive amount
  * - Estimated points (optional)
  *
- * Handles tooltip state internally for clean encapsulation.
+ * Tooltips can be disabled via the `enableTooltips` prop (defaults to true).
+ * Useful when this component is used within a bottom sheet to avoid nested modals.
  */
 const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   totalMargin,
@@ -94,6 +98,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   hasRewardsError = false,
   style,
   isInputFocused = false,
+  enableTooltips = true,
   testIDs,
 }) => {
   const { styles } = useStyles(createStyles, {});
@@ -102,9 +107,11 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
 
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey) => {
-      setSelectedTooltip(contentKey);
+      if (enableTooltips) {
+        setSelectedTooltip(contentKey);
+      }
     },
-    [],
+    [enableTooltips],
   );
 
   const handleTooltipClose = useCallback(() => {
@@ -153,20 +160,26 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         {/* Fees with discount */}
         <View style={styles.summaryRow}>
           <View style={styles.summaryLabel}>
-            <TouchableOpacity
-              onPress={() => handleTooltipPress('closing_fees')}
-              style={styles.labelWithTooltip}
-              testID={testIDs?.feesTooltip}
-            >
+            {enableTooltips ? (
+              <TouchableOpacity
+                onPress={() => handleTooltipPress('closing_fees')}
+                style={styles.labelWithTooltip}
+                testID={testIDs?.feesTooltip}
+              >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                  {strings('perps.close_position.fees')}
+                </Text>
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.Muted}
+                />
+              </TouchableOpacity>
+            ) : (
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.close_position.fees')}
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Muted}
-              />
-            </TouchableOpacity>
+            )}
           </View>
           <View style={styles.summaryValue}>
             <PerpsFeesDisplay
@@ -182,20 +195,26 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         {/* You'll receive */}
         <View style={[styles.summaryRow, styles.summaryTotalRow]}>
           <View style={styles.summaryLabel}>
-            <TouchableOpacity
-              onPress={() => handleTooltipPress('close_position_you_receive')}
-              style={styles.labelWithTooltip}
-              testID={testIDs?.receiveTooltip}
-            >
+            {enableTooltips ? (
+              <TouchableOpacity
+                onPress={() => handleTooltipPress('close_position_you_receive')}
+                style={styles.labelWithTooltip}
+                testID={testIDs?.receiveTooltip}
+              >
+                <Text variant={TextVariant.BodyMD}>
+                  {strings('perps.close_position.you_receive')}
+                </Text>
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.Muted}
+                />
+              </TouchableOpacity>
+            ) : (
               <Text variant={TextVariant.BodyMD}>
                 {strings('perps.close_position.you_receive')}
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Muted}
-              />
-            </TouchableOpacity>
+            )}
           </View>
           <View style={styles.summaryValue}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
@@ -210,20 +229,26 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         {shouldShowRewards && (
           <View style={styles.summaryRow}>
             <View style={styles.summaryLabel}>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('points')}
-                style={styles.labelWithTooltip}
-                testID={testIDs?.pointsTooltip}
-              >
+              {enableTooltips ? (
+                <TouchableOpacity
+                  onPress={() => handleTooltipPress('points')}
+                  style={styles.labelWithTooltip}
+                  testID={testIDs?.pointsTooltip}
+                >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {strings('perps.estimated_points')}
+                  </Text>
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.Muted}
+                  />
+                </TouchableOpacity>
+              ) : (
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.estimated_points')}
                 </Text>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.Muted}
-                />
-              </TouchableOpacity>
+              )}
             </View>
             <View style={styles.summaryValue}>
               <RewardsAnimations
@@ -244,7 +269,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       </View>
 
       {/* Tooltip Bottom Sheets */}
-      {selectedTooltip === 'closing_fees' && (
+      {enableTooltips && selectedTooltip === 'closing_fees' && (
         <PerpsBottomSheetTooltip
           isVisible
           onClose={handleTooltipClose}
@@ -258,7 +283,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         />
       )}
 
-      {selectedTooltip === 'close_position_you_receive' && (
+      {enableTooltips && selectedTooltip === 'close_position_you_receive' && (
         <PerpsBottomSheetTooltip
           isVisible
           onClose={handleTooltipClose}
@@ -266,7 +291,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         />
       )}
 
-      {selectedTooltip === 'points' && (
+      {enableTooltips && selectedTooltip === 'points' && (
         <PerpsBottomSheetTooltip
           isVisible
           onClose={handleTooltipClose}

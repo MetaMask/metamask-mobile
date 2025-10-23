@@ -282,6 +282,7 @@ const PerpsCloseAllPositionsView: React.FC = () => {
             bonusBips={calculations.avgBonusBips}
             isLoadingRewards={calculations.isLoading}
             hasRewardsError={calculations.hasError}
+            enableTooltips={false}
           />
         )}
       </View>

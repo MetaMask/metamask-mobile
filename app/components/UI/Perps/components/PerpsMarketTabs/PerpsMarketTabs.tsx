@@ -5,6 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -26,6 +27,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
+  PerpsTutorialSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -35,6 +37,10 @@ import { Order } from '../../controllers/types';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { OrderDirection } from '../../types/perps-types';
+import PerpsNavigationCard, {
+  type NavigationItem,
+} from '../PerpsNavigationCard/PerpsNavigationCard';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   symbol,
@@ -53,6 +59,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
@@ -70,6 +77,23 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+
+  // Define navigation items for the panel
+  const navigationItems: NavigationItem[] = useMemo(
+    () => [
+      {
+        label: strings('perps.tutorial.card.title'),
+        onPress: () => navigation.navigate(Routes.PERPS.TUTORIAL),
+        testID: PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
+      },
+      {
+        label: strings('perps.market.go_to_activity'),
+        onPress: () => navigation.navigate(Routes.TRANSACTIONS_VIEW),
+        testID: PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
+      },
+    ],
+    [navigation],
+  );
 
   const sortedUnfilledOrders = useMemo(() => {
     // Pre-compute current price to avoid repeated calculations
@@ -494,6 +518,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     </View>
   );
 
+  const renderNavigationPanel = () => (
+    <View style={styles.navigationPanel}>
+      <PerpsNavigationCard items={navigationItems} />
+    </View>
+  );
+
   const renderTabContent = () => {
     switch (activeTabId) {
       case 'position':
@@ -511,6 +541,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               onTooltipPress={handleTooltipPress}
               onTpslCountPress={handleTabChange}
             />
+            {renderNavigationPanel()}
           </View>
         );
 
@@ -527,6 +558,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               nextFundingTime={nextFundingTime}
               fundingIntervalHours={fundingIntervalHours}
             />
+            {renderNavigationPanel()}
           </View>
         );
 
@@ -591,6 +623,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
                 })}
               </>
             )}
+            {renderNavigationPanel()}
           </View>
         );
 

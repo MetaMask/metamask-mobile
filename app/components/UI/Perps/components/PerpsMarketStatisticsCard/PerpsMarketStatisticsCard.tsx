@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -14,19 +13,11 @@ import Text, {
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
-import {
-  PerpsMarketDetailsViewSelectorsIDs,
-  PerpsMarketTabsSelectorsIDs,
-  PerpsTutorialSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatFundingRate } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
-import PerpsNavigationCard, {
-  type NavigationItem,
-} from '../PerpsNavigationCard/PerpsNavigationCard';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -36,26 +27,6 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
-
-  // Define navigation items for the card
-  const navigationItems: NavigationItem[] = useMemo(
-    () => [
-      {
-        label: strings('perps.tutorial.card.title'),
-        iconName: IconName.Book,
-        onPress: () => navigate(Routes.PERPS.TUTORIAL),
-        testID: PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
-      },
-      {
-        label: strings('perps.market.go_to_activity'),
-        iconName: IconName.Activity,
-        onPress: () => navigate(Routes.TRANSACTIONS_VIEW),
-        testID: PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
-      },
-    ],
-    [navigate],
-  );
 
   // Subscribe to live price updates including funding rate
   const livePrices = usePerpsLivePrices({
@@ -208,7 +179,6 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           </View>
         </View>
       </View>
-      <PerpsNavigationCard items={navigationItems} />
     </View>
   );
 };

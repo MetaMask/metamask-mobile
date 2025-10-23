@@ -28,6 +28,10 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     tabContent: {
       paddingTop: 16,
     },
+    // Navigation panel styles
+    navigationPanel: {
+      paddingTop: 16,
+    },
     // ... existing styles ...
     tabContainer: {
       paddingTop: 18,
