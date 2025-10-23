@@ -13,6 +13,10 @@ import {
   getFeatureFlagAppEnvironment,
   isRemoteFeatureFlagOverrideActivated,
 } from './remote-feature-flag-controller';
+import {
+  showErrorToast,
+  showSuccessToast,
+} from '../../../util/toast/GlobalToast';
 
 /**
  * Initialize the remote feature flag controller.
@@ -44,6 +48,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
   });
 
   if (disabled) {
+    showSuccessToast('feature flags disabled');
     Logger.log('Feature flag controller disabled.');
   } else if (isRemoteFeatureFlagOverrideActivated) {
     Logger.log('Remote feature flags override activated.');
@@ -52,8 +57,13 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
       .updateRemoteFeatureFlags()
       .then(() => {
         Logger.log('Feature flags updated');
+        showSuccessToast('feature flags updated');
       })
-      .catch((error) => Logger.log(error));
+      .catch((error) => {
+        Logger.log('Feature flag update failed:', error);
+        // Show user-friendly toast notification for feature flag failures
+        showErrorToast('feature flags update failed', error.message);
+      });
   }
 
   return {

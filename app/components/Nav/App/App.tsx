@@ -156,6 +156,10 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import {
+  setGlobalToastRef,
+  clearGlobalToastRef,
+} from '../../../util/toast/GlobalToast';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1218,6 +1222,17 @@ const App: React.FC = () => {
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Initialize global toast utility with toastRef
+  useEffect(() => {
+    if (toastRef) {
+      setGlobalToastRef(toastRef);
+    }
+
+    return () => {
+      clearGlobalToastRef();
+    };
+  }, [toastRef]);
 
   return (
     <>
