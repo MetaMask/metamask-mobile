@@ -90,8 +90,9 @@ const AddAsset = () => {
     }
   }, [chainId, selectedNetwork]);
 
-  const isTokenDetectionSupported =
-    isTokenDetectionSupportedForNetwork(chainId);
+  const isTokenDetectionSupported = isTokenDetectionSupportedForNetwork(
+    selectedNetwork || chainId,
+  );
 
   const networkName = useSelector(selectEvmNetworkName);
 
@@ -248,7 +249,9 @@ const AddAsset = () => {
                   type={providerConfig.type}
                   navigation={navigation}
                   tabLabel={strings('add_asset.custom_token')}
-                  isTokenDetectionSupported={isTokenDetectionSupported}
+                  isTokenDetectionSupported={
+                    isTokenDetectionSupported && hasTokensForSelectedNetwork
+                  }
                   selectedNetwork={
                     selectedNetwork
                       ? networkConfigurations?.[selectedNetwork as Hex]?.name
