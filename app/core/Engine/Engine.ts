@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
+///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   AppState,
@@ -58,7 +61,13 @@ import {
 } from './controllers/core-backend';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
-import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAssetType,
+  Hex,
+  Json,
+  KnownCaipNamespace,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import {
@@ -336,6 +345,9 @@ export class Engine {
         RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+        SamplePetnamesController: samplePetnamesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
@@ -520,6 +532,9 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController: controllersByName.SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -609,6 +624,32 @@ export class Engine {
             'ApprovalController:rejectRequest',
             approval.id,
             new Error('Snap was terminated.'),
+          );
+        }
+      },
+    );
+
+    // Subscribe to destinationTransactionCompleted event from BridgeStatusController and refresh assets.
+    this.controllerMessenger.subscribe(
+      'BridgeStatusController:destinationTransactionCompleted',
+      (caipAsset: CaipAssetType) => {
+        try {
+          const { chain } = parseCaipAssetType(caipAsset);
+
+          const { namespace: caipNamespace, reference } = chain;
+          if (caipNamespace === 'eip155') {
+            const hexChainId = toHex(reference);
+            this.context.TokenDetectionController.detectTokens({
+              chainIds: [hexChainId],
+            });
+            this.context.TokenBalancesController.updateBalances({
+              chainIds: [hexChainId],
+            });
+          }
+        } catch (error) {
+          console.error(
+            'Error handling BridgeStatusController:destinationTransactionCompleted event:',
+            error,
           );
         }
       },
@@ -1211,121 +1252,127 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
+      AccountsController,
       AccountTrackerController,
+      AccountTreeController,
       AddressBookController,
       AppMetadataController,
-      SnapInterfaceController,
-      NftController,
-      TokenListController,
-      CurrencyRateController,
-      KeyringController,
-      NetworkController,
-      PreferencesController,
-      PhishingController,
-      RemoteFeatureFlagController,
-      PPOMController,
-      TokenBalancesController,
-      TokenRatesController,
-      TokenSearchDiscoveryController,
-      TransactionController,
-      SmartTransactionsController,
-      SwapsController,
-      GasFeeController,
-      TokensController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      SnapController,
-      CronjobController,
-      SubjectMetadataController,
-      AuthenticationController,
-      UserStorageController,
-      NotificationServicesController,
-      NotificationServicesPushController,
-      ///: END:ONLY_INCLUDE_IF
-      PermissionController,
-      SelectedNetworkController,
       ApprovalController,
-      LoggingController,
-      AccountsController,
-      AccountTreeController,
-      SignatureController,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      MultichainBalancesController,
-      RatesController,
-      MultichainAssetsController,
-      MultichainAssetsRatesController,
-      MultichainTransactionsController,
-      ///: END:ONLY_INCLUDE_IF
-      TokenSearchDiscoveryDataController,
-      MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
-      EarnController,
-      PerpsController,
-      PredictController,
+      CurrencyRateController,
       DeFiPositionsController,
-      SeedlessOnboardingController,
-      NetworkEnablementController,
-      RewardsController,
       DelegationController,
+      EarnController,
+      GasFeeController,
+      KeyringController,
+      LoggingController,
+      MultichainNetworkController,
+      NetworkController,
+      NetworkEnablementController,
+      NftController,
+      PermissionController,
+      PerpsController,
+      PhishingController,
+      PPOMController,
+      PredictController,
+      PreferencesController,
+      RemoteFeatureFlagController,
+      RewardsController,
+      SeedlessOnboardingController,
+      SelectedNetworkController,
+      SignatureController,
+      SmartTransactionsController,
+      SnapInterfaceController,
+      SwapsController,
+      TokenBalancesController,
+      TokenListController,
+      TokenRatesController,
+      TokensController,
+      TokenSearchDiscoveryController,
+      TokenSearchDiscoveryDataController,
+      TransactionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      AuthenticationController,
+      CronjobController,
+      NotificationServicesController,
+      NotificationServicesPushController,
+      SnapController,
+      SubjectMetadataController,
+      UserStorageController,
+      ///: END:ONLY_INCLUDE_IF
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      MultichainAssetsController,
+      MultichainAssetsRatesController,
+      MultichainBalancesController,
+      MultichainTransactionsController,
+      RatesController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
+      AccountsController,
       AccountTrackerController,
+      AccountTreeController,
       AddressBookController,
       AppMetadataController,
-      SnapInterfaceController,
-      NftController,
-      TokenListController,
-      CurrencyRateController,
-      KeyringController,
-      NetworkController,
-      PhishingController,
-      RemoteFeatureFlagController,
-      PPOMController,
-      PreferencesController,
-      TokenBalancesController,
-      TokenRatesController,
-      TokenSearchDiscoveryController,
-      TokensController,
-      TransactionController,
-      SmartTransactionsController,
-      SwapsController,
-      GasFeeController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      SnapController,
-      CronjobController,
-      SubjectMetadataController,
-      AuthenticationController,
-      UserStorageController,
-      NotificationServicesController,
-      NotificationServicesPushController,
-      ///: END:ONLY_INCLUDE_IF
-      PermissionController,
-      SelectedNetworkController,
       ApprovalController,
-      LoggingController,
-      AccountsController,
-      AccountTreeController,
-      SignatureController,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      MultichainBalancesController,
-      RatesController,
-      MultichainAssetsController,
-      MultichainAssetsRatesController,
-      MultichainTransactionsController,
-      ///: END:ONLY_INCLUDE_IF
-      TokenSearchDiscoveryDataController,
-      MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
-      EarnController,
-      PerpsController,
-      PredictController,
+      CurrencyRateController,
       DeFiPositionsController,
-      SeedlessOnboardingController,
-      NetworkEnablementController,
-      RewardsController,
       DelegationController,
+      EarnController,
+      GasFeeController,
+      KeyringController,
+      LoggingController,
+      MultichainNetworkController,
+      NetworkController,
+      NetworkEnablementController,
+      NftController,
+      PermissionController,
+      PerpsController,
+      PhishingController,
+      PPOMController,
+      PredictController,
+      PreferencesController,
+      RemoteFeatureFlagController,
+      RewardsController,
+      SeedlessOnboardingController,
+      SelectedNetworkController,
+      SignatureController,
+      SmartTransactionsController,
+      SnapInterfaceController,
+      SwapsController,
+      TokenBalancesController,
+      TokenListController,
+      TokenRatesController,
+      TokensController,
+      TokenSearchDiscoveryController,
+      TokenSearchDiscoveryDataController,
+      TransactionController,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      AuthenticationController,
+      CronjobController,
+      NotificationServicesController,
+      NotificationServicesPushController,
+      SnapController,
+      SubjectMetadataController,
+      UserStorageController,
+      ///: END:ONLY_INCLUDE_IF
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      MultichainAssetsController,
+      MultichainAssetsRatesController,
+      MultichainBalancesController,
+      MultichainTransactionsController,
+      RatesController,
+      ///: END:ONLY_INCLUDE_IF
     };
   },
 

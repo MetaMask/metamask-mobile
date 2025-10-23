@@ -143,6 +143,146 @@ describe('useLatestBalance', () => {
     expect(result.current).toBeUndefined();
   });
 
+  it('ignores formatted display string like "< 0.00001" and fetches real balance', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '< 0.00001',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance atomicBalance is undefined due to parse error
+    expect(result.current?.displayBalance).toBe('< 0.00001');
+    expect(result.current?.atomicBalance).toBeUndefined();
+
+    // Assert - Real balance is fetched from blockchain
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
+  it('ignores balance with thousands separators and fetches real balance', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '1,234.56',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance atomicBalance is undefined due to parse error
+    expect(result.current?.displayBalance).toBe('1,234.56');
+    expect(result.current?.atomicBalance).toBeUndefined();
+
+    // Assert - Real balance is fetched from blockchain
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
+  it('should parse cache balance', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '1234.56',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance atomicBalance is undefined due to parse error
+    expect(result.current?.displayBalance).toBe('1234.56');
+    expect(result.current?.atomicBalance).not.toBeUndefined();
+  });
+
+  it('returns cached balance with undefined atomicBalance when parseUnits fails', async () => {
+    // Arrange & Act
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: '0x1234567890123456789012345678901234567890',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+          balance: 'invalid balance string',
+        }),
+      { state: initialState },
+    );
+
+    // Assert - Cached balance has undefined atomicBalance due to parse error
+    expect(result.current?.displayBalance).toBe('invalid balance string');
+    expect(result.current?.atomicBalance).toBeUndefined();
+
+    // Assert - Real balance is fetched from blockchain
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000'),
+      });
+    });
+  });
+
+  it('returns undefined atomicBalance when token balance is not provided', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: undefined,
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
+  it('handles empty string balance gracefully', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '',
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000000000000000'),
+      });
+    });
+  });
+
   it('should return cached balance when latest balance is not yet fetched', async () => {
     const { result } = renderHookWithProvider(
       () =>
