@@ -470,6 +470,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -683,6 +684,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -751,6 +753,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -819,6 +822,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",

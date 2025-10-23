@@ -1,12 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ButtonBase handles custom label color 1`] = `
-<TempTouchableOpacity
+exports[`ButtonBase should render correctly 1`] = `
+<TouchableOpacity
   accessibilityRole="button"
   accessible={true}
   activeOpacity={1}
   onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -21,6 +20,16 @@ exports[`ButtonBase handles custom label color 1`] = `
     }
   }
 >
+  <Icon
+    color="Default"
+    name="Bank"
+    size="16"
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  />
   <Text
     accessibilityRole="none"
     style={
@@ -32,192 +41,15 @@ exports[`ButtonBase handles custom label color 1`] = `
   >
     Click me!
   </Text>
-</TempTouchableOpacity>
+</TouchableOpacity>
 `;
 
-exports[`ButtonBase handles custom label text variant 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sHeadingSM"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase handles different sizes: ButtonBase with size 32 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 32,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase handles different sizes: ButtonBase with size 40 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase handles different sizes: ButtonBase with size 48 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 48,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase handles different widths 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-      "width": 200,
-    }
-  }
->
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase renders when disabled 1`] = `
-<TempTouchableOpacity
+exports[`ButtonBase should render correctly when disabled 1`] = `
+<TouchableOpacity
   accessibilityRole="button"
   accessible={true}
   activeOpacity={1}
   disabled={true}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
   style={
     {
       "alignItems": "center",
@@ -233,79 +65,9 @@ exports[`ButtonBase renders when disabled 1`] = `
     }
   }
 >
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase renders with basic props 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase renders with both start and end icons 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
   <Icon
     color="Default"
-    name="Add"
+    name="Bank"
     size="16"
     style={
       {
@@ -324,130 +86,5 @@ exports[`ButtonBase renders with both start and end icons 1`] = `
   >
     Click me!
   </Text>
-  <Icon
-    color="Default"
-    name="ArrowRight"
-    size="16"
-    style={
-      {
-        "marginLeft": 8,
-      }
-    }
-  />
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase renders with custom label component 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <CustomLabel />
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase renders with end icon 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-  <Icon
-    color="Default"
-    name="Add"
-    size="16"
-    style={
-      {
-        "marginLeft": 8,
-      }
-    }
-  />
-</TempTouchableOpacity>
-`;
-
-exports[`ButtonBase renders with start icon 1`] = `
-<TempTouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
-  activeOpacity={1}
-  onPress={[Function]}
-  shouldEnableAndroidPressIn={false}
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
-      "borderRadius": 12,
-      "flexDirection": "row",
-      "height": 40,
-      "justifyContent": "center",
-      "overflow": "hidden",
-      "paddingHorizontal": 16,
-    }
-  }
->
-  <Icon
-    color="Default"
-    name="Add"
-    size="16"
-    style={
-      {
-        "marginRight": 8,
-      }
-    }
-  />
-  <Text
-    accessibilityRole="none"
-    style={
-      {
-        "color": "#121314",
-      }
-    }
-    variant="sBodyMDMedium"
-  >
-    Click me!
-  </Text>
-</TempTouchableOpacity>
+</TouchableOpacity>
 `;

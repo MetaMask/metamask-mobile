@@ -9,7 +9,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
+import { TouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -25,7 +25,7 @@ const PerpsTutorialCard = () => {
   };
 
   return (
-    <TempTouchableOpacity
+    <TouchableOpacity
       style={styles.container}
       onPress={handlePress}
       testID={PerpsTutorialSelectorsIDs.TUTORIAL_CARD}
@@ -39,7 +39,7 @@ const PerpsTutorialCard = () => {
         size={IconSize.Md}
         color={IconColor.IconDefault}
       />
-    </TempTouchableOpacity>
+    </TouchableOpacity>
   );
 };
 
