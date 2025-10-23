@@ -101,5 +101,19 @@ export default defineConfig({
         expectTimeout: 30 * 1000,
       },
     },
+    {
+      name: 'mm-connect',
+      testMatch: '**/tests/mm-connect/**/*.spec.js',
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        buildPath: 'bs://a0ea40650b0a1108e32b27ec93ac73af3b393855',
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
+      },
+    },
   ],
 });
