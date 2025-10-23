@@ -7,7 +7,7 @@ exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by def
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -315,7 +315,7 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -623,7 +623,7 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={

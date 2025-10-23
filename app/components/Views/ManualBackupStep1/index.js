@@ -110,10 +110,25 @@ const ManualBackupStep1 = ({
   );
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+    // Show back button for settings backup and reminder
+    if (settingsBackup || backupFlow) {
+      navigation.setOptions(
+        getOnboardingNavbarOptions(
+          route,
+          {
+            headerLeft,
+          },
+          colors,
+          false, // showLogo = false to hide title
+        ),
+      );
+    } else {
+      // Hide header for onboarding flow
+      navigation.setOptions({
+        headerShown: false,
+      });
+    }
+  }, [navigation, settingsBackup, backupFlow, colors, route, headerLeft]);
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
@@ -406,7 +421,14 @@ const ManualBackupStep1 = ({
   );
 
   return ready ? (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.mainWrapper}>
+    <SafeAreaView
+      edges={
+        settingsBackup || backupFlow
+          ? { bottom: 'additive' }
+          : ['top', 'bottom']
+      }
+      style={styles.mainWrapper}
+    >
       <View style={[styles.container]}>
         {view === SEED_PHRASE
           ? renderSeedphraseView()

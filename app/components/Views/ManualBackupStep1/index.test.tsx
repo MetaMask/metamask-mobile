@@ -146,7 +146,7 @@ describe('ManualBackupStep1', () => {
     },
   };
 
-  const setupTest = () => {
+  const setupTest = (routeParams = {}) => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
     const mockSetOptions = jest.fn();
@@ -163,10 +163,17 @@ describe('ManualBackupStep1', () => {
       isFocused: jest.fn(),
     });
 
+    const testRoute = {
+      params: {
+        ...mockRoute.params,
+        ...routeParams,
+      },
+    };
+
     const wrapper = renderWithProvider(
       <Provider store={store}>
         <ManualBackupStep1
-          route={mockRoute}
+          route={testRoute}
           navigation={{
             navigate: mockNavigate,
             goBack: mockGoBack,
@@ -415,14 +422,43 @@ describe('ManualBackupStep1', () => {
     ).toBeTruthy();
   });
 
-  it('hides header for all flows', () => {
-    const { mockSetOptions } = setupTest();
+  describe('Header visibility based on flow type', () => {
+    it('hides header for onboarding flow', () => {
+      const { mockSetOptions } = setupTest({
+        backupFlow: false,
+        settingsBackup: false,
+      });
 
-    expect(mockSetOptions).toHaveBeenCalled();
-    const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      expect(setOptionsCall.headerShown).toBe(false);
+    });
 
-    // Header is hidden for all flows
-    expect(setOptionsCall.headerShown).toBe(false);
+    it('shows header with back button for backup flow', () => {
+      const { mockSetOptions } = setupTest({
+        backupFlow: true,
+        settingsBackup: false,
+      });
+
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      expect(setOptionsCall.headerShown).toBeUndefined();
+      expect(setOptionsCall.headerLeft).toBeDefined();
+      expect(setOptionsCall.headerTitle).toBeNull();
+    });
+
+    it('shows header with back button for settings backup flow', () => {
+      const { mockSetOptions } = setupTest({
+        backupFlow: false,
+        settingsBackup: true,
+      });
+
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      expect(setOptionsCall.headerShown).toBeUndefined();
+      expect(setOptionsCall.headerLeft).toBeDefined();
+      expect(setOptionsCall.headerTitle).toBeNull();
+    });
   });
 
   describe('Theme appearance', () => {
