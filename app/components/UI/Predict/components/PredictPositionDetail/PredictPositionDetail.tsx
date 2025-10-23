@@ -50,10 +50,12 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   return (
     <Box twClassName="w-full pt-2 pb-4 px-4 mb-4 gap-3 bg-background-muted rounded-md">
       <Box twClassName="flex-row items-start gap-4">
-        <Image
-          source={{ uri: icon }}
-          style={tw.style('w-12 h-12 rounded-md self-center')}
-        />
+        {icon && (
+          <Image
+            source={{ uri: icon }}
+            style={tw.style('w-12 h-12 rounded-md self-center')}
+          />
+        )}
         <Box twClassName="gap-1">
           <Text
             variant={TextVariant.BodyMD}
