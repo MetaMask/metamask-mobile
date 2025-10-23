@@ -554,6 +554,20 @@ export class PolymarketProvider implements PredictProvider {
         },
         error,
       } as OrderResult;
+    } catch (error) {
+      // Catch all errors and return them in consistent format
+      // instead of throwing for better error handling
+      DevLogger.log('PolymarketProvider: Place order failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        side,
+        outcomeTokenId,
+      });
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to place order',
+      } as OrderResult;
     } finally {
       if (side === Side.BUY) {
         this.#buyOrderInProgressByAddress.set(signer.address, false);

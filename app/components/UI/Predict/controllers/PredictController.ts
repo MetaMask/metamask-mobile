@@ -939,6 +939,10 @@ export class PredictController extends BaseController<
       return result as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
 
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
@@ -947,7 +951,22 @@ export class PredictController extends BaseController<
         providerId,
         sharePrice,
         completionDuration,
-        failureReason: error instanceof Error ? error.message : 'Unknown error',
+        failureReason: errorMessage,
+      });
+
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Place order failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+        params,
       });
 
       // Log to Sentry with order context (excluding sensitive data like amounts)
@@ -965,10 +984,7 @@ export class PredictController extends BaseController<
 
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        error: errorMessage,
       };
     }
   }

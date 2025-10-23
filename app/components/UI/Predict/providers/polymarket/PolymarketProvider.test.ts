@@ -12,7 +12,19 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
+  const mockLogger = {
+    log: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    DevLogger: mockLogger,
+    default: mockLogger,
+  };
+});
+
 import Engine from '../../../../../core/Engine';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   PredictPositionStatus,
   PredictPriceHistoryInterval,
@@ -757,6 +769,10 @@ describe('PolymarketProvider', () => {
   }
 
   describe('placeOrder', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('successfully places a buy order and returns correct result', async () => {
       // Arrange
       const { provider, mockSigner } = setupPlaceOrderTest();
@@ -820,6 +836,51 @@ describe('PolymarketProvider', () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.error).toBe('Submission failed');
+    });
+
+    it('catches exceptions and returns error result instead of throwing', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      mockSignTypedMessage.mockRejectedValue(new Error('Signature rejected'));
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Signature rejected');
+    });
+
+    it('logs error details when exception occurs', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const mockError = new Error('Network error');
+      mockSignTypedMessage.mockRejectedValue(mockError);
+      const preview = createMockOrderPreview({ side: Side.SELL });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'PolymarketProvider: Place order failed',
+        expect.objectContaining({
+          error: 'Network error',
+          side: Side.SELL,
+          outcomeTokenId: preview.outcomeTokenId,
+        }),
+      );
     });
 
     it('calls all required utility functions with correct parameters', async () => {
