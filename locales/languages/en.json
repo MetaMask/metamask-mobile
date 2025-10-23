@@ -918,6 +918,8 @@
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
     "deposit_in_progress": "Deposit in progress",
+    "withdraw_in_progress": "Withdraw in progress",
+    "multiple_transactions_in_progress": "Transactions in progress",
     "your_positions": "Your positions",
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
@@ -1392,7 +1394,14 @@
       "add_funds": "Add funds",
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
-      "orders": "Orders"
+      "orders": "Orders",
+      "badge": {
+        "experimental": "EXPERIMENTAL",
+        "equity": "STOCK",
+        "commodity": "COMMODITY",
+        "crypto": "CRYPTO",
+        "forex": "FOREX"
+      }
     },
     "buttons": {
       "get_account_balance": "Get Account Balance",
@@ -1521,6 +1530,9 @@
         "trades": "Trades",
         "orders": "Orders",
         "funding": "Funding",
+        "withdraw": "Withdraw",
+        "deposit": "Deposit",
+        "deposits": "Deposits",
         "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
       },
       "not_found": "Transaction not found",
@@ -1626,6 +1638,11 @@
       "explore": "Browse markets",
       "new_prediction": "New prediction",
       "resolved_markets": "Resolved markets"
+    },
+    "tabs": {
+      "about": "About",
+      "positions": "Positions",
+      "outcomes": "Outcomes"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
@@ -2794,6 +2811,14 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
+    "tron": {
+      "daily_resource": "Daily resource",
+      "bandwidth": "Bandwidth",
+      "energy": "Energy",
+      "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
+      "sufficient_to_cover_trx": "Sufficient to cover ~{{amount}} TRX transfers",
+      "sufficient_to_cover_usdt": "Sufficient to cover ~{{amount}} USDT"
+    },
     "disabled_button": {
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
