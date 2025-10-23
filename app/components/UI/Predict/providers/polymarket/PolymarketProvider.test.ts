@@ -34,7 +34,6 @@ import {
   parsePolymarketPositions,
   previewOrder,
   priceValid,
-  previewOrder,
   submitClobOrder,
 } from './utils';
 import { OrderPreview, PlaceOrderParams } from '../types';
@@ -133,7 +132,6 @@ const mockParsePolymarketPositions = parsePolymarketPositions as jest.Mock;
 const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
-const mockPreviewOrder = previewOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
 const mockComputeProxyAddress = computeProxyAddress as jest.Mock;
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
