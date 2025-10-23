@@ -25,4 +25,8 @@ export interface TabProps extends PressableProps {
    * Callback when tab layout changes
    */
   onLayout?: (event: LayoutChangeEvent) => void;
+  /**
+   * Tailwind CSS classes to apply to the tab
+   */
+  twClassName?: string;
 }

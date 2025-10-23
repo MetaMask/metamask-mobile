@@ -26,6 +26,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   onTabPress,
   testID,
   twClassName,
+  tabsContainerClassName = 'gap-6',
+  tabClassName,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -260,7 +262,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="relative gap-6"
+            twClassName={`relative ${tabsContainerClassName}`}
           >
             {tabs.map((tab, index) => (
               <Tab
@@ -271,6 +273,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 onPress={() => handleTabPress(index)}
                 onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
                 testID={`${testID}-tab-${index}`}
+                twClassName={tabClassName}
               />
             ))}
 
@@ -289,7 +292,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="relative gap-6"
+          twClassName={`relative ${tabsContainerClassName}`}
         >
           {tabs.map((tab, index) => (
             <Tab
@@ -300,6 +303,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
               onPress={() => handleTabPress(index)}
               onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
               testID={`${testID}-tab-${index}`}
+              twClassName={tabClassName}
             />
           ))}
 
