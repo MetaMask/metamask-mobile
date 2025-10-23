@@ -61,12 +61,16 @@ const mockRoute = {
   },
 };
 
-jest.mock('@react-navigation/native', () => ({
-  useRoute: () => mockRoute,
-  useNavigation: () => ({
-    goBack: mockGoBack,
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useRoute: () => mockRoute,
+    useNavigation: () => ({
+      goBack: mockGoBack,
+    }),
+  };
+});
 
 const mockMarketData = {
   price: 0.9999,
