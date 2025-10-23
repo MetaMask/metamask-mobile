@@ -505,7 +505,7 @@ describe('Balance', () => {
     it('renders custom secondary balance and hides percentage when hidePercentageChange is true', () => {
       mockSelectPricePercentChange1d.mockReturnValue(5.67);
 
-      const { getByTestId, queryByText } = render(
+      const { getByTestId, queryByText, queryByTestId } = render(
         <Provider store={store}>
           <Balance
             asset={mockDAI}
@@ -516,8 +516,10 @@ describe('Balance', () => {
         </Provider>,
       );
 
-      const secondary = getByTestId('secondary-balance-test-id');
-      expect(secondary.props.children).toBe('100 DAI');
+      const tokenAmount = getByTestId('token-amount-balance-test-id');
+      expect(tokenAmount.props.children).toBe('100 DAI');
+
+      expect(queryByTestId('secondary-balance-test-id')).toBeNull();
       expect(queryByText(/\+.*%/)).toBeNull();
       expect(queryByText(/-.*%/)).toBeNull();
     });
