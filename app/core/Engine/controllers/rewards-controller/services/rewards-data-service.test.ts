@@ -1,6 +1,7 @@
 import {
   InvalidTimestampError,
   AuthorizationFailedError,
+  AccountAlreadyRegisteredError,
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
@@ -218,6 +219,80 @@ describe('RewardsDataService', () => {
         );
         expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
       }
+    });
+
+    it('throws AccountAlreadyRegisteredError when 409 response with already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Account is already registered' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        );
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'Account is already registered',
+        );
+      }
+    });
+
+    it('throws AccountAlreadyRegisteredError when 409 response with lowercase already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({
+          message: 'User is already registered with this account',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        );
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'User is already registered with this account',
+        );
+      }
+    });
+
+    it('throws generic error when 409 response without already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({ message: 'Conflict error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      await expect(
+        service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Mobile join failed: 409 Conflict error');
     });
   });
 
@@ -1482,6 +1557,71 @@ describe('RewardsDataService', () => {
         );
         expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
       }
+    });
+
+    it('throws AccountAlreadyRegisteredError when 409 response with already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Account is already registered' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileOptin(mockOptinRequest);
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'Account is already registered',
+        );
+      }
+    });
+
+    it('throws AccountAlreadyRegisteredError when 409 response with uppercase already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({
+          message: 'User is ALREADY REGISTERED with this account',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileOptin(mockOptinRequest);
+        fail('Expected AccountAlreadyRegisteredError to be thrown');
+      } catch (error) {
+        expect((error as AccountAlreadyRegisteredError).name).toBe(
+          'AccountAlreadyRegisteredError',
+        );
+        expect((error as AccountAlreadyRegisteredError).message).toBe(
+          'User is ALREADY REGISTERED with this account',
+        );
+      }
+    });
+
+    it('throws generic error when 409 response without already registered message', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 409,
+        json: jest.fn().mockResolvedValue({ message: 'Conflict error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      await expect(service.mobileOptin(mockOptinRequest)).rejects.toThrow(
+        'Optin failed: 409',
+      );
     });
 
     it('should handle network errors during optin', async () => {

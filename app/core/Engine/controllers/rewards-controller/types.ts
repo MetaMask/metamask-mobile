@@ -614,6 +614,7 @@ export type RewardsAccountState = {
   subscriptionId: string | null;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
+  lastFreshOptInStatusCheck?: number | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

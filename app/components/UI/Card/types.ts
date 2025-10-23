@@ -12,7 +12,23 @@ export enum AllowanceState {
 export enum CardWarning {
   NeedDelegation = 'need_delegation',
   CloseSpendingLimit = 'close_spending_limit',
+  Frozen = 'frozen',
+  Blocked = 'blocked',
+  NoCard = 'no_card',
 }
+
+export type CardUserPhase =
+  | 'ACCOUNT'
+  | 'PHONE_NUMBER'
+  | 'PERSONAL_INFORMATION'
+  | 'PHYSICAL_ADDRESS'
+  | 'MAILING_ADDRESS';
+
+export type CardVerificationState =
+  | 'VERIFIED'
+  | 'UNVERIFIED'
+  | 'PENDING'
+  | 'REJECTED';
 
 // Helper interface for token balances
 export interface CardToken {
@@ -52,12 +68,12 @@ export interface CardLoginInitiateResponse {
 export type CardLocation = 'us' | 'international';
 
 export interface CardLoginResponse {
-  phase: string | null;
+  phase: CardUserPhase | null;
   userId: string;
   isOtpRequired: boolean;
   phoneNumber: string | null;
   accessToken: string;
-  verificationState: string;
+  verificationState: CardVerificationState;
   isLinked: boolean;
 }
 
@@ -136,6 +152,7 @@ export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
 
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  OTP_REQUIRED = 'OTP_REQUIRED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   API_KEY_MISSING = 'API_KEY_MISSING',
@@ -143,6 +160,7 @@ export enum CardErrorType {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
+  CONFLICT_ERROR = 'CONFLICT_ERROR',
 }
 
 export class CardError extends Error {
@@ -157,8 +175,113 @@ export class CardError extends Error {
   }
 }
 
+// Email verification types
+export interface EmailVerificationSendRequest {
+  email: string;
+}
+
+export interface EmailVerificationSendResponse {
+  contactVerificationId: string;
+}
+
+export interface EmailVerificationVerifyRequest {
+  email: string;
+  password: string;
+  verificationCode: string;
+  contactVerificationId: string;
+  countryOfResidence: string;
+  allowMarketing: boolean;
+  allowSms: boolean;
+}
+
+export interface EmailVerificationVerifyResponse {
+  hasAccount: boolean;
+  onboardingId: string;
+  user: UserResponse;
+}
+
+// Phone verification interfaces
+export interface PhoneVerificationSendRequest {
+  phoneCountryCode: string;
+  phoneNumber: string;
+  contactVerificationId: string;
+}
+
+export interface PhoneVerificationSendResponse {
+  success: boolean;
+}
+
+export interface PhoneVerificationVerifyRequest {
+  phoneCountryCode: string;
+  phoneNumber: string;
+  verificationCode: string;
+  onboardingId: string;
+  contactVerificationId: string;
+}
+
+export interface StartUserVerificationRequest {
+  onboardingId: string;
+}
+
+export interface StartUserVerificationResponse {
+  sessionUrl: string;
+}
+
+export interface RegisterPersonalDetailsRequest {
+  onboardingId: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string; // Format: YYYY-MM-DD
+  countryOfNationality: string; // ISO 3166-1 alpha-2 country code
+  ssn?: string; // Required for US users only
+}
+
+export interface RegisterUserResponse {
+  onboardingId: string;
+  user: UserResponse;
+}
+
+export interface RegisterPhysicalAddressRequest {
+  onboardingId: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  zip: string;
+  usState?: string; // Required for US users
+  isSameMailingAddress?: boolean;
+}
+
+export interface RegisterAddressResponse {
+  accessToken: string | null;
+  onboardingId: string;
+  user?: UserResponse;
+}
+
+export interface UserResponse {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string; // Format: YYYY-MM-DD
+  email?: string;
+  verificationState?: CardVerificationState;
+  phoneNumber?: string; // Format: 2345678901
+  phoneCountryCode?: string; // Format: +1
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  zip?: string;
+  usState?: string; // Required for US users
+  countryOfResidence?: string; // ISO 3166-1 alpha-2 country code
+  ssn?: string; // Required for US users only
+  mailingAddressLine1?: string;
+  mailingAddressLine2?: string;
+  mailingCity?: string;
+  mailingZip?: string;
+  mailingUsState?: string; // Required for US users
+}
+
 // Country type definition
-export interface CountriesOutput {
+export interface RegistrationSettingsResponse {
   countries: {
     id: string;
     name: string;
@@ -195,4 +318,36 @@ export interface CountriesOutput {
       supportEmail: string;
     };
   };
+}
+
+export interface ConsentMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp?: string;
+}
+
+export interface CreateOnboardingConsentRequest {
+  onboardingId: string;
+  policy: string;
+  consents: {
+    eSignAct?: string;
+    termsAndPrivacy: string;
+    marketingNotifications: string;
+    smsNotifications: string;
+    emailNotifications: string;
+  };
+  metadata?: ConsentMetadata;
+}
+
+export interface CreateOnboardingConsentResponse {
+  consentSetId: string;
+}
+
+export interface LinkUserToConsentRequest {
+  userId: string;
+}
+
+export interface LinkUserToConsentResponse {
+  useId: string;
+  consentSetId: string;
 }
