@@ -16,7 +16,7 @@ import {
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
-import SoftAssert from '../../../utils/SoftAssert';
+import SoftAssert from '../../../framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,

@@ -45,6 +45,7 @@ export interface RewardsState {
 
   // Onboarding state
   onboardingActiveStep: OnboardingStep;
+  onboardingReferralCode: string | null;
 
   // Candidate subscription state
   candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
@@ -98,6 +99,7 @@ export const initialState: RewardsState = {
   balanceUpdatedAt: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
+  onboardingReferralCode: null,
   candidateSubscriptionId: 'pending',
   geoLocation: null,
   optinAllowedForGeo: null,
@@ -158,11 +160,6 @@ const rewardsSlice = createSlice({
         typeof action.payload.balance.total === 'number'
           ? action.payload.balance.total
           : null;
-      state.balanceRefereePortion =
-        action.payload?.balance &&
-        typeof action.payload.balance.refereePortion === 'number'
-          ? action.payload.balance.refereePortion
-          : null;
       state.balanceUpdatedAt = action.payload?.balance?.updatedAt
         ? new Date(action.payload.balance.updatedAt)
         : null;
@@ -179,6 +176,7 @@ const rewardsSlice = createSlice({
       action: PayloadAction<{
         referralCode?: string;
         refereeCount?: number;
+        referralPoints?: number;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -186,6 +184,9 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.refereeCount !== undefined) {
         state.refereeCount = action.payload.refereeCount;
+      }
+      if (action.payload.referralPoints !== undefined) {
+        state.balanceRefereePortion = action.payload.referralPoints;
       }
       state.referralDetailsLoading = false;
     },
@@ -222,6 +223,14 @@ const rewardsSlice = createSlice({
 
     resetOnboarding: (state) => {
       state.onboardingActiveStep = OnboardingStep.INTRO;
+      state.onboardingReferralCode = null;
+    },
+
+    setOnboardingReferralCode: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.onboardingReferralCode = action.payload;
     },
 
     setCandidateSubscriptionId: (
@@ -394,6 +403,7 @@ export const {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setOnboardingReferralCode,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,

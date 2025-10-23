@@ -6,6 +6,7 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  CaipChainId,
   isCaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
@@ -60,6 +61,7 @@ import {
   ActionPosition,
 } from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
@@ -85,6 +87,9 @@ import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -110,6 +115,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -204,12 +210,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
+    const accountForChain =
+      isNonEvmAsset && asset.chainId
+        ? getAccountByScope(asset.chainId as CaipChainId)
+        : selectedInternalAccount;
+
+    const addressForChain = accountForChain?.address;
+
     // Show QR code for receiving this specific asset
-    if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
+    if (addressForChain && selectedAccountGroup && chainId) {
       navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
-          address: selectedInternalAccountAddress,
+          address: addressForChain,
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
@@ -221,9 +234,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           'AssetOverview::onReceive - Missing required data for navigation',
         ),
         {
-          hasAddress: !!selectedInternalAccountAddress,
+          hasAddress: !!addressForChain,
           hasAccountGroup: !!selectedAccountGroup,
           hasChainId: !!chainId,
+          isNonEvmAsset,
+          assetChainId: asset.chainId,
         },
       );
     }
@@ -448,6 +463,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTronNative =
+    asset.ticker === 'TRX' && String(asset.chainId).startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
+
   if (isMultichainAccountsState2Enabled) {
     balance = asset.balance;
   } else if (isMultichainAsset) {
@@ -553,7 +573,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               chainId,
             }}
           />
-
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && <TronEnergyBandwidthDetail />
+            ///: END:ONLY_INCLUDE_IF
+          }
           {balance != null && (
             <Balance
               asset={asset}

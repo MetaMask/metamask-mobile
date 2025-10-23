@@ -8,10 +8,8 @@ interface PerpsMarketHeaderStyles {
   tokenIcon: ViewStyle;
   leftSection: ViewStyle;
   assetRow: ViewStyle;
+  secondRow: ViewStyle;
   assetName: TextStyle;
-  positionValueRow: ViewStyle;
-  positionValue: TextStyle;
-  priceChange24h: TextStyle;
   moreButton: ViewStyle;
 }
 
@@ -52,21 +50,15 @@ export const styleSheet = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      marginBottom: 4,
+      marginBottom: 2,
+    },
+    secondRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     assetName: {
       fontWeight: '600',
-    },
-    positionValueRow: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: 6,
-    },
-    positionValue: {
-      fontWeight: '700',
-    },
-    priceChange24h: {
-      fontSize: 12,
     },
     moreButton: {
       padding: 4,
