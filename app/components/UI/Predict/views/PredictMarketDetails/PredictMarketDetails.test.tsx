@@ -117,6 +117,11 @@ jest.mock('../../utils/format', () => ({
       `$${value.toFixed(options?.maximumDecimals || 2)}`,
   ),
   formatVolume: jest.fn((value: number) => value.toLocaleString()),
+  formatPercentage: jest.fn((value: number) =>
+    value === 0
+      ? '0%'
+      : `${value > 0 ? '+' : ''}${Math.abs(value).toFixed(2)}%`,
+  ),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
@@ -804,7 +809,7 @@ describe('PredictMarketDetails', () => {
       };
 
       const { mockNavigate } = setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
@@ -815,7 +820,7 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
-      const cashOutButton = screen.getByText('Cash out');
+      const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
@@ -908,7 +913,7 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
@@ -919,11 +924,14 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('Cash out')).toBeOnTheScreen();
+      expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes/),
+        screen.getByText('predict.market_details.amount_on_outcome'),
       ).toBeOnTheScreen();
-      expect(screen.getByText(/\+7\.7%/)).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.outcome_at_price'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('+7.70%')).toBeOnTheScreen();
     });
 
     it('renders position with negative PnL correctly', () => {
@@ -940,7 +948,7 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
@@ -951,7 +959,7 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('-7.7%')).toBeOnTheScreen();
+      expect(screen.getByText('7.70%')).toBeOnTheScreen();
     });
 
     it('renders outcomes tab for multi-outcome markets', () => {
@@ -1089,7 +1097,10 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(positionsTab);
 
       expect(
-        screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes Option/),
+        screen.getByText('predict.market_details.amount_on_outcome'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.outcome_at_price'),
       ).toBeOnTheScreen();
     });
 
@@ -1118,7 +1129,10 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(positionsTab);
 
       expect(
-        screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes/),
+        screen.getByText('predict.market_details.amount_on_outcome'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.outcome_at_price'),
       ).toBeOnTheScreen();
     });
 
@@ -1135,7 +1149,7 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
@@ -1146,7 +1160,7 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('+0.0%')).toBeOnTheScreen();
+      expect(screen.getByText('0%')).toBeOnTheScreen();
     });
   });
 
@@ -1691,7 +1705,7 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
@@ -1703,7 +1717,7 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(positionsTab);
 
       // Verify the position section renders with icon
-      expect(screen.getByText('Cash out')).toBeOnTheScreen();
+      expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
     });
 
     it('handles chart color selection for single outcome', () => {
