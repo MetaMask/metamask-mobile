@@ -66,6 +66,8 @@ import {
   MultichainAssetsRatesControllerEvents,
   MultichainAssetsRatesControllerActions,
   CodefiTokenPricesServiceV2,
+  TokenDetectionControllerEvents,
+  TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -185,6 +187,8 @@ import {
   WebSocketServiceActions,
   WebSocketServiceEvents,
   MultichainRouter,
+  ExecutionServiceActions,
+  ExecutionServiceEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -339,6 +343,8 @@ import {
 } from '@metamask/multichain-account-service';
 import {
   GatorPermissionsController,
+  GatorPermissionsControllerActions,
+  GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
 import { DelegationController } from '@metamask/delegation-controller';
@@ -407,6 +413,7 @@ type GlobalActions =
   | ApprovalControllerActions
   | CurrencyRateControllerActions
   | GasFeeControllerActions
+  | GatorPermissionsControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
   | NetworkEnablementControllerActions
@@ -422,6 +429,7 @@ type GlobalActions =
   | NotificationServicesPushControllerActions
   | CronjobControllerActions
   | WebSocketServiceActions
+  | ExecutionServiceActions
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
   | AccountActivityServiceActions
@@ -439,6 +447,7 @@ type GlobalActions =
   | PPOMControllerActions
   | TokenBalancesControllerActions
   | TokensControllerActions
+  | TokenDetectionControllerActions
   | TokenRatesControllerActions
   | TokenListControllerActions
   | TransactionControllerActions
@@ -474,6 +483,7 @@ type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
+  | GatorPermissionsControllerEvents
   | KeyringControllerEvents
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
@@ -487,6 +497,7 @@ type GlobalEvents =
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
   | WebSocketServiceEvents
+  | ExecutionServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
   | AccountActivityServiceEvents
@@ -505,6 +516,7 @@ type GlobalEvents =
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
   | TokensControllerEvents
+  | TokenDetectionControllerEvents
   | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents

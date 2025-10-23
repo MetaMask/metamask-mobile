@@ -1,4 +1,8 @@
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MockAnyNamespace,
+  MOCK_ANY_NAMESPACE,
+} from '@metamask/messenger';
 import {
   EthAccountType,
   EthScope,
@@ -60,17 +64,34 @@ const mockInternalAccount: InternalAccount = {
   },
 };
 
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  SnapKeyringBuilderAllowActions,
+  never
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
 const createControllerMessenger = ({
   account = mockInternalAccount,
 }: {
   account?: InternalAccount;
 } = {}): SnapKeyringBuilderMessenger => {
+  const rootMessenger = getRootMessenger();
   const messenger = new Messenger<
+    'SnapKeyring',
     SnapKeyringBuilderAllowActions,
-    never
-  >().getRestricted({
-    name: 'SnapKeyring',
-    allowedActions: [
+    never,
+    typeof rootMessenger
+  >({
+    namespace: 'SnapKeyring',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'ApprovalController:addRequest',
       'ApprovalController:acceptRequest',
       'ApprovalController:rejectRequest',
@@ -85,7 +106,8 @@ const createControllerMessenger = ({
       'AccountsController:listMultichainAccounts',
       'AccountsController:setAccountName',
     ],
-    allowedEvents: [],
+    events: [],
+    messenger,
   });
 
   jest.spyOn(messenger, 'call').mockImplementation((...args) => {

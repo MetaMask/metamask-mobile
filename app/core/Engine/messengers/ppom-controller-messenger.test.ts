@@ -1,24 +1,46 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import { PPOMControllerMessenger } from '@metamask/ppom-validator';
 import {
   getPPOMControllerMessenger,
   getPPOMControllerInitMessenger,
+  PPOMControllerInitMessenger,
 } from './ppom-controller-messenger';
 
-describe('getPPOMControllerMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
-    const ppomControllerMessenger = getPPOMControllerMessenger(messenger);
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  | MessengerActions<PPOMControllerMessenger>
+  | MessengerActions<PPOMControllerInitMessenger>,
+  | MessengerEvents<PPOMControllerMessenger>
+  | MessengerEvents<PPOMControllerInitMessenger>
+>;
 
-    expect(ppomControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
+
+describe('getPPOMControllerMessenger', () => {
+  it('returns a messenger', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
+    const ppomControllerMessenger = getPPOMControllerMessenger(rootMessenger);
+
+    expect(ppomControllerMessenger).toBeInstanceOf(Messenger);
   });
 });
 
 describe('getPPOMControllerInitializationMessenger', () => {
-  it('returns a restricted messenger for initialization', () => {
-    const messenger = new Messenger<never, never>();
+  it('returns a messenger for initialization', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
     const ppomControllerInitMessenger =
-      getPPOMControllerInitMessenger(messenger);
+      getPPOMControllerInitMessenger(rootMessenger);
 
-    expect(ppomControllerInitMessenger).toBeInstanceOf(RestrictedMessenger);
+    expect(ppomControllerInitMessenger).toBeInstanceOf(Messenger);
   });
 });

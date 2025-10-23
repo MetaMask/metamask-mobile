@@ -53,7 +53,9 @@ import Logger from '../../util/Logger';
 
 interface FieldMetadata {
   persist: boolean;
-  anonymous: boolean;
+  includeInDebugSnapshot: boolean;
+  includeInStateLogs: boolean;
+  usedInUi: boolean;
 }
 
 interface ControllerMetadata {
@@ -72,7 +74,7 @@ jest.mock('redux-persist-filesystem-storage', () => ({
 }));
 jest.mock('../../util/device');
 jest.mock('../../util/Logger');
-jest.mock('@metamask/base-controller', () => ({
+jest.mock('@metamask/base-controller/next', () => ({
   getPersistentState: (
     state: Record<string, unknown>,
     metadata: ControllerMetadata | undefined,

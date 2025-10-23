@@ -1,27 +1,47 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   getPermissionControllerMessenger,
   getPermissionControllerInitMessenger,
+  PermissionControllerInitMessenger,
 } from './permission-controller-messenger';
+import { PermissionControllerMessenger } from '@metamask/permission-controller';
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  | MessengerActions<PermissionControllerMessenger>
+  | MessengerActions<PermissionControllerInitMessenger>,
+  | MessengerEvents<PermissionControllerMessenger>
+  | MessengerEvents<PermissionControllerInitMessenger>
+>;
+
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
 
 describe('getPermissionControllerMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
+  it('returns a messenger', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
     const permissionControllerMessenger =
-      getPermissionControllerMessenger(messenger);
+      getPermissionControllerMessenger(rootMessenger);
 
-    expect(permissionControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+    expect(permissionControllerMessenger).toBeInstanceOf(Messenger);
   });
 });
 
 describe('getPermissionControllerInitMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
+  it('returns a messenger', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
     const permissionControllerInitMessenger =
-      getPermissionControllerInitMessenger(messenger);
+      getPermissionControllerInitMessenger(rootMessenger);
 
-    expect(permissionControllerInitMessenger).toBeInstanceOf(
-      RestrictedMessenger,
-    );
+    expect(permissionControllerInitMessenger).toBeInstanceOf(Messenger);
   });
 });

@@ -1,14 +1,30 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+  MOCK_ANY_NAMESPACE,
+} from '@metamask/messenger';
+import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import { getTokenSearchDiscoveryControllerMessenger } from './token-search-discovery-controller-messenger';
 
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<TokenSearchDiscoveryControllerMessenger>,
+  MessengerEvents<TokenSearchDiscoveryControllerMessenger>
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
 describe('getTokenSearchDiscoveryControllerMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
-    const TokenSearchDiscoveryControllerMessenger =
+  it('returns a messenger', () => {
+    const messenger = getRootMessenger();
+    const tokenSearchDiscoveryControllerMessenger =
       getTokenSearchDiscoveryControllerMessenger(messenger);
 
-    expect(TokenSearchDiscoveryControllerMessenger).toBeInstanceOf(
-      RestrictedMessenger,
-    );
+    expect(tokenSearchDiscoveryControllerMessenger).toBeInstanceOf(Messenger);
   });
 });

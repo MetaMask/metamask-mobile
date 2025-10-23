@@ -8,7 +8,7 @@ import type {
 // Mock the necessary types
 jest.mock('@metamask/selected-network-controller');
 jest.mock('@metamask/network-controller');
-jest.mock('@metamask/base-controller');
+jest.mock('@metamask/base-controller/next');
 jest.mock('@metamask/swappable-obj-proxy');
 
 describe('DomainProxyMap', () => {

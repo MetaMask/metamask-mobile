@@ -1,25 +1,24 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
+import type { ApprovalControllerMessenger } from '@metamask/approval-controller';
+import { RootMessenger } from '../../types';
 
 const name = 'ApprovalController';
 
-type MessengerActions = never;
-
-type MessengerEvents = never;
-
-export type ApprovalControllerMessenger = RestrictedMessenger<
-  typeof name,
-  MessengerActions,
-  MessengerEvents,
-  MessengerActions['type'],
-  MessengerEvents['type']
->;
-
 export function getApprovalControllerMessenger(
-  messenger: Messenger<MessengerActions, MessengerEvents>,
+  rootMessenger: RootMessenger,
 ): ApprovalControllerMessenger {
-  return messenger.getRestricted({
-    name,
-    allowedActions: [],
-    allowedEvents: [],
+  const messenger = new Messenger<
+    typeof name,
+    MessengerActions<ApprovalControllerMessenger>,
+    MessengerEvents<ApprovalControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: name,
+    parent: rootMessenger,
   });
+  return messenger;
 }
