@@ -146,7 +146,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-ios-*'
+          pattern: '*-ios-*-test-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
@@ -179,7 +179,7 @@ jobs:
           # Run the mobile test report generator
           cd ${{ github.workspace }}
           TEST_RESULTS_PATH=all-test-artifacts \
-          TEST_RUNS_PATH=test/test-results/test-runs-ios.json \
+          TEST_RUNS_PATH=test/test-results/json-test-report.json \
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
@@ -192,5 +192,5 @@ jobs:
         if: steps.create-json-report.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: test-e2e-ios-json-report
-          path: test/test-results/test-runs-ios.json
+          name: e2e-ios-json-report
+          path: test/test-results/json-test-report.json

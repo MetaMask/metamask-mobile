@@ -65,10 +65,11 @@ describe('usePerpsPaymentTokens', () => {
 
   const mockAccountState: AccountState = {
     availableBalance: '1000.50',
+    totalBalance: '1000.50',
     marginUsed: '300.25',
     unrealizedPnl: '50.25',
     returnOnEquity: '0',
-    totalBalance: '10000',
+    totalValue: '10000',
   };
 
   const mockTokensWithBalance: BridgeToken[] = [

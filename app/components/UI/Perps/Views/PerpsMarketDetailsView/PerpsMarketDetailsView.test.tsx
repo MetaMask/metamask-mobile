@@ -365,10 +365,11 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsAccount.mockReturnValue({
       account: {
         availableBalance: '1000.00',
+        totalBalance: '1000.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
         returnOnEquity: '0.00',
-        totalBalance: '1000.00',
+        totalValue: '1000.00',
       },
       isInitialLoading: false,
     });
@@ -376,10 +377,11 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         availableBalance: '1000',
+        totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalBalance: '1000',
+        totalValue: '1000',
       },
       isInitialLoading: false,
     });
@@ -568,10 +570,11 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
+          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalBalance: '0.00',
+          totalValue: '0.00',
         },
         isInitialLoading: false,
       });
@@ -579,10 +582,11 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '0',
+          totalValue: '0',
         },
         isInitialLoading: false,
       });
@@ -618,10 +622,11 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '1000.00',
+          totalBalance: '1500.00',
           marginUsed: '500.00',
           unrealizedPnl: '50.00',
           returnOnEquity: '3.33',
-          totalBalance: '1550.00',
+          totalValue: '1550.00',
         },
         isInitialLoading: false,
       });
@@ -989,10 +994,11 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
+          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalBalance: '0.00',
+          totalValue: '0.00',
         },
         isInitialLoading: false,
       });
@@ -1000,10 +1006,11 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '0',
+          totalValue: '0',
         },
         isInitialLoading: false,
       });
@@ -1110,10 +1117,11 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
+          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalBalance: '0.00',
+          totalValue: '0.00',
         },
         isInitialLoading: false,
       });
@@ -1121,10 +1129,11 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '0',
+          totalValue: '0',
         },
         isInitialLoading: false,
       });

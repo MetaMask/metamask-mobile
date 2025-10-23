@@ -24,7 +24,6 @@ import { TransactionBridgeQuote } from '../../utils/bridge';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { type TxData } from '@metamask/bridge-controller';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -189,7 +188,7 @@ function getQuoteBatchTransactions(
     }
 
     result.push({
-      ...getQuoteBatchTransaction(quote.trade as TxData),
+      ...getQuoteBatchTransaction(quote.trade),
       type: TransactionType.swap,
     });
 
@@ -197,7 +196,9 @@ function getQuoteBatchTransactions(
   });
 }
 
-function getQuoteBatchTransaction(transaction: TxData): BatchTransaction {
+function getQuoteBatchTransaction(
+  transaction: TransactionBridgeQuote['trade'],
+): BatchTransaction {
   const data = transaction.data as Hex;
   const gas = transaction.gasLimit ? toHex(transaction.gasLimit) : undefined;
   const to = transaction.to as Hex;

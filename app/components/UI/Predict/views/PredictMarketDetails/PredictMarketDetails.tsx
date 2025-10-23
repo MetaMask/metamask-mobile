@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -50,6 +51,7 @@ import {
   PredictOutcomeToken,
 } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
+import TabBar from '../../../../Base/TabBar';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -89,7 +91,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tw = useTailwind();
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
-  const [activeTab, setActiveTab] = useState(0);
   const insets = useSafeAreaInsets();
   const { hasNoBalance } = usePredictBalance();
 
@@ -321,66 +322,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     await claim();
   };
 
-  const handleTabPress = (tabIndex: number) => {
-    setActiveTab(tabIndex);
-  };
-
-  const renderCustomTabBar = () => {
-    const tabs = [
-      { label: strings('predict.tabs.about'), index: 0 },
-      { label: strings('predict.tabs.positions'), index: 1 },
-    ];
-
-    // Add Outcomes tab if market has multiple outcomes or is closed
-    if (multipleOutcomes || market?.status === PredictMarketStatus.CLOSED) {
-      tabs.push({ label: strings('predict.tabs.outcomes'), index: 2 });
-    }
-
-    return (
-      <Box
-        twClassName="bg-default border-b border-muted"
-        testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-3"
-        >
-          {tabs.map((tab) => (
-            <Pressable
-              key={tab.index}
-              onPress={() => handleTabPress(tab.index)}
-              style={tw.style(
-                'flex-1 py-3',
-                activeTab === tab.index
-                  ? 'border-b-2 border-primary-default'
-                  : '',
-              )}
-              testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${tab.index}`}
-            >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={
-                  activeTab === tab.index
-                    ? TextColor.Primary
-                    : TextColor.Alternative
-                }
-                style={tw.style('text-center font-bold')}
-              >
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-        </Box>
-      </Box>
-    );
-  };
-
   const renderHeader = () => (
-    <Box
-      twClassName="flex-row items-center gap-3"
-      style={{ paddingTop: insets.top + 12 }}
-    >
+    <Box twClassName="flex-row items-center gap-3">
       <Pressable
         onPress={handleBackPress}
         hitSlop={12}
@@ -794,89 +737,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     </>
   );
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 0:
-        return (
-          <Box
-            twClassName="px-3 pt-4 pb-8"
-            testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
-          >
-            {renderAboutSection()}
-          </Box>
-        );
-      case 1:
-        return (
-          <Box
-            twClassName="px-3 pt-4 pb-8"
-            testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
-          >
-            {renderPositionsSection()}
-          </Box>
-        );
-      case 2:
-        return (
-          <Box
-            twClassName="px-3 pt-4 pb-8"
-            testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
-          >
-            {market?.status === PredictMarketStatus.CLOSED ? (
-              <Box>
-                {winningOutcome && (
-                  <PredictMarketOutcome
-                    market={market}
-                    outcome={winningOutcome}
-                    outcomeToken={winningOutcomeToken}
-                    isClosed
-                  />
-                )}
-                {losingOutcome && (
-                  <PredictMarketOutcome
-                    market={market}
-                    outcome={losingOutcome}
-                    outcomeToken={losingOutcomeToken}
-                    isClosed
-                  />
-                )}
-              </Box>
-            ) : (
-              <Box>
-                {market?.outcomes?.map((outcome, index) => (
-                  <PredictMarketOutcome
-                    key={
-                      outcome?.id ??
-                      outcome?.tokens?.[0]?.id ??
-                      outcome?.title ??
-                      `outcome-${index}`
-                    }
-                    market={market}
-                    outcome={outcome}
-                  />
-                ))}
-              </Box>
-            )}
-          </Box>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
-      <Box twClassName="px-3 gap-4">{renderHeader()}</Box>
-      <ScrollView
-        testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
-        stickyHeaderIndices={[1]}
-        showsVerticalScrollIndicator={false}
-        style={tw.style('flex-1')}
-      >
-        {/* Header content - scrollable */}
-        <Box twClassName="px-3 gap-4">
+      <Box twClassName="flex-1">
+        <Box twClassName="px-3 gap-4" style={{ paddingTop: insets.top + 12 }}>
+          {renderHeader()}
           {renderMarketStatus()}
           <PredictDetailsChart
             data={chartData}
@@ -887,14 +756,87 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             emptyLabel={chartEmptyLabel}
           />
         </Box>
-
-        {/* Sticky tab bar */}
-        {renderCustomTabBar()}
-
-        {/* Tab content */}
-        {renderTabContent()}
-      </ScrollView>
-
+        <ScrollableTabView
+          testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
+          renderTabBar={() => (
+            <TabBar
+              textStyle={tw.style('text-base font-bold text-center')}
+              testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
+            />
+          )}
+          style={tw.style('flex-1 mt-2')}
+          initialPage={0}
+        >
+          <ScrollView
+            key="about"
+            {...{ tabLabel: 'About' }}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+            showsVerticalScrollIndicator={false}
+            testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
+          >
+            {renderAboutSection()}
+          </ScrollView>
+          <ScrollView
+            key="positions"
+            {...{ tabLabel: 'Positions' }}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+            showsVerticalScrollIndicator={false}
+            testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
+          >
+            {renderPositionsSection()}
+          </ScrollView>
+          {/* only render outcomes tab if the market has multiple outcomes or is closed */}
+          {(multipleOutcomes ||
+            market?.status === PredictMarketStatus.CLOSED) && (
+            <ScrollView
+              key="outcomes"
+              {...{ tabLabel: 'Outcomes' }}
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+              showsVerticalScrollIndicator={false}
+              testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
+            >
+              {market?.status === PredictMarketStatus.CLOSED ? (
+                <Box>
+                  {winningOutcome && (
+                    <PredictMarketOutcome
+                      market={market}
+                      outcome={winningOutcome}
+                      outcomeToken={winningOutcomeToken}
+                      isClosed
+                    />
+                  )}
+                  {losingOutcome && (
+                    <PredictMarketOutcome
+                      market={market}
+                      outcome={losingOutcome}
+                      outcomeToken={losingOutcomeToken}
+                      isClosed
+                    />
+                  )}
+                </Box>
+              ) : (
+                <Box>
+                  {market?.outcomes?.map((outcome, index) => (
+                    <PredictMarketOutcome
+                      key={
+                        outcome?.id ??
+                        outcome?.tokens?.[0]?.id ??
+                        outcome?.title ??
+                        `outcome-${index}`
+                      }
+                      market={market}
+                      outcome={outcome}
+                    />
+                  ))}
+                </Box>
+              )}
+            </ScrollView>
+          )}
+        </ScrollableTabView>
+      </Box>
       <Box twClassName="px-3 bg-default border-t border-muted">
         {/* only render action buttons if the market has a single outcome */}
         {/* otherwise, it's handled via the buttons within tabs */}

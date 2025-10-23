@@ -56,10 +56,11 @@ describe('usePerpsLiveAccount', () => {
     it('should return account state from PerpsController', () => {
       const mockAccountState: AccountState = {
         availableBalance: '3000',
+        totalBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '50',
         returnOnEquity: '5.0',
-        totalBalance: '5050',
+        totalValue: '5050',
       };
 
       // Mock the subscription to immediately call the callback with the account data
@@ -81,10 +82,11 @@ describe('usePerpsLiveAccount', () => {
     it('should handle zero balance account state', () => {
       const mockAccountState: AccountState = {
         availableBalance: '0',
+        totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalBalance: '0',
+        totalValue: '0',
       };
 
       // Mock the subscription to immediately call the callback with the account data
@@ -111,10 +113,11 @@ describe('usePerpsLiveAccount', () => {
     it('should handle partial account state', () => {
       const partialAccountState: AccountState = {
         availableBalance: '100',
+        totalBalance: '200',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalBalance: '200',
+        totalValue: '200',
       };
 
       // Mock the subscription to immediately call the callback with the account data
@@ -150,10 +153,11 @@ describe('usePerpsLiveAccount', () => {
     it('should handle account with positive PnL', () => {
       const positivePnlState: AccountState = {
         availableBalance: '5000',
+        totalBalance: '6000',
         marginUsed: '1000',
         unrealizedPnl: '500',
         returnOnEquity: '50.0',
-        totalBalance: '6500',
+        totalValue: '6500',
       };
 
       // Mock the subscription to immediately call the callback with the account data
@@ -173,10 +177,11 @@ describe('usePerpsLiveAccount', () => {
     it('should handle account with negative PnL', () => {
       const negativePnlState: AccountState = {
         availableBalance: '3000',
+        totalBalance: '4500',
         marginUsed: '2000',
         unrealizedPnl: '-500',
         returnOnEquity: '-25.0',
-        totalBalance: '4000',
+        totalValue: '4000',
       };
 
       // Mock the subscription to immediately call the callback with the account data
@@ -196,10 +201,11 @@ describe('usePerpsLiveAccount', () => {
     it('should handle account with high margin usage', () => {
       const highMarginState: AccountState = {
         availableBalance: '500',
+        totalBalance: '10000',
         marginUsed: '9500',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalBalance: '10000',
+        totalValue: '10000',
       };
 
       // Mock the subscription to immediately call the callback with the account data
@@ -220,10 +226,11 @@ describe('usePerpsLiveAccount', () => {
     it('should handle account with no margin used', () => {
       const noMarginState: AccountState = {
         availableBalance: '10000',
+        totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalBalance: '10000',
+        totalValue: '10000',
       };
 
       // Mock the subscription to immediately call the callback with the account data
@@ -247,10 +254,11 @@ describe('usePerpsLiveAccount', () => {
     it('should return same reference for same state', () => {
       const mockAccountState: AccountState = {
         availableBalance: '1000',
+        totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalBalance: '1000',
+        totalValue: '1000',
       };
 
       // Mock the subscription to immediately call the callback with the account data

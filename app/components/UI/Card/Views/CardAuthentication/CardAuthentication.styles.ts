@@ -68,10 +68,9 @@ const createStyles = (theme: Theme) =>
       transform: [{ rotate: '1.9deg' }],
       height: 80,
     },
-    buttonsContainer: {
+    button: {
       marginTop: 28,
       marginBottom: 32,
-      gap: 8,
     },
     buttonDisabled: {
       opacity: 0.5,

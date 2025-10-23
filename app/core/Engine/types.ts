@@ -1,10 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import {
-  SamplePetnamesController,
-  SamplePetnamesControllerState,
-  SamplePetnamesControllerEvents,
-} from '@metamask/sample-controllers';
-///: END:ONLY_INCLUDE_IF
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   AccountTrackerController,
@@ -255,9 +248,11 @@ import {
 import {
   TokenSearchDiscoveryController,
   TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
+import {
   TokenSearchDiscoveryControllerActions,
   TokenSearchDiscoveryControllerEvents,
-} from '@metamask/token-search-discovery-controller';
+} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   MultichainNetworkController,
@@ -463,9 +458,6 @@ type GlobalActions =
   | DelegationControllerActions;
 
 type GlobalEvents =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | SamplePetnamesControllerEvents
-  ///: END:ONLY_INCLUDE_IF
   | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
@@ -544,9 +536,6 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesController;
-  ///: END:ONLY_INCLUDE_IF
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
@@ -690,9 +679,6 @@ export type EngineState = {
   PredictController: PredictControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesControllerState;
-  ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
 };
@@ -725,9 +711,6 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | 'SamplePetnamesController'
-  ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'

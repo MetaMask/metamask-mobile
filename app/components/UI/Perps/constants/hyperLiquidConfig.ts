@@ -167,7 +167,6 @@ export const DEPOSIT_CONFIG = {
 
 // Withdrawal constants (HyperLiquid-specific)
 export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
-export const HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS = 30000; // 30 seconds progress update interval
 
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
@@ -214,89 +213,3 @@ export const HYPERLIQUID_CONFIG = {
   // HyperLiquid uses 'HlPerp' as their perps exchange identifier
   EXCHANGE_NAME: 'HlPerp',
 } as const;
-
-/**
- * HIP-3 multi-DEX asset ID calculation constants
- * Per HIP-3-IMPLEMENTATION.md:
- * - Main DEX: assetId = index (0, 1, 2, ...)
- * - HIP-3 DEX: assetId = BASE_ASSET_ID + (perpDexIndex × DEX_MULTIPLIER) + index
- *
- * This formula enables proper order routing across multiple DEXs:
- * - Main DEX (perpDexIndex=0): Uses index directly (BTC=0, ETH=1, SOL=2, etc.)
- * - xyz DEX (perpDexIndex=1): 100000 + (1 × 10000) + index = 110000-110999
- * - abc DEX (perpDexIndex=2): 100000 + (2 × 10000) + index = 120000-120999
- *
- * Supports up to 10 HIP-3 DEXs with 10000 assets each.
- */
-export const HIP3_ASSET_ID_CONFIG = {
-  // Base offset for HIP-3 asset IDs (100000)
-  // Ensures HIP-3 asset IDs don't conflict with main DEX indices
-  BASE_ASSET_ID: 100000,
-
-  // Multiplier for DEX index in asset ID calculation (10000)
-  // Allocates 10000 asset ID slots per DEX (0-9999)
-  DEX_MULTIPLIER: 10000,
-} as const;
-
-/**
- * Basis points conversion constant
- * 1 basis point (bp) = 0.01% = 0.0001 as decimal
- * Used for fee discount calculations (e.g., 6500 bps = 65%)
- */
-export const BASIS_POINTS_DIVISOR = 10000;
-
-/**
- * HIP-3 DEX market type classifications
- * Maps DEX identifiers to their asset category for badge display
- *
- * Market type determines the badge shown in the UI:
- * - 'equity': STOCK badge (for stock markets like xyz)
- * - 'forex': FOREX badge (for forex markets)
- * - 'commodity': COMMODITY badge (for commodity markets)
- * - 'crypto': CRYPTO badge (for crypto-only DEXs)
- * - undefined: Falls back to 'experimental' badge for HIP-3 DEXs
- *
- * DEXs not listed here will show the 'experimental' badge by default.
- * Main DEX (no prefix) shows no badge.
- */
-export const HIP3_DEX_MARKET_TYPES = {
-  xyz: 'equity' as const, // xyz DEX offers stock trading
-  // Future DEX classifications:
-  // abc: 'forex' as const,
-  // commodity_dex: 'commodity' as const,
-} as const;
-
-/**
- * HIP-3 margin management configuration
- * Controls margin buffers and auto-rebalance behavior for HIP-3 DEXes with isolated margin
- *
- * Background: HyperLiquid validates availableBalance >= totalRequiredMargin BEFORE reallocating
- * existing locked margin. This requires temporary over-funding when increasing positions,
- * followed by automatic cleanup to minimize locked capital.
- */
-export const HIP3_MARGIN_CONFIG = {
-  /**
-   * Margin buffer multiplier for fees and slippage (0.3% = multiply by 1.003)
-   * Covers HyperLiquid's max taker fee (0.035%) with comfortable margin
-   */
-  BUFFER_MULTIPLIER: 1.003,
-
-  /**
-   * Desired buffer to keep on HIP-3 DEX after auto-rebalance (USDC amount)
-   * Small buffer allows quick follow-up orders without transfers
-   */
-  REBALANCE_DESIRED_BUFFER: 0.1,
-
-  /**
-   * Minimum excess threshold to trigger auto-rebalance (USDC amount)
-   * Prevents unnecessary transfers for tiny amounts
-   */
-  REBALANCE_MIN_THRESHOLD: 0.1,
-} as const;
-
-// Progress bar constants
-export const INITIAL_AMOUNT_UI_PROGRESS = 10;
-export const WITHDRAWAL_PROGRESS_STAGES = [
-  25, 35, 45, 55, 65, 75, 85, 90, 95, 98,
-];
-export const PROGRESS_BAR_COMPLETION_DELAY_MS = 500;

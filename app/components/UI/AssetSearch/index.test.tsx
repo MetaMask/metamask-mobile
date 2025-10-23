@@ -60,50 +60,35 @@ const initialState = {
 };
 
 describe('AssetSearch', () => {
-  it('renders correctly with selected chain', () => {
+  it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <AssetSearch
         onSearch={jest.fn}
         onFocus={jest.fn}
         onBlur={jest.fn}
-        selectedChainId={'0x1'}
+        allNetworksEnabled
       />,
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls onSearch when clear button is pressed', () => {
+  it('should call onSearch', () => {
     const onSearch = jest.fn();
-
     const { getByTestId } = renderWithProvider(
       <AssetSearch
         onSearch={onSearch}
         onFocus={jest.fn}
         onBlur={jest.fn}
-        selectedChainId={'0x1'}
+        allNetworksEnabled
       />,
       { state: initialState },
     );
-
     const clearSearchBar = getByTestId(
       ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
     );
     fireEvent.press(clearSearchBar);
 
     expect(onSearch).toHaveBeenCalled();
-  });
-
-  it('renders with null selectedChainId', () => {
-    const { toJSON } = renderWithProvider(
-      <AssetSearch
-        onSearch={jest.fn}
-        onFocus={jest.fn}
-        onBlur={jest.fn}
-        selectedChainId={null}
-      />,
-      { state: initialState },
-    );
-    expect(toJSON()).toBeDefined();
   });
 });

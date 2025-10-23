@@ -26,10 +26,11 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
       availableBalance: '1000',
+      totalBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
-      totalBalance: '1000',
+      totalValue: '1000',
     },
     isInitialLoading: false,
   })),
