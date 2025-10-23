@@ -5958,7 +5958,7 @@
     },
     "card_onboarding": {
       "title": "Enable MetaMask Card features",
-      "description": "Change your spending token and network by signing in with your Crypto Life username and password.",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
       "verify_account_button": "Sign in",
       "non_cardholder_title": "Welcome to MetaMask Card",
       "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
