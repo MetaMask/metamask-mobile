@@ -40,6 +40,28 @@ jest.mock('./usePredictEligibility', () => ({
   usePredictEligibility: jest.fn(() => mockEligibilityResult),
 }));
 
+// Mock toast context
+const mockToastRef = {
+  current: {
+    showToast: jest.fn(),
+  },
+};
+
+jest.mock('../../../../component-library/components/Toast', () => ({
+  ToastContext: {
+    Consumer: ({ children }: { children: (value: unknown) => unknown }) =>
+      children({ toastRef: mockToastRef }),
+  },
+  ToastVariants: {
+    Icon: 'Icon',
+  },
+}));
+
+jest.mock('react', () => ({
+  ...jest.requireActual('react'),
+  useContext: jest.fn(() => ({ toastRef: mockToastRef })),
+}));
+
 // Mock react-redux
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockState: any = {
@@ -62,6 +84,15 @@ jest.mock('react-redux', () => {
     connect: () => (component: any) => component,
   };
 });
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: Record<string, string> = {
+      'predict.withdraw.error_title': 'Withdraw Error',
+    };
+    return translations[key] || key;
+  },
+}));
 
 // Helper to create mock withdraw transaction
 function createMockWithdrawTransaction(overrides = {}) {
@@ -251,6 +282,105 @@ describe('usePredictWithdraw', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to proceed with withdraw:',
         expect.any(Error),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('shows error toast when prepareWithdraw fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
+
+      const { result } = setupUsePredictWithdrawTest();
+
+      await result.current.withdraw();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Danger',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Withdraw Error',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'Withdraw failed',
+              isBold: false,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('shows error toast with default message for non-Error exceptions', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockPrepareWithdraw.mockRejectedValue('String error');
+
+      const { result } = setupUsePredictWithdrawTest();
+
+      await result.current.withdraw();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Danger',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Withdraw Error',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'Failed to prepare withdraw',
+              isBold: false,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('shows error toast when prepareWithdraw returns failure result', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockPrepareWithdraw.mockResolvedValue({
+        success: false,
+        error: 'Provider not available',
+      });
+
+      const { result } = setupUsePredictWithdrawTest();
+
+      await result.current.withdraw();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Danger',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Withdraw Error',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'Provider not available',
+              isBold: false,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
       );
 
       consoleErrorSpy.mockRestore();

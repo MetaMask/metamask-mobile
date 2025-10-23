@@ -19,6 +19,7 @@ import {
   type PredictControllerState,
 } from './PredictController';
 import type { OrderPreview } from '../providers/types';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -2419,6 +2420,56 @@ describe('PredictController', () => {
       });
     });
 
+    it('updates state with lastError when prepare withdraw fails', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+        new Error('Provider error'),
+      );
+
+      await withController(async ({ controller }) => {
+        const result = await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Provider error');
+        expect(controller.state.lastError).toBe('Provider error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(controller.state.withdrawTransaction).toBeNull();
+      });
+    });
+
+    it('logs error details when prepare withdraw fails', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Prepare withdraw failed',
+          expect.objectContaining({
+            error: 'Network error',
+            timestamp: expect.any(String),
+            providerId: 'polymarket',
+          }),
+        );
+      });
+    });
+
+    it('returns error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        const result = await controller.prepareWithdraw({
+          providerId: 'nonexistent',
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
     it('call provider prepareWithdraw with correct signer', async () => {
       mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
         mockWithdrawResponse,
@@ -2497,31 +2548,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.prepareWithdraw({
-            providerId: 'nonexistent',
-          }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-      });
-    });
-
-    it('throw error when provider prepareWithdraw fails', async () => {
-      mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
-        new Error('Withdraw preparation failed'),
-      );
-
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.prepareWithdraw({
-            providerId: 'polymarket',
-          }),
-        ).rejects.toThrow('Withdraw preparation failed');
-      });
-    });
-
-    it('throw error when addTransactionBatch fails', async () => {
+    it('returns error when addTransactionBatch fails', async () => {
       mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
         mockWithdrawResponse,
       );
@@ -2530,11 +2557,12 @@ describe('PredictController', () => {
       );
 
       await withController(async ({ controller }) => {
-        await expect(
-          controller.prepareWithdraw({
-            providerId: 'polymarket',
-          }),
-        ).rejects.toThrow('Transaction batch submission failed');
+        const result = await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Transaction batch submission failed');
       });
     });
 

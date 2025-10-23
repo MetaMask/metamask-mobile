@@ -91,6 +91,8 @@ export const PREDICT_ERROR_CODES = {
   PLACE_ORDER_FAILED: 'PLACE_ORDER_FAILED',
   ENABLE_WALLET_FAILED: 'ENABLE_WALLET_FAILED',
   ACTIVITY_NOT_AVAILABLE: 'ACTIVITY_NOT_AVAILABLE',
+  DEPOSIT_FAILED: 'DEPOSIT_FAILED',
+  WITHDRAW_FAILED: 'WITHDRAW_FAILED',
 } as const;
 
 export type PredictErrorCode =
@@ -1247,69 +1249,97 @@ export class PredictController extends BaseController<
   public async prepareWithdraw(
     params: PrepareWithdrawParams,
   ): Promise<Result<string>> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
+    try {
+      const provider = this.providers.get(params.providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
 
-    const { AccountsController, KeyringController, NetworkController } =
-      Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
-    const signer = {
-      address: selectedAddress,
-      signTypedMessage: (
-        params: TypedMessageParams,
-        version: SignTypedDataVersion,
-      ) => KeyringController.signTypedMessage(params, version),
-      signPersonalMessage: (params: PersonalMessageParams) =>
-        KeyringController.signPersonalMessage(params),
-    };
-    const { chainId, transaction, predictAddress } =
-      await provider.prepareWithdraw({
-        ...params,
-        signer,
+      const { AccountsController, KeyringController, NetworkController } =
+        Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const signer = {
+        address: selectedAddress,
+        signTypedMessage: (
+          typedMessageParams: TypedMessageParams,
+          version: SignTypedDataVersion,
+        ) => KeyringController.signTypedMessage(typedMessageParams, version),
+        signPersonalMessage: (personalMessageParams: PersonalMessageParams) =>
+          KeyringController.signPersonalMessage(personalMessageParams),
+      };
+      const { chainId, transaction, predictAddress } =
+        await provider.prepareWithdraw({
+          ...params,
+          signer,
+        });
+
+      this.update((state) => {
+        state.withdrawTransaction = {
+          chainId: hexToNumber(chainId),
+          status: PredictWithdrawStatus.IDLE,
+          providerId: params.providerId,
+          predictAddress: predictAddress as Hex,
+          transactionId: '',
+          amount: 0,
+        };
       });
 
-    this.update((state) => {
-      state.withdrawTransaction = {
-        chainId: hexToNumber(chainId),
-        status: PredictWithdrawStatus.IDLE,
-        providerId: params.providerId,
-        predictAddress: predictAddress as Hex,
-        transactionId: '',
-        amount: 0,
-      };
-    });
-
-    const { batchId } = await addTransactionBatch({
-      from: selectedAddress as Hex,
-      origin: ORIGIN_METAMASK,
-      networkClientId: NetworkController.findNetworkClientIdByChainId(chainId),
-      disableHook: true,
-      disableSequential: true,
-      requireApproval: true,
-      transactions: [
-        // TODO: remove this dummy transaction when confirmation handling is implemented
-        {
-          params: {
-            to: signer.address as Hex,
-            value: '0x1',
+      const { batchId } = await addTransactionBatch({
+        from: selectedAddress as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId:
+          NetworkController.findNetworkClientIdByChainId(chainId),
+        disableHook: true,
+        disableSequential: true,
+        requireApproval: true,
+        transactions: [
+          // TODO: remove this dummy transaction when confirmation handling is implemented
+          {
+            params: {
+              to: signer.address as Hex,
+              value: '0x1',
+            },
           },
-        },
-        transaction,
-      ],
-    });
+          transaction,
+        ],
+      });
 
-    this.update((state) => {
-      if (state.withdrawTransaction) {
-        state.withdrawTransaction.transactionId = batchId;
-      }
-    });
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.transactionId = batchId;
+        }
+      });
 
-    return {
-      success: true,
-      response: batchId,
-    };
+      return {
+        success: true,
+        response: batchId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.WITHDRAW_FAILED;
+
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        state.withdrawTransaction = null; // Clear any partial withdraw transaction
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Prepare withdraw failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId: params.providerId,
+      });
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
   }
 
   public async beforeSign(request: {
@@ -1397,6 +1427,8 @@ export class PredictController extends BaseController<
           state.withdrawTransaction.status = PredictWithdrawStatus.ERROR;
         }
       });
+
+      return;
     }
 
     this.update((state) => {
