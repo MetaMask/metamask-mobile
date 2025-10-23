@@ -158,12 +158,10 @@ export class PolymarketProvider implements PredictProvider {
         context: 'PolymarketProvider.getMarkets',
         feature: 'Predict',
         provider: POLYMARKET_PROVIDER_ID,
-        params: {
-          category: params?.category,
-          status: params?.status,
-          sortBy: params?.sortBy,
-          hasSearchQuery: !!params?.q,
-        },
+        category: params?.category,
+        status: params?.status,
+        sortBy: params?.sortBy,
+        hasSearchQuery: !!params?.q,
       });
 
       return [];
@@ -227,11 +225,9 @@ export class PolymarketProvider implements PredictProvider {
         context: 'PolymarketProvider.getPriceHistory',
         feature: 'Predict',
         provider: POLYMARKET_PROVIDER_ID,
-        params: {
-          marketId,
-          fidelity,
-          interval,
-        },
+        marketId,
+        fidelity,
+        interval,
       });
 
       return [];
