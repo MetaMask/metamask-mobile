@@ -21,7 +21,9 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import ResourceToggle, { type ResourceType } from '../../components/ResourceToggle';
+import ResourceToggle, {
+  type ResourceType,
+} from '../../components/ResourceToggle';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -74,6 +76,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -109,6 +112,8 @@ const EarnInputView = () => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
   // if token is ETH, use 1 as the exchange rate
   // otherwise, use the contract exchange rate or 0 if undefined
@@ -825,7 +830,7 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          {isStablecoinLendingEnabled ? (
+          {isStablecoinLendingEnabled && !isTrxStakingEnabled ? (
             <>
               <View style={styles.spacer} />
               <EarnTokenSelector
