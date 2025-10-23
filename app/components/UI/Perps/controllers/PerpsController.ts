@@ -501,8 +501,9 @@ export class PerpsController extends BaseController<
   private readonly equityEnabled: boolean;
   private readonly enabledDexs: string[];
 
-  // Guard flag to prevent concurrent cancelOrders calls
-  private isCancelingOrders = false;
+  // Guard to prevent concurrent cancelOrders calls
+  // Using Promise tracking for proper atomicity instead of simple boolean flag
+  private cancelOrdersOperation: Promise<CancelOrdersResult> | null = null;
 
   constructor({
     messenger,
@@ -517,8 +518,9 @@ export class PerpsController extends BaseController<
     });
 
     // Store HIP-3 configuration from client (immutable after construction)
+    // Clone array to prevent external mutations
     this.equityEnabled = clientConfig.equityEnabled ?? false;
-    this.enabledDexs = clientConfig.enabledDexs ?? [];
+    this.enabledDexs = [...(clientConfig.enabledDexs ?? [])];
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
@@ -637,20 +639,47 @@ export class PerpsController extends BaseController<
     channels: (keyof PerpsStreamManager)[],
   ): Promise<T> {
     const streamManager = getStreamManagerInstance();
+    const pausedChannels: (keyof PerpsStreamManager)[] = [];
 
     // Pause emission on specified channels (WebSocket stays connected)
-    channels.forEach((channel) => {
-      streamManager[channel].pause();
-    });
+    // Track which channels successfully paused to ensure proper cleanup
+    for (const channel of channels) {
+      try {
+        streamManager[channel].pause();
+        pausedChannels.push(channel);
+      } catch (err) {
+        // Log error to Sentry but continue pausing remaining channels
+        Logger.error(
+          ensureError(err),
+          this.getErrorContext('withStreamPause', {
+            operation: 'pause',
+            channel: String(channel),
+            pausedChannels: pausedChannels.join(','),
+          }),
+        );
+      }
+    }
 
     try {
       // Execute operation without stream interference
       return await operation();
     } finally {
-      // Resume emission on all channels
-      channels.forEach((channel) => {
-        streamManager[channel].resume();
-      });
+      // Resume only channels that were successfully paused
+      for (const channel of pausedChannels) {
+        try {
+          streamManager[channel].resume();
+        } catch (err) {
+          // Log error to Sentry but continue resuming remaining channels
+          Logger.error(
+            ensureError(err),
+            this.getErrorContext('withStreamPause', {
+              operation: 'resume',
+              channel: String(channel),
+              pausedChannels: pausedChannels.join(','),
+            }),
+          );
+        }
+      }
     }
   }
 
@@ -1394,153 +1423,162 @@ export class PerpsController extends BaseController<
     DevLogger.log('[cancelOrders] === ENTRY ===', {
       timestamp: Date.now(),
       cancelAll: params.cancelAll,
-      guardStatus: this.isCancelingOrders,
+      hasOngoingOperation: this.cancelOrdersOperation !== null,
     });
 
-    // Guard: Prevent concurrent calls to cancelOrders
-    if (this.isCancelingOrders) {
-      DevLogger.log('[cancelOrders] === BLOCKED ===', {
+    // Guard: Prevent concurrent calls by returning the existing operation's promise
+    // This ensures atomicity and allows subsequent calls to wait for the result
+    if (this.cancelOrdersOperation) {
+      DevLogger.log('[cancelOrders] === WAITING for existing operation ===', {
         timestamp: Date.now(),
         cancelAll: params.cancelAll,
       });
-      return {
-        success: false,
-        successCount: 0,
-        failureCount: 0,
-        results: [],
-      };
+      return this.cancelOrdersOperation;
     }
 
-    this.isCancelingOrders = true;
-    const traceId = uuidv4();
-    const startTime = performance.now();
+    // Create the operation promise and store it before any await
+    // This assignment is effectively atomic in JavaScript's single-threaded execution
+    const operationPromise = (async (): Promise<CancelOrdersResult> => {
+      const traceId = uuidv4();
+      const startTime = performance.now();
 
-    try {
-      trace({
-        name: TraceName.PerpsCancelOrder,
-        id: traceId,
-        op: TraceOperation.PerpsOrderSubmission,
-        tags: {
-          provider: this.state.activeProvider,
-          isBatch: 'true',
-          isTestnet: this.state.isTestnet,
-        },
-        data: {
-          cancelAll: params.cancelAll ? 'true' : 'false',
-          coinCount: params.coins?.length || 0,
-          orderIdCount: params.orderIds?.length || 0,
-        },
-      });
+      try {
+        trace({
+          name: TraceName.PerpsCancelOrder,
+          id: traceId,
+          op: TraceOperation.PerpsOrderSubmission,
+          tags: {
+            provider: this.state.activeProvider,
+            isBatch: 'true',
+            isTestnet: this.state.isTestnet,
+          },
+          data: {
+            cancelAll: params.cancelAll ? 'true' : 'false',
+            coinCount: params.coins?.length || 0,
+            orderIdCount: params.orderIds?.length || 0,
+          },
+        });
 
-      // Pause orders stream to prevent WebSocket updates during cancellation
-      return await this.withStreamPause(async () => {
-        // Get all open orders (using getOpenOrders to avoid duplicates from historicalOrders)
-        const orders = await this.getOpenOrders();
+        // Pause orders stream to prevent WebSocket updates during cancellation
+        return await this.withStreamPause(async () => {
+          // Get all open orders (using getOpenOrders to avoid duplicates from historicalOrders)
+          const orders = await this.getOpenOrders();
 
-        // Filter orders based on params
-        let ordersToCancel = orders;
-        if (params.cancelAll || (!params.coins && !params.orderIds)) {
-          // Cancel all orders
-          ordersToCancel = orders;
-        } else if (params.orderIds && params.orderIds.length > 0) {
-          // Cancel specific order IDs
-          ordersToCancel = orders.filter((o) =>
-            params.orderIds?.includes(o.orderId),
+          // Filter orders based on params
+          let ordersToCancel = orders;
+          if (params.cancelAll || (!params.coins && !params.orderIds)) {
+            // Cancel all orders
+            ordersToCancel = orders;
+          } else if (params.orderIds && params.orderIds.length > 0) {
+            // Cancel specific order IDs
+            ordersToCancel = orders.filter((o) =>
+              params.orderIds?.includes(o.orderId),
+            );
+          } else if (params.coins && params.coins.length > 0) {
+            // Cancel orders for specific coins
+            ordersToCancel = orders.filter((o) =>
+              params.coins?.includes(o.symbol),
+            );
+          }
+
+          if (ordersToCancel.length === 0) {
+            return {
+              success: false,
+              successCount: 0,
+              failureCount: 0,
+              results: [],
+            };
+          }
+
+          // Cancel all orders in parallel using Promise.allSettled
+          const results = await Promise.allSettled(
+            ordersToCancel.map((order) =>
+              this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
+            ),
           );
-        } else if (params.coins && params.coins.length > 0) {
-          // Cancel orders for specific coins
-          ordersToCancel = orders.filter((o) =>
-            params.coins?.includes(o.symbol),
-          );
-        }
 
-        if (ordersToCancel.length === 0) {
+          // Aggregate results
+          const successCount = results.filter(
+            (r) => r.status === 'fulfilled' && r.value.success,
+          ).length;
+          const failureCount = results.length - successCount;
+
+          const completionDuration = performance.now() - startTime;
+
+          // Track batch cancel event (using available properties)
+          MetaMetrics.getInstance().trackEvent(
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+            )
+              .addProperties({
+                [PerpsEventProperties.STATUS]:
+                  successCount > 0
+                    ? PerpsEventValues.STATUS.EXECUTED
+                    : PerpsEventValues.STATUS.FAILED,
+                [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+                // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
+                // can be added to PerpsEventProperties if needed for analytics
+              })
+              .build(),
+          );
+
           return {
-            success: false,
-            successCount: 0,
-            failureCount: 0,
-            results: [],
+            success: successCount > 0,
+            successCount,
+            failureCount,
+            results: results.map((result, index) => ({
+              orderId: ordersToCancel[index].orderId,
+              coin: ordersToCancel[index].symbol,
+              success: !!(
+                result.status === 'fulfilled' && result.value.success
+              ),
+              error:
+                result.status === 'rejected'
+                  ? result.reason instanceof Error
+                    ? result.reason.message
+                    : 'Unknown error'
+                  : result.status === 'fulfilled' && !result.value.success
+                  ? result.value.error
+                  : undefined,
+            })),
           };
-        }
-
-        // Cancel all orders in parallel using Promise.allSettled
-        const results = await Promise.allSettled(
-          ordersToCancel.map((order) =>
-            this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
-          ),
-        );
-
-        // Aggregate results
-        const successCount = results.filter(
-          (r) => r.status === 'fulfilled' && r.value.success,
-        ).length;
-        const failureCount = results.length - successCount;
-
+        }, ['orders']); // Disconnect orders stream during operation
+      } catch (error) {
         const completionDuration = performance.now() - startTime;
 
-        // Track batch cancel event (using available properties)
+        // Track batch cancel failed event
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
           )
             .addProperties({
-              [PerpsEventProperties.STATUS]:
-                successCount > 0
-                  ? PerpsEventValues.STATUS.EXECUTED
-                  : PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
-              // can be added to PerpsEventProperties if needed for analytics
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                error instanceof Error ? error.message : 'Unknown error',
             })
             .build(),
         );
 
-        return {
-          success: successCount > 0,
-          successCount,
-          failureCount,
-          results: results.map((result, index) => ({
-            orderId: ordersToCancel[index].orderId,
-            coin: ordersToCancel[index].symbol,
-            success: !!(result.status === 'fulfilled' && result.value.success),
-            error:
-              result.status === 'rejected'
-                ? result.reason instanceof Error
-                  ? result.reason.message
-                  : 'Unknown error'
-                : result.status === 'fulfilled' && !result.value.success
-                ? result.value.error
-                : undefined,
-          })),
-        };
-      }, ['orders']); // Disconnect orders stream during operation
-    } catch (error) {
-      const completionDuration = performance.now() - startTime;
+        throw error;
+      } finally {
+        DevLogger.log('[cancelOrders] === EXIT ===', {
+          timestamp: Date.now(),
+        });
+        endTrace({
+          name: TraceName.PerpsCancelOrder,
+          id: traceId,
+        });
+      }
+    })();
 
-      // Track batch cancel failed event
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              error instanceof Error ? error.message : 'Unknown error',
-          })
-          .build(),
-      );
-
-      throw error;
+    // Store the promise and ensure cleanup happens after completion
+    this.cancelOrdersOperation = operationPromise;
+    try {
+      return await operationPromise;
     } finally {
-      this.isCancelingOrders = false;
-      DevLogger.log('[cancelOrders] === EXIT ===', {
-        timestamp: Date.now(),
-      });
-      endTrace({
-        name: TraceName.PerpsCancelOrder,
-        id: traceId,
-      });
+      // Clear the operation only after it completes
+      this.cancelOrdersOperation = null;
     }
   }
 

@@ -4,6 +4,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import type { Order, CancelOrdersResult } from '../controllers/types';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 
 export interface UsePerpsCancelAllOrdersOptions {
   /** Callback invoked when cancellation succeeds */
@@ -84,7 +85,14 @@ export const usePerpsCancelAllOrders = (
 
       // Navigate back on any success (full or partial)
       if (navigateBackOnSuccess && result.successCount > 0) {
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          // Fallback: navigate to Markets view if can't go back
+          navigation.navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.MARKETS,
+          });
+        }
       }
 
       // If complete failure, throw error to trigger catch block
@@ -114,7 +122,14 @@ export const usePerpsCancelAllOrders = (
 
   const handleKeepOrders = useCallback(() => {
     DevLogger.log('[usePerpsCancelAllOrders] User chose to keep orders');
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // Fallback: navigate to Markets view if can't go back
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    }
   }, [navigation]);
 
   return {

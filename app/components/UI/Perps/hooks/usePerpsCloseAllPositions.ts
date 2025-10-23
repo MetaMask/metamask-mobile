@@ -4,6 +4,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import type { Position, ClosePositionsResult } from '../controllers/types';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 
 export interface UsePerpsCloseAllPositionsOptions {
   /** Callback invoked when closing succeeds */
@@ -105,7 +106,14 @@ export const usePerpsCloseAllPositions = (
 
       // Navigate back on any success (full or partial)
       if (navigateBackOnSuccess && result.successCount > 0) {
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          // Fallback: navigate to Markets view if can't go back
+          navigation.navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.MARKETS,
+          });
+        }
       }
 
       // If complete failure, throw error to trigger catch block
@@ -145,7 +153,14 @@ export const usePerpsCloseAllPositions = (
 
   const handleKeepPositions = useCallback(() => {
     DevLogger.log('[usePerpsCloseAllPositions] User chose to keep positions');
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // Fallback: navigate to Markets view if can't go back
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    }
   }, [navigation]);
 
   return {

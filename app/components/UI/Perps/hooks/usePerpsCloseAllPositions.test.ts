@@ -53,6 +53,7 @@ describe('usePerpsCloseAllPositions', () => {
   const mockNavigation = {
     goBack: jest.fn(),
     navigate: jest.fn(),
+    canGoBack: jest.fn(() => true),
   };
 
   beforeEach(() => {
