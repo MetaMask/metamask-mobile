@@ -564,25 +564,72 @@ export class PolymarketProvider implements PredictProvider {
   public async prepareClaim(
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
-    const { positions, signer } = params;
+    try {
+      const { positions, signer } = params;
 
-    if (!signer.address) {
-      throw new Error('Signer address is required');
+      if (!positions || positions.length === 0) {
+        throw new Error('No positions provided for claim');
+      }
+
+      if (!signer?.address) {
+        throw new Error('Signer address is required for claim');
+      }
+
+      // Get safe address from cache or fetch it
+      let safeAddress: string | undefined;
+      try {
+        const cachedState = this.#accountStateByAddress.get(signer.address);
+        safeAddress =
+          cachedState?.address ??
+          (await this.getAccountState({ ownerAddress: signer.address }))
+            .address;
+      } catch (error) {
+        throw new Error(
+          `Failed to retrieve account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      if (!safeAddress) {
+        throw new Error('Safe address not found for claim');
+      }
+
+      // Generate claim transaction
+      let claimTransaction;
+      try {
+        claimTransaction = await getClaimTransaction({
+          signer,
+          positions,
+          safeAddress,
+        });
+      } catch (error) {
+        throw new Error(
+          `Failed to generate claim transaction: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      if (!claimTransaction || claimTransaction.length === 0) {
+        throw new Error('No claim transaction generated');
+      }
+
+      return {
+        chainId: POLYGON_MAINNET_CHAIN_ID,
+        transactions: claimTransaction,
+      };
+    } catch (error) {
+      // Log error for debugging
+      DevLogger.log('PolymarketProvider: prepareClaim failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Re-throw with clear error message
+      throw error;
     }
-
-    const safeAddress =
-      this.#accountStateByAddress.get(signer.address)?.address ??
-      (await this.getAccountState({ ownerAddress: signer.address })).address;
-
-    const claimTransaction = await getClaimTransaction({
-      signer,
-      positions,
-      safeAddress,
-    });
-    return {
-      chainId: POLYGON_MAINNET_CHAIN_ID,
-      transactions: claimTransaction,
-    };
   }
 
   public async isEligible(): Promise<boolean> {
@@ -705,24 +752,67 @@ export class PolymarketProvider implements PredictProvider {
   public async getAccountState(params: {
     ownerAddress: string;
   }): Promise<AccountState> {
-    const { ownerAddress } = params;
-    const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
-    const address = cachedAddress?.address ?? computeProxyAddress(ownerAddress);
+    try {
+      const { ownerAddress } = params;
 
-    const [isDeployed, hasAllowancesResult] = await Promise.all([
-      isSmartContractAddress(address, numberToHex(POLYGON_MAINNET_CHAIN_ID)),
-      hasAllowances({ address }),
-    ]);
+      if (!ownerAddress) {
+        throw new Error('Owner address is required');
+      }
 
-    const accountState = {
-      address,
-      isDeployed,
-      hasAllowances: hasAllowancesResult,
-    };
+      // Get or compute safe address
+      const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
+      let address: string;
+      try {
+        address =
+          cachedAddress?.address ?? (await computeSafeAddress(ownerAddress));
+      } catch (error) {
+        throw new Error(
+          `Failed to compute safe address: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
 
-    this.#accountStateByAddress.set(ownerAddress, accountState);
+      if (!address) {
+        throw new Error('Failed to get safe address');
+      }
 
-    return accountState;
+      // Check deployment status and allowances
+      let isDeployed: boolean;
+      let hasAllowancesResult: boolean;
+      try {
+        [isDeployed, hasAllowancesResult] = await Promise.all([
+          isSmartContractAddress(
+            address,
+            numberToHex(POLYGON_MAINNET_CHAIN_ID),
+          ),
+          hasAllowances({ address }),
+        ]);
+      } catch (error) {
+        throw new Error(
+          `Failed to check account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      const accountState = {
+        address,
+        isDeployed,
+        hasAllowances: hasAllowancesResult,
+      };
+
+      this.#accountStateByAddress.set(ownerAddress, accountState);
+
+      return accountState;
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: getAccountState failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   public async getBalance({ address }: GetBalanceParams): Promise<number> {

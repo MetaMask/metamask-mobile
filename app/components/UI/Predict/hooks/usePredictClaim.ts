@@ -55,6 +55,17 @@ export const usePredictClaim = ({
         },
       });
 
+      // Extract error message for more specific toast
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('Claim error details:', {
+        message: errorMessage,
+        providerId,
+        timestamp: new Date().toISOString(),
+      });
+
+      navigation.goBack();
+
+      // Show error toast with retry option
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
