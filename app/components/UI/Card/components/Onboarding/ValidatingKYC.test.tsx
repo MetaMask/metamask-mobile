@@ -4,10 +4,49 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
+}));
+
+jest.mock('../../../../../core/redux/slices/card', () => ({
+  resetOnboardingState: jest.fn(),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
+
 jest.mock('../../hooks/useUserRegistrationStatus', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    SafeAreaView: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(View, props, children),
+  };
+});
+
+jest.mock('@metamask/react-native-webview', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    WebView: ({ ...props }: Record<string, unknown>) =>
+      React.createElement(View, { testID: 'webview', ...props }),
+  };
+});
 
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
@@ -42,6 +81,12 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: jest.fn(() => ({
+    style: jest.fn((styles) => styles),
+  })),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -60,19 +105,19 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../Button', () => {
+jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   const MockButton = ({
-    children,
+    label,
     onPress,
     disabled,
     testID,
     ...props
   }: {
-    children: React.ReactNode;
-    onPress: () => void;
+    label?: string;
+    onPress?: () => void;
     disabled?: boolean;
     testID?: string;
     [key: string]: unknown;
@@ -80,15 +125,37 @@ jest.mock('../../../Button', () => {
     React.createElement(
       TouchableOpacity,
       {
-        testID: testID || 'validating-kyc-continue-button',
+        testID: testID || 'validating-kyc-button',
         onPress,
         disabled,
         ...props,
       },
-      React.createElement(Text, {}, children),
+      React.createElement(Text, {}, label),
     );
 
-  return MockButton;
+  MockButton.defaultProps = {
+    variant: 'Primary',
+    size: 'Lg',
+    width: 'Full',
+  };
+
+  return {
+    __esModule: true,
+    default: MockButton,
+    ButtonSize: {
+      Lg: 'Lg',
+      Md: 'Md',
+      Sm: 'Sm',
+    },
+    ButtonVariants: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonWidthTypes: {
+      Full: 'Full',
+      Auto: 'Auto',
+    },
+  };
 });
 
 jest.mock('react-native', () => {
@@ -117,6 +184,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.validating_kyc.title': 'Validating your identity',
       'card.card_onboarding.validating_kyc.description':
         'Please wait while we validate your identity.',
+      'card.card_onboarding.validating_kyc.timeout_button': 'Start Over',
       'card.card_onboarding.continue_button': 'Continue',
     };
     return translations[key] || key;
@@ -126,23 +194,32 @@ jest.mock('../../../../../../locales/i18n', () => ({
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import ValidatingKYC from './ValidatingKYC';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
 
 describe('ValidatingKYC Component', () => {
   let mockNavigate: jest.Mock;
   let mockUseUserRegistrationStatus: jest.Mock;
+  let mockDispatch: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate = jest.fn();
+    mockDispatch = jest.fn();
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
 
+    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+
     (useRoute as jest.Mock).mockReturnValue({
-      params: { sessionUrl: 'https://example.com/session' },
+      params: {},
     });
+
+    (useParams as jest.Mock).mockReturnValue({});
 
     // Default mock for useUserRegistrationStatus
     mockUseUserRegistrationStatus = jest.fn().mockReturnValue({
@@ -308,10 +385,14 @@ describe('ValidatingKYC Component', () => {
       });
     });
 
-    it('navigates to Webview when verificationState is UNVERIFIED with sessionUrl', async () => {
+    it('renders WebView when verificationState is PENDING with sessionUrl', () => {
+      (useParams as jest.Mock).mockReturnValue({
+        sessionUrl: 'https://example.com/session',
+      });
+
       mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'UNVERIFIED',
-        userResponse: { verificationState: 'UNVERIFIED' },
+        verificationState: 'PENDING',
+        userResponse: { verificationState: 'PENDING' },
         isLoading: false,
         isError: false,
         error: null,
@@ -319,17 +400,10 @@ describe('ValidatingKYC Component', () => {
         fetchRegistrationStatus: jest.fn(),
       });
 
-      render(<ValidatingKYC />);
+      const { getByTestId } = render(<ValidatingKYC />);
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: 'https://example.com/session',
-            title: 'Identity Verification',
-          },
-        });
-      });
+      expect(getByTestId('webview')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate when verificationState is PENDING', async () => {
