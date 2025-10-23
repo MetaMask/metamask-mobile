@@ -193,8 +193,5 @@ export const createStyles = (theme: Theme) => {
       flexDirection: 'row',
       gap: 4,
     },
-    tooltipContainer: {
-      zIndex: 10,
-    },
   });
 };
