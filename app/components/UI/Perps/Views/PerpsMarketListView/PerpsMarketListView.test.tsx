@@ -20,6 +20,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
+  ...jest.requireActual('../../hooks/usePerpsMarkets'),
   usePerpsMarkets: jest.fn(),
 }));
 
