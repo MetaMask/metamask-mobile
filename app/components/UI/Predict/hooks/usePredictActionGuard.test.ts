@@ -72,6 +72,23 @@ describe('usePredictActionGuard', () => {
       expect(result.current.isEligible).toBe(true);
       expect(result.current.hasNoBalance).toBe(false);
     });
+
+    it('executes async action and returns promise', async () => {
+      const { result } = renderHook(() =>
+        usePredictActionGuard({
+          providerId: 'polymarket',
+          navigation: mockNavigation,
+        }),
+      );
+
+      const mockAsyncAction = jest.fn().mockResolvedValue('success');
+      const promise = result.current.executeGuardedAction(mockAsyncAction);
+
+      expect(promise).toBeInstanceOf(Promise);
+      await promise;
+      expect(mockAsyncAction).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   describe('when user is not eligible', () => {

@@ -16,9 +16,9 @@ interface ExecuteGuardedActionOptions {
 
 interface UsePredictActionGuardResult {
   executeGuardedAction: (
-    action: () => void,
+    action: () => void | Promise<void>,
     options?: ExecuteGuardedActionOptions,
-  ) => void;
+  ) => void | Promise<void>;
   isEligible: boolean;
   hasNoBalance: boolean;
 }
@@ -31,7 +31,10 @@ export const usePredictActionGuard = ({
   const { hasNoBalance } = usePredictBalance();
 
   const executeGuardedAction = useCallback(
-    (action: () => void, options: ExecuteGuardedActionOptions = {}) => {
+    (
+      action: () => void | Promise<void>,
+      options: ExecuteGuardedActionOptions = {},
+    ) => {
       const { checkBalance = false } = options;
 
       if (!isEligible) {
@@ -48,7 +51,7 @@ export const usePredictActionGuard = ({
         return;
       }
 
-      action();
+      return action();
     },
     [isEligible, hasNoBalance, navigation],
   );

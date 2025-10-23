@@ -322,7 +322,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const handleClaimPress = async () => {
-    executeGuardedAction(async () => {
+    await executeGuardedAction(async () => {
       await claim();
     });
   };

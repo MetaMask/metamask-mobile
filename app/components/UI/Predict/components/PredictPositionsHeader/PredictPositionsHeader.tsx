@@ -136,7 +136,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
     const handleClaim = async () => {
-      executeGuardedAction(async () => {
+      await executeGuardedAction(async () => {
         await claim();
       });
     };
