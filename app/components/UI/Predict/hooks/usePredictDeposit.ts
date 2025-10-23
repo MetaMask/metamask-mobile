@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import Routes from '../../../../constants/navigation/Routes';
@@ -48,9 +49,37 @@ export const usePredictDeposit = ({
         providerId,
       }).catch((err) => {
         console.error('Failed to initialize deposit:', err);
+
+        // Capture exception with deposit initialization context
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePredictDeposit',
+            action: 'deposit_initialization',
+            operation: 'financial_operations',
+          },
+          extra: {
+            depositContext: {
+              providerId,
+            },
+          },
+        });
       });
     } catch (err) {
       console.error('Failed to proceed with deposit:', err);
+
+      // Capture exception with deposit navigation context
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        tags: {
+          component: 'usePredictDeposit',
+          action: 'deposit_navigation',
+          operation: 'financial_operations',
+        },
+        extra: {
+          depositContext: {
+            providerId,
+          },
+        },
+      });
     }
   }, [isEligible, navigateToConfirmation, navigation, providerId]);
 

@@ -1,4 +1,5 @@
 import { useCallback, useContext, useState } from 'react';
+import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -166,6 +167,23 @@ export function usePredictPlaceOrder(
         DevLogger.log('usePredictPlaceOrder: Error placing order', {
           error: err,
           orderParams,
+        });
+
+        // Capture exception with order context (no sensitive data like amounts)
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePredictPlaceOrder',
+            action: 'order_placement',
+            operation: 'order_management',
+          },
+          extra: {
+            orderContext: {
+              providerId: orderParams.providerId,
+              side: orderParams.preview?.side,
+              marketId: orderParams.analyticsProperties?.marketId,
+              transactionType: orderParams.analyticsProperties?.transactionType,
+            },
+          },
         });
 
         setError(errorMessage);
