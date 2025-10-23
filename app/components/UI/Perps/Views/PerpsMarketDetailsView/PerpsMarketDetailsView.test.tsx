@@ -911,7 +911,9 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       // Trigger the refresh
-      await refreshControl.props.onRefresh();
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Should log error
       expect(consoleErrorSpy).toHaveBeenCalledWith(
