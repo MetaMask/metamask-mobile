@@ -27,7 +27,6 @@ import { Box } from '../../../Box/Box';
 import {
   AlignItems as BoxAlignItems,
   FlexDirection as BoxFlexDirection,
-  JustifyContent as BoxJustifyContent,
 } from '../../../Box/box.types';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { BridgeToken } from '../../types';
@@ -56,6 +55,7 @@ import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import { setDestTokenExchangeRate } from '../../../../../core/redux/slices/bridge';
 
 import { MarketDataDetails } from '@metamask/assets-controllers';
+import { Theme } from '../../../../../util/theme/models';
 
 interface TokenInsightsRouteParams {
   token: BridgeToken;
@@ -67,23 +67,11 @@ type TokenInsightsSheetRouteProp = RouteProp<
   'TokenInsights'
 >;
 
-interface Colors {
-  background: {
-    default: string;
-  };
-  success: {
-    muted: string;
-  };
-  primary: {
-    default: string;
-  };
-}
-
-const createStyles = (colors: Colors) =>
+const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       width: '100%',
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       padding: 24,
     },
     header: {
@@ -98,7 +86,7 @@ const createStyles = (colors: Colors) =>
       gap: 8,
     },
     verifiedBadge: {
-      backgroundColor: colors.success.muted,
+      backgroundColor: theme.colors.success.muted,
       borderRadius: 8,
       padding: 8,
       marginBottom: 24,
@@ -139,10 +127,9 @@ const TokenInsightsSheet: React.FC = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<TokenInsightsSheetRouteProp>();
   const { token } = route.params || {};
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
-  // Get current currency
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   // Get cached market data from TokenRatesController
@@ -232,7 +219,7 @@ const TokenInsightsSheet: React.FC = () => {
   // Final market data
   const marketData = cachedMarketData ?? fetchedMarketData;
 
-  // Extract raw values with proper fallbacks
+  // Extract raw values from market data
   const price =
     token?.currencyExchangeRate ||
     (typeof marketData?.price === 'number' ? marketData.price : undefined) ||
@@ -255,7 +242,7 @@ const TokenInsightsSheet: React.FC = () => {
   const marketCap = marketData?.marketCap as number | undefined;
   const dilutedMarketCap = marketData?.dilutedMarketCap as number | undefined;
 
-  // Format price using the same utility for consistency
+  // Format price with current currency
   const formattedPrice = useMemo(() => {
     if (!price) return '—';
     return formatWithThreshold(price, 0.01, i18n.locale, {
@@ -299,7 +286,10 @@ const TokenInsightsSheet: React.FC = () => {
     return (
       <BottomSheet ref={bottomSheetRef}>
         <View style={[styles.container, styles.loadingContainer]}>
-          <ActivityIndicator size="large" color={colors.primary.default} />
+          <ActivityIndicator
+            size="large"
+            color={theme.colors.primary.default}
+          />
         </View>
       </BottomSheet>
     );
@@ -332,8 +322,8 @@ const TokenInsightsSheet: React.FC = () => {
         </Box>
 
         {/* Verified Token Badge */}
-        {/* For now we are not showing the verified token badge until the backend */}
-        {false && (
+        {/* For now we are not showing the verified token badge until the backend supports it*/}
+        {/* {false && (
           <Box
             style={styles.verifiedBadge}
             flexDirection={BoxFlexDirection.Row}
@@ -349,7 +339,7 @@ const TokenInsightsSheet: React.FC = () => {
               {strings('bridge.verified_token')}
             </Text>
           </Box>
-        )}
+        )} */}
 
         {/* Token Details */}
         <Box
