@@ -382,21 +382,61 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
-                                  Rate
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Rate
+                                  </Text>
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "display": "flex",
+                                        },
+                                        {
+                                          "minWidth": 40,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      (30s)
+                                    </Text>
+                                  </View>
+                                </View>
                                 <TouchableOpacity
                                   accessibilityLabel="Rate tooltip"
                                   accessibilityRole="button"
@@ -418,10 +458,10 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#b7bbc8"
+                                    color="#686e7d"
                                     fill="currentColor"
                                     height={16}
-                                    name="Question"
+                                    name="Info"
                                     style={
                                       {
                                         "height": 16,
@@ -556,10 +596,10 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#b7bbc8"
+                                    color="#686e7d"
                                     fill="currentColor"
                                     height={16}
-                                    name="Question"
+                                    name="Info"
                                     style={
                                       {
                                         "height": 16,
@@ -669,142 +709,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Price Impact
-                                </Text>
-                                <TouchableOpacity
-                                  accessibilityLabel="Price Impact tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#b7bbc8"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Question"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "alignItems": "flex-end",
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  -0.06%
-                                </Text>
-                              </View>
-                            </View>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
-                              [
-                                undefined,
-                              ],
-                            ]
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
                                   Slippage
                                 </Text>
                                 <TouchableOpacity
@@ -828,10 +732,10 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#b7bbc8"
+                                    color="#686e7d"
                                     fill="currentColor"
                                     height={16}
-                                    name="Question"
+                                    name="Info"
                                     style={
                                       {
                                         "height": 16,
@@ -966,8 +870,42 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Recipient
+                                  Price Impact
                                 </Text>
+                                <TouchableOpacity
+                                  accessibilityLabel="Price Impact tooltip"
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "borderRadius": 8,
+                                      "height": 24,
+                                      "justifyContent": "center",
+                                      "opacity": 1,
+                                      "width": 24,
+                                    }
+                                  }
+                                >
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="Info"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </View>
@@ -996,51 +934,125 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                <TouchableOpacity
-                                  activeOpacity={0.6}
-                                  onPress={[Function]}
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "gap": 4,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
-                                  testID="recipient-selector-button"
+                                  testID="label"
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    ellipsizeMode="tail"
-                                    numberOfLines={1}
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "flexShrink": 1,
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Select recipient
-                                  </Text>
-                                  <SvgMock
-                                    color="#b7bbc8"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Edit"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
+                                  -0.06%
+                                </Text>
                               </View>
                             </View>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                                "overflow": "hidden",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "display": "flex",
+                                },
+                                {
+                                  "flex": 1,
+                                  "minWidth": "auto",
+                                  "width": "auto",
+                                },
+                              ]
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Recipient
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "flex-end",
+                                  "display": "flex",
+                                  "justifyContent": "flex-end",
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                              ]
+                            }
+                          >
+                            <TouchableOpacity
+                              activeOpacity={0.6}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                              testID="recipient-selector-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "flexShrink": 1,
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Select recipient
+                              </Text>
+                              <SvgMock
+                                color="#b7bbc8"
+                                fill="currentColor"
+                                height={16}
+                                name="Edit"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
                           </View>
                         </View>
                       </View>
