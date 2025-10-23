@@ -92,10 +92,6 @@ export const ControllerStorage = {
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
-            if (isSnapController(controllerName)) {
-              const realm = RealmService.instance;
-              const value = realm.objects('Snap');
-            }
             const data = await FilesystemStorage.getItem(key);
             if (data) {
               const parsedData = JSON.parse(data);
@@ -115,6 +111,19 @@ export const ControllerStorage = {
               }
 
               const { _persist, ...controllerState } = parsedData;
+
+              if (isSnapController(controllerName)) {
+                const realm = RealmService.instance;
+                const value = realm.objects('Snap');
+
+                value.forEach((snapItem) => {
+                  const { name, sourceCode } = JSON.parse(
+                    JSON.stringify(snapItem),
+                  );
+                  controllerState.snaps[name].sourceCode = sourceCode;
+                });
+                console.log('Realm loaded');
+              }
 
               backgroundState[controllerName] = controllerState;
             }
@@ -151,9 +160,9 @@ const MigratedStorage = createStorage(true);
 export const createPersistController = (debounceMs: number = 200) =>
   debounce(async (filteredState: unknown, controllerName: string) => {
     try {
-      // Save the filtered state to filesystem storage
       //
       if (isSnapController(controllerName)) {
+        console.log('Realm stop');
         //TODO: types
         const realm = RealmService.instance;
         const snapCollection = (filteredState as any).snaps;
@@ -171,9 +180,10 @@ export const createPersistController = (debounceMs: number = 200) =>
               UpdateMode.Modified,
             );
           });
-          console.log('Realm snap write done', snap);
+          filteredState.snaps[snap].sourceCode = '';
         });
       }
+      // Save the filtered state to filesystem storage
       await ControllerStorage.setItem(
         `persist:${controllerName}`,
         JSON.stringify(filteredState),
