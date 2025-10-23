@@ -7,6 +7,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import MailingAddress from './MailingAddress';
 import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import { useCardSDK } from '../../sdk';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -17,6 +18,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useRegisterMailingAddress');
 jest.mock('../../hooks/useRegisterUserConsent');
 jest.mock('../../hooks/useRegistrationSettings');
+jest.mock('../../sdk');
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -358,6 +360,8 @@ const mockUseRegistrationSettings =
   useRegistrationSettings as jest.MockedFunction<
     typeof useRegistrationSettings
   >;
+const mockSetUser = jest.fn();
+const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 
 describe('MailingAddress Component', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -439,6 +443,18 @@ describe('MailingAddress Component', () => {
       isLoading: false,
       error: false,
       fetchData: jest.fn(),
+    });
+
+    // Mock useCardSDK
+    mockUseCardSDK.mockReturnValue({
+      sdk: null,
+      isLoading: false,
+      user: {
+        id: 'user-id',
+        email: 'test@example.com',
+      },
+      setUser: mockSetUser,
+      logoutFromProvider: jest.fn(),
     });
 
     // Mock useSelector
