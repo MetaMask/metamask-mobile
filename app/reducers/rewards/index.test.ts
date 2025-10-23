@@ -163,7 +163,6 @@ describe('rewardsReducer', () => {
         },
         balance: {
           total: 1500,
-          refereePortion: 300,
           updatedAt: 1714857600000,
         },
         tier: {
@@ -275,7 +274,6 @@ describe('rewardsReducer', () => {
         },
         balance: {
           total: 'invalid' as unknown as number, // Invalid type
-          refereePortion: null as unknown as number, // Invalid type
           updatedAt: 1714857600000,
         },
       } as unknown as SeasonStatusState;
@@ -314,7 +312,6 @@ describe('rewardsReducer', () => {
         },
         balance: {
           total: 500,
-          refereePortion: 100,
           updatedAt: 1714857600000,
         },
         tier: {
@@ -356,8 +353,6 @@ describe('rewardsReducer', () => {
         },
         balance: {
           total: 100,
-          refereePortion: 50,
-          // No updatedAt property
         },
         tier: {
           currentTier: null,

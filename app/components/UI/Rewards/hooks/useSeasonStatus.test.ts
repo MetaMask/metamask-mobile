@@ -191,7 +191,6 @@ describe('useSeasonStatus', () => {
       season: mockSeasonMetadata,
       balance: {
         total: 100,
-        refereePortion: 20,
         updatedAt: 1640995200000,
       },
       tier: {
@@ -346,7 +345,6 @@ describe('useSeasonStatus', () => {
         season: mockSeasonMetadata,
         balance: {
           total: 100,
-          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
@@ -402,7 +400,6 @@ describe('useSeasonStatus', () => {
         season: mockSeasonMetadata,
         balance: {
           total: 100,
-          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
@@ -497,7 +494,6 @@ describe('useSeasonStatus', () => {
         season: mockSeasonMetadata,
         balance: {
           total: 100,
-          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
@@ -605,7 +601,6 @@ describe('useSeasonStatus', () => {
         season: mockSeasonMetadata,
         balance: {
           total: 100,
-          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
