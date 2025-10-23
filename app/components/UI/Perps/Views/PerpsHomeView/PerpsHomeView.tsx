@@ -43,6 +43,7 @@ import { usePerpsHomeData } from '../../hooks/usePerpsHomeData';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsSearchBar from '../../components/PerpsSearchBar';
 import PerpsCard from '../../components/PerpsCard';
+import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsTrendingMarkets from '../../components/PerpsTrendingMarkets/PerpsTrendingMarkets';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
@@ -78,6 +79,7 @@ const PerpsHomeView = () => {
   const {
     positions,
     orders,
+    watchlistMarkets,
     trendingMarkets,
     recentActivity,
     isLoading,
@@ -377,6 +379,14 @@ const PerpsHomeView = () => {
               ))}
             </View>
           </View>
+        )}
+
+        {/* Watchlist Section - Only show when there are watchlisted markets */}
+        {watchlistMarkets.length > 0 && (
+          <PerpsWatchlistMarkets
+            markets={watchlistMarkets}
+            isLoading={isLoading.markets}
+          />
         )}
 
         {/* Trending Markets List */}

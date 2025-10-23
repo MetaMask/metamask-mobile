@@ -53,4 +53,9 @@ export interface PerpsMarketListViewProps {
    * @default false
    */
   defaultSearchVisible?: boolean;
+  /**
+   * Start with watchlist filter enabled (show only watchlisted markets)
+   * @default false
+   */
+  showWatchlistOnly?: boolean;
 }

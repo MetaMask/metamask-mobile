@@ -127,6 +127,7 @@ const PerpsMarketListView = ({
   showBalanceActions: propShowBalanceActions,
   showBottomNav: propShowBottomNav,
   defaultSearchVisible: propDefaultSearchVisible,
+  showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -142,6 +143,8 @@ const PerpsMarketListView = ({
     route.params?.showBottomNav ?? propShowBottomNav ?? true;
   const defaultSearchVisible =
     route.params?.defaultSearchVisible ?? propDefaultSearchVisible ?? false;
+  const showWatchlistOnly =
+    route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const hiddenButtonStyle = {
@@ -153,7 +156,7 @@ const PerpsMarketListView = ({
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
   const [isSortDirectionSheetVisible, setIsSortDirectionSheetVisible] =
     useState(false);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
 

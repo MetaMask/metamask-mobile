@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   usePerpsLivePositions,
   usePerpsLiveOrders,
@@ -16,6 +17,7 @@ import {
   MARKET_SORTING_CONFIG,
 } from '../constants/perpsConfig';
 import { sortMarkets } from '../utils/sortMarkets';
+import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -28,6 +30,7 @@ interface UsePerpsHomeDataParams {
 interface UsePerpsHomeDataReturn {
   positions: Position[];
   orders: Order[];
+  watchlistMarkets: PerpsMarketData[];
   trendingMarkets: PerpsMarketData[];
   recentActivity: OrderFill[];
   isLoading: {
@@ -75,6 +78,16 @@ export const usePerpsHomeData = ({
     skipInitialFetch: false,
   });
 
+  // Get watchlist symbols from Redux
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+
+  // Filter markets that are in watchlist
+  const watchlistMarkets = useMemo(
+    () =>
+      allMarkets.filter((market) => watchlistSymbols.includes(market.symbol)),
+    [allMarkets, watchlistSymbols],
+  );
+
   // Sort markets and apply limit for trending section
   const trendingMarkets = useMemo(
     () =>
@@ -98,6 +111,7 @@ export const usePerpsHomeData = ({
         return {
           positions,
           orders: allOrders,
+          watchlistMarkets, // Show all watchlisted markets
           markets: trendingMarkets, // Show top 5 trending when no search
           fills: allFills,
         };
@@ -114,6 +128,12 @@ export const usePerpsHomeData = ({
         orders: allOrders.filter((order: Order) =>
           order.symbol?.toLowerCase().includes(lowerQuery),
         ),
+        // Filter watchlist markets by search query
+        watchlistMarkets: watchlistMarkets.filter(
+          (market: PerpsMarketData) =>
+            market.symbol?.toLowerCase().includes(lowerQuery) ||
+            market.name?.toLowerCase().includes(lowerQuery),
+        ),
         // Market has both 'symbol' and 'name'
         // Search through ALL markets, not just top 5 trending
         markets: allMarkets.filter(
@@ -127,7 +147,14 @@ export const usePerpsHomeData = ({
         ),
       };
     },
-    [positions, allOrders, trendingMarkets, allMarkets, allFills],
+    [
+      positions,
+      allOrders,
+      watchlistMarkets,
+      trendingMarkets,
+      allMarkets,
+      allFills,
+    ],
   );
 
   // Apply filtering and limits
@@ -144,6 +171,10 @@ export const usePerpsHomeData = ({
     () => filteredData.orders.slice(0, ordersLimit),
     [filteredData.orders, ordersLimit],
   );
+  const limitedWatchlistMarkets = useMemo(
+    () => filteredData.watchlistMarkets,
+    [filteredData.watchlistMarkets],
+  );
   const limitedMarkets = useMemo(
     () => filteredData.markets.slice(0, trendingLimit),
     [filteredData.markets, trendingLimit],
@@ -156,6 +187,7 @@ export const usePerpsHomeData = ({
   return {
     positions: limitedPositions,
     orders: limitedOrders,
+    watchlistMarkets: limitedWatchlistMarkets,
     trendingMarkets: limitedMarkets,
     recentActivity: limitedActivity,
     isLoading: {
