@@ -380,7 +380,10 @@ describe('PerpsMarketListView', () => {
     engine: {
       backgroundState: {
         PerpsController: {
-          watchlistMarkets: [],
+          watchlistMarkets: {
+            testnet: [],
+            mainnet: [],
+          },
         },
       },
     },
