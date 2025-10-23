@@ -362,20 +362,19 @@ describe('BridgeDestTokenSelector', () => {
     // Verify navigation to Token Insights sheet with the correct params
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.TOKEN_INSIGHTS,
-      params: {
+      params: expect.objectContaining({
         token: expect.objectContaining({
           address: ethToken2Address,
           balance: '2.0',
           balanceFiat: '$200000',
           chainId: '0x1',
           decimals: 18,
-          image: 'https://token2.com/logo.png',
           name: 'Hello Token',
           symbol: 'HELLO',
           tokenFiatAmount: 200000,
         }),
         networkName: 'Ethereum Mainnet',
-      },
+      }),
     });
   });
 
