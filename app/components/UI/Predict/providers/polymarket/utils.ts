@@ -25,7 +25,7 @@ import type {
 } from '../types';
 import {
   ClobAuthDomain,
-  DEFAULT_SLIPPAGE,
+  SLIPPAGE,
   EIP712Domain,
   FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
@@ -409,8 +409,11 @@ export const parsePolymarketEvents = (
             negRisk: market.negRisk,
             tickSize: market.orderPriceMinTickSize.toString(),
             resolvedBy: market.resolvedBy,
+            resolutionStatus: market.umaResolutionStatus,
           };
         }),
+      liquidity: event.liquidity,
+      volume: event.volume,
     }),
   );
   return parsedMarkets;
@@ -1064,6 +1067,22 @@ export const roundUp = (num: number, decimals: number): number => {
   return Math.ceil(num * 10 ** decimals) / 10 ** decimals;
 };
 
+export const roundOrderAmount = ({
+  amount,
+  decimals,
+}: {
+  amount: number;
+  decimals: number;
+}): number => {
+  if (decimalPlaces(amount) > decimals) {
+    amount = roundUp(amount, decimals + 4);
+    if (decimalPlaces(amount) > decimals) {
+      amount = roundDown(amount, decimals);
+    }
+  }
+  return amount;
+};
+
 export const roundOrderAmounts = ({
   roundConfig,
   side,
@@ -1076,30 +1095,17 @@ export const roundOrderAmounts = ({
   price: number;
 }): { makerAmount: number; takerAmount: number } => {
   const rawPrice = roundDown(price, roundConfig.price);
-
-  if (side === Side.BUY) {
-    const rawMakerAmt = roundDown(size, roundConfig.size);
-    let rawTakerAmt = rawMakerAmt / rawPrice;
-    if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-      rawTakerAmt = roundUp(rawTakerAmt, roundConfig.amount + 4);
-      if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-        rawTakerAmt = roundDown(rawTakerAmt, roundConfig.amount);
-      }
-    }
-    return {
-      makerAmount: rawMakerAmt,
-      takerAmount: rawTakerAmt,
-    };
-  }
   const rawMakerAmt = roundDown(size, roundConfig.size);
-  let rawTakerAmt = rawMakerAmt * rawPrice;
-  if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-    rawTakerAmt = roundUp(rawTakerAmt, roundConfig.amount + 4);
-    if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-      rawTakerAmt = roundDown(rawTakerAmt, roundConfig.amount);
-    }
+  let rawTakerAmt;
+  if (side === Side.BUY) {
+    rawTakerAmt = rawMakerAmt / rawPrice;
+  } else {
+    rawTakerAmt = rawMakerAmt * rawPrice;
   }
-
+  rawTakerAmt = roundOrderAmount({
+    amount: rawTakerAmt,
+    decimals: roundConfig.amount,
+  });
   return {
     makerAmount: rawMakerAmt,
     takerAmount: rawTakerAmt,
@@ -1141,7 +1147,7 @@ export const previewOrder = async (
       sharePrice: bestPrice,
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
-      slippage: DEFAULT_SLIPPAGE,
+      slippage: SLIPPAGE,
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
@@ -1175,7 +1181,7 @@ export const previewOrder = async (
     sharePrice: bestPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
-    slippage: DEFAULT_SLIPPAGE,
+    slippage: SLIPPAGE,
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,

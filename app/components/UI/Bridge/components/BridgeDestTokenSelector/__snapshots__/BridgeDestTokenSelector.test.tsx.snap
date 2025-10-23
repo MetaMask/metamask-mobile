@@ -544,7 +544,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "gap": 4,
+                                  "gap": 10,
                                   "paddingHorizontal": 4,
                                 }
                               }
@@ -567,14 +567,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -619,14 +618,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -639,13 +637,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   <View
                                     alignItems="center"
                                     flexDirection="row"
-                                    gap={4}
+                                    gap={8}
                                     style={
                                       [
                                         {
                                           "alignItems": "center",
                                           "flexDirection": "row",
-                                          "gap": 4,
+                                          "gap": 8,
                                         },
                                         undefined,
                                       ]
@@ -673,14 +671,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -693,13 +690,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   <View
                                     alignItems="center"
                                     flexDirection="row"
-                                    gap={4}
+                                    gap={8}
                                     style={
                                       [
                                         {
                                           "alignItems": "center",
                                           "flexDirection": "row",
-                                          "gap": 4,
+                                          "gap": 8,
                                         },
                                         undefined,
                                       ]
@@ -727,14 +724,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -747,13 +743,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   <View
                                     alignItems="center"
                                     flexDirection="row"
-                                    gap={4}
+                                    gap={8}
                                     style={
                                       [
                                         {
                                           "alignItems": "center",
                                           "flexDirection": "row",
-                                          "gap": 4,
+                                          "gap": 8,
                                         },
                                         undefined,
                                       ]

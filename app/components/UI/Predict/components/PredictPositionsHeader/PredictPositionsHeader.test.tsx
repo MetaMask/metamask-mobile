@@ -470,9 +470,9 @@ describe('MarketsWonCard', () => {
     });
 
     it('formats available balance to 2 decimal places', () => {
-      setupMarketsWonCardTest({ availableBalance: 123.456 });
+      setupMarketsWonCardTest({ availableBalance: 123.4321 });
 
-      expect(screen.getByText('$123.456')).toBeOnTheScreen();
+      expect(screen.getByText('$123.43')).toBeOnTheScreen();
     });
 
     it('formats claimable amount to 2 decimal places', () => {
