@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
@@ -22,10 +22,6 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -113,16 +109,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
-  const coordinatedPress = useCoordinatedPress();
-
-  const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handleNewTrade);
-  }, [coordinatedPress, handleNewTrade]);
-
   const renderStartTradeCTA = () => (
-    <TouchablePerpsComponent
+    <TouchableOpacity
       style={styles.startTradeCTA}
-      onPress={memoizedPressHandler}
+      onPress={handleNewTrade}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
       <View style={styles.startTradeContent}>
@@ -137,7 +127,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchablePerpsComponent>
+    </TouchableOpacity>
   );
 
   const renderOrdersSection = () => {
