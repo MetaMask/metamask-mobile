@@ -72,7 +72,7 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
     },
     backgroundImage: {
       position: 'absolute',
-      right: 0,
+      left: 120,
       bottom: 20,
       width: '100%',
       height: '100%',

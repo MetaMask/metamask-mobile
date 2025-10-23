@@ -42,8 +42,6 @@ import {
 import MetaMaskLogo from '../../../../../images/branding/metamask-name.png';
 import NegativePnlCharacter1 from '../../../../../images/negative_pnl_character_1_3x.png';
 import NegativePnlCharacter2 from '../../../../../images/negative_pnl_character_2_3x.png';
-import NegativePnlCharacter3 from '../../../../../images/negative_pnl_character_3_3x.png';
-import PositivePnlCharacter1 from '../../../../../images/positive_pnl_character_1_3x.png';
 import PositivePnlCharacter2 from '../../../../../images/positive_pnl_character_2_3x.png';
 import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_3_3x.png';
 import type { Position } from '../../controllers/types';
@@ -54,8 +52,6 @@ import styleSheet from './PerpsHeroCardView.styles';
 const CARD_IMAGES: ImageSourcePropType[] = [
   NegativePnlCharacter1,
   NegativePnlCharacter2,
-  NegativePnlCharacter3,
-  PositivePnlCharacter1,
   PositivePnlCharacter2,
   PositivePnlCharacter3,
 ];
