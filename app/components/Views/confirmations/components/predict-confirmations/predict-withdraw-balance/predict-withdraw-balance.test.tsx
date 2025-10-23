@@ -8,11 +8,6 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { PredictWithdrawBalance } from './predict-withdraw-balance';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useFocusEffect: jest.fn(),
-}));
-
 jest.mock('../../../../../UI/Predict/hooks/usePredictBalance');
 
 const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
