@@ -31,6 +31,7 @@ import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -111,8 +112,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
         });
 
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-          // @ts-expect-error - Event name type mismatch
-          'Unified SwapBridge Asset Detail Tooltip Clicked',
+          UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
           {
             token_name: item.name ?? 'Unknown',
             token_symbol: item.symbol,
