@@ -31,7 +31,6 @@ import {
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { BridgeToken } from '../../types';
 import i18n, { strings } from '../../../../../../locales/i18n';
-import { ethers } from 'ethers';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { showAlert } from '../../../../../actions/alert';
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,7 +38,11 @@ import { Hex } from '@metamask/utils';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { formatWithThreshold } from '../../../../../util/assets';
-import { formatVolume } from '../../../Perps/utils/formatUtils';
+import {
+  formatVolume,
+  formatPercentage,
+} from '../../../Perps/utils/formatUtils';
+import { formatAddress } from '../../../../../util/address';
 
 import { RootState } from '../../../../../reducers';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -237,7 +240,6 @@ const TokenInsightsSheet: React.FC = () => {
     )?.P1D as number | undefined) ??
     0;
 
-  // Extract market data values
   const totalVolume = marketData?.totalVolume as number | undefined;
   const marketCap = marketData?.marketCap as number | undefined;
   const dilutedMarketCap = marketData?.dilutedMarketCap as number | undefined;
@@ -269,14 +271,12 @@ const TokenInsightsSheet: React.FC = () => {
 
   const formatPercentChange = (change?: number) => {
     if (!change && change !== 0) return '—';
-    const sign = change >= 0 ? '+' : '';
-    return `${sign}${change.toFixed(2)}%`;
+    return formatPercentage(change);
   };
 
-  const formatAddress = (address: string) => {
+  const formatContractAddress = (address: string) => {
     if (!address) return '—';
-    if (address === ethers.constants.AddressZero) return 'Native Token';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    return formatAddress(address, 'short');
   };
 
   if (!token) return null;
@@ -425,7 +425,7 @@ const TokenInsightsSheet: React.FC = () => {
                   color={IconColor.Alternative}
                 />
                 <Text variant={TextVariant.BodyMD}>
-                  {formatAddress(token.address)}
+                  {formatContractAddress(token.address)}
                 </Text>
               </View>
             </TouchableOpacity>

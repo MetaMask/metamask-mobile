@@ -158,28 +158,26 @@ describe('TokenInsightsSheet', () => {
     };
   });
 
-  describe('Rendering', () => {
-    it('renders correctly with token data', () => {
-      const { getByText, toJSON } = renderWithProvider(<TokenInsightsSheet />, {
-        state: mockState,
-      });
-
-      expect(getByText('USDC Insights')).toBeTruthy();
-
-      expect(getByText(strings('bridge.price'))).toBeTruthy();
-      expect(getByText(strings('bridge.percent_change'))).toBeTruthy();
-      expect(getByText(strings('bridge.volume'))).toBeTruthy();
-      expect(getByText(strings('bridge.market_cap_fdv'))).toBeTruthy();
-      expect(getByText(strings('bridge.contract_address'))).toBeTruthy();
-
-      expect(getByText('$1.00')).toBeTruthy();
-      expect(getByText('-0.01%')).toBeTruthy();
-      expect(getByText('$54.44M')).toBeTruthy();
-      expect(getByText('$33.59B')).toBeTruthy();
-      expect(getByText('0x1234...7890')).toBeTruthy();
-
-      expect(toJSON()).toMatchSnapshot();
+  it('renders correctly with token data', () => {
+    const { getByText, toJSON } = renderWithProvider(<TokenInsightsSheet />, {
+      state: mockState,
     });
+
+    expect(getByText('USDC Insights')).toBeTruthy();
+
+    expect(getByText(strings('bridge.price'))).toBeTruthy();
+    expect(getByText(strings('bridge.percent_change'))).toBeTruthy();
+    expect(getByText(strings('bridge.volume'))).toBeTruthy();
+    expect(getByText(strings('bridge.market_cap_fdv'))).toBeTruthy();
+    expect(getByText(strings('bridge.contract_address'))).toBeTruthy();
+
+    expect(getByText('$1.00')).toBeTruthy();
+    expect(getByText('-0.01%')).toBeTruthy();
+    expect(getByText('$54.44M')).toBeTruthy();
+    expect(getByText('$33.59B')).toBeTruthy();
+    expect(getByText('0x1234...7890')).toBeTruthy();
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('Market Data', () => {
@@ -269,14 +267,12 @@ describe('TokenInsightsSheet', () => {
       // @ts-expect-error - Testing undefined value
       mockRoute.params.token.currencyExchangeRate = undefined;
 
-      // Mock API to return empty data
       (handleFetch as jest.Mock).mockResolvedValueOnce({});
 
       const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
         state: emptyState,
       });
 
-      // Wait for loading to complete and fallback values to display
       await waitFor(() => {
         expect(getByText('—')).toBeTruthy();
       });
@@ -369,7 +365,6 @@ describe('TokenInsightsSheet', () => {
         state: stateWithZeroChange,
       });
 
-      // Zero percent change is formatted with a + sign
       expect(getByText('+0.00%')).toBeTruthy();
     });
   });
@@ -487,7 +482,6 @@ describe('TokenInsightsSheet', () => {
 
       (handleFetch as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
 
-      // Mock console.error to avoid test output pollution
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
@@ -495,7 +489,6 @@ describe('TokenInsightsSheet', () => {
       });
 
       await waitFor(() => {
-        // Should still render with fallback values
         expect(getByText('USDC Insights')).toBeTruthy();
       });
 
@@ -526,7 +519,6 @@ describe('TokenInsightsSheet', () => {
         state: stateWithEUR,
       });
 
-      // Should format with EUR currency
       expect(getByText(/€/)).toBeTruthy();
     });
 
@@ -566,9 +558,8 @@ describe('TokenInsightsSheet', () => {
         state: stateWithLargeNumbers,
       });
 
-      // Should format large numbers appropriately
-      expect(getByText('$1.23T')).toBeTruthy(); // Volume
-      expect(getByText('$9.88T')).toBeTruthy(); // Market cap (dilutedMarketCap)
+      expect(getByText('$1.23T')).toBeTruthy();
+      expect(getByText('$9.88T')).toBeTruthy();
     });
   });
 });
