@@ -519,6 +519,8 @@
     "@open-rpc/schema-utils-js": "^1.16.2",
     "@open-rpc/test-coverage": "^2.2.2",
     "@react-native/metro-config": "0.76.9",
+    "@realm/babel-plugin": "^0.2.0",
+    "@realm/react": "^0.20.0",
     "@rpii/wdio-html-reporter": "^7.7.1",
     "@storybook/addon-controls": "^7.5.1",
     "@storybook/addon-ondevice-controls": "^6.5.6",
@@ -625,6 +627,7 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-native-tcp-socket": "^6.3.0",
     "react-test-renderer": "18.3.1",
+    "realm": "^20.2.0",
     "reassure": "^1.4.0",
     "redux-devtools-expo-dev-plugin": "^1.0.0",
     "redux-saga-test-plan": "^4.0.6",
@@ -735,7 +738,8 @@
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false,
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
       "react-native-nitro-modules": false,
-      "esbuild": false
+      "esbuild": false,
+      "realm": false
     }
   },
   "packageManager": "yarn@4.10.3",
