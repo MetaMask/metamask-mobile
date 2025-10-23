@@ -439,14 +439,15 @@ const NetworkManager = () => {
             </View>
           </BottomSheet>
         )}
-        <RpcSelectionModal
-          showMultiRpcSelectModal={showMultiRpcSelectModal}
-          closeRpcModal={closeRpcModal}
-          rpcMenuSheetRef={rpcMenuSheetRef}
-          networkConfigurations={evmNetworkConfigurations}
-          styles={styles}
-        />
       </BottomSheet>
+
+      <RpcSelectionModal
+        showMultiRpcSelectModal={showMultiRpcSelectModal}
+        closeRpcModal={closeRpcModal}
+        rpcMenuSheetRef={rpcMenuSheetRef}
+        networkConfigurations={evmNetworkConfigurations}
+        styles={styles}
+      />
     </>
   );
 };
