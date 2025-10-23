@@ -121,8 +121,8 @@ const SetPhoneNumber = () => {
     }
 
     setIsPhoneNumberError(
-      // 8-14 digits
-      !/^\d{8,14}$/.test(debouncedPhoneNumber),
+      // 4-15 digits
+      !/^\d{4,15}$/.test(debouncedPhoneNumber),
     );
   }, [debouncedPhoneNumber]);
 

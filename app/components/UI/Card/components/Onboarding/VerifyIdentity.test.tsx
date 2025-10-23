@@ -141,7 +141,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.verify_identity.title': 'Verify your identity',
       'card.card_onboarding.verify_identity.description':
         'We need to verify your identity to continue with your card application.',
-      'card.card_onboarding.confirm_button': 'Continue',
+      'card.card_onboarding.continue_button': 'Continue',
       'card.card_onboarding.verify_identity.start_verification_error':
         'Unable to start verification. Please try again.',
     };
@@ -561,7 +561,7 @@ describe('VerifyIdentity Component', () => {
         'card.card_onboarding.verify_identity.description',
       );
       expect(strings).toHaveBeenCalledWith(
-        'card.card_onboarding.confirm_button',
+        'card.card_onboarding.continue_button',
       );
     });
 

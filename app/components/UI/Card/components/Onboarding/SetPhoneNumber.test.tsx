@@ -230,8 +230,8 @@ describe('SetPhoneNumber Component', () => {
       expect(phoneInput.props.value).toBe('1234567890');
     });
 
-    it('shows error for invalid phone number length (too short)', async () => {
-      const { getByTestId, findByTestId } = render(
+    it('displays error for phone number with fewer than 4 digits', async () => {
+      const { getByTestId, queryByTestId } = render(
         <Provider store={store}>
           <SetPhoneNumber />
         </Provider>,
@@ -242,14 +242,15 @@ describe('SetPhoneNumber Component', () => {
         fireEvent.changeText(phoneInput, '123');
       });
 
-      const errorText = await findByTestId(
-        'set-phone-number-phone-number-error',
-      );
-      expect(errorText).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).toBeTruthy();
+      });
     });
 
-    it('shows error for invalid phone number length (too long)', async () => {
-      const { getByTestId, findByTestId } = render(
+    it('displays error for phone number with more than 15 digits', async () => {
+      const { getByTestId, queryByTestId } = render(
         <Provider store={store}>
           <SetPhoneNumber />
         </Provider>,
@@ -257,16 +258,17 @@ describe('SetPhoneNumber Component', () => {
 
       const phoneInput = getByTestId('set-phone-number-phone-number-input');
       await act(async () => {
-        fireEvent.changeText(phoneInput, '123456789012345');
+        fireEvent.changeText(phoneInput, '1234567890123456');
       });
 
-      const errorText = await findByTestId(
-        'set-phone-number-phone-number-error',
-      );
-      expect(errorText).toBeTruthy();
+      await waitFor(() => {
+        expect(
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).toBeTruthy();
+      });
     });
 
-    it('does not show error for valid phone number length', async () => {
+    it('does not display error for valid phone number length', async () => {
       const { getByTestId, queryByTestId } = render(
         <Provider store={store}>
           <SetPhoneNumber />
@@ -528,7 +530,7 @@ describe('SetPhoneNumber Component', () => {
       expect(errorText).toBeTruthy();
     });
 
-    it('should navigate to sign up on invalid contact verification ID error', async () => {
+    it('navigates to sign up when invalid contact verification ID error occurs', async () => {
       const mockSendPhoneVerification = jest
         .fn()
         .mockRejectedValue(

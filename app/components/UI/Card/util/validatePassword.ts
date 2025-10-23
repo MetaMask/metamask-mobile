@@ -6,29 +6,20 @@
 export const validatePassword = (password: string): boolean => {
   const errors: string[] = [];
 
-  // Check minimum length (8 characters)
-  if (password.length < 8) {
-    errors.push('Password must be at least 8 characters long');
+  // Check minimum length (15 characters)
+  if (password.length < 15) {
+    errors.push('Password must be at least 15 characters long');
   }
 
-  // Check for uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
+  // Check for non-printable characters (ASCII control characters and DEL)
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001F\u007F]/.test(password)) {
+    errors.push('Password must not contain non-printable characters');
   }
 
-  // Check for lowercase letter
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter');
-  }
-
-  // Check for number
-  if (!/\d/.test(password)) {
-    errors.push('Password must contain at least one number');
-  }
-
-  // Check for special character
-  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
-    errors.push('Password must contain at least one special character');
+  // Check for consecutive spaces
+  if (/ {2}/.test(password)) {
+    errors.push('Password must not contain consecutive spaces');
   }
 
   return errors.length === 0;

@@ -71,7 +71,7 @@ const VerifyIdentity = () => {
   const renderActions = () => (
     <Button
       variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.confirm_button')}
+      label={strings('card.card_onboarding.continue_button')}
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}

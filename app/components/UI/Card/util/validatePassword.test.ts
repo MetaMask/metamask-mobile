@@ -1,44 +1,9 @@
 import { validatePassword } from './validatePassword';
 
 describe('validatePassword', () => {
-  describe('when password meets all requirements', () => {
-    it('returns true for valid password with all required characters', () => {
-      const validPassword = 'Password123!';
-
-      const result = validatePassword(validPassword);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns true for password with minimum length and all character types', () => {
-      const validPassword = 'Abc123!@';
-
-      const result = validatePassword(validPassword);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns true for password with multiple special characters', () => {
-      const validPassword = 'MyPass123!@#$%';
-
-      const result = validatePassword(validPassword);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns true for password with various special characters', () => {
-      const specialChars = '!@#$%^&*()_+-=[]{};\':"|,.<>/?';
-      const validPassword = `Test123${specialChars}`;
-
-      const result = validatePassword(validPassword);
-
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('when password is too short', () => {
-    it('returns false for password with 7 characters', () => {
-      const shortPassword = 'Test12!';
+  describe('minimum length requirement', () => {
+    it('returns false for password with 14 characters', () => {
+      const shortPassword = 'MyPass123!@#$%';
 
       const result = validatePassword(shortPassword);
 
@@ -60,132 +25,94 @@ describe('validatePassword', () => {
 
       expect(result).toBe(false);
     });
-  });
 
-  describe('when password lacks uppercase letters', () => {
-    it('returns false for password with only lowercase letters', () => {
-      const noUppercase = 'password123!';
+    it('returns true for password with exactly 15 characters', () => {
+      const minLengthPassword = 'MyPass123!@#$%^';
 
-      const result = validatePassword(noUppercase);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password with numbers and special chars but no uppercase', () => {
-      const noUppercase = 'mypass123!@#';
-
-      const result = validatePassword(noUppercase);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('when password lacks lowercase letters', () => {
-    it('returns false for password with only uppercase letters', () => {
-      const noLowercase = 'PASSWORD123!';
-
-      const result = validatePassword(noLowercase);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password with numbers and special chars but no lowercase', () => {
-      const noLowercase = 'MYPASS123!@#';
-
-      const result = validatePassword(noLowercase);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('when password lacks numbers', () => {
-    it('returns false for password with only letters and special chars', () => {
-      const noNumbers = 'Password!@#';
-
-      const result = validatePassword(noNumbers);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password with mixed case letters but no numbers', () => {
-      const noNumbers = 'MyPasswordWithSpecial!';
-
-      const result = validatePassword(noNumbers);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('when password lacks special characters', () => {
-    it('returns false for password with only alphanumeric characters', () => {
-      const noSpecialChars = 'Password123';
-
-      const result = validatePassword(noSpecialChars);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password with mixed case and numbers but no special chars', () => {
-      const noSpecialChars = 'MyPassword123';
-
-      const result = validatePassword(noSpecialChars);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('when password has multiple missing requirements', () => {
-    it('returns false for password missing uppercase and numbers', () => {
-      const missingMultiple = 'password!@#';
-
-      const result = validatePassword(missingMultiple);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password missing lowercase and special chars', () => {
-      const missingMultiple = 'PASSWORD123';
-
-      const result = validatePassword(missingMultiple);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password missing numbers and special chars', () => {
-      const missingMultiple = 'Password';
-
-      const result = validatePassword(missingMultiple);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password with only special characters', () => {
-      const onlySpecial = '!@#$%^&*';
-
-      const result = validatePassword(onlySpecial);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for password with only numbers', () => {
-      const onlyNumbers = '12345678';
-
-      const result = validatePassword(onlyNumbers);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('edge cases', () => {
-    it('returns true for password exactly 8 characters with all requirements', () => {
-      const exactLength = 'Test123!';
-
-      const result = validatePassword(exactLength);
+      const result = validatePassword(minLengthPassword);
 
       expect(result).toBe(true);
     });
 
-    it('returns true for very long password with all requirements', () => {
+    it('returns true for password with more than 15 characters', () => {
+      const longerPassword = 'MyPassword123!@#$%';
+
+      const result = validatePassword(longerPassword);
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('non-printable characters', () => {
+    it('returns false for password with null character', () => {
+      const nullCharPassword = 'MyPassword123!@\u0000';
+
+      const result = validatePassword(nullCharPassword);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for password with control character', () => {
+      const controlCharPassword = 'MyPassword123!@\u0001';
+
+      const result = validatePassword(controlCharPassword);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for password with DEL character', () => {
+      const delCharPassword = 'MyPassword123!@\u007F';
+
+      const result = validatePassword(delCharPassword);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('consecutive spaces', () => {
+    it('returns false for password with consecutive spaces', () => {
+      const consecutiveSpaces = 'MyPassword123!@  ';
+
+      const result = validatePassword(consecutiveSpaces);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for password with multiple consecutive spaces', () => {
+      const multipleSpaces = 'MyPassword123!@   ';
+
+      const result = validatePassword(multipleSpaces);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true for password with single spaces between words', () => {
+      const singleSpaces = 'My Password 123 ABC';
+
+      const result = validatePassword(singleSpaces);
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('valid passwords', () => {
+    it('returns true for valid password with 15 printable characters', () => {
+      const validPassword = 'ValidPass123!@#';
+
+      const result = validatePassword(validPassword);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for valid password with special characters', () => {
+      const validPassword = 'MyPass123!@#$%^';
+
+      const result = validatePassword(validPassword);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for very long password', () => {
       const longPassword =
         'ThisIsAVeryLongPasswordWithNumbers123AndSpecialChars!@#$%^&*()';
 
@@ -194,26 +121,42 @@ describe('validatePassword', () => {
       expect(result).toBe(true);
     });
 
-    it('returns false for password with spaces only', () => {
-      const spacesOnly = '        ';
+    it('returns true for password with unicode characters', () => {
+      const unicodePassword = 'Pássword123!@#$';
 
-      const result = validatePassword(spacesOnly);
+      const result = validatePassword(unicodePassword);
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
-    it('returns true for password with spaces and all requirements', () => {
-      const withSpaces = 'My Pass 123!';
+    it('returns true for password with single spaces', () => {
+      const withSpaces = 'My Pass Word 123!';
 
       const result = validatePassword(withSpaces);
 
       expect(result).toBe(true);
     });
 
-    it('handles unicode characters correctly', () => {
-      const unicodePassword = 'Pássword123!';
+    it('returns true for password with numbers only (if 15+ chars)', () => {
+      const numbersOnly = '123456789012345';
 
-      const result = validatePassword(unicodePassword);
+      const result = validatePassword(numbersOnly);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for password with letters only (if 15+ chars)', () => {
+      const lettersOnly = 'abcdefghijklmno';
+
+      const result = validatePassword(lettersOnly);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for password with special characters only (if 15+ chars)', () => {
+      const specialOnly = '!@#$%^&*()_+-=.';
+
+      const result = validatePassword(specialOnly);
 
       expect(result).toBe(true);
     });
@@ -254,8 +197,8 @@ describe('validatePassword', () => {
     ];
 
     specialCharacters.forEach((char) => {
-      it(`returns true for password with special character: ${char}`, () => {
-        const passwordWithChar = `Test123${char}`;
+      it(`returns true for 15-character password with special character: ${char}`, () => {
+        const passwordWithChar = `Test12345ABCDE${char}`;
 
         const result = validatePassword(passwordWithChar);
 
