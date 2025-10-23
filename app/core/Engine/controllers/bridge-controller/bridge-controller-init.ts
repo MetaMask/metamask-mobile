@@ -3,6 +3,7 @@ import {
   BridgeController,
   BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
+import { fetch as expoFetch } from 'expo/fetch';
 
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import { MetaMetrics } from '../../../Analytics';
@@ -25,7 +26,8 @@ export const handleBridgeFetch = async (
   options: RequestInit = {},
 ) => {
   if (url.toString().includes('Stream')) {
-    return fetch(url.toString(), options);
+    // @ts-expect-error - expoFetch has a different RequestInit type
+    return expoFetch(url.toString(), options);
   }
   return handleFetch(url, options);
 };
