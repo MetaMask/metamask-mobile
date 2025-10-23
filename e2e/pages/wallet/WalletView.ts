@@ -478,7 +478,7 @@ class WalletView {
   }
 
   async tapOnPredictionsPosition(positionName: string): Promise<void> {
-    const elem = this.getPredictCurrentPositionCardByIndex();
+    const elem = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(elem, {
       elemDescription: `tapping Predictions Position: ${positionName}`,
     });
