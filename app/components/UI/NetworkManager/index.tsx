@@ -355,98 +355,99 @@ const NetworkManager = () => {
   }, []);
 
   return (
-    <BottomSheet
-      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
-      ref={sheetRef}
-      style={containerStyle}
-      shouldNavigateBack
-    >
-      <View style={styles.sheet}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          style={styles.networkTabsSelectorTitle}
-        >
-          {strings('wallet.networks')}
-        </Text>
-
-        <View style={styles.networkTabsSelectorWrapper}>
-          <ScrollableTabView
-            renderTabBar={renderTabBar}
-            onChangeTab={onChangeTab}
-            initialPage={defaultTabIndex}
+    <>
+      <BottomSheet
+        testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
+        ref={sheetRef}
+        style={containerStyle}
+        shouldNavigateBack
+      >
+        <View style={styles.sheet}>
+          <Text
+            variant={TextVariant.HeadingMD}
+            style={styles.networkTabsSelectorTitle}
           >
-            <NetworkMultiSelector
-              {...defaultTabProps}
-              openModal={openModal}
-              dismissModal={dismissModal}
-              openRpcModal={openRpcModal}
-            />
-            <CustomNetworkSelector
-              {...customTabProps}
-              openModal={openModal}
-              dismissModal={dismissModal}
-              openRpcModal={openRpcModal}
-            />
-          </ScrollableTabView>
-        </View>
-      </View>
+            {strings('wallet.networks')}
+          </Text>
 
-      {showNetworkMenuModal.isVisible && (
-        <BottomSheet
-          ref={networkMenuSheetRef}
-          onClose={closeModal}
-          shouldNavigateBack={false}
-        >
-          <View style={styles.editNetworkMenu}>
-            <AccountAction
-              actionTitle={strings('transaction.edit')}
-              iconName={IconName.Edit}
-              onPress={handleEditNetwork}
-            />
-            {showNetworkMenuModal.displayEdit && (
-              <AccountAction
-                actionTitle={strings('app_settings.delete')}
-                iconName={IconName.Trash}
-                onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
+          <View style={styles.networkTabsSelectorWrapper}>
+            <ScrollableTabView
+              renderTabBar={renderTabBar}
+              onChangeTab={onChangeTab}
+              initialPage={defaultTabIndex}
+            >
+              <NetworkMultiSelector
+                {...defaultTabProps}
+                openModal={openModal}
+                dismissModal={dismissModal}
+                openRpcModal={openRpcModal}
               />
-            )}
+              <CustomNetworkSelector
+                {...customTabProps}
+                openModal={openModal}
+                dismissModal={dismissModal}
+                openRpcModal={openRpcModal}
+              />
+            </ScrollableTabView>
           </View>
-        </BottomSheet>
-      )}
+        </View>
 
-      {showConfirmDeleteModal.isVisible && (
-        <BottomSheet
-          ref={deleteModalSheetRef}
-          onClose={closeDeleteModal}
-          shouldNavigateBack={false}
-        >
-          <BottomSheetHeader>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('app_settings.delete')}{' '}
-              {showConfirmDeleteModal.networkName}{' '}
-              {strings('asset_details.network')}
-            </Text>
-          </BottomSheetHeader>
-          <View style={styles.containerDeleteText}>
-            <Text style={styles.textCentred}>
-              {strings('app_settings.network_delete')}
-            </Text>
-            <BottomSheetFooter
-              buttonsAlignment={ButtonsAlignment.Horizontal}
-              buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
-            />
-          </View>
-        </BottomSheet>
-      )}
+        {showNetworkMenuModal.isVisible && (
+          <BottomSheet
+            ref={networkMenuSheetRef}
+            onClose={closeModal}
+            shouldNavigateBack={false}
+          >
+            <View style={styles.editNetworkMenu}>
+              <AccountAction
+                actionTitle={strings('transaction.edit')}
+                iconName={IconName.Edit}
+                onPress={handleEditNetwork}
+              />
+              {showNetworkMenuModal.displayEdit && (
+                <AccountAction
+                  actionTitle={strings('app_settings.delete')}
+                  iconName={IconName.Trash}
+                  onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
+                />
+              )}
+            </View>
+          </BottomSheet>
+        )}
 
-      <RpcSelectionModal
-        showMultiRpcSelectModal={showMultiRpcSelectModal}
-        closeRpcModal={closeRpcModal}
-        rpcMenuSheetRef={rpcMenuSheetRef}
-        networkConfigurations={evmNetworkConfigurations}
-        styles={styles}
-      />
-    </BottomSheet>
+        {showConfirmDeleteModal.isVisible && (
+          <BottomSheet
+            ref={deleteModalSheetRef}
+            onClose={closeDeleteModal}
+            shouldNavigateBack={false}
+          >
+            <BottomSheetHeader>
+              <Text variant={TextVariant.HeadingMD}>
+                {strings('app_settings.delete')}{' '}
+                {showConfirmDeleteModal.networkName}{' '}
+                {strings('asset_details.network')}
+              </Text>
+            </BottomSheetHeader>
+            <View style={styles.containerDeleteText}>
+              <Text style={styles.textCentred}>
+                {strings('app_settings.network_delete')}
+              </Text>
+              <BottomSheetFooter
+                buttonsAlignment={ButtonsAlignment.Horizontal}
+                buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
+              />
+            </View>
+          </BottomSheet>
+        )}
+        <RpcSelectionModal
+          showMultiRpcSelectModal={showMultiRpcSelectModal}
+          closeRpcModal={closeRpcModal}
+          rpcMenuSheetRef={rpcMenuSheetRef}
+          networkConfigurations={evmNetworkConfigurations}
+          styles={styles}
+        />
+      </BottomSheet>
+    </>
   );
 };
 
