@@ -167,6 +167,7 @@ export const DEPOSIT_CONFIG = {
 
 // Withdrawal constants (HyperLiquid-specific)
 export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
+export const HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS = 30000; // 30 seconds progress update interval
 
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
@@ -292,3 +293,10 @@ export const HIP3_MARGIN_CONFIG = {
    */
   REBALANCE_MIN_THRESHOLD: 0.1,
 } as const;
+
+// Progress bar constants
+export const INITIAL_AMOUNT_UI_PROGRESS = 10;
+export const WITHDRAWAL_PROGRESS_STAGES = [
+  25, 35, 45, 55, 65, 75, 85, 90, 95, 98,
+];
+export const PROGRESS_BAR_COMPLETION_DELAY_MS = 500;

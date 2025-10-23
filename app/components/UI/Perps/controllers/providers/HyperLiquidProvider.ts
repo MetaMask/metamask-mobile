@@ -1,4 +1,4 @@
-import { type Hex } from '@metamask/utils';
+import { CaipAccountId, type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -27,6 +27,7 @@ import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscr
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
   adaptAccountStateFromSDK,
+  adaptHyperLiquidLedgerUpdateToUserHistoryItem,
   adaptMarketFromSDK,
   adaptOrderFromSDK,
   adaptPositionFromSDK,
@@ -34,6 +35,7 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
   parseAssetName,
+  type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
 import type {
   SDKOrderParams,
@@ -100,6 +102,7 @@ import type {
   HistoricalPortfolioResult,
   TransferBetweenDexsParams,
   TransferBetweenDexsResult,
+  UserHistoryItem,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../PerpsController';
 
@@ -2552,8 +2555,67 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get historical portfolio data for percentage calculations
+   * Get user non-funding ledger updates (deposits, transfers, withdrawals)
    */
+  async getUserNonFundingLedgerUpdates(params?: {
+    accountId?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<RawHyperLiquidLedgerUpdate[]> {
+    try {
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId as CaipAccountId | undefined,
+      );
+
+      const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
+        user: userAddress as `0x${string}`,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      return rawLedgerUpdates || [];
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getUserNonFundingLedgerUpdates', params),
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Get user history (deposits, withdrawals, transfers)
+   */
+  async getUserHistory(params?: {
+    accountId?: CaipAccountId;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<UserHistoryItem[]> {
+    try {
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
+        user: userAddress,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      // Transform the raw ledger updates to UserHistoryItem format
+      return adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
+    } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getUserHistory'));
+      return [];
+    }
+  }
+
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {
