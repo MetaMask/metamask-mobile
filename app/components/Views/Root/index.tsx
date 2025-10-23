@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
+import RealmProvider from '../../../realm/Provider';
 import { store, persistor } from '../../../store';
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -65,30 +66,32 @@ const Root = ({ foxCode }: RootProps) => {
 
   return (
     <SafeAreaProvider>
-      <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
-            <SnapsExecutionWebView />
-            ///: END:ONLY_INCLUDE_IF
-          }
-          <ThemeProvider>
-            <NavigationProvider>
-              <ControllersGate>
-                <ToastContextWrapper>
-                  <ErrorBoundary view="Root">
-                    <FontLoadingGate>
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </FontLoadingGate>
-                  </ErrorBoundary>
-                </ToastContextWrapper>
-              </ControllersGate>
-            </NavigationProvider>
-          </ThemeProvider>
-        </PersistGate>
-      </Provider>
+      <RealmProvider>
+        <Provider store={store}>
+          <PersistGate persistor={persistor}>
+            {
+              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+              // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+              <SnapsExecutionWebView />
+              ///: END:ONLY_INCLUDE_IF
+            }
+            <ThemeProvider>
+              <NavigationProvider>
+                <ControllersGate>
+                  <ToastContextWrapper>
+                    <ErrorBoundary view="Root">
+                      <FontLoadingGate>
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </FontLoadingGate>
+                    </ErrorBoundary>
+                  </ToastContextWrapper>
+                </ControllersGate>
+              </NavigationProvider>
+            </ThemeProvider>
+          </PersistGate>
+        </Provider>
+      </RealmProvider>
     </SafeAreaProvider>
   );
 };
