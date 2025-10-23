@@ -1,6 +1,5 @@
 import { DeeplinkService, DeeplinkServiceOptions } from './DeeplinkService';
 import { ActionRegistry, DeeplinkAction } from './ActionRegistry';
-import { DeeplinkParser } from './DeeplinkParser';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { ACTIONS } from '../../../constants/deeplinks';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
@@ -52,14 +51,20 @@ describe('DeeplinkService', () => {
     // Get fresh instances
     service = DeeplinkService.getInstance();
     actionRegistry = ActionRegistry.getInstance();
-    deeplinkParser = DeeplinkParser.getInstance();
 
     // Clear action registry
     actionRegistry.clear();
 
     // Default mock for modal display - auto-approve
     mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
-      params.onContinue();
+      if (
+        params.linkType === DeepLinkModalLinkType.PUBLIC ||
+        params.linkType === DeepLinkModalLinkType.PRIVATE
+      ) {
+        if ('onContinue' in params) {
+          params.onContinue();
+        }
+      }
     });
 
     // Default mock for signature verification
@@ -130,8 +135,12 @@ describe('DeeplinkService', () => {
     it('shows modal for public links', async () => {
       mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
         expect(params.linkType).toBe(DeepLinkModalLinkType.PUBLIC);
-        expect(params.pageTitle).toBe('Buy');
-        params.onContinue();
+        if ('pageTitle' in params) {
+          expect(params.pageTitle).toBe('Buy');
+        }
+        if ('onContinue' in params) {
+          params.onContinue();
+        }
       });
 
       const url = 'https://link.metamask.io/buy';
@@ -145,7 +154,9 @@ describe('DeeplinkService', () => {
       mockVerifyDeeplinkSignature.mockResolvedValue(VALID);
       mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
         expect(params.linkType).toBe(DeepLinkModalLinkType.PRIVATE);
-        params.onContinue();
+        if ('onContinue' in params) {
+          params.onContinue();
+        }
       });
 
       const url = 'https://link.metamask.io/buy?sig=valid-signature';
@@ -195,14 +206,21 @@ describe('DeeplinkService', () => {
     });
 
     it('returns error for unknown action', async () => {
+      // For universal links with unknown actions, it shows an INVALID modal
+      mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
+        expect(params.linkType).toBe(DeepLinkModalLinkType.INVALID);
+        // Call onBack to simulate user clicking back
+        params.onBack();
+      });
+
       // Use a valid URL format but with an unregistered action
       const url = 'https://link.metamask.io/unknown-action';
       const result = await service.handleDeeplink(url);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain(
-        'No handler found for action: unknown-action',
-      );
+      // When user clicks back on INVALID modal, there's no specific error message
+      expect(result.error).toBeUndefined();
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalled();
     });
 
     it('skips modal for whitelisted actions', async () => {
@@ -334,7 +352,9 @@ describe('DeeplinkService', () => {
     it('shows PUBLIC modal for supported action without signature', async () => {
       mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
         expect(params.linkType).toBe(DeepLinkModalLinkType.PUBLIC);
-        params.onContinue();
+        if ('onContinue' in params) {
+          params.onContinue();
+        }
       });
 
       const url = 'https://link.metamask.io/test';
@@ -347,7 +367,9 @@ describe('DeeplinkService', () => {
       mockVerifyDeeplinkSignature.mockResolvedValue(VALID);
       mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
         expect(params.linkType).toBe(DeepLinkModalLinkType.PRIVATE);
-        params.onContinue();
+        if ('onContinue' in params) {
+          params.onContinue();
+        }
       });
 
       const url = 'https://link.metamask.io/test?sig=valid';

@@ -6,8 +6,8 @@ import {
 import { ACTIONS } from '../../../../constants/deeplinks';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import handleDepositCashUrl from '../../Handlers/handleDepositCashUrl';
-import handleSwapUrl from '../../Handlers/handleSwapUrl';
-import navigateToHomeUrl from '../../Handlers/handleHomeUrl';
+import { handleSwapUrl } from '../../Handlers/handleSwapUrl';
+import { navigateToHomeUrl } from '../../Handlers/handleHomeUrl';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
 /**

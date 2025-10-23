@@ -5,8 +5,8 @@ import {
 } from '../ActionRegistry';
 import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import handleCreateAccountUrl from '../../Handlers/handleCreateAccountUrl';
-import handleRewardsUrl from '../../Handlers/handleRewardsUrl';
+import { handleCreateAccountUrl } from '../../Handlers/handleCreateAccountUrl';
+import { handleRewardsUrl } from '../../Handlers/handleRewardsUrl';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../../DeeplinkManager';
 

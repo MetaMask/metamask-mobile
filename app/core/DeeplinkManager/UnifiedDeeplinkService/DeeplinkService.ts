@@ -121,6 +121,7 @@ export class DeeplinkService {
 
       // Special handling for certain actions that need browserCallBack
       if (browserCallBack && parsed.action === ACTIONS.DAPP) {
+        // @ts-expect-error - browserCallBack is not part of DeeplinkUrlParams but needed for dapp action
         actionParams.params.browserCallBack = browserCallBack;
       }
 

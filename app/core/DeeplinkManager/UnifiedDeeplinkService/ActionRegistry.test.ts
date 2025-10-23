@@ -3,6 +3,20 @@ import {
   DeeplinkAction,
   DeeplinkParams,
 } from './ActionRegistry';
+import { DeeplinkUrlParams } from '../ParseManager/extractURLParams';
+
+// Helper function to create default DeeplinkUrlParams
+const createDefaultParams = (
+  overrides?: Partial<DeeplinkUrlParams>,
+): DeeplinkUrlParams => ({
+  uri: '',
+  redirect: '',
+  channelId: '',
+  comm: '',
+  pubkey: '',
+  hr: false,
+  ...overrides,
+});
 
 describe('ActionRegistry', () => {
   let registry: ActionRegistry;
@@ -89,7 +103,7 @@ describe('ActionRegistry', () => {
       const params: DeeplinkParams = {
         action: 'buy',
         path: '/test',
-        params: { amount: '100' },
+        params: createDefaultParams(),
         originalUrl: 'metamask://buy?amount=100',
         scheme: 'metamask:',
       };
@@ -103,7 +117,7 @@ describe('ActionRegistry', () => {
       const params: DeeplinkParams = {
         action: 'unknown',
         path: '',
-        params: {},
+        params: createDefaultParams(),
         originalUrl: 'metamask://unknown',
         scheme: 'metamask:',
       };
@@ -124,7 +138,7 @@ describe('ActionRegistry', () => {
       const params: DeeplinkParams = {
         action: 'buy',
         path: '',
-        params: {},
+        params: createDefaultParams(),
         originalUrl: 'metamask://buy', // Using metamask scheme
         scheme: 'metamask:',
       };
@@ -147,7 +161,7 @@ describe('ActionRegistry', () => {
       const params: DeeplinkParams = {
         action: 'universal',
         path: '',
-        params: {},
+        params: createDefaultParams(),
         originalUrl: 'custom://universal',
         scheme: 'custom:',
       };
@@ -171,7 +185,7 @@ describe('ActionRegistry', () => {
       const params: DeeplinkParams = {
         action: 'failing',
         path: '',
-        params: {},
+        params: createDefaultParams(),
         originalUrl: 'metamask://failing',
         scheme: 'metamask:',
       };

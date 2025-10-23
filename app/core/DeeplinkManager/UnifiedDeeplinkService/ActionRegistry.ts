@@ -1,10 +1,11 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { DeeplinkUrlParams } from '../ParseManager/extractURLParams';
 
 export interface DeeplinkParams {
   action: string;
   path: string;
-  params: Record<string, string | undefined>;
+  params: DeeplinkUrlParams;
   signature?: string;
   originalUrl: string;
   scheme: string;

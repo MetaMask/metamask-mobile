@@ -55,7 +55,7 @@ export const createConnectAction = (): DeeplinkAction => ({
         channelId: params.params.channelId,
         url: params.originalUrl,
         scheme: params.params.scheme,
-        dappPublicKey: params.params.pubkey,
+        dappPublicKey: params.params.pubkey || '',
         originatorInfo: params.params.originatorInfo,
         request: params.params.request,
       });
@@ -79,7 +79,7 @@ export const createConnectAction = (): DeeplinkAction => ({
         originatorInfo,
         rpc: params.params.rpc,
         hideReturnToApp: params.params.hr,
-        otherPublicKey: params.params.pubkey,
+        otherPublicKey: params.params.pubkey || '',
         sdkConnect,
       });
     }
@@ -118,6 +118,9 @@ export const createMMSDKAction = (): DeeplinkAction => ({
         channelId: params.params.channelId,
         message: params.params.message,
         dappPublicKey: params.params.pubkey,
+        url: params.originalUrl,
+        scheme: params.scheme,
+        account: '',
       });
     } else {
       sdkConnect.state.deeplinkingService?.handleMessage({
@@ -125,6 +128,8 @@ export const createMMSDKAction = (): DeeplinkAction => ({
         message: params.params.message,
         dappPublicKey: params.params.pubkey,
         account: params.params.account,
+        url: params.originalUrl,
+        scheme: params.scheme,
       });
     }
   },

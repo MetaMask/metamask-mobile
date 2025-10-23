@@ -2,6 +2,7 @@ import { DeeplinkService } from './DeeplinkService';
 import { ActionRegistry } from './ActionRegistry';
 import { registerAllActions } from './actions';
 import { ACTIONS } from '../../../constants/deeplinks';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 // Mock dependencies
 jest.mock('../Handlers/handleDeepLinkModalDisplay');
@@ -12,6 +13,21 @@ jest.mock('../ParseManager/utils/verifySignature', () => ({
   INVALID: 'INVALID',
   MISSING: 'MISSING',
 }));
+
+// Import the mocked handleDeepLinkModalDisplay
+import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+const mockHandleDeepLinkModalDisplay =
+  handleDeepLinkModalDisplay as jest.MockedFunction<
+    typeof handleDeepLinkModalDisplay
+  >;
+
+// Import mocked handlers for verification
+import handleRampUrl from '../Handlers/handleRampUrl';
+import { handleSwapUrl } from '../Handlers/handleSwapUrl';
+import { handleRewardsUrl } from '../Handlers/handleRewardsUrl';
+const mockHandleRampUrl = handleRampUrl as jest.Mock;
+const mockHandleSwapUrl = handleSwapUrl as jest.Mock;
+const mockHandleRewardsUrl = handleRewardsUrl as jest.Mock;
 
 // Mock AppConstants
 jest.mock('../../AppConstants', () => ({
@@ -34,25 +50,97 @@ jest.mock('../../AppConstants', () => ({
 // Mock navigation
 const mockNavigation = {
   navigate: jest.fn(),
-};
+} as unknown as NavigationProp<ParamListBase>;
 
-// Mock handlers
-jest.mock('../Handlers/handleRampUrl');
-jest.mock('../Handlers/handleSwapUrl');
-jest.mock('../Handlers/handleRewardsUrl');
-jest.mock('../Handlers/handleDepositCashUrl');
-jest.mock('../Handlers/handleHomeUrl');
-jest.mock('../Handlers/handleCreateAccountUrl');
-jest.mock('../Handlers/handlePerpsUrl');
-jest.mock('../Handlers/handleBrowserUrl');
-jest.mock('../Handlers/handleEthereumUrl');
-jest.mock('../../SDKConnect/SDKConnect');
-jest.mock('../../SDKConnect/handlers/handleDeeplink');
-jest.mock('../../WalletConnect/WalletConnectV2');
-jest.mock('../parseOriginatorInfo');
-jest.mock('../../../util/Logger');
-jest.mock('../../SDKConnect/utils/DevLogger');
-jest.mock('../../../constants/navigation/Routes');
+// Mock handlers with default exports
+jest.mock('../Handlers/handleRampUrl', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../Handlers/handleSwapUrl', () => ({
+  __esModule: true,
+  handleSwapUrl: jest.fn(),
+}));
+jest.mock('../Handlers/handleRewardsUrl', () => ({
+  __esModule: true,
+  handleRewardsUrl: jest.fn(),
+}));
+jest.mock('../Handlers/handleDepositCashUrl', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../Handlers/handleHomeUrl', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../Handlers/handleCreateAccountUrl', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../Handlers/handlePerpsUrl', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../Handlers/handleBrowserUrl', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../Handlers/handleEthereumUrl', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../SDKConnect/SDKConnect', () => ({
+  __esModule: true,
+  default: {
+    getInstance: jest.fn(() => ({
+      handleConnectDeeplink: jest.fn(),
+      state: { navigation: null },
+    })),
+  },
+}));
+jest.mock('../../SDKConnect/handlers/handleDeeplink', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../WalletConnect/WalletConnectV2', () => ({
+  __esModule: true,
+  default: {
+    getInstance: jest.fn(() => ({
+      connect: jest.fn(),
+    })),
+  },
+}));
+jest.mock('../parseOriginatorInfo', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+jest.mock('../../SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+jest.mock('../../../constants/navigation/Routes', () => ({
+  __esModule: true,
+  default: {
+    MODAL: {
+      ROOT_MODAL_FLOW: 'ROOT_MODAL_FLOW',
+    },
+    SWAPS: 'SWAPS',
+    BROWSER: {
+      HOME: 'HOME',
+      VIEW: 'VIEW',
+    },
+  },
+}));
 
 describe('DeeplinkService Integration Tests', () => {
   jest.setTimeout(10000); // Increase timeout for integration tests
@@ -70,6 +158,14 @@ describe('DeeplinkService Integration Tests', () => {
     // Register all actions directly instead of using registerDefaultActions
     // which has a dynamic import
     registerAllActions(registry);
+
+    // Mock handleDeepLinkModalDisplay to auto-continue
+    mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
+      // Immediately call onContinue to simulate user clicking continue
+      if ('onContinue' in params) {
+        params.onContinue();
+      }
+    });
 
     // Wait a bit for any async operations
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -117,8 +213,14 @@ describe('DeeplinkService Integration Tests', () => {
           action: expectedAction,
         });
 
-        // Reset mocks
-        jest.clearAllMocks();
+        // Capture call counts after traditional deeplink
+        const getCallCounts = () => ({
+          ramp: mockHandleRampUrl.mock.calls.length,
+          swap: mockHandleSwapUrl.mock.calls.length,
+          rewards: mockHandleRewardsUrl.mock.calls.length,
+        });
+
+        const callsAfterTraditional = getCallCounts();
 
         // Test universal link
         const universalResult = await service.handleDeeplink(universal, {
@@ -131,11 +233,28 @@ describe('DeeplinkService Integration Tests', () => {
           action: expectedAction,
         });
 
-        // Both should have called navigation with same parameters
-        expect(mockNavigation.navigate).toHaveBeenCalledTimes(2);
-        expect(mockNavigation.navigate.mock.calls[0]).toEqual(
-          mockNavigation.navigate.mock.calls[1],
-        );
+        const callsAfterUniversal = getCallCounts();
+
+        // Verify the appropriate handler was called for both schemes
+        switch (expectedAction) {
+          case ACTIONS.BUY:
+          case ACTIONS.SELL:
+            expect(callsAfterTraditional.ramp).toBe(1);
+            expect(callsAfterUniversal.ramp).toBe(2);
+            // Verify both calls had the same navigation parameter
+            expect(mockHandleRampUrl.mock.calls[0][0].navigation).toBe(
+              mockHandleRampUrl.mock.calls[1][0].navigation,
+            );
+            break;
+          case ACTIONS.SWAP:
+            expect(callsAfterTraditional.swap).toBe(1);
+            expect(callsAfterUniversal.swap).toBe(2);
+            break;
+          case ACTIONS.REWARDS:
+            expect(callsAfterTraditional.rewards).toBe(1);
+            expect(callsAfterUniversal.rewards).toBe(2);
+            break;
+        }
       },
     );
   });

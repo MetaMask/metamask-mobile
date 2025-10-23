@@ -5,7 +5,7 @@ import {
 } from '../ActionRegistry';
 import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
 import handleBrowserUrl from '../../Handlers/handleBrowserUrl';
-import handlePerpsUrl from '../../Handlers/handlePerpsUrl';
+import { handlePerpsUrl } from '../../Handlers/handlePerpsUrl';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../../DeeplinkManager';
 
@@ -38,6 +38,7 @@ export const createDappAction = (): DeeplinkAction => ({
     handleBrowserUrl({
       deeplinkManager: {} as unknown as DeeplinkManager, // Will be injected during integration
       url: deeplinkUrl,
+      // @ts-expect-error - browserCallBack is injected by DeeplinkService for dapp actions
       callback: params.params.browserCallBack as
         | ((url: string) => void)
         | undefined,
