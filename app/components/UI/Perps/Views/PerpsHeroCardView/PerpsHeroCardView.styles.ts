@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
 
   return StyleSheet.create({
     container: {
-      flex: 1,
+      height: '100%',
       backgroundColor: colors.background.default,
     },
     header: {
@@ -20,7 +20,6 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       paddingVertical: 12,
     },
     headerTitle: {
-      flex: 1,
       textAlign: 'center',
     },
     closeButton: {
@@ -32,15 +31,16 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
     carouselWrapper: {
       flex: 1,
       justifyContent: 'center',
+      alignItems: 'center',
     },
-    carouselContainer: {
-      height: 400,
+    // TOOD: Fix jank class naming
+    carouselInnerContainer: {
+      width: '100%',
+      height: 370,
     },
     cardWrapper: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
+      flex: 1,
       justifyContent: 'center',
-      alignItems: 'center',
     },
     progressContainer: {
       flexDirection: 'row',
@@ -66,30 +66,36 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.info.default,
-      padding: 24,
-      gap: 16,
+      padding: 20,
+      marginHorizontal: 24,
       overflow: 'hidden',
     },
     backgroundImage: {
       position: 'absolute',
-      left: 120,
-      bottom: 20,
+      left: 90,
+      top: 40,
       width: '100%',
       height: '100%',
     },
-    logoContainer: {
-      alignItems: 'flex-start',
+    topRow: {
+      alignContent: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+      width: '100%',
     },
     logo: {
+      alignContent: 'center',
       height: 23,
       width: 46,
       flexShrink: 0,
       tintColor: darkTheme.colors.text.default,
-      alignSelf: 'flex-start',
     },
     assetRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginBottom: 16,
     },
     assetName: {
       color: darkTheme.colors.text.default,
@@ -104,23 +110,28 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       paddingVertical: 1,
       borderRadius: 4,
       backgroundColor: isLong
-        ? darkTheme.colors.accent03.light
-        : darkTheme.colors.error.default,
+        ? darkTheme.colors.success.muted
+        : darkTheme.colors.error.muted,
     },
     directionBadgeText: {
       color: isLong
-        ? darkTheme.colors.accent03.dark
-        : darkTheme.colors.text.default,
+        ? darkTheme.colors.success.default
+        : darkTheme.colors.error.default,
     },
     pnlText: {
       fontSize: 40,
       fontWeight: '600',
+      marginBottom: 8,
     },
     pnlPositive: {
       color: darkTheme.colors.success.default,
     },
     pnlNegative: {
       color: darkTheme.colors.error.default,
+    },
+    priceRowsContainer: {
+      gap: 4,
+      marginBottom: 16,
     },
     priceRow: {
       flexDirection: 'row',
@@ -133,18 +144,8 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
     priceValue: {
       color: darkTheme.colors.text.default,
     },
-    referralContainer: {
-      marginTop: 24,
-      alignItems: 'flex-start',
-    },
-    footerTextContainer: {
-      paddingTop: 8,
-    },
-    footerText: {
-      color: darkTheme.colors.text.default,
-      fontSize: 10,
-      lineHeight: 14,
-      fontWeight: '500',
+    qrCodeContainer: {
+      alignSelf: 'flex-start',
     },
     buttonsContainer: {
       padding: 16,

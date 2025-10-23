@@ -5,7 +5,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import FoxRewardIcon from '../../../../../images/rewards/metamask-rewards-points.svg';
-import { TouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 import styleSheet from './RewardsReferralCodeTag.styles';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import {
@@ -49,7 +49,10 @@ const RewardsReferralCodeTag: React.FC<RewardsReferralCodeTagProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handleCopyToClipboard}>
+    <TempTouchableOpacity
+      style={styles.container}
+      onPress={handleCopyToClipboard}
+    >
       <View style={styles.iconContainer}>
         {/* We can add support for configurable icons later */}
         <FoxRewardIcon name="fox-reward-icon" width={14} height={14} />
@@ -57,7 +60,7 @@ const RewardsReferralCodeTag: React.FC<RewardsReferralCodeTagProps> = ({
       <Text style={styles.referralCode} variant={TextVariant.BodyMDMedium}>
         {referralCode}
       </Text>
-    </TouchableOpacity>
+    </TempTouchableOpacity>
   );
 };
 
