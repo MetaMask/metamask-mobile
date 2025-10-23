@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { debounce } from 'lodash';
-// @ts-expect-error - react-navigation types
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
