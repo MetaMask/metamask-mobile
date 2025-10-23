@@ -4,6 +4,7 @@ import {
   BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
 
+import { fetch as expoFetch } from 'expo/fetch';
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import { MetaMetrics } from '../../../Analytics';
 import { TransactionParams } from '@metamask/transaction-controller';
@@ -20,12 +21,11 @@ import packageJSON from '../../../../../package.json';
 
 const { version: clientVersion } = packageJSON;
 
-export const handleBridgeFetch = async (
+export const handleBridgeFetch = (
   url: RequestInfo | URL,
   options: RequestInit = {},
 ) => {
   if (url.toString().includes('Stream')) {
-    const { fetch: expoFetch } = await import('expo/fetch');
     // @ts-expect-error types are different
     return expoFetch(url.toString(), options);
   }
