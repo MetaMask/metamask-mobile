@@ -52,7 +52,11 @@ const flaskFeatureSet = new Set([
   'tron',
 ]);
 // Experimental feature set includes all main features plus experimental
-const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
+const experimentalFeatureSet = new Set([
+  ...mainFeatureSet,
+  'experimental',
+  'bitcoin',
+]);
 
 /**
  * Gets the features for the current build type, used to determine which code
