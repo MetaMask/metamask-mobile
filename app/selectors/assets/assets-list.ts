@@ -197,12 +197,20 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets)
       .filter((asset) => {
-        // We need to filter out Tron energy and bandwidth from this list
-        if (
-          asset.chainId?.includes('tron:') &&
-          (asset.name === 'Energy' || asset.name === 'Bandwidth')
-        ) {
-          return false;
+        // We need to filter out Tron resource pseudo-assets from this list
+        if (asset.chainId?.includes('tron:')) {
+          const symbolLc = asset.symbol?.toLowerCase();
+          const tronResourceSymbols = new Set([
+            'energy',
+            'bandwidth',
+            'max-energy',
+            'max-bandwidth',
+            'strx-energy',
+            'strx-bandwidth',
+          ]);
+          if (symbolLc && tronResourceSymbols.has(symbolLc)) {
+            return false;
+          }
         }
         return true;
       });
