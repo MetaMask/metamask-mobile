@@ -136,6 +136,7 @@ describe('DepositPhoneField', () => {
         onRegionSelect: expect.any(Function),
         behavior: {
           isRegionSelectable: expect.any(Function),
+          shouldDisplaySelectedStyles: expect.any(Function),
           updateGlobalRegion: false,
           trackSelection: false,
         },
@@ -344,6 +345,7 @@ describe('DepositPhoneField', () => {
           onRegionSelect: expect.any(Function),
           behavior: {
             isRegionSelectable: expect.any(Function),
+            shouldDisplaySelectedStyles: expect.any(Function),
             updateGlobalRegion: false,
             trackSelection: false,
           },
@@ -373,6 +375,7 @@ describe('DepositPhoneField', () => {
           onRegionSelect: expect.any(Function),
           behavior: {
             isRegionSelectable: expect.any(Function),
+            shouldDisplaySelectedStyles: expect.any(Function),
             updateGlobalRegion: false,
             trackSelection: false,
           },

@@ -34,11 +34,13 @@ const MAX_REGION_RESULTS = 20;
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
   onRegionSelect?: (region: DepositRegion) => void;
+
   behavior?: {
     /**
      * Custom filter function to determine if a region is selectable.
      * If not provided, defaults to checking region.supported
      */
+    shouldDisplaySelectedStyles?: (region: DepositRegion) => boolean;
     isRegionSelectable?: (region: DepositRegion) => boolean;
     updateGlobalRegion?: boolean;
     trackSelection?: boolean;
@@ -62,12 +64,14 @@ function RegionSelectorModal() {
 
   const behaviorConfig = useMemo(
     () => ({
+      shouldDisplaySelectedStyles: (region: DepositRegion) =>
+        region.isoCode === selectedRegion?.isoCode,
       isRegionSelectable: (region: DepositRegion) => region.supported,
       updateGlobalRegion: true,
       trackSelection: true,
       ...behavior,
     }),
-    [behavior],
+    [behavior, selectedRegion?.isoCode],
   );
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
@@ -157,7 +161,7 @@ function RegionSelectorModal() {
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
         shouldEnableAndroidPressIn
-        isSelected={selectedRegion?.isoCode === region.isoCode}
+        isSelected={behaviorConfig.shouldDisplaySelectedStyles(region)}
         onPress={() => {
           handleOnRegionPressCallback(region);
         }}
@@ -196,8 +200,8 @@ function RegionSelectorModal() {
       </ListItemSelect>
     ),
     [
+      behaviorConfig,
       handleOnRegionPressCallback,
-      selectedRegion,
       isSelectable,
       styles.region,
       styles.emoji,
