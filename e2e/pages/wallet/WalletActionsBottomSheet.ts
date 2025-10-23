@@ -50,6 +50,12 @@ class WalletActionsBottomSheet {
     );
   }
 
+  get startANewTradeButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.START_A_NEW_TRADE_BUTTON,
+    );
+  }
+
   async tapSendButton(): Promise<void> {
     await Gestures.waitAndTap(this.sendButton);
   }

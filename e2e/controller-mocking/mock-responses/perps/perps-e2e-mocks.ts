@@ -878,6 +878,14 @@ export class PerpsE2EMockService {
     symbol: string,
     price: PriceUpdate,
   ): boolean {
+    console.log(
+      '🎭 E2E Mock: Applying liquidation checks for symbol:',
+      symbol,
+      'price:',
+      price.price,
+      'positions:',
+      this.mockPositions,
+    );
     const px = parseFloat(price.price);
     let didAnyClose = false;
 

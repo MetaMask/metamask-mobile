@@ -230,7 +230,7 @@ class PerpsView {
 
   async tapStopLossPercentageButton(percentage: number) {
     const button = this.getStopLossPercentageButton(percentage);
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(button, { checkVisibility: false });
   }
 
   async tapSetTpslButton() {

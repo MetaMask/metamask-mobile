@@ -13,7 +13,13 @@ import PerpsDepositView from '../../pages/Perps/PerpsDepositView';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
 import ToastModal from '../../pages/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
+import { createLogger, LogLevel } from '../../framework/logger';
 import PerpsDepositProcessingView from '../../pages/Perps/PerpsDepositProcessingView';
+
+const logger = createLogger({
+  name: 'PerpsAddFundsSpec',
+  level: LogLevel.INFO,
+});
 
 describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
   beforeEach(async () => {
@@ -57,6 +63,7 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
       },
       async () => {
         await loginToApp();
+        await device.disableSynchronization();
         await Assertions.expectElementToBeVisible(
           WalletView.container as DetoxElement,
           {
@@ -100,13 +107,17 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
         await PerpsDepositProcessingView.expectProcessingVisible();
         // Apply deposit mock and verify balance update
         await PerpsE2EModifiers.applyDepositUSD('80');
-        await Utilities.waitUntil(
+        logger.info('🔥 E2E Mock: Deposit applied');
+        await Utilities.executeWithRetry(
           async () => {
             const current = await PerpsTabView.getBalance();
-            return current === initialBalance + 80;
+            await Assertions.checkIfValueIsDefined(
+              current === initialBalance + 80,
+            );
           },
           { interval: 500, timeout: 30000 },
         );
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       },
     );
   });

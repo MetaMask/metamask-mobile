@@ -98,6 +98,18 @@ class PerpsOrderView {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
   }
 
+  private quickAmountPercentButton(percentage: number): DetoxElement {
+    // Quick amount buttons are rendered as visible text like "25%"
+    return Matchers.getElementByText(`${percentage}%`);
+  }
+
+  async tapQuickAmountPercent(percentage: number): Promise<void> {
+    const btn = this.quickAmountPercentButton(percentage);
+    await Gestures.waitAndTap(btn, {
+      elemDescription: `Select quick amount ${percentage}%`,
+    });
+  }
+
   // Required for next test
   async setAmountUSD(amount: string) {
     // Open keypad by tapping the value by ID (more reliable than tapping the container)
