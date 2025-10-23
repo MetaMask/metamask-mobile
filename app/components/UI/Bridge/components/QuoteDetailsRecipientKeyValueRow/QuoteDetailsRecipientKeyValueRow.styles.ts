@@ -20,6 +20,9 @@ const createStyles = () =>
       flexShrink: 0,
       minWidth: 0,
     },
+    recipientText: {
+      flexShrink: 1,
+    },
   });
 
 export default createStyles;

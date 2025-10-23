@@ -11,10 +11,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import {
-  selectDestAddress,
-  selectIsSwap,
-} from '../../../../../core/redux/slices/bridge';
+import { selectIsSwap } from '../../../../../core/redux/slices/bridge';
 import createStyles from './QuoteDetailsRecipientKeyValueRow.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
@@ -30,7 +27,6 @@ const QuoteDetailsRecipientKeyValueRow = () => {
   const styles = createStyles();
   const navigation = useNavigation();
   const isSwap = useSelector(selectIsSwap);
-  const destAddress = useSelector(selectDestAddress);
 
   // Get the display name and wallet name for the destination account
   const {
@@ -45,7 +41,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
     });
   };
 
-  if (isSwap || !destAddress) {
+  if (isSwap) {
     return null;
   }
 
@@ -73,10 +69,10 @@ const QuoteDetailsRecipientKeyValueRow = () => {
               numberOfLines={1}
               style={styles.accountNameText}
             >
-              {destinationWalletName ? `${destinationWalletName} / ` : ''}{' '}
+              {destinationWalletName ? `${destinationWalletName} / ` : ''}
               {destinationDisplayName}
             </Text>
-          ) : (
+          ) : destinationAccountAddress ? (
             <Text variant={TextVariant.BodyMD}>
               {shortenString(destinationAccountAddress, {
                 truncatedCharLimit: 15,
@@ -84,6 +80,15 @@ const QuoteDetailsRecipientKeyValueRow = () => {
                 truncatedEndChars: 5,
                 skipCharacterInEnd: false,
               })}
+            </Text>
+          ) : (
+            <Text
+              variant={TextVariant.BodyMD}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={styles.recipientText}
+            >
+              {strings('bridge.select_recipient')}
             </Text>
           )}
           <Icon

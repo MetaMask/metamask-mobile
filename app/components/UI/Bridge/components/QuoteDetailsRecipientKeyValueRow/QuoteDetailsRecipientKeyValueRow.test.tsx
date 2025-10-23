@@ -87,17 +87,18 @@ describe('QuoteDetailsRecipientKeyValueRow', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('returns null when destAddress is undefined', () => {
+  it('renders select recipient text when destAddress is undefined', () => {
     const state = createMockState({
       bridge: { destAddress: undefined },
     });
 
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <QuoteDetailsRecipientKeyValueRow />,
       { state },
     );
 
-    expect(toJSON()).toBeNull();
+    expect(getByText('Recipient')).toBeTruthy();
+    expect(getByText('Select recipient')).toBeTruthy();
   });
 
   it('renders recipient row with internal account display name', () => {
@@ -175,7 +176,7 @@ describe('QuoteDetailsRecipientKeyValueRow', () => {
     });
   });
 
-  it('renders empty string when destinationAccountAddress is undefined', () => {
+  it('renders select recipient text when destinationAccountAddress is undefined', () => {
     mockUseRecipientDisplayData.mockReturnValue({
       destinationDisplayName: undefined,
       destinationWalletName: undefined,
@@ -184,12 +185,13 @@ describe('QuoteDetailsRecipientKeyValueRow', () => {
 
     const state = createMockState();
 
-    const { getByTestId, queryByText } = renderWithProvider(
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
       <QuoteDetailsRecipientKeyValueRow />,
       { state },
     );
 
     expect(getByTestId('recipient-selector-button')).toBeTruthy();
+    expect(getByText('Select recipient')).toBeTruthy();
     expect(queryByText('0x12345...67890')).toBeNull();
   });
 });
