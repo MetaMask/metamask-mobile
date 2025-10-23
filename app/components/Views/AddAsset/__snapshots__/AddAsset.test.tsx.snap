@@ -428,6 +428,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               activeOpacity={1}
               disabled={true}
               loading={false}
+              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
