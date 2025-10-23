@@ -7011,7 +7011,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0, @metamask/base-controller@npm:^8.4.1, @metamask/base-controller@npm:^8.4.2":
+"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0, @metamask/base-controller@npm:^8.4.1, @metamask/base-controller@npm:^8.4.2":
   version: 8.4.2
   resolution: "@metamask/base-controller@npm:8.4.2"
   dependencies:
@@ -8747,15 +8747,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/swaps-controller@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/swaps-controller@npm:14.0.0"
+"@metamask/swaps-controller@npm:@metamask-previews/swaps-controller@14.0.0-preview-4c94bcb":
+  version: 14.0.0-preview-4c94bcb
+  resolution: "@metamask-previews/swaps-controller@npm:14.0.0-preview-4c94bcb"
   dependencies:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/base-controller": "npm:^8.0.3"
+    "@metamask/base-controller": "npm:^8.4.2"
     "@metamask/controller-utils": "npm:^11.3.0"
     "@metamask/eth-query": "npm:^4.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^10.0.0"
     async-mutex: "npm:^0.5.0"
     bignumber.js: "npm:^9.0.1"
@@ -8764,7 +8765,7 @@ __metadata:
   peerDependencies:
     "@metamask/gas-fee-controller": ^24.0.0
     "@metamask/network-controller": ^24.0.0
-  checksum: 10/125a5690b81ec6c97da33564900576e9f5bfc0d5c7154a688c00aed1a7b26c98570384954e2dc10cae174bfb60988f559940d8c8ec81dd33b076c2ee4423028e
+  checksum: 10/2c0676b233ddc584618b792a11454310d5bdceb57179f76e6f6b3ff18e5765a39d0219a4ccf97f21b9bb024fe9ba65b507851aee61575b33c14641ae4a29f8f0
   languageName: node
   linkType: hard
 
