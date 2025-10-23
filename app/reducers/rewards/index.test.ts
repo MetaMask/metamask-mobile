@@ -204,7 +204,6 @@ describe('rewardsReducer', () => {
       expect(state.seasonTiers).toHaveLength(1);
       expect(state.seasonTiers[0].id).toBe('tier-bronze');
       expect(state.balanceTotal).toBe(1500);
-      expect(state.balanceRefereePortion).toBe(300);
       expect(state.balanceUpdatedAt).toEqual(new Date(1714857600000));
       expect(state.currentTier?.id).toBe('tier-bronze');
       expect(state.nextTier?.id).toBe('tier-silver');
@@ -258,7 +257,6 @@ describe('rewardsReducer', () => {
       expect(state.seasonEndDate).toBe(null);
       expect(state.seasonTiers).toEqual([]);
       expect(state.balanceTotal).toBe(null);
-      expect(state.balanceRefereePortion).toBe(null);
       expect(state.balanceUpdatedAt).toBe(null);
       expect(state.currentTier).toBe(null);
       expect(state.nextTier).toBe(null);
@@ -289,7 +287,6 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.seasonName).toBe('Season 4');
       expect(state.balanceTotal).toBe(null); // Should be null due to invalid type
-      expect(state.balanceRefereePortion).toBe(null); // Should be null due to invalid type
       expect(state.balanceUpdatedAt).toEqual(new Date(1714857600000));
     });
 
@@ -375,7 +372,6 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.balanceTotal).toBe(100);
-      expect(state.balanceRefereePortion).toBe(50);
       expect(state.balanceUpdatedAt).toBe(null);
     });
 
@@ -506,6 +502,100 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state.refereeCount).toBe(-1); // Should accept negative values
         expect(state.referralDetailsLoading).toBe(false);
+      });
+
+      it('updates balanceRefereePortion when referralPoints is provided', () => {
+        // Arrange
+        const action = setReferralDetails({ referralPoints: 500 });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.balanceRefereePortion).toBe(500);
+        expect(state.referralDetailsLoading).toBe(false);
+      });
+
+      it('updates balanceRefereePortion with zero value', () => {
+        // Arrange
+        const stateWithPoints = {
+          ...initialState,
+          balanceRefereePortion: 300,
+        };
+        const action = setReferralDetails({ referralPoints: 0 });
+
+        // Act
+        const state = rewardsReducer(stateWithPoints, action);
+
+        // Assert
+        expect(state.balanceRefereePortion).toBe(0);
+      });
+
+      it('updates all fields including referralPoints when provided together', () => {
+        // Arrange
+        const action = setReferralDetails({
+          referralCode: 'COMBO123',
+          refereeCount: 15,
+          referralPoints: 750,
+        });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.referralCode).toBe('COMBO123');
+        expect(state.refereeCount).toBe(15);
+        expect(state.balanceRefereePortion).toBe(750);
+        expect(state.referralDetailsLoading).toBe(false);
+      });
+
+      it('preserves balanceRefereePortion when referralPoints is not provided', () => {
+        // Arrange
+        const stateWithPoints = {
+          ...initialState,
+          balanceRefereePortion: 200,
+        };
+        const action = setReferralDetails({ referralCode: 'TEST456' });
+
+        // Act
+        const state = rewardsReducer(stateWithPoints, action);
+
+        // Assert
+        expect(state.balanceRefereePortion).toBe(200);
+        expect(state.referralCode).toBe('TEST456');
+      });
+
+      it('handles negative referralPoints value', () => {
+        // Arrange
+        const action = setReferralDetails({ referralPoints: -50 });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.balanceRefereePortion).toBe(-50);
+      });
+
+      it('handles large referralPoints value', () => {
+        // Arrange
+        const action = setReferralDetails({ referralPoints: 999999 });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.balanceRefereePortion).toBe(999999);
+      });
+
+      it('handles decimal referralPoints value', () => {
+        // Arrange
+        const action = setReferralDetails({ referralPoints: 125.75 });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.balanceRefereePortion).toBe(125.75);
       });
     });
 
