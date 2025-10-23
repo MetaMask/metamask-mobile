@@ -133,6 +133,7 @@ const PredictBuyPreview = () => {
   }, []);
 
   const toWin = preview?.minAmountReceived ?? 0;
+  const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const providerFee = preview?.fees?.providerFee ?? 0;
@@ -148,7 +149,8 @@ const PredictBuyPreview = () => {
     preview &&
     !isCalculating &&
     !isLoading &&
-    !isBalanceLoading;
+    !isBalanceLoading &&
+    !isRateLimited;
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
@@ -346,6 +348,7 @@ const PredictBuyPreview = () => {
                   outcomeToken?.title === 'Yes'
                     ? 'text-success-default'
                     : 'text-error-default',
+                  !canPlaceBet && 'opacity-40',
                 )}
                 disabled={!canPlaceBet}
                 loading={isLoading}
