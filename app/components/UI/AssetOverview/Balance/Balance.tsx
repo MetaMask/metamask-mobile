@@ -206,7 +206,9 @@ const Balance = ({
         disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
-        secondaryBalance={!hidePercentageChange ? percentageText : ''}
+        secondaryBalance={
+          hidePercentageChange ? secondaryBalance : percentageText
+        }
         secondaryBalanceColor={percentageColor}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
