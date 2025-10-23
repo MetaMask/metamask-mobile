@@ -12,7 +12,7 @@ export default ({ children }: PropsWithChildren) => {
 
     try {
       const config: Realm.Configuration = { schema: schemas };
-      __DEV__ && Realm.deleteFile(config);
+      // __DEV__ && Realm.deleteFile(config);
       const realm = new Realm(config);
       Realm.setLogLevel('trace');
       RealmService.instance = realm;

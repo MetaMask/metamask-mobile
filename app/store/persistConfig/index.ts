@@ -9,6 +9,7 @@ import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import { UpdateMode } from 'realm';
 import RealmService from '../../realm/service';
 
 const TIMEOUT = 40000;
@@ -93,7 +94,7 @@ export const ControllerStorage = {
           try {
             if (isSnapController(controllerName)) {
               const realm = RealmService.instance;
-              realm.objects('Snap');
+              const value = realm.objects('Snap');
             }
             const data = await FilesystemStorage.getItem(key);
             if (data) {
@@ -156,14 +157,21 @@ export const createPersistController = (debounceMs: number = 200) =>
         //TODO: types
         const realm = RealmService.instance;
         const snapCollection = (filteredState as any).snaps;
-        const snaps = Object.keys(snapCollection);
 
-        snaps.forEach((snap) => {
+        Object.keys(snapCollection).forEach((snap) => {
           const { sourceCode } = snapCollection[snap];
-          // console.log('Realm snap sourceCode', snap);
           realm.write(() => {
-            realm.create('Snap', { name: snap, sourceCode: sourceCode });
+            realm.create(
+              'Snap',
+              {
+                _id: snap,
+                name: snap,
+                sourceCode,
+              },
+              UpdateMode.Modified,
+            );
           });
+          console.log('Realm snap write done', snap);
         });
       }
       await ControllerStorage.setItem(
