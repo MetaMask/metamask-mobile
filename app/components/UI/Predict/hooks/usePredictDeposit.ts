@@ -43,6 +43,7 @@ export const usePredictDeposit = ({
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
       });
 
       Engine.context.PredictController.depositWithConfirmation({
