@@ -146,8 +146,9 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
           <View
             style={
               {
-                "height": 64,
-                "width": 64,
+                "alignItems": "center",
+                "height": 32,
+                "justifyContent": "center",
               }
             }
           >
@@ -168,12 +169,12 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
                       "height": 24,
                       "width": 24,
                     },
-                    undefined,
                     {
-                      "borderRadius": 25,
-                      "height": 50,
-                      "width": 50,
+                      "borderRadius": 18,
+                      "height": 36,
+                      "width": 36,
                     },
+                    undefined,
                     undefined,
                     undefined,
                   ]
@@ -197,9 +198,9 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
                   style={
                     [
                       {
-                        "borderRadius": 25,
-                        "height": 50,
-                        "width": 50,
+                        "borderRadius": 18,
+                        "height": 36,
+                        "width": 36,
                       },
                       {
                         "backgroundColor": "#eee",
@@ -222,6 +223,7 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
                 },
                 {
                   "gap": 8,
+                  "paddingTop": 16,
                 },
               ]
             }
@@ -232,9 +234,9 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 24,
+                  "fontSize": 18,
                   "letterSpacing": 0,
-                  "lineHeight": 32,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -679,8 +681,9 @@ exports[`TokenInsightsSheet renders correctly with token data 1`] = `
           <View
             style={
               {
-                "height": 64,
-                "width": 64,
+                "alignItems": "center",
+                "height": 32,
+                "justifyContent": "center",
               }
             }
           >
@@ -701,12 +704,12 @@ exports[`TokenInsightsSheet renders correctly with token data 1`] = `
                       "height": 24,
                       "width": 24,
                     },
-                    undefined,
                     {
-                      "borderRadius": 25,
-                      "height": 50,
-                      "width": 50,
+                      "borderRadius": 18,
+                      "height": 36,
+                      "width": 36,
                     },
+                    undefined,
                     undefined,
                     undefined,
                   ]
@@ -730,9 +733,9 @@ exports[`TokenInsightsSheet renders correctly with token data 1`] = `
                   style={
                     [
                       {
-                        "borderRadius": 25,
-                        "height": 50,
-                        "width": 50,
+                        "borderRadius": 18,
+                        "height": 36,
+                        "width": 36,
                       },
                       {
                         "backgroundColor": "#eee",
@@ -755,6 +758,7 @@ exports[`TokenInsightsSheet renders correctly with token data 1`] = `
                 },
                 {
                   "gap": 8,
+                  "paddingTop": 16,
                 },
               ]
             }
@@ -765,9 +769,9 @@ exports[`TokenInsightsSheet renders correctly with token data 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 24,
+                  "fontSize": 18,
                   "letterSpacing": 0,
-                  "lineHeight": 32,
+                  "lineHeight": 24,
                 }
               }
             >

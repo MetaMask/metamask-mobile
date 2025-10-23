@@ -82,10 +82,12 @@ const createStyles = (theme: Theme) =>
       marginBottom: 16,
     },
     iconContainer: {
-      width: 64,
-      height: 64,
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 32,
     },
     titleContainer: {
+      paddingTop: 16,
       gap: 8,
     },
     verifiedBadge: {
@@ -308,7 +310,7 @@ const TokenInsightsSheet: React.FC = () => {
             <TokenIcon
               symbol={token.symbol}
               icon={token.image}
-              big
+              medium
               testID={`token-insights-icon-${token.symbol}`}
             />
           </View>
@@ -317,7 +319,7 @@ const TokenInsightsSheet: React.FC = () => {
             alignItems={BoxAlignItems.center}
             style={styles.titleContainer}
           >
-            <Text variant={TextVariant.HeadingLG}>{token.symbol} Insights</Text>
+            <Text variant={TextVariant.HeadingMD}>{token.symbol} Insights</Text>
           </Box>
         </Box>
 
