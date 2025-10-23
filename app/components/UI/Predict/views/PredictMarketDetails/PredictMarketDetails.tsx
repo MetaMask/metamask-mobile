@@ -51,9 +51,8 @@ import {
 } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
-import { usePredictEligibility } from '../../hooks/usePredictEligibility';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -92,14 +91,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const [activeTab, setActiveTab] = useState(0);
   const insets = useSafeAreaInsets();
-  const { hasNoBalance } = usePredictBalance();
 
   const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
-  const { isEligible } = usePredictEligibility({
+  const { executeGuardedAction } = usePredictActionGuard({
     providerId,
+    navigation,
   });
 
   const { market, isFetching: isMarketFetching } = usePredictMarket({
@@ -260,18 +259,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const onCashOut = () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    executeGuardedAction(() => {
+      const outcome = market?.outcomes.find(
+        (o) => o.id === currentPosition?.outcomeId,
+      );
+      navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params: { position: currentPosition, outcome },
       });
-      return;
-    }
-    const outcome = market?.outcomes.find(
-      (o) => o.id === currentPosition?.outcomeId,
-    );
-    navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-      params: { position: currentPosition, outcome },
     });
   };
 
@@ -293,63 +288,43 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const handleYesPress = () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome: market?.outcomes?.[0],
-        outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome: market?.outcomes?.[0],
+            outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          },
+        });
       },
-    });
+      { checkBalance: true },
+    );
   };
 
   const handleNoPress = () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome: market?.outcomes?.[0],
-        outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome: market?.outcomes?.[0],
+            outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          },
+        });
       },
-    });
+      { checkBalance: true },
+    );
   };
 
   const handleClaimPress = async () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-    await claim();
+    executeGuardedAction(async () => {
+      await claim();
+    });
   };
 
   const handleTabPress = (tabIndex: number) => {

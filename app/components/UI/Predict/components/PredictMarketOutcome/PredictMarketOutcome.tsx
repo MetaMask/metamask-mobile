@@ -35,8 +35,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictEligibility } from '../../hooks/usePredictEligibility';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -57,10 +56,10 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { isEligible } = usePredictEligibility({
+  const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,
+    navigation,
   });
-  const { hasNoBalance } = usePredictBalance();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -85,55 +84,37 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
   const handleYes = () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[0],
-        entryPoint,
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken: outcome.tokens[0],
+            entryPoint,
+          },
+        });
       },
-    });
+      { checkBalance: true },
+    );
   };
 
   const handleNo = () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[1],
-        entryPoint,
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken: outcome.tokens[1],
+            entryPoint,
+          },
+        });
       },
-    });
+      { checkBalance: true },
+    );
   };
 
   return (

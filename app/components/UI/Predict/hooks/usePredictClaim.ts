@@ -1,4 +1,3 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
@@ -8,8 +7,6 @@ import { ToastContext } from '../../../../component-library/components/Toast/Toa
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PredictNavigationParamList } from '../types/navigation';
-import { usePredictEligibility } from './usePredictEligibility';
 import { usePredictTrading } from './usePredictTrading';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
@@ -22,13 +19,8 @@ interface UsePredictClaimParams {
 export const usePredictClaim = ({
   providerId = POLYMARKET_PROVIDER_ID,
 }: UsePredictClaimParams = {}) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigateToConfirmation } = useConfirmNavigation();
   const { claim: claimWinnings } = usePredictTrading();
-  const { isEligible } = usePredictEligibility({
-    providerId,
-  });
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
 
@@ -39,12 +31,6 @@ export const usePredictClaim = ({
   const claimTransaction = useSelector(selectClaimTransaction);
 
   const claim = useCallback(async () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
     try {
       navigateToConfirmation({
         headerShown: false,
@@ -77,9 +63,7 @@ export const usePredictClaim = ({
     }
   }, [
     claimWinnings,
-    isEligible,
     navigateToConfirmation,
-    navigation,
     providerId,
     theme.colors.accent04.normal,
     theme.colors.error.default,
