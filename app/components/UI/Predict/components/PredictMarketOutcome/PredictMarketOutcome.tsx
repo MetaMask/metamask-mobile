@@ -83,7 +83,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
-  const handleYes = () => {
+  const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
@@ -91,24 +91,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           params: {
             market,
             outcome,
-            outcomeToken: outcome.tokens[0],
-            entryPoint,
-          },
-        });
-      },
-      { checkBalance: true },
-    );
-  };
-
-  const handleNo = () => {
-    executeGuardedAction(
-      () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: outcome.tokens[1],
+            outcomeToken: token,
             entryPoint,
           },
         });
@@ -194,7 +177,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 {(outcome.tokens[0].price * 100).toFixed(2)}¢
               </Text>
             }
-            onPress={handleYes}
+            onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
           />
           <Button
@@ -207,7 +190,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 {(outcome.tokens[1].price * 100).toFixed(2)}¢
               </Text>
             }
-            onPress={handleNo}
+            onPress={() => handleBuy(outcome.tokens[1])}
             style={styles.buttonNo}
           />
         </View>

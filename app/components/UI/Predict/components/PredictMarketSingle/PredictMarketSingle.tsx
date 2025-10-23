@@ -21,7 +21,10 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PredictMarket as PredictMarketType } from '../../types';
+import {
+  PredictMarket as PredictMarketType,
+  PredictOutcomeToken,
+} from '../../types';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
@@ -70,7 +73,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const yesPercentage = getYesPercentage();
 
-  const handleYes = () => {
+  const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
@@ -78,24 +81,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           params: {
             market,
             outcome,
-            outcomeToken: outcome.tokens[0],
-            entryPoint,
-          },
-        });
-      },
-      { checkBalance: true },
-    );
-  };
-
-  const handleNo = () => {
-    executeGuardedAction(
-      () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: outcome.tokens[1],
+            outcomeToken: token,
             entryPoint,
           },
         });
@@ -244,7 +230,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 {strings('predict.buy_yes')}
               </Text>
             }
-            onPress={handleYes}
+            onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
           />
           <Button
@@ -256,7 +242,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 {strings('predict.buy_no')}
               </Text>
             }
-            onPress={handleNo}
+            onPress={() => handleBuy(outcome.tokens[1])}
             style={styles.buttonNo}
           />
         </View>
