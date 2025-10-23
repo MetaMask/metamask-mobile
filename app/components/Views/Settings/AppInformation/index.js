@@ -15,7 +15,7 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
-import { channel, updateRuntimeVersion, isEmbeddedLaunch } from 'expo-updates';
+import { channel, runtimeVersion, isEmbeddedLaunch } from 'expo-updates';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -233,7 +233,7 @@ export default class AppInformation extends PureComponent {
                   {`OTA Update Channel: ${channel}`}
                 </Text>
                 <Text style={styles.branchInfo}>
-                  {`OTA Update runtime version: ${updateRuntimeVersion}`}
+                  {`OTA Update runtime version: ${runtimeVersion}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Update status: ${otaUpdateMessage}`}
