@@ -591,7 +591,6 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -627,7 +626,6 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -1268,7 +1266,6 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -1304,7 +1301,6 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
