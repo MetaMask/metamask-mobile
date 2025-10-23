@@ -70,6 +70,29 @@ class FontPreloader {
   }
 
   /**
+   * Extract font weight and style from font family name
+   */
+  private extractFontProperties(fontFamily: string): {
+    weight: string;
+    style: string;
+  } {
+    const lowerFamily = fontFamily.toLowerCase();
+
+    // Extract font weight
+    let weight = '400'; // default to normal
+    if (lowerFamily.includes('bold')) {
+      weight = '700';
+    } else if (lowerFamily.includes('medium')) {
+      weight = '500';
+    }
+
+    // Extract font style
+    const style = lowerFamily.includes('italic') ? 'italic' : 'normal';
+
+    return { weight, style };
+  }
+
+  /**
    * Preload fonts for web platform using FontFace API
    */
   private preloadFontsWeb(fontFamilies: string[], resolve: () => void): void {
@@ -81,7 +104,11 @@ class FontPreloader {
 
     fontFamilies.forEach((fontFamily) => {
       const span = document.createElement('span');
+      const { weight, style } = this.extractFontProperties(fontFamily);
+
       span.style.fontFamily = fontFamily;
+      span.style.fontWeight = weight;
+      span.style.fontStyle = style;
       span.textContent = 'Font preload test';
       preloadContainer.appendChild(span);
     });
