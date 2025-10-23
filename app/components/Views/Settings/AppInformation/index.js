@@ -15,7 +15,7 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
-import { channel } from 'expo-updates';
+import { channel, updateRuntimeVersion, isEmbeddedLaunch } from 'expo-updates';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -186,6 +186,11 @@ export default class AppInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const otaUpdateMessage =
+      __DEV__ || isEmbeddedLaunch
+        ? 'This app is running from built-in code or in development mode'
+        : 'This app is running an update';
+
     return (
       <SafeAreaView
         style={styles.wrapper}
@@ -219,14 +224,19 @@ export default class AppInformation extends PureComponent {
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                 </Text>
                 <Text style={styles.branchInfo}>
-                  {`OTA Update Channel: ${channel}`}
-                </Text>
-
-                <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`OTA Update Channel: ${channel}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`OTA Update runtime version: ${updateRuntimeVersion}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`OTA Update status: ${otaUpdateMessage}`}
                 </Text>
               </>
             ) : null}

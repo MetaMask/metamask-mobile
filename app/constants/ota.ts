@@ -16,4 +16,6 @@ export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
  * @returns Full version string (e.g., "7.58.0 OTA Version: v3")
  */
 export const getFullVersion = (appVersion: string): string =>
-  `${appVersion} OTA Version: ${OTA_VERSION}`;
+  process.env.METAMASK_ENVIRONMENT !== 'production'
+    ? `${appVersion} OTA: ${OTA_VERSION}`
+    : `${appVersion}`;
