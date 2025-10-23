@@ -133,6 +133,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       style={styles.startTradeCTA}
       onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
+      shouldEnableAndroidPressIn
     >
       <View style={styles.startTradeContent}>
         <View style={styles.startTradeIconContainer}>
