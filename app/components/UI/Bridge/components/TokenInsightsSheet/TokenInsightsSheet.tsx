@@ -1,4 +1,10 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, {
+  useRef,
+  useCallback,
+  useEffect,
+  useState,
+  useMemo,
+} from 'react';
 import {
   View,
   StyleSheet,
@@ -25,33 +31,30 @@ import {
 } from '../../../Box/box.types';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { BridgeToken } from '../../types';
-import { strings } from '../../../../../../locales/i18n';
+import i18n, { strings } from '../../../../../../locales/i18n';
 import { ethers } from 'ethers';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { showAlert } from '../../../../../actions/alert';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-// @ts-expect-error - react-navigation types
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
+import { formatWithThreshold } from '../../../../../util/assets';
+import { formatVolume } from '../../../Perps/utils/formatUtils';
 
-// Selectors
 import { RootState } from '../../../../../reducers';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectEvmTokenMarketData } from '../../../../../selectors/multichain/evm';
 import { selectTokenDisplayData } from '../../../../../selectors/tokenSearchDiscoveryDataController';
 
-// Controllers and utilities
 import Engine from '../../../../../core/Engine';
 import { handleFetch } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toAssetId } from '../../hooks/useAssetMetadata/utils';
 
-// Bridge specific hooks
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import { setDestTokenExchangeRate } from '../../../../../core/redux/slices/bridge';
 
-// Types
 import { MarketDataDetails } from '@metamask/assets-controllers';
 
 interface TokenInsightsRouteParams {
@@ -229,11 +232,13 @@ const TokenInsightsSheet: React.FC = () => {
   // Final market data
   const marketData = cachedMarketData ?? fetchedMarketData;
 
-  // Extract values with proper fallbacks
+  // Extract raw values with proper fallbacks
   const price =
     token?.currencyExchangeRate ||
-    marketData?.price ||
-    ((marketData as Record<string, unknown>)?.usd as number | undefined);
+    (typeof marketData?.price === 'number' ? marketData.price : undefined) ||
+    (typeof (marketData as Record<string, unknown>)?.usd === 'number'
+      ? ((marketData as Record<string, unknown>).usd as number)
+      : undefined);
 
   const priceChange24h: number =
     (marketData?.pricePercentChange1d as number | undefined) ??
@@ -245,9 +250,21 @@ const TokenInsightsSheet: React.FC = () => {
     )?.P1D as number | undefined) ??
     0;
 
-  const volume24h = marketData?.totalVolume as number | undefined;
+  // Extract market data values
+  const totalVolume = marketData?.totalVolume as number | undefined;
   const marketCap = marketData?.marketCap as number | undefined;
   const dilutedMarketCap = marketData?.dilutedMarketCap as number | undefined;
+
+  // Format price using the same utility for consistency
+  const formattedPrice = useMemo(() => {
+    if (!price) return '—';
+    return formatWithThreshold(price, 0.01, i18n.locale, {
+      style: 'currency',
+      currency: currentCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }, [price, currentCurrency]);
 
   const handleCopyAddress = useCallback(async () => {
     if (!token?.address) return;
@@ -263,33 +280,10 @@ const TokenInsightsSheet: React.FC = () => {
     );
   }, [dispatch, token?.address]);
 
-  const formatPrice = (priceValue?: string | number) => {
-    if (!priceValue) return '—';
-    const numPrice =
-      typeof priceValue === 'string' ? parseFloat(priceValue) : priceValue;
-    return `${currentCurrency} ${numPrice.toFixed(2)}`;
-  };
-
   const formatPercentChange = (change?: number) => {
     if (!change && change !== 0) return '—';
     const sign = change >= 0 ? '+' : '';
     return `${sign}${change.toFixed(2)}%`;
-  };
-
-  const formatVolume = (volumeValue?: string | number) => {
-    if (!volumeValue) return '—';
-    const numVolume =
-      typeof volumeValue === 'string' ? parseFloat(volumeValue) : volumeValue;
-    if (numVolume >= 1000000000) {
-      return `${currentCurrency} ${(numVolume / 1000000000).toFixed(1)}B`;
-    }
-    if (numVolume >= 1000000) {
-      return `${currentCurrency} ${(numVolume / 1000000).toFixed(1)}M`;
-    }
-    if (numVolume >= 1000) {
-      return `${currentCurrency} ${(numVolume / 1000).toFixed(1)}K`;
-    }
-    return `${currentCurrency} ${numVolume.toFixed(0)}`;
   };
 
   const formatAddress = (address: string) => {
@@ -338,21 +332,24 @@ const TokenInsightsSheet: React.FC = () => {
         </Box>
 
         {/* Verified Token Badge */}
-        <Box
-          style={styles.verifiedBadge}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.center}
-          justifyContent={BoxJustifyContent.center}
-        >
-          <Icon
-            name={IconName.Verified}
-            size={IconSize.Sm}
-            color={IconColor.Success}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-            {strings('bridge.verified_token')}
-          </Text>
-        </Box>
+        {/* For now we are not showing the verified token badge until the backend */}
+        {false && (
+          <Box
+            style={styles.verifiedBadge}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.center}
+            justifyContent={BoxJustifyContent.center}
+          >
+            <Icon
+              name={IconName.Verified}
+              size={IconSize.Sm}
+              color={IconColor.Success}
+            />
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
+              {strings('bridge.verified_token')}
+            </Text>
+          </Box>
+        )}
 
         {/* Token Details */}
         <Box
@@ -365,13 +362,8 @@ const TokenInsightsSheet: React.FC = () => {
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.price')}
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Alternative}
-              />
             </View>
-            <Text variant={TextVariant.HeadingSM}>{formatPrice(price)}</Text>
+            <Text variant={TextVariant.BodyMD}>{formattedPrice}</Text>
           </View>
 
           {/* Percent Change */}
@@ -380,11 +372,6 @@ const TokenInsightsSheet: React.FC = () => {
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.percent_change')}
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Alternative}
-              />
             </View>
             <View style={styles.valueContainer}>
               {priceChange24h !== 0 && (
@@ -399,7 +386,7 @@ const TokenInsightsSheet: React.FC = () => {
                 />
               )}
               <Text
-                variant={TextVariant.HeadingSM}
+                variant={TextVariant.BodyMD}
                 color={
                   priceChange24h > 0
                     ? TextColor.Success
@@ -418,8 +405,8 @@ const TokenInsightsSheet: React.FC = () => {
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('bridge.volume')}
             </Text>
-            <Text variant={TextVariant.HeadingSM}>
-              {formatVolume(volume24h)}
+            <Text variant={TextVariant.BodyMD}>
+              {formatVolume(totalVolume || 0)}
             </Text>
           </View>
 
@@ -428,10 +415,8 @@ const TokenInsightsSheet: React.FC = () => {
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('bridge.market_cap_fdv')}
             </Text>
-            <Text variant={TextVariant.HeadingSM}>
-              {dilutedMarketCap
-                ? formatVolume(dilutedMarketCap)
-                : formatVolume(marketCap)}
+            <Text variant={TextVariant.BodyMD}>
+              {formatVolume(dilutedMarketCap || marketCap || 0)}
             </Text>
           </View>
 
@@ -441,11 +426,6 @@ const TokenInsightsSheet: React.FC = () => {
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.contract_address')}
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Alternative}
-              />
             </View>
             <TouchableOpacity onPress={handleCopyAddress}>
               <View style={styles.valueContainer}>
