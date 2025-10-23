@@ -27,7 +27,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10100.00',
       },
       isInitialLoading: false,
     });
@@ -86,7 +85,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9500.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10100.00',
       };
       mockUsePerpsLiveAccount.mockReturnValue({
         account: mockAccount,
@@ -114,7 +112,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10100.00',
       };
 
       const updatedAccount = {
@@ -123,7 +120,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '9600.00',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -159,7 +155,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10100.00',
       };
 
       const updatedAccount = {
@@ -168,7 +163,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10600.00',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -204,7 +198,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10100.00',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -266,7 +259,6 @@ describe('usePerpsWithdrawProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10100.00',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
