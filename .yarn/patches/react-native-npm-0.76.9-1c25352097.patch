@@ -2,17 +2,12 @@ diff --git a/Libraries/Pressability/Pressability.js b/Libraries/Pressability/Pre
 index 1bd6853b4202e4f726e80709660f6d049a4fc741..005008a26a5e07ae697098c82cce03dc86791635 100644
 --- a/Libraries/Pressability/Pressability.js
 +++ b/Libraries/Pressability/Pressability.js
-@@ -806,7 +806,12 @@ export default class Pressability {
+@@ -806,7 +806,7 @@ export default class Pressability {
      if (typeof this._responderID === 'number') {
        UIManager.measure(this._responderID, this._measureCallback);
      } else {
 -      this._responderID.measure(this._measureCallback);
-+      // Use measureAsyncOnUI if available, fallback to measure for E2E compatibility
-+      if (typeof this._responderID.measureAsyncOnUI === 'function') {
-+        this._responderID.measureAsyncOnUI(this._measureCallback);
-+      } else {
-+        this._responderID.measure(this._measureCallback);
-+      }
++      this._responderID.measureAsyncOnUI(this._measureCallback);
      }
    }
  
