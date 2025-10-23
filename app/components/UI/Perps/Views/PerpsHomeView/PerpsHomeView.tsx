@@ -339,7 +339,10 @@ const PerpsHomeView = () => {
                 {strings('perps.home.positions')}
               </Text>
               <TouchableOpacity onPress={handleCloseAllPress}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.home.close_all')}
                 </Text>
               </TouchableOpacity>
@@ -364,7 +367,10 @@ const PerpsHomeView = () => {
                 {strings('perps.home.orders')}
               </Text>
               <TouchableOpacity onPress={handleCancelAllPress}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.home.cancel_all')}
                 </Text>
               </TouchableOpacity>

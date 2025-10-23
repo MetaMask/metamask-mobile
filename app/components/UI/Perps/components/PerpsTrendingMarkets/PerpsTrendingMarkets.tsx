@@ -81,7 +81,7 @@ const PerpsTrendingMarkets: React.FC<PerpsTrendingMarketsProps> = ({
           {strings('perps.home.trending')}
         </Text>
         <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.home.see_all')}
           </Text>
         </TouchableOpacity>

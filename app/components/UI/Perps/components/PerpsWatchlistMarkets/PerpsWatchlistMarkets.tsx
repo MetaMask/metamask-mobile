@@ -67,7 +67,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
           {strings('perps.home.watchlist')}
         </Text>
         <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.home.see_all')}
           </Text>
         </TouchableOpacity>

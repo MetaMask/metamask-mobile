@@ -139,7 +139,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           {strings('perps.home.recent_activity')}
         </Text>
         <TouchableOpacity onPress={handleSeeAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.home.see_all')}
           </Text>
         </TouchableOpacity>
