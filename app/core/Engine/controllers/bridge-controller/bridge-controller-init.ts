@@ -25,10 +25,7 @@ export const handleBridgeFetch = async (
   options: RequestInit = {},
 ) => {
   if (url.toString().includes('Stream')) {
-    // const newFetch = globalThis.fetch.bind(globalThis)
-    const expoFetch = (await import('expo/fetch')).fetch.bind(globalThis);
-    // @ts-expect-error types are different
-    return expoFetch(url.toString(), options);
+    return fetch(url.toString(), options);
   }
   return handleFetch(url, options);
 };

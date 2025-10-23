@@ -208,7 +208,7 @@
     "@metamask/assets-controllers": "^82.0.0",
     "@metamask/base-controller": "^8.4.2",
     "@metamask/bitcoin-wallet-snap": "^1.3.0",
-    "@metamask/bridge-controller": "^54.0.0",
+    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A54.0.0#~/.yarn/patches/@metamask-bridge-controller-npm-54.0.0-f5c4fb4b0b.patch",
     "@metamask/bridge-status-controller": "^54.0.0",
     "@metamask/chain-agnostic-permission": "^1.1.0",
     "@metamask/composable-controller": "^11.0.0",
