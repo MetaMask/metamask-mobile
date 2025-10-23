@@ -448,10 +448,10 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -490,7 +490,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -521,7 +520,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  card.card_home.change_asset
+                                  Change asset
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -579,7 +578,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    card.card_home.manage_card_options.manage_spending_limit
+                                    Manage spending limit
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -593,7 +592,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    card.card_home.manage_card_options.manage_spending_limit_description_full
+                                    Full spending access
                                   </Text>
                                 </View>
                                 <View
@@ -1191,10 +1190,10 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1233,7 +1232,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1264,7 +1262,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     }
                                   }
                                 >
-                                  card.card_home.change_asset
+                                  Change asset
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -1322,7 +1320,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                       }
                                     }
                                   >
-                                    card.card_home.manage_card_options.manage_spending_limit
+                                    Manage spending limit
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -1336,7 +1334,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                       }
                                     }
                                   >
-                                    card.card_home.manage_card_options.manage_spending_limit_description_full
+                                    Full spending access
                                   </Text>
                                 </View>
                                 <View
