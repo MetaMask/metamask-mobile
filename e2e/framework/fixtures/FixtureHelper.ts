@@ -11,6 +11,7 @@ import {
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
+  getPerpsModifiersServerPort,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
@@ -43,17 +44,29 @@ import { type Mockttp } from 'mockttp';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import PerpsModifiersServer from './PerpsModifiersServer';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
 const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
+const PERPS_MODIFIERS_SERVER_URL = `http://localhost:${getPerpsModifiersServerPort()}/queue.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
   try {
     const response = await axios.get(FIXTURE_SERVER_URL);
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+};
+
+// checks if perps modifiers server has already been started
+const isPerpsModifiersServerStarted = async () => {
+  try {
+    const response = await axios.get(PERPS_MODIFIERS_SERVER_URL);
     return response.status === 200;
   } catch (error) {
     return false;
@@ -322,6 +335,27 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
+// Start the perps modifiers server
+export const startPerpsModifiersServer = async (
+  perpsModifiersServer: PerpsModifiersServer,
+) => {
+  if (await isPerpsModifiersServerStarted()) {
+    logger.debug('The perps modifiers server has already been started');
+    return;
+  }
+
+  await perpsModifiersServer.start();
+  logger.debug('The perps modifiers server is started');
+};
+
+// Stop the perps modifiers server
+export const stopPerpsModifiersServer = async (
+  perpsModifiersServer: PerpsModifiersServer,
+) => {
+  await perpsModifiersServer.stop();
+  logger.debug('The perps modifiers server is stopped');
+};
+
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
@@ -392,6 +426,7 @@ export async function withFixtures(
     permissions = {},
     endTestfn,
     skipReactNativeReload = false,
+    usePerpsModifiersServer = false,
   } = options;
 
   // Prepare android devices for testing to avoid having this in all tests
@@ -410,6 +445,7 @@ export async function withFixtures(
 
   const dappServer: http.Server[] = [];
   const fixtureServer = new FixtureServer();
+  const perpsModifiersServer = new PerpsModifiersServer();
 
   let testError: Error | null = null;
 
@@ -443,8 +479,13 @@ export async function withFixtures(
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
+
+    if (usePerpsModifiersServer) {
+      await startPerpsModifiersServer(perpsModifiersServer);
+    }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
+
     if (restartDevice) {
       await TestHelpers.launchApp({
         delete: true,
@@ -459,7 +500,12 @@ export async function withFixtures(
       });
     }
 
-    await testSuite({ contractRegistry, mockServer, localNodes });
+    await testSuite({
+      contractRegistry,
+      mockServer,
+      localNodes,
+      perpsModifiersServer,
+    });
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
@@ -510,6 +556,18 @@ export async function withFixtures(
     } catch (cleanupError) {
       logger.error('Error during fixture server cleanup:', cleanupError);
       cleanupErrors.push(cleanupError as Error);
+    }
+
+    if (usePerpsModifiersServer) {
+      try {
+        await stopPerpsModifiersServer(perpsModifiersServer);
+      } catch (cleanupError) {
+        logger.error(
+          'Error during perps modifiers server cleanup:',
+          cleanupError,
+        );
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (!skipReactNativeReload) {

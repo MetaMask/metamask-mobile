@@ -11,6 +11,7 @@ import {
   DEFAULT_FIXTURE_SERVER_PORT,
   DEFAULT_MOCKSERVER_PORT,
   DEFAULT_DAPP_SERVER_PORT,
+  DEFAULT_PERPS_MODIFIERS_SERVER_PORT,
 } from '../Constants';
 import { createLogger } from '../logger';
 
@@ -106,6 +107,9 @@ export function AnvilPort(): number {
 }
 export function getFixturesServerPort(): number {
   return getServerPort(DEFAULT_FIXTURE_SERVER_PORT);
+}
+export function getPerpsModifiersServerPort(): number {
+  return getServerPort(DEFAULT_PERPS_MODIFIERS_SERVER_PORT);
 }
 
 export function getLocalTestDappPort(): number {

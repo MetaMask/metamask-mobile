@@ -7,6 +7,7 @@ import ContractAddressRegistry from '../../app/util/test/contract-address-regist
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';
 import FixtureBuilder from './fixtures/FixtureBuilder';
+import PerpsModifiersServer from './fixtures/PerpsModifiersServer';
 
 export interface GestureOptions {
   timeout?: number;
@@ -83,6 +84,12 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
+export enum PerpsModifiersType {
+  pushPrice = 'push-price',
+  forceLiquidation = 'force-liquidation',
+  mockDeposit = 'mock-deposit',
+}
+
 export enum GanacheHardfork {
   london = 'london',
 }
@@ -157,6 +164,7 @@ export interface TestSuiteParams {
   contractRegistry?: ContractAddressRegistry;
   mockServer: Mockttp;
   localNodes?: LocalNode[];
+  perpsModifiersServer?: PerpsModifiersServer;
 }
 
 /**
@@ -234,4 +242,5 @@ export interface WithFixturesOptions {
    * @default false
    */
   skipReactNativeReload?: boolean;
+  usePerpsModifiersServer?: boolean;
 }
