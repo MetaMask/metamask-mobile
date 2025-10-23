@@ -1,16 +1,16 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import { usePerpsPositionData } from './usePerpsPositionData';
+import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 import type { PriceUpdate } from '../controllers/types';
 import {
-  formatLargeNumber,
   formatFundingRate,
-  PRICE_RANGES_UNIVERSAL,
-  LARGE_NUMBER_RANGES_DETAILED,
+  formatLargeNumber,
   formatPerpsFiat,
+  LARGE_NUMBER_RANGES_DETAILED,
+  PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
 import { calculate24hHighLow } from '../utils/marketUtils';
-import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+import { usePerpsPositionData } from './usePerpsPositionData';
 
 interface MarketStats {
   high24h: string;
@@ -84,7 +84,7 @@ export const usePerpsMarketStats = (
 
               // Store initial price only once for high/low calculation fallback
               if (!initialPrice && update.price) {
-                setInitialPrice(parseFloat(update.price));
+                setInitialPrice(Number.parseFloat(update.price));
               }
             }
           },

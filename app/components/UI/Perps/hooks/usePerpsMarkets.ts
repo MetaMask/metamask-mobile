@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { PerpsMarketData } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsMarketData } from '../controllers/types';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { parseCurrencyString } from '../utils/formatUtils';
 
@@ -82,9 +82,9 @@ export const parseVolume = (volumeStr: string | undefined): number => {
   const suffixMatch = volumeStr.match(VOLUME_SUFFIX_REGEX);
   if (suffixMatch) {
     const [, numberPart, suffix] = suffixMatch;
-    const baseValue = parseFloat(removeCommas(numberPart));
+    const baseValue = Number.parseFloat(removeCommas(numberPart));
 
-    if (isNaN(baseValue)) return -1;
+    if (Number.isNaN(baseValue)) return -1;
 
     return suffix ? baseValue * multipliers[suffix] : baseValue;
   }

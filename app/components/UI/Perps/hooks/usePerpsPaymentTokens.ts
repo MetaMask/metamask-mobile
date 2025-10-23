@@ -42,7 +42,7 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   // Get Hyperliquid account balance
   const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
-  const hyperliquidBalance = parseFloat(
+  const hyperliquidBalance = Number.parseFloat(
     account?.availableBalance?.toString() || '0',
   );
 
@@ -96,7 +96,7 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
         if (token.chainId === hyperliquidChainId) return false;
 
         // Check if balance meets minimum order requirement
-        const balanceFiat = parseFloat(
+        const balanceFiat = Number.parseFloat(
           token.balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
         );
         return balanceFiat >= minimumOrderAmount;
@@ -135,10 +135,10 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
       if (b.symbol === USDC_SYMBOL && a.symbol !== USDC_SYMBOL) return 1;
 
       // Then sort by balance
-      const aBalance = parseFloat(
+      const aBalance = Number.parseFloat(
         a.balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
       );
-      const bBalance = parseFloat(
+      const bBalance = Number.parseFloat(
         b.balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
       );
       return bBalance - aBalance;
