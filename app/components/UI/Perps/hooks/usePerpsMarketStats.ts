@@ -54,6 +54,35 @@ export const usePerpsMarketStats = (
     if (!symbol) return;
 
     let unsubscribe: (() => void) | undefined;
+    const findCoin = (update: PriceUpdate) => update.coin === symbol;
+
+    const callback = (updates: PriceUpdate[]) => {
+      const update = updates.find(findCoin);
+      if (update) {
+        // Only extract market data, ignore price changes to prevent re-renders
+        setMarketData((prev) => {
+          // Check if market data actually changed
+          if (
+            prev.funding === update.funding &&
+            prev.openInterest === update.openInterest &&
+            prev.volume24h === update.volume24h
+          ) {
+            return prev; // Return same reference if no change
+          }
+
+          return {
+            funding: update.funding,
+            openInterest: update.openInterest,
+            volume24h: update.volume24h,
+          };
+        });
+
+        // Store initial price only once for high/low calculation fallback
+        if (!initialPrice && update.price) {
+          setInitialPrice(Number.parseFloat(update.price));
+        }
+      }
+    };
 
     const subscribeToMarketData = async () => {
       try {
@@ -61,33 +90,7 @@ export const usePerpsMarketStats = (
         unsubscribe = Engine.context.PerpsController.subscribeToPrices({
           symbols: [symbol],
           includeMarketData: true,
-          callback: (updates: PriceUpdate[]) => {
-            const update = updates.find((u) => u.coin === symbol);
-            if (update) {
-              // Only extract market data, ignore price changes to prevent re-renders
-              setMarketData((prev) => {
-                // Check if market data actually changed
-                if (
-                  prev.funding === update.funding &&
-                  prev.openInterest === update.openInterest &&
-                  prev.volume24h === update.volume24h
-                ) {
-                  return prev; // Return same reference if no change
-                }
-
-                return {
-                  funding: update.funding,
-                  openInterest: update.openInterest,
-                  volume24h: update.volume24h,
-                };
-              });
-
-              // Store initial price only once for high/low calculation fallback
-              if (!initialPrice && update.price) {
-                setInitialPrice(Number.parseFloat(update.price));
-              }
-            }
-          },
+          callback,
         });
       } catch (error) {
         console.error('Error subscribing to market data:', error);
