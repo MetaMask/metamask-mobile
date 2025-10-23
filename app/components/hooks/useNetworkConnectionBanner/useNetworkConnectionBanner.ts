@@ -14,7 +14,7 @@ import {
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
-import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
+import { isPublicEndpointUrl, getIsMetaMaskInfuraEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
 import onlyKeepHost from '../../../util/onlyKeepHost';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
 
@@ -91,6 +91,7 @@ const useNetworkConnectionBanner = (): {
         status: NetworkConnectionBannerStatus;
         networkName: string;
         rpcUrl: string;
+        isInfuraEndpoint: boolean;
       } | null = null;
 
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
@@ -120,11 +121,17 @@ const useNetworkConnectionBanner = (): {
                 networkConfig.defaultRpcEndpointIndex || 0
               ]?.url || networkConfig.rpcEndpoints[0]?.url;
 
+            const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
+              rpcUrl,
+              infuraProjectId,
+            );
+
             firstUnavailableNetwork = {
               chainId: evmEnabledNetworkChainId,
               status: timeoutType,
               networkName: networkConfig.name,
               rpcUrl,
+              isInfuraEndpoint,
             };
 
             break; // Only show one banner at a time
@@ -157,6 +164,7 @@ const useNetworkConnectionBanner = (): {
               status: firstUnavailableNetwork.status,
               networkName: firstUnavailableNetwork.networkName,
               rpcUrl: firstUnavailableNetwork.rpcUrl,
+              isInfuraEndpoint: firstUnavailableNetwork.isInfuraEndpoint,
             }),
           );
         }
