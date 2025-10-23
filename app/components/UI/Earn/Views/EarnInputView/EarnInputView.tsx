@@ -1,6 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { Animated, Easing } from 'react-native';
-///: END:ONLY_INCLUDE_IF
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -24,8 +21,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import ResourceToggle, { type ResourceType } from '../../components/ResourceToggle';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -159,27 +155,7 @@ const EarnInputView = () => {
   });
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  type ResourceType = 'energy' | 'bandwidth';
   const [resourceType, setResourceType] = useState<ResourceType>('energy');
-
-  // Slider animation
-  const sliderIndex = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(sliderIndex, {
-      toValue: resourceType === 'bandwidth' ? 1 : 0,
-      duration: 220,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
-  }, [resourceType, sliderIndex]);
-
-  const [toggleWidth, setToggleWidth] = useState(0);
-  // 4px padding left/right of the slider
-  const segmentWidth = Math.max((toggleWidth - 8) / 2, 0);
-  const translateX = sliderIndex.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, segmentWidth],
-  });
   ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
@@ -829,56 +805,9 @@ const EarnInputView = () => {
     <ScreenLayout style={styles.container}>
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        <View style={styles.toggleContainer}>
-          <View
-            style={styles.toggleGroup}
-            onLayout={(e) => setToggleWidth(e.nativeEvent.layout.width)}
-          >
-            <Animated.View
-              style={[
-                styles.toggleSlider,
-                { width: segmentWidth, transform: [{ translateX }] },
-              ]}
-            />
-            <View style={styles.toggleRow}>
-              <View style={styles.toggleButtonWrapper}>
-                <ButtonBase
-                  onPress={() => setResourceType('energy')}
-                  label={strings('stake.tron.energy')}
-                  startIconName={IconName.Flash}
-                  size={ButtonSize.Md}
-                  width={ButtonWidthTypes.Full}
-                  labelTextVariant={TextVariant.BodyMDMedium}
-                  labelColor={
-                    resourceType === 'energy'
-                      ? theme.colors.primary.default
-                      : theme.colors.text.default
-                  }
-                  style={styles.toggleButtonBase}
-                />
-              </View>
-              <View style={styles.toggleButtonWrapper}>
-                <ButtonBase
-                  onPress={() => setResourceType('bandwidth')}
-                  label={strings('stake.tron.bandwidth')}
-                  startIconName={IconName.Connect}
-                  size={ButtonSize.Md}
-                  width={ButtonWidthTypes.Full}
-                  labelTextVariant={TextVariant.BodyMDMedium}
-                  labelColor={
-                    resourceType === 'bandwidth'
-                      ? theme.colors.primary.default
-                      : theme.colors.text.default
-                  }
-                  style={styles.toggleButtonBase}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
+        <ResourceToggle value={resourceType} onChange={setResourceType} />
         ///: END:ONLY_INCLUDE_IF
       }
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
