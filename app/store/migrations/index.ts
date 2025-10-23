@@ -104,7 +104,7 @@ import migration100 from './100';
 import migration101 from './101';
 import migration102 from './102';
 import migration103 from './103';
-import migration105 from './105';
+import migration104 from './104';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
@@ -225,7 +225,7 @@ export const migrationList: MigrationsList = {
   101: migration101,
   102: migration102,
   103: migration103,
-  105: migration105,
+  104: migration104,
 };
 
 // Enable both synchronous and asynchronous migrations
