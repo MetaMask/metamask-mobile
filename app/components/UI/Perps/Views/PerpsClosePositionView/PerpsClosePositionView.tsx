@@ -839,22 +839,24 @@ const PerpsClosePositionView: React.FC = () => {
 
       {/* Tooltip Bottom Sheet */}
       {selectedTooltip ? (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey={selectedTooltip as PerpsTooltipContentKey}
-          key={selectedTooltip}
-          {...(selectedTooltip === 'closing_fees'
-            ? {
-                data: {
-                  metamaskFeeRate: feeResults.metamaskFeeRate,
-                  protocolFeeRate: feeResults.protocolFeeRate,
-                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
-                },
-              }
-            : {})}
-        />
+        <View style={styles.tooltipContainer}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey={selectedTooltip as PerpsTooltipContentKey}
+            key={selectedTooltip}
+            {...(selectedTooltip === 'closing_fees'
+              ? {
+                  data: {
+                    metamaskFeeRate: feeResults.metamaskFeeRate,
+                    protocolFeeRate: feeResults.protocolFeeRate,
+                    originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                    feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                  },
+                }
+              : {})}
+          />
+        </View>
       ) : null}
     </SafeAreaView>
   );
