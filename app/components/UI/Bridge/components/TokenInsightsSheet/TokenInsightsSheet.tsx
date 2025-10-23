@@ -367,7 +367,7 @@ const TokenInsightsSheet: React.FC = () => {
               {priceChange24h !== 0 && (
                 <Icon
                   name={
-                    priceChange24h > 0 ? IconName.ArrowUp : IconName.ArrowDown
+                    priceChange24h > 0 ? IconName.Arrow2Up : IconName.Arrow2Down
                   }
                   size={IconSize.Sm}
                   color={

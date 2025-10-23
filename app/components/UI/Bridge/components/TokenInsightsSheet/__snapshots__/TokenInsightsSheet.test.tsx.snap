@@ -350,7 +350,7 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
                 color="#457a39"
                 fill="currentColor"
                 height={16}
-                name="ArrowUp"
+                name="Arrow2Up"
                 style={
                   {
                     "height": 16,
@@ -883,7 +883,7 @@ exports[`TokenInsightsSheet renders correctly with token data 1`] = `
                 color="#ca3542"
                 fill="currentColor"
                 height={16}
-                name="ArrowDown"
+                name="Arrow2Down"
                 style={
                   {
                     "height": 16,
