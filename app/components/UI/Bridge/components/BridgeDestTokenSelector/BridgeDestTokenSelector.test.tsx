@@ -299,7 +299,6 @@ describe('BridgeDestTokenSelector', () => {
 
   // TODO: Fix flaky test - timing issue with debounced token selection (500ms)
   // Test fails intermittently due to race condition between waitFor and debounce
-  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('handles token selection correctly', async () => {
     // Arrange
     const { getByText } = renderScreen(

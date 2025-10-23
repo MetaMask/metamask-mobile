@@ -64,7 +64,6 @@ export const BridgeDestTokenSelector: React.FC = () => {
     balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
   });
-
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
       dispatch(setDestToken(token));
