@@ -105,17 +105,24 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     </>
   );
 
-  const renderFooter = () => (
-    <TouchableOpacity
-      onPress={goToDefaultSettings}
-      testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-      style={styles.footerLink}
-    >
-      <Text color={TextColor.Info} variant={TextVariant.BodyMDMedium}>
-        {strings('onboarding_success.manage_default_settings')}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderFooter = () => {
+    // Hide default settings for settings backup flow
+    if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
+      return null;
+    }
+
+    return (
+      <TouchableOpacity
+        onPress={goToDefaultSettings}
+        testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
+        style={styles.footerLink}
+      >
+        <Text color={TextColor.Info} variant={TextVariant.BodyMDMedium}>
+          {strings('onboarding_success.manage_default_settings')}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
