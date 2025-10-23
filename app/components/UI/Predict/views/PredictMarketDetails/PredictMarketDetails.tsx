@@ -177,9 +177,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [market?.outcomes, losingOutcomeToken],
   );
 
-  // const position: PredictPosition[] = positions;
-  // const currentPosition = position[0];
-
   const outcomeSlices = useMemo(
     () => (market?.outcomes ?? []).slice(0, 3),
     [market?.outcomes],
