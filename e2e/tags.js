@@ -2,7 +2,6 @@ const tags = {
   smokeAccounts: 'SmokeAccounts:',
   regressionAccounts: 'RegressionAccounts:',
   smokeCore: 'SmokeCore:',
-  smokeConfirmations: 'SmokeConfirmations:',
   regressionConfirmations: 'RegressionConfirmations:',
   smokeConfirmationsRedesigned: 'SmokeConfirmationsRedesigned:',
   regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
@@ -30,14 +29,13 @@ const tags = {
   FlaskBuildTests: 'FlaskBuildTests:',
   performance: 'Performance:',
   smokeCard: 'SmokeCard:',
+  regressionSampleFeature: 'RegressionSampleFeature:',
 };
 
 const RegressionAccounts = (testName) =>
   `${tags.regressionAccounts} ${testName}`;
 const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
 const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
-const SmokeConfirmations = (testName) =>
-  `${tags.smokeConfirmations} ${testName}`;
 const RegressionConfirmations = (testName) =>
   `${tags.regressionConfirmations} ${testName}`;
 const SmokeConfirmationsRedesigned = (testName) =>
@@ -79,6 +77,8 @@ const SmokeWalletUX = (testName) => `${tags.smokeWalletUX} ${testName}`;
 const RegressionWalletUX = (testName) =>
   `${tags.regressionWalletUX} ${testName}`;
 const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
+const RegressionSampleFeature = (testName) =>
+  `${tags.regressionSampleFeature} ${testName}`;
 const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
 
 export {
@@ -86,7 +86,6 @@ export {
   RegressionAccounts,
   SmokeAccounts,
   SmokeCore,
-  SmokeConfirmations,
   RegressionConfirmations,
   SmokeConfirmationsRedesigned,
   RegressionConfirmationsRedesigned,
@@ -113,5 +112,6 @@ export {
   SmokeCard,
   SmokeWalletUX,
   RegressionWalletUX,
+  RegressionSampleFeature,
   tags,
 };

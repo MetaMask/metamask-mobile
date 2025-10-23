@@ -1,3 +1,10 @@
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import {
+  SamplePetnamesController,
+  SamplePetnamesControllerState,
+  SamplePetnamesControllerEvents,
+} from '@metamask/sample-controllers';
+///: END:ONLY_INCLUDE_IF
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   AccountTrackerController,
@@ -177,6 +184,7 @@ import {
   WebSocketService,
   WebSocketServiceActions,
   WebSocketServiceEvents,
+  MultichainRouter,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -217,6 +225,14 @@ import type {
 
 ///: END:ONLY_INCLUDE_IF
 import {
+  BackendWebSocketService,
+  BackendWebSocketServiceActions,
+  BackendWebSocketServiceEvents,
+  AccountActivityService,
+  AccountActivityServiceActions,
+  AccountActivityServiceEvents,
+} from '@metamask/core-backend';
+import {
   AccountsController,
   AccountsControllerActions,
   AccountsControllerEvents,
@@ -228,11 +244,9 @@ import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerState,
-} from '@metamask/remote-feature-flag-controller';
-import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
-} from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+} from '@metamask/remote-feature-flag-controller';
 import {
   RestrictedMessenger,
   ActionConstraint,
@@ -241,11 +255,9 @@ import {
 import {
   TokenSearchDiscoveryController,
   TokenSearchDiscoveryControllerState,
-} from '@metamask/token-search-discovery-controller';
-import {
   TokenSearchDiscoveryControllerActions,
   TokenSearchDiscoveryControllerEvents,
-} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
+} from '@metamask/token-search-discovery-controller';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   MultichainNetworkController,
@@ -310,7 +322,10 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
-import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
+import type {
+  ErrorReportingService,
+  ErrorReportingServiceActions,
+} from '@metamask/error-reporting-service';
 import {
   AccountTreeController,
   AccountTreeControllerState,
@@ -340,7 +355,11 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
  */
 type RequiredControllers = Omit<
   Controllers,
-  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
+  | 'ErrorReportingService'
+  | 'MultichainRouter'
+  | 'PPOMController'
+  | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -348,7 +367,11 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
-  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
+  | 'ErrorReportingService'
+  | 'MultichainRouter'
+  | 'PPOMController'
+  | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -400,6 +423,8 @@ type GlobalActions =
   | CronjobControllerActions
   | WebSocketServiceActions
   ///: END:ONLY_INCLUDE_IF
+  | BackendWebSocketServiceActions
+  | AccountActivityServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
@@ -438,6 +463,9 @@ type GlobalActions =
   | DelegationControllerActions;
 
 type GlobalEvents =
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  | SamplePetnamesControllerEvents
+  ///: END:ONLY_INCLUDE_IF
   | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
@@ -460,6 +488,8 @@ type GlobalEvents =
   | CronjobControllerEvents
   | WebSocketServiceEvents
   ///: END:ONLY_INCLUDE_IF
+  | BackendWebSocketServiceEvents
+  | AccountActivityServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
@@ -514,6 +544,9 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SamplePetnamesController: SamplePetnamesController;
+  ///: END:ONLY_INCLUDE_IF
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
@@ -522,6 +555,7 @@ export type Controllers = {
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
+  ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
@@ -561,12 +595,15 @@ export type Controllers = {
   CronjobController: CronjobController;
   WebSocketService: WebSocketService;
   ///: END:ONLY_INCLUDE_IF
+  BackendWebSocketService: BackendWebSocketService;
+  AccountActivityService: AccountActivityService;
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
+  MultichainRouter: MultichainRouter;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapKeyringBuilder: SnapKeyringBuilder;
@@ -653,6 +690,9 @@ export type EngineState = {
   PredictController: PredictControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SamplePetnamesController: SamplePetnamesControllerState;
+  ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
 };
@@ -685,7 +725,11 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  | 'SamplePetnamesController'
+  ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
+  | 'AddressBookController'
   | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
@@ -701,14 +745,21 @@ export type ControllersToInitialize =
   | 'SubjectMetadataController'
   | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
+  | 'BackendWebSocketService'
+  | 'AccountActivityService'
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
+  | 'MultichainRouter'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'EarnController'
+  | 'ErrorReportingService'
+  | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
@@ -720,9 +771,12 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'NftController'
   | 'NftDetectionController'
+  | 'PhishingController'
+  | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
+  | 'SwapsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
@@ -738,7 +792,9 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
+  | 'PPOMController'
   | 'RewardsController'
+  | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController';
@@ -810,6 +866,11 @@ export type ControllerInitRequest<
    */
   getState: () => RootState;
 
+  /**
+   * The MetaMetrics ID to use for tracking.
+   */
+  metaMetricsId?: string;
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * Remove an account from all controllers that manage accounts.
@@ -873,6 +934,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
+  metaMetricsId?: string;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;

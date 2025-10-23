@@ -85,8 +85,8 @@ buck-out/
 .*.env
 
 # Sentry
-/sentry.debug.properties
-/sentry.release.properties
+/sentry.debug.properties*
+/sentry.release.properties*
 
 # CocoaPods
 /ios/Pods/

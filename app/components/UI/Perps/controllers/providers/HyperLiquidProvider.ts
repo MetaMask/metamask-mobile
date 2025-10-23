@@ -1,5 +1,4 @@
-import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import { type Hex } from '@metamask/utils';
+import { CaipAccountId, type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -25,13 +24,16 @@ import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscr
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import {
   adaptAccountStateFromSDK,
+  adaptHyperLiquidLedgerUpdateToUserHistoryItem,
   adaptMarketFromSDK,
   adaptOrderFromSDK,
   adaptPositionFromSDK,
   buildAssetMapping,
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
+  type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
+import type { SDKOrderParams } from '../../types/hyperliquid-types';
 import {
   createErrorResult,
   getMaxOrderValue,
@@ -87,6 +89,7 @@ import type {
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  UserHistoryItem,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../PerpsController';
 
@@ -94,7 +97,7 @@ import { PERPS_ERROR_CODES } from '../PerpsController';
  * HyperLiquid provider implementation
  *
  * Implements the IPerpsProvider interface for HyperLiquid protocol.
- * Uses the @deeeed/hyperliquid-node20 SDK for all operations.
+ * Uses the @nktkas/hyperliquid SDK for all operations.
  * Delegates to service classes for client management, wallet integration, and subscriptions.
  */
 export class HyperLiquidProvider implements IPerpsProvider {
@@ -1147,7 +1150,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
               childrenCount: parentOrder.children.length,
             });
 
-            parentOrder.children.forEach((childOrder) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Child order structure not exported by SDK
+            parentOrder.children.forEach((childOrder: any) => {
               if (childOrder.isTrigger && childOrder.reduceOnly) {
                 if (
                   childOrder.orderType === 'Take Profit Market' ||
@@ -1411,8 +1415,67 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get historical portfolio data for percentage calculations
+   * Get user non-funding ledger updates (deposits, transfers, withdrawals)
    */
+  async getUserNonFundingLedgerUpdates(params?: {
+    accountId?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<RawHyperLiquidLedgerUpdate[]> {
+    try {
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId as CaipAccountId | undefined,
+      );
+
+      const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
+        user: userAddress as `0x${string}`,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      return rawLedgerUpdates || [];
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getUserNonFundingLedgerUpdates', params),
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Get user history (deposits, withdrawals, transfers)
+   */
+  async getUserHistory(params?: {
+    accountId?: CaipAccountId;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<UserHistoryItem[]> {
+    try {
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
+        user: userAddress,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      // Transform the raw ledger updates to UserHistoryItem format
+      return adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
+    } catch (error) {
+      Logger.error(ensureError(error), this.getErrorContext('getUserHistory'));
+      return [];
+    }
+  }
+
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {

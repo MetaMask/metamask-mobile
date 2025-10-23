@@ -22,7 +22,7 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Box style={styles.emptyState}>
+    <Box testID="predict-position-empty" style={styles.emptyState}>
       <Icon
         name={IconName.Sparkle}
         size={IconSize.XXL}
@@ -40,14 +40,8 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
         onPress={() =>
-          navigation.navigate(Routes.WALLET.HOME, {
-            screen: Routes.WALLET.TAB_STACK_FLOW,
-            params: {
-              screen: Routes.PREDICT.ROOT,
-              params: {
-                screen: Routes.PREDICT.MARKET_LIST,
-              },
-            },
+          navigation.navigate(Routes.PREDICT.ROOT, {
+            screen: Routes.PREDICT.MARKET_LIST,
           })
         }
         label={strings('predict.tab.explore')}

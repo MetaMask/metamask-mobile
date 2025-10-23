@@ -26,19 +26,14 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
   const tw = useTailwind();
 
   const handlePress = () => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.PREDICT.ROOT,
-        params: {
-          screen: Routes.PREDICT.MARKET_LIST,
-        },
-      },
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
     });
   };
 
   return (
     <Pressable
+      testID="predict-new-button"
       style={({ pressed }) =>
         tw.style('mx-3 mb-4 py-4 rounded-xl flex-row', pressed)
       }
