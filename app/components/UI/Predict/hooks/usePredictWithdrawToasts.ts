@@ -38,7 +38,17 @@ export const usePredictWithdrawToasts = () => {
 
   useEffect(() => {
     if (withdrawTransaction?.status === PredictWithdrawStatus.PENDING) {
-      showPendingToast(withdrawTransaction?.amount.toString() ?? '0');
+      showPendingToast({
+        amount: withdrawTransaction?.amount.toString() ?? '0',
+        config: {
+          title: strings('predict.withdraw.withdrawing', {
+            amount: '{amount}',
+          }),
+          description: strings('predict.withdraw.withdrawing_subtitle', {
+            time: 30,
+          }),
+        },
+      });
     }
   }, [
     withdrawTransaction?.amount,
