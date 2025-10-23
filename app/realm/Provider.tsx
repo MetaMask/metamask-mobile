@@ -1,7 +1,7 @@
 import { PropsWithChildren, useState, useEffect } from 'react';
 import { RealmProvider, Realm } from '@realm/react';
 
-import RealmService from './RealmService';
+import RealmService from './service';
 import schemas from './models/';
 
 export default ({ children }: PropsWithChildren) => {
@@ -14,7 +14,7 @@ export default ({ children }: PropsWithChildren) => {
       const config: Realm.Configuration = { schema: schemas };
       __DEV__ && Realm.deleteFile(config);
       const realm = new Realm(config);
-
+      Realm.setLogLevel('trace');
       RealmService.instance = realm;
       setRealmInstance(realm);
     } catch (error) {

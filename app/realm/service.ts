@@ -2,13 +2,13 @@ import Realm from 'realm';
 import Logger from '../util/Logger';
 
 class RealmService extends Realm {
-  static #realmInstance: RealmService;
+  static #realmInstance: Realm;
 
   /**
    * Set the instance in the Realm class
    * @param realm
    */
-  static set instance(realm: RealmService) {
+  static set instance(realm: Realm) {
     this.#realmInstance = realm;
   }
 

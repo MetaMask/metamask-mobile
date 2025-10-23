@@ -9,6 +9,7 @@ import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import RealmService from '../../realm/service';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -69,6 +70,8 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
   },
 });
 
+const isSnapController = (key: string) => key === 'SnapController';
+
 export const ControllerStorage = {
   // Use the consolidated storage without AsyncStorage fallback
   ...createStorage(false),
@@ -88,6 +91,10 @@ export const ControllerStorage = {
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
+            if (isSnapController(controllerName)) {
+              const realm = RealmService.instance;
+              realm.objects('Snap');
+            }
             const data = await FilesystemStorage.getItem(key);
             if (data) {
               const parsedData = JSON.parse(data);
@@ -144,6 +151,21 @@ export const createPersistController = (debounceMs: number = 200) =>
   debounce(async (filteredState: unknown, controllerName: string) => {
     try {
       // Save the filtered state to filesystem storage
+      //
+      if (isSnapController(controllerName)) {
+        //TODO: types
+        const realm = RealmService.instance;
+        const snapCollection = (filteredState as any).snaps;
+        const snaps = Object.keys(snapCollection);
+
+        snaps.forEach((snap) => {
+          const { sourceCode } = snapCollection[snap];
+          // console.log('Realm snap sourceCode', snap);
+          realm.write(() => {
+            realm.create('Snap', { name: snap, sourceCode: sourceCode });
+          });
+        });
+      }
       await ControllerStorage.setItem(
         `persist:${controllerName}`,
         JSON.stringify(filteredState),
