@@ -189,22 +189,24 @@ export class AsyncLogger {
               scope.setContext(options.context.name, options.context.data);
             }
 
-            if (options.extras) {
-              scope.setExtras(options.extras);
-            }
+            // Merge explicit extras and unknown fields into a single object
+            // to avoid overwriting (setExtras replaces, doesn't merge)
+            const allExtras: Record<string, unknown> = {
+              ...(options.extras || {}),
+            };
 
             // Preserve unknown fields as extras for backward compatibility
-            // This prevents data loss when hybrid objects are used
             const knownKeys = ['tags', 'context', 'extras'];
             const unknownFields = Object.keys(extra).filter(
               (key) => !knownKeys.includes(key),
             );
-            if (unknownFields.length > 0) {
-              const preservedExtras = unknownFields.reduce((acc, key) => {
-                acc[key] = extra[key];
-                return acc;
-              }, {} as Record<string, unknown>);
-              scope.setExtras(preservedExtras);
+            unknownFields.forEach((key) => {
+              allExtras[key] = extra[key];
+            });
+
+            // Single setExtras call to avoid data loss
+            if (Object.keys(allExtras).length > 0) {
+              scope.setExtras(allExtras);
             }
           } else {
             // Legacy API: Set everything as extras (current behavior)

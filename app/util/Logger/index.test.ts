@@ -303,7 +303,7 @@ describe('Logger', () => {
         });
       });
 
-      it('preserves unknown fields when using all three options', async () => {
+      it('merges extras and unknown fields into a single setExtras call', async () => {
         const error = new Error('Test error');
         await AsyncLogger.error(error, {
           tags: { feature: 'perps' },
@@ -315,9 +315,9 @@ describe('Logger', () => {
 
         expect(mockScope.setTag).toHaveBeenCalled();
         expect(mockScope.setContext).toHaveBeenCalled();
-        expect(mockScope.setExtras).toHaveBeenCalledTimes(2);
-        expect(mockScope.setExtras).toHaveBeenCalledWith({ debugInfo: 'test' });
+        expect(mockScope.setExtras).toHaveBeenCalledTimes(1);
         expect(mockScope.setExtras).toHaveBeenCalledWith({
+          debugInfo: 'test',
           userId: '123',
           customField: 'value',
         });
@@ -331,6 +331,54 @@ describe('Logger', () => {
 
         expect(mockScope.setTag).toHaveBeenCalled();
         expect(mockScope.setExtras).not.toHaveBeenCalled();
+      });
+
+      it('does not lose extras data when both extras and unknown fields exist', async () => {
+        const error = new Error('Test error');
+        await AsyncLogger.error(error, {
+          extras: {
+            requestId: '123',
+            timestamp: 1234567890,
+            debugData: { nested: 'value' },
+          },
+          unknownField: 'should-not-overwrite',
+          anotherField: 42,
+        });
+
+        expect(mockScope.setExtras).toHaveBeenCalledTimes(1);
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          requestId: '123',
+          timestamp: 1234567890,
+          debugData: { nested: 'value' },
+          unknownField: 'should-not-overwrite',
+          anotherField: 42,
+        });
+      });
+
+      it('handles only extras without unknown fields', async () => {
+        const error = new Error('Test error');
+        await AsyncLogger.error(error, {
+          extras: { requestId: '123', timestamp: 1234567890 },
+        });
+
+        expect(mockScope.setExtras).toHaveBeenCalledTimes(1);
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          requestId: '123',
+          timestamp: 1234567890,
+        });
+      });
+
+      it('handles only unknown fields without extras', async () => {
+        const error = new Error('Test error');
+        await AsyncLogger.error(error, {
+          tags: { feature: 'perps' },
+          unknownField: 'value',
+        });
+
+        expect(mockScope.setExtras).toHaveBeenCalledTimes(1);
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          unknownField: 'value',
+        });
       });
     });
   });
