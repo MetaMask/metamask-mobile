@@ -171,8 +171,8 @@ class FontPreloader {
     // For React Native, fonts are registered in Info.plist (iOS) and assets (Android)
     // We create a small delay to ensure font cache is warmed up
 
-    // Log the fonts we're expecting to be available
-    Logger.log('FontPreloader: Expected font families:', fontFamilies);
+    // Log the font families passed as a parameter (not derived from fontVariants.map())
+    Logger.log('FontPreloader: Preloading font families (parameter):', fontFamilies);
 
     // Small delay to ensure fonts are cached by the system
     setTimeout(
