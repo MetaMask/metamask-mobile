@@ -68,8 +68,15 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       borderColor: colors.info.default,
       padding: 24,
       gap: 16,
+      overflow: 'hidden',
     },
-    backgroundImage: {},
+    backgroundImage: {
+      position: 'absolute',
+      right: 0,
+      bottom: 20,
+      width: '100%',
+      height: '100%',
+    },
     logoContainer: {
       alignItems: 'flex-start',
     },

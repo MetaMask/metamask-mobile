@@ -1,9 +1,14 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
-import { darkTheme } from '@metamask/design-tokens';
 
-const styleSheet = (_params: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { backgroundColor?: string; fontColor?: string };
+}) => {
+  const { theme, vars } = params;
+  const { backgroundColor, fontColor } = vars;
+
+  return StyleSheet.create({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -12,18 +17,17 @@ const styleSheet = (_params: { theme: Theme }) =>
       paddingBottom: 4,
       paddingLeft: 4,
       paddingRight: 8,
-      backgroundColor: darkTheme.colors.background.muted,
+      backgroundColor: backgroundColor || theme.colors.background.mutedHover,
       borderRadius: 24,
       alignSelf: 'flex-start',
     },
-    referralText: {
-      color: darkTheme.colors.accent04.light,
+    referralCode: {
+      color: fontColor || theme.colors.accent04.light,
     },
     iconContainer: {
       height: 24,
       width: 24,
       borderRadius: 20,
-      backgroundColor: darkTheme.colors.background.muted,
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
@@ -33,5 +37,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       height: 24,
     },
   });
+};
 
 export default styleSheet;

@@ -1697,12 +1697,10 @@
     "sl_on_chart": "SL on Chart",
     "pnl_hero_card": {
       "title": "PnL Hero Card",
-      "share_pnl": "Share P&L",
       "header_title": "Share your trade",
       "entry_price": "Entry",
       "mark_price": "Mark",
       "share_button": "Share",
-      "save_button": "Save image",
       "referral_footer": "Earn up to 500 points when you sign up for rewards with this code.",
       "referral_link": "link.metamask.io/rewards/referrals={{code}}"
     }
@@ -6633,7 +6631,8 @@
       "info": {
         "title": "Share your code to earn more",
         "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
-      }
+      },
+      "referral_code_copied": "Referral code copied to clipboard"
     },
     "link_account_group": {
       "link_account": "Add account",

@@ -41,32 +41,38 @@ import {
 } from '../../utils/formatUtils';
 import MetaMaskLogo from '../../../../../images/branding/metamask-name.png';
 import NegativePnlCharacter1 from '../../../../../images/negative_pnl_character_1_3x.png';
-import styleSheet from './PerpsHeroCardView.styles';
+import NegativePnlCharacter2 from '../../../../../images/negative_pnl_character_2_3x.png';
+import NegativePnlCharacter3 from '../../../../../images/negative_pnl_character_3_3x.png';
+import PositivePnlCharacter1 from '../../../../../images/positive_pnl_character_1_3x.png';
+import PositivePnlCharacter2 from '../../../../../images/positive_pnl_character_2_3x.png';
+import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_3_3x.png';
 import type { Position } from '../../controllers/types';
-import type { PerpsTransaction } from '../../types/transactionHistory';
-import { ImageBackground } from 'expo-image';
+import { darkTheme } from '@metamask/design-tokens';
+import styleSheet from './PerpsHeroCardView.styles';
 
-const CARD_IMAGES = {
-  NEGATIVE_PNL_CHARACTER_1: NegativePnlCharacter1,
-};
+// To add a new card, add the image to the array and update the viewShotRefs array.
+const CARD_IMAGES: ImageSourcePropType[] = [
+  NegativePnlCharacter1,
+  NegativePnlCharacter2,
+  NegativePnlCharacter3,
+  PositivePnlCharacter1,
+  PositivePnlCharacter2,
+  PositivePnlCharacter3,
+];
 
-// TODO: Use live position data from websocket instead of polling or using route params.
 const PerpsHeroCardView: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const viewShotRefs = useRef<(View | null)[]>([null, null, null]);
+  const viewShotRefs = useRef<(View | null)[]>(
+    Array.from({ length: CARD_IMAGES.length }, () => null),
+  );
   const [currentTab, setCurrentTab] = useState(0);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [backgroundImage, setBackgroundImage] =
-    useState<ImageSourcePropType | null>(CARD_IMAGES.NEGATIVE_PNL_CHARACTER_1);
 
   // Get data from route params
   const params = route.params as {
-    position?: Position;
-    transaction?: PerpsTransaction;
+    position: Position;
   };
-  const { position, transaction } = params;
+  const { position } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
 
@@ -77,96 +83,58 @@ const PerpsHeroCardView: React.FC = () => {
     pollingInterval: 1 * 60 * 1000,
   });
 
-  // Extract data from position or transaction
   const data = useMemo(() => {
-    if (position) {
-      const isLong = Number.parseFloat(position.size) >= 0;
-      const direction = isLong ? 'long' : 'short';
-      const pnlValue = Number.parseFloat(position.unrealizedPnl);
-      const roeValue = Number.parseFloat(position.returnOnEquity || '0') * 100;
-      const entryPrice = position.entryPrice;
+    const isLong = Number.parseFloat(position.size) >= 0;
+    const direction = isLong ? 'long' : 'short';
+    const pnlValue = Number.parseFloat(position.unrealizedPnl);
+    const roeValue = Number.parseFloat(position.returnOnEquity || '0') * 100;
+    const entryPrice = position.entryPrice;
 
-      // Find current market price
-      const market = markets.find((m) => m.symbol === position.coin);
-      let markPrice = null;
+    // Find current market price
+    const market = markets.find((m) => m.symbol === position.coin);
+    let markPrice = null;
 
-      if (market?.price) {
-        markPrice = parseCurrencyString(market.price).toString();
-      }
-
-      return {
-        asset: position.coin,
-        direction,
-        leverage: position.leverage.value,
-        pnl: pnlValue,
-        roe: roeValue,
-        entryPrice,
-        markPrice,
-        isLong,
-      };
+    if (market?.price) {
+      markPrice = parseCurrencyString(market.price).toString();
     }
 
-    // TODO: Fix incomplete data when navigating from transaction screen.
-    // TODO: Update CLOSE_POSITION toast to include "Share P&L" button.
-    if (transaction?.fill) {
-      const { fill } = transaction;
-      // Determine direction from transaction
-      const isLong = fill.shortTitle?.toLowerCase().includes('long') ?? true;
-      const direction = isLong ? 'long' : 'short';
-      const pnlValue = Number.parseFloat(fill.pnl || '0');
-      // Calculate ROE from P&L if available
-      const roeValue = fill.amountNumber
-        ? (pnlValue / Math.abs(fill.amountNumber)) * 100
-        : 0;
-
-      // Extract asset from transaction asset field (format: "xyz:XYZ100")
-      const asset = transaction.asset?.split(':')[1] || 'UNKNOWN';
-
-      // Find current market price
-      const market = markets.find((m) => m.symbol === asset);
-      let markPrice = null;
-      if (market?.price) {
-        markPrice = parseCurrencyString(market.price).toString();
-      }
-
-      return {
-        asset,
-        direction,
-        // TODO: FIXME - Try to get leverage another way
-        leverage: 40, // Default leverage, not available in transaction
-        pnl: pnlValue,
-        roe: roeValue,
-        entryPrice: fill.entryPrice || '0',
-        markPrice,
-        isLong,
-      };
-    }
-
-    return null;
-  }, [position, transaction, markets]);
+    return {
+      asset: position.coin,
+      direction,
+      leverage: position.leverage.value,
+      pnl: pnlValue,
+      roe: roeValue,
+      entryPrice,
+      markPrice,
+      isLong,
+    };
+  }, [position, markets]);
 
   const handleTabChange = useCallback((obj: { i: number }) => {
     setCurrentTab(obj.i);
   }, []);
 
-  const { styles } = useStyles(styleSheet, { isLong: Boolean(data?.isLong) });
-
-  // TODO: Handle graceful failure. We don't want fallback data since it won't be accurate.
-  if (!data) {
-    return null;
-  }
+  const { styles } = useStyles(styleSheet, { isLong: data.isLong });
 
   const handleClose = () => {
     navigation.goBack();
   };
 
+  // TODO: Fix filename not being set correctly.
+  const generateFileName = () => {
+    const timestamp = Date.now();
+    return `perps-hero-card-${timestamp}.png`;
+  };
+
   const captureCard = async (): Promise<string | null> => {
     try {
-      if (viewShotRef.current) {
-        const uri = await captureRef(viewShotRef, {
+      const currentRef = viewShotRefs.current[currentTab];
+      if (currentRef) {
+        const uri = await captureRef(currentRef, {
           // TODO: Determine if png is the best format for this.
           format: 'png',
           quality: 1,
+          fileName: generateFileName(),
         });
         return uri;
       }
@@ -185,21 +153,8 @@ const PerpsHeroCardView: React.FC = () => {
         await Share.open({
           url: imageUri,
           message: strings('perps.pnl_hero_card.header_title'),
-        });
-      }
-    } catch (error) {
-      // User cancelled or error occurred - fail silently
-    }
-  };
-
-  const handleSaveImage = async () => {
-    try {
-      const imageUri = await captureCard();
-      if (imageUri) {
-        // Use Share API with save option
-        await Share.open({
-          url: imageUri,
-          saveToFiles: true,
+          // File mime type (required for sharing file with Instagram)
+          type: 'image/png',
         });
       }
     } catch (error) {
@@ -209,7 +164,7 @@ const PerpsHeroCardView: React.FC = () => {
 
   const renderTabBar = () => (
     <View style={styles.progressContainer}>
-      {[0, 1, 2].map((dotIndex) => (
+      {Array.from({ length: CARD_IMAGES.length }).map((_, dotIndex) => (
         <View
           key={dotIndex}
           style={[
@@ -225,7 +180,9 @@ const PerpsHeroCardView: React.FC = () => {
   const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
-  const directionBadgeText = `${directionText} ${data.leverage}x`;
+  const directionBadgeText = data.leverage
+    ? `${directionText} ${data.leverage}x`
+    : directionText;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -259,7 +216,7 @@ const PerpsHeroCardView: React.FC = () => {
             initialPage={0}
             prerenderingSiblingsNumber={1}
           >
-            {[0, 1, 2].map((index) => (
+            {CARD_IMAGES.map((image, index) => (
               <View key={index}>
                 <View style={styles.cardWrapper}>
                   {/* Card to be captured */}
@@ -269,12 +226,13 @@ const PerpsHeroCardView: React.FC = () => {
                     }}
                     collapsable={false}
                   >
-                    <ImageBackground
-                      source={backgroundImage}
-                      style={styles.cardContainer}
-                      contentFit="contain"
-                      contentPosition="right center"
-                    >
+                    <View style={styles.cardContainer}>
+                      {/* Background Image */}
+                      <Image
+                        source={image}
+                        style={styles.backgroundImage}
+                        resizeMode="contain"
+                      />
                       {/* MetaMask Logo */}
                       <View style={styles.logoContainer}>
                         <Image
@@ -362,6 +320,10 @@ const PerpsHeroCardView: React.FC = () => {
                         <View style={styles.referralContainer}>
                           <RewardsReferralCodeTag
                             referralCode={rewardsReferralCode}
+                            backgroundColor={
+                              darkTheme.colors.background.mutedHover
+                            }
+                            fontColor={darkTheme.colors.accent04.light}
                           />
                           <View style={styles.footerTextContainer}>
                             <Text
@@ -381,7 +343,7 @@ const PerpsHeroCardView: React.FC = () => {
                           </View>
                         </View>
                       )}
-                    </ImageBackground>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -390,7 +352,7 @@ const PerpsHeroCardView: React.FC = () => {
         </View>
       </View>
 
-      {/* Footer Buttons */}
+      {/* Footer Button */}
       <View style={styles.buttonsContainer}>
         <Button
           variant={ButtonVariants.Primary}
@@ -399,14 +361,6 @@ const PerpsHeroCardView: React.FC = () => {
           label={strings('perps.pnl_hero_card.share_button')}
           startIconName={IconName.Share}
           onPress={handleShare}
-        />
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.pnl_hero_card.save_button')}
-          startIconName={IconName.Download}
-          onPress={handleSaveImage}
         />
       </View>
     </SafeAreaView>
