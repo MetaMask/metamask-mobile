@@ -28,7 +28,9 @@ export const usePredictActionGuard = ({
   navigation,
 }: UsePredictActionGuardOptions): UsePredictActionGuardResult => {
   const { isEligible } = usePredictEligibility({ providerId });
-  const { hasNoBalance } = usePredictBalance();
+  const { hasNoBalance } = usePredictBalance({
+    loadOnMount: true,
+  });
 
   const executeGuardedAction = useCallback(
     (
