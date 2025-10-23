@@ -1,6 +1,5 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import UnmountOnBlur from '../../../Views/UnmountOnBlur';
 import Routes from '../../../../constants/navigation/Routes';
 import SignUp from '../components/Onboarding/SignUp';
 import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
@@ -14,12 +13,41 @@ import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
 import Complete from '../components/Onboarding/Complete';
 import { cardAuthenticationNavigationOptions } from '.';
+import {
+  selectOnboardingId,
+  selectUser,
+} from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 const Stack = createStackNavigator();
 
-const OnboardingNavigator: React.FC = () => (
-  <UnmountOnBlur>
-    <Stack.Navigator initialRouteName={Routes.CARD.ONBOARDING.SIGN_UP}>
+const OnboardingNavigator: React.FC = () => {
+  const onboardingId = useSelector(selectOnboardingId);
+  const user = useSelector(selectUser);
+
+  const getInitialRouteName = () => {
+    if (!onboardingId || !user?.id) {
+      return Routes.CARD.ONBOARDING.SIGN_UP;
+    }
+    if (user?.verificationState === 'PENDING') {
+      return Routes.CARD.ONBOARDING.VALIDATING_KYC;
+    }
+    if (user?.verificationState === 'VERIFIED') {
+      if (!user?.firstName) {
+        return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+      } else if (!user?.addressLine1) {
+        return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
+      }
+      return Routes.CARD.ONBOARDING.COMPLETE;
+    }
+    if (onboardingId) {
+      return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
+    }
+    return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+  };
+
+  return (
+    <Stack.Navigator initialRouteName={getInitialRouteName()}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}
@@ -76,7 +104,7 @@ const OnboardingNavigator: React.FC = () => (
         options={cardAuthenticationNavigationOptions}
       />
     </Stack.Navigator>
-  </UnmountOnBlur>
-);
+  );
+};
 
 export default OnboardingNavigator;

@@ -8,6 +8,7 @@ import { isEthAccount } from '../../../Multichain/utils';
 import {
   CardLocation,
   CardTokenAllowance,
+  UserResponse,
 } from '../../../../components/UI/Card/types';
 import {
   selectCardExperimentalSwitch,
@@ -15,6 +16,18 @@ import {
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
+
+export interface OnboardingState {
+  onboardingId: string | null;
+  selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
+  contactVerificationId: string | null;
+  user: UserResponse | null;
+}
+
+export interface CacheState {
+  data: Record<string, unknown>;
+  timestamps: Record<string, number>;
+}
 
 export interface CardSliceState {
   cardholderAccounts: string[];
@@ -28,6 +41,8 @@ export interface CardSliceState {
   geoLocation: string;
   isAuthenticated: boolean;
   userCardLocation: CardLocation;
+  onboarding: OnboardingState;
+  cache: CacheState;
 }
 
 export const initialState: CardSliceState = {
@@ -42,6 +57,16 @@ export const initialState: CardSliceState = {
   geoLocation: 'UNKNOWN',
   isAuthenticated: false,
   userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+    user: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 // Async thunk for loading cardholder accounts
@@ -109,6 +134,43 @@ const slice = createSlice({
       action: PayloadAction<CardLocation | null>,
     ) => {
       state.userCardLocation = action.payload ?? 'international';
+    },
+    setOnboardingId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.onboardingId = action.payload;
+    },
+    setSelectedCountry: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.selectedCountry = action.payload;
+    },
+    setContactVerificationId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.contactVerificationId = action.payload;
+    },
+    setUser: (state, action: PayloadAction<UserResponse | null>) => {
+      state.onboarding.user = action.payload;
+    },
+    resetOnboardingState: (state) => {
+      state.onboarding = {
+        onboardingId: null,
+        selectedCountry: null,
+        contactVerificationId: null,
+        user: null,
+      };
+    },
+    setCacheData: (
+      state,
+      action: PayloadAction<{ key: string; data: unknown; timestamp: number }>,
+    ) => {
+      const { key, data, timestamp } = action.payload;
+      state.cache.data[key] = data;
+      state.cache.timestamps[key] = timestamp;
+    },
+    clearCacheData: (state, action: PayloadAction<string>) => {
+      const key = action.payload;
+      delete state.cache.data[key];
+      delete state.cache.timestamps[key];
+    },
+    clearAllCache: (state) => {
+      state.cache.data = {};
+      state.cache.timestamps = {};
     },
   },
   extraReducers: (builder) => {
@@ -284,6 +346,26 @@ export const selectDisplayCardButton = createSelector(
   },
 );
 
+export const selectOnboardingId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.onboardingId,
+);
+
+export const selectSelectedCountry = createSelector(
+  selectCardState,
+  (card) => card.onboarding.selectedCountry,
+);
+
+export const selectContactVerificationId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.contactVerificationId,
+);
+
+export const selectUser = createSelector(
+  selectCardState,
+  (card) => card.onboarding.user,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -295,4 +377,12 @@ export const {
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   setUserCardLocation,
+  setOnboardingId,
+  setSelectedCountry,
+  setContactVerificationId,
+  setUser,
+  resetOnboardingState,
+  setCacheData,
+  clearCacheData,
+  clearAllCache,
 } = actions;
