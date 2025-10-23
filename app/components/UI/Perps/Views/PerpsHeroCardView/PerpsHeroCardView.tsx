@@ -33,6 +33,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
+import RewardsReferralQRCode from '../../../Rewards/components/RewardsReferralQRCode';
 import { usePerpsMarkets } from '../../hooks';
 import {
   formatPerpsFiat,
@@ -116,21 +117,13 @@ const PerpsHeroCardView: React.FC = () => {
     navigation.goBack();
   };
 
-  // TODO: Fix filename not being set correctly.
-  const generateFileName = () => {
-    const timestamp = Date.now();
-    return `perps-hero-card-${timestamp}.png`;
-  };
-
   const captureCard = async (): Promise<string | null> => {
     try {
       const currentRef = viewShotRefs.current[currentTab];
       if (currentRef) {
         const uri = await captureRef(currentRef, {
-          // TODO: Determine if png is the best format for this.
           format: 'png',
           quality: 1,
-          fileName: generateFileName(),
         });
         return uri;
       }
@@ -157,20 +150,6 @@ const PerpsHeroCardView: React.FC = () => {
       // User cancelled or error occurred - fail silently
     }
   };
-
-  const renderTabBar = () => (
-    <View style={styles.progressContainer}>
-      {Array.from({ length: CARD_IMAGES.length }).map((_, dotIndex) => (
-        <View
-          key={dotIndex}
-          style={[
-            styles.progressDot,
-            currentTab === dotIndex && styles.progressDotActive,
-          ]}
-        />
-      ))}
-    </View>
-  );
 
   const pnlSign = data.pnl >= 0 ? '+' : '';
   const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
@@ -202,149 +181,144 @@ const PerpsHeroCardView: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Content */}
       <View style={styles.carouselWrapper}>
-        <View style={styles.carouselContainer}>
+        {/* Carousel */}
+        {/* ScrollableTabView fills empty space by default, we need to constrain it  */}
+        <View style={styles.carouselInnerContainer}>
           <ScrollableTabView
-            renderTabBar={renderTabBar}
-            tabBarPosition="bottom"
+            renderTabBar={() => <View />}
             onChangeTab={handleTabChange}
             initialPage={0}
             prerenderingSiblingsNumber={1}
           >
             {CARD_IMAGES.map((image, index) => (
-              <View key={index}>
-                <View style={styles.cardWrapper}>
-                  {/* Card to be captured */}
-                  <View
-                    ref={(ref) => {
-                      viewShotRefs.current[index] = ref;
-                    }}
-                    collapsable={false}
-                  >
-                    <View style={styles.cardContainer}>
-                      {/* Background Image */}
-                      <Image
-                        source={image}
-                        style={styles.backgroundImage}
-                        resizeMode="contain"
+              <View key={index} style={styles.cardWrapper}>
+                <View
+                  ref={(ref) => {
+                    viewShotRefs.current[index] = ref;
+                  }}
+                  style={styles.cardContainer}
+                >
+                  {/* Background Image */}
+                  <Image
+                    source={image}
+                    style={styles.backgroundImage}
+                    resizeMode="contain"
+                  />
+
+                  {/* Top Row: Logo + Referral Tag */}
+                  <View style={styles.topRow}>
+                    <Image
+                      source={MetaMaskLogo}
+                      style={styles.logo}
+                      resizeMode="contain"
+                    />
+                    {rewardsReferralCode !== null && (
+                      <RewardsReferralCodeTag
+                        referralCode={rewardsReferralCode}
+                        backgroundColor={darkTheme.colors.background.mutedHover}
+                        fontColor={darkTheme.colors.accent04.light}
                       />
-                      {/* MetaMask Logo */}
-                      <View style={styles.logoContainer}>
-                        <Image
-                          source={MetaMaskLogo}
-                          style={styles.logo}
-                          resizeMode="contain"
-                        />
-                      </View>
+                    )}
+                  </View>
 
-                      {/* Asset Info Row */}
-                      <View style={styles.assetRow}>
-                        <PerpsTokenLogo
-                          symbol={data.asset}
-                          size={14.5}
-                          style={styles.assetIcon}
-                        />
-                        <Text
-                          variant={TextVariant.BodySMMedium}
-                          style={styles.assetName}
-                        >
-                          {data.asset}
-                        </Text>
-                        <View style={styles.directionBadge}>
-                          <Text
-                            variant={TextVariant.BodyXSMedium}
-                            style={styles.directionBadgeText}
-                          >
-                            {directionBadgeText}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* P&L Percentage */}
-                      <RNText
-                        style={[
-                          styles.pnlText,
-                          data.roe >= 0
-                            ? styles.pnlPositive
-                            : styles.pnlNegative,
-                        ]}
+                  {/* Asset Info Row */}
+                  <View style={styles.assetRow}>
+                    <PerpsTokenLogo
+                      symbol={data.asset}
+                      size={14.5}
+                      style={styles.assetIcon}
+                    />
+                    <Text
+                      variant={TextVariant.BodySMMedium}
+                      style={styles.assetName}
+                    >
+                      {data.asset}
+                    </Text>
+                    <View style={styles.directionBadge}>
+                      <Text
+                        variant={TextVariant.BodyXSMedium}
+                        style={styles.directionBadgeText}
                       >
-                        {pnlDisplay}
-                      </RNText>
-
-                      <View>
-                        {/* Entry Price */}
-                        <View style={styles.priceRow}>
-                          <Text
-                            style={styles.priceLabel}
-                            variant={TextVariant.BodyXSMedium}
-                          >
-                            {strings('perps.pnl_hero_card.entry_price')}
-                          </Text>
-                          <Text
-                            style={styles.priceValue}
-                            variant={TextVariant.BodySMMedium}
-                          >
-                            {formatPerpsFiat(data.entryPrice, {
-                              ranges: PRICE_RANGES_UNIVERSAL,
-                            })}
-                          </Text>
-                        </View>
-
-                        {/* Mark Price */}
-                        <View style={styles.priceRow}>
-                          <Text
-                            style={styles.priceLabel}
-                            variant={TextVariant.BodyXSMedium}
-                          >
-                            {strings('perps.pnl_hero_card.mark_price')}
-                          </Text>
-                          <Text
-                            style={styles.priceValue}
-                            variant={TextVariant.BodySMMedium}
-                          >
-                            {formatPerpsFiat(data.markPrice as string, {
-                              ranges: PRICE_RANGES_UNIVERSAL,
-                            })}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Referral Code Section */}
-                      {rewardsReferralCode !== null && (
-                        <View style={styles.referralContainer}>
-                          <RewardsReferralCodeTag
-                            referralCode={rewardsReferralCode}
-                            backgroundColor={
-                              darkTheme.colors.background.mutedHover
-                            }
-                            fontColor={darkTheme.colors.accent04.light}
-                          />
-                          <View style={styles.footerTextContainer}>
-                            <Text
-                              variant={TextVariant.BodySM}
-                              style={styles.footerText}
-                            >
-                              {strings('perps.pnl_hero_card.referral_footer')}
-                            </Text>
-                            <Text
-                              variant={TextVariant.BodySM}
-                              style={styles.footerText}
-                            >
-                              {strings('perps.pnl_hero_card.referral_link', {
-                                code: rewardsReferralCode,
-                              })}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
+                        {directionBadgeText}
+                      </Text>
                     </View>
                   </View>
+
+                  {/* P&L Percentage */}
+                  <RNText
+                    style={[
+                      styles.pnlText,
+                      data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
+                    ]}
+                  >
+                    {pnlDisplay}
+                  </RNText>
+
+                  {/* Price Rows Container */}
+                  <View style={styles.priceRowsContainer}>
+                    {/* Entry Price */}
+                    <View style={styles.priceRow}>
+                      <Text
+                        style={styles.priceLabel}
+                        variant={TextVariant.BodyXSMedium}
+                      >
+                        {strings('perps.pnl_hero_card.entry_price')}
+                      </Text>
+                      <Text
+                        style={styles.priceValue}
+                        variant={TextVariant.BodySMMedium}
+                      >
+                        {formatPerpsFiat(data.entryPrice, {
+                          ranges: PRICE_RANGES_UNIVERSAL,
+                        })}
+                      </Text>
+                    </View>
+
+                    {/* Mark Price */}
+                    <View style={styles.priceRow}>
+                      <Text
+                        style={styles.priceLabel}
+                        variant={TextVariant.BodyXSMedium}
+                      >
+                        {strings('perps.pnl_hero_card.mark_price')}
+                      </Text>
+                      <Text
+                        style={styles.priceValue}
+                        variant={TextVariant.BodySMMedium}
+                      >
+                        {formatPerpsFiat(data.markPrice as string, {
+                          ranges: PRICE_RANGES_UNIVERSAL,
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Bottom Row: QR Code */}
+                  {rewardsReferralCode !== null && (
+                    <View style={styles.qrCodeContainer}>
+                      <RewardsReferralQRCode
+                        referralCode={rewardsReferralCode}
+                        size={100}
+                      />
+                    </View>
+                  )}
                 </View>
               </View>
             ))}
           </ScrollableTabView>
+        </View>
+
+        <View style={styles.progressContainer}>
+          {Array.from({ length: CARD_IMAGES.length }).map((_, dotIndex) => (
+            <View
+              key={dotIndex}
+              style={[
+                styles.progressDot,
+                currentTab === dotIndex && styles.progressDotActive,
+              ]}
+            />
+          ))}
         </View>
       </View>
 
