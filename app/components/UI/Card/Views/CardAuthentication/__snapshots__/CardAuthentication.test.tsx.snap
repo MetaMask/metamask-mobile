@@ -801,9 +801,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   activeOpacity={1}
                                   disabled={true}
                                   loading={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",

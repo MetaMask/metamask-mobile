@@ -388,7 +388,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               disabled={false}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -428,8 +427,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               activeOpacity={1}
               disabled={true}
               loading={false}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
