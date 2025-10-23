@@ -2489,21 +2489,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       // Try WebSocket cache first (unless explicitly bypassed)
-      if (!params?.skipCache) {
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isOrdersCacheInitialized()
+      ) {
         const cachedOrders = this.subscriptionService.getCachedOpenOrders();
-        if (cachedOrders.length > 0) {
-          DevLogger.log('Using cached open orders from WebSocket', {
-            count: cachedOrders.length,
-          });
-          return cachedOrders;
-        }
-        // Cache empty - WebSocket might not be connected yet, fall through to API
+        DevLogger.log('Using cached open orders from WebSocket', {
+          count: cachedOrders.length,
+        });
+        return cachedOrders;
       }
 
       // Fallback to API call
       DevLogger.log(
         'Fetching open orders via API',
-        params?.skipCache ? '(skipCache requested)' : '(cache unavailable)',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
       );
       await this.ensureReady();
 

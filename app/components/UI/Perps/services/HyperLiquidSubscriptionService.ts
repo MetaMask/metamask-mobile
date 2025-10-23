@@ -97,6 +97,7 @@ export class HyperLiquidSubscriptionService {
   private cachedPositions: Position[] | null = null; // Aggregated positions
   private cachedOrders: Order[] | null = null; // Aggregated orders
   private cachedAccount: AccountState | null = null; // Aggregated account
+  private ordersCacheInitialized = false; // Track if orders cache has received WebSocket data
   // Global price data cache
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
@@ -805,6 +806,7 @@ export class HyperLiquidSubscriptionService {
           if (ordersChanged) {
             this.cachedOrders = aggregatedOrders;
             this.cachedOrdersHash = ordersHash;
+            this.ordersCacheInitialized = true; // Mark cache as initialized
             this.orderSubscribers.forEach((callback) => {
               callback(aggregatedOrders);
             });
@@ -891,6 +893,7 @@ export class HyperLiquidSubscriptionService {
       this.cachedPositions = null;
       this.cachedOrders = null;
       this.cachedAccount = null;
+      this.ordersCacheInitialized = false; // Reset cache initialization flag
 
       // Clear hash caches
       this.cachedPositionsHash = '';
@@ -1097,6 +1100,14 @@ export class HyperLiquidSubscriptionService {
    */
   public getCachedOpenOrders(): Order[] {
     return this.cachedOrders || [];
+  }
+
+  /**
+   * Check if orders cache has been initialized from WebSocket
+   * @returns true if WebSocket has sent at least one update, false otherwise
+   */
+  public isOrdersCacheInitialized(): boolean {
+    return this.ordersCacheInitialized;
   }
 
   /**
@@ -1717,6 +1728,7 @@ export class HyperLiquidSubscriptionService {
             if (ordersChanged) {
               this.cachedOrders = aggregatedOrders;
               this.cachedOrdersHash = ordersHash;
+              this.ordersCacheInitialized = true; // Mark cache as initialized
               this.orderSubscribers.forEach((callback) => {
                 callback(aggregatedOrders);
               });
@@ -1892,6 +1904,7 @@ export class HyperLiquidSubscriptionService {
     this.cachedPositions = null;
     this.cachedOrders = null;
     this.cachedAccount = null;
+    this.ordersCacheInitialized = false; // Reset cache initialization flag
     this.marketDataCache.clear();
     this.orderBookCache.clear();
     this.symbolSubscriberCounts.clear();
