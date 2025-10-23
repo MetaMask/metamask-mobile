@@ -1,7 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
+import { BackgroundColor } from '../../../Box/box.types';
 
-const styleSheet = (params: { theme: Theme; vars?: { style?: any } }) => {
+const styleSheet = (params: { theme: Theme; vars?: { style?: ViewStyle } }) => {
   const { theme, vars } = params;
   const { colors } = theme;
 
@@ -33,7 +34,7 @@ const styleSheet = (params: { theme: Theme; vars?: { style?: any } }) => {
       flex: 1,
     },
     buttonBase: {
-      backgroundColor: 'transparent',
+      backgroundColor: BackgroundColor.transparent,
       borderWidth: 0,
     },
     slider: {

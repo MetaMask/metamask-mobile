@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Animated, Easing, ViewProps } from 'react-native';
+import { View, Animated, Easing, ViewProps, ViewStyle } from 'react-native';
 import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { ButtonSize, ButtonWidthTypes } from '../../../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -28,7 +31,9 @@ const ResourceToggle = ({
   style,
   ...rest
 }: ResourceToggleProps) => {
-  const { styles, theme } = useStyles(styleSheet, { style });
+  const { styles, theme } = useStyles(styleSheet, {
+    style: style as ViewStyle,
+  });
   const isBandwidth = value === 'bandwidth';
 
   const sliderIndex = useRef(new Animated.Value(isBandwidth ? 1 : 0)).current;
@@ -55,7 +60,10 @@ const ResourceToggle = ({
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       >
         <Animated.View
-          style={[styles.slider, { width: segmentWidth, transform: [{ translateX }] }]}
+          style={[
+            styles.slider,
+            { width: segmentWidth, transform: [{ translateX }] },
+          ]}
         />
         <View style={styles.row}>
           <View style={styles.buttonWrapper}>
