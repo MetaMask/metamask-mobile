@@ -22,7 +22,10 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -110,12 +113,14 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
+  const coordinatedPress = useCoordinatedPress();
+
   const memoizedPressHandler = useCallback(() => {
-    handleNewTrade();
-  }, [handleNewTrade]);
+    coordinatedPress(handleNewTrade);
+  }, [coordinatedPress, handleNewTrade]);
 
   const renderStartTradeCTA = () => (
-    <TempTouchableOpacity
+    <TouchablePerpsComponent
       style={styles.startTradeCTA}
       onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
@@ -133,7 +138,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TempTouchableOpacity>
+    </TouchablePerpsComponent>
   );
 
   const renderOrdersSection = () => {

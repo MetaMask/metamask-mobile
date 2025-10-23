@@ -53,8 +53,9 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[MockFunction]}
+        onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -90,8 +91,9 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[MockFunction]}
+        onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
