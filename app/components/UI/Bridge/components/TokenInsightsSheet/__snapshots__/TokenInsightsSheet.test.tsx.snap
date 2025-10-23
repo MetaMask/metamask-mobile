@@ -521,7 +521,7 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
                     }
                   }
                 >
-                  0x1234...7890
+                  0x12345...67890
                 </Text>
               </View>
             </TouchableOpacity>
@@ -533,7 +533,7 @@ exports[`TokenInsightsSheet Market Data formats positive percent change correctl
 </View>
 `;
 
-exports[`TokenInsightsSheet Rendering renders correctly with token data 1`] = `
+exports[`TokenInsightsSheet renders correctly with token data 1`] = `
 <View
   onLayout={[Function]}
   style={
@@ -1054,7 +1054,7 @@ exports[`TokenInsightsSheet Rendering renders correctly with token data 1`] = `
                     }
                   }
                 >
-                  0x1234...7890
+                  0x12345...67890
                 </Text>
               </View>
             </TouchableOpacity>

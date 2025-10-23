@@ -175,7 +175,7 @@ describe('TokenInsightsSheet', () => {
     expect(getByText('-0.01%')).toBeTruthy();
     expect(getByText('$54.44M')).toBeTruthy();
     expect(getByText('$33.59B')).toBeTruthy();
-    expect(getByText('0x1234...7890')).toBeTruthy();
+    expect(getByText('0x12345...67890')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -375,7 +375,7 @@ describe('TokenInsightsSheet', () => {
         state: mockState,
       });
 
-      const addressElement = getByText('0x1234...7890');
+      const addressElement = getByText('0x12345...67890');
       const touchableParent = addressElement.parent?.parent;
 
       if (touchableParent) {
