@@ -20,7 +20,7 @@ jobs:
     with:
       test-suite-name: screenshot-examples
       platform: ios
-      test_suite_tag: 'ScreenshotExamples:'
+      test_suite_tag: 'ScreenshotExamples'
       test-timeout-minutes: 30
       split_number: 1
       total_splits: 1
