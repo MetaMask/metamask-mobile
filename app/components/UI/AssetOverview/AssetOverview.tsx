@@ -87,6 +87,9 @@ import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -590,7 +593,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               chainId,
             }}
           />
-
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && <TronEnergyBandwidthDetail />
+            ///: END:ONLY_INCLUDE_IF
+          }
           {balance != null && (
             <Balance
               asset={asset}
