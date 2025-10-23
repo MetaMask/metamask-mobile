@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -15,13 +15,26 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import {
+  selectOnboardingId,
+  selectSelectedCountry,
+  setUser,
+} from '../../../../../core/redux/slices/card';
+import { useDispatch, useSelector } from 'react-redux';
+import SelectComponent from '../../../SelectComponent';
+import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
+import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import {
+  formatDateOfBirth,
+  validateDateOfBirth,
+} from '../../util/validateDateOfBirth';
+import { CardError } from '../../types';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
-
-  const handleContinue = () => {
-    navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
-  };
+  const dispatch = useDispatch();
+  const onboardingId = useSelector(selectOnboardingId);
+  const selectedCountry = useSelector(selectSelectedCountry);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -31,12 +44,57 @@ const PersonalDetails = () => {
   const [SSN, setSSN] = useState('');
   const [isSSNError, setIsSSNError] = useState(false);
 
+  // Get registration settings data
+  const { data: registrationSettings } = useRegistrationSettings();
+
+  // Create select options from registration settings data
+  const selectOptions = useMemo(() => {
+    if (!registrationSettings?.countries) {
+      return [];
+    }
+    return [...registrationSettings.countries]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((country) => ({
+        key: country.iso3166alpha2,
+        value: country.iso3166alpha2,
+        label: country.name,
+      }));
+  }, [registrationSettings]);
+
+  const {
+    registerPersonalDetails,
+    isLoading: registerLoading,
+    isError: registerIsError,
+    error: registerError,
+    reset: resetRegisterPersonalDetails,
+  } = useRegisterPersonalDetails();
+
+  const handleNationalitySelect = useCallback(
+    (value: string) => {
+      resetRegisterPersonalDetails();
+      setNationality(value);
+    },
+    [resetRegisterPersonalDetails],
+  );
+
+  const handleDateOfBirthChange = useCallback(
+    (timestamp: string) => {
+      resetRegisterPersonalDetails();
+      setDateOfBirth(timestamp);
+    },
+    [resetRegisterPersonalDetails],
+  );
+
   const debouncedSSN = useDebouncedValue(SSN, 1000);
 
-  const handleSSNChange = (text: string) => {
-    const cleanedText = text.replace(/\D/g, '');
-    setSSN(cleanedText);
-  };
+  const handleSSNChange = useCallback(
+    (text: string) => {
+      resetRegisterPersonalDetails();
+      const cleanedText = text.replace(/\D/g, '');
+      setSSN(cleanedText);
+    },
+    [resetRegisterPersonalDetails],
+  );
 
   useEffect(() => {
     if (!debouncedSSN) {
@@ -64,48 +122,77 @@ const PersonalDetails = () => {
       return;
     }
 
-    const birthDate = new Date(birthTimestamp);
-    const today = new Date();
-
-    if (birthDate > today) {
+    if (!validateDateOfBirth(birthTimestamp)) {
       setDateError(
         strings('card.card_onboarding.personal_details.invalid_date_of_birth'),
       );
-      return;
-    }
-
-    // Calculate age in years
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    // Adjust age if birthday hasn't occurred this year yet
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    // Set error if user is under 18
-    if (age < 18) {
-      setDateError(
-        strings(
-          'card.card_onboarding.personal_details.invalid_date_of_birth_underage',
-        ),
-      );
-    }
+    } else setDateError('');
   }, [dateOfBirth]);
 
-  const isDisabled = useMemo(
-    () =>
+  const handleContinue = async () => {
+    if (
+      !onboardingId ||
       !firstName ||
       !lastName ||
       !dateOfBirth ||
       !nationality ||
-      !SSN ||
+      (!debouncedSSN && selectedCountry === 'US')
+    ) {
+      return;
+    }
+
+    try {
+      const { user } = await registerPersonalDetails({
+        onboardingId,
+        firstName,
+        lastName,
+        dateOfBirth: formatDateOfBirth(dateOfBirth),
+        countryOfNationality: nationality,
+        ssn: debouncedSSN,
+      });
+
+      if (user) {
+        dispatch(setUser(user));
+        navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
+      }
+    } catch (error) {
+      if (
+        error instanceof CardError &&
+        error.message.includes('Onboarding ID not found')
+      ) {
+        // Onboarding ID not found, navigate back and restart the flow
+        navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
+        return;
+      }
+      // Allow error message to display
+    }
+  };
+
+  const isDisabled = useMemo(
+    () =>
+      registerLoading ||
+      registerIsError ||
+      !firstName ||
+      !lastName ||
+      !dateOfBirth ||
+      !nationality ||
+      (!debouncedSSN && selectedCountry === 'US') ||
       isSSNError ||
-      !!dateError,
-    [firstName, lastName, dateOfBirth, nationality, SSN, isSSNError, dateError],
+      !!dateError ||
+      !onboardingId,
+    [
+      registerLoading,
+      registerIsError,
+      firstName,
+      lastName,
+      dateOfBirth,
+      nationality,
+      debouncedSSN,
+      selectedCountry,
+      isSSNError,
+      dateError,
+      onboardingId,
+    ],
   );
 
   const renderFormFields = () => (
@@ -129,6 +216,7 @@ const PersonalDetails = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.personal_details.first_name_label',
           )}
+          testID="personal-details-first-name-input"
         />
       </Box>
 
@@ -151,6 +239,7 @@ const PersonalDetails = () => {
           accessibilityLabel={strings(
             'card.card_onboarding.personal_details.last_name_label',
           )}
+          testID="personal-details-last-name-input"
         />
       </Box>
 
@@ -158,7 +247,7 @@ const PersonalDetails = () => {
       <DepositDateField
         label="Date of Birth"
         value={dateOfBirth}
-        onChangeText={setDateOfBirth}
+        onChangeText={handleDateOfBirthChange}
         error={dateError}
       />
 
@@ -167,62 +256,80 @@ const PersonalDetails = () => {
         <Label>
           {strings('card.card_onboarding.personal_details.nationality_label')}
         </Label>
-        <TextField
-          autoCapitalize={'none'}
-          onChangeText={setNationality}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.nationality_placeholder',
-          )}
-          numberOfLines={1}
-          size={TextFieldSize.Lg}
-          value={nationality}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.nationality_label',
-          )}
-        />
+        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+          <SelectComponent
+            label={strings(
+              'card.card_onboarding.personal_details.nationality_label',
+            )}
+            selectedValue={nationality}
+            options={selectOptions}
+            onValueChange={handleNationalitySelect}
+            defaultValue={strings(
+              'card.card_onboarding.personal_details.nationality_placeholder',
+            )}
+            testID="personal-details-nationality-select"
+          />
+        </Box>
       </Box>
 
       {/* SSN */}
-      <Box>
-        <Label>
-          {strings('card.card_onboarding.personal_details.ssn_label')}
-        </Label>
-        <TextField
-          autoCapitalize={'none'}
-          onChangeText={handleSSNChange}
-          placeholder={strings(
-            'card.card_onboarding.personal_details.ssn_placeholder',
+      {selectedCountry === 'US' && (
+        <Box>
+          <Label>
+            {strings('card.card_onboarding.personal_details.ssn_label')}
+          </Label>
+          <TextField
+            autoCapitalize={'none'}
+            onChangeText={handleSSNChange}
+            placeholder={strings(
+              'card.card_onboarding.personal_details.ssn_placeholder',
+            )}
+            numberOfLines={1}
+            size={TextFieldSize.Lg}
+            value={SSN}
+            keyboardType="number-pad"
+            maxLength={9}
+            accessibilityLabel={strings(
+              'card.card_onboarding.personal_details.ssn_label',
+            )}
+            isError={!!debouncedSSN && isSSNError}
+            testID="personal-details-ssn-input"
+          />
+          {debouncedSSN.length > 0 && isSSNError && (
+            <Text
+              variant={TextVariant.BodySm}
+              testID="personal-details-ssn-error"
+              twClassName="text-error-default"
+            >
+              {strings('card.card_onboarding.personal_details.invalid_ssn')}
+            </Text>
           )}
-          numberOfLines={1}
-          size={TextFieldSize.Lg}
-          value={SSN}
-          keyboardType="number-pad"
-          maxLength={9}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.ssn_label',
-          )}
-          isError={!!debouncedSSN && isSSNError}
-        />
-        {debouncedSSN.length > 0 && isSSNError && (
-          <Text variant={TextVariant.BodySm} twClassName="text-error-default">
-            {strings('card.card_onboarding.personal_details.invalid_ssn')}
-          </Text>
-        )}
-      </Box>
+        </Box>
+      )}
     </>
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-    />
+    <Box>
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        testID="personal-details-continue-button"
+      />
+      {!!registerError && (
+        <Text
+          variant={TextVariant.BodySm}
+          testID="personal-details-error"
+          twClassName="text-error-default"
+        >
+          {registerError}
+        </Text>
+      )}
+    </Box>
   );
 
   return (
