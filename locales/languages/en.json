@@ -1394,14 +1394,7 @@
       "add_funds": "Add funds",
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
-      "orders": "Orders",
-      "badge": {
-        "experimental": "EXPERIMENTAL",
-        "equity": "STOCK",
-        "commodity": "COMMODITY",
-        "crypto": "CRYPTO",
-        "forex": "FOREX"
-      }
+      "orders": "Orders"
     },
     "buttons": {
       "get_account_balance": "Get Account Balance",
@@ -2811,14 +2804,6 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
-    "tron": {
-      "daily_resource": "Daily resource",
-      "bandwidth": "Bandwidth",
-      "energy": "Energy",
-      "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
-      "sufficient_to_cover_trx": "Sufficient to cover ~{{amount}} TRX transfers",
-      "sufficient_to_cover_usdt": "Sufficient to cover ~{{amount}} USDT"
-    },
     "disabled_button": {
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
@@ -5670,10 +5655,8 @@
     "percent_change": "Percent change",
     "volume": "Volume",
     "market_cap_fdv": "Market cap (FDV)",
-    "billions": "Billions",
     "listed_on": "Listed on",
     "centralised_exchanges": "Centralised exchanges",
-    "yes": "Yes",
     "contract_address": "Contract address"
   },
   "quote_expired_modal": {
