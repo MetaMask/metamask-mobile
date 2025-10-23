@@ -72,16 +72,16 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleYes = () => {
-    if (hasNoBalance) {
+    if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
       });
       return;
     }
 
-    if (!isEligible) {
+    if (hasNoBalance) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       });
       return;
     }
@@ -98,16 +98,16 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   };
 
   const handleNo = () => {
-    if (hasNoBalance) {
+    if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
       });
       return;
     }
 
-    if (!isEligible) {
+    if (hasNoBalance) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       });
       return;
     }

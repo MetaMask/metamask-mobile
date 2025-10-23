@@ -84,16 +84,16 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   }, 0);
 
   const handleYes = (outcome: PredictOutcome) => {
-    if (hasNoBalance) {
+    if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
       });
       return;
     }
 
-    if (!isEligible) {
+    if (hasNoBalance) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       });
       return;
     }
@@ -110,16 +110,16 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   };
 
   const handleNo = (outcome: PredictOutcome) => {
-    if (hasNoBalance) {
+    if (!isEligible) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
       });
       return;
     }
 
-    if (!isEligible) {
+    if (hasNoBalance) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       });
       return;
     }

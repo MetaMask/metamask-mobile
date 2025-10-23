@@ -53,6 +53,7 @@ import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -96,6 +97,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
+
+  const { isEligible } = usePredictEligibility({
+    providerId,
+  });
 
   const { market, isFetching: isMarketFetching } = usePredictMarket({
     id: resolvedMarketId,
@@ -255,6 +260,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const onCashOut = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
     const outcome = market?.outcomes.find(
       (o) => o.id === currentPosition?.outcomeId,
     );
@@ -282,6 +293,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const handleYesPress = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
     if (hasNoBalance) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
@@ -300,6 +318,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const handleNoPress = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
     if (hasNoBalance) {
       navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
@@ -318,6 +343,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const handleClaimPress = async () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
     await claim();
   };
 
