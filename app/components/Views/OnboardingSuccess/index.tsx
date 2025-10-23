@@ -84,12 +84,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   }, [onDone]);
 
   const getTitleString = () => {
-    switch (successFlow) {
-      case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
-        return strings('onboarding_success.title');
-      default:
-        return strings('onboarding_success.wallet_ready');
+    if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
+      return strings('onboarding_success.title');
     }
+    return strings('onboarding_success.wallet_ready');
   };
 
   const renderContent = () => (
