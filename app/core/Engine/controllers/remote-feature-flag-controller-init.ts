@@ -48,7 +48,6 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
   });
 
   if (disabled) {
-    showSuccessToast('feature flags disabled');
     Logger.log('Feature flag controller disabled.');
   } else if (isRemoteFeatureFlagOverrideActivated) {
     Logger.log('Remote feature flags override activated.');
