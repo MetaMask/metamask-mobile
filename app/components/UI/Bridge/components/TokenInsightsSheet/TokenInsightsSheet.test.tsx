@@ -8,17 +8,20 @@ import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Hex } from '@metamask/utils';
 
-jest.mock('../../../../../constants/network', () => ({
-  ...jest.requireActual('../../../../../constants/network'),
-  RPC: 'rpc',
-}));
-
 jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
 
 jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn(),
+  NetworkType: {
+    mainnet: 'mainnet',
+    goerli: 'goerli',
+    sepolia: 'sepolia',
+    localhost: 'localhost',
+    rpc: 'rpc',
+  },
 }));
 
 jest.mock('@metamask/bridge-controller', () => ({
