@@ -20,6 +20,7 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { strings } from '../../../../../../locales/i18n';
 
 interface PredictPositionProps {
@@ -43,7 +44,12 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     const outcome = market?.outcomes.find((o) => o.id === position.outcomeId);
     navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-      params: { position, outcome },
+      params: {
+        market,
+        position,
+        outcome,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+      },
     });
   };
 
