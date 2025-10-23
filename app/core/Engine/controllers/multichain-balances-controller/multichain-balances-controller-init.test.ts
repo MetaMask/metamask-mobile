@@ -6,7 +6,7 @@ import {
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainBalancesControllerInit } from './multichain-balances-controller-init';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 
 jest.mock('@metamask/assets-controllers');
 
@@ -20,7 +20,7 @@ describe('multichain balances controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger();
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });

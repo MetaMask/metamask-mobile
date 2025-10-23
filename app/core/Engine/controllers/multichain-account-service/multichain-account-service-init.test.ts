@@ -15,8 +15,8 @@ import {
   AllowedInitializationActions,
   AllowedInitializationEvents,
 } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
-import { Messenger } from '@metamask/base-controller';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { Messenger } from '@metamask/messenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('@metamask/multichain-account-service');
@@ -58,7 +58,7 @@ function getInitRequestMock({
   const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
 
   // Create extended messenger for the base mock
-  const extendedControllerMessenger = new ExtendedControllerMessenger();
+  const extendedControllerMessenger = new ExtendedMessenger();
 
   // Build the base mock with extended messenger
   const baseMock = buildControllerInitRequestMock(extendedControllerMessenger);

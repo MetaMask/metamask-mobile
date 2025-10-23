@@ -7,7 +7,7 @@ import { MultichainTransactionsControllerMessenger } from '../../messengers/mult
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainTransactionsControllerInit } from './multichain-transactions-controller-init';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_SOLANA_ACCOUNT } from '../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('@metamask/multichain-transactions-controller');
@@ -22,7 +22,7 @@ describe('multichain transactions controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger();
 
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);

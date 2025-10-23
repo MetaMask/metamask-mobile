@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Messenger } from '@metamask/base-controller';
+import {
+  MOCK_ANY_NAMESPACE,
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type { NetworkState } from '@metamask/network-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import {
   addTransaction,
@@ -11,6 +19,7 @@ import { PredictClaimStatus, PredictDepositStatus, Side } from '../types';
 import {
   getDefaultPredictControllerState,
   PredictController,
+  PredictControllerMessenger,
   type PredictControllerState,
 } from './PredictController';
 import type { OrderPreview } from '../providers/types';
@@ -64,8 +73,28 @@ jest.mock('@metamask/controller-utils', () => {
   };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UnrestrictedMessenger = Messenger<any, any>;
+type AllPredictControllerMessengerActions =
+  MessengerActions<PredictControllerMessenger>;
+
+type AllPredictControllerMessengerEvents =
+  MessengerEvents<PredictControllerMessenger>;
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  AllPredictControllerMessengerActions,
+  AllPredictControllerMessengerEvents
+>;
+
+/**
+ * Creates and returns a root messenger for testing
+ *
+ * @returns A messenger instance
+ */
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
 
 describe('PredictController', () => {
   let mockPolymarketProvider: jest.Mocked<PolymarketProvider>;
@@ -126,22 +155,22 @@ describe('PredictController', () => {
   function withController<ReturnValue>(
     fn: (args: {
       controller: PredictController;
-      messenger: UnrestrictedMessenger;
+      messenger: RootMessenger;
     }) => ReturnValue,
     options: {
       state?: Partial<PredictControllerState>;
       mocks?: {
-        getSelectedAccount?: jest.MockedFunction<() => unknown>;
-        getNetworkState?: jest.MockedFunction<() => unknown>;
+        getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
+        getNetworkState?: jest.MockedFunction<() => NetworkState>;
       };
     } = {},
   ): ReturnValue {
     const { state = {}, mocks = {} } = options;
 
-    const messenger = new Messenger<any, any>();
+    const rootMessenger = getRootMessenger();
 
     // Register mock external actions
-    messenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
       mocks.getSelectedAccount ??
         jest.fn().mockReturnValue({
@@ -151,7 +180,7 @@ describe('PredictController', () => {
         }),
     );
 
-    messenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'NetworkController:getState',
       mocks.getNetworkState ??
         jest.fn().mockReturnValue({
@@ -159,28 +188,36 @@ describe('PredictController', () => {
         }),
     );
 
-    const restrictedMessenger = messenger.getRestricted({
-      name: 'PredictController',
-      allowedActions: [
-        'AccountsController:getSelectedAccount' as never,
-        'NetworkController:getState' as never,
+    const messenger = new Messenger<
+      'PredictController',
+      AllPredictControllerMessengerActions,
+      AllPredictControllerMessengerEvents,
+      RootMessenger
+    >({
+      namespace: 'PredictController',
+      parent: rootMessenger,
+    });
+
+    rootMessenger.delegate({
+      actions: [
+        'AccountsController:getSelectedAccount',
+        'NetworkController:getState',
       ],
-      allowedEvents: [
-        'AccountsController:selectedAccountChange' as never,
-        'NetworkController:stateChange' as never,
-        'TransactionController:transactionSubmitted' as never,
-        'TransactionController:transactionConfirmed' as never,
-        'TransactionController:transactionFailed' as never,
-        'TransactionController:transactionRejected' as never,
+      events: [
+        'TransactionController:transactionSubmitted',
+        'TransactionController:transactionConfirmed',
+        'TransactionController:transactionFailed',
+        'TransactionController:transactionRejected',
       ],
+      messenger,
     });
 
     const controller = new PredictController({
-      messenger: restrictedMessenger,
+      messenger,
       state,
     });
 
-    return fn({ controller, messenger });
+    return fn({ controller, messenger: rootMessenger });
   }
 
   describe('constructor', () => {

@@ -1,5 +1,5 @@
 import { CurrencyRateMessenger } from '../../controllers/currency-rate-controller/currency-rate-controller-init';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 /**
  * Get the CurrencyRateMessenger for the CurrencyRateController.
@@ -8,7 +8,7 @@ import { BaseControllerMessenger } from '../../types';
  * @returns The CurrencyRateMessenger.
  */
 export function getCurrencyRateControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): CurrencyRateMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'CurrencyRateController',

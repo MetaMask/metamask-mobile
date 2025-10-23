@@ -5,7 +5,7 @@ import {
 import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
 
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeControllerMessenger } from '../../messengers/bridge-controller-messenger';
 import { ControllerInitRequest } from '../../types';
@@ -44,7 +44,7 @@ function buildTransactionControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<ControllerInitRequest<BridgeControllerMessenger>> {
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const baseControllerMessenger = new ExtendedMessenger();
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),

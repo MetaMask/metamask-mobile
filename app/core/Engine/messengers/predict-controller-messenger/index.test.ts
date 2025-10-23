@@ -1,9 +1,9 @@
 import { getPredictControllerMessenger } from '.';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 
 describe('PredictController Messenger', () => {
   it('returns an instance of the predict controller messenger', () => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger();
 
     const result = getPredictControllerMessenger(baseControllerMessenger);
 

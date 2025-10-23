@@ -1,9 +1,9 @@
 import { getPerpsControllerMessenger } from '.';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 
 describe('PerpsController Messenger', () => {
   it('returns an instance of the perps controller messenger', () => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger();
 
     const result = getPerpsControllerMessenger(baseControllerMessenger);
 

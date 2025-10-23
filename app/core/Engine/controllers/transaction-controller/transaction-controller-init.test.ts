@@ -14,7 +14,7 @@ import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import { ControllerInitRequest } from '../../types';
@@ -92,8 +92,8 @@ function buildInitRequestMock(
     TransactionControllerInitMessenger
   >
 > {
-  const initMessenger = new ExtendedControllerMessenger();
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const initMessenger = new ExtendedMessenger();
+  const baseControllerMessenger = new ExtendedMessenger();
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     initMessenger:

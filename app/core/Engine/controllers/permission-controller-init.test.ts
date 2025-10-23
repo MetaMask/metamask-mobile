@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getPermissionControllerMessenger,
   getPermissionControllerInitMessenger,
@@ -18,7 +18,7 @@ function getInitRequestMock(): jest.Mocked<
     PermissionControllerInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

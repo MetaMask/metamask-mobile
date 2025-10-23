@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getEarnControllerMessenger,
   type EarnControllerMessenger,
@@ -15,7 +15,7 @@ jest.mock('@metamask/earn-controller');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<EarnControllerMessenger, EarnControllerInitMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

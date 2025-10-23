@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 import { CronjobControllerMessenger } from '@metamask/snaps-controllers';
 import {
   SnapControllerHandleRequestAction,
@@ -17,7 +17,7 @@ import {
  * @returns The CronjobControllerMessenger.
  */
 export function getCronjobControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): CronjobControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'CronjobController',

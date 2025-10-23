@@ -1,5 +1,5 @@
 import { BackendWebSocketServiceMessenger as BackendPlatformWebSocketServiceMessenger } from '@metamask/core-backend';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 export type BackendWebSocketServiceMessenger =
   BackendPlatformWebSocketServiceMessenger;
@@ -12,7 +12,7 @@ export type BackendWebSocketServiceMessenger =
  * @returns The restricted messenger.
  */
 export function getBackendWebSocketServiceMessenger(
-  messenger: BaseControllerMessenger,
+  messenger: RootExtendedMessenger,
 ): BackendPlatformWebSocketServiceMessenger {
   return messenger.getRestricted({
     name: 'BackendWebSocketService',
@@ -32,7 +32,7 @@ export type BackendWebSocketServiceInitMessenger = ReturnType<
 >;
 
 export function getBackendWebSocketServiceInitMessenger(
-  messenger: BaseControllerMessenger,
+  messenger: RootExtendedMessenger,
 ) {
   return messenger.getRestricted({
     name: 'BackendWebSocketServiceInit',

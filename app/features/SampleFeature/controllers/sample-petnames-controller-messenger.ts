@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../../core/Engine';
+import { RootExtendedMessenger } from '../../../core/Engine';
 import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 
 /**
@@ -8,7 +8,7 @@ import type { SamplePetnamesControllerMessenger } from '@metamask/sample-control
  * @returns The restricted controller messenger for the SamplePetnamesController.
  */
 export const getSamplePetnamesControllerMessenger = (
-  baseMessenger: BaseControllerMessenger,
+  baseMessenger: RootExtendedMessenger,
 ): SamplePetnamesControllerMessenger =>
   baseMessenger.getRestricted({
     name: 'SamplePetnamesController',

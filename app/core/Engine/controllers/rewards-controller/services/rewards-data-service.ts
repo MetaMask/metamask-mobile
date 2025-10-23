@@ -1,4 +1,4 @@
-import type { RestrictedMessenger } from '@metamask/base-controller';
+import type { Messenger } from '@metamask/messenger';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -189,12 +189,10 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction;
 
-export type RewardsDataServiceMessenger = RestrictedMessenger<
+export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
   RewardsDataServiceActions,
-  never,
-  never['type'],
-  never['type']
+  never
 >;
 
 /**

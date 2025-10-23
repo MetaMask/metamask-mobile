@@ -1,5 +1,5 @@
 import { PredictControllerMessenger } from '../../../../components/UI/Predict/controllers/PredictController';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 /**
  * Get the PredictControllerMessenger for the PredictController.
@@ -8,7 +8,7 @@ import { BaseControllerMessenger } from '../../types';
  * @returns The PredictControllerMessenger.
  */
 export function getPredictControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): PredictControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'PredictController',

@@ -1,6 +1,6 @@
 import { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   DeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerInitMessenger,
@@ -22,7 +22,7 @@ jest.mock('.../../../../store', () => ({
 }));
 
 function getInitRequestMock(
-  baseMessenger = new ExtendedControllerMessenger<never, never>(),
+  baseMessenger = new ExtendedMessenger<never, never>(),
 ): jest.Mocked<
   ControllerInitRequest<
     DeFiPositionsControllerMessenger,

@@ -81,7 +81,7 @@ import {
   toHex,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
-import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../ExtendedMessenger';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
@@ -103,7 +103,7 @@ import {
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import {
-  BaseControllerMessenger,
+  RootExtendedMessenger,
   EngineState,
   EngineContext,
   StatefulControllers,
@@ -194,7 +194,7 @@ export class Engine {
   /**
    * The global controller messenger.
    */
-  controllerMessenger: BaseControllerMessenger;
+  controllerMessenger: RootExtendedMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -260,7 +260,7 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
-    this.controllerMessenger = new ExtendedControllerMessenger();
+    this.controllerMessenger = new ExtendedMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 

@@ -2,7 +2,7 @@ import {
   DelegationController,
   DelegationControllerMessenger,
 } from '@metamask/delegation-controller';
-import { Messenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
 import {
   type TransactionMeta,
   TransactionStatus,
@@ -19,7 +19,7 @@ import {
   getDelegationControllerMessenger,
 } from '../../messengers/delegation/delegation-controller-messenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { Hex } from '@metamask/utils';
 
 jest.mock('@metamask/delegation-controller');
@@ -37,7 +37,7 @@ function buildInitRequestMock(): jest.Mocked<
   const initMessenger = getDelegationControllerInitMessenger(
     baseControllerMessenger,
   );
-  const extendedControllerMessenger = new ExtendedControllerMessenger();
+  const extendedControllerMessenger = new ExtendedMessenger();
 
   return {
     ...buildControllerInitRequestMock(extendedControllerMessenger),

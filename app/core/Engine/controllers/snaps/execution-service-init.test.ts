@@ -6,7 +6,7 @@ import {
 } from '../../messengers/snaps';
 import { executionServiceInit } from './execution-service-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 import { SnapBridge } from '../../../Snaps';
@@ -18,7 +18,7 @@ jest.mock('../../../Snaps');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<ExecutionServiceMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

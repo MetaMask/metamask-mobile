@@ -5,7 +5,7 @@ import {
   wrapWithCache,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import { deriveStateFromMetadata } from '@metamask/base-controller';
+import { deriveStateFromMetadata } from '@metamask/base-controller/next';
 import {
   RewardClaimStatus,
   type RewardsAccountState,
@@ -177,7 +177,7 @@ class TestableRewardsController extends RewardsController {
 
     // Call the messaging system with the expected parameters and properly handle errors
     // This will use the mock that's set up in the test
-    return this.messagingSystem
+    return this.messenger
       .call('KeyringController:signPersonalMessage', {
         data: hexMessage,
         from: account.address,
@@ -12817,7 +12817,7 @@ describe('RewardsController', () => {
         deriveStateFromMetadata(
           controller.state,
           controller.metadata,
-          'anonymous',
+          'includeInDebugSnapshot',
         ),
       ).toMatchInlineSnapshot(`{}`);
     });

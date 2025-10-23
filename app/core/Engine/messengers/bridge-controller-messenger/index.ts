@@ -1,5 +1,5 @@
 import { BridgeControllerMessenger } from '@metamask/bridge-controller';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 /**
  * Get the BridgeControllerMessenger for the BridgeController.
@@ -8,7 +8,7 @@ import { BaseControllerMessenger } from '../../types';
  * @returns The BridgeControllerMessenger.
  */
 export function getBridgeControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): BridgeControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'BridgeController',

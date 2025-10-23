@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 export type SeedlessOnboardingControllerMessenger = ReturnType<
   typeof getSeedlessOnboardingControllerMessenger
@@ -11,7 +11,7 @@ export type SeedlessOnboardingControllerMessenger = ReturnType<
  * @returns The SeedlessOnboardingControllerMessenger.
  */
 export function getSeedlessOnboardingControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ) {
   return baseControllerMessenger.getRestricted({
     name: 'SeedlessOnboardingController',

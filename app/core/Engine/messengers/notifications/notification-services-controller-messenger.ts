@@ -1,8 +1,8 @@
 import type { NotificationServicesControllerMessenger } from '@metamask/notification-services-controller/notification-services';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 export function getNotificationServicesControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): NotificationServicesControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'NotificationServicesController',

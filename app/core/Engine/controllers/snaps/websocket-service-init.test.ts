@@ -6,12 +6,12 @@ import {
   WebSocketServiceMessenger,
 } from '../../messengers/snaps';
 import { WebSocketServiceInit } from './websocket-service-init';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<WebSocketServiceMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

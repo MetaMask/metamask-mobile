@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getTokenSearchDiscoveryControllerMessenger,
   type TokenSearchDiscoveryControllerMessenger,
@@ -17,7 +17,7 @@ jest.mock('@metamask/token-search-discovery-controller');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<TokenSearchDiscoveryControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

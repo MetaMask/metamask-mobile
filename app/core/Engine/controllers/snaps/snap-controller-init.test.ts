@@ -8,7 +8,7 @@ import {
 } from '../../messengers/snaps';
 import { snapControllerInit } from './snap-controller-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { KeyringControllerGetKeyringsByTypeAction } from '@metamask/keyring-controller';
 import { store } from '../../../../store';
 import { MetaMetrics } from '../../../Analytics';
@@ -22,7 +22,7 @@ jest.mock('.../../../../store', () => ({
 }));
 
 function getInitRequestMock(
-  baseMessenger = new ExtendedControllerMessenger<never, never>(),
+  baseMessenger = new ExtendedMessenger<never, never>(),
 ): jest.Mocked<
   ControllerInitRequest<SnapControllerMessenger, SnapControllerInitMessenger>
 > {
@@ -77,7 +77,7 @@ describe('SnapControllerInit', () => {
 
   describe('getMnemonicSeed', () => {
     it('returns the mnemonic seed', () => {
-      const messenger = new ExtendedControllerMessenger<
+      const messenger = new ExtendedMessenger<
         KeyringControllerGetKeyringsByTypeAction,
         never
       >();
@@ -102,7 +102,7 @@ describe('SnapControllerInit', () => {
     });
 
     it('throws an error if the keyring is not available', () => {
-      const messenger = new ExtendedControllerMessenger<
+      const messenger = new ExtendedMessenger<
         KeyringControllerGetKeyringsByTypeAction,
         never
       >();

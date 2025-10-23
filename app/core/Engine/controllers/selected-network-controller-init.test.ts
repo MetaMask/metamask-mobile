@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getSelectedNetworkControllerMessenger,
   type SelectedNetworkControllerMessenger,
@@ -14,7 +14,7 @@ jest.mock('@metamask/selected-network-controller');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SelectedNetworkControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

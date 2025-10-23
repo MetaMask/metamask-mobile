@@ -1,11 +1,10 @@
 import { BaseControllerMessenger } from '../../types';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getNotificationServicesPushControllerMessenger } from './notification-services-push-controller-messenger';
 
 describe('getNotificationServicesControllerMessenger', () => {
   const arrangeMocks = () => {
-    const baseMessenger: BaseControllerMessenger =
-      new ExtendedControllerMessenger();
+    const baseMessenger: BaseControllerMessenger = new ExtendedMessenger();
     const mockGetRestricted = jest.spyOn(baseMessenger, 'getRestricted');
     return { baseMessenger, mockGetRestricted };
   };

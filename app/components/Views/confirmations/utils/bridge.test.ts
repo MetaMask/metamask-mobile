@@ -5,7 +5,7 @@ import {
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../../core/Engine';
-import { ExtendedControllerMessenger } from '../../../../core/ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../../core/ExtendedMessenger';
 import {
   BridgeQuoteRequest,
   TransactionBridgeQuote,
@@ -70,14 +70,14 @@ describe('Confirmations Bridge Utils', () => {
     selectShouldUseSmartTransaction,
   );
   const engineMock = jest.mocked(Engine);
-  let messengerMock: ExtendedControllerMessenger<never, BridgeControllerEvents>;
+  let messengerMock: ExtendedMessenger<never, BridgeControllerEvents>;
   let bridgeControllerMock: jest.Mocked<BridgeController>;
   let gasFeeControllerMock: jest.Mocked<GasFeeController>;
 
   beforeEach(() => {
     jest.resetAllMocks();
 
-    messengerMock = new ExtendedControllerMessenger();
+    messengerMock = new ExtendedMessenger();
 
     bridgeControllerMock = {
       fetchQuotes: jest.fn(),

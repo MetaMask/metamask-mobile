@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
@@ -21,10 +21,10 @@ import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feat
 jest.mock('@metamask/network-controller');
 
 function getInitRequestMock(
-  baseMessenger: ExtendedControllerMessenger<
+  baseMessenger: ExtendedMessenger<never, never> = new ExtendedMessenger<
     never,
     never
-  > = new ExtendedControllerMessenger<never, never>(),
+  >(),
 ): jest.Mocked<
   ControllerInitRequest<
     NetworkControllerMessenger,
@@ -83,7 +83,7 @@ describe('networkControllerInit', () => {
   });
 
   it('enables RPC failover when initialized with the `walletFrameworkRpcFailoverEnabled` feature flag enabled', () => {
-    const baseMessenger = new ExtendedControllerMessenger<
+    const baseMessenger = new ExtendedMessenger<
       RemoteFeatureFlagControllerGetStateAction,
       never
     >();
@@ -111,7 +111,7 @@ describe('networkControllerInit', () => {
   });
 
   it('disables RPC failover when initialized with the `walletFrameworkRpcFailoverEnabled` feature flag disabled', () => {
-    const baseMessenger = new ExtendedControllerMessenger<
+    const baseMessenger = new ExtendedMessenger<
       RemoteFeatureFlagControllerGetStateAction,
       never
     >();
@@ -139,7 +139,7 @@ describe('networkControllerInit', () => {
   });
 
   it('enables RPC failover when the `walletFrameworkRpcFailoverEnabled` feature flag is enabled on state change', () => {
-    const baseMessenger = new ExtendedControllerMessenger<never, never>();
+    const baseMessenger = new ExtendedMessenger<never, never>();
     const initRequest = getInitRequestMock(baseMessenger);
     networkControllerInit(initRequest);
 
@@ -158,7 +158,7 @@ describe('networkControllerInit', () => {
   });
 
   it('disables RPC failover when the `walletFrameworkRpcFailoverEnabled` feature flag is disabled on state change', () => {
-    const baseMessenger = new ExtendedControllerMessenger<never, never>();
+    const baseMessenger = new ExtendedMessenger<never, never>();
     const initRequest = getInitRequestMock(baseMessenger);
     networkControllerInit(initRequest);
 

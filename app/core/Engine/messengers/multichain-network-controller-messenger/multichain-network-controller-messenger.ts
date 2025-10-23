@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 import { MultichainNetworkControllerMessenger } from '@metamask/multichain-network-controller';
 
 /**
@@ -8,7 +8,7 @@ import { MultichainNetworkControllerMessenger } from '@metamask/multichain-netwo
  * @returns The MultichainNetworkControllerMessenger.
  */
 export function getMultichainNetworkControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): MultichainNetworkControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'MultichainNetworkController',

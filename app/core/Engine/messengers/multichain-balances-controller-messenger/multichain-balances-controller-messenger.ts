@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 import { MultichainBalancesControllerMessenger } from '@metamask/assets-controllers';
 
 /**
@@ -8,7 +8,7 @@ import { MultichainBalancesControllerMessenger } from '@metamask/assets-controll
  * @returns The MultichainBalancesControllerMessenger.
  */
 export function getMultichainBalancesControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): MultichainBalancesControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'MultichainBalancesController',

@@ -1,5 +1,5 @@
 import { AccountTreeControllerSelectedAccountGroupChangeEvent } from '@metamask/account-tree-controller';
-import { BaseControllerMessenger } from '../../../core/Engine/types';
+import { RootExtendedMessenger } from '../../../core/Engine/types';
 import { Messenger } from '@metamask/base-controller';
 
 /**
@@ -9,7 +9,7 @@ import { Messenger } from '@metamask/base-controller';
  * @returns The AccountTreeControllerMessenger.
  */
 export function getAccountTreeControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ) {
   return baseControllerMessenger.getRestricted({
     name: 'AccountTreeController',

@@ -8,7 +8,7 @@ import {
   getRemoteFeatureFlagControllerMessenger,
   RemoteFeatureFlagControllerMessenger,
 } from '../messengers/remote-feature-flag-controller-messenger';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
@@ -21,7 +21,7 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<RemoteFeatureFlagControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

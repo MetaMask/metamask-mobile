@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getPPOMControllerInitMessenger,
   getPPOMControllerMessenger,
@@ -16,7 +16,7 @@ jest.mock('@metamask/ppom-validator');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<PPOMControllerMessenger, PPOMControllerInitMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

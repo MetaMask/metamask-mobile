@@ -1,5 +1,5 @@
 import { AccountActivityServiceMessenger } from '@metamask/core-backend';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 /**
  * Get a restricted messenger for the Account Activity service. This is scoped to the
@@ -9,7 +9,7 @@ import { BaseControllerMessenger } from '../../types';
  * @returns The restricted messenger.
  */
 export function getAccountActivityServiceMessenger(
-  messenger: BaseControllerMessenger,
+  messenger: RootExtendedMessenger,
 ): AccountActivityServiceMessenger {
   return messenger.getRestricted({
     name: 'AccountActivityService',

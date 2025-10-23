@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getKeyringControllerMessenger,
   type KeyringControllerMessenger,
@@ -14,7 +14,7 @@ jest.mock('@metamask/keyring-controller');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<KeyringControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

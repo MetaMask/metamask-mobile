@@ -5,7 +5,7 @@ import {
   defaultState,
   Controller as NotificationServicesPushController,
 } from '@metamask/notification-services-controller/push-services';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { createNotificationServicesPushController } from './create-notification-services-push-controller';
 // eslint-disable-next-line import/no-namespace
 import * as PushUtilsModule from './push-utils';
@@ -36,7 +36,7 @@ describe('Notification Services Controller', () => {
   };
 
   const arrange = () => {
-    const globalMessenger = new ExtendedControllerMessenger();
+    const globalMessenger = new ExtendedMessenger();
     const messenger: NotificationServicesPushControllerMessenger =
       getNotificationServicesPushControllerMessenger(globalMessenger);
 

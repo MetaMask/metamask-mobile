@@ -1,11 +1,30 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
+import { LoggingControllerMessenger } from '@metamask/logging-controller';
 
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<LoggingControllerMessenger>,
+  MessengerEvents<LoggingControllerMessenger>
+>;
+
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
 describe('getLoggingControllerMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
-    const loggingControllerMessenger = getLoggingControllerMessenger(messenger);
+  it('returns a messenger', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
+    const loggingControllerMessenger =
+      getLoggingControllerMessenger(rootMessenger);
 
-    expect(loggingControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+    expect(loggingControllerMessenger).toBeInstanceOf(Messenger);
   });
 });

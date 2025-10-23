@@ -4,7 +4,7 @@ import {
   Controller as AuthenticationController,
   defaultState,
 } from '@metamask/profile-sync-controller/auth';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { createAuthenticationController } from './create-authentication-controller';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 
@@ -14,7 +14,7 @@ describe('Authentication Controller', () => {
   beforeEach(() => jest.resetAllMocks());
 
   const arrange = () => {
-    const globalMessenger = new ExtendedControllerMessenger();
+    const globalMessenger = new ExtendedMessenger();
     const messenger: AuthenticationControllerMessenger =
       globalMessenger.getRestricted({
         name: 'AuthenticationController',

@@ -1,6 +1,6 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { SnapControllerStateChangeEvent } from '../../controllers/snaps';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 import {
   SnapKeyringAccountAssetListUpdatedEvent,
   SnapKeyringAccountBalancesUpdatedEvent,
@@ -13,11 +13,11 @@ export * from './types';
 /**
  * Get the AccountsControllerMessenger for the AccountsController.
  *
- * @param baseControllerMessenger - The base controller messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The AccountsControllerMessenger.
  */
 export function getAccountsControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): AccountsControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'AccountsController',

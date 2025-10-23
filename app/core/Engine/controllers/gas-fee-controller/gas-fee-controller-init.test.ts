@@ -4,7 +4,7 @@ import { NetworkController } from '@metamask/network-controller';
 
 import { addHexPrefix } from '../../../../util/number';
 import { isMainnetByChainId } from '../../../../util/networks';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import AppConstants from '../../../AppConstants';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import type { GasFeeControllerMessenger } from '../../messengers/gas-fee-controller-messenger/gas-fee-controller-messenger';
@@ -40,7 +40,7 @@ function buildControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<ControllerInitRequest<GasFeeControllerMessenger>> {
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const baseControllerMessenger = new ExtendedMessenger();
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger:

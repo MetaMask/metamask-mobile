@@ -1,26 +1,29 @@
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { ErrorReportingServiceMessenger } from '@metamask/error-reporting-service';
 
-type AllowedActions = never;
-
-type AllowedEvents = never;
-
-export type ErrorReportingServiceMessenger = ReturnType<
-  typeof getErrorReportingServiceMessenger
->;
+import { RootMessenger } from '../types';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * error reporting service is allowed to handle.
+ * Get the ErrorReportingServiceMessenger for the ErrorReportingService.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The ErrorReportingServiceMessenger.
  */
 export function getErrorReportingServiceMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'ErrorReportingService',
-    allowedActions: [],
-    allowedEvents: [],
+  rootMessenger: RootMessenger,
+): ErrorReportingServiceMessenger {
+  const messenger = new Messenger<
+    'ErrorReportingService',
+    MessengerActions<ErrorReportingServiceMessenger>,
+    MessengerEvents<ErrorReportingServiceMessenger>,
+    RootMessenger
+  >({
+    namespace: 'ErrorReportingService',
+    parent: rootMessenger,
   });
+  return messenger;
 }

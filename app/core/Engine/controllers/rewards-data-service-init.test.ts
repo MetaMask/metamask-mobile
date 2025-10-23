@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getRewardsDataServiceMessenger,
   type RewardsDataServiceMessenger,
@@ -13,7 +13,7 @@ jest.mock('./rewards-controller/services');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<RewardsDataServiceMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

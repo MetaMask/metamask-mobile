@@ -2,7 +2,7 @@ import { AccountActivityService } from '@metamask/core-backend';
 import Logger from '../../../../util/Logger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { accountActivityServiceInit } from './account-activity-service-init';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 
 jest.mock('../../../../util/Logger');
 jest.mock('@metamask/core-backend');
@@ -14,7 +14,7 @@ describe('accountActivityServiceInit', () => {
   });
 
   const arrangeMocks = () => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger();
     const initRequestMock = buildControllerInitRequestMock(
       baseControllerMessenger,
     );

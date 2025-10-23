@@ -1,8 +1,11 @@
 import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import {
   BaseController,
-  type RestrictedMessenger,
-} from '@metamask/base-controller';
+  ControllerGetStateAction,
+  ControllerStateChangeEvent,
+  StateMetadata,
+} from '@metamask/base-controller/next';
+import type { Messenger } from '@metamask/messenger';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
   PersonalMessageParams,
@@ -127,32 +130,64 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
 /**
  * State metadata for the PredictController
  */
-const metadata = {
-  eligibility: { persist: false, anonymous: false },
-  lastError: { persist: false, anonymous: false },
-  lastUpdateTimestamp: { persist: false, anonymous: false },
-  claimablePositions: { persist: false, anonymous: false },
-  claimTransaction: { persist: false, anonymous: false },
-  depositTransaction: { persist: false, anonymous: false },
-  isOnboarded: { persist: true, anonymous: false },
+const metadata: StateMetadata<PredictControllerState> = {
+  eligibility: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  lastError: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  lastUpdateTimestamp: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  claimablePositions: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  claimTransaction: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  depositTransaction: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  isOnboarded: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
 };
 
 /**
  * PredictController events
  */
-export interface PredictControllerEvents {
-  type: 'PredictController:stateChange';
-  payload: [PredictControllerState, PredictControllerState[]];
-}
+export type PredictControllerEvents = ControllerStateChangeEvent<
+  'PredictController',
+  PredictControllerState
+>;
 
 /**
  * PredictController actions
  */
 export type PredictControllerActions =
-  | {
-      type: 'PredictController:getState';
-      handler: () => PredictControllerState;
-    }
+  | ControllerGetStateAction<'PredictController', PredictControllerState>
   | {
       type: 'PredictController:refreshEligibility';
       handler: PredictController['refreshEligibility'];
@@ -165,14 +200,14 @@ export type PredictControllerActions =
 /**
  * External actions the PredictController can call
  */
-export type AllowedActions =
-  | AccountsControllerGetSelectedAccountAction['type']
-  | NetworkControllerGetStateAction['type'];
+type AllowedActions =
+  | AccountsControllerGetSelectedAccountAction
+  | NetworkControllerGetStateAction;
 
 /**
  * External events the PredictController can subscribe to
  */
-export type AllowedEvents =
+type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
@@ -181,12 +216,10 @@ export type AllowedEvents =
 /**
  * PredictController messenger constraints
  */
-export type PredictControllerMessenger = RestrictedMessenger<
+export type PredictControllerMessenger = Messenger<
   'PredictController',
-  PredictControllerActions,
-  PredictControllerEvents | AllowedEvents,
-  AllowedActions,
-  AllowedEvents['type']
+  PredictControllerActions | AllowedActions,
+  PredictControllerEvents | AllowedEvents
 >;
 
 /**

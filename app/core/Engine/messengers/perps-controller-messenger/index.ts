@@ -1,5 +1,5 @@
 import { PerpsControllerMessenger } from '../../../../components/UI/Perps/controllers/PerpsController';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 /**
  * Get the PerpsControllerMessenger for the PerpsController.
@@ -8,7 +8,7 @@ import { BaseControllerMessenger } from '../../types';
  * @returns The PerpsControllerMessenger.
  */
 export function getPerpsControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): PerpsControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'PerpsController',

@@ -1,5 +1,5 @@
 import { AppMetadataControllerMessenger } from '@metamask/app-metadata-controller';
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 // Export the types
 export * from './types';
@@ -11,7 +11,7 @@ export * from './types';
  * @returns The AppMetadataControllerMessenger.
  */
 export function getAppMetadataControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): AppMetadataControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'AppMetadataController',

@@ -2,7 +2,7 @@ import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../../../../util/Logger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { backendWebSocketServiceInit } from './backend-websocket-service-init';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { BackendWebSocketServiceInitMessenger } from '../../messengers/core-backend';
 
 jest.mock('../../../../util/Logger');
@@ -17,7 +17,7 @@ describe('backendWebSocketServiceInit', () => {
   });
 
   const arrangeMocks = () => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger();
     const initRequestMock = buildControllerInitRequestMock(
       baseControllerMessenger,
     );

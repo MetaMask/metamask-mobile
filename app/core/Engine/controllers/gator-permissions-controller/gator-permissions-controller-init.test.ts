@@ -7,7 +7,7 @@ import {
   GatorPermissionsControllerMessenger,
 } from '../../messengers/gator-permissions-controller-messenger/gator-permissions-controller-messenger';
 import { GatorPermissionsControllerInit } from './gator-permissions-controller-init';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 
 jest.mock('@metamask/gator-permissions-controller');
 jest.mock('../../../../util/environment');
@@ -15,7 +15,7 @@ jest.mock('../../../../util/environment');
 function buildInitRequestMock(): jest.Mocked<
   ControllerInitRequest<GatorPermissionsControllerMessenger>
 > {
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const baseControllerMessenger = new ExtendedMessenger();
 
   return {
     ...buildControllerInitRequestMock(baseControllerMessenger),

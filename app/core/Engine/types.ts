@@ -5,7 +5,7 @@ import {
   SamplePetnamesControllerEvents,
 } from '@metamask/sample-controllers';
 ///: END:ONLY_INCLUDE_IF
-import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../ExtendedMessenger';
 import {
   AccountTrackerController,
   AccountTrackerControllerState,
@@ -248,10 +248,10 @@ import {
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller';
 import {
-  RestrictedMessenger,
+  Messenger,
   ActionConstraint,
   EventConstraint,
-} from '@metamask/base-controller';
+} from '@metamask/messenger';
 import {
   TokenSearchDiscoveryController,
   TokenSearchDiscoveryControllerState,
@@ -529,13 +529,25 @@ type GlobalEvents =
   | DelegationControllerEvents;
 
 /**
- * Type definition for the controller messenger used in the Engine.
- * It extends the base ControllerMessenger with global actions and events.
+ * Type definition for the messenger used in the Engine.
+ * It extends the base Messenger with global actions and events.
  */
-export type BaseControllerMessenger = ExtendedControllerMessenger<
+export type RootExtendedMessenger = ExtendedMessenger<
+  'Root',
   GlobalActions,
   GlobalEvents
 >;
+
+/**
+ * Type definition for the root messenger used in the Engine.
+ * It extends the root messenger with global actions and events.
+ */
+export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
+
+export const getRootMessenger = (): RootMessenger =>
+  new Messenger<'Root', GlobalActions, GlobalEvents>({
+    namespace: 'Root',
+  });
 
 /**
  * All mobile controllers, keyed by name
@@ -711,14 +723,12 @@ export type ControllerByName = {
 };
 
 /**
- * A restricted version of the controller messenger
+ * A messenger for the controller
  */
-export type BaseRestrictedControllerMessenger = RestrictedMessenger<
+export type ControllerMessenger = Messenger<
   string,
   ActionConstraint,
-  EventConstraint,
-  string,
-  string
+  EventConstraint
 >;
 
 /**
@@ -803,8 +813,8 @@ export type ControllersToInitialize =
  * Callback that returns a controller messenger for a specific controller.
  */
 export type ControllerMessengerCallback = (
-  baseControllerMessenger: BaseControllerMessenger,
-) => BaseRestrictedControllerMessenger;
+  baseControllerMessenger: RootExtendedMessenger,
+) => ControllerMessenger;
 
 /**
  * Persisted state for all controllers.
@@ -828,8 +838,8 @@ export type ControllerMessengerByControllerName = typeof CONTROLLER_MESSENGERS;
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ControllerInitRequest<
-  ControllerMessengerType extends BaseRestrictedControllerMessenger,
-  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
+  ControllerMessengerType extends ControllerMessenger,
+  InitMessengerType extends void | ControllerMessenger = void,
 > = {
   /**
    * The token API service instance.
@@ -909,8 +919,8 @@ export type ControllerInitRequest<
  */
 export type ControllerInitFunction<
   ControllerType extends Controller,
-  ControllerMessengerType extends BaseRestrictedControllerMessenger,
-  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
+  ControllerMessengerType extends ControllerMessenger,
+  InitMessengerType extends void | ControllerMessenger = void,
 > = (
   request: ControllerInitRequest<ControllerMessengerType, InitMessengerType>,
 ) => {
@@ -929,7 +939,7 @@ export type ControllerInitFunctionByControllerName = {
 };
 
 export interface InitModularizedControllersFunctionRequest {
-  baseControllerMessenger: BaseControllerMessenger;
+  baseControllerMessenger: RootExtendedMessenger;
   controllerInitFunctions: ControllerInitFunctionByControllerName;
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;

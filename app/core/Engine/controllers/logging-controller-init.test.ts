@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getLoggingControllerMessenger,
   type LoggingControllerMessenger,
@@ -13,7 +13,7 @@ jest.mock('@metamask/logging-controller');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<LoggingControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

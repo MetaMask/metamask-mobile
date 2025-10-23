@@ -1,7 +1,7 @@
 import { ApprovalController } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import type { ApprovalControllerMessenger } from '../../messengers/approval-controller-messenger';
 import { ControllerInitRequest } from '../../types';
@@ -13,7 +13,7 @@ jest.mock('@metamask/approval-controller');
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<ControllerInitRequest<ApprovalControllerMessenger>> {
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const baseControllerMessenger = new ExtendedMessenger();
   return {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger:

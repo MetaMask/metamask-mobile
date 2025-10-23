@@ -1,5 +1,5 @@
 import { RestrictedMessenger } from '@metamask/base-controller';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
@@ -8,7 +8,7 @@ import {
 describe('getBackendWebSocketServiceMessenger', () => {
   it('returns a restricted messenger', () => {
     // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
+    const messenger = new ExtendedMessenger<never, never>();
 
     // Act
     const backendWebSocketServiceMessenger =
@@ -22,7 +22,7 @@ describe('getBackendWebSocketServiceMessenger', () => {
 
   it('allows required actions and events', () => {
     // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
+    const messenger = new ExtendedMessenger<never, never>();
 
     // Act & Assert - no error means messenger is configured correctly
     expect(() => getBackendWebSocketServiceMessenger(messenger)).not.toThrow();
@@ -32,7 +32,7 @@ describe('getBackendWebSocketServiceMessenger', () => {
 describe('getBackendWebSocketServiceInitMessenger', () => {
   it('returns a restricted messenger', () => {
     // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
+    const messenger = new ExtendedMessenger<never, never>();
 
     // Act
     const backendWebSocketServiceInitMessenger =
@@ -46,7 +46,7 @@ describe('getBackendWebSocketServiceInitMessenger', () => {
 
   it('allows required actions', () => {
     // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
+    const messenger = new ExtendedMessenger<never, never>();
 
     // Act & Assert - no error means messenger is configured correctly
     expect(() =>

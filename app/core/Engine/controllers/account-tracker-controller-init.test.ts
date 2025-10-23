@@ -1,5 +1,5 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getAccountTrackerControllerMessenger,
   type AccountTrackerControllerMessenger,
@@ -13,7 +13,7 @@ jest.mock('@metamask/assets-controllers');
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<AccountTrackerControllerMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

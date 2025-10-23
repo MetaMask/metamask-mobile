@@ -3,7 +3,7 @@ import {
   NetworkEnablementControllerMessenger,
   NetworkEnablementControllerState,
 } from '@metamask/network-enablement-controller';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { networkEnablementControllerInit } from './network-enablement-controller-init';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
@@ -22,7 +22,7 @@ describe('networkEnablementControllerInit', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger();
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 

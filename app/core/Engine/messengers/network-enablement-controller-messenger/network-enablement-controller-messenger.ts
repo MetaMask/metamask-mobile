@@ -1,5 +1,5 @@
 import type { NetworkEnablementControllerMessenger } from '@metamask/network-enablement-controller';
-import type { BaseControllerMessenger } from '../../types';
+import type { RootExtendedMessenger } from '../../types';
 
 /**
  * Get the messenger for the NetworkEnablementController.
@@ -8,7 +8,7 @@ import type { BaseControllerMessenger } from '../../types';
  * @returns The restricted messenger for the NetworkEnablementController.
  */
 export const getNetworkEnablementControllerMessenger = (
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ): NetworkEnablementControllerMessenger =>
   baseControllerMessenger.getRestricted({
     name: 'NetworkEnablementController',

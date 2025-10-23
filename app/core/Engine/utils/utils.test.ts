@@ -7,7 +7,7 @@ import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { NetworkController } from '@metamask/network-controller';
 import { merge } from 'lodash';
 
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { accountsControllerInit } from '../controllers/accounts-controller';
 import { ApprovalControllerInit } from '../controllers/approval-controller';
 import { createMockControllerInitFunction } from './test-utils';
@@ -43,7 +43,7 @@ describe('initModularizedControllers', () => {
           PermissionController: mockPermissionControllerInit,
         },
         persistedState: {},
-        baseControllerMessenger: new ExtendedControllerMessenger(),
+        baseControllerMessenger: new ExtendedMessenger(),
         codefiTokenApiV2: jest.fn() as unknown as CodefiTokenPricesServiceV2,
         getGlobalChainId: jest.fn(),
         getState: jest.fn(),

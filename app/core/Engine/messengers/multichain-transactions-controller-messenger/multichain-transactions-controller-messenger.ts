@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 
 export type MultichainTransactionsControllerMessenger = ReturnType<
   typeof getMultichainTransactionsControllerMessenger
@@ -11,7 +11,7 @@ export type MultichainTransactionsControllerMessenger = ReturnType<
  * @returns The MultichainTransactionsControllerMessenger.
  */
 export function getMultichainTransactionsControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: RootExtendedMessenger,
 ) {
   return baseControllerMessenger.getRestricted({
     name: 'MultichainTransactionsController',

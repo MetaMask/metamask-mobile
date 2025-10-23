@@ -1,4 +1,4 @@
-import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
+import { ExtendedMessenger } from './ExtendedMessenger';
 
 const EVENT_TYPE_MOCK = 'TestController:testEvent';
 const EVENT_ARG_MOCK = { test: 'value' };
@@ -8,10 +8,10 @@ interface EventMock {
   payload: [{ test: string }];
 }
 
-describe('ExtendedControllerMessenger', () => {
+describe('ExtendedMessenger', () => {
   describe('subscribeOnceIf', () => {
     it('calls handler once and only if criteria matches', () => {
-      const messenger = new ExtendedControllerMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<never, EventMock>();
       const handler = jest.fn();
 
       const criteria = jest
@@ -34,7 +34,7 @@ describe('ExtendedControllerMessenger', () => {
 
   describe('tryUnsubscribe', () => {
     it('unsubscribes handler', () => {
-      const messenger = new ExtendedControllerMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<never, EventMock>();
       const handler = jest.fn();
 
       messenger.subscribe(EVENT_TYPE_MOCK, handler);
@@ -45,12 +45,12 @@ describe('ExtendedControllerMessenger', () => {
     });
 
     it('does nothing if no handler', () => {
-      const messenger = new ExtendedControllerMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<never, EventMock>();
       messenger.tryUnsubscribe(EVENT_TYPE_MOCK, undefined);
     });
 
     it('does nothing if already unsubscribed', () => {
-      const messenger = new ExtendedControllerMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<never, EventMock>();
       const handler = jest.fn();
 
       messenger.subscribe(EVENT_TYPE_MOCK, handler);

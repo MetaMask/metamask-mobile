@@ -4,7 +4,7 @@ import {
   CurrencyRateControllerEvents,
 } from '@metamask/assets-controllers';
 import type { ControllerInitFunction } from '../../types';
-import { RestrictedMessenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
 import type { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 import { defaultCurrencyRateState } from './constants';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
@@ -17,12 +17,10 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
  */
 
 // TODO: Remove once the CurrencyRateMessenger is properly exported from module
-export type CurrencyRateMessenger = RestrictedMessenger<
+export type CurrencyRateMessenger = Messenger<
   'CurrencyRateController',
   CurrencyRateControllerActions | NetworkControllerGetNetworkClientByIdAction,
-  CurrencyRateControllerEvents,
-  NetworkControllerGetNetworkClientByIdAction['type'],
-  never
+  CurrencyRateControllerEvents
 >;
 
 // Define the currency rate type based on usage
