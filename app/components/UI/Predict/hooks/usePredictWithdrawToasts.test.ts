@@ -8,6 +8,7 @@ import { usePredictWithdrawToasts } from './usePredictWithdrawToasts';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { PredictWithdrawStatus } from '../types';
+import { usePredictWithdraw } from './usePredictWithdraw';
 
 // Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => ({
@@ -39,6 +40,15 @@ jest.mock('./usePredictEligibility', () => ({
 jest.mock('./usePredictTrading', () => ({
   usePredictTrading: jest.fn(() => ({
     prepareWithdraw: jest.fn(() => Promise.resolve()),
+  })),
+}));
+
+// Mock usePredictWithdraw
+const mockWithdraw = jest.fn();
+jest.mock('./usePredictWithdraw', () => ({
+  usePredictWithdraw: jest.fn(() => ({
+    withdraw: mockWithdraw,
+    withdrawTransaction: null,
   })),
 }));
 
@@ -121,6 +131,7 @@ describe('usePredictWithdrawToasts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockToastRef.current.showToast.mockClear();
+    mockWithdraw.mockClear();
     (
       Engine.context.PredictController.clearWithdrawTransaction as jest.Mock
     ).mockClear();
@@ -143,6 +154,12 @@ describe('usePredictWithdrawToasts', () => {
         },
       },
     };
+
+    // Reset usePredictWithdraw mock to return null transaction by default
+    (usePredictWithdraw as jest.Mock).mockReturnValue({
+      withdraw: mockWithdraw,
+      withdrawTransaction: null,
+    });
   });
 
   describe('initialization', () => {
@@ -241,18 +258,15 @@ describe('usePredictWithdrawToasts', () => {
 
   describe('pending toast with useEffect', () => {
     it('shows pending toast when withdrawTransaction status is PENDING', () => {
-      mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              withdrawTransaction: {
-                status: PredictWithdrawStatus.PENDING,
-                amount: '100',
-              },
-            },
-          },
-        },
+      const mockTransaction = {
+        status: PredictWithdrawStatus.PENDING,
+        amount: '100',
       };
+
+      (usePredictWithdraw as jest.Mock).mockReturnValue({
+        withdraw: mockWithdraw,
+        withdrawTransaction: mockTransaction,
+      });
 
       renderHook(() => usePredictWithdrawToasts(), { wrapper });
 
@@ -265,15 +279,10 @@ describe('usePredictWithdrawToasts', () => {
     });
 
     it('does not show pending toast when withdrawTransaction is null', () => {
-      mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              withdrawTransaction: null,
-            },
-          },
-        },
-      };
+      (usePredictWithdraw as jest.Mock).mockReturnValue({
+        withdraw: mockWithdraw,
+        withdrawTransaction: null,
+      });
 
       renderHook(() => usePredictWithdrawToasts(), { wrapper });
 
@@ -281,18 +290,15 @@ describe('usePredictWithdrawToasts', () => {
     });
 
     it('does not show pending toast when withdrawTransaction status is not PENDING', () => {
-      mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              withdrawTransaction: {
-                status: PredictWithdrawStatus.CONFIRMED,
-                amount: '100',
-              },
-            },
-          },
-        },
+      const mockTransaction = {
+        status: PredictWithdrawStatus.CONFIRMED,
+        amount: '100',
       };
+
+      (usePredictWithdraw as jest.Mock).mockReturnValue({
+        withdraw: mockWithdraw,
+        withdrawTransaction: mockTransaction,
+      });
 
       renderHook(() => usePredictWithdrawToasts(), { wrapper });
 
@@ -300,25 +306,22 @@ describe('usePredictWithdrawToasts', () => {
     });
 
     it('shows pending toast with correct amount when status is PENDING', () => {
-      mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              withdrawTransaction: {
-                status: PredictWithdrawStatus.PENDING,
-                amount: '250',
-              },
-            },
-          },
-        },
+      const mockTransaction = {
+        status: PredictWithdrawStatus.PENDING,
+        amount: '250',
       };
+
+      (usePredictWithdraw as jest.Mock).mockReturnValue({
+        withdraw: mockWithdraw,
+        withdrawTransaction: mockTransaction,
+      });
 
       renderHook(() => usePredictWithdrawToasts(), { wrapper });
 
       expect(mockToastRef.current.showToast).toHaveBeenCalled();
-      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
+      const callArgs = (mockToastRef.current.showToast as jest.Mock).mock
         .calls[0][0];
-      expect(toastCall).toBeDefined();
+      expect(callArgs).toBeDefined();
     });
   });
 
@@ -340,12 +343,13 @@ describe('usePredictWithdrawToasts', () => {
       const onPressRetry = toastCall.linkButtonOptions?.onPress;
 
       expect(onPressRetry).toBeDefined();
+      expect(mockWithdraw).not.toHaveBeenCalled();
 
       await act(async () => {
         onPressRetry();
       });
 
-      expect(onPressRetry).toBeInstanceOf(Function);
+      expect(mockWithdraw).toHaveBeenCalled();
     });
   });
 });
