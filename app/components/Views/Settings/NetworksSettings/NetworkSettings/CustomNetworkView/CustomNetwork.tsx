@@ -24,11 +24,13 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -49,6 +51,9 @@ const CustomNetwork = ({
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
   const { safeChains } = useSafeChains();
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
@@ -130,9 +135,22 @@ const CustomNetwork = ({
                 }
               />
             </View>
-            <CustomText bold={!isNetworkUiRedesignEnabled()}>
-              {networkConfiguration.nickname}
-            </CustomText>
+            <View style={customNetworkStyles.nameAndTagContainer}>
+              <CustomText bold={!isNetworkUiRedesignEnabled()}>
+                {networkConfiguration.nickname}
+              </CustomText>
+              {isGasFeesSponsoredNetworkEnabled(
+                networkConfiguration.chainId,
+              ) ? (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={customNetworkStyles.tagLabelBelowName}
+                >
+                  {strings('networks.no_network_fee')}
+                </Text>
+              ) : null}
+            </View>
           </View>
 
           <View style={networkSettingsStyles.popularWrapper}>

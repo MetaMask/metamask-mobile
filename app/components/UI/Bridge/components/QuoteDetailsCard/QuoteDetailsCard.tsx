@@ -31,6 +31,7 @@ import {
   selectDestAddress,
   selectIsSwap,
 } from '../../../../../core/redux/slices/bridge';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
@@ -85,6 +86,13 @@ const QuoteDetailsCard: React.FC = () => {
     isQuoteLoading,
   });
 
+  const nativeTokenName = useMemo(() => {
+    const chainId = sourceToken?.chainId;
+    if (!chainId) return undefined;
+    const native = getNativeSourceToken(chainId);
+    return native.symbol;
+  }, [sourceToken?.chainId]);
+
   // Get the display name for the destination account
   const destinationDisplayName = useMemo(() => {
     if (!destAddress) return undefined;
@@ -133,6 +141,10 @@ const QuoteDetailsCard: React.FC = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
+  // TODO: remove this once controller types are updated
+  // @ts-expect-error: controller types are not up to date yet
+  const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
+
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
@@ -176,7 +188,29 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
-        {activeQuote?.quote.gasIncluded ? (
+        {gasSponsored ? (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.network_fee'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content_sponsored', {
+                  nativeToken: nativeTokenName,
+                }),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: strings('bridge.gas_fees_sponsored'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        ) : activeQuote?.quote.gasIncluded ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
