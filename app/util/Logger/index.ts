@@ -167,7 +167,10 @@ export class AsyncLogger {
                 typeof extra.context === 'object' &&
                 extra.context !== null &&
                 'name' in extra.context &&
-                typeof extra.context.name === 'string') ||
+                typeof extra.context.name === 'string' &&
+                'data' in extra.context &&
+                typeof extra.context.data === 'object' &&
+                extra.context.data !== null) ||
               ('extras' in extra &&
                 typeof extra.extras === 'object' &&
                 extra.extras !== null));
@@ -188,6 +191,20 @@ export class AsyncLogger {
 
             if (options.extras) {
               scope.setExtras(options.extras);
+            }
+
+            // Preserve unknown fields as extras for backward compatibility
+            // This prevents data loss when hybrid objects are used
+            const knownKeys = ['tags', 'context', 'extras'];
+            const unknownFields = Object.keys(extra).filter(
+              (key) => !knownKeys.includes(key),
+            );
+            if (unknownFields.length > 0) {
+              const preservedExtras = unknownFields.reduce((acc, key) => {
+                acc[key] = extra[key];
+                return acc;
+              }, {} as Record<string, unknown>);
+              scope.setExtras(preservedExtras);
             }
           } else {
             // Legacy API: Set everything as extras (current behavior)

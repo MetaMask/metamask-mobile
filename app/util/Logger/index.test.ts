@@ -238,6 +238,100 @@ describe('Logger', () => {
         });
         expect(mockScope.setContext).not.toHaveBeenCalled();
       });
+
+      it('treats legacy object with context missing data as legacy format', async () => {
+        const error = new Error('Test error');
+        const legacyExtra = { context: { name: 'test' }, userId: '123' };
+
+        await AsyncLogger.error(error, legacyExtra);
+
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          context: { name: 'test' },
+          userId: '123',
+        });
+        expect(mockScope.setContext).not.toHaveBeenCalled();
+      });
+
+      it('treats legacy object with context data null as legacy format', async () => {
+        const error = new Error('Test error');
+        const legacyExtra = {
+          context: { name: 'test', data: null },
+          userId: '123',
+        };
+
+        await AsyncLogger.error(error, legacyExtra);
+
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          context: { name: 'test', data: null },
+          userId: '123',
+        });
+        expect(mockScope.setContext).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('unknown field preservation', () => {
+      it('preserves unknown fields when using new format with tags', async () => {
+        const error = new Error('Test error');
+        await AsyncLogger.error(error, {
+          tags: { feature: 'perps' },
+          userId: '123',
+          operation: 'checkout',
+        });
+
+        expect(mockScope.setTag).toHaveBeenCalledWith('feature', 'perps');
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          userId: '123',
+          operation: 'checkout',
+        });
+      });
+
+      it('preserves unknown fields when using new format with context', async () => {
+        const error = new Error('Test error');
+        const timestamp = Date.now();
+        await AsyncLogger.error(error, {
+          context: { name: 'test', data: { method: 'placeOrder' } },
+          userId: '123',
+          timestamp,
+        });
+
+        expect(mockScope.setContext).toHaveBeenCalledWith('test', {
+          method: 'placeOrder',
+        });
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          userId: '123',
+          timestamp,
+        });
+      });
+
+      it('preserves unknown fields when using all three options', async () => {
+        const error = new Error('Test error');
+        await AsyncLogger.error(error, {
+          tags: { feature: 'perps' },
+          context: { name: 'test', data: { method: 'test' } },
+          extras: { debugInfo: 'test' },
+          userId: '123',
+          customField: 'value',
+        });
+
+        expect(mockScope.setTag).toHaveBeenCalled();
+        expect(mockScope.setContext).toHaveBeenCalled();
+        expect(mockScope.setExtras).toHaveBeenCalledTimes(2);
+        expect(mockScope.setExtras).toHaveBeenCalledWith({ debugInfo: 'test' });
+        expect(mockScope.setExtras).toHaveBeenCalledWith({
+          userId: '123',
+          customField: 'value',
+        });
+      });
+
+      it('does not call setExtras for unknown fields when none exist', async () => {
+        const error = new Error('Test error');
+        await AsyncLogger.error(error, {
+          tags: { feature: 'perps' },
+        });
+
+        expect(mockScope.setTag).toHaveBeenCalled();
+        expect(mockScope.setExtras).not.toHaveBeenCalled();
+      });
     });
   });
 });
