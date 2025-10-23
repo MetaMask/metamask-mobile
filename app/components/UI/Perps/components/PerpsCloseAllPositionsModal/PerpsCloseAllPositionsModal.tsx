@@ -28,6 +28,7 @@ import usePerpsToasts, {
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type { Position } from '../../controllers/types';
 import { usePerpsCloseAllCalculations } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import PerpsCloseSummary from '../PerpsCloseSummary';
 
 interface PerpsCloseAllPositionsModalProps {
@@ -44,6 +45,13 @@ const PerpsCloseAllPositionsModal: React.FC<
   const bottomSheetRef = React.useRef<BottomSheetRef>(null);
   const [isClosing, setIsClosing] = useState(false);
   const { showToast } = usePerpsToasts();
+
+  // Fetch current prices for fee calculations (throttled to avoid excessive updates)
+  const symbols = useMemo(() => positions.map((pos) => pos.coin), [positions]);
+  const priceData = usePerpsLivePrices({
+    symbols,
+    throttleMs: 1000,
+  });
 
   const showSuccessToast = useCallback(
     (title: string, message?: string) => {
@@ -92,6 +100,7 @@ const PerpsCloseAllPositionsModal: React.FC<
   // Use the fixed hook for accurate fee and rewards calculations
   const calculations = usePerpsCloseAllCalculations({
     positions,
+    priceData,
   });
 
   const handleCloseAll = useCallback(async () => {

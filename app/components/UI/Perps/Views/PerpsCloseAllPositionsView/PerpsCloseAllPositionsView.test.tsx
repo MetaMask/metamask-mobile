@@ -22,6 +22,10 @@ jest.mock('../../hooks', () => ({
   usePerpsCloseAllPositions: jest.fn(),
 }));
 
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
 jest.mock('../../hooks/usePerpsToasts', () => ({
   __esModule: true,
   default: jest.fn(() => ({ showToast: jest.fn() })),

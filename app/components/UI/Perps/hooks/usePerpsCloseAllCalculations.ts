@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position, FeeCalculationResult } from '../controllers/types';
 import type {
@@ -45,6 +45,8 @@ export interface CloseAllCalculationsResult {
 interface UsePerpsCloseAllCalculationsParams {
   /** Array of positions to close */
   positions: Position[];
+  /** Current market prices for fee calculation. Format: { [symbol]: { price: string } } */
+  priceData: Record<string, { price: string }>;
 }
 
 /**
@@ -61,7 +63,6 @@ interface PerPositionResult {
  * Hook to aggregate fee calculations and points estimation across multiple positions
  *
  * This hook:
- * - Calculates total margin and P&L across all positions
  * - Calculates fees PER POSITION for accuracy (coin-specific rewards)
  * - Aggregates points estimation per position
  * - Handles loading states and errors across all calculations
@@ -87,12 +88,17 @@ interface PerPositionResult {
  */
 export function usePerpsCloseAllCalculations({
   positions,
+  priceData,
 }: UsePerpsCloseAllCalculationsParams): CloseAllCalculationsResult {
   // Selectors for account and chain
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
   const currentChainId = useSelector(selectChainId);
+
+  // Use ref to access latest priceData without triggering re-renders
+  const priceDataRef = useRef(priceData);
+  priceDataRef.current = priceData;
 
   // State for per-position calculations
   const [perPositionResults, setPerPositionResults] = useState<
@@ -153,11 +159,14 @@ export function usePerpsCloseAllCalculations({
         const results = await Promise.all(
           positions.map(async (pos): Promise<PerPositionResult> => {
             try {
-              // Calculate position value using entry price (not currentPrices)
-              // This prevents re-calculation on every price tick
-              const price = parseFloat(pos.entryPrice);
+              // Calculate position value using current market price for accurate fee estimation
+              // Fees must reflect the actual USD value being closed at current market conditions
+              // Use ref to get latest price without triggering re-renders
+              const currentPrice = priceDataRef.current[pos.coin]?.price
+                ? parseFloat(priceDataRef.current[pos.coin].price)
+                : parseFloat(pos.entryPrice); // Fallback to entry price if current price unavailable
               const size = Math.abs(parseFloat(pos.size));
-              const positionValue = size * price;
+              const positionValue = size * currentPrice;
 
               // Calculate fees via PerpsController
               const fees = await Engine.context.PerpsController.calculateFees({
@@ -233,6 +242,8 @@ export function usePerpsCloseAllCalculations({
       setHasCalculationError(true);
     });
   }, [positions, selectedAddress, currentChainId]);
+  // Note: priceData intentionally excluded from deps to prevent recalculation on every price update
+  // Calculations use the latest priceData reference but only re-run when positions/account changes
 
   // Aggregate results from per-position calculations
   const aggregatedResults = useMemo(() => {

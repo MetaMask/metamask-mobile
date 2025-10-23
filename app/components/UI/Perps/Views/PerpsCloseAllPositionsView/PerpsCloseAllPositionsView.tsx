@@ -25,6 +25,7 @@ import {
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
 } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
@@ -51,9 +52,20 @@ const PerpsCloseAllPositionsView: React.FC = () => {
     throttleMs: 1000,
   });
 
+  // Fetch current prices for fee calculations (throttled to avoid excessive updates)
+  const symbols = useMemo(
+    () => (positions || []).map((pos) => pos.coin),
+    [positions],
+  );
+  const priceData = usePerpsLivePrices({
+    symbols,
+    throttleMs: 1000,
+  });
+
   // Use hook for accurate fee and rewards calculations
   const calculations = usePerpsCloseAllCalculations({
     positions: positions || [],
+    priceData,
   });
 
   // Track screen viewed event
