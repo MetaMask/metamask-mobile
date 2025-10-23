@@ -58,6 +58,11 @@ import {
 import { getNetworkImageSource } from '../../../util/networks';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
+export enum FilterOption {
+  AllNetworks,
+  CurrentNetwork,
+}
+
 const AddAsset = () => {
   const navigation = useNavigation();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
