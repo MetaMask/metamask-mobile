@@ -24,7 +24,6 @@ import {
   DEFAULT_BUTTONBASE_ICON_SIZE,
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
 } from './ButtonBase.constants';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 export const TouchableOpacity = ({
   onPress,
@@ -37,62 +36,14 @@ export const TouchableOpacity = ({
   // Handle both 'disabled' and 'isDisabled' props for compatibility
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Simple pass-through to main component coordination
-  // Main component handles ALL coordination logic
-
-  // Gesture detection for ScrollView compatibility on Android
-  // Sets timestamp FIRST, then calls parent function
-  const tap = Gesture.Tap()
-    .runOnJS(true)
-    .shouldCancelWhenOutside(false)
-    .maxDeltaX(20) // Allow some movement while tapping
-    .maxDeltaY(20)
-    .onEnd((gestureEvent) => {
-      if (onPress && !isDisabled) {
-        // Create a proper GestureResponderEvent-like object from gesture event
-        const syntheticEvent = {
-          nativeEvent: {
-            locationX: gestureEvent.x || 0,
-            locationY: gestureEvent.y || 0,
-            pageX: gestureEvent.absoluteX || 0,
-            pageY: gestureEvent.absoluteY || 0,
-            timestamp: Date.now(),
-          },
-          persist: () => {
-            /* no-op for synthetic event */
-          },
-          preventDefault: () => {
-            /* no-op for synthetic event */
-          },
-          stopPropagation: () => {
-            /* no-op for synthetic event */
-          },
-        } as GestureResponderEvent;
-
-        // Call main component function (handles coordination)
-        onPress(syntheticEvent);
-      }
-    });
-
-  // Simple accessibility handler - main component handles coordination
-  const accessibilityOnPress = (pressEvent: GestureResponderEvent) => {
-    if (onPress && !isDisabled) {
-      onPress(pressEvent);
-    }
-  };
-
   return (
-    <GestureDetector gesture={tap}>
-      <RNTouchableOpacity
-        disabled={isDisabled}
-        onPress={accessibilityOnPress} // Restored for accessibility without ScrollView conflicts
-        {...props}
-        // Ensure disabled prop is available to tests
-        {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
-      >
-        {children}
-      </RNTouchableOpacity>
-    </GestureDetector>
+    <RNTouchableOpacity
+      disabled={isDisabled}
+      onPress={isDisabled ? undefined : onPress}
+      {...props}
+    >
+      {children}
+    </RNTouchableOpacity>
   );
 };
 
