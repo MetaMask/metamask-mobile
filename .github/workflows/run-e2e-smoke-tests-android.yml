@@ -19,7 +19,7 @@ jobs:
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: screenshot-examples
-      platform: ${{ inputs.platform }}
+      platform: android
       test_suite_tag: 'ScreenshotExamples:'
       test-timeout-minutes: 30
       split_number: 1
@@ -33,13 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs:
-      - trade-android-smoke
-      - wallet-platform-android-smoke
-      - identity-android-smoke
-      - accounts-android-smoke
-      - network-abstraction-android-smoke
-      - network-expansion-android-smoke
-      - confirmations-redesigned-android-smoke
+      - screenshot-examples
 
     steps:
       - name: Checkout
