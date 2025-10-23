@@ -1,0 +1,58 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export interface FeatureFlagInfo {
+  key: string;
+  value: any;
+  originalValue: any;
+  type:
+    | 'boolean'
+    | 'string'
+    | 'number'
+    | 'array'
+    | 'boolean with minimumVersion'
+    | 'object';
+  description: string | undefined;
+  isOverridden: boolean;
+}
+
+/**
+ * Gets the type of a feature flag value
+ */
+export const getFeatureFlagType = (value: any): FeatureFlagInfo['type'] => {
+  if (typeof value === 'boolean') return 'boolean';
+  if (typeof value === 'string') return 'string';
+  if (typeof value === 'number') return 'number';
+  if (Array.isArray(value)) return 'array';
+  if (
+    typeof value === 'object' &&
+    typeof value?.enabled === 'boolean' &&
+    typeof value?.minimumVersion === 'string'
+  ) {
+    return 'boolean with minimumVersion';
+  }
+  if (typeof value === 'object' && value !== null) return 'object';
+  return 'string';
+};
+
+/**
+ * Gets descriptions for known feature flags
+ */
+export const getFeatureFlagDescription = (key: string): string | undefined => {
+  const descriptions: Record<string, string> = {
+    confirmation_redesign: 'Controls redesigned confirmation flows',
+    sendRedesign: 'Controls redesigned send flow',
+    bridgeConfigV2: 'Bridge configuration and supported chains',
+    enableMultichainAccounts: 'Multichain account functionality',
+    enableMultichainAccountsState2: 'Enhanced multichain account features',
+    assetsDefiPositionsEnabled: 'DeFi positions tracking',
+    assetsAccountApiBalancesEnabled: 'Account API balance fetching',
+    bitcoinTestnetsEnabled: 'Bitcoin testnet support',
+    solanaTestnetsEnabled: 'Solana testnet support',
+    walletFrameworkRpcFailoverEnabled: 'RPC failover functionality',
+    trxStakingEnabled: 'TRON staking features',
+    tokenSearchDiscoveryEnabled: 'Token search and discovery',
+    productSafetyDappScanningEnabled: 'DApp security scanning',
+    minimumAppVersion: 'Minimum app version requirements',
+  };
+  return descriptions[key];
+};
