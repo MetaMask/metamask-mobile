@@ -9,6 +9,7 @@ import {
   PerpsController,
   getDefaultPerpsControllerState,
 } from './PerpsController';
+import type { CancelOrdersResult } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import {
   createMockHyperLiquidProvider,
@@ -735,17 +736,33 @@ describe('PerpsController', () => {
     });
 
     it('blocks concurrent calls when already canceling orders', async () => {
-      (controller as any).isCancelingOrders = true;
+      // Create a pending promise to simulate an ongoing cancel operation
+      const mockResult: CancelOrdersResult = {
+        success: true,
+        successCount: 2,
+        failureCount: 0,
+        results: [
+          { orderId: 'order-1', success: true },
+          { orderId: 'order-2', success: true },
+        ],
+      };
 
+      const pendingOperation = new Promise<CancelOrdersResult>((resolve) => {
+        setTimeout(() => resolve(mockResult), 100);
+      });
+
+      // Set the cancelOrdersOperation (the actual guard the controller checks)
+      (controller as any).cancelOrdersOperation = pendingOperation;
+
+      // Call cancelOrders - should return the SAME promise without calling provider
       const result = await controller.cancelOrders({ cancelAll: true });
 
-      expect(result).toEqual({
-        success: false,
-        successCount: 0,
-        failureCount: 0,
-        results: [],
-      });
+      // Should get the result from the pending operation
+      expect(result).toEqual(mockResult);
+
+      // Should NOT call the provider again (concurrency guard worked)
       expect(mockProvider.getOpenOrders).not.toHaveBeenCalled();
+      expect(mockProvider.cancelOrder).not.toHaveBeenCalled();
     });
 
     it('cancels all orders when cancelAll is true', async () => {
