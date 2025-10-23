@@ -258,8 +258,14 @@ const NetworkMultiSelectList = ({
       }
 
       const network = item as ProcessedNetwork;
-      const { caipChainId, name, isSelected, networkTypeOrRpcUrl, chainId } =
-        network;
+      const {
+        caipChainId,
+        name,
+        isSelected,
+        networkTypeOrRpcUrl,
+        chainId,
+        hasMultipleRpcs,
+      } = network;
 
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
@@ -271,13 +277,13 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={name}
             secondaryText={
-              networkTypeOrRpcUrl
+              networkTypeOrRpcUrl && hasMultipleRpcs
                 ? hideProtocolFromUrl(hideKeyFromUrl(networkTypeOrRpcUrl))
                 : undefined
             }
             onPress={() => debouncedSelectNetwork(caipChainId)}
             onTextClick={
-              openRpcModal
+              openRpcModal && hasMultipleRpcs
                 ? () => openRpcModal({ chainId, networkName: name })
                 : undefined
             }

@@ -81,7 +81,13 @@ const CustomNetworkSelector = ({
 
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
-      const { name, caipChainId, networkTypeOrRpcUrl, isSelected } = item;
+      const {
+        name,
+        caipChainId,
+        networkTypeOrRpcUrl,
+        isSelected,
+        hasMultipleRpcs,
+      } = item;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = isNonEvmChainId(caipChainId)
         ? rawChainId
@@ -108,13 +114,13 @@ const CustomNetworkSelector = ({
             isSelected={isSelected}
             title={name}
             secondaryText={
-              networkTypeOrRpcUrl
+              networkTypeOrRpcUrl && hasMultipleRpcs
                 ? hideProtocolFromUrl(hideKeyFromUrl(networkTypeOrRpcUrl))
                 : undefined
             }
             onPress={handlePress}
             onTextClick={
-              openRpcModal
+              openRpcModal && hasMultipleRpcs
                 ? () => openRpcModal({ chainId, networkName: name })
                 : undefined
             }

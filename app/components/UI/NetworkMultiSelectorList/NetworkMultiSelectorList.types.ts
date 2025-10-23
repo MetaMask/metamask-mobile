@@ -23,6 +23,7 @@ export interface Network {
   imageSource: ImageSourcePropType;
   caipChainId: CaipChainId;
   networkTypeOrRpcUrl?: string;
+  hasMultipleRpcs?: boolean;
 }
 
 export interface AdditionalNetworkSection {

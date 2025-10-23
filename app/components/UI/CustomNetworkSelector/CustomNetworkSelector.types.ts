@@ -10,6 +10,7 @@ export interface CustomNetworkItem {
   imageSource: ImageSourcePropType;
   caipChainId: CaipChainId;
   networkTypeOrRpcUrl?: string;
+  hasMultipleRpcs?: boolean;
 }
 
 export interface CustomNetworkSelectorProps {
