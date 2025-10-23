@@ -7,7 +7,8 @@ jest.mock('react-native', () => ({
   },
   Platform: { OS: 'ios' },
   StyleSheet: {
-    create: (styles: StyleSheet) => styles,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    create: (styles: any) => styles,
     absoluteFillObject: {
       position: 'absolute',
       left: 0,
