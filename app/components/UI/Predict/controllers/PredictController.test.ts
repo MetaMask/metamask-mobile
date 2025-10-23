@@ -20,6 +20,8 @@ import {
   PredictController,
   type PredictControllerState,
 } from './PredictController';
+import type { OrderPreview } from '../providers/types';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -735,6 +737,50 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toBe('Order placement failed');
+      });
+    });
+
+    it('updates state with lastError when place order fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockImplementation(() =>
+          Promise.reject(new Error('Network error')),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
+        });
+
+        expect(controller.state.lastError).toBe('Network error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('logs error details when place order fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockImplementation(() =>
+          Promise.reject(new Error('Provider error')),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.SELL });
+        const params = {
+          providerId: 'polymarket',
+          preview,
+        };
+
+        await controller.placeOrder(params);
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Place order failed',
+          expect.objectContaining({
+            error: 'Provider error',
+            timestamp: expect.any(String),
+            providerId: 'polymarket',
+            params,
+          }),
+        );
       });
     });
 

@@ -370,13 +370,25 @@ describe('usePredictPlaceOrder', () => {
         }),
       );
 
-      // Second call - failure toast
-      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(2, {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
-        labelOptions: [{ label: 'Order failed' }],
-        hasNoTimeout: false,
-      });
+      // Second call - error toast with detailed message
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Order failed',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'Order placement failed',
+              isBold: false,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('calls onError callback when provided and order fails', async () => {
@@ -407,6 +419,49 @@ describe('usePredictPlaceOrder', () => {
 
       expect(result.current.error).toBe('Network error');
       expect(result.current.result).toBeNull();
+    });
+
+    it('shows error toast when controller throws exception', async () => {
+      const mockError = new Error('Network error');
+      mockPlaceOrder.mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hasNoTimeout: false,
+        }),
+      );
+
+      // Second call - error toast with exception message
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Order failed',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'Network error',
+              isBold: false,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('provides default error message for non-Error thrown values', async () => {
