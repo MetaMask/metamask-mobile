@@ -29,7 +29,6 @@ const PerpsTutorialCard = () => {
       style={styles.container}
       onPress={handlePress}
       testID={PerpsTutorialSelectorsIDs.TUTORIAL_CARD}
-      shouldEnableAndroidPressIn
     >
       <Text variant={TextVariant.BodyMd}>
         {strings('perps.tutorial.card.title')}
