@@ -66,10 +66,7 @@ export const usePredictDeposit = ({
       });
     } catch (err) {
       console.error('Failed to proceed with deposit:', err);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.PREDICT.MARKET_LIST }],
-      });
+      navigation.goBack();
       // Re-throw to allow testing of this error path
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,

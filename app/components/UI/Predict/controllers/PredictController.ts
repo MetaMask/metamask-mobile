@@ -984,7 +984,13 @@ export class PredictController extends BaseController<
 
       const { AccountsController, KeyringController, NetworkController } =
         Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      // Get selected account - can fail if no account is selected
+      const selectedAccount = AccountsController.getSelectedAccount();
+      if (!selectedAccount?.address) {
+        throw new Error('No account selected');
+      }
+      const selectedAddress = selectedAccount.address;
 
       const signer = {
         address: selectedAddress,
@@ -996,19 +1002,48 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(params),
       };
 
+      // Get claimable positions - can fail if network request fails
       const claimablePositions = await this.getPositions({
         claimable: true,
       });
 
-      const { transactions, chainId } = await provider.prepareClaim({
+      if (!claimablePositions || claimablePositions.length === 0) {
+        throw new Error('No claimable positions found');
+      }
+
+      // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
+      const prepareClaimResult = await provider.prepareClaim({
         positions: claimablePositions,
         signer,
       });
+
+      if (!prepareClaimResult) {
+        throw new Error('Failed to prepare claim transaction');
+      }
+
+      const { transactions, chainId } = prepareClaimResult;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from claim preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by claim preparation');
+      }
+
+      // Find network client - can fail if chain is not supported
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         numberToHex(chainId),
       );
 
-      const { batchId } = await addTransactionBatch({
+      if (!networkClientId) {
+        throw new Error(
+          `Network client not found for chain ID: ${numberToHex(chainId)}`,
+        );
+      }
+
+      // Add transaction batch - can fail if transaction submission fails
+      const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
@@ -1016,6 +1051,14 @@ export class PredictController extends BaseController<
         disableSequential: true,
         transactions,
       });
+
+      if (!batchResult?.batchId) {
+        throw new Error(
+          'Failed to get batch ID from claim transaction submission',
+        );
+      }
+
+      const { batchId } = batchResult;
 
       const predictClaim: PredictClaim = {
         batchId,
@@ -1025,6 +1068,8 @@ export class PredictController extends BaseController<
 
       this.update((state) => {
         state.claimTransaction = predictClaim;
+        state.lastError = null; // Clear any previous errors
+        state.lastUpdateTimestamp = Date.now();
       });
 
       return predictClaim;
@@ -1045,6 +1090,27 @@ export class PredictController extends BaseController<
           providerId,
         }),
       );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.CLAIM_FAILED;
+
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        state.claimTransaction = null; // Clear any partial claim transaction
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Claim failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+      });
+
+      // Re-throw the error so the hook can handle it and show the toast
       throw error;
     }
   }
