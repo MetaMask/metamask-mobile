@@ -807,6 +807,8 @@ describe('PredictMarketDetails', () => {
         params: {
           position: mockPosition,
           outcome: expect.any(Object),
+          market: expect.any(Object),
+          entryPoint: 'predict_market_details',
         },
       });
     });
