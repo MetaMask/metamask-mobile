@@ -643,56 +643,70 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderActionButtons = () => (
     <>
-      {market?.status === PredictMarketStatus.CLOSED && hasPositivePnl ? (
-        <Box
-          twClassName="w-full mt-4 gap-3"
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-          alignItems={BoxAlignItems.Center}
-        >
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            style={tw.style('flex-1 bg-primary-default mx-4')}
-            label={strings('confirm.predict_claim.button_label')}
-            onPress={handleClaimPress}
-          />
-        </Box>
-      ) : market?.status === PredictMarketStatus.OPEN && singleOutcomeMarket ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-          alignItems={BoxAlignItems.Center}
-          twClassName="w-full mt-4 gap-3"
-        >
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            style={tw.style('flex-1 bg-success-muted')}
-            label={
-              <Text style={tw.style('font-bold')} color={TextColor.Success}>
-                {strings('predict.market_details.yes')} • {getYesPercentage()}¢
-              </Text>
-            }
-            onPress={handleYesPress}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            style={tw.style('flex-1 bg-error-muted')}
-            label={
-              <Text style={tw.style('font-bold')} color={TextColor.Error}>
-                {strings('predict.market_details.no')} •{' '}
-                {100 - getYesPercentage()}¢
-              </Text>
-            }
-            onPress={handleNoPress}
-          />
-        </Box>
-      ) : null}
+      {(() => {
+        if (market?.status === PredictMarketStatus.CLOSED && hasPositivePnl) {
+          return (
+            <Box
+              twClassName="w-full mt-4 gap-3"
+              flexDirection={BoxFlexDirection.Row}
+              justifyContent={BoxJustifyContent.Between}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                style={tw.style('flex-1 bg-primary-default mx-4')}
+                label={strings('confirm.predict_claim.button_label')}
+                onPress={handleClaimPress}
+              />
+            </Box>
+          );
+        }
+
+        if (
+          market?.status === PredictMarketStatus.OPEN &&
+          singleOutcomeMarket
+        ) {
+          return (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              justifyContent={BoxJustifyContent.Between}
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full mt-4 gap-3"
+            >
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                style={tw.style('flex-1 bg-success-muted')}
+                label={
+                  <Text style={tw.style('font-bold')} color={TextColor.Success}>
+                    {strings('predict.market_details.yes')} •{' '}
+                    {getYesPercentage()}¢
+                  </Text>
+                }
+                onPress={handleYesPress}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                style={tw.style('flex-1 bg-error-muted')}
+                label={
+                  <Text style={tw.style('font-bold')} color={TextColor.Error}>
+                    {strings('predict.market_details.no')} •{' '}
+                    {100 - getYesPercentage()}¢
+                  </Text>
+                }
+                onPress={handleNoPress}
+              />
+            </Box>
+          );
+        }
+
+        return null;
+      })()}
     </>
   );
 

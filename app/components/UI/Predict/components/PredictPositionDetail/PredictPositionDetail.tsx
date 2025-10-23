@@ -53,10 +53,36 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     });
   };
 
+  const renderValueText = () => {
+    if (marketStatus === PredictMarketStatus.OPEN) {
+      return (
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          {formatPrice(currentValue, { maximumDecimals: 2 })}
+        </Text>
+      );
+    }
+
+    if (percentPnl > 0) {
+      return (
+        <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+          {strings('predict.market_details.won')}{' '}
+          {formatPrice(currentValue, { maximumDecimals: 2 })}
+        </Text>
+      );
+    }
+
+    return (
+      <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+        {strings('predict.market_details.lost')}{' '}
+        {formatPrice(initialValue, { maximumDecimals: 2 })}
+      </Text>
+    );
+  };
+
   return (
     <Box twClassName="w-full pt-2 pb-4 px-4 mb-4 gap-3 bg-background-muted rounded-md">
       <Box twClassName="flex-row items-start gap-4">
-        {icon && (
+        {Boolean(icon) && (
           <Image
             source={{ uri: icon }}
             style={tw.style('w-12 h-12 rounded-md self-center')}
@@ -82,21 +108,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           </Text>
         </Box>
         <Box twClassName="items-end justify-end gap-1 ml-auto">
-          {marketStatus === PredictMarketStatus.OPEN ? (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {formatPrice(currentValue, { maximumDecimals: 2 })}
-            </Text>
-          ) : percentPnl > 0 ? (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-              {strings('predict.market_details.won')}{' '}
-              {formatPrice(currentValue, { maximumDecimals: 2 })}
-            </Text>
-          ) : (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-              {strings('predict.market_details.lost')}{' '}
-              {formatPrice(initialValue, { maximumDecimals: 2 })}
-            </Text>
-          )}
+          {renderValueText()}
           {marketStatus === PredictMarketStatus.OPEN && (
             <Text
               variant={TextVariant.BodyMD}
