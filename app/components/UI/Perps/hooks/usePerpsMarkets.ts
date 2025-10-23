@@ -79,7 +79,7 @@ export const parseVolume = (volumeStr: string | undefined): number => {
   if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
 
   // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
-  const suffixMatch = volumeStr.match(VOLUME_SUFFIX_REGEX);
+  const suffixMatch = VOLUME_SUFFIX_REGEX.exec(volumeStr);
   if (suffixMatch) {
     const [, numberPart, suffix] = suffixMatch;
     const baseValue = Number.parseFloat(removeCommas(numberPart));
