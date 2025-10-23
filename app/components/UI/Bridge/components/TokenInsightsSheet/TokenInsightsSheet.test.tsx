@@ -8,6 +8,12 @@ import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Hex } from '@metamask/utils';
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
@@ -29,7 +35,10 @@ jest.mock('@metamask/bridge-controller', () => ({
 }));
 
 jest.mock('../../../../../actions/alert', () => ({
-  showAlert: jest.fn(),
+  showAlert: jest.fn((params) => ({
+    type: 'SHOW_ALERT',
+    ...params,
+  })),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -120,6 +129,12 @@ const mockState = {
           },
         ],
       },
+      PreferencesController: {
+        ipfsGateway: 'https://dweb.link/ipfs/',
+        useTokenDetection: true,
+        useNftDetection: false,
+        isIpfsGatewayEnabled: true,
+      },
     },
   },
 };
@@ -188,6 +203,12 @@ describe('TokenInsightsSheet', () => {
                 },
               ],
             },
+            PreferencesController: {
+              ipfsGateway: 'https://dweb.link/ipfs/',
+              useTokenDetection: true,
+              useNftDetection: false,
+              isIpfsGatewayEnabled: true,
+            },
           },
         },
       };
@@ -214,7 +235,7 @@ describe('TokenInsightsSheet', () => {
       });
     });
 
-    it('displays fallback values when no market data available', () => {
+    it('displays fallback values when no market data available', async () => {
       const emptyState = {
         engine: {
           backgroundState: {
@@ -234,6 +255,12 @@ describe('TokenInsightsSheet', () => {
                 },
               ],
             },
+            PreferencesController: {
+              ipfsGateway: 'https://dweb.link/ipfs/',
+              useTokenDetection: true,
+              useNftDetection: false,
+              isIpfsGatewayEnabled: true,
+            },
           },
         },
       };
@@ -242,12 +269,17 @@ describe('TokenInsightsSheet', () => {
       // @ts-expect-error - Testing undefined value
       mockRoute.params.token.currencyExchangeRate = undefined;
 
+      // Mock API to return empty data
+      (handleFetch as jest.Mock).mockResolvedValueOnce({});
+
       const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
         state: emptyState,
       });
 
-      // Should show em dash for missing values
-      expect(getByText('—', { exact: false })).toBeTruthy();
+      // Wait for loading to complete and fallback values to display
+      await waitFor(() => {
+        expect(getByText('—')).toBeTruthy();
+      });
     });
 
     it('formats negative percent change correctly', () => {
@@ -337,7 +369,8 @@ describe('TokenInsightsSheet', () => {
         state: stateWithZeroChange,
       });
 
-      expect(getByText('0.00%')).toBeTruthy();
+      // Zero percent change is formatted with a + sign
+      expect(getByText('+0.00%')).toBeTruthy();
     });
   });
 
@@ -442,6 +475,12 @@ describe('TokenInsightsSheet', () => {
                 },
               ],
             },
+            PreferencesController: {
+              ipfsGateway: 'https://dweb.link/ipfs/',
+              useTokenDetection: true,
+              useNftDetection: false,
+              isIpfsGatewayEnabled: true,
+            },
           },
         },
       };
@@ -510,9 +549,11 @@ describe('TokenInsightsSheet', () => {
                     decimals: 6,
                   },
                   price: {
-                    ...mockMarketData,
+                    price: 1.0,
+                    pricePercentChange1d: 0,
                     totalVolume: 1234567890123,
                     marketCap: 9876543210987,
+                    dilutedMarketCap: 9876543210987,
                   },
                 },
               ],
@@ -527,7 +568,7 @@ describe('TokenInsightsSheet', () => {
 
       // Should format large numbers appropriately
       expect(getByText('$1.23T')).toBeTruthy(); // Volume
-      expect(getByText('$9.88B')).toBeTruthy(); // Market cap
+      expect(getByText('$9.88T')).toBeTruthy(); // Market cap (dilutedMarketCap)
     });
   });
 });
