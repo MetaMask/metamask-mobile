@@ -234,6 +234,7 @@ const Routes = {
       SLIPPAGE_MODAL: 'SlippageModal',
       DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
       DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
+      TOKEN_SELECTOR: 'BridgeTokenSelector',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',

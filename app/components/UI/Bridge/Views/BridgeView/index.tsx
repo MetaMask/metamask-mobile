@@ -330,7 +330,7 @@ const BridgeView = () => {
 
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+      screen: Routes.BRIDGE.MODALS.TOKEN_SELECTOR,
     });
 
   const handleDestTokenPress = () =>

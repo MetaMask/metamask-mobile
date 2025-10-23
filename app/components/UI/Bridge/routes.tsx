@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeDestTokenSelector } from './components/BridgeDestTokenSelector';
 import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelector';
+import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import SlippageModal from './components/SlippageModal';
 import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
 import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
@@ -52,6 +53,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR}
       component={BridgeDestNetworkSelector}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.TOKEN_SELECTOR}
+      component={BridgeTokenSelector}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}
