@@ -5,6 +5,7 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 
 // Create mock functions
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockPrepareWithdraw = jest.fn();
 
@@ -31,6 +32,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(() => ({
     navigate: mockNavigate,
+    goBack: mockGoBack,
   })),
 }));
 
@@ -126,6 +128,7 @@ describe('usePredictWithdraw', () => {
     jest.clearAllMocks();
     mockNavigateToConfirmation.mockClear();
     mockNavigate.mockClear();
+    mockGoBack.mockClear();
     mockPrepareWithdraw.mockClear();
     mockEligibilityResult.isEligible = true;
   });
@@ -279,6 +282,7 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to proceed with withdraw:',
         expect.any(Error),
@@ -298,6 +302,7 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
@@ -330,6 +335,7 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
@@ -365,6 +371,7 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
@@ -396,6 +403,7 @@ describe('usePredictWithdraw', () => {
 
       await result.current.withdraw();
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to proceed with withdraw:',
         expect.any(Error),
@@ -425,6 +433,7 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(response).toBeUndefined();
 
       consoleErrorSpy.mockRestore();
@@ -559,6 +568,7 @@ describe('usePredictWithdraw', () => {
 
       expect(firstResponse).toEqual({ success: true });
       expect(secondResponse).toBeUndefined();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to proceed with withdraw:',
         expect.any(Error),
