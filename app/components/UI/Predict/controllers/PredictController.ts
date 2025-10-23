@@ -109,13 +109,16 @@ export type PredictControllerState = {
   lastUpdateTimestamp: number;
 
   // Claim management
+  // TODO: change to be per-account basis
   claimablePositions: PredictPosition[];
   claimTransaction: PredictClaim | null;
 
   // Deposit management
+  // TODO: change to be per-account basis
   depositTransaction: PredictDeposit | null;
 
   // Withdraw management
+  // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
 
   // Persisted data
@@ -1286,6 +1289,7 @@ export class PredictController extends BaseController<
       disableSequential: true,
       requireApproval: true,
       transactions: [
+        // TODO: remove this dummy transaction when confirmation handling is implemented
         {
           params: {
             to: signer.address as Hex,
@@ -1336,7 +1340,7 @@ export class PredictController extends BaseController<
       throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
-    if (!provider.prepareWithdrawConfirmation) {
+    if (!provider.signWithdraw) {
       return;
     }
 
@@ -1358,7 +1362,7 @@ export class PredictController extends BaseController<
       numberToHex(chainId),
     );
 
-    const { callData, amount } = await provider.prepareWithdrawConfirmation({
+    const { callData, amount } = await provider.signWithdraw({
       callData: withdrawTransaction?.data as Hex,
       signer,
     });

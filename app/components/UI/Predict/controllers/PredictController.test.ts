@@ -2600,7 +2600,7 @@ describe('PredictController', () => {
     };
 
     beforeEach(() => {
-      mockPolymarketProvider.prepareWithdrawConfirmation = jest.fn();
+      mockPolymarketProvider.signWithdraw = jest.fn();
     });
 
     it('return undefined when no withdraw transaction in state', async () => {
@@ -2645,7 +2645,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('return undefined when provider does not support prepareWithdrawConfirmation', async () => {
+    it('return undefined when provider does not support signWithdraw', async () => {
       await withController(async ({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.withdrawTransaction = {
@@ -2658,7 +2658,7 @@ describe('PredictController', () => {
           };
         });
 
-        delete (mockPolymarketProvider as any).prepareWithdrawConfirmation;
+        delete (mockPolymarketProvider as any).signWithdraw;
 
         const result = await controller.beforeSign({
           transactionMeta: mockTransactionMeta as any,
@@ -2669,7 +2669,7 @@ describe('PredictController', () => {
     });
 
     it('call prepareWithdrawConfirmation with correct parameters', async () => {
-      mockPolymarketProvider.prepareWithdrawConfirmation?.mockResolvedValue({
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
       });
@@ -2690,9 +2690,7 @@ describe('PredictController', () => {
           transactionMeta: mockTransactionMeta as any,
         });
 
-        expect(
-          mockPolymarketProvider.prepareWithdrawConfirmation,
-        ).toHaveBeenCalledWith({
+        expect(mockPolymarketProvider.signWithdraw).toHaveBeenCalledWith({
           callData: '0xoriginaldata',
           signer: expect.objectContaining({
             address: '0x1234567890123456789012345678901234567890',
@@ -2704,7 +2702,7 @@ describe('PredictController', () => {
     });
 
     it('update withdraw transaction amount and status', async () => {
-      mockPolymarketProvider.prepareWithdrawConfirmation?.mockResolvedValue({
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 250.5,
       });
@@ -2733,7 +2731,7 @@ describe('PredictController', () => {
     });
 
     it('return updateTransaction function that modifies transaction data', async () => {
-      mockPolymarketProvider.prepareWithdrawConfirmation?.mockResolvedValue({
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xmodifieddata' as `0x${string}`,
         amount: 100,
       });
@@ -2794,7 +2792,7 @@ describe('PredictController', () => {
     });
 
     it('throw error when prepareWithdrawConfirmation fails', async () => {
-      mockPolymarketProvider.prepareWithdrawConfirmation?.mockRejectedValue(
+      mockPolymarketProvider.signWithdraw?.mockRejectedValue(
         new Error('Confirmation preparation failed'),
       );
 

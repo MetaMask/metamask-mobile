@@ -34,8 +34,8 @@ import {
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
-  PrepareWithdrawConfirmationParams,
-  PrepareWithdrawConfirmationResponse,
+  SignWithdrawParams,
+  SignWithdrawResponse,
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
   PreviewOrderParams,
@@ -722,9 +722,9 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  public async prepareWithdrawConfirmation(
-    params: PrepareWithdrawConfirmationParams,
-  ): Promise<PrepareWithdrawConfirmationResponse> {
+  public async signWithdraw(
+    params: SignWithdrawParams,
+  ): Promise<SignWithdrawResponse> {
     const { callData, signer } = params;
 
     const safeAddress =

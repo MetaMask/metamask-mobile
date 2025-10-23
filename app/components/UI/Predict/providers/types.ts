@@ -181,12 +181,12 @@ export interface PrepareWithdrawResponse {
   predictAddress: Hex;
 }
 
-export interface PrepareWithdrawConfirmationParams {
+export interface SignWithdrawParams {
   callData: Hex;
   signer: Signer;
 }
 
-export interface PrepareWithdrawConfirmationResponse {
+export interface SignWithdrawResponse {
   callData: Hex;
   amount: number;
 }
@@ -230,9 +230,7 @@ export interface PredictProvider {
   prepareWithdraw(
     params: PrepareWithdrawParams & { signer: Signer },
   ): Promise<PrepareWithdrawResponse>;
-  prepareWithdrawConfirmation?(
-    params: PrepareWithdrawConfirmationParams,
-  ): Promise<PrepareWithdrawConfirmationResponse>;
+  signWithdraw?(params: SignWithdrawParams): Promise<SignWithdrawResponse>;
 
   getBalance(params: GetBalanceParams): Promise<number>;
 }

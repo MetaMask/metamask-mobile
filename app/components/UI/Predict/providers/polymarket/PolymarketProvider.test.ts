@@ -2483,7 +2483,7 @@ describe('PolymarketProvider', () => {
 
       mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
 
-      const result = await provider.prepareWithdrawConfirmation({
+      const result = await provider.signWithdraw({
         callData: '0xcalldata',
         signer: mockSigner,
       });
@@ -2503,7 +2503,7 @@ describe('PolymarketProvider', () => {
       mockComputeProxyAddress.mockReturnValue('');
 
       await expect(
-        provider.prepareWithdrawConfirmation({
+        provider.signWithdraw({
           callData: '0xcalldata',
           signer: mockSigner,
         }),
