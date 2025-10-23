@@ -47,6 +47,10 @@ export const createConnectAction = (): DeeplinkAction => ({
 
     // Handle deeplinking vs socket connection
     if (params.params.comm === 'deeplinking') {
+      if (!params.params.channelId || !params.params.pubkey || !params.params.comm) {
+        throw new Error('DeepLinkManager failed to connect - Invalid channelId, pubkey or communication layer');
+      }
+      
       if (!params.params.scheme) {
         throw new Error('DeepLinkManager failed to connect - Invalid scheme');
       }

@@ -108,12 +108,10 @@ async function parseDeeplinkUnified({
 
     return true;
   } catch (error) {
-    const message = error instanceof Error ? error.toString() : 'Unknown error';
+    DevLogger.log('parseDeeplinkUnified: Error', error);
 
-    if (error) {
-      DevLogger.log('parseDeeplinkUnified: Error', error);
-      Alert.alert(strings('deeplink.invalid'), message);
-    }
+    const message = error instanceof Error ? error.toString() : 'Unknown error';
+    Alert.alert(strings('deeplink.invalid'), message);
 
     return false;
   }
