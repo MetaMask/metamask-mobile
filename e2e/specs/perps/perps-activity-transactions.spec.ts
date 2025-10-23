@@ -28,6 +28,7 @@ describe(
         },
         async () => {
           await loginToApp();
+          await device.disableSynchronization();
           await PerpsHelpers.navigateToPerpsTab();
 
           // 1) Go to Trade → Perps and validate Funding (mocks) visible

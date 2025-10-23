@@ -275,17 +275,11 @@ class PerpsMarketDetailsView {
       PerpsPositionCardSelectorsIDs.CLOSE_BUTTON,
     ) as DetoxElement;
 
-    for (let i = 0; i < 3; i++) {
-      const visible = await Utilities.isElementVisible(closeBtn, 2000);
-      if (visible) {
-        break;
-      }
-      await Gestures.swipe(this.scrollView, 'up', {
-        speed: 'fast',
-        percentage: 0.7,
-        elemDescription: 'Scroll to reveal Close position button',
-      });
-    }
+    await Gestures.scrollToElement(closeBtn, this.scrollViewIdentifier, {
+      direction: 'down',
+      scrollAmount: 350,
+      elemDescription: 'Scroll to reveal Close position button',
+    });
 
     await Assertions.expectElementToBeVisible(closeBtn, {
       description: 'Close position button visible on market details',

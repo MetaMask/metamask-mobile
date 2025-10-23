@@ -38,10 +38,10 @@ function registerE2EPerpsDeepLinkHandler(): void {
       try {
         const url = incomingUrl || '';
         if (!url) return;
-        // Accept both native e2e scheme and tunneled expo-metamask scheme used in Android E2E
-        const isE2EScheme = url.startsWith('e2e://perps/');
-        const isExpoMappedScheme = url.startsWith('expo-metamask://e2e/perps/');
-        if (!isE2EScheme && !isExpoMappedScheme) {
+
+        const isExpoMappedScheme = url.startsWith('metamask://e2e/perps/');
+        // Backward-compat: tolerate accidental double-colon variant
+        if (!isExpoMappedScheme) {
           return;
         }
 
@@ -59,7 +59,7 @@ function registerE2EPerpsDeepLinkHandler(): void {
 
           // Parse path and query
           const withoutScheme = isExpoMappedScheme
-            ? url.replace('expo-metamask://e2e/perps/', '')
+            ? url.replace('metamask://e2e/perps/', '')
             : url.replace('e2e://perps/', '');
           const [path, queryString] = withoutScheme.split('?');
           const params = new URLSearchParams(queryString || '');

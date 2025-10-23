@@ -22,6 +22,7 @@ describe(SmokeTrade('Perps - ETH limit long fill'), () => {
       },
       async () => {
         await loginToApp();
+        await device.disableSynchronization();
         await PerpsHelpers.navigateToPerpsTab();
 
         // Navigate to Perps from Actions
@@ -29,7 +30,7 @@ describe(SmokeTrade('Perps - ETH limit long fill'), () => {
         await WalletActionsBottomSheet.tapPerpsButton();
 
         // Open ETH market and select Long
-        await device.disableSynchronization();
+
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();
 
@@ -43,6 +44,9 @@ describe(SmokeTrade('Perps - ETH limit long fill'), () => {
 
         // Confirm limit price (Set button)
         await PerpsOrderView.confirmLimitPrice();
+
+        // Set amount to 25% using quick percentage button
+        await PerpsOrderView.tapQuickAmountPercent(25);
 
         // Place order
         await PerpsView.tapPlaceOrderButton();
