@@ -368,7 +368,17 @@ prebuild_ios(){
   fi
 }
 
+installICULibraries(){
+	# Install ICU libraries for Hermes
+		echo "Installing ICU libraries for Hermes..."
+		brew install icu4c
+
+}
+
 prebuild_android(){
+	# Install ICU libraries if on Linux
+	installICULibraries
+	
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
