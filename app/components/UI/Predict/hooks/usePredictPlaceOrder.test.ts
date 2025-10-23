@@ -1,17 +1,40 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
+import { useContext } from 'react';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { usePredictTrading } from './usePredictTrading';
-import { usePredictPlaceOrder } from './usePredictPlaceOrder';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { Result, Side } from '../types';
-import { useContext } from 'react';
 import type { OrderPreview } from '../providers/types';
+import { Result, Side } from '../types';
+import { usePredictPlaceOrder } from './usePredictPlaceOrder';
+import { usePredictTrading } from './usePredictTrading';
+import { usePredictBalance } from './usePredictBalance';
 
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePredictTrading');
+jest.mock('./usePredictBalance');
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string, options?: Record<string, unknown>) => {
+    const translations: Record<string, string> = {
+      'predict.order.placing_prediction': 'Placing a prediction',
+      'predict.order.prediction_placed': 'Prediction placed',
+      'predict.order.cashed_out': 'Cashed out',
+      'predict.order.cashed_out_subtitle': `${
+        options?.amount || '0'
+      } added to your balance`,
+      'predict.order.cashing_out': `Cashing out ${options?.amount || '0'}`,
+      'predict.order.cashing_out_subtitle': `Estimated ${
+        options?.time || 5
+      } seconds`,
+      'predict.order.order_failed': 'Order failed',
+    };
+    return translations[key] || key;
+  },
+}));
+jest.mock('../utils/format', () => ({
+  formatPrice: (value: number) => value.toFixed(2),
+}));
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -20,6 +43,9 @@ jest.mock('react', () => ({
 const mockUseContext = useContext as jest.MockedFunction<typeof useContext>;
 const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
   typeof usePredictTrading
+>;
+const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
+  typeof usePredictBalance
 >;
 const mockDevLoggerLog = DevLogger.log as jest.MockedFunction<
   typeof DevLogger.log
@@ -80,6 +106,14 @@ describe('usePredictPlaceOrder', () => {
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),
     });
+    mockUsePredictBalance.mockReturnValue({
+      balance: 1000,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      hasNoBalance: false,
+      loadBalance: jest.fn(),
+    });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
   });
 
@@ -112,7 +146,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.result).toEqual(mockSuccessResult);
     });
 
-    it('shows success toast when order is placed successfully', async () => {
+    it('shows success toast when BUY order is placed successfully', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
 
       const { result } = renderHook(() => usePredictPlaceOrder());
@@ -121,12 +155,117 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Check,
-        labelOptions: [{ label: 'Order placed' }],
-        hasNoTimeout: false,
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          labelOptions: [{ label: 'Placing a prediction' }],
+          hasNoTimeout: false,
+        }),
+      );
+
+      // Second call - success toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Check,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('Prediction placed'),
+              isBold: true,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('shows cashed out toast when SELL order is placed successfully', async () => {
+      jest.useFakeTimers();
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+
+      const sellOrderParams = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({
+          side: Side.SELL,
+          minAmountReceived: 150,
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(sellOrderParams);
       });
+
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(1);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('Cashing out'),
+              isBold: true,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // Second call - success toast (after delay)
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Check,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('Cashed out'),
+              isBold: true,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('reloads balance after successful order placement', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const mockLoadBalance = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        balance: 1000,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        hasNoBalance: false,
+        loadBalance: mockLoadBalance,
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
+      expect(mockLoadBalance).toHaveBeenCalledTimes(1);
     });
 
     it('calls onComplete callback when provided and order succeeds', async () => {
@@ -213,7 +352,20 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith({
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hasNoTimeout: false,
+        }),
+      );
+
+      // Second call - failure toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(2, {
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
         labelOptions: [{ label: 'Order failed' }],

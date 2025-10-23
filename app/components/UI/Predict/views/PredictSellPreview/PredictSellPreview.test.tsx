@@ -118,7 +118,7 @@ const mockFormatPrice = jest.fn();
 const mockFormatPercentage = jest.fn();
 
 jest.mock('../../utils/format', () => ({
-  formatPrice: (value: number, options?: { minimumDecimals?: number }) =>
+  formatPrice: (value: number, options?: { maximumDecimals?: number }) =>
     mockFormatPrice(value, options),
   formatPercentage: (value: number) => mockFormatPercentage(value),
 }));
@@ -314,7 +314,7 @@ describe('PredictSellPreview', () => {
     });
 
     mockFormatPrice.mockImplementation((value, options) => {
-      if (options?.minimumDecimals === 2) {
+      if (options?.maximumDecimals === 2) {
         return `$${value.toFixed(2)}`;
       }
       return `$${value}`;
@@ -346,7 +346,7 @@ describe('PredictSellPreview', () => {
       });
 
       // Component uses preview.minAmountReceived for current value
-      expect(mockFormatPrice).toHaveBeenCalledWith(60, { minimumDecimals: 2 });
+      expect(mockFormatPrice).toHaveBeenCalledWith(60, { maximumDecimals: 2 });
       // PnL is calculated from position data, not preview
       expect(mockFormatPercentage).toHaveBeenCalledWith(20);
     });
@@ -415,7 +415,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
@@ -430,9 +430,6 @@ describe('PredictSellPreview', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('disables cash out button when loading', () => {
@@ -442,7 +439,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       expect(cashOutButton.props['data-disabled']).toBe(true);
 
       // Reset loading state for other tests
@@ -456,7 +453,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       expect(cashOutButton.props['data-disabled']).toBe(true);
 
       // Reset loading state for other tests
@@ -486,14 +483,18 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      // Even though navigation fails, placeOrder should still be called and no error should be thrown
+      // The dispatch now throws and is not caught, so expect the error
       expect(() => {
         fireEvent.press(cashOutButton);
-      }).not.toThrow();
+      }).toThrow('Navigation error');
 
+      // PlaceOrder should still be called before dispatch throws
       expect(mockPlaceOrder).toHaveBeenCalled();
+
+      // Dispatch should have been attempted
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
 
@@ -507,13 +508,10 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       fireEvent.press(cashOutButton);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketList'),
-      );
     });
 
     it('uses correct route params', () => {
@@ -533,7 +531,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       // Button should have the primary color background
       expect(cashOutButton.props.style).toBeDefined();
     });

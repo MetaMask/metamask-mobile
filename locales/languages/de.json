@@ -594,7 +594,9 @@
       "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten.",
       "quoteFetchError": "Angebot konnte nicht abgerufen werden.",
       "kycFormsFetchError": "KYC-Formulare konnten nicht abgerufen werden.",
-      "title": "Einzahlung"
+      "title": "Einzahlung",
+      "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
+      "limitError": "Failed to check your deposit limits. Please try again later."
     },
     "token_modal": {
       "select_a_token": "Token wählen",
@@ -867,6 +869,7 @@
       "fetch_regions": "Beim Abrufen der Regionen gab es ein Problem.",
       "fetch_tokens": "Beim Abrufen der Tokens gab es ein Problem.",
       "fetch_payment_methods": "Beim Abrufen der Zahlungsmethoden gab es ein Problem.",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "Erneut versuchen",
       "error_details_title": "Fehlerdetails",
       "see_more": "Mehr sehen"
@@ -892,7 +895,7 @@
     "withdraw": "Auszahlen",
     "refresh_balance": "Guthaben aktualisieren",
     "add_funds": "Gelder hinzufügen",
-    "deposit_in_progress": "Deposit in progress",
+    "deposit_in_progress": "Einzahlung im Gange",
     "your_positions": "Ihre Positionen",
     "loading_positions": "Positionen werden geladen ...",
     "refreshing_positions": "Positionen werden aktualisiert ...",
@@ -1277,6 +1280,7 @@
       "assetMappingFailed": "Erstellung des Asset-Mappings fehlgeschlagen",
       "depositFailed": "Einzahlung fehlgeschlagen",
       "orderLeverageReductionFailed": "Sie können Ihren Hebel nicht reduzieren",
+      "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
         "title": "Perps ist vorübergehend offline",
         "description": "Wir arbeiten daran, bald wieder online zu sein.",
@@ -1348,9 +1352,9 @@
         "error_message": "Marktdaten nicht gefunden. Bitte kehren Sie zurück und versuchen Sie es erneut."
       },
       "statistics": "Übersicht",
-      "24h_high": "24h high",
-      "24h_low": "24h low",
-      "24h_volume": "24h volume",
+      "24h_high": "24-Std.-Hoch",
+      "24h_low": "24-Std.-Tief",
+      "24h_volume": "24-Std.-Volumen",
       "open_interest": "Open Interest",
       "funding_rate": "Finanzierungsrate",
       "countdown": "Countdown",
@@ -1490,6 +1494,8 @@
         "trades": "Trades",
         "orders": "Orders",
         "funding": "Finanzierung",
+        "withdraw": "Abheben",
+        "deposit": "Einzahlen",
         "funding_description": "Der Finanzierungsverlauf ist eine Übersicht der von Ihnen gezahlten oder erhaltenen Gebühren, die sich aus den Finanzierungsraten Ihrer offenen Positionen ergeben."
       },
       "not_found": "Transaktion nicht gefunden",
@@ -1510,9 +1516,9 @@
         "metamask_fee": "MetaMask-Gebühr",
         "hyperliquid_fee": "Hyperliquid-Gebühr",
         "total_fee": "Gesamtgebühr",
-        "liquidated": "Liquidated",
-        "take_profit": "Take profit",
-        "stop_loss": "Stop loss"
+        "liquidated": "Liquidiert",
+        "take_profit": "Take-Profit",
+        "stop_loss": "Stop-Loss"
       },
       "funding": {
         "date": "Datum",
@@ -1555,11 +1561,11 @@
       "ready_to_trade": {
         "title": "Bereit zum Handeln?",
         "description": "Zahlen Sie ein beliebiges Token auf Ihr Perps-Konto ein und führen Sie innerhalb von Sekunden Ihren ersten Trade durch.",
-        "footer_text": "MetaMask swappt Ihre Gelder auf Arbitrum in USDC und zahlt sie ohne zusätzliche Gebühr auf HyperCore ein."
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Verstanden",
       "card": {
-        "title": "Learn the basics of perps"
+        "title": "Lernen Sie die Grundlagen von Perps"
       }
     },
     "points": "Punkte",
@@ -1576,10 +1582,10 @@
     "market_list": "Marktliste",
     "market_details": "Marktdetails",
     "tab": {
-      "no_predictions": "Noch keine Prognosen",
-      "no_predictions_description": "Öffnen Sie eine Prognose, um loszulegen.",
-      "explore": "Märkte erkunden",
-      "new_prediction": "Neue Prognose"
+      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
+      "explore": "Browse markets",
+      "new_prediction": "Neue Prognose",
+      "resolved_markets": "Resolved markets"
     },
     "sell_position": "Verkaufsposition",
     "cash_out": "Auszahlen",
@@ -1609,16 +1615,82 @@
     "claim_button": "Einfordern",
     "markets_won": "Gewonnene Märkte",
     "won_markets_text": "{{count}} Markt{{s}} gewonnen",
-    "won_markets_text_singular": "{{count}} Markt gewonnen",
-    "won_markets_text_plural": "{{count}} Märkte gewonnen",
+    "available_balance": "Available balance",
     "claim_amount_text": "{{amount}} $ einfordern",
     "unrealized_pnl_label": "Nicht realisierte GuV",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unrealized_pnl_error": "Unable to load",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
       "button": "Got it"
+    },
+    "deposit": {
+      "in_progress": "Deposit in progress",
+      "adding_funds": "Adding funds",
+      "adding_your_funds": "Adding your funds",
+      "add_funds": "Add funds",
+      "withdraw": "Withdraw",
+      "estimated_processing_time": "Est. {{time}} seconds",
+      "account_ready": "Your account is ready",
+      "account_ready_description": "{{amount}} added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Your account wasn't funded",
+      "try_again": "Try again"
+    },
+    "add_funds_sheet": {
+      "title": "Add funds",
+      "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+    },
+    "transactions": {
+      "title": "Predictions",
+      "no_transactions": "No recent activity",
+      "buy_title": "Predicted",
+      "sell_title": "Cashed out",
+      "claim_title": "Claimed winnings",
+      "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
+      "sell_detail": "Sold at {{priceCents}} per share",
+      "claim_detail": "Claimed winnings",
+      "not_available": "N/A",
+      "date": "Date",
+      "market": "Market",
+      "outcome": "Outcome",
+      "predicted_amount": "Predicted amount",
+      "shares_bought": "Shares bought",
+      "shares_sold": "Shares sold",
+      "price_per_share": "Price per share",
+      "price_impact": "Price impact",
+      "net_pnl": "Net P&L",
+      "total_net_pnl": "Total Net P&L",
+      "market_net_pnl": "Market Net P&L",
+      "activity_details": "Activity details"
+    },
+    "claim": {
+      "toasts": {
+        "pending": {
+          "title": "Claiming {{amount}}",
+          "description": "Est. {{time}} seconds"
+        },
+        "confirmed": {
+          "title": "Claimed",
+          "description": "{{amount}} added to your balance"
+        },
+        "error": {
+          "title": "Something went wrong",
+          "description": "Failed to proceed with claim",
+          "try_again": "Try again"
+        }
+      }
+    },
+    "order": {
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed"
     }
   },
   "receive": {
@@ -1729,6 +1801,8 @@
     "alphabetically": "Alphabetisch (A-Z)",
     "add_to_get_started": "Zum Anfangen Krypto hinzufügen",
     "token_is_needed_to_continue": "{{tokenSymbol}} ist erforderlich, um fortzufahren",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Zahlen Sie Gelder auf Ihre Wallet ein, um bei web3 loszulegen.",
     "add_funds": "Gelder hinzufügen",
     "next": "Weiter",
@@ -3091,8 +3165,10 @@
     "tx_review_staking_unstake": "Unstaken",
     "tx_review_lending_deposit": "Krediteinzahlung",
     "tx_review_lending_withdraw": "Kreditauszahlung",
-    "tx_review_perps_deposit": "Perps-Konto finanziert",
-    "tx_review_predict_deposit": "Funded Predict account",
+    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "Ether senden",
     "self_sent_ether": "Senden Sie sich selbst Ether",
     "received_ether": "Ether empfangen",
@@ -3166,6 +3242,7 @@
     "network_fee": "Netzwerkgebühr",
     "network_fee_tooltip": "Der für die Bearbeitung der Transaktion im Netzwerk gezahlte Betrag.",
     "confirm_gas_fee_token_tooltip": "Diese Gebühr wird für die Bearbeitung Ihrer Transaktion an das Netzwerk gezahlt. Sie schließt eine {{metamaskFeeFiat}}-MetaMask-Gebühr für Nicht-ETH-Token oder vorfinanzierte ETH ein.",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Beinhaltet {{metamaskFeeFiat}} Gebühr",
     "smart_account_upgrade": "Auf Smart-Konto upgraden",
     "smart_account_downgrade": "Zum Standardkonto wechseln",
@@ -3939,7 +4016,9 @@
     "wallet_connect_dapps_cta": "Sitzungen anzeigen",
     "network_not_supported": "Aktuelles Netzwerk nicht unterstützt",
     "select_provider": "Wählen Sie Ihren bevorzugten Anbieter",
-    "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia."
+    "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia.",
+    "card_title": "Always show MetaMask Card button",
+    "card_desc": "MetaMask Card is only available to residents of select countries"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Sie haben keine aktiven Sitzungen",
@@ -5298,7 +5377,8 @@
       "switch_account_type": "Konto-Update",
       "approve": "Anfrage genehmigen",
       "perps_deposit": "Gelder hinzufügen",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -5315,7 +5395,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Wir swappen Ihre Token gegen USDC auf HyperCore, dem von Perps verwendeten Netzwerk. Swap-Anbieter können eine Gebühr erheben, MetaMask jedoch nicht."
+        "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
@@ -5407,6 +5487,12 @@
       "save": "Speichern",
       "title": "Genehmigungslimit bearbeiten"
     },
+    "predict_claim": {
+      "button_label": "Claim winnings",
+      "summary": "You won",
+      "footer_bottom": "Funds will be added to your available balance",
+      "footer_top": "Winnings from {{count}} markets"
+    },
     "unlimited": "Unbegrenzt",
     "all": "Alle",
     "none": "Keine",
@@ -5469,12 +5555,15 @@
     "points": "Geschätzte Punkte",
     "points_tooltip": "Punkte",
     "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content_2": "Beachten Sie bitte, dass es sich bei diesem Wert um einen Schätzwert handelt, der erst bei Abschluss der Transaktion endgültig festgelegt wird. Es kann bis zu 1 Stunde dauern, bis die Punkte in Ihrem Belohnungsguthaben bestätigt werden.",
     "unable_to_load": "Laden nicht möglich",
     "points_error": "Wir können momentan keine Punkte laden",
-    "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
+    "points_error_content": "Sie erhalten für diese Transaktion weiterhin Punkte. Wir werden Sie benachrichtigen, sobald sie Ihrem Konto gutgeschrieben wurden. Sie können auch in etwa einer Stunde Ihre Registerkarte „Belohnungen“ überprüfen.",
     "see_other_quotes": "Andere Angebote sehen",
     "receive_at": "Empfangen bei",
+    "recipient": "Recipient",
+    "select_recipient": "Select recipient",
+    "external_account": "External account",
     "error_banner_description": "Diese Handelsroute ist derzeit nicht verfügbar. Versuchen Sie, den Betrag, das Netzwerk oder das Token zu ändern, und wir finden die beste Option.",
     "insufficient_funds": "Unzureichende Gelder",
     "insufficient_gas": "Unzureichendes Gas",
@@ -5775,6 +5864,12 @@
       "update_to_store_link": "Aktualisieren Sie auf die neueste Version von MetaMask",
       "well_take_you_to_right_place": " und wir bringen Sie an den richtigen Ort."
     },
+    "unsupported": {
+      "title": "This page is not supported in current version",
+      "description": "Update to the latest version to use this feature",
+      "update_to_store_link": "Update to the latest version of MetaMask",
+      "well_take_you_to_right_place": " and we'll take you to the right place."
+    },
     "go_to_home_button": "Zur Startseite gehen",
     "back_button": "Zurück",
     "continue_button": "Fortfahren"
@@ -5791,7 +5886,96 @@
     "card_onboarding": {
       "title": "Willkommen bei Karte",
       "description": "Um Kartenfunktionen nutzen zu können, müssen Sie Ihr Konto bei unserem Partner verifizieren.",
-      "verify_account_button": "Konto verifizieren"
+      "verify_account_button": "Konto verifizieren",
+      "sign_up": {
+        "title": "Sign-up",
+        "description": "Register your details with Crypto Life, the provider of MetaMask Card. You'll use this account to access and manage your card.",
+        "email_label": "Email",
+        "password_label": "Password",
+        "confirm_password_label": "Confirm password",
+        "country_label": "Country of Residence",
+        "email_placeholder": "Enter your email address",
+        "password_placeholder": "Enter your password",
+        "country_placeholder": "Select your country",
+        "password_mismatch": "Passwords do not match",
+        "invalid_email": "Invalid email address"
+      },
+      "confirm_email": {
+        "title": "Confirm your email",
+        "description": "We've sent a confirmation code to: {{email}}",
+        "confirm_code_label": "Confirmation code",
+        "confirm_code_placeholder": "Enter the confirmation code"
+      },
+      "set_phone_number": {
+        "title": "Phone number",
+        "description": "Enter your phone number",
+        "phone_number_label": "Phone number",
+        "phone_number_placeholder": "Enter your phone number",
+        "country_area_code_label": "Country area code",
+        "invalid_phone_number": "Invalid phone number",
+        "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
+      },
+      "confirm_phone_number": {
+        "title": "Confirm your phone number",
+        "description": "We've sent a confirmation code to: {{phoneNumber}}",
+        "confirm_code_label": "Confirmation code"
+      },
+      "verify_identity": {
+        "title": "Verifying your identity to get your card",
+        "description": "To keep your account secure and comply with regulations, we need to verify your identity.\n\nYou'll need a government-issued ID and a proof of address (like a utility bill or bank statement).\n\nVerification usually takes 5-30 minutes, and we'll notify you as soon as it's complete.",
+        "verify_button": "Verify now with Veriff"
+      },
+      "validating_kyc": {
+        "title": "Validating your KYC..."
+      },
+      "kyc_failed": {
+        "title": "Rejected",
+        "description": "Your KYC was rejected. Please try again."
+      },
+      "personal_details": {
+        "title": "Personal details",
+        "description": "Enter your personal details",
+        "first_name_label": "First name",
+        "last_name_label": "Last name",
+        "date_of_birth_label": "Date of birth",
+        "nationality_label": "Country of Nationality",
+        "ssn_label": "Social Security Number",
+        "first_name_placeholder": "Enter your first name",
+        "last_name_placeholder": "Enter your last name",
+        "date_of_birth_placeholder": "Enter your date of birth",
+        "nationality_placeholder": "Select your nationality",
+        "ssn_placeholder": "Enter your SSN",
+        "invalid_ssn": "Invalid SSN",
+        "invalid_date_of_birth": "Invalid date of birth",
+        "invalid_date_of_birth_underage": "You must be at least 18 years old"
+      },
+      "physical_address": {
+        "title": "Physical address",
+        "description": "Please provide your physical address",
+        "address_line_1_label": "Address line 1",
+        "address_line_2_label": "Address line 2",
+        "city_label": "City",
+        "state_label": "State",
+        "zip_code_label": "ZIP code",
+        "address_line_1_placeholder": "Enter your address line 1",
+        "address_line_2_placeholder": "Enter your address line 2",
+        "city_placeholder": "Enter your city",
+        "state_placeholder": "Enter your state",
+        "zip_code_placeholder": "Enter your ZIP code",
+        "same_mailing_address_label": "Physical address is the same as mailing address",
+        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communictions electronically."
+      },
+      "mailing_address": {
+        "title": "Mailing address",
+        "description": "Please provide your mailing address"
+      },
+      "complete": {
+        "title": "Approved!",
+        "description": "Your KYC was approved. You can now use your Card."
+      },
+      "continue_button": "Next",
+      "confirm_button": "Confirm",
+      "retry_button": "Try again"
     },
     "card_home": {
       "error_title": "Daten können nicht abgerufen werden",
@@ -5799,9 +5983,48 @@
       "try_again": "Erneut versuchen",
       "limited_spending_warning": "Ihre tatsächliche Ausgabenkapazität ist möglicherweise begrenzt. Um Ihr Limit anzupassen, gehen Sie zu {{manageCard}}.",
       "add_funds": "Gelder hinzufügen",
+      "change_asset": "Change asset",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "You're close to your spending limit",
+          "description": "Update to avoid declines",
+          "confirm_button_label": "Set new limit"
+        },
+        "need_delegation": {
+          "title": "You need to delegate assets",
+          "description": "Delegate assets to your Card to start spending",
+          "confirm_button_label": "Delegate assets"
+        }
+      },
       "manage_card_options": {
+        "manage_spending_limit": "Manage spending limit",
+        "manage_spending_limit_description_restricted": "Restricted spending limit is on",
+        "manage_spending_limit_description_full": "Full spending access is on",
         "manage_card": "Karte verwalten",
-        "advanced_card_management_description": "Transaktionen einsehen, Karte sperren und mehr"
+        "advanced_card_management_description": "Detailed transactions, freeze card, and more"
+      }
+    },
+    "card_authentication": {
+      "title": "Log in to your Card account",
+      "location_button_text": "International",
+      "location_button_text_us": "US account",
+      "email_label": "Email",
+      "password_label": "Password",
+      "email_placeholder": "Enter your email address",
+      "password_placeholder": "Enter your password",
+      "login_button": "Log in",
+      "errors": {
+        "invalid_credentials": "Invalid login details",
+        "unknown_error": "Unknown error, please try again later",
+        "email_required": "Email is required",
+        "password_required": "Password is required",
+        "email_invalid": "Invalid email address",
+        "password_invalid": "Invalid password",
+        "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
+        "network_error": "Network error. Please check your connection and try again.",
+        "timeout_error": "Request timed out. Please check your connection and try again.",
+        "server_error": "Server error. Please try again later.",
+        "configuration_error": "Service is temporarily unavailable. Please try again later."
       }
     }
   },
@@ -5825,65 +6048,65 @@
     "close": "Schließen"
   },
   "rewards": {
-    "auth_fail_title": "Unknown Error.",
-    "auth_fail_description": "An unknown error occurred while authenticating this account with the rewards program. Please try again later.",
-    "failed_to_authenticate": "Failed to authenticate with rewards program",
+    "auth_fail_title": "Unbekannter Fehler.",
+    "auth_fail_description": "Bei der Authentifizierung dieses Kontos mit dem Belohnungsprogramm ist ein unbekannter Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+    "failed_to_authenticate": "Authentifizierung beim Belohnungsprogramm fehlgeschlagen",
     "not_implemented": "Demnächst verfügbar",
     "not_implemented_season_summary": "Zusammenfassung der Saison demnächst verfügbar",
     "optin_error": {
-      "title": "Opt-in failed",
-      "description": "Check your connection and try again."
+      "title": "Anmeldung fehlgeschlagen",
+      "description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     },
     "season_status_error": {
-      "error_fetching_title": "Season balance couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "Saisonbilanz konnte nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
     },
     "active_boosts_error": {
-      "error_fetching_title": "Boosts couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "Boosts konnten nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
     },
     "unlocked_rewards_error": {
-      "error_fetching_title": "Rewards couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "Belohnungen konnten nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
     },
     "upcoming_rewards_error": {
-      "error_fetching_title": "Rewards couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "Belohnungen konnten nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
     },
     "referral_details_error": {
-      "error_fetching_title": "Referral details couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "Empfehlungsdetails konnten nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
     },
     "referral_validation_unknown_error": {
-      "title": "Referral code couldn’t be validated",
-      "description": "Check your connection and try again."
+      "title": "Empfehlungscode konnte nicht validiert werden",
+      "description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     },
     "active_activity_error": {
-      "error_fetching_title": "Activity couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "Aktivität konnte nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
     },
-    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "solana_signup_not_supported": "Die Anmeldung zu Belohnungen mit Solana-Konten wird noch nicht unterstützt. Bitte verwenden Sie stattdessen ein Ethereum-Konto.",
     "error_messages": {
-      "unknown_error": "Unknown error occurred",
-      "something_went_wrong": "Something went wrong. Please try again shortly.",
-      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
-      "request_rejected": "You rejected the request.",
-      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly."
+      "unknown_error": "Ein unbekannter Fehler ist aufgetreten",
+      "something_went_wrong": "Etwas ist schiefgelaufen. Bitte versuchen Sie es in Kürze erneut.",
+      "account_already_registered": "Dieses Konto ist bereits mit einem anderen Belohnungsprofil registriert. Bitte wechseln Sie das Konto, um fortzufahren.",
+      "request_rejected": "Sie haben die Anfrage abgelehnt.",
+      "failed_to_claim_reward": "Einforderung der Belohnung fehlgeschlagen. Bitte versuchen Sie es in Kürze erneut.",
+      "service_not_available": "Der Dienst ist derzeit nicht verfügbar. Bitte versuchen Sie es in Kürze erneut."
     },
     "claim_reward_error": {
-      "title": "Failed to claim reward"
+      "title": "Einforderung der Belohnung fehlgeschlagen"
     },
     "accounts_opt_in_state_error": {
-      "error_fetching_title": "Accounts couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "Konten konnten nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
     },
     "referral_rewards_title": "Empfehlungen",
     "points": "Punkte",
@@ -5899,139 +6122,142 @@
     "tab_levels_title": "Stufen",
     "referral_stats_earned_from_referrals": "Durch Empfehlungen verdient",
     "referral_stats_referrals": "Empfehlungen",
-    "loading_activity": "Loading activity...",
-    "error_loading_activity": "Error loading activity",
-    "activity_empty_title": "No recent activity.",
-    "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
-    "activity_empty_link": "See ways to earn",
+    "loading_activity": "Aktivität wird geladen ...",
+    "error_loading_activity": "Fehler beim Laden der Aktivität",
+    "activity_empty_title": "Keine aktuelle Aktivität.",
+    "activity_empty_description": "Verwenden Sie MetaMask, um Punkte zu sammeln, hochzuleveln und Belohnungen freizuschalten.",
+    "activity_empty_link": "Siehe Möglichkeiten zum Verdienen",
     "events": {
-      "to": "to",
+      "to": "bis",
       "type": {
         "swap": "Swap",
         "perps": "Perps",
-        "referral": "Referral",
-        "referral_action": "Referral action",
-        "sign_up_bonus": "Sign up bonus",
-        "loyalty_bonus": "Loyalty bonus",
-        "one_time_bonus": "One-time bonus",
-        "open_position": "Opened position",
-        "close_position": "Closed position",
+        "card_spend": "Card spend",
+        "referral": "Empfehlung",
+        "referral_action": "Empfehlungsaktion",
+        "sign_up_bonus": "Anmeldebonus",
+        "loyalty_bonus": "Treuebonus",
+        "one_time_bonus": "Einmaliger Bonus",
+        "open_position": "Geöffnete Position",
+        "close_position": "Geschlossene Position",
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
-        "uncategorized_event": "Uncategorized event"
+        "uncategorized_event": "Nicht kategorisiertes Ereignis"
       },
-      "date": "Date",
-      "account": "Account",
+      "date": "Datum",
+      "account": "Konto",
       "bonus": "Bonus",
       "details": "Details",
-      "points": "Points",
-      "points_base": "Base",
+      "points": "Punkte",
+      "points_base": "Basis",
       "points_boost": "Boost",
-      "points_total": "Total"
+      "points_total": "Insgesamt"
     },
     "onboarding": {
       "not_supported_region_title": "Region wird nicht unterstützt",
-      "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_hardware_account_title": "Account not supported",
-      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
-      "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
-      "not_supported_confirm_go_back": "Go back",
-      "not_supported_confirm_retry": "Retry",
-      "auth_fail_title": "Authentication Failed",
-      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
-      "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
+      "not_supported_region_description": "Belohnungen werden in Ihrer Region noch nicht unterstützt. Wir bemühen uns, den Zugang auszuweiten, also schauen Sie später wieder vorbei.",
+      "not_supported_hardware_account_title": "Konto wird nicht unterstützt",
+      "not_supported_hardware_account_description": "Hardware-Wallet-Konten sind noch nicht zum Empfang von Belohnungen berechtigt. Bitte wechseln Sie zu einem anderen Konto, um fortzufahren.",
+      "not_supported_account_type_title": "Kontotyp wird nicht unterstützt",
+      "not_supported_account_type_description": "Derzeit können nur interne Ethereum- und Solana-Konten für das Belohnungsprogramm ausgewählt werden. Bitte wechseln Sie zu einem anderen Konto, um fortzufahren.",
+      "not_supported_confirm_go_back": "Zurück",
+      "not_supported_confirm_retry": "Erneut versuchen",
+      "auth_fail_title": "Authentifizierung fehlgeschlagen",
+      "auth_fail_description": "Authentifizierung mit dem Belohnungsprogramm nicht möglich. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "geo_check_fail_title": "Teilnahmeberechtigung kann nicht bestimmt werden",
+      "geo_check_fail_description": "Wir können nicht ermitteln, ob Ihr Land die Teilnahme am Belohnungsprogramm zulässt. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "gtm_title": "Belohnungen sind hier",
       "gtm_description": "Sammeln Sie Punkte für Ihre Aktivität. \nErklimmen Sie Level, um Belohnungen freizuschalten.",
       "gtm_confirm": "Erste Schritte",
       "intro_title": "Saison 1 \nist live",
-      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
-      "intro_confirm": "Claim 250 points",
-      "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking accounts...",
-      "redirecting_to_dashboard": "Redirecting...",
+      "intro_description": "Sammeln Sie Punkte für Ihre Aktivität. \nErklimmen Sie Level, um Belohnungen freizuschalten.",
+      "intro_confirm": "250 Punkte einfordern",
+      "intro_confirm_geo_loading": "Region wird überprüft ...",
+      "checking_opt_in": "Konten werden überprüft ...",
+      "redirecting_to_dashboard": "Weiterleitung ...",
       "intro_skip": "Nicht jetzt",
       "step_confirm": "Weiter",
-      "step_skip": "Skip",
-      "step1_title": "Earn points on every trade",
+      "step_skip": "Überspringen",
+      "step1_title": "Verdienen Sie bei jedem Trade Punkte",
       "step1_description": "Jeder Swap und jeder Trade mit Perps, den Sie in MetaMask tätigen, bringt Sie den Belohnungen näher. Fügen Sie Ihre Konten hinzu und erleben Sie, wie sich Ihre Punkte summieren.",
-      "step2_title": "Level up for bigger perks",
+      "step2_title": "Leveln Sie für größere Vorteile hoch",
       "step2_description": "Erreichen Sie Punkte-Meilensteine, um Vorteile wie 50 % Ermäßigung auf die Perps-Gebühren, exklusive Tokens und eine kostenlose MetaMask-Metallkarte zu erhalten.",
-      "step3_title": "Exclusive seasonal rewards",
-      "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
-      "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_input_placeholder": "Referral code (optional)",
-      "step4_referral_input_error": "Invalid referral code",
-      "step4_confirm": "Claim points",
-      "step4_confirm_loading": "Claiming points...",
-      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Adding additional accounts...",
-      "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
-      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
-      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
-      "step4_legal_disclaimer_4": "learn more"
+      "step3_title": "Exklusive saisonale Belohnungen",
+      "step3_description": "Jede Saison bringt neue Vorteile. Nehmen Sie teil, konkurrieren Sie und fordern Sie ein, was Sie kriegen können, bevor die Zeit abläuft.",
+      "step4_title": "Bei Ihrer Anmeldung erhalten Sie 250 Punkte!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
+      "step4_title_referral_validating": "Validierung des Empfehlungscodes ...",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
+      "step4_referral_input_placeholder": "Empfehlungscode (optional)",
+      "step4_referral_input_error": "Ungültiger Empfehlungscode",
+      "step4_confirm": "Punkte einfordern",
+      "step4_confirm_loading": "Punkte werden eingefordert ...",
+      "step4_linking_accounts": "Konten werden hinzufügen ... ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "Weitere Konten werden hinzugefügt ...",
+      "step4_success_description": "Sie haben sich erfolgreich für MetaMask-Belohnungen angemeldet!",
+      "step4_legal_disclaimer_1": "Indem Sie „Punkte einfordern“ wählen, stimmen Sie den MetaMask-Belohnungen zu",
+      "step4_legal_disclaimer_2": "Ergänzende Nutzungsbedingungen und Datenschutzhinweis",
+      "step4_legal_disclaimer_3": ". Wir verfolgen die Onchain-Aktivitäten und belohnen Sie automatisch –",
+      "step4_legal_disclaimer_4": "erfahren Sie mehr"
     },
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
-      "tab_linked_accounts": "Added ({{count}})",
-      "tab_unlinked_accounts": "Not added ({{count}})",
-      "no_linked_accounts": "No accounts opted in",
-      "all_accounts_linked_title": "All accounts opted in",
-      "all_accounts_linked_description": "You have added all your accounts to Rewards.",
-      "link_account_success_title": "{{accountName}} successfully added",
-      "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add",
-      "link_account_failed_error": "Failed to link account",
-      "link_account_unknown_error": "Unknown error occurred"
+      "title": "Belohnungseinstellungen",
+      "subtitle": "Konten",
+      "description": "Fügen Sie mehrere Konten hinzu, um Ihre Punkte zu kombinieren und Belohnungen schneller freizuschalten.",
+      "tab_linked_accounts": "Hinzugefügt ({{count}})",
+      "tab_unlinked_accounts": "Nicht hinzugefügt ({{count}})",
+      "no_linked_accounts": "Keine Konten angemeldet",
+      "all_accounts_linked_title": "Alle Konten sind angemeldet",
+      "all_accounts_linked_description": "Sie haben nun alle Ihre Konten zu Belohnungen hinzugefügt.",
+      "link_account_success_title": "{{accountName}} erfolgreich hinzugefügt",
+      "link_account_error_title": "Hinzufügen des Kontos fehlgeschlagen",
+      "link_account_button": "Hinzufügen",
+      "link_account_failed_error": "Verknüpfen des Kontos fehlgeschlagen",
+      "link_account_unknown_error": "Ein unbekannter Fehler ist aufgetreten"
     },
     "optout": {
-      "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
-      "confirm": "Opt out",
+      "title": "Von Belohnungen abmelden",
+      "description": "Dadurch werden Ihre Konten aus dem Belohnungsprogramm entfernt und Ihre Punkte sowie Ihr Fortschritt werden gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
+      "confirm": "Abmelden",
       "modal": {
-        "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
-        "cancel": "Cancel",
-        "confirm": "Confirm",
-        "error_message": "Failed to opt out of Rewards. Please try again.",
-        "processing": "Processing..."
+        "confirmation_title": "Sind Sie sicher?",
+        "confirmation_description": "Dadurch wird Ihr gesamter Fortschritt gelöscht und kann nicht rückgängig gemacht werden. Wenn Sie später wieder am Belohnungsprogramm teilnehmen, beginnen Sie wieder bei 0.",
+        "cancel": "Stornieren",
+        "confirm": "Bestätigen",
+        "error_message": "Abmeldung von Belohnungen fehlgeschlagen. Bitte versuchen Sie es erneut.",
+        "processing": "Verarbeitung..."
       }
     },
-    "toast_dismiss": "Dismiss",
+    "toast_dismiss": "Verwerfen",
     "dashboard_modal_info": {
       "active_account": {
-        "title": "Don't miss out",
-        "description": "Add your account to start earning points from your activity.",
-        "confirm": "Add account"
+        "title": "Nicht verpassen",
+        "description": "Fügen Sie Ihr Konto hinzu und fangen Sie an, durch Ihre Aktivitäten Punkte zu sammeln.",
+        "confirm": "Konto hinzufügen"
       },
       "multiple_unlinked_accounts": {
-        "title": "Start earning points",
-        "description": "Add your accounts so you can track your rewards at a glance.",
-        "confirm": "Add accounts"
+        "title": "Beginnen Sie mit dem Sammeln von Punkten",
+        "description": "Fügen Sie Ihre Konten hinzu, damit Sie den Überblick über Ihre Belohnungen behalten.",
+        "confirm": "Konten hinzufügen"
       },
       "account_not_supported": {
-        "title": "Account not supported",
-        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
-        "confirm": "Go back"
+        "title": "Konto wird nicht unterstützt",
+        "description_hardware": "Mit Hardware-Wallet-Konten können noch keine Punkte gesammelt werden. Bitte wechseln Sie zu einem anderen Konto, um fortzufahren.",
+        "description_general": "Derzeit sind nur interne Ethereum- und Solana-Konten ohne Hardware zum Sammeln von Punkten berechtigt. Bitte wechseln Sie zu einem anderen Konto, um fortzufahren.",
+        "confirm": "Zurück"
       }
     },
     "ways_to_earn": {
-      "title": "Ways to earn",
-      "supported_networks": "Supported Networks",
+      "title": "Möglichkeiten zum Verdienen",
+      "supported_networks": "Unterstützte Netzwerke",
       "swap": {
         "title": "Swap",
-        "description": "80 points per $100",
+        "description": "80 Punkte pro 100 $",
         "sheet": {
-          "title": "Swap tokens",
-          "points": "80 points per $100",
-          "description": "Swap tokens on supported networks to earn points for every dollar you trade.",
-          "cta_label": "Start a swap"
+          "title": "Tokens tauschen",
+          "points": "80 Punkte pro 100 $",
+          "description": "Swappen Sie Token in unterstützten Netzwerken und verdienen Sie Punkte für jeden gehandelten Dollar.",
+          "cta_label": "Swap beginnen"
         }
       },
       "perps": {
@@ -6045,52 +6271,74 @@
         }
       },
       "referrals": {
-        "title": "Refer friends",
-        "description": "10 points per 50 from friends"
+        "title": "Freunden empfehlen",
+        "description": "10 Punkte pro 50 Punkte von Freunden",
+        "sheet": {
+          "title": "Refer a friend",
+          "points": "20 points per 100",
+          "cta_label": "Refer a friend"
+        }
       },
       "loyalty": {
-        "title": "Loyalty bonus",
-        "description": "Earn points from past trades",
+        "title": "Treuebonus",
+        "description": "Verdienen Sie Punkte aus vergangenen Trades",
         "sheet": {
-          "title": "Loyalty bonus",
-          "points": "250 points per $1250",
-          "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
-          "cta_label": "Add accounts"
+          "title": "Treuebonus",
+          "points": "250 Punkte pro 1250 $",
+          "description": "Fügen Sie Konten mit vergangenen Swaps oder Bridges in MetaMask hinzu, um Treueboni zu verdienen. Für jedes teilnahmeberechtigte Konto werden Punkte in 250er-Schritten bis zu einer Gesamtzahl von 50.000 freigeschaltet. Die Boni erscheinen bereits kurz nach dem Hinzufügen eines Kontos.",
+          "cta_label": "Konten hinzufügen"
+        }
+      },
+      "card": {
+        "title": "MetaMask Card",
+        "description": "1 point per $1 spent",
+        "sheet": {
+          "title": "MetaMask Card",
+          "points": "1 point per $1 spent",
+          "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
+          "cta_label": "Manage Card"
         }
       }
     },
     "referral": {
-      "referral_code": "Referral code",
-      "referral_link": "Referral link",
+      "referral_code": "Empfehlungscode",
+      "referral_link": "Empfehlungslink",
       "actions": {
         "share_referral_link": "Einem Freund empfehlen",
         "share_referral_subject": "MetaMask-Belohnungen beitreten"
       },
       "info": {
         "title": "Teilen Sie Ihren Code und verdienen Sie mehr",
-        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
+        "description": "Ihre Freunde erhalten einen 2-fachen Anmeldebonus. Sie erhalten 10 Punkte für jeweils 50 Punkte, die Ihre Freunde beim Trading verdienen."
       }
     },
-    "active_boosts_title": "Active boosts",
-    "season_1": "Season 1",
+    "link_account_group": {
+      "link_account": "Add account",
+      "tracked": "Tracked",
+      "untracked": "Untracked",
+      "link_account_success": "{{accountName}} added successfully",
+      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
+    },
+    "active_boosts_title": "Aktive Boosts",
+    "season_1": "Saison 1",
     "upcoming_rewards": {
       "title": "Gesperrte Belohnungen",
-      "points_needed": "{{points}} points",
-      "cta_label": "Got it",
-      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+      "points_needed": "{{points}} Punkte",
+      "cta_label": "Verstanden",
+      "alpha_fox_invite_input_placeholder": "Ihr Telegramm-Handle"
     },
     "unlocked_rewards": {
-      "title": "Unlocked rewards",
-      "cta_label": "Claim now",
-      "cta_request_invite": "Request invite",
-      "claim_label": "Claim",
-      "claimed_label": "Claimed",
-      "reward_claimed": "Reward claimed",
+      "title": "Freigeschaltete Belohnungen",
+      "cta_label": "Jetzt einfordern",
+      "cta_request_invite": "Einladung anfordern",
+      "claim_label": "Einfordern",
+      "claimed_label": "Eingefordert",
+      "reward_claimed": "Belohnung eingefordert",
       "time_left": "verbleibend",
-      "expired": "Expired"
+      "expired": "Abgelaufen"
     },
     "animation": {
-      "could_not_load": "Couldn't load"
+      "could_not_load": "Laden fehlgeschlagen"
     }
   },
   "time": {
@@ -6099,7 +6347,7 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded Perps account",
+      "perps_deposit": "Perps-Konto finanziert",
       "predict_deposit": "Funded Predict account",
       "default": "Transaktionsdetails"
     },
@@ -6107,19 +6355,23 @@
       "bridge_fee": "Bridge-Gebühr",
       "network_fee": "Netzwerk-Gebühr",
       "paid_with": "Bezahlt mit",
+      "retry_button": "Try again",
       "total": "Insgesamt"
     },
     "summary_title": {
-      "bridge": "Bridge von {{sourceSymbol}} nach {{targetSymbol}}",
       "bridge_approval": "{{approveSymbol}} genehmigen",
       "bridge_approval_loading": "Genehmigen",
-      "bridge_loading": "Bridge",
+      "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
+      "bridge_send_loading": "Bridge Send",
+      "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
+      "bridge_receive_loading": "Bridge Receive",
       "default": "Transaktion",
       "perps_deposit": "Gelder hinzufügen",
       "predict_deposit": "Add funds",
       "swap": "Tokens tauschen",
       "swap_approval": "Tokens genehmigen"
-    }
+    },
+    "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
   "sdk_connect_v2": {
     "show_loading": {

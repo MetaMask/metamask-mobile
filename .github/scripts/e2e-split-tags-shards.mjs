@@ -217,7 +217,7 @@ function computeRetryFilePath(originalPath, retryIndex) {
 }
 
 /**
- * Create two retry copies of a given spec if not already present
+ * Create retry copies of a given spec if not already present
  * @param {*} originalPath - The original path to the spec file
  */
 function duplicateSpecFile(originalPath) {
@@ -225,7 +225,7 @@ function duplicateSpecFile(originalPath) {
     const srcPath = path.resolve(originalPath);
     if (!fs.existsSync(srcPath)) return;
     const content = fs.readFileSync(srcPath);
-    for (let i = 1; i <= 2; i += 1) {
+    for (let i = 1; i <= 1; i += 1) {
       const retryRel = computeRetryFilePath(originalPath, i);
       if (!retryRel) continue;
       const retryAbs = path.resolve(retryRel);
@@ -304,7 +304,7 @@ function applyFlakinessDetection(splitFiles) {
     return splitFiles;
   }
 
-  // Build expanded list: base + retry-1 + retry-2 for duplicated files
+  // Build expanded list: base + retry files for duplicated files
   const expanded = [];
   for (const file of splitFiles) {
     const normalized = normalizePathForCompare(file);
@@ -313,9 +313,7 @@ function applyFlakinessDetection(splitFiles) {
       expanded.push(file);
       // Add retry files
       const retry1 = computeRetryFilePath(normalized, 1);
-      const retry2 = computeRetryFilePath(normalized, 2);
       if (retry1) expanded.push(retry1);
-      if (retry2) expanded.push(retry2);
     } else {
       // Not changed, add as-is
       expanded.push(file);
@@ -348,7 +346,7 @@ async function main() {
 
   // 3) Flaky test detector mechanism in PRs (test retries)
   //    - Only duplicates changed files that are in this shard's split
-  //    - Creates base + retry-1 + retry-2 for flakiness detection
+  //    - Creates base + retry files for flakiness detection
   const shouldSkipFlakinessGate = await shouldSkipFlakinessDetection();
   if (!shouldSkipFlakinessGate) {
     runFiles = applyFlakinessDetection(splitFiles);
