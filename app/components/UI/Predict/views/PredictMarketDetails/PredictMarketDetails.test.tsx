@@ -629,6 +629,7 @@ describe('PredictMarketDetails', () => {
   describe('Action Buttons', () => {
     it('renders Yes and No action buttons for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -651,6 +652,7 @@ describe('PredictMarketDetails', () => {
 
     it('calculates percentage correctly from market price', () => {
       const marketWithDifferentPrice = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -697,6 +699,7 @@ describe('PredictMarketDetails', () => {
   describe('Current Prediction Display', () => {
     it('displays current prediction percentage for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -717,6 +720,7 @@ describe('PredictMarketDetails', () => {
 
     it('handles missing price data gracefully', () => {
       const marketWithoutPrice = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -834,6 +838,7 @@ describe('PredictMarketDetails', () => {
 
     it('handles Yes button press for betting', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -865,6 +870,7 @@ describe('PredictMarketDetails', () => {
 
     it('handles No button press for betting', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1018,6 +1024,7 @@ describe('PredictMarketDetails', () => {
 
     it('renders current prediction section only for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1038,6 +1045,7 @@ describe('PredictMarketDetails', () => {
 
     it('renders action buttons only for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1205,6 +1213,7 @@ describe('PredictMarketDetails', () => {
 
     it('handles market with undefined price correctly', () => {
       const marketWithUndefinedPrice = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1270,7 +1279,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       expect(
         screen.getByText('confirm.predict_claim.button_label'),
@@ -1298,7 +1326,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       const claimButton = screen.getByText(
         'confirm.predict_claim.button_label',
@@ -1505,7 +1552,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       expect(
         screen.getByText('confirm.predict_claim.button_label'),
@@ -1533,7 +1599,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       const claimButton = screen.getByText(
         'confirm.predict_claim.button_label',
@@ -1817,6 +1902,7 @@ describe('PredictMarketDetails', () => {
       });
 
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1849,6 +1935,7 @@ describe('PredictMarketDetails', () => {
       });
 
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',

@@ -641,9 +641,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     </Box>
   );
 
+  // see if there are any positions with positive percentPnl
+  const hasPositivePnl = positions.some((position) => position.percentPnl > 0);
+
   const renderActionButtons = () => (
     <>
-      {market?.status === PredictMarketStatus.CLOSED ? (
+      {market?.status === PredictMarketStatus.CLOSED && hasPositivePnl ? (
         <Box
           twClassName="w-full mt-4 gap-3"
           flexDirection={BoxFlexDirection.Row}
@@ -659,7 +662,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onPress={handleClaimPress}
           />
         </Box>
-      ) : (
+      ) : market?.status === PredictMarketStatus.OPEN && singleOutcomeMarket ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
@@ -692,7 +695,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onPress={handleNoPress}
           />
         </Box>
-      )}
+      ) : null}
     </>
   );
 
@@ -798,9 +801,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       </ScrollView>
 
       <Box twClassName="px-3 bg-default border-t border-muted">
-        {/* only render action buttons if the market has a single outcome */}
-        {/* otherwise, it's handled via the buttons within tabs */}
-        {singleOutcomeMarket && renderActionButtons()}
+        {renderActionButtons()}
       </Box>
     </SafeAreaView>
   );
