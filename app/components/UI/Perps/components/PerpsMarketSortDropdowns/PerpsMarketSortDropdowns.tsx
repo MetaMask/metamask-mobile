@@ -22,6 +22,7 @@ import type { PerpsMarketSortDropdownsProps } from './PerpsMarketSortDropdowns.t
  * - Shows current selection with chevron indicator
  * - Opens bottom sheets for selection
  * - Matches candle period selector button pattern
+ * - Optional favorites filter toggle
  *
  * @example
  * ```tsx
@@ -30,6 +31,8 @@ import type { PerpsMarketSortDropdownsProps } from './PerpsMarketSortDropdowns.t
  *   direction={direction}
  *   onSortPress={() => setShowSortSheet(true)}
  *   onDirectionPress={() => setShowDirectionSheet(true)}
+ *   showFavoritesOnly={false}
+ *   onFavoritesToggle={() => setShowFavoritesOnly(!showFavoritesOnly)}
  * />
  * ```
  */
@@ -38,6 +41,8 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
   direction,
   onSortPress,
   onDirectionPress,
+  showFavoritesOnly = false,
+  onFavoritesToggle,
   testID = 'perps-market-sort-dropdowns',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -104,6 +109,36 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
           color={IconColor.Alternative}
         />
       </Pressable>
+
+      {/* Favorites Filter Toggle - Only show if handler provided */}
+      {onFavoritesToggle && (
+        <Pressable
+          style={({ pressed }) => [
+            styles.dropdownButton,
+            showFavoritesOnly && styles.dropdownButtonActive,
+            pressed && styles.dropdownButtonPressed,
+          ]}
+          onPress={onFavoritesToggle}
+          testID={`${testID}-favorites`}
+        >
+          <Icon
+            name={showFavoritesOnly ? IconName.StarFilled : IconName.Star}
+            size={IconSize.Xs}
+            color={
+              showFavoritesOnly ? IconColor.Primary : IconColor.Alternative
+            }
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            style={[
+              styles.dropdownText,
+              showFavoritesOnly && styles.dropdownTextActive,
+            ]}
+          >
+            {strings('perps.sort.favorites')}
+          </Text>
+        </Pressable>
+      )}
     </Box>
   );
 };

@@ -1667,6 +1667,72 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('watchlist markets', () => {
+    it('should return empty array by default', () => {
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).toEqual([]);
+    });
+
+    it('should toggle watchlist market (add)', () => {
+      controller.toggleWatchlistMarket('BTC');
+
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).toContain('BTC');
+      expect(controller.isWatchlistMarket('BTC')).toBe(true);
+    });
+
+    it('should toggle watchlist market (remove)', () => {
+      controller.toggleWatchlistMarket('BTC');
+      controller.toggleWatchlistMarket('BTC');
+
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).not.toContain('BTC');
+      expect(controller.isWatchlistMarket('BTC')).toBe(false);
+    });
+
+    it('should handle multiple watchlist markets', () => {
+      controller.toggleWatchlistMarket('BTC');
+      controller.toggleWatchlistMarket('ETH');
+      controller.toggleWatchlistMarket('SOL');
+
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).toHaveLength(3);
+      expect(watchlist).toContain('BTC');
+      expect(watchlist).toContain('ETH');
+      expect(watchlist).toContain('SOL');
+    });
+
+    it('should persist watchlist per network', () => {
+      // Add to watchlist on mainnet (default is testnet in dev, so set to false)
+      (controller as any).update((state: any) => {
+        state.isTestnet = false;
+      });
+      controller.toggleWatchlistMarket('BTC');
+
+      const mainnetWatchlist = controller.getWatchlistMarkets();
+      expect(mainnetWatchlist).toContain('BTC');
+
+      // Switch to testnet
+      (controller as any).update((state: any) => {
+        state.isTestnet = true;
+      });
+      const testnetWatchlist = controller.getWatchlistMarkets();
+      expect(testnetWatchlist).toEqual([]);
+
+      // Add to watchlist on testnet
+      controller.toggleWatchlistMarket('ETH');
+      expect(controller.getWatchlistMarkets()).toContain('ETH');
+      expect(controller.isWatchlistMarket('ETH')).toBe(true);
+
+      // Switch back to mainnet
+      (controller as any).update((state: any) => {
+        state.isTestnet = false;
+      });
+      expect(controller.getWatchlistMarkets()).toContain('BTC');
+      expect(controller.getWatchlistMarkets()).not.toContain('ETH');
+    });
+  });
+
   describe('additional subscriptions', () => {
     it('should subscribe to orders', () => {
       const mockUnsubscribe = jest.fn();

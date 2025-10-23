@@ -1395,6 +1395,7 @@
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
       "orders": "Orders",
+      "go_to_activity": "Go to your activity",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -1566,7 +1567,8 @@
       "high_to_low": "High to Low",
       "low_to_high": "Low to High",
       "sort_by": "Sort by",
-      "sort_direction": "Sort direction"
+      "sort_direction": "Sort direction",
+      "favorites": "Watchlist"
     },
     "perps_markets": "Perps markets",
     "volume": "Volume",
@@ -1575,6 +1577,8 @@
     "data_updates_automatically": "Data updates automatically every few seconds",
     "tap_to_retry": "Tap to retry",
     "search_by_token_symbol": "Search by token symbol",
+    "no_favorites_found": "No markets in watchlist",
+    "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",

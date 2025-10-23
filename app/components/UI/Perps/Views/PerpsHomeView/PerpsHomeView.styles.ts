@@ -30,7 +30,6 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 4,
     },
     searchContainer: {
-      paddingHorizontal: 16,
       paddingTop: 16,
     },
     searchInputContainer: {

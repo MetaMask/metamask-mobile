@@ -85,8 +85,8 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'sort_field_changed' | 'sort_direction_changed'`
-- `action_type` (optional): `'start_trading' | 'skip' | 'stop_loss_set' | 'take_profit_set' | 'close_all_positions' | 'cancel_all_orders' | 'learn_more'`
+- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'sort_field_changed' | 'sort_direction_changed' | 'favorite_toggled'` (Note: `favorite_toggled` = watchlist toggle)
+- `action_type` (optional): `'start_trading' | 'skip' | 'stop_loss_set' | 'take_profit_set' | 'close_all_positions' | 'cancel_all_orders' | 'learn_more' | 'favorite_market' | 'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `order_size` (optional): Size of the order in tokens (number)
@@ -99,6 +99,7 @@ MetaMetrics.getInstance().trackEvent(
 - `sort_field` (optional): Market sort field selected: `'volume' | 'price_change' | 'market_cap' | 'funding_rate' | 'new'`
 - `sort_direction` (optional): Sort direction: `'asc' | 'desc'`
 - `search_query` (optional): Search query text (when search_clicked)
+- `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
 
 ### 3. PERPS_TRADE_TRANSACTION
 

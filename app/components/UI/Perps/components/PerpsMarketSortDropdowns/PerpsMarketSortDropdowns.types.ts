@@ -21,6 +21,14 @@ export interface PerpsMarketSortDropdownsProps {
    */
   onDirectionPress: () => void;
   /**
+   * Whether to show only favorite markets
+   */
+  showFavoritesOnly?: boolean;
+  /**
+   * Callback when favorites filter is toggled
+   */
+  onFavoritesToggle?: () => void;
+  /**
    * Test ID for E2E testing
    */
   testID?: string;

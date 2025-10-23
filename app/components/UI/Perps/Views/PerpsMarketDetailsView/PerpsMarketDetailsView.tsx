@@ -71,12 +71,16 @@ import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelecto
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  selectPerpsEligibility,
+  createSelectIsWatchlistMarket,
+} from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import Engine from '../../../../../core/Engine';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -96,6 +100,34 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useState(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
+
+  // Check if current market is in watchlist
+  const selectIsWatchlist = useMemo(
+    () => createSelectIsWatchlistMarket(market?.symbol || ''),
+    [market?.symbol],
+  );
+  const isWatchlistFromRedux = useSelector(selectIsWatchlist);
+
+  // Optimistic local state for instant UI feedback
+  const [optimisticWatchlist, setOptimisticWatchlist] = useState<
+    boolean | null
+  >(null);
+  const isWatchlist = optimisticWatchlist ?? isWatchlistFromRedux;
+
+  // Reset optimistic state when market changes
+  useEffect(() => {
+    setOptimisticWatchlist(null);
+  }, [market?.symbol]);
+
+  // Clear optimistic state once Redux has caught up
+  useEffect(() => {
+    if (
+      optimisticWatchlist !== null &&
+      optimisticWatchlist === isWatchlistFromRedux
+    ) {
+      setOptimisticWatchlist(null);
+    }
+  }, [isWatchlistFromRedux, optimisticWatchlist]);
 
   // Set navigation header with proper back button
   useEffect(() => {
@@ -398,6 +430,31 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   };
 
+  const handleWatchlistPress = useCallback(() => {
+    if (!market?.symbol) return;
+
+    // Optimistic update - instant UI feedback
+    const newWatchlistState = !isWatchlist;
+    setOptimisticWatchlist(newWatchlistState);
+
+    // Actual state update
+    const controller = Engine.context.PerpsController;
+    controller.toggleWatchlistMarket(market.symbol);
+
+    // Track watchlist toggle event
+    const watchlistCount = controller.getWatchlistMarkets().length;
+
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]: 'watchlist_toggled',
+      [PerpsEventProperties.ACTION_TYPE]: newWatchlistState
+        ? 'add_to_watchlist'
+        : 'remove_from_watchlist',
+      [PerpsEventProperties.ASSET]: market.symbol,
+      [PerpsEventProperties.SOURCE]: 'asset_details',
+      watchlist_count: watchlistCount,
+    });
+  }, [market, isWatchlist, track]);
+
   const handleLongPress = () => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
@@ -491,12 +548,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBackPress}
-          onActivityPress={() =>
-            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-              screen: Routes.TRANSACTIONS_VIEW,
-              params: { redirectToPerpsTransactions: true },
-            })
-          }
+          onFavoritePress={handleWatchlistPress}
+          isFavorite={isWatchlist}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
       </View>

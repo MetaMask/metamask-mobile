@@ -215,6 +215,12 @@ export type PerpsControllerState = {
     mainnet: boolean;
   };
 
+  // Watchlist markets tracking (per network)
+  watchlistMarkets: {
+    testnet: string[]; // Array of watchlist market symbols for testnet
+    mainnet: string[]; // Array of watchlist market symbols for mainnet
+  };
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -253,6 +259,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   hasPlacedFirstOrder: {
     testnet: false,
     mainnet: false,
+  },
+  watchlistMarkets: {
+    testnet: [],
+    mainnet: [],
   },
 });
 
@@ -375,6 +385,12 @@ const metadata = {
     usedInUi: true,
   },
   hasPlacedFirstOrder: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  watchlistMarkets: {
     includeInStateLogs: true,
     persist: true,
     anonymous: false,
@@ -3902,6 +3918,51 @@ export class PerpsController extends BaseController<
         mainnet: false,
       };
     });
+  }
+
+  /**
+   * Toggle watchlist status for a market
+   * Watchlist markets are stored per network (testnet/mainnet)
+   */
+  toggleWatchlistMarket(symbol: string): void {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const currentWatchlist = this.state.watchlistMarkets[currentNetwork];
+    const isWatchlisted = currentWatchlist.includes(symbol);
+
+    DevLogger.log('PerpsController: Toggling watchlist market', {
+      timestamp: new Date().toISOString(),
+      network: currentNetwork,
+      symbol,
+      action: isWatchlisted ? 'remove' : 'add',
+    });
+
+    this.update((state) => {
+      if (isWatchlisted) {
+        // Remove from watchlist
+        state.watchlistMarkets[currentNetwork] = currentWatchlist.filter(
+          (s) => s !== symbol,
+        );
+      } else {
+        // Add to watchlist
+        state.watchlistMarkets[currentNetwork] = [...currentWatchlist, symbol];
+      }
+    });
+  }
+
+  /**
+   * Check if a market is in the watchlist on the current network
+   */
+  isWatchlistMarket(symbol: string): boolean {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    return this.state.watchlistMarkets[currentNetwork].includes(symbol);
+  }
+
+  /**
+   * Get all watchlist markets for the current network
+   */
+  getWatchlistMarkets(): string[] {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    return this.state.watchlistMarkets[currentNetwork];
   }
 
   /**

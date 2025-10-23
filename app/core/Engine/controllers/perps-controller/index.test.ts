@@ -116,6 +116,10 @@ describe('perps controller init', () => {
         testnet: false,
         mainnet: false,
       },
+      watchlistMarkets: {
+        testnet: [],
+        mainnet: [],
+      },
       withdrawInProgress: false,
       lastWithdrawResult: null,
       withdrawalRequests: [],

@@ -51,6 +51,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useSelector } from 'react-redux';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TabBarItem from '../../../../../component-library/components/Navigation/TabBarItem';
 import {
@@ -152,7 +153,9 @@ const PerpsMarketListView = ({
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
   const [isSortDirectionSheetVisible, setIsSortDirectionSheetVisible] =
     useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
 
   const {
     markets,
@@ -203,8 +206,18 @@ const PerpsMarketListView = ({
     sortMarketsList,
   } = usePerpsSorting();
 
-  // Apply sorting to searched markets
-  const filteredMarkets = sortMarketsList(searchedMarkets);
+  // Apply favorites filter if enabled
+  const favoritesFilteredMarkets = useMemo(() => {
+    if (!showFavoritesOnly) {
+      return searchedMarkets;
+    }
+    return searchedMarkets.filter((market) =>
+      watchlistMarkets.includes(market.symbol),
+    );
+  }, [searchedMarkets, showFavoritesOnly, watchlistMarkets]);
+
+  // Apply sorting to searched and favorites-filtered markets
+  const filteredMarkets = sortMarketsList(favoritesFilteredMarkets);
 
   useEffect(() => {
     if (markets.length > 0) {
@@ -249,6 +262,10 @@ const PerpsMarketListView = ({
           PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
       });
     }
+  };
+
+  const handleFavoritesToggle = () => {
+    setShowFavoritesOnly(!showFavoritesOnly);
   };
 
   // Performance tracking: Measure screen load time until market data is displayed
@@ -312,6 +329,34 @@ const PerpsMarketListView = ({
           </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.data_updates_automatically')}
+          </Text>
+        </View>
+      );
+    }
+
+    // Empty favorites results - show when favorites filter is active but no favorites found
+    if (showFavoritesOnly && filteredMarkets.length === 0) {
+      return (
+        <View style={styles.emptyStateContainer}>
+          <Icon
+            name={IconName.Star}
+            size={IconSize.Xl}
+            color={theme.colors.icon.muted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            {strings('perps.no_favorites_found')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('perps.no_favorites_description')}
           </Text>
         </View>
       );
@@ -538,12 +583,14 @@ const PerpsMarketListView = ({
       {!isSearchVisible &&
         !isLoadingMarkets &&
         !error &&
-        filteredMarkets.length > 0 && (
+        (filteredMarkets.length > 0 || showFavoritesOnly) && (
           <PerpsMarketSortDropdowns
             sortBy={sortBy}
             direction={direction}
             onSortPress={() => setIsSortFieldSheetVisible(true)}
             onDirectionPress={() => setIsSortDirectionSheetVisible(true)}
+            showFavoritesOnly={showFavoritesOnly}
+            onFavoritesToggle={handleFavoritesToggle}
             testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
           />
         )}

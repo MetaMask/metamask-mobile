@@ -27,3 +27,31 @@ export const selectHasPlacedFirstOrder = (
   }
   return state?.hasPlacedFirstOrder?.mainnet ?? false;
 };
+
+/**
+ * Select watchlist markets for the current network
+ * @param state - PerpsController state
+ * @returns Array of watchlist market symbols for current network
+ */
+export const selectWatchlistMarkets = (
+  state: PerpsControllerState,
+): string[] => {
+  if (state?.isTestnet) {
+    return state?.watchlistMarkets?.testnet ?? [];
+  }
+  return state?.watchlistMarkets?.mainnet ?? [];
+};
+
+/**
+ * Check if a specific market is in the watchlist on the current network
+ * @param state - PerpsController state
+ * @param symbol - Market symbol to check (e.g., 'BTC', 'ETH')
+ * @returns boolean indicating if market is in watchlist
+ */
+export const selectIsWatchlistMarket = (
+  state: PerpsControllerState,
+  symbol: string,
+): boolean => {
+  const watchlist = selectWatchlistMarkets(state);
+  return watchlist.includes(symbol);
+};

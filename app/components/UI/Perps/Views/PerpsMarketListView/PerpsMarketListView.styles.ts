@@ -138,7 +138,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     searchContainer: {
-      paddingHorizontal: 16,
+      // Note: PerpsSearchBar already has marginHorizontal: 16, so no padding needed here
       paddingTop: 16,
     },
     searchInputContainer: {
