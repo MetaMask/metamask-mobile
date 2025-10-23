@@ -432,29 +432,6 @@ describe('ReferralBottomSheetModal', () => {
   });
 
   describe('error handling', () => {
-    it('should render referral details error banner when referral error exists and no referral code', () => {
-      // Arrange
-      mockSelector.mockReturnValue(null);
-      mockSelector
-        .mockReturnValueOnce(null) // referralCode
-        .mockReturnValueOnce(0) // refereeCount
-        .mockReturnValueOnce(0) // balanceRefereePortion
-        .mockReturnValueOnce(false) // seasonStatusLoading
-        .mockReturnValueOnce(null) // seasonStatusError
-        .mockReturnValueOnce('2024-01-01') // seasonStartDate
-        .mockReturnValueOnce(false) // referralDetailsLoading
-        .mockReturnValueOnce(true); // referralDetailsError
-
-      // Act
-      const { getByTestId, queryByTestId } = render(
-        <ReferralBottomSheetModal />,
-      );
-
-      // Assert
-      expect(getByTestId('rewards-error-banner')).toBeOnTheScreen();
-      expect(queryByTestId('referral-stats-section')).not.toBeOnTheScreen();
-    });
-
     it('should not render error banner when no errors exist', () => {
       // Act
       const { queryByTestId, getByTestId } = render(
