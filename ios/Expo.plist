@@ -3,11 +3,9 @@
 <plist version="1.0">
   <dict>
     <key>EXUpdatesCheckOnLaunch</key>
-    <string>ALWAYS</string>
+    <string>NEVER</string>
     <key>EXUpdatesEnabled</key>
     <true/>
-    <key>EXUpdatesLaunchWaitMs</key>
-    <integer>10000</integer>
     <key>EXUpdatesURL</key>
     <string>https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620</string>
     <!-- EXUpdatesChannel, EXUpdatesRuntimeVersion, and EXUpdatesRequestHeaders are auto-injected by build script -->
