@@ -4,7 +4,7 @@ import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import { deeplinkService } from '../UnifiedDeeplinkService';
 import DeeplinkManager from '../DeeplinkManager';
-import SDKConnect from '../../SDKConnect/SDKConnect';
+import SDKConnectV2 from '../../SDKConnectV2';
 import extractURLParams from './extractURLParams';
 import handleEthereumUrl from '../Handlers/handleEthereumUrl';
 import { connectWithWC } from './connectWithWC';
@@ -31,9 +31,9 @@ async function parseDeeplinkUnified({
 
     // Special handling for SDKConnectV2 fast path
     // This needs to happen immediately without waiting for service initialization
-    if (SDKConnect.getInstance().isConnectDeeplink?.(url)) {
+    if (SDKConnectV2.isConnectDeeplink(url)) {
       DevLogger.log('parseDeeplinkUnified: SDKConnectV2 fast path');
-      SDKConnect.getInstance().handleConnectDeeplink?.(url);
+      await SDKConnectV2.handleConnectDeeplink(url);
       onHandled?.();
       return true;
     }
