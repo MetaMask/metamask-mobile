@@ -1178,10 +1178,9 @@ describe('PolymarketProvider', () => {
 
       // Mock getAccountState to return a safe address
       const mockAccountState = {
-        address: '0xSafeAddress123456789012345678901234567890',
+        address: '0xSafeAddress123456789012345678901234567890' as const,
         isDeployed: true,
         hasAllowances: true,
-        balance: 1000000000000000000, // 1 ETH in wei
       };
       jest
         .spyOn(PolymarketProvider.prototype, 'getAccountState')
@@ -1330,22 +1329,14 @@ describe('PolymarketProvider', () => {
       // The exact call verification depends on the implementation details
     });
 
-    it('throws error when safe address is not found', async () => {
+    it('throws error when signer address is missing', async () => {
       jest.clearAllMocks();
       const provider = createProvider();
       const mockSigner = {
-        address: '0x1234567890123456789012345678901234567890',
+        address: '',
         signTypedMessage: jest.fn(),
         signPersonalMessage: jest.fn(),
       };
-
-      jest
-        .spyOn(PolymarketProvider.prototype, 'getAccountState')
-        .mockResolvedValue({
-          address: '',
-          isDeployed: false,
-          hasAllowances: false,
-        });
 
       const position = {
         id: 'position-1',
@@ -1380,7 +1371,7 @@ describe('PolymarketProvider', () => {
           positions: [position],
           signer: mockSigner,
         }),
-      ).rejects.toThrow('Safe address not found');
+      ).rejects.toThrow('Signer address is required');
     });
   });
 
@@ -2447,28 +2438,20 @@ describe('PolymarketProvider', () => {
       expect(result.predictAddress).toBe('0xSafeAddress');
     });
 
-    it('throws error when safe address is not found in prepareWithdraw', async () => {
+    it('throws error when signer address is missing in prepareWithdraw', async () => {
       const provider = createProvider();
       const mockSigner = {
-        address: '0x1234567890123456789012345678901234567890',
+        address: '',
         signTypedMessage: jest.fn(),
         signPersonalMessage: jest.fn(),
       };
-
-      jest
-        .spyOn(PolymarketProvider.prototype, 'getAccountState')
-        .mockResolvedValue({
-          address: '',
-          isDeployed: false,
-          hasAllowances: false,
-        });
 
       await expect(
         provider.prepareWithdraw({
           signer: mockSigner,
           providerId: 'polymarket',
         }),
-      ).rejects.toThrow('Safe address not found');
+      ).rejects.toThrow('Signer address is required');
     });
   });
 
@@ -2492,22 +2475,20 @@ describe('PolymarketProvider', () => {
       expect(result).toHaveProperty('amount');
     });
 
-    it('throws error when safe address is not found in prepareWithdrawConfirmation', async () => {
+    it('throws error when signer address is missing in signWithdraw', async () => {
       const provider = createProvider();
       const mockSigner = {
-        address: '0x1234567890123456789012345678901234567890',
+        address: '',
         signTypedMessage: jest.fn(),
         signPersonalMessage: jest.fn(),
       };
-
-      mockComputeProxyAddress.mockReturnValue('');
 
       await expect(
         provider.signWithdraw({
           callData: '0xcalldata',
           signer: mockSigner,
         }),
-      ).rejects.toThrow('Safe address not found');
+      ).rejects.toThrow('Signer address is required');
     });
   });
 

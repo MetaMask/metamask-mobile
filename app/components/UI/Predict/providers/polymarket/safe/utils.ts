@@ -715,6 +715,15 @@ export function getSafeUsdcAmount(data: string): number {
     throw new Error('Not an ERC20 transfer call');
   }
 
+  // Validate data length
+  // Expected format: 0x + selector (8 chars) + address (64 chars) + amount (64 chars) = 138 chars
+  const expectedLength = 2 + 8 + 64 + 64;
+  if (data.length < expectedLength) {
+    throw new Error(
+      `Invalid calldata length: expected at least ${expectedLength} characters, got ${data.length}`,
+    );
+  }
+
   // Extract amount (last 32 bytes)
   // data format: 0x + selector (8 chars) + address (64 chars) + amount (64 chars)
   // Account for the "0x" prefix (2 chars) in the string position

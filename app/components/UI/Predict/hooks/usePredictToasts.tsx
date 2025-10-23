@@ -64,10 +64,14 @@ export const usePredictToasts = ({
   const { toastRef } = useContext(ToastContext);
 
   const showPendingToast = useCallback(
-    ({ amount, config }: { amount?: string; config: PendingToastConfig }) => {
+    (amount?: string) => {
+      if (!pendingToastConfig) {
+        return;
+      }
+
       const title = amount
-        ? config.title.replace('{amount}', amount)
-        : config.title;
+        ? pendingToastConfig.title.replace('{amount}', amount)
+        : pendingToastConfig.title;
 
       return toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -75,7 +79,7 @@ export const usePredictToasts = ({
           { label: title, isBold: true },
           { label: '\n', isBold: false },
           {
-            label: config.description,
+            label: pendingToastConfig.description,
             isBold: false,
           },
         ],
@@ -93,7 +97,12 @@ export const usePredictToasts = ({
         ),
       });
     },
-    [theme.colors.accent04.dark, theme.colors.accent04.normal, toastRef],
+    [
+      pendingToastConfig,
+      theme.colors.accent04.dark,
+      theme.colors.accent04.normal,
+      toastRef,
+    ],
   );
 
   const showConfirmedToast = useCallback(
@@ -173,12 +182,12 @@ export const usePredictToasts = ({
         return;
       }
 
-      if (transactionMeta.status === TransactionStatus.approved) {
-        if (!pendingToastConfig) {
-          return;
-        }
+      if (
+        transactionMeta.status === TransactionStatus.approved &&
+        pendingToastConfig
+      ) {
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
-        showPendingToast({ amount, config: pendingToastConfig });
+        showPendingToast(amount);
       }
 
       if (transactionMeta.status === TransactionStatus.confirmed) {

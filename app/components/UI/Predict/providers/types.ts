@@ -155,7 +155,7 @@ export interface GetPredictWalletParams {
 }
 
 export interface AccountState {
-  address: string;
+  address: Hex;
   isDeployed: boolean;
   hasAllowances: boolean;
 }

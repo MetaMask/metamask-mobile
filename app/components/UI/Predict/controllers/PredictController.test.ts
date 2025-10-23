@@ -821,7 +821,7 @@ describe('PredictController', () => {
     it('tracks analytics with account state when available', async () => {
       await withController(async ({ controller }) => {
         const mockAccountState = {
-          address: '0xSafeAddress123',
+          address: '0xSafeAddress123' as `0x${string}`,
           isDeployed: true,
           hasAllowances: true,
         };
@@ -2189,7 +2189,7 @@ describe('PredictController', () => {
     it('successfully retrieve account state', async () => {
       // Given a valid account state
       const mockAccountState = {
-        address: '0xProxyAddress',
+        address: '0xProxyAddress' as `0x${string}`,
         isDeployed: true,
         hasAllowances: true,
         balance: 100.5,

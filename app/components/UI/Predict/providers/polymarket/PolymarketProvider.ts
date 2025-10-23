@@ -565,12 +565,15 @@ export class PolymarketProvider implements PredictProvider {
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
     const { positions, signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
     const safeAddress =
       this.#accountStateByAddress.get(signer.address)?.address ??
       (await this.getAccountState({ ownerAddress: signer.address })).address;
-    if (!safeAddress) {
-      throw new Error('Safe address not found');
-    }
+
     const claimTransaction = await getClaimTransaction({
       signer,
       positions,
@@ -697,12 +700,14 @@ export class PolymarketProvider implements PredictProvider {
     params: PrepareWithdrawParams & { signer: Signer },
   ): Promise<PrepareWithdrawResponse> {
     const { signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
     const safeAddress =
       this.#accountStateByAddress.get(signer.address)?.address ??
       (await this.getAccountState({ ownerAddress: signer.address })).address;
-    if (!safeAddress) {
-      throw new Error('Safe address not found');
-    }
 
     const callData = encodeErc20Transfer({
       to: signer.address,
@@ -718,7 +723,7 @@ export class PolymarketProvider implements PredictProvider {
         },
         type: TransactionType.predictWithdraw,
       },
-      predictAddress: safeAddress as Hex,
+      predictAddress: safeAddress,
     };
   }
 
@@ -727,13 +732,13 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<SignWithdrawResponse> {
     const { callData, signer } = params;
 
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
     const safeAddress =
       this.#accountStateByAddress.get(signer.address)?.address ??
       computeProxyAddress(signer.address);
-
-    if (!safeAddress) {
-      throw new Error('Safe address not found');
-    }
 
     const signedCallData = await getWithdrawTransactionCallData({
       data: callData,

@@ -1374,11 +1374,30 @@ export class PredictController extends BaseController<
       to: this.state.withdrawTransaction?.predictAddress as Hex,
     };
 
-    const { gas: updatedGas } = await this.messagingSystem.call(
-      'TransactionController:estimateGas',
-      newParams,
-      networkClientId,
-    );
+    // Attempt to estimate gas for the updated transaction
+    let updatedGas: Hex | undefined;
+    try {
+      const estimateResult = await this.messagingSystem.call(
+        'TransactionController:estimateGas',
+        newParams,
+        networkClientId,
+      );
+      updatedGas = estimateResult.gas;
+    } catch (error) {
+      // Log the error but continue - we'll use the original gas values
+      DevLogger.log(
+        'PredictController: Gas estimation failed in beforeSign, using original gas values',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        },
+      );
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.status = PredictWithdrawStatus.ERROR;
+        }
+      });
+    }
 
     this.update((state) => {
       if (state.withdrawTransaction) {
@@ -1392,8 +1411,11 @@ export class PredictController extends BaseController<
         transaction.txParams.data = callData;
         transaction.txParams.to = this.state.withdrawTransaction
           ?.predictAddress as Hex;
-        transaction.txParams.gas = updatedGas;
-        transaction.txParams.gasLimit = updatedGas;
+        // Only update gas if estimation succeeded
+        if (updatedGas) {
+          transaction.txParams.gas = updatedGas;
+          transaction.txParams.gasLimit = updatedGas;
+        }
       },
     };
   }
