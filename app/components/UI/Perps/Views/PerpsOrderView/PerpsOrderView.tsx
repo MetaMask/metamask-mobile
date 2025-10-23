@@ -108,6 +108,7 @@ import {
 import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 
 // Navigation params interface
@@ -580,6 +581,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
       limitPrice: orderForm.limitPrice,
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
+      amount: orderForm.amount,
+      szDecimals: marketData?.szDecimals,
       onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
         // Use the same clearing approach as the "Off" button
         // If values are undefined or empty, ensure they're cleared properly
@@ -599,11 +602,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.leverage,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
+    orderForm.amount,
     assetData.price,
     showToast,
     navigation,
     setTakeProfitPrice,
     setStopLossPrice,
+    marketData?.szDecimals,
   ]);
 
   const handleAmountPress = () => {
@@ -830,11 +835,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
-  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
   const orderButtonKey =
     orderForm.direction === 'long'
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
+  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, { asset: orderForm.asset });
@@ -848,11 +853,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
       ),
   );
 
+  let rewardAnimationState = RewardAnimationState.Idle;
+  if (rewardsState.isLoading) {
+    rewardAnimationState = RewardAnimationState.Loading;
+  } else if (rewardsState.hasError) {
+    rewardAnimationState = RewardAnimationState.ErrorState;
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
       <PerpsOrderHeader
-        asset={orderForm.asset}
+        asset={getPerpsDisplaySymbol(orderForm.asset)}
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderForm.type}
@@ -871,7 +883,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
-          tokenSymbol={orderForm.asset}
+          tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
         />
 
@@ -1149,13 +1161,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                       strings('perps.points_error_content'),
                     )
                   }
-                  state={(() => {
-                    if (rewardsState.isLoading)
-                      return RewardAnimationState.Loading;
-                    if (rewardsState.hasError)
-                      return RewardAnimationState.ErrorState;
-                    return RewardAnimationState.Idle;
-                  })()}
+                  state={rewardAnimationState}
                 />
               </View>
             </View>

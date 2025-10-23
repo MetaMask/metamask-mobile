@@ -114,6 +114,7 @@ export type PredictOutcome = {
   negRisk?: boolean;
   tickSize?: string;
   resolvedBy?: string;
+  resolutionStatus?: string;
 };
 
 export type PredictOutcomeToken = {

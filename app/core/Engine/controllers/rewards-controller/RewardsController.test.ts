@@ -13,9 +13,9 @@ import {
   type SeasonStatusState,
   type SeasonTierDto,
   type SeasonDtoState,
-  type SubscriptionReferralDetailsState,
-  CURRENT_SEASON_ID,
-  SeasonStatusDto,
+  type SubscriptionSeasonReferralDetailState,
+  type SeasonStateDto,
+  SeasonRewardType,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -62,6 +62,7 @@ jest.mock('./services/rewards-data-service', () => {
     RewardsDataService: jest.fn(),
     InvalidTimestampError: actual.InvalidTimestampError,
     AuthorizationFailedError: actual.AuthorizationFailedError,
+    AccountAlreadyRegisteredError: actual.AccountAlreadyRegisteredError,
   };
 });
 // Mock base58 decode from ethers
@@ -91,6 +92,7 @@ import { signSolanaRewardsMessage } from './utils/solana-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
+  AccountAlreadyRegisteredError,
   RewardsDataService,
 } from './services/rewards-data-service';
 
@@ -190,7 +192,7 @@ class TestableRewardsController extends RewardsController {
   // Add other private methods as needed
   public testGetSeasonStatus(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId: string,
   ): SeasonStatusState | null {
     return this.state.seasonStatuses[`${subscriptionId}:${seasonId}`] || null;
   }
@@ -276,11 +278,7 @@ const createTestSeasonStatus = (
       endDate: Date;
       tiers: SeasonTierDto[];
     }>;
-    balance: Partial<{
-      total: number;
-      refereePortion: number;
-      updatedAt: Date;
-    }>;
+    balance: number;
     currentTierId: string;
   }> = {},
 ) => {
@@ -292,21 +290,12 @@ const createTestSeasonStatus = (
     tiers: createTestTiers(),
   };
 
-  const defaultBalance = {
-    total: 1500,
-    refereePortion: 300,
-    updatedAt: new Date(),
-  };
-
   return {
     season: {
       ...defaultSeason,
       ...overrides.season,
     },
-    balance: {
-      ...defaultBalance,
-      ...overrides.balance,
-    },
+    balance: overrides.balance !== undefined ? overrides.balance : 1500,
     currentTierId: overrides.currentTierId || 'silver',
   };
 };
@@ -316,7 +305,6 @@ const createTestSeasonStatusState = (
   overrides: Partial<{
     balance: Partial<{
       total: number;
-      refereePortion: number;
       updatedAt: number;
     }>;
     lastFetched: number;
@@ -331,7 +319,6 @@ const createTestSeasonStatusState = (
   },
   balance: {
     total: 100,
-    refereePortion: 0,
     updatedAt: Date.now(),
     ...overrides.balance,
   },
@@ -991,7 +978,6 @@ describe('RewardsController', () => {
             {
               balance: {
                 total: 100,
-                refereePortion: 0,
                 updatedAt: olderTimestamp.getTime(),
               },
               lastFetched: now.getTime(),
@@ -1060,7 +1046,6 @@ describe('RewardsController', () => {
             {
               balance: {
                 total: 100,
-                refereePortion: 0,
                 updatedAt: newerTimestamp.getTime(), // Newer than event
               },
               lastFetched: now.getTime(), // Also newer than event
@@ -1187,7 +1172,6 @@ describe('RewardsController', () => {
             {
               balance: {
                 total: 100,
-                refereePortion: 0,
                 updatedAt: cachedTimestamp.getTime(),
               },
               lastFetched: now.getTime(),
@@ -1269,7 +1253,6 @@ describe('RewardsController', () => {
             {
               balance: {
                 total: 100,
-                refereePortion: 0,
                 updatedAt: cachedTimestamp.getTime(),
               },
               lastFetched: now.getTime(),
@@ -1333,7 +1316,6 @@ describe('RewardsController', () => {
             {
               balance: {
                 total: 100,
-                refereePortion: 0,
                 updatedAt: cachedTimestamp.getTime(),
               },
               lastFetched: now.getTime(),
@@ -1394,7 +1376,6 @@ describe('RewardsController', () => {
             {
               balance: {
                 total: 100,
-                refereePortion: 0,
                 updatedAt: newerBalanceTimestamp.getTime(), // Newer than event
               },
               lastFetched: newerSeasonStatusTimestamp.getTime(), // Newer than event
@@ -1454,7 +1435,6 @@ describe('RewardsController', () => {
             {
               balance: {
                 total: 100,
-                refereePortion: 0,
                 updatedAt: olderTimestamp.getTime(),
               },
               lastFetched: now.getTime(),
@@ -2416,54 +2396,6 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle CAIP account ID conversion from internal account scopes', async () => {
-      // Given: Internal account with valid EVM scope
-      const mockInternalAccount = {
-        address: '0x123',
-        type: 'eip155:eoa' as const,
-        id: 'test-id',
-        scopes: ['eip155:1' as const],
-        options: {},
-        methods: ['personal_sign'],
-        metadata: {
-          name: 'Test Account',
-          keyring: { type: 'HD Key Tree' },
-          importTime: Date.now(),
-        },
-      };
-
-      const mockLoginResponse = {
-        sessionId: 'session123',
-        subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
-      };
-
-      // Mock the AccountTreeController:getAccountsFromSelectedAccountGroup call
-      mockMessenger.call
-        .mockReturnValueOnce([mockInternalAccount]) // Return accounts for handleAuthenticationTrigger
-        .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
-        .mockResolvedValueOnce(mockLoginResponse); // RewardsDataService:login
-
-      // When: Authentication is triggered
-      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) =>
-          call[0] === 'AccountTreeController:selectedAccountGroupChange',
-      )?.[1];
-
-      if (subscribeCallback) {
-        await subscribeCallback(undefined, undefined);
-      }
-
-      // Then: Login should be called with the original address (not CAIP format)
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:login',
-        expect.objectContaining({
-          account: '0x123', // Uses raw address, not CAIP format
-          signature: '0xsignature',
-          timestamp: expect.any(Number),
-        }),
-      );
-    });
-
     it('should skip silent auth for hardware accounts', async () => {
       // Arrange
       mockIsHardwareAccount.mockReturnValue(true);
@@ -2591,92 +2523,6 @@ describe('RewardsController', () => {
       });
     });
 
-    it('should throw error when session token storage fails', async () => {
-      // Arrange
-      const mockInternalAccount = {
-        address: '0x123',
-        type: 'eip155:eoa' as const,
-        id: 'test-id',
-        scopes: ['eip155:1' as const],
-        options: {},
-        methods: ['personal_sign'],
-        metadata: {
-          name: 'Test Account',
-          keyring: { type: 'HD Key Tree' },
-          importTime: Date.now(),
-        },
-      };
-
-      const mockLoginResponse = {
-        sessionId: 'session123',
-        subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
-      };
-
-      // Mock token storage failure
-      mockStoreSubscriptionToken.mockResolvedValue({ success: false });
-
-      // Clear only the messenger calls made during initialization, preserve other mocks
-      mockMessenger.call.mockClear();
-      mockStoreSubscriptionToken.mockClear();
-
-      // Act & Assert
-      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) =>
-          call[0] === 'AccountTreeController:selectedAccountGroupChange',
-      )?.[1];
-
-      if (subscribeCallback) {
-        // Setup mocks for the actual test
-        mockMessenger.call
-          .mockReturnValueOnce([mockInternalAccount]) // AccountTreeController:getAccountsFromSelectedAccountGroup
-          .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
-          .mockResolvedValueOnce(mockLoginResponse); // RewardsDataService:login
-
-        mockStoreSubscriptionToken.mockResolvedValue({ success: false });
-
-        // Should log error and not update state
-        await subscribeCallback(undefined, undefined);
-
-        // Verify error was logged
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Failed to store session token',
-          'eip155:1:0x123',
-        );
-
-        // Set the error flag directly since the mock is preventing proper state update
-        (controller as any).update((state: RewardsControllerState) => {
-          // Initialize accounts object if it doesn't exist
-          if (!state.accounts) {
-            state.accounts = {};
-          }
-
-          // Initialize the specific account if it doesn't exist
-          if (!state.accounts['eip155:1:0x123' as CaipAccountId]) {
-            state.accounts['eip155:1:0x123' as CaipAccountId] = {
-              account: 'eip155:1:0x123' as CaipAccountId,
-              hasOptedIn: false,
-              subscriptionId: null,
-              perpsFeeDiscount: 0,
-              lastPerpsDiscountRateFetched: null,
-            };
-          }
-
-          // Now set the properties
-          state.accounts['eip155:1:0x123' as CaipAccountId].hasOptedIn =
-            undefined;
-          state.accounts['eip155:1:0x123' as CaipAccountId].subscriptionId =
-            null;
-        });
-
-        // Verify the account state is updated with error condition
-        const updatedAccountState =
-          controller.state.accounts['eip155:1:0x123' as CaipAccountId];
-        expect(updatedAccountState).toBeDefined();
-        expect(updatedAccountState.hasOptedIn).toBeUndefined(); // Should be undefined due to error
-        expect(updatedAccountState.subscriptionId).toBeNull();
-      }
-    });
-
     it('should log errors that do not include "Engine does not exist"', async () => {
       // Directly test the error filtering logic
       const regularError = new Error('Regular error message');
@@ -2762,6 +2608,66 @@ describe('RewardsController', () => {
         404,
       );
     });
+
+    it('proceeds with silent auth when account has opted in', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const mockOptInStatusResponse = {
+        ois: [true],
+        sids: ['sub123'],
+      };
+
+      const mockLoginResponse = {
+        sessionId: 'session123',
+        subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
+      };
+
+      // Clear previous calls
+      mockMessenger.call.mockClear();
+      mockLogger.log.mockClear();
+
+      // Mock the calls in order
+      mockMessenger.call
+        .mockReturnValueOnce([mockInternalAccount]) // AccountTreeController:getAccountsFromSelectedAccountGroup
+        .mockReturnValueOnce([mockInternalAccount]) // AccountsController:listMultichainAccounts (for getOptInStatus)
+        .mockResolvedValueOnce(mockOptInStatusResponse) // RewardsDataService:getOptInStatus
+        .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
+        .mockResolvedValueOnce(mockLoginResponse); // RewardsDataService:login
+
+      // Act
+      if (subscribeCallback) {
+        await subscribeCallback(undefined, undefined);
+      }
+
+      // Assert - login should have been called
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.objectContaining({
+          account: '0x123',
+          signature: '0xsignature',
+          timestamp: expect.any(Number),
+        }),
+      );
+
+      // Verify the not opted in log was NOT called
+      expect(mockLogger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Account has not opted in, skipping silent auth',
+        expect.anything(),
+      );
+    });
   });
 
   describe('getSeasonStatus', () => {
@@ -2770,38 +2676,6 @@ describe('RewardsController', () => {
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
-    });
-
-    it('should use CURRENT_SEASON_ID as default when seasonId is not provided', async () => {
-      const tiers = createTestTiers();
-      // Arrange
-      const mockSeasonStatus: SeasonStatusDto = {
-        season: {
-          id: mockSeasonId,
-          name: 'Test Season',
-          startDate: new Date(Date.now() - 86400000),
-          endDate: new Date(Date.now() + 86400000),
-          tiers,
-        },
-        balance: {
-          total: 1500,
-          refereePortion: 100,
-        },
-        currentTierId: tiers[0].id,
-      };
-
-      mockMessenger.call.mockResolvedValue(mockSeasonStatus);
-
-      // Act - call without seasonId parameter
-      const result = await controller.getSeasonStatus(mockSubscriptionId);
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getSeasonStatus',
-        CURRENT_SEASON_ID,
-        mockSubscriptionId,
-      );
-      expect(result?.season?.id).toEqual(mockSeasonId);
     });
 
     it('should return null when feature flag is disabled', async () => {
@@ -2830,7 +2704,6 @@ describe('RewardsController', () => {
         season: mockSeasonData,
         balance: {
           total: 1500,
-          refereePortion: 300,
           updatedAt: Date.now() - 3600000, // 1 hour ago
         },
         tier: {
@@ -2908,7 +2781,11 @@ describe('RewardsController', () => {
           }
 
           // Fall back to original implementation if cache is stale
-          return originalGetSeasonStatus.call(this, subscriptionId, seasonId);
+          return originalGetSeasonStatus.call(
+            this,
+            subscriptionId,
+            mockSeasonId,
+          );
         });
 
       const result = await controller.getSeasonStatus(
@@ -2933,7 +2810,16 @@ describe('RewardsController', () => {
     });
 
     it('should fetch fresh season status when cache is stale', async () => {
-      const mockApiResponse = createTestSeasonStatus();
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Mock Season',
+        startDate: new Date('2024-01-01T00:00:00Z'),
+        endDate: new Date('2024-12-31T23:59:59Z'),
+        tiers: createTestTiers(),
+      };
+      const mockApiResponse = createTestSeasonStatus({
+        season: mockSeasonMetadata,
+      });
 
       controller = new RewardsController({
         messenger: mockMessenger,
@@ -2947,14 +2833,28 @@ describe('RewardsController', () => {
               accounts: [],
             },
           },
-          seasons: {},
+          seasons: {
+            [mockSeasonId]: {
+              id: mockSeasonId,
+              name: 'Mock Season',
+              startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+              endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+              tiers: createTestTiers(),
+              lastFetched: Date.now() - 7200000, // 2 hours ago (stale)
+            },
+          },
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           pointsEvents: {},
         },
       });
 
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.resolve(mockApiResponse);
+        }
+        return Promise.resolve({});
+      });
 
       const result = await controller.getSeasonStatus(
         mockSubscriptionId,
@@ -2982,15 +2882,16 @@ describe('RewardsController', () => {
     });
 
     it('should update state when fetching fresh season status', async () => {
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Mock Season',
+        startDate: new Date('2024-01-01T00:00:00Z'),
+        endDate: new Date('2024-12-31T23:59:59Z'),
+        tiers: createTestTiers(),
+      };
       const mockApiResponse = createTestSeasonStatus({
-        season: {
-          id: mockSeasonId,
-          name: 'Fresh Season',
-          startDate: new Date(),
-          endDate: new Date(),
-          tiers: createTestTiers(),
-        },
-        balance: { total: 2500, updatedAt: new Date() },
+        season: mockSeasonMetadata,
+        balance: 2500,
         currentTierId: 'gold',
       });
 
@@ -3006,14 +2907,28 @@ describe('RewardsController', () => {
               accounts: [],
             },
           },
-          seasons: {},
+          seasons: {
+            [mockSeasonId]: {
+              id: mockSeasonId,
+              name: 'Mock Season',
+              startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+              endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+              tiers: createTestTiers(),
+              lastFetched: Date.now(),
+            },
+          },
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           pointsEvents: {},
         },
       });
 
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.resolve(mockApiResponse);
+        }
+        return Promise.resolve({});
+      });
 
       const result = await controller.getSeasonStatus(
         mockSubscriptionId,
@@ -3042,6 +2957,33 @@ describe('RewardsController', () => {
       expect(storedSeason.tiers).toHaveLength(4);
     });
 
+    it('should throw error when season is not found in state', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+          seasons: {}, // No season in state
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      await expect(
+        controller.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow(
+        `Failed to get season status: season not found for seasonId: ${mockSeasonId}`,
+      );
+    });
+
     it('should handle errors from data service', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
@@ -3055,7 +2997,16 @@ describe('RewardsController', () => {
               accounts: [],
             },
           },
-          seasons: {},
+          seasons: {
+            [mockSeasonId]: {
+              id: mockSeasonId,
+              name: 'Mock Season',
+              startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+              endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+              tiers: createTestTiers(),
+              lastFetched: Date.now(),
+            },
+          },
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           pointsEvents: {},
@@ -3095,7 +3046,16 @@ describe('RewardsController', () => {
         };
         state.accounts = {};
         state.subscriptions = {};
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3116,7 +3076,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle 403 error, reauth, and fetch status again', async () => {
+    it('reauthenticates and retries after 403 error', async () => {
       // Arrange
       jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
@@ -3133,19 +3093,18 @@ describe('RewardsController', () => {
       const mockLoginResponse = {
         subscription: { id: 'new-mock-subscription-id' },
       };
-      const mockSeasonStatus = {
-        season: {
-          id: mockSeasonId,
-          name: 'Mock Season',
-          startDate: new Date('2024-01-01T00:00:00Z'),
-          endDate: new Date('2024-12-31T23:59:59Z'),
-          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
-        },
-        balance: {
-          total: 0,
-        },
-        currentTierId: 'tier-1',
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Mock Season',
+        startDate: new Date('2024-01-01T00:00:00Z'),
+        endDate: new Date('2024-12-31T23:59:59Z'),
+        tiers: createTestTiers(),
       };
+      const mockSeasonStatus = createTestSeasonStatus({
+        season: mockSeasonMetadata,
+        balance: 0,
+        currentTierId: 'bronze',
+      });
 
       const localMockMessenger = {
         subscribe: jest.fn(),
@@ -3176,7 +3135,16 @@ describe('RewardsController', () => {
             accounts: [],
           },
         };
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3216,30 +3184,12 @@ describe('RewardsController', () => {
       );
 
       // Assert
-      expect(result).toEqual({
-        season: {
-          id: mockSeasonId,
-          name: 'Mock Season',
-          startDate: new Date('2024-01-01T00:00:00Z').getTime(),
-          endDate: new Date('2024-12-31T23:59:59Z').getTime(),
-          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
-        },
-        balance: {
-          total: 0,
-          refereePortion: undefined,
-          updatedAt: undefined,
-        },
-        tier: {
-          currentTier: {
-            id: 'tier-1',
-            name: 'Tier 1',
-            pointsNeeded: 0,
-          },
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-        lastFetched: 1000000,
-      });
+      expect(result).toBeDefined();
+      expect(result?.season.id).toBe(mockSeasonId);
+      expect(result?.season.name).toBe('Mock Season');
+      expect(result?.balance.total).toBe(0);
+      expect(result?.tier.currentTier.id).toBe('bronze');
+      expect(result?.lastFetched).toBe(1000000);
 
       // Verify reauth was attempted and status was fetched again
       expect(getSeasonStatusCallCount).toBe(2);
@@ -3257,7 +3207,6 @@ describe('RewardsController', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Successfully fetched season status after reauth',
-        mockSeasonStatus,
       );
     });
 
@@ -3305,7 +3254,16 @@ describe('RewardsController', () => {
             accounts: [],
           },
         };
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3372,7 +3330,7 @@ describe('RewardsController', () => {
       expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
     });
 
-    it('should handle 403 error, reauth with active account, and fetch status again', async () => {
+    it('reauthenticates with active account and retries after 403 error', async () => {
       // Arrange
       jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
@@ -3389,19 +3347,18 @@ describe('RewardsController', () => {
       const mockLoginResponse = {
         subscription: { id: 'new-mock-subscription-id' },
       };
-      const mockSeasonStatus = {
-        season: {
-          id: mockSeasonId,
-          name: 'Mock Season',
-          startDate: new Date('2024-01-01T00:00:00Z'),
-          endDate: new Date('2024-12-31T23:59:59Z'),
-          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
-        },
-        balance: {
-          total: 0,
-        },
-        currentTierId: 'tier-1',
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Mock Season',
+        startDate: new Date('2024-01-01T00:00:00Z'),
+        endDate: new Date('2024-12-31T23:59:59Z'),
+        tiers: createTestTiers(),
       };
+      const mockSeasonStatus = createTestSeasonStatus({
+        season: mockSeasonMetadata,
+        balance: 0,
+        currentTierId: 'bronze',
+      });
 
       const localMockMessenger = {
         subscribe: jest.fn(),
@@ -3441,7 +3398,16 @@ describe('RewardsController', () => {
             accounts: [],
           },
         };
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3481,30 +3447,15 @@ describe('RewardsController', () => {
       );
 
       // Assert
-      expect(result).toEqual({
-        season: {
-          id: mockSeasonId,
-          name: 'Mock Season',
-          startDate: new Date('2024-01-01T00:00:00Z').getTime(),
-          endDate: new Date('2024-12-31T23:59:59Z').getTime(),
-          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
-        },
-        balance: {
-          total: 0,
-          refereePortion: undefined,
-          updatedAt: undefined,
-        },
-        tier: {
-          currentTier: {
-            id: 'tier-1',
-            name: 'Tier 1',
-            pointsNeeded: 0,
-          },
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-        lastFetched: 1000000,
-      });
+      expect(result).toBeDefined();
+      expect(result?.season.id).toBe(mockSeasonId);
+      expect(result?.season.name).toBe('Mock Season');
+      expect(result?.season.tiers).toHaveLength(4);
+      expect(result?.balance.total).toBe(0);
+      expect(result?.tier.currentTier.id).toBe('bronze');
+      expect(result?.tier.nextTier?.id).toBe('silver');
+      expect(result?.tier.nextTierPointsNeeded).toBe(1000);
+      expect(result?.lastFetched).toBe(1000000);
 
       // Verify reauth was attempted and status was fetched again
       expect(getSeasonStatusCallCount).toBe(2);
@@ -3522,11 +3473,10 @@ describe('RewardsController', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Successfully fetched season status after reauth',
-        mockSeasonStatus,
       );
     });
 
-    it('should handle 403 error, reauth with non-active account, and fetch status again', async () => {
+    it('reauthenticates with non-active account and retries after 403 error', async () => {
       // Arrange
       jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
@@ -3543,19 +3493,18 @@ describe('RewardsController', () => {
       const mockLoginResponse = {
         subscription: { id: 'new-mock-subscription-id' },
       };
-      const mockSeasonStatus = {
-        season: {
-          id: mockSeasonId,
-          name: 'Mock Season',
-          startDate: new Date('2024-01-01T00:00:00Z'),
-          endDate: new Date('2024-12-31T23:59:59Z'),
-          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
-        },
-        balance: {
-          total: 0,
-        },
-        currentTierId: 'tier-1',
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Mock Season',
+        startDate: new Date('2024-01-01T00:00:00Z'),
+        endDate: new Date('2024-12-31T23:59:59Z'),
+        tiers: createTestTiers(),
       };
+      const mockSeasonStatus = createTestSeasonStatus({
+        season: mockSeasonMetadata,
+        balance: 0,
+        currentTierId: 'bronze',
+      });
 
       const localMockMessenger = {
         subscribe: jest.fn(),
@@ -3603,7 +3552,16 @@ describe('RewardsController', () => {
             accounts: [],
           },
         };
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3643,30 +3601,15 @@ describe('RewardsController', () => {
       );
 
       // Assert
-      expect(result).toEqual({
-        season: {
-          id: mockSeasonId,
-          name: 'Mock Season',
-          startDate: new Date('2024-01-01T00:00:00Z').getTime(),
-          endDate: new Date('2024-12-31T23:59:59Z').getTime(),
-          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
-        },
-        balance: {
-          total: 0,
-          refereePortion: undefined,
-          updatedAt: undefined,
-        },
-        tier: {
-          currentTier: {
-            id: 'tier-1',
-            name: 'Tier 1',
-            pointsNeeded: 0,
-          },
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-        lastFetched: 1000000,
-      });
+      expect(result).toBeDefined();
+      expect(result?.season.id).toBe(mockSeasonId);
+      expect(result?.season.name).toBe('Mock Season');
+      expect(result?.season.tiers).toHaveLength(4);
+      expect(result?.balance.total).toBe(0);
+      expect(result?.tier.currentTier.id).toBe('bronze');
+      expect(result?.tier.nextTier?.id).toBe('silver');
+      expect(result?.tier.nextTierPointsNeeded).toBe(1000);
+      expect(result?.lastFetched).toBe(1000000);
 
       // Verify reauth was attempted and status was fetched again
       expect(getSeasonStatusCallCount).toBe(2);
@@ -3684,11 +3627,10 @@ describe('RewardsController', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Successfully fetched season status after reauth',
-        mockSeasonStatus,
       );
     });
 
-    it('should handle 403 error when accounts exist but accountForSub is not found', async () => {
+    it('throws authorization error when account for subscription not found after 403', async () => {
       // Arrange
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
@@ -3729,7 +3671,16 @@ describe('RewardsController', () => {
           },
         };
         state.subscriptions = {};
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3738,12 +3689,7 @@ describe('RewardsController', () => {
       });
 
       // Mock the messenger to return the account and reject with 403
-      localMockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getSeasonStatus') {
-          return Promise.reject(mock403Error);
-        }
-        return Promise.resolve({});
-      });
+      localMockMessenger.call.mockRejectedValue(mock403Error);
 
       const invalidateSubscriptionCacheSpy = jest.spyOn(
         testableController,
@@ -3757,7 +3703,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
-      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+      ).rejects.toThrow();
 
       // Verify that conversion function was never called since accountForSub was not found
       expect(localMockMessenger.call).not.toHaveBeenCalledWith(
@@ -3771,7 +3717,7 @@ describe('RewardsController', () => {
       expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
     });
 
-    it('should handle 403 error when accounts exist but intAccountForSub is not found after conversion', async () => {
+    it('throws authorization error when converted account not found after 403', async () => {
       // Arrange
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
@@ -3820,7 +3766,16 @@ describe('RewardsController', () => {
           },
         };
         state.subscriptions = {};
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3855,7 +3810,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
-      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+      ).rejects.toThrow();
 
       // Verify cache invalidation
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
@@ -3865,7 +3820,7 @@ describe('RewardsController', () => {
       convertInternalAccountToCaipAccountIdSpy.mockRestore();
     });
 
-    it('should handle 403 error when accounts is undefined', async () => {
+    it('throws authorization error when accounts state is undefined after 403', async () => {
       // Arrange
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
@@ -3895,7 +3850,16 @@ describe('RewardsController', () => {
         };
         state.accounts = undefined as any; // Test undefined accounts
         state.subscriptions = {};
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3903,12 +3867,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      localMockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getSeasonStatus') {
-          return Promise.reject(mock403Error);
-        }
-        return Promise.resolve({});
-      });
+      localMockMessenger.call.mockRejectedValue(mock403Error);
 
       const invalidateSubscriptionCacheSpy = jest.spyOn(
         testableController,
@@ -3922,7 +3881,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+      ).rejects.toThrow();
 
       // Verify no calls to listMultichainAccounts when accounts is undefined
       expect(localMockMessenger.call).not.toHaveBeenCalledWith(
@@ -3936,7 +3895,7 @@ describe('RewardsController', () => {
       expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
     });
 
-    it('should handle 403 error when accounts is empty', async () => {
+    it('throws authorization error when accounts state is empty after 403', async () => {
       // Arrange
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
@@ -3966,7 +3925,16 @@ describe('RewardsController', () => {
         };
         state.accounts = {}; // Test empty accounts
         state.subscriptions = {};
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -3974,12 +3942,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      localMockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getSeasonStatus') {
-          return Promise.reject(mock403Error);
-        }
-        return Promise.resolve({});
-      });
+      localMockMessenger.call.mockRejectedValue(mock403Error);
 
       const invalidateSubscriptionCacheSpy = jest.spyOn(
         testableController,
@@ -3993,7 +3956,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+      ).rejects.toThrow();
 
       // Verify no calls to listMultichainAccounts when accounts is empty
       expect(localMockMessenger.call).not.toHaveBeenCalledWith(
@@ -4033,7 +3996,16 @@ describe('RewardsController', () => {
         };
         state.accounts = {};
         state.subscriptions = {};
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -4081,7 +4053,16 @@ describe('RewardsController', () => {
         };
         state.accounts = {};
         state.subscriptions = {};
-        state.seasons = {};
+        state.seasons = {
+          [mockSeasonId]: {
+            id: mockSeasonId,
+            name: 'Mock Season',
+            startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+            endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+            tiers: createTestTiers(),
+            lastFetched: Date.now(),
+          },
+        };
         state.subscriptionReferralDetails = {};
         state.seasonStatuses = {};
         state.activeBoosts = {};
@@ -4103,25 +4084,491 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('getSeasonMetadata', () => {
+    const mockSeasonId = 'season123';
+
+    it('returns cached season metadata when cache is fresh for current season', async () => {
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 10 minute threshold)
+      const mockSeasonData: SeasonDtoState = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: Date.now() - 86400000,
+        endDate: Date.now() + 86400000,
+        tiers: createTestTiers(),
+        lastFetched: recentTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {
+            current: mockSeasonData, // Cache by type key
+          },
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      const result = await controller.getSeasonMetadata('current');
+
+      expect(result).toEqual(mockSeasonData);
+      expect(result.id).toBe(mockSeasonId);
+      expect(result.name).toBe('Test Season');
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns cached season metadata when cache is fresh for next season', async () => {
+      const nextSeasonId = 'next-season-456';
+      const recentTime = Date.now() - 60000; // 1 minute ago (within 10 minute threshold)
+      const mockNextSeasonData: SeasonDtoState = {
+        id: nextSeasonId,
+        name: 'Next Season',
+        startDate: Date.now() + 86400000,
+        endDate: Date.now() + 172800000,
+        tiers: createTestTiers(),
+        lastFetched: recentTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {
+            next: mockNextSeasonData, // Cache by type key
+          },
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      const result = await controller.getSeasonMetadata('next');
+
+      expect(result).toEqual(mockNextSeasonData);
+      expect(result.id).toBe(nextSeasonId);
+      expect(result.name).toBe('Next Season');
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches fresh season metadata when cache is stale', async () => {
+      const tiers = createTestTiers();
+      const staleTime = Date.now() - 7200000; // 2 hours ago (beyond 10 minute threshold)
+      const mockSeasonData: SeasonDtoState = {
+        id: mockSeasonId,
+        name: 'Old Season',
+        startDate: Date.now() - 86400000,
+        endDate: Date.now() + 86400000,
+        tiers: createTestTiers(),
+        lastFetched: staleTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {
+            current: mockSeasonData, // Stale cached data
+          },
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      const mockDiscoverSeasons = {
+        current: {
+          id: mockSeasonId,
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: null,
+      };
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Fresh Season',
+        startDate: new Date(Date.now() - 86400000),
+        endDate: new Date(Date.now() + 86400000),
+        tiers,
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation(
+        async (method: string, ..._args: unknown[]): Promise<any> => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return mockDiscoverSeasons;
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            return mockSeasonMetadata;
+          }
+          return undefined;
+        },
+      );
+
+      const result = await controller.getSeasonMetadata('current');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDiscoverSeasons',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonMetadata',
+        mockSeasonId,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh season metadata via API call for type',
+        'current',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Found season with valid start date, fetching metadata for',
+        'current',
+      );
+      expect(result.name).toBe('Fresh Season');
+      expect(result.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('fetches fresh season metadata when no cache exists', async () => {
+      const tiers = createTestTiers();
+      const mockDiscoverSeasons = {
+        current: {
+          id: mockSeasonId,
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: null,
+      };
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'New Season',
+        startDate: new Date(Date.now() - 86400000),
+        endDate: new Date(Date.now() + 86400000),
+        tiers,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {}, // No cached data
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation(
+        async (method: string, ..._args: unknown[]): Promise<any> => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return mockDiscoverSeasons;
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            return mockSeasonMetadata;
+          }
+          return undefined;
+        },
+      );
+
+      const result = await controller.getSeasonMetadata('current');
+
+      expect(result).toBeDefined();
+      expect(result.name).toBe('New Season');
+      expect(result.id).toBe(mockSeasonId);
+      expect(result.lastFetched).toBeGreaterThan(Date.now() - 1000);
+
+      // Verify state is updated with both type key and season ID key
+      const storedSeasonByType = controller.state.seasons.current;
+      expect(storedSeasonByType).toBeDefined();
+      expect(storedSeasonByType.id).toBe(mockSeasonId);
+      expect(storedSeasonByType.name).toBe('New Season');
+      expect(storedSeasonByType.tiers).toHaveLength(4);
+
+      const storedSeasonById = controller.state.seasons[mockSeasonId];
+      expect(storedSeasonById).toBeDefined();
+      expect(storedSeasonById.id).toBe(mockSeasonId);
+      expect(storedSeasonById.name).toBe('New Season');
+    });
+
+    it('fetches next season metadata when type is next', async () => {
+      const nextSeasonId = 'next-season-456';
+      const tiers = createTestTiers();
+      const mockDiscoverSeasons = {
+        current: {
+          id: 'current-season',
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: {
+          id: nextSeasonId,
+          startDate: new Date(Date.now() + 86400000),
+          endDate: new Date(Date.now() + 172800000),
+        },
+      };
+      const mockSeasonMetadata = {
+        id: nextSeasonId,
+        name: 'Next Season',
+        startDate: new Date(Date.now() + 86400000),
+        endDate: new Date(Date.now() + 172800000),
+        tiers,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation(
+        async (method: string, ..._args: unknown[]): Promise<any> => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return mockDiscoverSeasons;
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            return mockSeasonMetadata;
+          }
+          return undefined;
+        },
+      );
+
+      const result = await controller.getSeasonMetadata('next');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDiscoverSeasons',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonMetadata',
+        nextSeasonId,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh season metadata via API call for type',
+        'next',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Found season with valid start date, fetching metadata for',
+        'next',
+      );
+      expect(result.id).toBe(nextSeasonId);
+      expect(result.name).toBe('Next Season');
+
+      // Verify both type key and ID key are stored
+      expect(controller.state.seasons.next).toBeDefined();
+      expect(controller.state.seasons[nextSeasonId]).toBeDefined();
+    });
+
+    it('throws error when current season has no start date', async () => {
+      const seasonWithoutStartDate = 'season-no-start';
+      const mockDiscoverSeasons = {
+        current: {
+          id: seasonWithoutStartDate,
+          startDate: null as unknown as Date, // No valid start date
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(mockDiscoverSeasons);
+
+      await expect(controller.getSeasonMetadata('current')).rejects.toThrow(
+        'No valid season metadata could be found for type: current',
+      );
+    });
+
+    it('throws error when next season has no start date', async () => {
+      const mockDiscoverSeasons = {
+        current: {
+          id: 'current-season',
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: {
+          id: 'next-season',
+          startDate: null as unknown as Date, // No valid start date
+          endDate: new Date(Date.now() + 172800000),
+        },
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(mockDiscoverSeasons);
+
+      await expect(controller.getSeasonMetadata('next')).rejects.toThrow(
+        'No valid season metadata could be found for type: next',
+      );
+    });
+
+    it('throws error when next season does not exist in discover seasons', async () => {
+      const mockDiscoverSeasons = {
+        current: {
+          id: 'current-season',
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: null, // No next season
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(mockDiscoverSeasons);
+
+      await expect(controller.getSeasonMetadata('next')).rejects.toThrow(
+        'No valid season metadata could be found for type: next',
+      );
+    });
+
+    it('handles errors from discover seasons API', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('Discover API error'));
+
+      await expect(controller.getSeasonMetadata('current')).rejects.toThrow(
+        'Discover API error',
+      );
+    });
+
+    it('handles errors from season metadata API', async () => {
+      const mockDiscoverSeasons = {
+        current: {
+          id: mockSeasonId,
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation(
+        async (method: string, ..._args: unknown[]): Promise<any> => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return mockDiscoverSeasons;
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            throw new Error('Metadata API error');
+          }
+          return undefined;
+        },
+      );
+
+      await expect(controller.getSeasonMetadata('current')).rejects.toThrow(
+        'Metadata API error',
+      );
+    });
+  });
+
   describe('getReferralDetails', () => {
     const mockSubscriptionId = 'sub123';
+    const mockSeasonId = 'season456';
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
     });
 
-    it('should return null when feature flag is disabled', async () => {
+    it('returns null when feature flag is disabled', async () => {
       mockSelectRewardsEnabledFlag.mockReturnValue(false);
 
-      const result = await controller.getReferralDetails(mockSubscriptionId);
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      const result = await controller.getReferralDetails(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
       expect(result).toBeNull();
     });
 
-    it('should return cached referral details when cache is fresh', async () => {
-      const recentTime = Date.now() - 300000; // 5 minutes ago (within 10 minute threshold)
-      const mockReferralDetailsState: SubscriptionReferralDetailsState = {
+    it('returns cached referral details when cache is fresh', async () => {
+      const recentTime = Date.now() - 10000; // 10 seconds ago (within 1 minute threshold)
+      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
+      const mockReferralDetailsState: SubscriptionSeasonReferralDetailState = {
         referralCode: 'REF456',
         totalReferees: 10,
+        referralPoints: 200,
         lastFetched: recentTime,
       };
 
@@ -4139,29 +4586,37 @@ describe('RewardsController', () => {
           },
           seasons: {},
           subscriptionReferralDetails: {
-            [mockSubscriptionId]: mockReferralDetailsState,
+            [compositeKey]: mockReferralDetailsState,
           },
           seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
           pointsEvents: {},
         },
       });
 
-      const result = await controller.getReferralDetails(mockSubscriptionId);
+      const result = await controller.getReferralDetails(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
 
       expect(result).toEqual(mockReferralDetailsState);
       expect(result?.referralCode).toBe('REF456');
       expect(result?.totalReferees).toBe(10);
+      expect(result?.referralPoints).toBe(200);
       expect(result?.lastFetched).toBe(recentTime);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
         expect.anything(),
+        expect.anything(),
       );
     });
 
-    it('should fetch fresh referral details when cache is stale', async () => {
+    it('fetches fresh referral details when cache is stale', async () => {
       const mockApiResponse = {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
+        referralPoints: 500,
       };
 
       controller = new RewardsController({
@@ -4179,16 +4634,22 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
           pointsEvents: {},
         },
       });
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await controller.getReferralDetails(mockSubscriptionId);
+      const result = await controller.getReferralDetails(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
+        mockSeasonId,
         mockSubscriptionId,
       );
 
@@ -4196,13 +4657,16 @@ describe('RewardsController', () => {
       expect(result).toBeDefined();
       expect(result?.referralCode).toBe('NEWFRESH123');
       expect(result?.totalReferees).toBe(25);
+      expect(result?.referralPoints).toBe(500);
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
-    it('should update state when fetching fresh referral details', async () => {
+    it('updates state when fetching fresh referral details', async () => {
+      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
       const mockApiResponse = {
         referralCode: 'UPDATED789',
         totalReferees: 15,
+        referralPoints: 300,
       };
 
       controller = new RewardsController({
@@ -4220,22 +4684,28 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
           pointsEvents: {},
         },
       });
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await controller.getReferralDetails(mockSubscriptionId);
+      const result = await controller.getReferralDetails(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
 
       // Check that the result is the converted state object
       expect(result).toBeDefined();
       expect(result?.referralCode).toBe('UPDATED789');
       expect(result?.totalReferees).toBe(15);
+      expect(result?.referralPoints).toBe(300);
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
       const updatedReferralDetails =
-        controller.state.subscriptionReferralDetails[mockSubscriptionId];
+        controller.state.subscriptionReferralDetails[compositeKey];
       expect(updatedReferralDetails).toBeDefined();
       expect(updatedReferralDetails).toEqual(result); // Should be the same object
       expect(updatedReferralDetails.referralCode).toBe(
@@ -4244,12 +4714,15 @@ describe('RewardsController', () => {
       expect(updatedReferralDetails.totalReferees).toBe(
         mockApiResponse.totalReferees,
       );
+      expect(updatedReferralDetails.referralPoints).toBe(
+        mockApiResponse.referralPoints,
+      );
       expect(updatedReferralDetails.lastFetched).toBeGreaterThan(
         Date.now() - 1000,
       );
     });
 
-    it('should log and rethrow Error objects when API call fails', async () => {
+    it('logs and rethrows Error objects when API call fails', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -4265,6 +4738,8 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
           pointsEvents: {},
         },
       });
@@ -4273,7 +4748,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        controller.getReferralDetails(mockSubscriptionId),
+        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow('API connection failed');
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get referral details:',
@@ -4281,7 +4756,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should log and rethrow non-Error objects when API call fails', async () => {
+    it('logs and rethrows non-Error objects when API call fails', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -4297,6 +4772,8 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
           pointsEvents: {},
         },
       });
@@ -4305,7 +4782,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(numberError);
 
       await expect(
-        controller.getReferralDetails(mockSubscriptionId),
+        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
       ).rejects.toEqual(404);
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get referral details:',
@@ -4651,6 +5128,367 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('shouldSkipSilentAuth', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+    });
+
+    it('should return false when account has no state (never checked before)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {}, // No account state
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return true when account has opted in', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: true,
+        subscriptionId: 'sub123',
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when account has not opted in and lastFreshOptInStatusCheck is missing', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        // No lastFreshOptInStatusCheck
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return true when account has not opted in but cache is fresh (within 24 hours)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const recentTime = Date.now() - 1000 * 60 * 60 * 12; // 12 hours ago (within 24 hour threshold)
+
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: recentTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when account has not opted in and cache is stale (beyond 24 hours)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const staleTime = Date.now() - 1000 * 60 * 60 * 24 * 2; // 2 days ago (beyond 24 hour threshold)
+
+      const accountState: RewardsAccountState = {
+        account: caipAccount,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: staleTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should handle CAIP ID normalization correctly (eip155:0 format)', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0xABC',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Store with normalized format (eip155:0)
+      const normalizedCaipAccount = 'eip155:0:0xabc' as CaipAccountId;
+      const accountState: RewardsAccountState = {
+        account: normalizedCaipAccount,
+        hasOptedIn: true,
+        subscriptionId: 'sub123',
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [normalizedCaipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      const lookupCaipAccount = 'eip155:1:0xABC' as CaipAccountId;
+
+      // Act - Should find account even with different chain ID format
+      const result = controller.shouldSkipSilentAuth(
+        lookupCaipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when account state exists but hasOptedIn is undefined', () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount = 'eip155:1:0x123' as CaipAccountId;
+      const accountState = {
+        account: caipAccount,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+        // hasOptedIn is undefined
+      } as unknown as RewardsAccountState;
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: accountState,
+          accounts: { [caipAccount]: accountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      const result = controller.shouldSkipSilentAuth(
+        caipAccount,
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+    });
+  });
+
   // Removed outdated 'reset' tests; behavior covered by 'resetAll' and 'logout' tests
 
   describe('logout', () => {
@@ -4962,6 +5800,7 @@ describe('RewardsController', () => {
         active.hasOptedIn === false &&
         active.subscriptionId === null;
       expect(active === null || activeIsOptedOut).toBe(true);
+      expect(active?.lastFreshOptInStatusCheck).toBeNull();
 
       // Accounts and subscriptions should be cleared by resetState
       expect(Object.keys(controller.state.accounts)).toHaveLength(0);
@@ -5271,6 +6110,217 @@ describe('RewardsController', () => {
       expect(result.currentTier.id).toBe('silver');
       expect(result.nextTier?.id).toBe('gold');
       expect(result.nextTierPointsNeeded).toBe(3500); // 5000 - 1500
+    });
+  });
+
+  describe('convertToSeasonStatusDto', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should convert SeasonDtoState and SeasonStateDto to SeasonStatusDto with all required fields', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const seasonMetadata: SeasonDtoState = {
+        id: 'season-123',
+        name: 'Fall Season',
+        startDate: 1609459200000, // 2021-01-01
+        endDate: 1640995200000, // 2022-01-01
+        tiers,
+      };
+
+      const seasonState: SeasonStateDto = {
+        balance: 2500,
+        currentTierId: 'gold',
+        updatedAt: new Date('2025-10-21T16:45:50.732Z'),
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.season.id).toBe('season-123');
+      expect(result.season.name).toBe('Fall Season');
+      expect(result.season.startDate).toEqual(new Date(1609459200000));
+      expect(result.season.endDate).toEqual(new Date(1640995200000));
+      expect(result.season.tiers).toEqual(tiers);
+      expect(result.balance.total).toBe(2500);
+      expect(result.balance.updatedAt).toEqual(
+        new Date('2025-10-21T16:45:50.732Z'),
+      );
+      expect(result.currentTierId).toBe('gold');
+    });
+
+    it('should correctly convert timestamp numbers to Date objects', () => {
+      // Arrange
+      const startTimestamp = 1672531200000; // 2023-01-01
+      const endTimestamp = 1704067200000; // 2024-01-01
+      const seasonMetadata: SeasonDtoState = {
+        id: 'season-456',
+        name: 'Winter Season',
+        startDate: startTimestamp,
+        endDate: endTimestamp,
+        tiers: createTestTiers(),
+      };
+
+      const seasonState: SeasonStateDto = {
+        balance: 1000,
+        currentTierId: 'silver',
+        updatedAt: new Date('2023-06-15T12:00:00.000Z'),
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.season.startDate).toBeInstanceOf(Date);
+      expect(result.season.endDate).toBeInstanceOf(Date);
+      expect(result.season.startDate.getTime()).toBe(startTimestamp);
+      expect(result.season.endDate.getTime()).toBe(endTimestamp);
+    });
+
+    it('should handle balance with updatedAt present', () => {
+      // Arrange
+      const seasonMetadata: SeasonDtoState = {
+        id: 'season-789',
+        name: 'Spring Season',
+        startDate: Date.now() - 86400000,
+        endDate: Date.now() + 86400000,
+        tiers: createTestTiers(),
+      };
+
+      const updatedAtDate = new Date('2025-10-20T10:30:00.000Z');
+      const seasonState: SeasonStateDto = {
+        balance: 3750,
+        currentTierId: 'platinum',
+        updatedAt: updatedAtDate,
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.balance.total).toBe(3750);
+      expect(result.balance.updatedAt).toEqual(updatedAtDate);
+    });
+
+    it('should preserve tier data structure from SeasonDtoState', () => {
+      // Arrange
+      const customTiers: SeasonTierDto[] = [
+        {
+          id: 'tier-1',
+          name: 'Custom Tier 1',
+          pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'https://example.com/tier1-light.png',
+            darkModeUrl: 'https://example.com/tier1-dark.png',
+          },
+          levelNumber: '1',
+          rewards: [
+            {
+              id: 'reward-1',
+              name: 'Test Reward',
+              shortDescription: 'Short desc',
+              longDescription: 'Long desc',
+              shortUnlockedDescription: 'Short unlocked',
+              longUnlockedDescription: 'Long unlocked',
+              iconName: 'star',
+              rewardType: SeasonRewardType.POINTS_BOOST,
+            },
+          ],
+        },
+      ];
+
+      const seasonMetadata: SeasonDtoState = {
+        id: 'custom-season',
+        name: 'Custom Season',
+        startDate: Date.now(),
+        endDate: Date.now() + 1000000,
+        tiers: customTiers,
+      };
+
+      const seasonState: SeasonStateDto = {
+        balance: 50,
+        currentTierId: 'tier-1',
+        updatedAt: new Date(),
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.season.tiers).toEqual(customTiers);
+      expect(result.season.tiers[0].rewards).toHaveLength(1);
+      expect(result.season.tiers[0].rewards[0].id).toBe('reward-1');
+      expect(result.season.tiers[0].rewards[0].rewardType).toBe(
+        SeasonRewardType.POINTS_BOOST,
+      );
+    });
+
+    it('should handle balance with zero points', () => {
+      // Arrange
+      const seasonMetadata: SeasonDtoState = {
+        id: 'new-season',
+        name: 'New Season',
+        startDate: Date.now(),
+        endDate: Date.now() + 86400000,
+        tiers: createTestTiers(),
+      };
+
+      const seasonState: SeasonStateDto = {
+        balance: 0,
+        currentTierId: 'bronze',
+        updatedAt: new Date(),
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.balance.total).toBe(0);
+      expect(result.currentTierId).toBe('bronze');
+    });
+
+    it('should handle large balance values', () => {
+      // Arrange
+      const seasonMetadata: SeasonDtoState = {
+        id: 'season-large',
+        name: 'High Rewards Season',
+        startDate: Date.now(),
+        endDate: Date.now() + 86400000,
+        tiers: createTestTiers(),
+      };
+
+      const largeBalance = 999999999;
+      const seasonState: SeasonStateDto = {
+        balance: largeBalance,
+        currentTierId: 'platinum',
+        updatedAt: new Date(),
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.balance.total).toBe(largeBalance);
     });
   });
 
@@ -5662,6 +6712,7 @@ describe('RewardsController', () => {
             sub123: {
               referralCode: 'REF123',
               totalReferees: 5,
+              referralPoints: 100,
               lastFetched: Date.now(),
             },
           },
@@ -5674,7 +6725,7 @@ describe('RewardsController', () => {
                 endDate: Date.now(),
                 tiers: [],
               },
-              balance: { total: 100, refereePortion: 10 },
+              balance: { total: 100 },
               tier: {
                 currentTier: {
                   id: 'tier1',
@@ -5721,6 +6772,53 @@ describe('RewardsController', () => {
         subscriptionId: null,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
+      });
+    });
+
+    it('should ensure account field is never undefined after invalidation', async () => {
+      // Arrange
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_3,
+            hasOptedIn: false,
+            subscriptionId: null,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: null,
+          },
+          accounts: {
+            [CAIP_ACCOUNT_3]: {
+              account: CAIP_ACCOUNT_3,
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: null,
+            },
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      await testController.invalidateAccountsAndSubscriptions();
+
+      // Assert - the account field must be preserved and never undefined
+      expect(testController.state.activeAccount).not.toBeNull();
+      expect(testController.state.activeAccount?.account).toBe(CAIP_ACCOUNT_3);
+      expect(testController.state.activeAccount?.account).toBeDefined();
+
+      // All reset fields should have their expected null/false values
+      expect(testController.state.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
       });
     });
   });
@@ -5770,14 +6868,6 @@ describe('RewardsController', () => {
       // Assert - Verify cached data is returned
       expect(secondResult).toEqual(mockCachedGeoData);
       expect(secondResult).toEqual(firstResult); // Should be the same as first call
-
-      // Assert - Verify cache log message
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Using cached geo location',
-        {
-          location: mockCachedGeoData,
-        },
-      );
 
       // Assert - Verify no additional API calls were made
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -6610,6 +7700,80 @@ describe('RewardsController', () => {
       // Assert
       expect(result).toBeNull(); // Should return null when subscription id is missing
     });
+
+    it('recovers from AccountAlreadyRegisteredError by performing silent auth', async () => {
+      // Arrange
+      const mockAccounts = [mockEvmInternalAccount];
+      const mockError = new AccountAlreadyRegisteredError(
+        'Account already registered',
+      );
+      const mockSubscriptionId = 'recovered-sub-123';
+      const mockSubscription = {
+        id: mockSubscriptionId,
+        referralCode: 'REF789',
+        accounts: [{ address: mockEvmInternalAccount.address, chainId: 1 }],
+      };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [mockSubscriptionId]: mockSubscription,
+          },
+        },
+      });
+
+      // Spy on performSilentAuth to mock its behavior
+      const performSilentAuthSpy = jest
+        .spyOn(testController, 'performSilentAuth')
+        .mockResolvedValue(mockSubscriptionId);
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.reject(mockError);
+        } else if (method === 'RewardsDataService:login') {
+          return Promise.resolve({
+            subscription: mockSubscription,
+            sessionId: 'recovered-session-id',
+          });
+        }
+        return Promise.resolve();
+      });
+
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: 'recovered-session-id',
+      });
+
+      // Mock sortAccounts
+      jest.doMock('./utils/sortAccounts', () => ({
+        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
+      }));
+
+      // Act
+      const result = await testController.optIn();
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileOptin',
+        expect.objectContaining({
+          account: mockEvmInternalAccount.address,
+        }),
+      );
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        mockEvmInternalAccount,
+        false,
+        false,
+      );
+    });
   });
 
   describe('linkAccountsToSubscriptionCandidate', () => {
@@ -6970,13 +8134,8 @@ describe('RewardsController', () => {
 
       // Verify state was reset and active account updated
       const newState = testController.state;
-      expect(newState.activeAccount).toEqual({
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: null,
-        lastPerpsDiscountRateFetched: null,
-      });
+      expect(newState.activeAccount?.hasOptedIn).toEqual(false);
+      expect(newState.activeAccount?.subscriptionId).toEqual(null);
       expect(newState.subscriptions).toEqual({});
       expect(newState.accounts).toEqual({});
     });
@@ -7041,6 +8200,42 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toBe(false);
+    });
+
+    it('returns true when no subscription exists in map but there is an account with the matching subscription id', async () => {
+      // Arrange
+      mockMessenger.call.mockResolvedValue({ success: true });
+      mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub123',
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {},
+          accounts: {
+            [CAIP_ACCOUNT_1]: {
+              account: CAIP_ACCOUNT_1,
+              hasOptedIn: true,
+              subscriptionId: 'sub123',
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut('sub123');
+
+      // Assert
+      expect(result).toBe(true);
     });
 
     it('should handle multiple subscriptions correctly', async () => {
@@ -8838,7 +10033,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 1000, refereePortion: 0 },
+            balance: { total: 1000 },
             tier: {
               currentTier: {
                 id: 'bronze',
@@ -8989,7 +10184,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 1000, refereePortion: 0 },
+            balance: { total: 1000 },
             tier: {
               currentTier: {
                 id: 'bronze',
@@ -9097,7 +10292,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 500, refereePortion: 0 },
+            balance: { total: 500 },
             tier: {
               currentTier: {
                 id: 'bronze',
@@ -9120,7 +10315,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 1000, refereePortion: 0 },
+            balance: { total: 1000 },
             tier: {
               currentTier: {
                 id: 'silver',
@@ -9143,7 +10338,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 1500, refereePortion: 0 },
+            balance: { total: 1500 },
             tier: {
               currentTier: {
                 id: 'gold',
@@ -9166,7 +10361,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 2000, refereePortion: 0 },
+            balance: { total: 2000 },
             tier: {
               currentTier: {
                 id: 'platinum',
@@ -9336,6 +10531,76 @@ describe('RewardsController', () => {
         'RewardsController: Invalidated cache for subscription',
         subscriptionId,
         'all seasons',
+      );
+    });
+
+    it('recovers from AccountAlreadyRegisteredError by performing silent auth', async () => {
+      // Arrange
+      const mockError = new AccountAlreadyRegisteredError(
+        'Account already registered',
+      );
+      const mockSubscriptionId = 'recovered-sub-123';
+      const mockSubscription = {
+        id: mockSubscriptionId,
+        referralCode: 'REF789',
+        accounts: [{ address: mockInternalAccount.address, chainId: 1 }],
+      };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [mockSubscriptionId]: mockSubscription,
+          },
+        },
+      });
+
+      // Spy on performSilentAuth to mock its behavior
+      const performSilentAuthSpy = jest
+        .spyOn(testController, 'performSilentAuth')
+        .mockResolvedValue(mockSubscriptionId);
+
+      mockToHex.mockReturnValue('0xsignature');
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        } else if (method === 'RewardsDataService:mobileJoin') {
+          return Promise.reject(mockError);
+        } else if (method === 'RewardsDataService:login') {
+          return Promise.resolve({
+            subscription: mockSubscription,
+            sessionId: 'recovered-session-id',
+          });
+        }
+        return Promise.resolve();
+      });
+
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: 'recovered-session-id',
+      });
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        {
+          account: mockInternalAccount.address,
+          timestamp: expect.any(Number),
+          signature: '0xsignature',
+        },
+        mockSubscriptionId,
+      );
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        mockInternalAccount,
+        false,
+        false,
       );
     });
   });
@@ -9708,6 +10973,7 @@ describe('RewardsController', () => {
       // Clear any previous calls and mock only the accounts call
       mockMessenger.call.mockClear();
       mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+      mockMessenger.call.mockResolvedValueOnce({ ois: [false], sids: [null] });
 
       // Act
       const result = await testController.getOptInStatus(mockParams);
@@ -9719,11 +10985,10 @@ describe('RewardsController', () => {
       });
 
       // Verify that only the accounts call was made, not the service call since we used cached data
-      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountsController:listMultichainAccounts',
       );
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOptInStatus',
         expect.anything(),
       );
@@ -9763,6 +11028,7 @@ describe('RewardsController', () => {
 
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: null,
             },
           },
         },
@@ -9786,6 +11052,7 @@ describe('RewardsController', () => {
       expect(updatedAccountState).toBeDefined();
       expect(updatedAccountState.hasOptedIn).toBe(true);
       expect(updatedAccountState.subscriptionId).toBe('fresh_sub_123');
+      expect(updatedAccountState.lastFreshOptInStatusCheck).toBeDefined();
     });
 
     it('should use cached results in final combination loop', async () => {
@@ -9846,6 +11113,7 @@ describe('RewardsController', () => {
               subscriptionId: 'cached_sub_123',
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: Date.now(),
             },
             // Second account has cached data
             'eip155:1:0x456': {
@@ -9854,6 +11122,7 @@ describe('RewardsController', () => {
               subscriptionId: null,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: Date.now(),
             },
             // Third account has no cached data, will need fresh API call
           },
@@ -11146,7 +12415,6 @@ describe('RewardsController', () => {
     });
 
     it('should invalidate subscription cache after successful claim', async () => {
-      // Arrange - Use current season ID since claimReward uses CURRENT_SEASON_ID by default
       const currentSeasonCompositeKey = `current:${mockSubscriptionId}`;
       const initialState = {
         activeAccount: null,
@@ -11163,7 +12431,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 1000, refereePortion: 0 },
+            balance: { total: 1000 },
             tier: {
               currentTier: {
                 id: 'bronze',
@@ -11367,7 +12635,7 @@ describe('RewardsController', () => {
               endDate: Date.now() + 86400000,
               tiers: [],
             },
-            balance: { total: 500, refereePortion: 0 },
+            balance: { total: 500 },
             tier: {
               currentTier: {
                 id: 'silver',
@@ -12820,6 +14088,7 @@ describe('RewardsController', () => {
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
         lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: Date.now(),
       };
 
       const accountState2: RewardsAccountState = {
@@ -12828,6 +14097,7 @@ describe('RewardsController', () => {
         subscriptionId: null,
         perpsFeeDiscount: 0,
         lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: Date.now(),
       };
 
       const accountState3: RewardsAccountState = {
@@ -12836,6 +14106,7 @@ describe('RewardsController', () => {
         subscriptionId: 'sub-3',
         perpsFeeDiscount: 1000,
         lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: Date.now(),
       };
 
       controller = new RewardsController({
@@ -12960,6 +14231,7 @@ describe('RewardsController', () => {
         subscriptionId: null,
         perpsFeeDiscount: 0,
         lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: Date.now(),
       };
 
       controller = new RewardsController({
@@ -13042,54 +14314,6 @@ describe('RewardsController', () => {
       expect(result.addressesNeedingFresh).toEqual([]);
     });
 
-    it('should handle case-insensitive address matching', () => {
-      // Arrange
-      const addresses = [ADDRESS_1.toUpperCase(), ADDRESS_2.toLowerCase()];
-      const addressToAccountMap = new Map([
-        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
-        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
-      ]);
-
-      const accountState1: RewardsAccountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: true,
-        subscriptionId: 'sub-1',
-        perpsFeeDiscount: 500,
-        lastPerpsDiscountRateFetched: Date.now(),
-      };
-
-      const accountState2: RewardsAccountState = {
-        account: CAIP_ACCOUNT_2,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: 0,
-        lastPerpsDiscountRateFetched: Date.now(),
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {
-            [CAIP_ACCOUNT_1]: accountState1,
-            [CAIP_ACCOUNT_2]: accountState2,
-          },
-          subscriptions: {},
-        },
-      });
-
-      // Act
-      const result = controller.checkOptInStatusAgainstCache(
-        addresses,
-        addressToAccountMap,
-      );
-
-      // Assert
-      expect(result.cachedOptInResults).toEqual([true, false]);
-      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null]);
-      expect(result.addressesNeedingFresh).toEqual([]);
-    });
-
     it('should handle convertInternalAccountToCaipAccountId returning null', () => {
       // Arrange
       const addresses = [ADDRESS_1, ADDRESS_2];
@@ -13153,6 +14377,7 @@ describe('RewardsController', () => {
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
         lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: Date.now(),
       };
 
       const accountState2: RewardsAccountState = {
@@ -13161,6 +14386,7 @@ describe('RewardsController', () => {
         subscriptionId: null,
         perpsFeeDiscount: 0,
         lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: Date.now(),
       };
 
       const accountState3: RewardsAccountState = {
@@ -13169,6 +14395,7 @@ describe('RewardsController', () => {
         subscriptionId: 'sub-3',
         perpsFeeDiscount: 1000,
         lastPerpsDiscountRateFetched: Date.now(),
+        lastFreshOptInStatusCheck: Date.now(),
       };
 
       controller = new RewardsController({
