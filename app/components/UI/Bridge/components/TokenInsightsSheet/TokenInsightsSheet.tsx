@@ -224,8 +224,8 @@ const TokenInsightsSheet: React.FC = () => {
 
   // Extract raw values from market data
   const price =
-    token?.currencyExchangeRate ||
-    (typeof marketData?.price === 'number' ? marketData.price : undefined) ||
+    token?.currencyExchangeRate ??
+    (typeof marketData?.price === 'number' ? marketData.price : undefined) ??
     (typeof (marketData as Record<string, unknown>)?.usd === 'number'
       ? ((marketData as Record<string, unknown>).usd as number)
       : undefined);
