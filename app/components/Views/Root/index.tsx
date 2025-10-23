@@ -19,8 +19,12 @@ import FontLoadingGate from './FontLoadingGate';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
-import { InteractionManager } from 'react-native';
-import { checkForUpdateAsync, fetchUpdateAsync, reloadAsync } from 'expo-updates';
+// import { InteractionManager } from 'react-native';
+// import {
+//   checkForUpdateAsync,
+//   fetchUpdateAsync,
+//   reloadAsync,
+// } from 'expo-updates';
 
 /**
  * Top level of the component hierarchy
@@ -61,28 +65,28 @@ const Root = ({ foxCode }: RootProps) => {
   }, [foxCode]);
 
   // Non-blocking background update check after first interactions
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      try {
-        await new Promise<void>((resolve) =>
-          InteractionManager.runAfterInteractions(() => resolve()),
-        );
-        if (cancelled) return;
-        const update = await checkForUpdateAsync();
-        if (update.isAvailable) {
-          await fetchUpdateAsync();
-          await reloadAsync();
-        }
-      } catch (e) {
-        // Silently ignore update failures; do not impact UX
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // useEffect(() => {
+  //   let cancelled = false;
+  //   const run = async () => {
+  //     try {
+  //       await new Promise<void>((resolve) =>
+  //         InteractionManager.runAfterInteractions(() => resolve()),
+  //       );
+  //       if (cancelled) return;
+  //       const update = await checkForUpdateAsync();
+  //       if (update.isAvailable) {
+  //         await fetchUpdateAsync();
+  //         await reloadAsync();
+  //       }
+  //     } catch (e) {
+  //       // Silently ignore update failures; do not impact UX
+  //     }
+  //   };
+  //   run();
+  //   return () => {
+  //     cancelled = true;
+  //   };
+  // }, []);
 
   // Only wait for store in test mode, fonts are handled inside theme context
   if (isTest && isStoreLoading) {
