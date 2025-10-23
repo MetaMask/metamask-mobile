@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
-import { Hex } from '@metamask/utils';
-
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -87,6 +85,8 @@ export type PredictMarket = {
   recurrence: Recurrence;
   categories: PredictCategory[];
   outcomes: PredictOutcome[];
+  liquidity: number;
+  volume: number;
 };
 
 export type PredictSeries = {
@@ -114,6 +114,7 @@ export type PredictOutcome = {
   negRisk?: boolean;
   tickSize?: string;
   resolvedBy?: string;
+  resolutionStatus?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -232,7 +233,6 @@ export type PredictPosition = {
 };
 
 export interface ClaimParams {
-  positions: PredictPosition[];
   providerId: string;
 }
 
@@ -240,11 +240,17 @@ export interface GetMarketPriceResponse {
   price: number;
 }
 
-export type Result<T = void> = {
-  success: boolean;
-  error?: string;
-  response?: T;
-};
+export type Result<T = void> =
+  | {
+      success: true;
+      response: T;
+      error?: never;
+    }
+  | {
+      success: false;
+      error: string;
+      response?: never;
+    };
 
 export interface UnrealizedPnL {
   user: string;
@@ -253,14 +259,9 @@ export interface UnrealizedPnL {
 }
 
 export type PredictClaim = {
-  transactionId: string;
+  batchId: string;
   chainId: number;
   status: PredictClaimStatus;
-  txParams: {
-    to: Hex;
-    data: Hex;
-    value: Hex;
-  };
 };
 
 export type PredictDeposit = {

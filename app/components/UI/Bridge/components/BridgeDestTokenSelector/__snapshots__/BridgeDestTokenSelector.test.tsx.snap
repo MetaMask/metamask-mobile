@@ -544,7 +544,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "gap": 4,
+                                  "gap": 10,
                                   "paddingHorizontal": 4,
                                 }
                               }
@@ -567,14 +567,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -619,14 +618,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -639,13 +637,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   <View
                                     alignItems="center"
                                     flexDirection="row"
-                                    gap={4}
+                                    gap={8}
                                     style={
                                       [
                                         {
                                           "alignItems": "center",
                                           "flexDirection": "row",
-                                          "gap": 4,
+                                          "gap": 8,
                                         },
                                         undefined,
                                       ]
@@ -673,14 +671,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -693,13 +690,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   <View
                                     alignItems="center"
                                     flexDirection="row"
-                                    gap={4}
+                                    gap={8}
                                     style={
                                       [
                                         {
                                           "alignItems": "center",
                                           "flexDirection": "row",
-                                          "gap": 4,
+                                          "gap": 8,
                                         },
                                         undefined,
                                       ]
@@ -727,14 +724,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "#b7bbc866",
-                                      "borderRadius": 12,
+                                      "borderRadius": 10,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -747,13 +743,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   <View
                                     alignItems="center"
                                     flexDirection="row"
-                                    gap={4}
+                                    gap={8}
                                     style={
                                       [
                                         {
                                           "alignItems": "center",
                                           "flexDirection": "row",
-                                          "gap": 4,
+                                          "gap": 8,
                                         },
                                         undefined,
                                       ]
@@ -895,7 +891,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "balanceFiat": "$200000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token2.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                     "name": "Hello Token",
                                     "symbol": "HELLO",
                                     "tokenFiatAmount": 200000,
@@ -907,7 +903,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "balanceFiat": "$20000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token1.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                     "name": "Token One",
                                     "symbol": "TOKEN1",
                                     "tokenFiatAmount": 20000,
@@ -919,7 +915,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     "balanceFiat": "$6000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png",
                                     "name": "Ethereum",
                                     "symbol": "ETH",
                                     "tokenFiatAmount": 6000,
@@ -1036,7 +1032,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token2.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                                   }
                                                 }
                                                 style={
@@ -1347,7 +1343,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token1.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                                   }
                                                 }
                                                 style={

@@ -40,7 +40,9 @@ describe('usePredictActivity', () => {
     jest.clearAllMocks();
     (Engine.context.PredictController.getActivity as jest.Mock) =
       mockGetActivity;
-    (useSelector as jest.Mock).mockImplementation((_selector: unknown) => mockAddress);
+    (useSelector as jest.Mock).mockImplementation(
+      (_selector: unknown) => mockAddress,
+    );
   });
 
   it('initializes and auto-loads activity on mount', async () => {

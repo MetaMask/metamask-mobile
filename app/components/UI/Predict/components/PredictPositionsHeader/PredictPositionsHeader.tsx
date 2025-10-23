@@ -17,7 +17,9 @@ import React, {
   useMemo,
 } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { PredictPositionsHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import Icon, {
   IconColor,
   IconName,
@@ -25,9 +27,11 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { selectPredictClaimablePositions } from '../../selectors/predictController';
 import {
   PredictDepositStatus,
   PredictPosition,
@@ -35,8 +39,6 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { usePredictClaim } from '../../hooks/usePredictClaim';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
@@ -45,7 +47,6 @@ export interface PredictPositionsHeaderHandle {
   refresh: () => Promise<void>;
 }
 
-// TODO: rename to something like `PredictPositionsHeader` (given its purpose has evolved)
 const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
   (_, ref) => {
     const { claim } = usePredictClaim();
@@ -61,11 +62,8 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
       refreshOnFocus: true,
     });
     const { status } = usePredictDeposit();
-    const { positions, isLoading: isClaimablePositionsLoading } =
-      usePredictPositions({
-        claimable: true,
-        loadOnMount: true,
-      });
+    const claimablePositions = useSelector(selectPredictClaimablePositions);
+
     const {
       unrealizedPnL,
       isLoading: isUnrealizedPnLLoading,
@@ -97,16 +95,17 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
 
     const wonPositions = useMemo(
       () =>
-        positions.filter(
+        claimablePositions.filter(
           (position) => position.status === PredictPositionStatus.WON,
         ),
-      [positions],
+      [claimablePositions],
     );
 
     const totalClaimableAmount = useMemo(
       () =>
         wonPositions.reduce(
-          (sum: number, position: PredictPosition) => sum + position.cashPnl,
+          (sum: number, position: PredictPosition) =>
+            sum + position.currentValue,
           0,
         ),
       [wonPositions],
@@ -132,14 +131,10 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
     const handleClaim = async () => {
-      await claim({ positions, providerId: POLYMARKET_PROVIDER_ID });
+      await claim();
     };
 
-    if (
-      isBalanceLoading ||
-      isUnrealizedPnLLoading ||
-      isClaimablePositionsLoading
-    ) {
+    if (isBalanceLoading || isUnrealizedPnLLoading) {
       return null;
     }
 
@@ -147,6 +142,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
       <Box twClassName="gap-4 pb-4 pt-2">
         {hasClaimableAmount && (
           <Button
+            testID={PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON}
             variant={ButtonVariant.Secondary}
             onPress={handleClaim}
             twClassName="min-w-full bg-primary-default"
@@ -207,7 +203,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
                       twClassName="text-primary mr-1"
                       testID="claimable-amount"
                     >
-                      {formatPrice(balance)}
+                      {formatPrice(balance, { maximumDecimals: 2 })}
                     </Text>
                     <Icon
                       name={IconName.ArrowRight}
