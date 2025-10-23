@@ -157,6 +157,7 @@ const PerpsMarketRowItem = ({
           <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {getPerpsDisplaySymbol(displayMarket.symbol)}
+              {getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>

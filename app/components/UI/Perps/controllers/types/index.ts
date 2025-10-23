@@ -11,6 +11,35 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// Import adapter types
+import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+
+// User history item for deposits and withdrawals
+export interface UserHistoryItem {
+  id: string;
+  timestamp: number;
+  type: 'deposit' | 'withdrawal';
+  amount: string;
+  asset: string;
+  txHash: string;
+  status: 'completed' | 'failed' | 'pending';
+  details: {
+    source: string;
+    bridgeContract?: string;
+    recipient?: string;
+    blockNumber?: string;
+    chainId?: string;
+    synthetic?: boolean;
+  };
+}
+
+// Parameters for getting user history
+export interface GetUserHistoryParams {
+  startTime?: number;
+  endTime?: number;
+  accountId?: CaipAccountId;
+}
+
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
@@ -456,7 +485,7 @@ export interface GetAccountStateParams {
 
 export interface GetOrderFillsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
-  user: Hex; // Optional: user address
+  user?: Hex; // Optional: user address (defaults to selected account)
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
@@ -674,6 +703,24 @@ export interface IPerpsProvider {
    * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
    */
   getFunding(params?: GetFundingParams): Promise<Funding[]>;
+
+  /**
+   * Get user non-funding ledger updates (deposits, transfers, withdrawals)
+   */
+  getUserNonFundingLedgerUpdates(params?: {
+    accountId?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<RawHyperLiquidLedgerUpdate[]>;
+
+  /**
+   * Get user history (deposits, withdrawals, transfers)
+   */
+  getUserHistory(params?: {
+    accountId?: CaipAccountId;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<UserHistoryItem[]>;
 
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;

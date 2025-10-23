@@ -13,6 +13,7 @@ import type {
   Order,
   OrderParams as PerpsOrderParams,
   Position,
+  UserHistoryItem,
 } from '../controllers/types';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
@@ -228,7 +229,7 @@ export function adaptMarketFromSDK(
  */
 export function adaptAccountStateFromSDK(
   perpsState: ClearinghouseStateResponse,
-  spotState?: SpotClearinghouseStateResponse,
+  spotState?: SpotClearinghouseStateResponse | null,
 ): AccountState {
   // Calculate total unrealized PnL from all positions
   const { totalUnrealizedPnl, weightedReturnOnEquity } =
@@ -253,10 +254,10 @@ export function adaptAccountStateFromSDK(
   const totalMarginUsed = parseFloat(
     perpsState.marginSummary.totalMarginUsed || '0',
   );
-  const totalReturnOnEquityPercentage = (
-    (weightedReturnOnEquity / totalMarginUsed) *
-    100
-  ).toFixed(1);
+  const totalReturnOnEquityPercentage =
+    totalMarginUsed > 0
+      ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toFixed(1)
+      : '0.0';
 
   // TODO: BALANCE DISPLAY DECISION NEEDED
   //
@@ -492,4 +493,65 @@ export function parseAssetName(assetName: string): {
     dex: assetName.substring(0, colonIndex),
     symbol: assetName.substring(colonIndex + 1),
   };
+}
+
+/**
+ * Raw HyperLiquid ledger update structure from SDK
+ * This matches the actual SDK types for userNonFundingLedgerUpdates
+ */
+export interface RawHyperLiquidLedgerUpdate {
+  hash: string;
+  time: number;
+  delta: {
+    type: string;
+    usdc?: string;
+    coin?: string;
+  };
+}
+
+/**
+ * Transform raw HyperLiquid ledger updates to UserHistoryItem format
+ * Filters for deposits and withdrawals only, extracting amount and asset information
+ * @param rawLedgerUpdates - Array of raw ledger updates from HyperLiquid SDK
+ * @returns Array of UserHistoryItem objects
+ */
+export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
+  rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
+): UserHistoryItem[] {
+  return (rawLedgerUpdates || [])
+    .filter(
+      (update) =>
+        // Only include deposits and withdrawals, skip other types
+        update.delta.type === 'deposit' || update.delta.type === 'withdraw',
+    )
+    .map((update) => {
+      // Extract amount and asset based on delta type
+      let amount = '0';
+      let asset = 'USDC';
+
+      if ('usdc' in update.delta && update.delta.usdc) {
+        amount = Math.abs(parseFloat(update.delta.usdc)).toString();
+      }
+      if ('coin' in update.delta && typeof update.delta.coin === 'string') {
+        asset = update.delta.coin;
+      }
+
+      return {
+        id: `history-${update.hash}`,
+        timestamp: update.time,
+        amount,
+        asset,
+        txHash: update.hash,
+        status: 'completed' as const,
+        type: update.delta.type === 'withdraw' ? 'withdrawal' : 'deposit',
+        details: {
+          source: '',
+          bridgeContract: undefined,
+          recipient: undefined,
+          blockNumber: undefined,
+          chainId: undefined,
+          synthetic: undefined,
+        },
+      };
+    });
 }
