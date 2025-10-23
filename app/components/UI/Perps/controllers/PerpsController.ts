@@ -207,6 +207,9 @@ export type PerpsControllerState = {
     mainnet: boolean;
   };
 
+  // Chart preferences
+  preferredCandlePeriod: string; // CandlePeriod enum value
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -246,6 +249,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: false,
     mainnet: false,
   },
+  preferredCandlePeriod: '15m', // Default to 15 minutes
 });
 
 /**
@@ -372,6 +376,12 @@ const metadata = {
     anonymous: false,
     usedInUi: true,
   },
+  preferredCandlePeriod: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -469,6 +479,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:resetFirstTimeUserState';
       handler: PerpsController['resetFirstTimeUserState'];
+    }
+  | {
+      type: 'PerpsController:setPreferredCandlePeriod';
+      handler: PerpsController['setPreferredCandlePeriod'];
     };
 
 /**
@@ -3486,6 +3500,22 @@ export class PerpsController extends BaseController<
         testnet: false,
         mainnet: false,
       };
+    });
+  }
+
+  /**
+   * Set the user's preferred candle period for charts
+   * This preference is persisted across sessions and applies to all markets
+   */
+  setPreferredCandlePeriod(candlePeriod: string): void {
+    DevLogger.log('PerpsController: Setting preferred candle period', {
+      timestamp: new Date().toISOString(),
+      previousPeriod: this.state.preferredCandlePeriod,
+      newPeriod: candlePeriod,
+    });
+
+    this.update((state) => {
+      state.preferredCandlePeriod = candlePeriod;
     });
   }
 

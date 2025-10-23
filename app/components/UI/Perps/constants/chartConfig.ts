@@ -75,7 +75,7 @@ export const PERPS_CHART_CONFIG = {
     TOTAL: 500, // Total candles to load in memory (reduced for better performance)
   },
   // Default candle period settings
-  DEFAULT_CANDLE_PERIOD: CandlePeriod.THREE_MINUTES,
+  DEFAULT_CANDLE_PERIOD: CandlePeriod.FIFTEEN_MINUTES,
 } as const;
 
 /**

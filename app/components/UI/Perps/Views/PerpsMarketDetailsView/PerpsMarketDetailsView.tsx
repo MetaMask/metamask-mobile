@@ -77,6 +77,8 @@ import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import Engine from '../../../../../core/Engine';
+import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -106,8 +108,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [navigation, market]);
 
-  const [selectedCandlePeriod, setSelectedCandlePeriod] =
-    useState<CandlePeriod>(CandlePeriod.THREE_MINUTES);
+  // Get persisted candle period preference from controller
+  const selectedCandlePeriod = usePerpsSelector(
+    (state) =>
+      (state.preferredCandlePeriod as CandlePeriod) ||
+      CandlePeriod.FIFTEEN_MINUTES,
+  );
   const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
@@ -294,7 +300,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
-      setSelectedCandlePeriod(newPeriod);
+      // Persist the preference to controller (this will trigger a re-render)
+      const controller = Engine.context.PerpsController;
+      controller.setPreferredCandlePeriod(newPeriod);
 
       // Track chart interaction
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -323,7 +331,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       // Reset chart to default state (like initial navigation)
-      setSelectedCandlePeriod(CandlePeriod.THREE_MINUTES);
+      // Note: selectedCandlePeriod is now derived from persisted state, so no need to reset it
       setVisibleCandleCount(45);
 
       // Reset chart view to default position
