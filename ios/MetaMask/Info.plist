@@ -40,7 +40,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>EXUpdatesEnabled</key>
-	<true/>
+	<false/>
 	<key>EXUpdatesCheckOnLaunch</key>
 	<string>NEVER</string>
 	<key>EXUpdatesURL</key>
