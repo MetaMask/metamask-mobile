@@ -622,24 +622,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                   >
                                     <TouchableOpacity
                                       onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "transparent",
-                                          "borderRadius": 12,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 40,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
-                                        }
-                                      }
-                                      testID="apply-button"
+                                      testID="chain-0x1"
                                     >
                                       <View
                                         accessibilityRole="none"
@@ -1026,6 +1009,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                   disabled={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
