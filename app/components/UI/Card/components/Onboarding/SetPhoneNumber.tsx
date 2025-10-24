@@ -38,13 +38,24 @@ const SetPhoneNumber = () => {
     if (!registrationSettings?.countries) {
       return [];
     }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        value: `+${country.callingCode}`,
-        label: `+${country.callingCode} ${country.name}`,
-      }));
+
+    const uniqueCallingCodes = new Map();
+
+    registrationSettings.countries.forEach((country) => {
+      const callingCode = `+${country.callingCode}`;
+      if (!uniqueCallingCodes.has(callingCode)) {
+        uniqueCallingCodes.set(callingCode, {
+          key: country.iso3166alpha2,
+          value: callingCode,
+          label: callingCode,
+        });
+      }
+    });
+
+    // Convert Map values to array and sort
+    return Array.from(uniqueCallingCodes.values()).sort((a, b) =>
+      a.value.localeCompare(b.value),
+    );
   }, [registrationSettings]);
 
   const initialSelectedCountryAreaCode = useMemo(() => {
@@ -170,7 +181,7 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="w-30 border border-solid border-border-default rounded-lg py-1">
+        <Box twClassName="w-28 border border-solid border-border-default rounded-lg py-1">
           <SelectComponent
             options={selectOptions}
             selectedValue={selectedCountryAreaCode}
