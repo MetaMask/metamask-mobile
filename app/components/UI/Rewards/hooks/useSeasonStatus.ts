@@ -15,6 +15,7 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { handleRewardsErrorMessage } from '../utils';
 import { AuthorizationFailedError } from '../../../../core/Engine/controllers/rewards-controller/services/rewards-data-service';
+import { SeasonDtoState } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 interface UseSeasonStatusReturn {
   fetchSeasonStatus: () => Promise<void>;
@@ -48,10 +49,14 @@ export const useSeasonStatus = ({
 
     try {
       // First fetch the current season metadata to get the season ID
-      const seasonMetadata = await Engine.controllerMessenger.call(
+      const seasonMetadata = (await Engine.controllerMessenger.call(
         'RewardsController:getSeasonMetadata',
         'current',
-      );
+      )) as SeasonDtoState | null;
+
+      if (!seasonMetadata) {
+        throw new Error('No season metadata found');
+      }
 
       // Then fetch the season status using the season ID
       const statusData = await Engine.controllerMessenger.call(
