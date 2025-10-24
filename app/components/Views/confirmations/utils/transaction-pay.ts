@@ -59,3 +59,15 @@ export function getTokenTransferData(
 
   return undefined;
 }
+
+export function getTokenAddress(
+  transactionMeta: TransactionMeta | undefined,
+): Hex {
+  const nestedCall = transactionMeta && getTokenTransferData(transactionMeta);
+
+  if (nestedCall) {
+    return nestedCall.to;
+  }
+
+  return transactionMeta?.txParams?.to as Hex;
+}
