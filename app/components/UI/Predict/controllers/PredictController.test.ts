@@ -2413,7 +2413,7 @@ describe('PredictController', () => {
           controller.depositWithConfirmation({
             providerId: 'polymarket',
           }),
-        ).rejects.toThrow('Invalid chain ID format: not-a-hex');
+        ).rejects.toThrow('Value must be a hexadecimal string.');
       });
     });
   });
