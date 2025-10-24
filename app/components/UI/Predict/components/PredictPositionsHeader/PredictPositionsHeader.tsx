@@ -30,6 +30,7 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictClaimablePositions } from '../../selectors/predictController';
 import {
@@ -53,6 +54,10 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const navigation =
       useNavigation<NavigationProp<PredictNavigationParamList>>();
     const tw = useTailwind();
+    const { executeGuardedAction } = usePredictActionGuard({
+      providerId: POLYMARKET_PROVIDER_ID,
+      navigation,
+    });
     const {
       balance,
       loadBalance,
@@ -131,7 +136,9 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
     const handleClaim = async () => {
-      await claim();
+      await executeGuardedAction(async () => {
+        await claim();
+      });
     };
 
     if (isBalanceLoading || isUnrealizedPnLLoading) {

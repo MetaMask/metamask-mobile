@@ -1757,6 +1757,15 @@
       "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
       "prediction_minimum_bet": "Minimum bet is {{amount}}",
       "to_win": "To win"
+    },
+    "withdraw": {
+      "withdrawing": "Withdrawing {{amount}} USDC",
+      "withdrawing_subtitle": "Est. {{time}} seconds",
+      "withdraw_completed": "Withdrawal completed",
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Failed to proceed with withdraw",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -5989,7 +5998,8 @@
         "confirm_code_label": "Confirmation code",
         "confirm_code_placeholder": "Enter the 6-digit code",
         "resend_verification": "Resend verification code",
-        "resend_cooldown": "Resend available in {{seconds}} seconds"
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "Phone number",
@@ -6014,7 +6024,8 @@
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "Validating your KYC..."
+        "title": "Validating your KYC...",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "Rejected",

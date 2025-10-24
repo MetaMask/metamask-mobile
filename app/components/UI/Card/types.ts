@@ -40,11 +40,13 @@ export interface CardToken {
 
 // Card token data interface
 // Used on Keychain storage
+// Note: refreshToken and refreshTokenExpiresAt are optional to support
+// the onboarding flow where we only receive a short-lived accessToken
 export interface CardTokenData {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   accessTokenExpiresAt: number;
-  refreshTokenExpiresAt: number;
+  refreshTokenExpiresAt?: number;
   location: CardLocation;
 }
 

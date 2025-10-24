@@ -83,6 +83,7 @@ exports[`Onboarding should render correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -119,6 +120,7 @@ exports[`Onboarding should render correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -278,6 +280,7 @@ exports[`Onboarding should render correctly with android 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -314,6 +317,7 @@ exports[`Onboarding should render correctly with android 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -473,6 +477,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -509,6 +514,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -668,6 +674,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -704,6 +711,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
