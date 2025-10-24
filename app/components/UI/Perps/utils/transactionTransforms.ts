@@ -11,6 +11,7 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
+import { formatOrderLabel } from './orderUtils';
 import { strings } from '../../../../../locales/i18n';
 
 export interface WithdrawalRequest {
@@ -199,7 +200,6 @@ export function transformOrdersToTransactions(
     const {
       orderId,
       symbol,
-      side,
       orderType,
       size,
       originalSize,
@@ -214,7 +214,8 @@ export function transformOrdersToTransactions(
     const isRejected = status === 'rejected';
     const isTriggered = status === 'triggered';
 
-    const title = `${side === 'buy' ? 'Long' : 'Short'} ${orderType}`;
+    // Use centralized order label formatting
+    const title = formatOrderLabel(order);
     const subtitle = `${originalSize || '0'} ${symbol}`;
 
     const orderTypeSlug = orderType.toLowerCase().split(' ').join('_');
