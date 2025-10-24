@@ -5,15 +5,49 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  ITrackingEvent,
+  IMetaMetricsEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
+
+/**
+ * Type for the track function
+ */
+type TrackFunction = (
+  event: IMetaMetricsEvent,
+  properties?: Record<string, string | boolean | number>,
+) => void;
+
+/**
+ * Type for navigation object
+ */
+interface NavigationObject {
+  navigate: (screen: string, params?: Record<string, unknown>) => void;
+  dispatch: (action: ReturnType<typeof CommonActions.reset>) => void;
+  setOptions: (options: Record<string, unknown>) => void;
+  goBack: () => void;
+}
+
+/**
+ * Type for route params
+ */
+interface RouteParams {
+  [key: string]: unknown;
+}
 
 /**
  * Creates a tracking function for onboarding events
- * @param {Function} saveOnboardingEvent - Redux action to save onboarding events
- * @returns {Function} Track function
+ * @param saveOnboardingEvent - Redux action to save onboarding events
+ * @returns Track function
  */
 export const createTrackFunction =
-  (saveOnboardingEvent) =>
-  (event, properties = {}) => {
+  (
+    saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void,
+  ): TrackFunction =>
+  (
+    event: IMetaMetricsEvent,
+    properties: Record<string, string | boolean | number> = {},
+  ) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
@@ -21,10 +55,12 @@ export const createTrackFunction =
 
 /**
  * Creates a navigation reset action for onboarding success
- * @param {Object} routeParams - Current route params to pass through
- * @returns {Object} CommonActions.reset action
+ * @param routeParams - Current route params to pass through
+ * @returns CommonActions.reset action
  */
-export const createOnboardingSuccessResetAction = (routeParams) =>
+export const createOnboardingSuccessResetAction = (
+  routeParams: RouteParams,
+): ReturnType<typeof CommonActions.reset> =>
   CommonActions.reset({
     index: 0,
     routes: [
@@ -42,19 +78,25 @@ export const createOnboardingSuccessResetAction = (routeParams) =>
   });
 
 /**
+ * Parameters for handleSkipBackup function
+ */
+interface HandleSkipBackupParams {
+  navigation: NavigationObject;
+  routeParams: RouteParams;
+  isMetricsEnabled: () => boolean;
+  track: TrackFunction;
+}
+
+/**
  * Handles skip backup flow with metrics check
- * @param {Object} params - Skip parameters
- * @param {Function} params.navigation - Navigation object
- * @param {Object} params.routeParams - Route params
- * @param {Function} params.isMetricsEnabled - Function to check if metrics are enabled
- * @param {Function} params.track - Tracking function
+ * @param params - Skip parameters
  */
 export const handleSkipBackup = async ({
   navigation,
   routeParams,
   isMetricsEnabled,
   track,
-}) => {
+}: HandleSkipBackupParams): Promise<void> => {
   track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED, {
     wallet_setup_type: 'new',
   });
@@ -76,13 +118,23 @@ export const handleSkipBackup = async ({
 };
 
 /**
- * Navigates to the seedphrase definition modal
- * @param {Object} params - Navigation parameters
- * @param {Function} params.navigation - Navigation object
- * @param {Function} params.track - Tracking function
- * @param {string} params.location - Location identifier for analytics
+ * Parameters for showSeedphraseDefinition function
  */
-export const showSeedphraseDefinition = ({ navigation, track, location }) => {
+interface ShowSeedphraseDefinitionParams {
+  navigation: NavigationObject;
+  track: TrackFunction;
+  location: string;
+}
+
+/**
+ * Navigates to the seedphrase definition modal
+ * @param params - Navigation parameters
+ */
+export const showSeedphraseDefinition = ({
+  navigation,
+  track,
+  location,
+}: ShowSeedphraseDefinitionParams): void => {
   track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
     location,
   });
@@ -92,17 +144,23 @@ export const showSeedphraseDefinition = ({ navigation, track, location }) => {
 };
 
 /**
+ * Parameters for showSkipAccountSecurityModal function
+ */
+interface ShowSkipAccountSecurityModalParams {
+  navigation: NavigationObject;
+  onConfirm: () => void;
+  track: TrackFunction;
+}
+
+/**
  * Shows the skip account security modal
- * @param {Object} params - Modal parameters
- * @param {Function} params.navigation - Navigation object
- * @param {Function} params.onConfirm - Callback when user confirms skip
- * @param {Function} params.track - Tracking function
+ * @param params - Modal parameters
  */
 export const showSkipAccountSecurityModal = ({
   navigation,
   onConfirm,
   track,
-}) => {
+}: ShowSkipAccountSecurityModalParams): void => {
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
     params: {
