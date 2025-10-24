@@ -68,8 +68,8 @@ export const sortMarkets = ({
       }
 
       default:
-        // Unsupported sort field - maintain current order
-        compareValue = 0;
+        // Unsupported sort field - maintain current order (compareValue remains 0)
+        break;
     }
 
     // Apply sort direction
