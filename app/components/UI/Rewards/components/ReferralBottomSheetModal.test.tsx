@@ -212,6 +212,9 @@ jest.mock('./ReferralDetails/ReferralStatsSection', () => {
         testID: 'referral-stats-section',
         'data-earned-points': props.earnedPointsFromReferees,
         'data-referee-count': props.refereeCount,
+        'data-earned-points-loading': props.earnedPointsFromRefereesLoading,
+        'data-referee-count-loading': props.refereeCountLoading,
+        'data-referee-count-error': props.refereeCountError,
       },
       mockReact.createElement(Text, {}, 'ReferralStatsSection'),
     );
@@ -429,52 +432,6 @@ describe('ReferralBottomSheetModal', () => {
   });
 
   describe('error handling', () => {
-    it('should render season status error banner when season error exists and no season start date', () => {
-      // Arrange
-      mockSelector.mockReturnValue(null);
-      mockSelector
-        .mockReturnValueOnce(null) // referralCode
-        .mockReturnValueOnce(0) // refereeCount
-        .mockReturnValueOnce(0) // balanceRefereePortion
-        .mockReturnValueOnce(false) // seasonStatusLoading
-        .mockReturnValueOnce(true) // seasonStatusError
-        .mockReturnValueOnce(null) // seasonStartDate
-        .mockReturnValueOnce(false) // referralDetailsLoading
-        .mockReturnValueOnce(null); // referralDetailsError
-
-      // Act
-      const { getByTestId, queryByTestId } = render(
-        <ReferralBottomSheetModal />,
-      );
-
-      // Assert
-      expect(getByTestId('rewards-error-banner')).toBeOnTheScreen();
-      expect(queryByTestId('referral-stats-section')).not.toBeOnTheScreen();
-    });
-
-    it('should render referral details error banner when referral error exists and no referral code', () => {
-      // Arrange
-      mockSelector.mockReturnValue(null);
-      mockSelector
-        .mockReturnValueOnce(null) // referralCode
-        .mockReturnValueOnce(0) // refereeCount
-        .mockReturnValueOnce(0) // balanceRefereePortion
-        .mockReturnValueOnce(false) // seasonStatusLoading
-        .mockReturnValueOnce(null) // seasonStatusError
-        .mockReturnValueOnce('2024-01-01') // seasonStartDate
-        .mockReturnValueOnce(false) // referralDetailsLoading
-        .mockReturnValueOnce(true); // referralDetailsError
-
-      // Act
-      const { getByTestId, queryByTestId } = render(
-        <ReferralBottomSheetModal />,
-      );
-
-      // Assert
-      expect(getByTestId('rewards-error-banner')).toBeOnTheScreen();
-      expect(queryByTestId('referral-stats-section')).not.toBeOnTheScreen();
-    });
-
     it('should not render error banner when no errors exist', () => {
       // Act
       const { queryByTestId, getByTestId } = render(
@@ -510,8 +467,8 @@ describe('ReferralBottomSheetModal', () => {
   });
 
   describe('ReferralStatsSection integration', () => {
-    it('should pass correct props to ReferralStatsSection', () => {
-      // Act
+    it('passes correct props to ReferralStatsSection', () => {
+      // Arrange & Act
       const { getByTestId } = render(<ReferralBottomSheetModal />);
       const statsSection = getByTestId('referral-stats-section');
 
@@ -521,6 +478,15 @@ describe('ReferralBottomSheetModal', () => {
       );
       expect(statsSection.props['data-referee-count']).toBe(
         defaultSelectorValues.refereeCount,
+      );
+      expect(statsSection.props['data-earned-points-loading']).toBe(
+        defaultSelectorValues.referralDetailsLoading,
+      );
+      expect(statsSection.props['data-referee-count-loading']).toBe(
+        defaultSelectorValues.referralDetailsLoading,
+      );
+      expect(statsSection.props['data-referee-count-error']).toBe(
+        defaultSelectorValues.referralDetailsError,
       );
     });
   });

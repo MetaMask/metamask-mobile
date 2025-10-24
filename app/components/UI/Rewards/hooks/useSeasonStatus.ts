@@ -11,7 +11,6 @@ import {
   setCandidateSubscriptionId,
   setSeasonStatusLoading,
 } from '../../../../reducers/rewards';
-import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { handleRewardsErrorMessage } from '../utils';
@@ -48,10 +47,17 @@ export const useSeasonStatus = ({
     dispatch(setSeasonStatusLoading(true));
 
     try {
+      // First fetch the current season metadata to get the season ID
+      const seasonMetadata = await Engine.controllerMessenger.call(
+        'RewardsController:getSeasonMetadata',
+        'current',
+      );
+
+      // Then fetch the season status using the season ID
       const statusData = await Engine.controllerMessenger.call(
         'RewardsController:getSeasonStatus',
         subscriptionId,
-        CURRENT_SEASON_ID,
+        seasonMetadata.id,
       );
 
       dispatch(setSeasonStatus(statusData));

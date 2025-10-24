@@ -26,6 +26,8 @@ const mockCardSDKResponse = (sdk: Partial<CardSDK> | null) => {
   mockUseCardSDK.mockReturnValue({
     sdk: sdk as CardSDK | null,
     isLoading: false,
+    user: null,
+    setUser: jest.fn(),
     logoutFromProvider: jest.fn(),
   });
 };

@@ -11,7 +11,7 @@ import {
   type FrontendOpenOrdersResponse,
 } from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import type {
   PriceUpdate,
   Position,
@@ -155,18 +155,31 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Generate standardized error context for Sentry logging
+   * Get error context for logging with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature, provider, and network.
+   *
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields (merged into searchable context.data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @private
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      context: `HyperLiquidSubscriptionService.${method}`,
-      provider: 'hyperliquid',
-      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
-      ...extra,
+      tags: {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        provider: 'hyperliquid',
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      },
+      context: {
+        name: 'HyperLiquidSubscriptionService',
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 

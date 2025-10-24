@@ -13,7 +13,6 @@ import {
   selectReferralCount,
   selectReferralDetailsError,
   selectReferralDetailsLoading,
-  selectSeasonStatusLoading,
   selectSeasonStatusError,
   selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
@@ -32,7 +31,6 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
   const referralCode = useSelector(selectReferralCode);
   const refereeCount = useSelector(selectReferralCount);
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
-  const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
   const seasonStatusError = useSelector(selectSeasonStatusError);
   const seasonStartDate = useSelector(selectSeasonStartDate);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
@@ -113,7 +111,7 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
           <ReferralStatsSection
             earnedPointsFromReferees={balanceRefereePortion}
             refereeCount={refereeCount}
-            earnedPointsFromRefereesLoading={seasonStatusLoading}
+            earnedPointsFromRefereesLoading={referralDetailsLoading}
             refereeCountLoading={referralDetailsLoading}
             refereeCountError={referralDetailsError}
           />

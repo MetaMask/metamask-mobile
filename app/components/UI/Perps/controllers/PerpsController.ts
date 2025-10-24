@@ -25,7 +25,7 @@ import {
   TransactionStatus,
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import { generateTransferData } from '../../../../util/transactions';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
@@ -849,23 +849,36 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Generate standard error context for Logger.error calls
-   * Ensures consistent error reporting to Sentry with minimal but complete context
+   * Generate standard error context for Logger.error calls with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature, provider, and network.
+   *
    * @param method - The method name where the error occurred
-   * @param extra - Optional additional context fields
-   * @returns Standardized error context object
+   * @param extra - Optional additional context fields (becomes searchable context data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
    * @private
+   *
+   * @example
+   * Logger.error(error, this.getErrorContext('placeOrder', { coin: 'BTC', operation: 'validate' }));
+   * // Creates searchable tags: feature:perps, provider:hyperliquid, network:mainnet
+   * // Creates searchable context: perps_controller.method:placeOrder, perps_controller.coin:BTC, perps_controller.operation:validate
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      context: `PerpsController.${method}`,
-      provider: this.state.activeProvider,
-      network: this.state.isTestnet ? 'testnet' : 'mainnet',
-      ...extra,
+      tags: {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        provider: this.state.activeProvider,
+        network: this.state.isTestnet ? 'testnet' : 'mainnet',
+      },
+      context: {
+        name: 'PerpsController',
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 

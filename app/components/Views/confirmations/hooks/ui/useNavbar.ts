@@ -47,7 +47,7 @@ export function useModalNavbar() {
   useEffect(() => {
     navigation.setOptions(
       getModalNavigationOptions({
-        onBack: onReject,
+        onBack: () => onReject(),
       }),
     );
   }, [navigation, onReject]);

@@ -13,7 +13,7 @@ const KYCFailed = () => {
   const navigation = useNavigation();
 
   const handleContinue = () => {
-    navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS);
+    navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
   };
 
   const renderFormFields = () => null;
@@ -25,6 +25,7 @@ const KYCFailed = () => {
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
+      testID="kyc-failed-retry-button"
     />
   );
 

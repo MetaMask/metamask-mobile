@@ -64,7 +64,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
-    } = useTransactionCustomAmount();
+    } = useTransactionCustomAmount({ currency });
 
     const { alertMessage, keyboardAlertMessage, excludeBannerKeys } =
       useTransactionCustomAmountAlerts({

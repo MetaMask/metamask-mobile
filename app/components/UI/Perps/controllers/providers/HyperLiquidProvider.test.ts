@@ -4270,6 +4270,247 @@ describe('HyperLiquidProvider', () => {
       expect(result).toEqual([]);
     });
 
+    it('should properly transform getOrders with reduceOnly and isTrigger fields', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        historicalOrders: jest.fn().mockResolvedValue([
+          {
+            order: {
+              oid: 123,
+              coin: 'BTC',
+              side: 'A',
+              sz: '0.5',
+              origSz: '1.0',
+              limitPx: '50000',
+              orderType: 'Limit',
+              reduceOnly: false,
+              isTrigger: false,
+            },
+            status: 'filled',
+            statusTimestamp: 1640995200000,
+          },
+          {
+            order: {
+              oid: 124,
+              coin: 'ETH',
+              side: 'A',
+              sz: '0.0',
+              origSz: '2.0',
+              limitPx: '3500',
+              orderType: 'Take Profit Limit',
+              reduceOnly: true,
+              isTrigger: true,
+            },
+            status: 'filled',
+            statusTimestamp: 1640995300000,
+          },
+          {
+            order: {
+              oid: 125,
+              coin: 'BTC',
+              side: 'B',
+              sz: '0.1',
+              origSz: '0.1',
+              limitPx: '45000',
+              orderType: 'Stop Market',
+              reduceOnly: true,
+              isTrigger: true,
+            },
+            status: 'triggered',
+            statusTimestamp: 1640995400000,
+          },
+        ]),
+      });
+
+      const result = await provider.getOrders();
+
+      expect(result).toHaveLength(3);
+
+      // Check first order - regular limit order (not closing)
+      expect(result[0]).toMatchObject({
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        orderType: 'limit',
+        size: '0.5',
+        originalSize: '1.0',
+        price: '50000',
+        status: 'filled',
+        detailedOrderType: 'Limit',
+        reduceOnly: false,
+        isTrigger: false,
+      });
+
+      // Check second order - Take Profit closing order
+      expect(result[1]).toMatchObject({
+        orderId: '124',
+        symbol: 'ETH',
+        side: 'sell',
+        orderType: 'limit',
+        size: '0.0',
+        originalSize: '2.0',
+        price: '3500',
+        status: 'filled',
+        detailedOrderType: 'Take Profit Limit',
+        reduceOnly: true,
+        isTrigger: true,
+      });
+
+      // Check third order - Stop Market closing order
+      expect(result[2]).toMatchObject({
+        orderId: '125',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'market',
+        size: '0.1',
+        originalSize: '0.1',
+        price: '45000',
+        status: 'triggered',
+        detailedOrderType: 'Stop Market',
+        reduceOnly: true,
+        isTrigger: true,
+      });
+    });
+
+    it('should properly transform getOpenOrders with reduceOnly and isTrigger fields', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: { totalMarginUsed: '500', accountValue: '10500' },
+          withdrawable: '9500',
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '1.0',
+                entryPx: '50000',
+                positionValue: '50000',
+                unrealizedPnl: '1000',
+                marginUsed: '5000',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: { allTime: '10', sinceOpen: '5', sinceChange: '2' },
+              },
+              type: 'oneWay',
+            },
+          ],
+          crossMarginSummary: {
+            accountValue: '10000',
+            totalMarginUsed: '5000',
+          },
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([
+          {
+            coin: 'BTC',
+            side: 'B',
+            limitPx: '49000',
+            sz: '0.5',
+            oid: 201,
+            timestamp: 1640995500000,
+            origSz: '0.5',
+            triggerCondition: '',
+            isTrigger: false,
+            triggerPx: '',
+            children: [],
+            isPositionTpsl: false,
+            reduceOnly: false,
+            orderType: 'Limit',
+            tif: 'Gtc',
+            cloid: null,
+          },
+          {
+            coin: 'BTC',
+            side: 'A',
+            limitPx: '55000',
+            sz: '1.0',
+            oid: 202,
+            timestamp: 1640995600000,
+            origSz: '1.0',
+            triggerCondition: '',
+            isTrigger: true,
+            triggerPx: '55000',
+            children: [],
+            isPositionTpsl: true,
+            reduceOnly: true,
+            orderType: 'Take Profit Limit',
+            tif: null,
+            cloid: null,
+          },
+          {
+            coin: 'BTC',
+            side: 'A',
+            limitPx: '',
+            sz: '1.0',
+            oid: 203,
+            timestamp: 1640995700000,
+            origSz: '1.0',
+            triggerCondition: '',
+            isTrigger: true,
+            triggerPx: '45000',
+            children: [],
+            isPositionTpsl: true,
+            reduceOnly: true,
+            orderType: 'Stop Market',
+            tif: null,
+            cloid: null,
+          },
+        ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        perpDexs: jest.fn().mockResolvedValue([null]),
+      });
+
+      const result = await provider.getOpenOrders();
+
+      expect(result).toHaveLength(3);
+
+      // Check first order - regular limit order (opening position)
+      expect(result[0]).toMatchObject({
+        orderId: '201',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.5',
+        originalSize: '0.5',
+        price: '49000',
+        status: 'open',
+        detailedOrderType: 'Limit',
+        reduceOnly: false,
+        isTrigger: false,
+      });
+
+      // Check second order - Take Profit closing order
+      expect(result[1]).toMatchObject({
+        orderId: '202',
+        symbol: 'BTC',
+        side: 'sell',
+        orderType: 'limit',
+        size: '1.0',
+        originalSize: '1.0',
+        price: '55000',
+        status: 'open',
+        detailedOrderType: 'Take Profit Limit',
+        reduceOnly: true,
+        isTrigger: true,
+      });
+
+      // Check third order - Stop Market closing order
+      expect(result[2]).toMatchObject({
+        orderId: '203',
+        symbol: 'BTC',
+        side: 'sell',
+        orderType: 'market',
+        size: '1.0',
+        originalSize: '1.0',
+        price: '45000',
+        status: 'open',
+        detailedOrderType: 'Stop Market',
+        reduceOnly: true,
+        isTrigger: true,
+      });
+    });
+
     it('should handle getFunding with empty response', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         userFunding: jest.fn().mockResolvedValue(null),

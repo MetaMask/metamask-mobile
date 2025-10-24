@@ -6,8 +6,7 @@ import type {
   EstimatedPointsDto,
   GetPerpsDiscountDto,
   PerpsDiscountData,
-  SeasonStatusDto,
-  SubscriptionReferralDetailsDto,
+  SubscriptionSeasonReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
   MobileLoginDto,
@@ -20,6 +19,9 @@ import type {
   ClaimRewardDto,
   GetPointsEventsLastUpdatedDto,
   MobileOptinDto,
+  DiscoverSeasonsDto,
+  SeasonMetadataDto,
+  SeasonStateDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -156,6 +158,16 @@ export interface RewardsDataServiceClaimRewardAction {
   handler: RewardsDataService['claimReward'];
 }
 
+export interface RewardsDataServiceGetDiscoverSeasonsAction {
+  type: `${typeof SERVICE_NAME}:getDiscoverSeasons`;
+  handler: RewardsDataService['getDiscoverSeasons'];
+}
+
+export interface RewardsDataServiceGetSeasonMetadataAction {
+  type: `${typeof SERVICE_NAME}:getSeasonMetadata`;
+  handler: RewardsDataService['getSeasonMetadata'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -173,7 +185,9 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
   | RewardsDataServiceGetUnlockedRewardsAction
-  | RewardsDataServiceClaimRewardAction;
+  | RewardsDataServiceClaimRewardAction
+  | RewardsDataServiceGetDiscoverSeasonsAction
+  | RewardsDataServiceGetSeasonMetadataAction;
 
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
@@ -285,6 +299,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:claimReward`,
       this.claimReward.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getDiscoverSeasons`,
+      this.getDiscoverSeasons.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSeasonMetadata`,
+      this.getSeasonMetadata.bind(this),
     );
   }
 
@@ -600,17 +622,17 @@ export class RewardsDataService {
   }
 
   /**
-   * Get season status for a specific season.
-   * @param seasonId - The ID of the season to get status for.
+   * Get season state for a specific season.
+   * @param seasonId - The ID of the season to get state for.
    * @param subscriptionId - The subscription ID for authentication.
-   * @returns The season status DTO.
+   * @returns The season state DTO.
    */
   async getSeasonStatus(
     seasonId: string,
     subscriptionId: string,
-  ): Promise<SeasonStatusDto> {
+  ): Promise<SeasonStateDto> {
     const response = await this.makeRequest(
-      `/seasons/${seasonId}/status`,
+      `/seasons/${seasonId}/state`,
       {
         method: 'GET',
       },
@@ -625,37 +647,31 @@ export class RewardsDataService {
         );
       }
 
-      throw new Error(`Get season status failed: ${response.status}`);
+      throw new Error(`Get season state failed: ${response.status}`);
     }
 
     const data = await response.json();
 
     // Convert date strings to Date objects
-    if (data.balance?.updatedAt) {
-      data.balance.updatedAt = new Date(data.balance.updatedAt);
-    }
-    if (data.season) {
-      if (data.season.startDate) {
-        data.season.startDate = new Date(data.season.startDate);
-      }
-      if (data.season.endDate) {
-        data.season.endDate = new Date(data.season.endDate);
-      }
+    if (data.updatedAt) {
+      data.updatedAt = new Date(data.updatedAt);
     }
 
-    return data as SeasonStatusDto;
+    return data as SeasonStateDto;
   }
 
   /**
-   * Get referral details for a specific subscription.
+   * Get referral details for a specific subscription and season.
+   * @param seasonId - The season ID to get referral details for.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The referral details DTO.
    */
   async getReferralDetails(
+    seasonId: string,
     subscriptionId: string,
-  ): Promise<SubscriptionReferralDetailsDto> {
+  ): Promise<SubscriptionSeasonReferralDetailsDto> {
     const response = await this.makeRequest(
-      '/subscriptions/referral-details',
+      `/seasons/${seasonId}/referral-details`,
       {
         method: 'GET',
       },
@@ -666,7 +682,7 @@ export class RewardsDataService {
       throw new Error(`Get referral details failed: ${response.status}`);
     }
 
-    return (await response.json()) as SubscriptionReferralDetailsDto;
+    return (await response.json()) as SubscriptionSeasonReferralDetailsDto;
   }
 
   /**
@@ -875,5 +891,73 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(`Failed to claim reward: ${response.status}`);
     }
+  }
+
+  /**
+   * Get discover seasons information (current and next season).
+   * @returns The discover seasons DTO with current and next season information.
+   */
+  async getDiscoverSeasons(): Promise<DiscoverSeasonsDto> {
+    const response = await this.makeRequest('/public/seasons/status', {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Get discover seasons failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Convert date strings to Date objects for current season
+    if (data.current) {
+      if (data.current.startDate) {
+        data.current.startDate = new Date(data.current.startDate);
+      }
+      if (data.current.endDate) {
+        data.current.endDate = new Date(data.current.endDate);
+      }
+    }
+
+    // Convert date strings to Date objects for next season
+    if (data.next) {
+      if (data.next.startDate) {
+        data.next.startDate = new Date(data.next.startDate);
+      }
+      if (data.next.endDate) {
+        data.next.endDate = new Date(data.next.endDate);
+      }
+    }
+
+    return data as DiscoverSeasonsDto;
+  }
+
+  /**
+   * Get season metadata for a specific season.
+   * @param seasonId - The ID of the season to get metadata for.
+   * @returns The season metadata DTO.
+   */
+  async getSeasonMetadata(seasonId: string): Promise<SeasonMetadataDto> {
+    const response = await this.makeRequest(
+      `/public/seasons/${seasonId}/meta`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get season metadata failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Convert date strings to Date objects
+    if (data.startDate) {
+      data.startDate = new Date(data.startDate);
+    }
+    if (data.endDate) {
+      data.endDate = new Date(data.endDate);
+    }
+
+    return data as SeasonMetadataDto;
   }
 }

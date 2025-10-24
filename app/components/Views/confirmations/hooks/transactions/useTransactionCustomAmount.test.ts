@@ -53,6 +53,22 @@ function runHook({
             },
           }
         : {},
+      {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: 'tst',
+              currencyRates: {
+                ETH: {
+                  conversionDate: 1732887955.694,
+                  conversionRate: 1,
+                  usdConversionRate: 2,
+                },
+              },
+            },
+          },
+        },
+      },
     ),
   });
 }
@@ -134,6 +150,7 @@ describe('useTransactionCustomAmount', () => {
     expect(useTokenFiatRateMock).toHaveBeenCalledWith(
       '0x123',
       expect.anything(),
+      undefined,
     );
   });
 
@@ -261,6 +278,18 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('530.86');
+    });
+
+    it('to percentage of token balance converted to usd if overridden', async () => {
+      const { result } = runHook({
+        transactionMeta: { type: TransactionType.predictDeposit },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(43);
+      });
+
+      expect(result.current.amountFiat).toBe('1061.72');
     });
 
     it('minus buffers if 100', async () => {

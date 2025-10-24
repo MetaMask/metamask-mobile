@@ -2,7 +2,11 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { getRequiredBalance, getTokenTransferData } from './transaction-pay';
+import {
+  getRequiredBalance,
+  getTokenAddress,
+  getTokenTransferData,
+} from './transaction-pay';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 
@@ -87,6 +91,40 @@ describe('Transaction Pay Utils', () => {
         to: TO_MOCK,
         index: 1,
       });
+    });
+  });
+
+  describe('getTokenAddress', () => {
+    it('returns token address from nested token transfer', () => {
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: '0x5678',
+        },
+        nestedTransactions: [
+          {
+            data: '0x123456',
+            to: '0x567890',
+          },
+          {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+            to: TO_MOCK,
+          },
+        ],
+      } as unknown as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
+    });
+
+    it('returns to param if no nested transfer', () => {
+      const transactionMeta = {
+        txParams: {
+          data: TOKEN_TRANSFER_DATA_MOCK,
+          to: TO_MOCK,
+        },
+      } as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
     });
   });
 });

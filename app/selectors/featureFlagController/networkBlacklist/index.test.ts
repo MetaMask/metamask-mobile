@@ -45,22 +45,6 @@ describe('selectAdditionalNetworkBlacklistFeatureFlag', () => {
     expect(result).toEqual(['0x8f', '0x531', '0x1329']);
   });
 
-  it('handles environment variable override', () => {
-    // Set environment variable after beforeEach has run
-    const originalEnvValue = process.env.MM_ADDITIONAL_NETWORK_BLACKLIST;
-    process.env.MM_ADDITIONAL_NETWORK_BLACKLIST = '0x8f,0x531,0x1329';
-
-    const state = createTestState({
-      additionalNetworkBlacklist: ['0x1', '0x2'],
-    });
-
-    const result = selectAdditionalNetworkBlacklistFeatureFlag(state);
-    expect(result).toEqual(['0x8f', '0x531', '0x1329']);
-
-    // Clean up
-    process.env.MM_ADDITIONAL_NETWORK_BLACKLIST = originalEnvValue;
-  });
-
   it('handles empty environment variable', () => {
     const originalEnvValue = process.env.MM_ADDITIONAL_NETWORK_BLACKLIST;
     process.env.MM_ADDITIONAL_NETWORK_BLACKLIST = '';

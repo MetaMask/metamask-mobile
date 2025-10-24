@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 
 import { useCallback, useEffect, useState, useRef } from 'react';
+import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { PredictCategory, PredictMarket } from '../types';
@@ -151,6 +152,24 @@ export const usePredictMarketData = (
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch market data';
         setError(errorMessage);
+
+        // Capture exception with market data loading context
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePredictMarketData',
+            action: 'market_data_load',
+            operation: 'data_fetching',
+          },
+          extra: {
+            marketDataContext: {
+              providerId,
+              category,
+              hasSearchQuery: !!q,
+              pageSize,
+              isLoadMore,
+            },
+          },
+        });
 
         if (!isLoadMore) {
           setMarketData([]);

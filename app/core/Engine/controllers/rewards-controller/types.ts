@@ -415,7 +415,6 @@ export interface SeasonDto {
 
 export interface SeasonStatusBalanceDto {
   total: number;
-  refereePortion: number;
   updatedAt?: Date;
 }
 
@@ -425,9 +424,10 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionReferralDetailsDto {
+export interface SubscriptionSeasonReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
+  referralPoints: number;
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -491,9 +491,10 @@ export interface ClaimRewardDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionReferralDetailsState = {
+export type SubscriptionSeasonReferralDetailState = {
   referralCode: string;
   totalReferees: number;
+  referralPoints: number;
   lastFetched?: number;
 };
 
@@ -531,12 +532,12 @@ export type SeasonDtoState = {
   startDate: number; // timestamp
   endDate: number; // timestamp
   tiers: SeasonTierDtoState[];
+  lastFetched?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonStatusBalanceDtoState = {
   total: number;
-  refereePortion: number;
   updatedAt?: number; // timestamp
 };
 
@@ -624,7 +625,7 @@ export type RewardsControllerState = {
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
-    [subscriptionId: string]: SubscriptionReferralDetailsState;
+    [compositeId: string]: SubscriptionSeasonReferralDetailState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
@@ -803,13 +804,21 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
 }
 
 /**
+ * Action for getting season metadata with caching
+ */
+export interface RewardsControllerGetSeasonMetadataAction {
+  type: 'RewardsController:getSeasonMetadata';
+  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState>;
+}
+
+/**
  * Action for getting season status with caching
  */
 export interface RewardsControllerGetSeasonStatusAction {
   type: 'RewardsController:getSeasonStatus';
   handler: (
-    seasonId: string,
     subscriptionId: string,
+    seasonId: string,
   ) => Promise<SeasonStatusState | null>;
 }
 
@@ -820,7 +829,8 @@ export interface RewardsControllerGetReferralDetailsAction {
   type: 'RewardsController:getReferralDetails';
   handler: (
     subscriptionId: string,
-  ) => Promise<SubscriptionReferralDetailsState | null>;
+    seasonId: string,
+  ) => Promise<SubscriptionSeasonReferralDetailState | null>;
 }
 
 /**
@@ -955,6 +965,7 @@ export type RewardsControllerActions =
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerGetSeasonMetadataAction
   | RewardsControllerGetSeasonStatusAction
   | RewardsControllerGetReferralDetailsAction
   | RewardsControllerOptInAction
@@ -972,8 +983,6 @@ export type RewardsControllerActions =
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerResetAllAction;
-
-export const CURRENT_SEASON_ID = 'current';
 
 /**
  * Input DTO for getting opt-in status of multiple addresses
@@ -1016,4 +1025,99 @@ export interface OptOutDto {
    * @example true
    */
   success: boolean;
+}
+
+/**
+ * Season info for discover seasons endpoint
+ */
+export interface SeasonInfoDto {
+  /**
+   * The ID of the season
+   * @example '7444682d-9050-43b8-9038-28a6a62d6264'
+   */
+  id: string;
+
+  /**
+   * The start date of the season
+   * @example '2025-09-01T04:00:00.000Z'
+   */
+  startDate: Date;
+
+  /**
+   * The end date of the season
+   * @example '2025-11-30T04:00:00.000Z'
+   */
+  endDate: Date;
+}
+
+/**
+ * Response DTO for discover seasons endpoint
+ */
+export interface DiscoverSeasonsDto {
+  /**
+   * Current season information
+   */
+  current: SeasonInfoDto | null;
+
+  /**
+   * Next season information
+   */
+  next: SeasonInfoDto | null;
+}
+
+/**
+ * Response DTO for season metadata endpoint
+ */
+export interface SeasonMetadataDto {
+  /**
+   * The ID of the season
+   * @example '7444682d-9050-43b8-9038-28a6a62d6264'
+   */
+  id: string;
+
+  /**
+   * The name of the season
+   * @example 'Season 1'
+   */
+  name: string;
+
+  /**
+   * The start date of the season
+   * @example '2025-09-01T04:00:00.000Z'
+   */
+  startDate: Date;
+
+  /**
+   * The end date of the season
+   * @example '2025-11-30T04:00:00.000Z'
+   */
+  endDate: Date;
+
+  /**
+   * The tiers for the season
+   */
+  tiers: SeasonTierDto[];
+}
+
+/**
+ * Response DTO for season state endpoint (new getSeasonStatus)
+ */
+export interface SeasonStateDto {
+  /**
+   * The balance for the season
+   * @example 0
+   */
+  balance: number;
+
+  /**
+   * The current tier ID
+   * @example '555260e8-d88b-4196-adb1-0844807bddc3'
+   */
+  currentTierId: string;
+
+  /**
+   * When the season state was last updated
+   * @example '2025-10-21T16:45:50.732Z'
+   */
+  updatedAt: Date;
 }
