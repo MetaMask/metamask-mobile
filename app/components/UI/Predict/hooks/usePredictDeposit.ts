@@ -1,17 +1,18 @@
-import { useCallback } from 'react';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { captureException } from '@sentry/react-native';
-import Engine from '../../../../core/Engine';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import Routes from '../../../../constants/navigation/Routes';
-import { createSelector } from 'reselect';
+import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../reducers';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { createSelector } from 'reselect';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import Routes from '../../../../constants/navigation/Routes';
+import { RootState } from '../../../../reducers';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictTrading } from './usePredictTrading';
 
 interface UsePredictDepositParams {
@@ -26,9 +27,7 @@ export const usePredictDeposit = ({
   const { toastRef } = useContext(ToastContext);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { isEligible } = usePredictEligibility({
-    providerId,
-  });
+
   const { deposit: depositWithConfirmation } = usePredictTrading();
 
   const selectDepositTransaction = createSelector(
@@ -45,7 +44,7 @@ export const usePredictDeposit = ({
         stack: Routes.PREDICT.ROOT,
       });
 
-      Engine.context.PredictController.depositWithConfirmation({
+      depositWithConfirmation({
         providerId,
       }).catch((err) => {
         console.error('Failed to initialize deposit:', err);
@@ -61,6 +60,26 @@ export const usePredictDeposit = ({
             depositContext: {
               providerId,
             },
+          },
+        });
+        navigation.goBack();
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            { label: strings('predict.deposit.error_title'), isBold: true },
+            { label: '\n', isBold: false },
+            {
+              label: strings('predict.deposit.error_description'),
+              isBold: false,
+            },
+          ],
+          iconName: IconName.Error,
+          iconColor: theme.colors.error.default,
+          backgroundColor: theme.colors.accent04.normal,
+          hasNoTimeout: false,
+          linkButtonOptions: {
+            label: strings('predict.deposit.try_again'),
+            onPress: () => deposit(),
           },
         });
       });
@@ -104,7 +123,6 @@ export const usePredictDeposit = ({
     }
   }, [
     depositWithConfirmation,
-    isEligible,
     navigateToConfirmation,
     navigation,
     providerId,
