@@ -23,7 +23,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
-import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -32,7 +31,6 @@ import {
   SEED_PHRASE,
   CONFIRM_PASSWORD,
   WRONG_PASSWORD_ERROR,
-  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
@@ -40,8 +38,6 @@ import { createStyles } from './styles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -50,7 +46,6 @@ import Button, {
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -58,7 +53,7 @@ import {
   createTrackFunction,
   handleSkipBackup,
   showSeedphraseDefinition,
-  showSkipAccountSecurityModal,
+  showSkipAccountSecurityBottomsheet,
 } from './utils';
 
 /**
@@ -211,7 +206,7 @@ const ManualBackupStep1 = ({
   const showRemindLater = useCallback(() => {
     if (hasFunds) return;
 
-    showSkipAccountSecurityModal({
+    showSkipAccountSecurityBottomsheet({
       navigation,
       onConfirm: skip,
       track,

@@ -144,23 +144,23 @@ export const showSeedphraseDefinition = ({
 };
 
 /**
- * Parameters for showSkipAccountSecurityModal function
+ * Parameters for showSkipAccountSecurityBottomsheet function
  */
-interface ShowSkipAccountSecurityModalParams {
+interface ShowSkipAccountSecurityBottomsheetParams {
   navigation: NavigationObject;
   onConfirm: () => void;
   track: TrackFunction;
 }
 
 /**
- * Shows the skip account security modal
- * @param params - Modal parameters
+ * Shows the skip account security bottomsheet
+ * @param params - Bottomsheet parameters
  */
-export const showSkipAccountSecurityModal = ({
+export const showSkipAccountSecurityBottomsheet = ({
   navigation,
   onConfirm,
   track,
-}: ShowSkipAccountSecurityModalParams): void => {
+}: ShowSkipAccountSecurityBottomsheetParams): void => {
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
     params: {
