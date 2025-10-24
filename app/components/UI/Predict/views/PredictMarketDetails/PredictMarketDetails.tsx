@@ -271,7 +271,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     return 0;
   };
 
-  const handleYesPress = () => {
+  const handleBuyPress = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
@@ -279,24 +279,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           params: {
             market,
             outcome: market?.outcomes?.[0],
-            outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          },
-        });
-      },
-      { checkBalance: true },
-    );
-  };
-
-  const handleNoPress = () => {
-    executeGuardedAction(
-      () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome: market?.outcomes?.[0],
-            outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
+            outcomeToken: token,
             entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
           },
         });
@@ -690,7 +673,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {getYesPercentage()}¢
                   </Text>
                 }
-                onPress={handleYesPress}
+                onPress={() => handleBuyPress(market?.outcomes[0].tokens[0])}
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -703,7 +686,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {100 - getYesPercentage()}¢
                   </Text>
                 }
-                onPress={handleNoPress}
+                onPress={() => handleBuyPress(market?.outcomes[0].tokens[1])}
               />
             </Box>
           );
