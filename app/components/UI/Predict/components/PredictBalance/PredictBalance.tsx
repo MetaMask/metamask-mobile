@@ -37,7 +37,11 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
-const PredictBalance: React.FC = () => {
+interface PredictBalanceProps {
+  onLayout?: (height: number) => void;
+}
+
+const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const tw = useTailwind();
 
   const navigation =
@@ -125,6 +129,10 @@ const PredictBalance: React.FC = () => {
           isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
         )}
         testID="predict-balance-card"
+        onLayout={(event) => {
+          const { height } = event.nativeEvent.layout;
+          onLayout?.(height);
+        }}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
