@@ -8,6 +8,7 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
 } from '../../../../../selectors/assets/balances';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -26,6 +27,9 @@ const AccountGroupBalance = () => {
   const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
   const balanceChange1d = useSelector(
     selectBalanceChangeBySelectedAccountGroup('1d'),
+  );
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
   );
 
   const togglePrivacy = useCallback(
@@ -51,7 +55,7 @@ const AccountGroupBalance = () => {
             <Skeleton width={100} height={40} />
             <Skeleton width={100} height={20} />
           </View>
-        ) : hasZeroBalance ? (
+        ) : hasZeroBalance && isHomepageRedesignV1Enabled ? (
           <>
             <BalanceEmptyState testID="account-group-balance-empty-state" />
           </>

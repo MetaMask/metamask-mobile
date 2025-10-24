@@ -15,6 +15,7 @@ import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMulti
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import BalanceEmptyState from '../../../BalanceEmptyState';
 
 export const PortfolioBalance = React.memo(() => {
@@ -26,6 +27,9 @@ export const PortfolioBalance = React.memo(() => {
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const renderAggregatedPercentage = () => {
     if (
@@ -70,7 +74,7 @@ export const PortfolioBalance = React.memo(() => {
           <View style={styles.loaderWrapper}>
             <Loader />
           </View>
-        ) : hasZeroBalance ? (
+        ) : hasZeroBalance && isHomepageRedesignV1Enabled ? (
           <BalanceEmptyState testID="portfolio-balance-empty-state" />
         ) : (
           <TouchableOpacity
