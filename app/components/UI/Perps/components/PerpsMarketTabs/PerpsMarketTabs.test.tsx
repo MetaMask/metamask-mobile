@@ -730,6 +730,46 @@ describe('PerpsMarketTabs', () => {
       });
     });
 
+    it('preserves current tab when new position appears without external tab change', async () => {
+      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+      mockUsePerpsLivePositions.mockReturnValue({ positions: [] });
+
+      const onActiveTabChange = jest.fn();
+      const { rerender, getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={onActiveTabChange}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT),
+        ).toBeDefined();
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, coin: 'BTC' }],
+      });
+
+      rerender(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={onActiveTabChange}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT),
+        ).toBeDefined();
+      });
+    });
+
     it('ignores activeTabId for unavailable tabs', () => {
       const onActiveTabChange = jest.fn();
       const { getByTestId } = render(

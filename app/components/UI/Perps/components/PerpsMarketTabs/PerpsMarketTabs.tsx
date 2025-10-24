@@ -209,6 +209,9 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);
+  const prevExternalActiveTabIdRef = useRef<string | undefined>(
+    externalActiveTabId,
+  );
 
   // Subscribe to data internally (marketStats moved to StatisticsTabContent to isolate price updates)
   const { positions } = usePerpsLivePositions({ throttleMs: 0 });
@@ -316,29 +319,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (initialTab && !hasUserInteracted.current && !hasSetInitialTab.current) {
       const availableTabs = tabs.map((t) => t.id);
       if (availableTabs.includes(initialTab)) {
+        hasSetInitialTab.current = true;
         setActiveTabId(initialTab as PerpsTabId);
         onActiveTabChange?.(initialTab);
-        hasSetInitialTab.current = true;
-
-        // Sync with TabsList by switching to the correct index
-        const availableTabIds: PerpsTabId[] = [];
-        if (position) availableTabIds.push('position');
-        if (sortedUnfilledOrders.length > 0) availableTabIds.push('orders');
-        availableTabIds.push('statistics');
-
-        const targetIndex = availableTabIds.indexOf(initialTab as PerpsTabId);
-        if (targetIndex >= 0 && tabsListRef.current) {
-          tabsListRef.current.goToTabIndex(targetIndex);
-        }
       }
     }
-  }, [
-    initialTab,
-    tabs,
-    onActiveTabChange,
-    position,
-    sortedUnfilledOrders.length,
-  ]);
+  }, [initialTab, tabs, onActiveTabChange]);
 
   // Set initial tab based on data availability
   // Now we can properly distinguish between loading and empty states
@@ -400,24 +386,17 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     }
   }, [tabs, activeTabId, onActiveTabChange]);
 
-  // Handle programmatic tab control from external activeTabId prop (updated for TabsList)
+  // Handle programmatic tab control from external activeTabId prop
   useEffect(() => {
-    if (externalActiveTabId && tabsListRef.current) {
-      // Build current available tabs in same order as tabsToRender
-      const availableTabIds: PerpsTabId[] = [];
-      if (position) availableTabIds.push('position');
-      if (sortedUnfilledOrders.length > 0) availableTabIds.push('orders');
-      availableTabIds.push('statistics'); // Always available
-
-      const targetIndex = availableTabIds.indexOf(
-        externalActiveTabId as PerpsTabId,
-      );
-      if (targetIndex >= 0) {
-        tabsListRef.current.goToTabIndex(targetIndex);
-        setActiveTabId(externalActiveTabId as PerpsTabId);
-      }
+    // Only respond when externalActiveTabId explicitly changes
+    if (
+      externalActiveTabId &&
+      externalActiveTabId !== prevExternalActiveTabIdRef.current
+    ) {
+      prevExternalActiveTabIdRef.current = externalActiveTabId;
+      setActiveTabId(externalActiveTabId as PerpsTabId);
     }
-  }, [externalActiveTabId, position, sortedUnfilledOrders.length]);
+  }, [externalActiveTabId]);
 
   // Notify parent when tab changes (updated for TabsList API)
   const handleTabChange = useCallback(
@@ -669,6 +648,25 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     );
   }, [selectedTooltip, handleTooltipClose]);
 
+  // Key for TabsList to force remount when tab count changes
+  const tabsKey = useMemo(() => `tabs-${tabs.length}`, [tabs.length]);
+
+  // Calculate active index for TabsList
+  const activeIndex = useMemo(() => {
+    const availableTabIds: PerpsTabId[] = [];
+    if (position) availableTabIds.push('position');
+    if (sortedUnfilledOrders.length > 0) availableTabIds.push('orders');
+    availableTabIds.push('statistics');
+    return Math.max(0, availableTabIds.indexOf(activeTabId));
+  }, [activeTabId, position, sortedUnfilledOrders.length]);
+
+  // Sync TabsList to active tab after remount (when key changes)
+  useEffect(() => {
+    if (tabsListRef.current && activeIndex >= 0) {
+      tabsListRef.current.goToTabIndex(activeIndex);
+    }
+  }, [tabsKey, activeIndex]);
+
   if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
       <View style={styles.singleTabContainer}>
@@ -698,7 +696,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       style={styles.container}
       testID={PerpsMarketTabsSelectorsIDs.CONTAINER}
     >
-      <TabsList ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
         {tabsToRender}
       </TabsList>
       {renderTooltipModal()}
