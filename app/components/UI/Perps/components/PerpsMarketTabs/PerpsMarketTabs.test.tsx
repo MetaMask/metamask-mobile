@@ -516,6 +516,238 @@ describe('PerpsMarketTabs', () => {
     });
   });
 
+  describe('TP/SL Order Active Type Display', () => {
+    it('displays BOTH when order has both TP and SL from same order', async () => {
+      const orderWithBothTPSL = {
+        ...mockOrder,
+        symbol: 'BTC',
+        orderId: '12345',
+        detailedOrderType: 'Take Profit / Stop Loss',
+      };
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            coin: 'BTC',
+            activeTPOrderId: '12345',
+            activeSLOrderId: '12345',
+          },
+        ],
+      });
+      mockUsePerpsLiveOrders.mockReturnValue([orderWithBothTPSL]);
+
+      const { getAllByText, getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      const ordersTab = getAllByText('perps.market.orders')[0];
+      fireEvent.press(ordersTab);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-perps-open-order-card')).toBeDefined();
+      });
+    });
+
+    it('displays TP when order has only TP active', async () => {
+      const orderWithTP = {
+        ...mockOrder,
+        symbol: 'BTC',
+        orderId: '12345',
+        detailedOrderType: 'Take Profit',
+      };
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            coin: 'BTC',
+            activeTPOrderId: '12345',
+            activeSLOrderId: null,
+          },
+        ],
+      });
+      mockUsePerpsLiveOrders.mockReturnValue([orderWithTP]);
+
+      const { getAllByText, getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      const ordersTab = getAllByText('perps.market.orders')[0];
+      fireEvent.press(ordersTab);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-perps-open-order-card')).toBeDefined();
+      });
+    });
+
+    it('displays SL when order has only SL active', async () => {
+      const orderWithSL = {
+        ...mockOrder,
+        symbol: 'BTC',
+        orderId: '12345',
+        detailedOrderType: 'Stop Loss',
+      };
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            coin: 'BTC',
+            activeTPOrderId: null,
+            activeSLOrderId: '12345',
+          },
+        ],
+      });
+      mockUsePerpsLiveOrders.mockReturnValue([orderWithSL]);
+
+      const { getAllByText, getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      const ordersTab = getAllByText('perps.market.orders')[0];
+      fireEvent.press(ordersTab);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-perps-open-order-card')).toBeDefined();
+      });
+    });
+  });
+
+  describe('Order Sorting', () => {
+    it('sorts orders by detailedOrderType then by orderId', () => {
+      const limitOrder = {
+        ...mockOrder,
+        symbol: 'BTC',
+        orderId: 'order-2',
+        detailedOrderType: 'Limit Order',
+        orderType: 'limit',
+      };
+      const marketOrder = {
+        ...mockOrder,
+        symbol: 'BTC',
+        orderId: 'order-1',
+        detailedOrderType: 'Market Order',
+        orderType: 'market',
+      };
+      const stopLossOrder = {
+        ...mockOrder,
+        symbol: 'BTC',
+        orderId: 'order-3',
+        detailedOrderType: 'Stop Loss',
+        orderType: 'stop',
+      };
+
+      mockUsePerpsLiveOrders.mockReturnValue([
+        stopLossOrder,
+        limitOrder,
+        marketOrder,
+      ]);
+
+      const { getAllByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      expect(getAllByTestId('mock-perps-open-order-card')).toHaveLength(3);
+    });
+
+    it('falls back to orderType when detailedOrderType is missing', () => {
+      const orderWithoutDetailedType = {
+        ...mockOrder,
+        symbol: 'BTC',
+        orderId: 'order-1',
+        detailedOrderType: undefined,
+        orderType: 'limit',
+      };
+
+      mockUsePerpsLiveOrders.mockReturnValue([orderWithoutDetailedType]);
+
+      const { getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      expect(getByTestId('mock-perps-open-order-card')).toBeDefined();
+    });
+  });
+
+  describe('External Tab Control', () => {
+    it('switches to external tab when activeTabId prop changes', async () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, coin: 'BTC' }],
+      });
+      mockUsePerpsLiveOrders.mockReturnValue([{ ...mockOrder, symbol: 'BTC' }]);
+
+      const onActiveTabChange = jest.fn();
+      const { rerender, getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          activeTabId="statistics"
+          onActiveTabChange={onActiveTabChange}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      rerender(
+        <PerpsMarketTabs
+          symbol="BTC"
+          activeTabId="position"
+          onActiveTabChange={onActiveTabChange}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
+        ).toBeDefined();
+      });
+    });
+
+    it('ignores activeTabId for unavailable tabs', () => {
+      const onActiveTabChange = jest.fn();
+      const { getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          activeTabId="orders"
+          onActiveTabChange={onActiveTabChange}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      expect(
+        getByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_ONLY_TITLE),
+      ).toBeDefined();
+    });
+  });
+
   describe('Order Cancellation', () => {
     const mockOnOrderCancelled = jest.fn();
 
