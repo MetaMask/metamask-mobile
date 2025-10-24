@@ -655,7 +655,7 @@ workflows:
                 fi
 
                 echo "APP_SEM_VER_NAME: $APP_SEM_VER_NAME_TMP"
-                echo "APP_BUILD_NUMBER: $APP_SEM_VER_NAME_TMP"
+                echo "APP_BUILD_NUMBER: $APP_BUILD_NUMBER_TMP"
 
                 # Export as environment variables
                 envman add --key APP_SEM_VER_NAME --value "$APP_SEM_VER_NAME_TMP"
