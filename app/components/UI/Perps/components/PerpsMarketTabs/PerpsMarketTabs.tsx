@@ -289,8 +289,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       });
     }
 
-    // Only show orders tab if there are orders
-    if (unfilledOrders.length > 0) {
+    // Only show orders tab if there are orders (use sortedUnfilledOrders for consistency with tabsToRender)
+    if (sortedUnfilledOrders.length > 0) {
       dynamicTabs.push({
         id: 'orders',
         label: strings('perps.market.orders'),
@@ -304,7 +304,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     });
 
     return dynamicTabs;
-  }, [position, unfilledOrders.length]);
+  }, [position, sortedUnfilledOrders.length]);
 
   // Initialize with initialTab or statistics by default
   const [activeTabId, setActiveTabId] = useState<PerpsTabId>(
@@ -323,7 +323,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         // Sync with TabsList by switching to the correct index
         const availableTabIds: PerpsTabId[] = [];
         if (position) availableTabIds.push('position');
-        if (unfilledOrders.length > 0) availableTabIds.push('orders');
+        if (sortedUnfilledOrders.length > 0) availableTabIds.push('orders');
         availableTabIds.push('statistics');
 
         const targetIndex = availableTabIds.indexOf(initialTab as PerpsTabId);
@@ -332,7 +332,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         }
       }
     }
-  }, [initialTab, tabs, onActiveTabChange, position, unfilledOrders.length]);
+  }, [
+    initialTab,
+    tabs,
+    onActiveTabChange,
+    position,
+    sortedUnfilledOrders.length,
+  ]);
 
   // Set initial tab based on data availability
   // Now we can properly distinguish between loading and empty states
@@ -359,7 +365,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       targetTabId = 'position';
     }
     // Priority 2: Orders tab if orders exist but no position
-    else if (unfilledOrders && unfilledOrders.length > 0) {
+    else if (sortedUnfilledOrders.length > 0) {
       targetTabId = 'orders';
     }
     // Priority 3: Statistics tab (already set)
@@ -369,13 +375,19 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       DevLogger.log('PerpsMarketTabs: Auto-selecting tab:', {
         targetTabId,
         hasPosition: !!position,
-        ordersCount: unfilledOrders?.length || 0,
+        ordersCount: sortedUnfilledOrders.length,
         previousTab: activeTabId,
       });
       setActiveTabId(targetTabId as PerpsTabId);
       onActiveTabChange?.(targetTabId);
     }
-  }, [position, unfilledOrders, activeTabId, onActiveTabChange, initialTab]);
+  }, [
+    position,
+    sortedUnfilledOrders,
+    activeTabId,
+    onActiveTabChange,
+    initialTab,
+  ]);
 
   // Update active tab if current tab is no longer available (but respect user interaction)
   useEffect(() => {
