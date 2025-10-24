@@ -34,11 +34,10 @@ import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
 import RewardsReferralQRCode from '../../../Rewards/components/RewardsReferralQRCode';
-import { usePerpsMarkets } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks';
 import {
   formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
-  parseCurrencyString,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import MetaMaskLogo from '../../../../../images/branding/metamask-name.png';
 import NegativePnlCharacter1 from '../../../../../images/negative_pnl_character_1_3x.png';
@@ -73,11 +72,9 @@ const PerpsHeroCardView: React.FC = () => {
 
   const rewardsReferralCode = useSelector(selectReferralCode);
 
-  // Get markets data to fetch current market price
-  const { markets } = usePerpsMarkets({
-    enablePolling: true,
-    // We want to keep the mark price up to date while the user selects an image.
-    pollingInterval: 1 * 60 * 1000,
+  const prices = usePerpsLivePrices({
+    symbols: [position.coin],
+    throttleMs: 3000,
   });
 
   const data = useMemo(() => {
@@ -87,14 +84,6 @@ const PerpsHeroCardView: React.FC = () => {
     const roeValue = Number.parseFloat(position.returnOnEquity || '0') * 100;
     const entryPrice = position.entryPrice;
 
-    // Find current market price
-    const market = markets.find((m) => m.symbol === position.coin);
-    let markPrice = null;
-
-    if (market?.price) {
-      markPrice = parseCurrencyString(market.price).toString();
-    }
-
     return {
       asset: position.coin,
       direction,
@@ -102,10 +91,20 @@ const PerpsHeroCardView: React.FC = () => {
       pnl: pnlValue,
       roe: roeValue,
       entryPrice,
-      markPrice,
+      markPrice: formatPerpsFiat(prices[position.coin]?.price, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      }),
       isLong,
     };
-  }, [position, markets]);
+  }, [
+    position.size,
+    position.unrealizedPnl,
+    position.returnOnEquity,
+    position.entryPrice,
+    position.coin,
+    position.leverage.value,
+    prices,
+  ]);
 
   const handleTabChange = useCallback((obj: { i: number }) => {
     setCurrentTab(obj.i);
@@ -270,7 +269,7 @@ const PerpsHeroCardView: React.FC = () => {
                         variant={TextVariant.BodySMMedium}
                       >
                         {formatPerpsFiat(data.entryPrice, {
-                          ranges: PRICE_RANGES_UNIVERSAL,
+                          ranges: PRICE_RANGES_MINIMAL_VIEW,
                         })}
                       </Text>
                     </View>
@@ -287,9 +286,7 @@ const PerpsHeroCardView: React.FC = () => {
                         style={styles.priceValue}
                         variant={TextVariant.BodySMMedium}
                       >
-                        {formatPerpsFiat(data.markPrice as string, {
-                          ranges: PRICE_RANGES_UNIVERSAL,
-                        })}
+                        {data.markPrice}
                       </Text>
                     </View>
                   </View>
