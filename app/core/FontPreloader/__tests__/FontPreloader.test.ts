@@ -7,16 +7,27 @@ import { Platform } from 'react-native';
  */
 
 type MockSetTimeoutCallback = () => void;
-type MockSetTimeout = jest.MockedFunction<typeof setTimeout>;
+type MockSetTimeout = jest.MockedFunction<typeof setTimeout> & {
+  __promisify__: typeof setTimeout.__promisify__;
+};
 
 /**
  * Creates a mock setTimeout that executes callbacks immediately
  */
-const createImmediateSetTimeoutMock = (): MockSetTimeout =>
-  jest.fn().mockImplementation((callback: MockSetTimeoutCallback) => {
-    callback();
-    return 123 as unknown as NodeJS.Timeout;
-  }) as MockSetTimeout;
+const createImmediateSetTimeoutMock = (): MockSetTimeout => {
+  const mockFn = jest
+    .fn()
+    .mockImplementation((callback: MockSetTimeoutCallback) => {
+      callback();
+      return 123 as unknown as NodeJS.Timeout;
+    });
+
+  // Add the __promisify__ property to satisfy Node.js setTimeout type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (mockFn as any).__promisify__ = jest.fn();
+
+  return mockFn as unknown as MockSetTimeout;
+};
 
 /**
  * Creates a mock setTimeout that captures callback for manual execution
@@ -27,12 +38,16 @@ const createControlledSetTimeoutMock = (): {
 } => {
   let capturedCallback: MockSetTimeoutCallback | undefined;
 
-  const mockSetTimeout = jest
+  const mockFn = jest
     .fn()
     .mockImplementation((callback: MockSetTimeoutCallback) => {
       capturedCallback = callback;
       return 123 as unknown as NodeJS.Timeout;
-    }) as MockSetTimeout;
+    });
+
+  // Add the __promisify__ property to satisfy Node.js setTimeout type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (mockFn as any).__promisify__ = jest.fn();
 
   const executeCallback = () => {
     if (capturedCallback) {
@@ -40,7 +55,10 @@ const createControlledSetTimeoutMock = (): {
     }
   };
 
-  return { mockSetTimeout, executeCallback };
+  return {
+    mockSetTimeout: mockFn as unknown as MockSetTimeout,
+    executeCallback,
+  };
 };
 
 /**
@@ -121,7 +139,8 @@ const withSetTimeoutMock = (mockImpl: MockSetTimeout) => {
 
   return {
     setup: () => {
-      global.setTimeout = mockImpl;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      global.setTimeout = mockImpl as any;
     },
     restore: () => {
       global.setTimeout = originalSetTimeout;
@@ -274,13 +293,17 @@ describe('FontPreloader', () => {
         platformMocker.setup();
         FontPreloader.reset();
 
-        const mockSetTimeout = jest
+        const mockFn = jest
           .fn()
           .mockImplementation((callback: () => void, delay: number) => {
             expect(delay).toBe(expectedDelay);
             callback();
             return 123 as unknown as NodeJS.Timeout;
           });
+        // Add the __promisify__ property to satisfy Node.js setTimeout type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockFn as any).__promisify__ = jest.fn();
+        const mockSetTimeout = mockFn as unknown as MockSetTimeout;
         const timeoutMocker = withSetTimeoutMock(mockSetTimeout);
         timeoutMocker.setup();
 
@@ -314,17 +337,17 @@ describe('FontPreloader', () => {
       expect(FontPreloader.areFontsLoaded()).toBe(true);
       expect(mockDocument.createElement).toHaveBeenCalledWith('div');
       expect(mockDocument.createElement).toHaveBeenCalledWith('span');
-      expect(mockDocument.body.appendChild).toHaveBeenCalled();
-      expect(mockDocument.body.removeChild).toHaveBeenCalled();
+      expect(mockDocument.body?.appendChild).toHaveBeenCalled();
+      expect(mockDocument.body?.removeChild).toHaveBeenCalled();
 
       // Verify key font variants are loaded
-      expect(mockDocument.fonts.load).toHaveBeenCalledWith(
+      expect(mockDocument.fonts?.load).toHaveBeenCalledWith(
         '400 16px "Geist Regular"',
       );
-      expect(mockDocument.fonts.load).toHaveBeenCalledWith(
+      expect(mockDocument.fonts?.load).toHaveBeenCalledWith(
         '700 16px "Geist Bold"',
       );
-      expect(mockDocument.fonts.load).toHaveBeenCalledWith(
+      expect(mockDocument.fonts?.load).toHaveBeenCalledWith(
         'italic 400 16px "Geist Regular Italic"',
       );
     });
@@ -338,20 +361,24 @@ describe('FontPreloader', () => {
       });
       global.document = mockDocument as unknown as Document;
 
-      const mockSetTimeout = jest
+      const mockFn = jest
         .fn()
         .mockImplementation((callback: () => void, delay: number) => {
           expect(delay).toBe(200);
           callback();
           return 123 as unknown as NodeJS.Timeout;
         });
+      // Add the __promisify__ property to satisfy Node.js setTimeout type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (mockFn as any).__promisify__ = jest.fn();
+      const mockSetTimeout = mockFn as unknown as MockSetTimeout;
       const timeoutMocker = withSetTimeoutMock(mockSetTimeout);
       timeoutMocker.setup();
 
       await FontPreloader.preloadFonts();
 
       expect(FontPreloader.areFontsLoaded()).toBe(true);
-      expect(mockDocument.fonts.load).toHaveBeenCalled();
+      expect(mockDocument.fonts?.load).toHaveBeenCalled();
       expect(mockSetTimeout).toHaveBeenCalledWith(expect.any(Function), 200);
 
       timeoutMocker.restore();
@@ -365,13 +392,17 @@ describe('FontPreloader', () => {
       });
       global.document = mockDocument as unknown as Document;
 
-      const mockSetTimeout = jest
+      const mockFn = jest
         .fn()
         .mockImplementation((callback: () => void, delay: number) => {
           expect(delay).toBe(200);
           callback();
           return 123 as unknown as NodeJS.Timeout;
         });
+      // Add the __promisify__ property to satisfy Node.js setTimeout type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (mockFn as any).__promisify__ = jest.fn();
+      const mockSetTimeout = mockFn as unknown as MockSetTimeout;
       const timeoutMocker = withSetTimeoutMock(mockSetTimeout);
       timeoutMocker.setup();
 
@@ -388,9 +419,13 @@ describe('FontPreloader', () => {
     it('should handle native font loading errors gracefully', async () => {
       FontPreloader.reset();
 
-      const mockSetTimeout = jest.fn().mockImplementation(() => {
+      const mockFn = jest.fn().mockImplementation(() => {
         throw new Error('setTimeout failed');
       });
+      // Add the __promisify__ property to satisfy Node.js setTimeout type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (mockFn as any).__promisify__ = jest.fn();
+      const mockSetTimeout = mockFn as unknown as MockSetTimeout;
       const timeoutMocker = withSetTimeoutMock(mockSetTimeout);
       timeoutMocker.setup();
 
