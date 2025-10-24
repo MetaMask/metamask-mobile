@@ -26,6 +26,7 @@ import { strings } from '../../../../locales/i18n';
 import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';

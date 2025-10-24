@@ -39,6 +39,30 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="Home"
   />
   <Screen
+    component={
+      {
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": [Function],
+      }
+    }
+    name="TokensFullView"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="AddAsset"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
     component={[Function]}
     name="Asset"
   />
