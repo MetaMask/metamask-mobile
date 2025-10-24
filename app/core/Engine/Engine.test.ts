@@ -251,6 +251,7 @@ describe('Engine', () => {
           lastUpdated: 0,
           activeWithdrawalId: undefined,
         },
+        preferredCandlePeriod: '15m',
       },
     };
 
