@@ -39,10 +39,6 @@ const VerifyIdentity = () => {
         })
         .build(),
     );
-
-    navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
-      sessionUrl,
-    });
   }, [navigation, sessionUrl, trackEvent, createEventBuilder]);
 
   useEffect(() => {
