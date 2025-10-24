@@ -2498,7 +2498,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: add InlineAlert component ([#13709](https://github.com/MetaMask/metamask-mobile/pull/13709))
 - feat: add MultipleAlertModal component ([#13683](https://github.com/MetaMask/metamask-mobile/pull/13683))
 - feat: Add Snaps UI `Selector` component ([#13747](https://github.com/MetaMask/metamask-mobile/pull/13747))
-- feat: added **/**mocks**/*- to sonar.coverage.exclusions ([#13787](https://github.com/MetaMask/metamask-mobile/pull/13787))
+- feat: added mocks to sonar.coverage.exclusions ([#13787](https://github.com/MetaMask/metamask-mobile/pull/13787))
 - feat: add `GeneralAlertBanner` component ([#13627](https://github.com/MetaMask/metamask-mobile/pull/13627))
 
 ### Fixed
