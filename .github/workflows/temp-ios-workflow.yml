@@ -10,7 +10,9 @@ permissions:
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: vm-b18795f3-a1e6-682a-4d20-d049c0774aa2
+    runs-on: 
+      group: temp-bitrise-runners
+
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
