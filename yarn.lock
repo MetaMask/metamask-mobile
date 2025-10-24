@@ -8381,15 +8381,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^1.9.0":
-  version: 1.9.0
-  resolution: "@metamask/remote-feature-flag-controller@npm:1.9.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^8.4.1"
-    "@metamask/controller-utils": "npm:^11.14.1"
-    "@metamask/utils": "npm:^11.8.1"
-    uuid: "npm:^8.3.2"
-  checksum: 10/f691d9e3932245cc6cb5665fd75ee9b68879c813c02c36d360ebec32c423bf8707ffd364939d0d87b9940727d46aabedadf5e34c7d64799b7ad29201b137dafa
+"@metamask/remote-feature-flag-controller@MetaMask/core#feat/create-minute-exponential-backoff":
+  version: 638.0.0
+  resolution: "@metamask/remote-feature-flag-controller@https://github.com/MetaMask/core.git#commit=774d72a68273db4f1b06f6132af5880199227d56"
+  checksum: 10/7376f3e2fc3d86423ad41dbcbedf267418e4b9fee2d81c84961404c2c87b504fc7b425bfab0de755438e0a48fb1531d97e7da0e3d905d4563195da826cb60087
   languageName: node
   linkType: hard
 
@@ -34165,7 +34160,7 @@ __metadata:
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "npm:^14.5.0"
-    "@metamask/remote-feature-flag-controller": "npm:^1.9.0"
+    "@metamask/remote-feature-flag-controller": "MetaMask/core#feat/create-minute-exponential-backoff"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^2.0.1"
     "@metamask/scure-bip39": "npm:^2.1.0"

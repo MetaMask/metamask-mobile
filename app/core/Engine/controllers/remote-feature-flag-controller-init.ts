@@ -43,6 +43,8 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
         environment: getFeatureFlagAppEnvironment(),
         distribution: getFeatureFlagAppDistribution(),
       },
+      retries: 3, //optional input parameter, default is 3 declared for customBackoffInterval explicitly
+      customBackoffInterval: [120, 240, 480], //optional input parameter
     }),
     fetchInterval: AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
   });
