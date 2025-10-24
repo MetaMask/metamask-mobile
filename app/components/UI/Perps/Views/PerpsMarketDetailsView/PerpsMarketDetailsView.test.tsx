@@ -714,7 +714,9 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       // Trigger the refresh
-      await refreshControl.props.onRefresh();
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Should refresh candle data by default
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -745,7 +747,10 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Assert - Only candle data refreshes since positions update via WebSocket
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -797,7 +802,10 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Assert - Only candle data refreshes (all other data updates via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -832,7 +840,10 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Assert - Only candle data refreshes (positions update via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -859,10 +870,9 @@ describe('PerpsMarketDetailsView', () => {
       expect(refreshControl.props.refreshing).toBe(false);
 
       // Trigger the refresh
-      const refreshPromise = refreshControl.props.onRefresh();
-
-      // Wait for refresh to complete
-      await refreshPromise;
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Verify refresh functions were called
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -902,7 +912,9 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       // Trigger the refresh
-      await refreshControl.props.onRefresh();
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Should log error
       expect(consoleErrorSpy).toHaveBeenCalledWith(
