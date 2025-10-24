@@ -353,14 +353,28 @@ export const switchToSepoliaNetwork = async () => {
  *
  * @async
  * @function waitForAppReady
- * @param {number} timeout - Maximum time to wait in milliseconds (default: 15000)
+ * @param {number} timeout - Maximum time to wait in milliseconds. If not provided,
+ * defaults to 15 seconds for iOS and 60 seconds for Android in CI (to account for slower initialization)
  * @returns {Promise<void>} Resolves when app is ready
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
-export const waitForAppReady = async (timeout: number = 15000) => {
+export const waitForAppReady = async (timeout?: number) => {
+  // Determine appropriate timeout based on platform and environment
+  // Android in CI needs more time for release builds to initialize
+  let defaultTimeout = 15000; // 15 seconds for iOS and local Android
+
+  if (device.getPlatform() === 'android') {
+    // Android needs more time, especially in CI with release builds
+    defaultTimeout = process.env.CI ? 60000 : 30000; // 60s in CI, 30s locally
+  }
+
+  const actualTimeout = timeout ?? defaultTimeout;
   const startTime = Date.now();
 
-  logger.debug('Waiting for app to complete rehydration and stabilize...');
+  logger.debug(
+    `Waiting for app to complete rehydration and stabilize... (timeout: ${actualTimeout}ms, platform: ${device.getPlatform()}, CI: ${!!process
+      .env.CI})`,
+  );
 
   try {
     await sleep(500);
@@ -380,7 +394,7 @@ export const waitForAppReady = async (timeout: number = 15000) => {
         });
       },
       {
-        timeout,
+        timeout: actualTimeout,
         description:
           'wait for app to complete rehydration and stabilize on login screen',
       },
@@ -388,9 +402,9 @@ export const waitForAppReady = async (timeout: number = 15000) => {
 
     logger.debug(`App ready after ${Date.now() - startTime}ms`);
   } catch (error) {
-    logger.error(`App failed to stabilize within ${timeout}ms`, error);
+    logger.error(`App failed to stabilize within ${actualTimeout}ms`, error);
     throw new Error(
-      `App did not stabilize on login screen within ${timeout}ms. ` +
+      `App did not stabilize on login screen within ${actualTimeout}ms. ` +
         `This may indicate rehydration issues or state corruption.`,
     );
   }
