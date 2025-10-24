@@ -120,9 +120,10 @@ const OnboardingAnimation = ({
   useEffect(() => {
     if (!startOnboardingAnimation) return;
 
+    // to ensure the animation is triggered with EAS updates in placed
     const timeoutId = setTimeout(() => {
       startRiveAnimation();
-    }, 500);
+    }, 1000);
 
     return () => {
       clearTimeout(timeoutId);
