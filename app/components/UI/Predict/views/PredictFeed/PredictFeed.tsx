@@ -47,7 +47,7 @@ const PredictFeed = () => {
     <SafeAreaView
       testID={PredictMarketListSelectorsIDs.CONTAINER}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
-      edges={['left', 'right', 'bottom']}
+      edges={['left', 'right']}
     >
       <View style={tw.style('flex-1 px-6')}>
         <View
