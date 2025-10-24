@@ -1983,6 +1983,7 @@ describe('PredictMarketDetails', () => {
 
     it('navigates to unavailable modal when user is not eligible - Yes button', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -2011,6 +2012,7 @@ describe('PredictMarketDetails', () => {
 
     it('navigates to unavailable modal when user is not eligible - No button', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -2049,6 +2051,7 @@ describe('PredictMarketDetails', () => {
       });
 
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -2090,6 +2093,7 @@ describe('PredictMarketDetails', () => {
       });
 
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
