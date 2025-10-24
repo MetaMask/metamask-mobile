@@ -342,41 +342,39 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   }, [tabsReady, tabs.length, activeTab]);
 
   const renderCustomTabBar = () => (
+    <Box
+      twClassName="bg-default border-b border-muted"
+      testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
+    >
       <Box
-        twClassName="bg-default border-b border-muted"
-        testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-3"
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-3"
-        >
-          {tabs.map((tab, index) => (
-            <Pressable
-              key={tab.key}
-              onPress={() => handleTabPress(index)}
-              style={tw.style(
-                'w-1/3 py-3',
-                activeTab === index ? 'border-b-2 border-primary-default' : '',
-              )}
-              testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
+        {tabs.map((tab, index) => (
+          <Pressable
+            key={tab.key}
+            onPress={() => handleTabPress(index)}
+            style={tw.style(
+              'w-1/3 py-3',
+              activeTab === index ? 'border-b-2 border-primary-default' : '',
+            )}
+            testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={
+                activeTab === index ? TextColor.Primary : TextColor.Alternative
+              }
+              style={tw.style('text-center font-bold')}
             >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={
-                  activeTab === index
-                    ? TextColor.Primary
-                    : TextColor.Alternative
-                }
-                style={tw.style('text-center font-bold')}
-              >
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-        </Box>
+              {tab.label}
+            </Text>
+          </Pressable>
+        ))}
       </Box>
-    );
+    </Box>
+  );
 
   const renderHeader = () => (
     <Box
