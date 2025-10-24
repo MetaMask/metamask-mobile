@@ -901,7 +901,8 @@ describe('PolymarketProvider', () => {
       expect(mockSubmitClobOrder).toHaveBeenCalled();
     });
 
-    it('throws error when maker address is not found', async () => {
+    it('returns error result when maker address is not found', async () => {
+      // Arrange
       const provider = createProvider();
       const mockSigner = {
         address: '0x1234567890123456789012345678901234567890',
@@ -915,9 +916,12 @@ describe('PolymarketProvider', () => {
       mockGetNetworkClientById.mockReturnValue({ provider: {} });
       mockQuery.mockResolvedValue('0x0');
 
-      await expect(
-        provider.placeOrder({ signer: mockSigner, preview }),
-      ).rejects.toThrow('Maker address not found');
+      // Act
+      const result = await provider.placeOrder({ signer: mockSigner, preview });
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to get safe address');
     });
   });
 

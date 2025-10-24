@@ -5,6 +5,48 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import PredictPositions, { PredictPositionsHandle } from './PredictPositions';
 
+// Mock FlashList to manually render items for proper test rendering
+jest.mock('@shopify/flash-list', () => {
+  const ReactActual = jest.requireActual('react');
+  const ReactNativeActual = jest.requireActual('react-native');
+
+  return {
+    FlashList: ReactActual.forwardRef(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (
+        {
+          data,
+          renderItem,
+          ListEmptyComponent,
+          ListFooterComponent,
+          testID,
+        }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any,
+        ref: unknown,
+      ) => (
+        <ReactNativeActual.ScrollView testID={testID} ref={ref}>
+          {data && data.length > 0 ? (
+            <>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {data.map((item: any, index: number) => (
+                <ReactActual.Fragment key={index}>
+                  {renderItem({ item, index })}
+                </ReactActual.Fragment>
+              ))}
+              {ListFooterComponent && ListFooterComponent}
+            </>
+          ) : (
+            <>
+              {ListEmptyComponent && ListEmptyComponent}
+              {ListFooterComponent && ListFooterComponent}
+            </>
+          )}
+        </ReactNativeActual.ScrollView>
+      ),
+    ),
+  };
+});
+
 jest.mock('../../hooks/usePredictPositions');
 
 const mockOnPress = jest.fn();
@@ -25,12 +67,10 @@ jest.mock('../PredictPosition/PredictPosition', () => {
   );
 });
 
-jest.mock('../PredictPositionEmpty', () =>
-  jest.fn(() => {
-    const ReactNative = jest.requireActual('react-native');
-    return <ReactNative.View testID="predict-position-empty" />;
-  }),
-);
+jest.mock('../PredictPositionEmpty', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return jest.fn(() => <ReactNative.View testID="predict-position-empty" />);
+});
 
 const mockResolvedOnPress = jest.fn();
 jest.mock('../PredictPositionResolved/PredictPositionResolved', () => {
@@ -132,14 +172,8 @@ describe('PredictPositions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset mock to default return value for each test
     mockUsePredictPositions.mockReturnValue(defaultMockHookReturn);
-    mockOnPress.mockClear();
-    mockResolvedOnPress.mockClear();
-    mockNavigation.navigate.mockClear();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   afterEach(() => {
