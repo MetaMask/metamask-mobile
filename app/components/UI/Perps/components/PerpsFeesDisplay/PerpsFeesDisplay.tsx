@@ -14,19 +14,32 @@ interface PerpsFeesDisplayProps {
   feeDiscountPercentage?: number;
   formatFeeText: string;
   variant?: TextVariant;
+  isDAOTokenHolder?: boolean;
+  isDAOFeeBypassActive?: boolean;
 }
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
   formatFeeText,
   variant = TextVariant.BodyMD,
+  isDAOTokenHolder = false,
+  isDAOFeeBypassActive = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
     <View style={styles.feeRowContent}>
-      {feeDiscountPercentage && feeDiscountPercentage > 0 ? (
+      {isDAOFeeBypassActive ? (
+        <TagColored color={TagColor.Success}>
+          <View style={styles.feeDiscountContainer}>
+            <FoxIcon width={14} height={14} />
+            <Text variant={TextVariant.BodySM}>
+              MMGD FREE
+            </Text>
+          </View>
+        </TagColored>
+      ) : feeDiscountPercentage && feeDiscountPercentage > 0 ? (
         <TagColored color={TagColor.Warning}>
           <View style={styles.feeDiscountContainer}>
             <FoxIcon width={14} height={14} />
