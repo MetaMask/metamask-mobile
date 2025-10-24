@@ -68,6 +68,8 @@ describe('useRegisterPhysicalAddress', () => {
     const mockCardSDK: ICardSDK = {
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: mockLogoutFromProvider,
     };
     mockUseCardSDK.mockReturnValue(mockCardSDK);
@@ -148,6 +150,8 @@ describe('useRegisterPhysicalAddress', () => {
       const mockCardSDKNull: ICardSDK = {
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKNull);
@@ -456,6 +460,8 @@ describe('useRegisterPhysicalAddress', () => {
       const mockCardSDKUndefined: ICardSDK = {
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);

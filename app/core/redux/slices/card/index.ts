@@ -8,7 +8,6 @@ import { isEthAccount } from '../../../Multichain/utils';
 import {
   CardLocation,
   CardTokenAllowance,
-  UserResponse,
 } from '../../../../components/UI/Card/types';
 import {
   selectCardExperimentalSwitch,
@@ -21,7 +20,6 @@ export interface OnboardingState {
   onboardingId: string | null;
   selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
   contactVerificationId: string | null;
-  user: UserResponse | null;
 }
 
 export interface CacheState {
@@ -61,7 +59,6 @@ export const initialState: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
-    user: null,
   },
   cache: {
     data: {},
@@ -144,15 +141,11 @@ const slice = createSlice({
     setContactVerificationId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.contactVerificationId = action.payload;
     },
-    setUser: (state, action: PayloadAction<UserResponse | null>) => {
-      state.onboarding.user = action.payload;
-    },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         selectedCountry: null,
         contactVerificationId: null,
-        user: null,
       };
     },
     setCacheData: (
@@ -361,11 +354,6 @@ export const selectContactVerificationId = createSelector(
   (card) => card.onboarding.contactVerificationId,
 );
 
-export const selectUser = createSelector(
-  selectCardState,
-  (card) => card.onboarding.user,
-);
-
 // Actions
 export const {
   resetCardState,
@@ -380,7 +368,6 @@ export const {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
-  setUser,
   resetOnboardingState,
   setCacheData,
   clearCacheData,
