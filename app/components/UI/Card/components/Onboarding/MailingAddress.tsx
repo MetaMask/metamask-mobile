@@ -12,7 +12,6 @@ import { AddressFields } from './PhysicalAddress';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  setUser,
   setIsAuthenticatedCard,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -24,10 +23,12 @@ import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import Logger from '../../../../../util/Logger';
+import { useCardSDK } from '../../sdk';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
 
@@ -128,7 +129,7 @@ const MailingAddress = () => {
       });
 
       if (updatedUser) {
-        dispatch(setUser(updatedUser));
+        setUser(updatedUser);
       }
 
       if (accessToken) {

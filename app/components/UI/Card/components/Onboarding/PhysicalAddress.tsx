@@ -20,8 +20,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  selectUser,
-  setUser,
   setIsAuthenticatedCard,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -33,6 +31,7 @@ import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import Logger from '../../../../../util/Logger';
+import { useCardSDK } from '../../sdk';
 
 export const AddressFields = ({
   addressLine1,
@@ -190,9 +189,9 @@ const PhysicalAddress = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-  const user = useSelector(selectUser);
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -324,7 +323,7 @@ const PhysicalAddress = () => {
       });
 
       if (updatedUser) {
-        dispatch(setUser(updatedUser));
+        setUser(updatedUser);
       }
 
       if (accessToken) {

@@ -1631,7 +1631,11 @@
       "yes": "Yes",
       "no": "No",
       "on": "on",
-      "market_unavailable": "Market unavailable"
+      "won": "Won",
+      "lost": "Lost",
+      "market_unavailable": "Market unavailable",
+      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "outcome_at_price": "{{outcome}} at {{price}}¢"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1645,7 +1649,7 @@
       "outcomes": "Outcomes"
     },
     "sell_position": "Sell Position",
-    "cash_out": "Cash Out",
+    "cash_out": "Cash out",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",

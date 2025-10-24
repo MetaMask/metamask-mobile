@@ -46,6 +46,8 @@ describe('useRegistrationSettings', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
 
@@ -93,6 +95,8 @@ describe('useRegistrationSettings', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -184,6 +188,8 @@ describe('useRegistrationSettings', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
