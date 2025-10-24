@@ -16,6 +16,15 @@ import {
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
+// Mock Engine
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictOrderEvent: jest.fn(),
+    },
+  },
+}));
+
 // Mock Alert
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
@@ -118,7 +127,7 @@ const mockFormatPrice = jest.fn();
 const mockFormatPercentage = jest.fn();
 
 jest.mock('../../utils/format', () => ({
-  formatPrice: (value: number, options?: { minimumDecimals?: number }) =>
+  formatPrice: (value: number, options?: { maximumDecimals?: number }) =>
     mockFormatPrice(value, options),
   formatPercentage: (value: number) => mockFormatPercentage(value),
 }));
@@ -227,10 +236,27 @@ const mockOutcome: PredictOutcome = {
   groupItemTitle: 'Bitcoin Price',
 };
 
+const mockMarket = {
+  id: 'market-123',
+  providerId: 'polymarket',
+  slug: 'bitcoin-price',
+  title: 'Will Bitcoin reach $150,000?',
+  description: 'Market description',
+  image: 'https://example.com/market.png',
+  status: 'open' as const,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recurrence: 'none' as any,
+  categories: ['crypto' as const],
+  outcomes: [mockOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
+};
+
 const mockRoute: RouteProp<PredictNavigationParamList, 'PredictSellPreview'> = {
   key: 'PredictSellPreview-key',
   name: 'PredictSellPreview',
   params: {
+    market: mockMarket,
     position: mockPosition,
     outcome: mockOutcome,
   },
@@ -314,7 +340,7 @@ describe('PredictSellPreview', () => {
     });
 
     mockFormatPrice.mockImplementation((value, options) => {
-      if (options?.minimumDecimals === 2) {
+      if (options?.maximumDecimals === 2) {
         return `$${value.toFixed(2)}`;
       }
       return `$${value}`;
@@ -346,7 +372,7 @@ describe('PredictSellPreview', () => {
       });
 
       // Component uses preview.minAmountReceived for current value
-      expect(mockFormatPrice).toHaveBeenCalledWith(60, { minimumDecimals: 2 });
+      expect(mockFormatPrice).toHaveBeenCalledWith(60, { maximumDecimals: 2 });
       // PnL is calculated from position data, not preview
       expect(mockFormatPercentage).toHaveBeenCalledWith(20);
     });
@@ -415,11 +441,21 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         providerId: 'polymarket',
+        analyticsProperties: expect.objectContaining({
+          marketId: 'market-123',
+          marketTitle: 'Will Bitcoin reach $150,000?',
+          marketCategory: 'crypto',
+          entryPoint: 'predict_market_details',
+          transactionType: 'mm_predict_sell',
+          liquidity: 1000000,
+          volume: 1000000,
+          sharePrice: 0.5,
+        }),
         preview: expect.objectContaining({
           marketId: 'market-1',
           outcomeId: 'outcome-456',
@@ -439,7 +475,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       expect(cashOutButton.props['data-disabled']).toBe(true);
 
       // Reset loading state for other tests
@@ -453,7 +489,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       expect(cashOutButton.props['data-disabled']).toBe(true);
 
       // Reset loading state for other tests
@@ -483,14 +519,18 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      // Even though navigation fails, placeOrder should still be called and no error should be thrown
+      // The dispatch now throws and is not caught, so expect the error
       expect(() => {
         fireEvent.press(cashOutButton);
-      }).not.toThrow();
+      }).toThrow('Navigation error');
 
+      // PlaceOrder should still be called before dispatch throws
       expect(mockPlaceOrder).toHaveBeenCalled();
+
+      // Dispatch should have been attempted
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
 
@@ -504,7 +544,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       fireEvent.press(cashOutButton);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
@@ -527,7 +567,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('button-secondary');
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
       // Button should have the primary color background
       expect(cashOutButton.props.style).toBeDefined();
     });

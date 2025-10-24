@@ -1,4 +1,5 @@
 import { useCallback, useContext, useState } from 'react';
+import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -48,22 +49,27 @@ export function usePredictPlaceOrder(
   const { toastRef } = useContext(ToastContext);
 
   const showCashedOutToast = useCallback(
-    (amount: string) =>
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Check,
-        labelOptions: [
-          { label: strings('predict.cashed_out'), isBold: true },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.cashed_out_subtitle', {
-              amount,
-            }),
-            isBold: false,
-          },
-        ],
-        hasNoTimeout: false,
-      }),
+    (amount: string) => {
+      // NOTE: When cashing out happens fast, stacking toasts messes the UX.
+      // Figure out how toast behavior can be improved to avoid this.
+      setTimeout(() => {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Check,
+          labelOptions: [
+            { label: strings('predict.order.cashed_out'), isBold: true },
+            { label: '\n', isBold: false },
+            {
+              label: strings('predict.order.cashed_out_subtitle', {
+                amount,
+              }),
+              isBold: false,
+            },
+          ],
+          hasNoTimeout: false,
+        });
+      }, 2000);
+    },
     [toastRef],
   );
 
@@ -73,7 +79,7 @@ export function usePredictPlaceOrder(
         variant: ToastVariants.Icon,
         iconName: IconName.Check,
         labelOptions: [
-          { label: strings('predict.prediction_placed'), isBold: true },
+          { label: strings('predict.order.prediction_placed'), isBold: true },
         ],
         hasNoTimeout: false,
       }),
@@ -82,22 +88,56 @@ export function usePredictPlaceOrder(
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {
+      const {
+        preview: { minAmountReceived, side },
+      } = orderParams;
+
       try {
         setIsLoading(true);
 
         DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
+        if (side === Side.BUY) {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Loading,
+            labelOptions: [
+              { label: strings('predict.order.placing_prediction') },
+            ],
+            hasNoTimeout: false,
+          });
+        } else {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Loading,
+            labelOptions: [
+              {
+                label: strings('predict.order.cashing_out', {
+                  amount: formatPrice(minAmountReceived, {
+                    maximumDecimals: 2,
+                  }),
+                }),
+                isBold: true,
+              },
+              { label: '\n', isBold: false },
+              {
+                label: strings('predict.order.cashing_out_subtitle', {
+                  time: 5,
+                }),
+                isBold: false,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+        }
 
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
-        const {
-          preview: { minAmountReceived, side },
-        } = orderParams;
 
         if (!orderResult.success) {
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
             iconName: IconName.Loading,
-            labelOptions: [{ label: 'Order failed' }],
+            labelOptions: [{ label: strings('predict.order.order_failed') }],
             hasNoTimeout: false,
           });
           throw new Error(orderResult.error);
@@ -106,16 +146,16 @@ export function usePredictPlaceOrder(
         // Clear any previous error state
         setError(undefined);
 
-        onComplete?.(orderResult as Result);
+        onComplete?.(orderResult);
 
-        setResult(orderResult as Result);
-
-        if (side === Side.SELL) {
-          showCashedOutToast(formatPrice(minAmountReceived));
-        }
+        setResult(orderResult);
 
         if (side === Side.BUY) {
           showOrderPlacedToast();
+        } else {
+          showCashedOutToast(
+            formatPrice(minAmountReceived, { maximumDecimals: 2 }),
+          );
         }
 
         await loadBalance({ isRefresh: true });
@@ -127,6 +167,23 @@ export function usePredictPlaceOrder(
         DevLogger.log('usePredictPlaceOrder: Error placing order', {
           error: err,
           orderParams,
+        });
+
+        // Capture exception with order context (no sensitive data like amounts)
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePredictPlaceOrder',
+            action: 'order_placement',
+            operation: 'order_management',
+          },
+          extra: {
+            orderContext: {
+              providerId: orderParams.providerId,
+              side: orderParams.preview?.side,
+              marketId: orderParams.analyticsProperties?.marketId,
+              transactionType: orderParams.analyticsProperties?.transactionType,
+            },
+          },
         });
 
         setError(errorMessage);

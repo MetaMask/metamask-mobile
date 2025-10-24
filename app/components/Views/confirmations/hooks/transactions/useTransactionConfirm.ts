@@ -24,8 +24,16 @@ import { TransactionBridgeQuote } from '../../utils/bridge';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
+import { type TxData } from '@metamask/bridge-controller';
+import { hasTransactionType } from '../../utils/transaction';
 
 const log = createProjectLogger('transaction-confirm');
+
+export const GO_BACK_TYPES = [
+  TransactionType.predictClaim,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
@@ -136,7 +144,10 @@ export function useTransactionConfirm() {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
       });
-    } else if (isFullScreenConfirmation) {
+    } else if (
+      isFullScreenConfirmation &&
+      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+    ) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -188,7 +199,7 @@ function getQuoteBatchTransactions(
     }
 
     result.push({
-      ...getQuoteBatchTransaction(quote.trade),
+      ...getQuoteBatchTransaction(quote.trade as TxData),
       type: TransactionType.swap,
     });
 
@@ -196,9 +207,7 @@ function getQuoteBatchTransactions(
   });
 }
 
-function getQuoteBatchTransaction(
-  transaction: TransactionBridgeQuote['trade'],
-): BatchTransaction {
+function getQuoteBatchTransaction(transaction: TxData): BatchTransaction {
   const data = transaction.data as Hex;
   const gas = transaction.gasLimit ? toHex(transaction.gasLimit) : undefined;
   const to = transaction.to as Hex;

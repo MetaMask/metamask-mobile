@@ -17,12 +17,28 @@ import cardReducer, {
   selectDisplayCardButton,
   selectAlwaysShowCardButton,
   setAlwaysShowCardButton,
+  selectIsAuthenticatedCard,
+  selectUserCardLocation,
+  setIsAuthenticatedCard,
+  setUserCardLocation,
+  setAuthenticatedPriorityToken,
+  setAuthenticatedPriorityTokenLastFetched,
+  verifyCardAuthentication,
+  setOnboardingId,
+  setSelectedCountry,
+  setContactVerificationId,
+  resetOnboardingState,
+  setCacheData,
+  clearCacheData,
+  clearAllCache,
+  selectOnboardingId,
+  selectSelectedCountry,
+  selectContactVerificationId,
 } from '.';
 import {
   CardTokenAllowance,
   AllowanceState,
 } from '../../../../components/UI/Card/types';
-import { ethers } from 'ethers';
 
 // Mock the multichain selectors
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -40,6 +56,14 @@ jest.mock('../../../../selectors/featureFlagController/card', () => ({
   selectCardSupportedCountries: jest.fn(),
   selectDisplayCardButtonFeatureFlag: jest.fn(),
 }));
+
+// Mock handleLocalAuthentication
+jest.mock(
+  '../../../../components/UI/Card/util/handleLocalAuthentication',
+  () => ({
+    handleLocalAuthentication: jest.fn(),
+  }),
+);
 
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
@@ -86,7 +110,7 @@ const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
   symbol: 'USDC',
   name: 'USD Coin',
   allowanceState: AllowanceState.Enabled,
-  allowance: ethers.BigNumber.from('500000000000000000'),
+  allowance: '5000000000000',
 };
 
 const testAddress = '0x1234567890123456789012345678901234567890';
@@ -99,22 +123,46 @@ const CARD_STATE_MOCK: CardSliceState = {
   lastFetchedByAddress: {
     [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
   },
+  authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+  authenticatedPriorityTokenLastFetched: new Date('2025-08-21T10:00:00Z'),
   isLoaded: true,
   hasViewedCardButton: true,
   alwaysShowCardButton: false,
   geoLocation: 'US',
   isAuthenticated: false,
+  userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: [],
   priorityTokensByAddress: {},
   lastFetchedByAddress: {},
+  authenticatedPriorityToken: null,
+  authenticatedPriorityTokenLastFetched: null,
   isLoaded: false,
   hasViewedCardButton: false,
   alwaysShowCardButton: false,
   geoLocation: 'UNKNOWN',
   isAuthenticated: false,
+  userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 // Mock account object that matches the expected structure
@@ -281,6 +329,94 @@ describe('Card Selectors', () => {
       expect(selectIsCardholder(mockRootState)).toBe(false);
     });
   });
+
+  describe('Onboarding Selectors', () => {
+    describe('selectOnboardingId', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectOnboardingId(mockRootState)).toBe(null);
+      });
+
+      it('should return the onboarding ID when set', () => {
+        const onboardingId = 'test-onboarding-123';
+        const stateWithOnboardingId: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            onboardingId,
+          },
+        };
+        const mockRootState = {
+          card: stateWithOnboardingId,
+        } as unknown as RootState;
+        expect(selectOnboardingId(mockRootState)).toBe(onboardingId);
+      });
+    });
+
+    describe('selectSelectedCountry', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectSelectedCountry(mockRootState)).toBe(null);
+      });
+
+      it('should return the selected country when set', () => {
+        const selectedCountry = 'US';
+        const stateWithCountry: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            selectedCountry,
+          },
+        };
+        const mockRootState = {
+          card: stateWithCountry,
+        } as unknown as RootState;
+        expect(selectSelectedCountry(mockRootState)).toBe(selectedCountry);
+      });
+
+      it('should handle different country codes', () => {
+        const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'JP'];
+
+        countryCodes.forEach((countryCode) => {
+          const stateWithCountry: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              selectedCountry: countryCode,
+            },
+          };
+          const mockRootState = {
+            card: stateWithCountry,
+          } as unknown as RootState;
+          expect(selectSelectedCountry(mockRootState)).toBe(countryCode);
+        });
+      });
+    });
+
+    describe('selectContactVerificationId', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectContactVerificationId(mockRootState)).toBe(null);
+      });
+
+      it('should return the contact verification ID when set', () => {
+        const contactVerificationId = 'verification-456';
+        const stateWithVerificationId: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            contactVerificationId,
+          },
+        };
+        const mockRootState = {
+          card: stateWithVerificationId,
+        } as unknown as RootState;
+        expect(selectContactVerificationId(mockRootState)).toBe(
+          contactVerificationId,
+        );
+      });
+    });
+  });
 });
 
 describe('Card Reducer', () => {
@@ -379,11 +515,23 @@ describe('Card Reducer', () => {
         lastFetchedByAddress: {
           '0x123': new Date(),
         },
+        authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+        authenticatedPriorityTokenLastFetched: new Date('2025-08-21T10:00:00Z'),
         isLoaded: true,
         hasViewedCardButton: true,
         alwaysShowCardButton: true,
         geoLocation: 'US',
         isAuthenticated: false,
+        userCardLocation: 'us',
+        onboarding: {
+          onboardingId: null,
+          selectedCountry: null,
+          contactVerificationId: null,
+        },
+        cache: {
+          data: {},
+          timestamps: {},
+        },
       };
 
       const state = cardReducer(currentState, resetCardState());
@@ -412,6 +560,393 @@ describe('Card Reducer', () => {
         expect(state.hasViewedCardButton).toBe(false);
       });
     });
+
+    describe('onboarding actions', () => {
+      describe('setOnboardingId', () => {
+        it('should set onboardingId', () => {
+          const onboardingId = 'test-onboarding-123';
+          const state = cardReducer(
+            initialState,
+            setOnboardingId(onboardingId),
+          );
+          expect(state.onboarding.onboardingId).toBe(onboardingId);
+          // ensure other parts of state untouched
+          expect(state.onboarding.selectedCountry).toBe(null);
+          expect(state.onboarding.contactVerificationId).toBe(null);
+        });
+
+        it('should update onboardingId when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              onboardingId: 'old-id',
+            },
+          };
+          const newId = 'new-onboarding-456';
+          const state = cardReducer(current, setOnboardingId(newId));
+          expect(state.onboarding.onboardingId).toBe(newId);
+        });
+
+        it('should set onboardingId to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              onboardingId: 'existing-id',
+            },
+          };
+          const state = cardReducer(current, setOnboardingId(null));
+          expect(state.onboarding.onboardingId).toBe(null);
+        });
+      });
+
+      describe('setSelectedCountry', () => {
+        it('should set selectedCountry', () => {
+          const country = 'US';
+          const state = cardReducer(initialState, setSelectedCountry(country));
+          expect(state.onboarding.selectedCountry).toBe(country);
+          // ensure other parts of state untouched
+          expect(state.onboarding.onboardingId).toBe(null);
+          expect(state.onboarding.contactVerificationId).toBe(null);
+        });
+
+        it('should update selectedCountry when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              selectedCountry: 'GB',
+            },
+          };
+          const newCountry = 'CA';
+          const state = cardReducer(current, setSelectedCountry(newCountry));
+          expect(state.onboarding.selectedCountry).toBe(newCountry);
+        });
+
+        it('should set selectedCountry to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              selectedCountry: 'US',
+            },
+          };
+          const state = cardReducer(current, setSelectedCountry(null));
+          expect(state.onboarding.selectedCountry).toBe(null);
+        });
+      });
+
+      describe('setContactVerificationId', () => {
+        it('should set contactVerificationId', () => {
+          const verificationId = 'verification-123';
+          const state = cardReducer(
+            initialState,
+            setContactVerificationId(verificationId),
+          );
+          expect(state.onboarding.contactVerificationId).toBe(verificationId);
+          // ensure other parts of state untouched
+          expect(state.onboarding.onboardingId).toBe(null);
+          expect(state.onboarding.selectedCountry).toBe(null);
+        });
+
+        it('should update contactVerificationId when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              contactVerificationId: 'old-verification',
+            },
+          };
+          const newVerificationId = 'new-verification-456';
+          const state = cardReducer(
+            current,
+            setContactVerificationId(newVerificationId),
+          );
+          expect(state.onboarding.contactVerificationId).toBe(
+            newVerificationId,
+          );
+        });
+
+        it('should set contactVerificationId to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              contactVerificationId: 'existing-verification',
+            },
+          };
+          const state = cardReducer(current, setContactVerificationId(null));
+          expect(state.onboarding.contactVerificationId).toBe(null);
+        });
+      });
+
+      describe('resetOnboardingState', () => {
+        it('should reset all onboarding state to initial values', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              onboardingId: 'test-id',
+              selectedCountry: 'US',
+              contactVerificationId: 'verification-123',
+            },
+          };
+          const state = cardReducer(current, resetOnboardingState());
+          expect(state.onboarding).toEqual({
+            onboardingId: null,
+            selectedCountry: null,
+            contactVerificationId: null,
+          });
+          // ensure other parts of state untouched
+          expect(state.cardholderAccounts).toEqual(current.cardholderAccounts);
+          expect(state.geoLocation).toBe(current.geoLocation);
+        });
+
+        it('should reset onboarding state when already at initial values', () => {
+          const state = cardReducer(initialState, resetOnboardingState());
+          expect(state.onboarding).toEqual({
+            onboardingId: null,
+            selectedCountry: null,
+            contactVerificationId: null,
+          });
+        });
+      });
+    });
+
+    describe('Cache Actions', () => {
+      describe('setCacheData', () => {
+        it('should set cache data with key, data, and timestamp', () => {
+          const cacheKey = 'test-key';
+          const cacheData = { value: 'test-data' };
+          const timestamp = Date.now();
+
+          const state = cardReducer(
+            initialState,
+            setCacheData({
+              key: cacheKey,
+              data: cacheData,
+              timestamp,
+            }),
+          );
+
+          expect(state.cache.data[cacheKey]).toEqual(cacheData);
+          expect(state.cache.timestamps[cacheKey]).toBe(timestamp);
+        });
+
+        it('should handle different data types', () => {
+          const testCases = [
+            { key: 'string-data', data: 'test string', timestamp: 1000 },
+            { key: 'number-data', data: 42, timestamp: 2000 },
+            { key: 'boolean-data', data: true, timestamp: 3000 },
+            { key: 'array-data', data: [1, 2, 3], timestamp: 4000 },
+            {
+              key: 'object-data',
+              data: { nested: { value: 'test' } },
+              timestamp: 5000,
+            },
+            { key: 'null-data', data: null, timestamp: 6000 },
+          ];
+
+          let state = initialState;
+          testCases.forEach(({ key, data, timestamp }) => {
+            state = cardReducer(state, setCacheData({ key, data, timestamp }));
+          });
+
+          testCases.forEach(({ key, data, timestamp }) => {
+            expect(state.cache.data[key]).toEqual(data);
+            expect(state.cache.timestamps[key]).toBe(timestamp);
+          });
+        });
+
+        it('should overwrite existing cache data for the same key', () => {
+          const cacheKey = 'overwrite-test';
+          const oldData = { value: 'old' };
+          const newData = { value: 'new' };
+          const oldTimestamp = 1000;
+          const newTimestamp = 2000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: cacheKey,
+              data: oldData,
+              timestamp: oldTimestamp,
+            }),
+          );
+
+          state = cardReducer(
+            state,
+            setCacheData({
+              key: cacheKey,
+              data: newData,
+              timestamp: newTimestamp,
+            }),
+          );
+
+          expect(state.cache.data[cacheKey]).toEqual(newData);
+          expect(state.cache.timestamps[cacheKey]).toBe(newTimestamp);
+        });
+
+        it('should not affect other cache entries', () => {
+          const existingKey = 'existing';
+          const existingData = { value: 'existing' };
+          const existingTimestamp = 1000;
+
+          const newKey = 'new';
+          const newData = { value: 'new' };
+          const newTimestamp = 2000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: existingKey,
+              data: existingData,
+              timestamp: existingTimestamp,
+            }),
+          );
+
+          state = cardReducer(
+            state,
+            setCacheData({
+              key: newKey,
+              data: newData,
+              timestamp: newTimestamp,
+            }),
+          );
+
+          expect(state.cache.data[existingKey]).toEqual(existingData);
+          expect(state.cache.timestamps[existingKey]).toBe(existingTimestamp);
+          expect(state.cache.data[newKey]).toEqual(newData);
+          expect(state.cache.timestamps[newKey]).toBe(newTimestamp);
+        });
+      });
+
+      describe('clearCacheData', () => {
+        it('should clear cache data for specific key', () => {
+          const cacheKey = 'test-key';
+          const cacheData = { value: 'test-data' };
+          const timestamp = Date.now();
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: cacheKey,
+              data: cacheData,
+              timestamp,
+            }),
+          );
+
+          state = cardReducer(state, clearCacheData(cacheKey));
+
+          expect(state.cache.data[cacheKey]).toBeUndefined();
+          expect(state.cache.timestamps[cacheKey]).toBeUndefined();
+        });
+
+        it('should only clear the specified key, not others', () => {
+          const key1 = 'key1';
+          const key2 = 'key2';
+          const data1 = { value: 'data1' };
+          const data2 = { value: 'data2' };
+          const timestamp1 = 1000;
+          const timestamp2 = 2000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({ key: key1, data: data1, timestamp: timestamp1 }),
+          );
+
+          state = cardReducer(
+            state,
+            setCacheData({ key: key2, data: data2, timestamp: timestamp2 }),
+          );
+
+          state = cardReducer(state, clearCacheData(key1));
+
+          expect(state.cache.data[key1]).toBeUndefined();
+          expect(state.cache.timestamps[key1]).toBeUndefined();
+          expect(state.cache.data[key2]).toEqual(data2);
+          expect(state.cache.timestamps[key2]).toBe(timestamp2);
+        });
+
+        it('should handle clearing non-existent key gracefully', () => {
+          const nonExistentKey = 'non-existent';
+          const existingKey = 'existing';
+          const existingData = { value: 'existing' };
+          const existingTimestamp = 1000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: existingKey,
+              data: existingData,
+              timestamp: existingTimestamp,
+            }),
+          );
+
+          state = cardReducer(state, clearCacheData(nonExistentKey));
+
+          expect(state.cache.data[existingKey]).toEqual(existingData);
+          expect(state.cache.timestamps[existingKey]).toBe(existingTimestamp);
+          expect(state.cache.data[nonExistentKey]).toBeUndefined();
+          expect(state.cache.timestamps[nonExistentKey]).toBeUndefined();
+        });
+      });
+
+      describe('clearAllCache', () => {
+        it('should clear all cache data and timestamps', () => {
+          const testData = [
+            { key: 'key1', data: { value: 'data1' }, timestamp: 1000 },
+            { key: 'key2', data: { value: 'data2' }, timestamp: 2000 },
+            { key: 'key3', data: { value: 'data3' }, timestamp: 3000 },
+          ];
+
+          let state = initialState;
+          testData.forEach(({ key, data, timestamp }) => {
+            state = cardReducer(state, setCacheData({ key, data, timestamp }));
+          });
+
+          // Verify data was set
+          testData.forEach(({ key, data, timestamp }) => {
+            expect(state.cache.data[key]).toEqual(data);
+            expect(state.cache.timestamps[key]).toBe(timestamp);
+          });
+
+          state = cardReducer(state, clearAllCache());
+
+          expect(state.cache.data).toEqual({});
+          expect(state.cache.timestamps).toEqual({});
+        });
+
+        it('should not affect other state properties', () => {
+          const testData = {
+            key: 'test',
+            data: { value: 'test' },
+            timestamp: 1000,
+          };
+
+          let state = cardReducer(initialState, setCacheData(testData));
+
+          state = cardReducer(state, clearAllCache());
+
+          expect(state.cache.data).toEqual({});
+          expect(state.cache.timestamps).toEqual({});
+          expect(state.cardholderAccounts).toEqual(
+            initialState.cardholderAccounts,
+          );
+          expect(state.priorityTokensByAddress).toEqual(
+            initialState.priorityTokensByAddress,
+          );
+          expect(state.onboarding).toEqual(initialState.onboarding);
+        });
+
+        it('should work when cache is already empty', () => {
+          const state = cardReducer(initialState, clearAllCache());
+
+          expect(state.cache.data).toEqual({});
+          expect(state.cache.timestamps).toEqual({});
+        });
+      });
+    });
   });
 });
 
@@ -422,7 +957,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityToken(testAddress);
+      const selector = selectCardPriorityToken(false, testAddress);
       expect(selector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
     });
 
@@ -431,7 +966,7 @@ describe('Card Caching Functionality', () => {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityToken(testAddress);
+      const selector = selectCardPriorityToken(false, testAddress);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -440,7 +975,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityToken();
+      const selector = selectCardPriorityToken(false);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -451,12 +986,14 @@ describe('Card Caching Functionality', () => {
 
       // Test with uppercase address
       const upperCaseSelector = selectCardPriorityToken(
+        false,
         testAddress.toUpperCase(),
       );
       expect(upperCaseSelector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
 
       // Test with different address that doesn't exist
       const differentAddressSelector = selectCardPriorityToken(
+        false,
         '0x9999999999999999999999999999999999999999',
       );
       expect(differentAddressSelector(mockRootState)).toBeNull();
@@ -469,7 +1006,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityTokenLastFetched(testAddress);
+      const selector = selectCardPriorityTokenLastFetched(false, testAddress);
       expect(selector(mockRootState)).toEqual(new Date('2025-08-21T10:00:00Z'));
     });
 
@@ -478,7 +1015,7 @@ describe('Card Caching Functionality', () => {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityTokenLastFetched(testAddress);
+      const selector = selectCardPriorityTokenLastFetched(false, testAddress);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -487,7 +1024,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectCardPriorityTokenLastFetched();
+      const selector = selectCardPriorityTokenLastFetched(false);
       expect(selector(mockRootState)).toBeNull();
     });
 
@@ -498,6 +1035,7 @@ describe('Card Caching Functionality', () => {
 
       // Test with uppercase address
       const upperCaseSelector = selectCardPriorityTokenLastFetched(
+        false,
         testAddress.toUpperCase(),
       );
       expect(upperCaseSelector(mockRootState)).toEqual(
@@ -506,6 +1044,7 @@ describe('Card Caching Functionality', () => {
 
       // Test with different address that doesn't exist
       const differentAddressSelector = selectCardPriorityTokenLastFetched(
+        false,
         '0x9999999999999999999999999999999999999999',
       );
       expect(differentAddressSelector(mockRootState)).toBeNull();
@@ -531,7 +1070,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(true);
     });
 
@@ -550,7 +1089,7 @@ describe('Card Caching Functionality', () => {
         card: stateWithOldCache,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -562,7 +1101,7 @@ describe('Card Caching Functionality', () => {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -581,7 +1120,7 @@ describe('Card Caching Functionality', () => {
         card: stateWithStringDate,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(true);
     });
 
@@ -593,7 +1132,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid();
+      const selector = selectIsCardCacheValid(false);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -612,7 +1151,7 @@ describe('Card Caching Functionality', () => {
         card: stateWithExactlyOldCache,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(false);
     });
 
@@ -624,7 +1163,7 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      const selector = selectIsCardCacheValid(testAddress);
+      const selector = selectIsCardCacheValid(false, testAddress);
       expect(selector(mockRootState)).toBe(true);
     });
   });
@@ -1167,6 +1706,613 @@ describe('Card Button Display Selectors', () => {
       const mockRootState = { card: state } as unknown as RootState;
 
       expect(selectDisplayCardButton(mockRootState)).toBe(true);
+    });
+  });
+});
+
+describe('Authentication Selectors and Actions', () => {
+  describe('selectIsAuthenticatedCard', () => {
+    it('returns false by default from initial state', () => {
+      const mockRootState = { card: initialState } as unknown as RootState;
+      expect(selectIsAuthenticatedCard(mockRootState)).toBe(false);
+    });
+
+    it('returns true when isAuthenticated is true', () => {
+      const stateWithAuth: CardSliceState = {
+        ...initialState,
+        isAuthenticated: true,
+      };
+      const mockRootState = { card: stateWithAuth } as unknown as RootState;
+      expect(selectIsAuthenticatedCard(mockRootState)).toBe(true);
+    });
+
+    it('returns false when isAuthenticated is false', () => {
+      const stateWithoutAuth: CardSliceState = {
+        ...initialState,
+        isAuthenticated: false,
+      };
+      const mockRootState = { card: stateWithoutAuth } as unknown as RootState;
+      expect(selectIsAuthenticatedCard(mockRootState)).toBe(false);
+    });
+  });
+
+  describe('selectUserCardLocation', () => {
+    it('returns international by default from initial state', () => {
+      const mockRootState = { card: initialState } as unknown as RootState;
+      expect(selectUserCardLocation(mockRootState)).toBe('international');
+    });
+
+    it('returns us when userCardLocation is us', () => {
+      const stateWithUsLocation: CardSliceState = {
+        ...initialState,
+        userCardLocation: 'us',
+      };
+      const mockRootState = {
+        card: stateWithUsLocation,
+      } as unknown as RootState;
+      expect(selectUserCardLocation(mockRootState)).toBe('us');
+    });
+
+    it('returns international when userCardLocation is international', () => {
+      const stateWithIntlLocation: CardSliceState = {
+        ...initialState,
+        userCardLocation: 'international',
+      };
+      const mockRootState = {
+        card: stateWithIntlLocation,
+      } as unknown as RootState;
+      expect(selectUserCardLocation(mockRootState)).toBe('international');
+    });
+  });
+
+  describe('setIsAuthenticatedCard', () => {
+    it('sets isAuthenticated to true', () => {
+      const state = cardReducer(initialState, setIsAuthenticatedCard(true));
+      expect(state.isAuthenticated).toBe(true);
+    });
+
+    it('sets isAuthenticated to false when previously true', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        isAuthenticated: true,
+      };
+      const state = cardReducer(currentState, setIsAuthenticatedCard(false));
+      expect(state.isAuthenticated).toBe(false);
+    });
+
+    it('does not affect other state properties', () => {
+      const state = cardReducer(initialState, setIsAuthenticatedCard(true));
+      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
+      expect(state.geoLocation).toEqual(initialState.geoLocation);
+      expect(state.userCardLocation).toEqual(initialState.userCardLocation);
+    });
+  });
+
+  describe('setUserCardLocation', () => {
+    it('sets userCardLocation to us', () => {
+      const state = cardReducer(initialState, setUserCardLocation('us'));
+      expect(state.userCardLocation).toBe('us');
+    });
+
+    it('sets userCardLocation to international', () => {
+      const state = cardReducer(
+        initialState,
+        setUserCardLocation('international'),
+      );
+      expect(state.userCardLocation).toBe('international');
+    });
+
+    it('defaults to international when null is provided', () => {
+      const state = cardReducer(initialState, setUserCardLocation(null));
+      expect(state.userCardLocation).toBe('international');
+    });
+
+    it('updates existing userCardLocation', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        userCardLocation: 'us',
+      };
+      const state = cardReducer(
+        currentState,
+        setUserCardLocation('international'),
+      );
+      expect(state.userCardLocation).toBe('international');
+    });
+
+    it('does not affect other state properties', () => {
+      const state = cardReducer(initialState, setUserCardLocation('us'));
+      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
+      expect(state.isAuthenticated).toEqual(initialState.isAuthenticated);
+    });
+  });
+
+  describe('setAuthenticatedPriorityToken', () => {
+    it('sets authenticatedPriorityToken to a token', () => {
+      const state = cardReducer(
+        initialState,
+        setAuthenticatedPriorityToken(MOCK_PRIORITY_TOKEN),
+      );
+      expect(state.authenticatedPriorityToken).toEqual(MOCK_PRIORITY_TOKEN);
+    });
+
+    it('sets authenticatedPriorityToken to null', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+      };
+      const state = cardReducer(
+        currentState,
+        setAuthenticatedPriorityToken(null),
+      );
+      expect(state.authenticatedPriorityToken).toBeNull();
+    });
+
+    it('updates existing authenticatedPriorityToken', () => {
+      const newToken: CardTokenAllowance = {
+        ...MOCK_PRIORITY_TOKEN,
+        symbol: 'DAI',
+      };
+      const currentState: CardSliceState = {
+        ...initialState,
+        authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+      };
+      const state = cardReducer(
+        currentState,
+        setAuthenticatedPriorityToken(newToken),
+      );
+      expect(state.authenticatedPriorityToken).toEqual(newToken);
+    });
+
+    it('does not affect other state properties', () => {
+      const state = cardReducer(
+        initialState,
+        setAuthenticatedPriorityToken(MOCK_PRIORITY_TOKEN),
+      );
+      expect(state.priorityTokensByAddress).toEqual(
+        initialState.priorityTokensByAddress,
+      );
+      expect(state.authenticatedPriorityTokenLastFetched).toEqual(
+        initialState.authenticatedPriorityTokenLastFetched,
+      );
+    });
+  });
+
+  describe('setAuthenticatedPriorityTokenLastFetched', () => {
+    it('sets authenticatedPriorityTokenLastFetched to a date', () => {
+      const testDate = new Date('2025-08-21T10:00:00Z');
+      const state = cardReducer(
+        initialState,
+        setAuthenticatedPriorityTokenLastFetched(testDate),
+      );
+      expect(state.authenticatedPriorityTokenLastFetched).toEqual(testDate);
+    });
+
+    it('sets authenticatedPriorityTokenLastFetched to a string', () => {
+      const testDateString = '2025-08-21T10:00:00Z';
+      const state = cardReducer(
+        initialState,
+        setAuthenticatedPriorityTokenLastFetched(testDateString),
+      );
+      expect(state.authenticatedPriorityTokenLastFetched).toEqual(
+        testDateString,
+      );
+    });
+
+    it('sets authenticatedPriorityTokenLastFetched to null', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        authenticatedPriorityTokenLastFetched: new Date(),
+      };
+      const state = cardReducer(
+        currentState,
+        setAuthenticatedPriorityTokenLastFetched(null),
+      );
+      expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+    });
+
+    it('updates existing authenticatedPriorityTokenLastFetched', () => {
+      const oldDate = new Date('2025-08-21T10:00:00Z');
+      const newDate = new Date('2025-08-21T11:00:00Z');
+      const currentState: CardSliceState = {
+        ...initialState,
+        authenticatedPriorityTokenLastFetched: oldDate,
+      };
+      const state = cardReducer(
+        currentState,
+        setAuthenticatedPriorityTokenLastFetched(newDate),
+      );
+      expect(state.authenticatedPriorityTokenLastFetched).toEqual(newDate);
+    });
+
+    it('does not affect other state properties', () => {
+      const testDate = new Date('2025-08-21T10:00:00Z');
+      const state = cardReducer(
+        initialState,
+        setAuthenticatedPriorityTokenLastFetched(testDate),
+      );
+      expect(state.lastFetchedByAddress).toEqual(
+        initialState.lastFetchedByAddress,
+      );
+      expect(state.authenticatedPriorityToken).toEqual(
+        initialState.authenticatedPriorityToken,
+      );
+    });
+  });
+});
+
+describe('verifyCardAuthentication Async Thunk', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('verifyCardAuthentication.fulfilled', () => {
+    it('updates isAuthenticated and userCardLocation on success', () => {
+      const mockPayload = {
+        isAuthenticated: true,
+        userCardLocation: 'us' as const,
+      };
+      const action = {
+        type: verifyCardAuthentication.fulfilled.type,
+        payload: mockPayload,
+      };
+      const state = cardReducer(initialState, action);
+
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.userCardLocation).toBe('us');
+    });
+
+    it('handles international location on success', () => {
+      const mockPayload = {
+        isAuthenticated: true,
+        userCardLocation: 'international' as const,
+      };
+      const action = {
+        type: verifyCardAuthentication.fulfilled.type,
+        payload: mockPayload,
+      };
+      const state = cardReducer(initialState, action);
+
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.userCardLocation).toBe('international');
+    });
+
+    it('handles false authentication status', () => {
+      const mockPayload = {
+        isAuthenticated: false,
+        userCardLocation: 'international' as const,
+      };
+      const action = {
+        type: verifyCardAuthentication.fulfilled.type,
+        payload: mockPayload,
+      };
+      const state = cardReducer(initialState, action);
+
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.userCardLocation).toBe('international');
+    });
+
+    it('defaults to international when userCardLocation is null', () => {
+      const mockPayload = {
+        isAuthenticated: true,
+        userCardLocation: null,
+      };
+      const action = {
+        type: verifyCardAuthentication.fulfilled.type,
+        payload: mockPayload,
+      };
+      const state = cardReducer(initialState, action);
+
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.userCardLocation).toBe('international');
+    });
+
+    it('defaults to international when userCardLocation is undefined', () => {
+      const mockPayload = {
+        isAuthenticated: true,
+      };
+      const action = {
+        type: verifyCardAuthentication.fulfilled.type,
+        payload: mockPayload,
+      };
+      const state = cardReducer(initialState, action);
+
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.userCardLocation).toBe('international');
+    });
+
+    it('does not affect other state properties', () => {
+      const mockPayload = {
+        isAuthenticated: true,
+        userCardLocation: 'us' as const,
+      };
+      const action = {
+        type: verifyCardAuthentication.fulfilled.type,
+        payload: mockPayload,
+      };
+      const state = cardReducer(initialState, action);
+
+      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
+      expect(state.geoLocation).toEqual(initialState.geoLocation);
+      expect(state.isLoaded).toEqual(initialState.isLoaded);
+    });
+  });
+
+  describe('verifyCardAuthentication.rejected', () => {
+    it('resets authentication state on error', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        isAuthenticated: true,
+        userCardLocation: 'us',
+        authenticatedPriorityToken: MOCK_PRIORITY_TOKEN,
+        authenticatedPriorityTokenLastFetched: new Date('2025-08-21T10:00:00Z'),
+      };
+
+      const action = {
+        type: verifyCardAuthentication.rejected.type,
+        error: {
+          message: 'Authentication failed',
+        },
+      };
+      const state = cardReducer(currentState, action);
+
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.userCardLocation).toBe('international');
+      expect(state.authenticatedPriorityToken).toBeNull();
+      expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+    });
+
+    it('handles rejection from initial state', () => {
+      const action = {
+        type: verifyCardAuthentication.rejected.type,
+        error: {
+          message: 'Authentication failed',
+        },
+      };
+      const state = cardReducer(initialState, action);
+
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.userCardLocation).toBe('international');
+      expect(state.authenticatedPriorityToken).toBeNull();
+      expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+    });
+
+    it('does not affect other state properties', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        isAuthenticated: true,
+        cardholderAccounts: ['0x123'],
+        geoLocation: 'US',
+        isLoaded: true,
+      };
+
+      const action = {
+        type: verifyCardAuthentication.rejected.type,
+        error: {
+          message: 'Authentication failed',
+        },
+      };
+      const state = cardReducer(currentState, action);
+
+      expect(state.cardholderAccounts).toEqual(['0x123']);
+      expect(state.geoLocation).toEqual('US');
+      expect(state.isLoaded).toBe(true);
+    });
+  });
+});
+
+describe('Authenticated Priority Token Selectors', () => {
+  describe('selectCardPriorityToken with authenticated=true', () => {
+    it('returns authenticatedPriorityToken when authenticated', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityToken(true);
+      expect(selector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
+    });
+
+    it('returns null when no authenticatedPriorityToken exists', () => {
+      const mockRootState = {
+        card: EMPTY_CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityToken(true);
+      expect(selector(mockRootState)).toBeNull();
+    });
+
+    it('ignores address parameter when authenticated', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityToken(true, '0xDifferentAddress');
+      expect(selector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
+    });
+
+    it('returns authenticatedPriorityToken even when address has different token', () => {
+      const differentToken: CardTokenAllowance = {
+        ...MOCK_PRIORITY_TOKEN,
+        symbol: 'DAI',
+      };
+
+      const stateWithDifferentTokens: CardSliceState = {
+        ...CARD_STATE_MOCK,
+        authenticatedPriorityToken: differentToken,
+      };
+
+      const mockRootState = {
+        card: stateWithDifferentTokens,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityToken(true, testAddress);
+      expect(selector(mockRootState)).toEqual(differentToken);
+      expect(selector(mockRootState)).not.toEqual(MOCK_PRIORITY_TOKEN);
+    });
+  });
+
+  describe('selectCardPriorityTokenLastFetched with authenticated=true', () => {
+    it('returns authenticatedPriorityTokenLastFetched when authenticated', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityTokenLastFetched(true);
+      expect(selector(mockRootState)).toEqual(new Date('2025-08-21T10:00:00Z'));
+    });
+
+    it('returns null when no authenticatedPriorityTokenLastFetched exists', () => {
+      const mockRootState = {
+        card: EMPTY_CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityTokenLastFetched(true);
+      expect(selector(mockRootState)).toBeNull();
+    });
+
+    it('ignores address parameter when authenticated', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityTokenLastFetched(
+        true,
+        '0xDifferentAddress',
+      );
+      expect(selector(mockRootState)).toEqual(new Date('2025-08-21T10:00:00Z'));
+    });
+
+    it('handles ISO date strings from redux-persist', () => {
+      const stateWithStringDate: CardSliceState = {
+        ...CARD_STATE_MOCK,
+        authenticatedPriorityTokenLastFetched: '2025-08-21T10:00:00Z',
+      };
+
+      const mockRootState = {
+        card: stateWithStringDate,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityTokenLastFetched(true);
+      expect(selector(mockRootState)).toEqual('2025-08-21T10:00:00Z');
+    });
+  });
+
+  describe('selectIsCardCacheValid with authenticated=true (30 second window)', () => {
+    let dateNowSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      dateNowSpy = jest.spyOn(Date, 'now');
+    });
+
+    afterEach(() => {
+      dateNowSpy.mockRestore();
+    });
+
+    it('returns true when cache is within 30-second window for authenticated', () => {
+      // Mock Date.now to return 20 seconds after fetch time
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:00:20Z').getTime());
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectIsCardCacheValid(true);
+      expect(selector(mockRootState)).toBe(true);
+    });
+
+    it('returns false when cache is older than 30 seconds for authenticated', () => {
+      // Mock Date.now to return 31 seconds after fetch time
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:00:31Z').getTime());
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectIsCardCacheValid(true);
+      expect(selector(mockRootState)).toBe(false);
+    });
+
+    it('returns false for cache exactly 30 seconds old', () => {
+      // Mock Date.now to return exactly 30 seconds after fetch time
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:00:30Z').getTime());
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectIsCardCacheValid(true);
+      expect(selector(mockRootState)).toBe(false);
+    });
+
+    it('returns true for cache 29 seconds old', () => {
+      // Mock Date.now to return 29 seconds after fetch time
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:00:29Z').getTime());
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectIsCardCacheValid(true);
+      expect(selector(mockRootState)).toBe(true);
+    });
+
+    it('returns false when no authenticatedPriorityTokenLastFetched exists', () => {
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:00:20Z').getTime());
+
+      const mockRootState = {
+        card: EMPTY_CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectIsCardCacheValid(true);
+      expect(selector(mockRootState)).toBe(false);
+    });
+
+    it('handles ISO date strings from redux-persist for authenticated', () => {
+      // Mock Date.now to return 20 seconds after fetch time
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:00:20Z').getTime());
+
+      const stateWithStringDate: CardSliceState = {
+        ...CARD_STATE_MOCK,
+        authenticatedPriorityTokenLastFetched: '2025-08-21T10:00:00Z',
+      };
+
+      const mockRootState = {
+        card: stateWithStringDate,
+      } as unknown as RootState;
+
+      const selector = selectIsCardCacheValid(true);
+      expect(selector(mockRootState)).toBe(true);
+    });
+
+    it('ignores address parameter when authenticated', () => {
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:00:20Z').getTime());
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      // Even though address has different lastFetched, should use authenticated
+      const selector = selectIsCardCacheValid(true, '0xDifferentAddress');
+      expect(selector(mockRootState)).toBe(true);
+    });
+
+    it('uses 30-second window for authenticated vs 5-minute for unauthenticated', () => {
+      // Mock Date.now to return 2 minutes after fetch time
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:02:00Z').getTime());
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      // Authenticated: should be false (> 30 seconds)
+      const authenticatedSelector = selectIsCardCacheValid(true);
+      expect(authenticatedSelector(mockRootState)).toBe(false);
+
+      // Unauthenticated: should be true (< 5 minutes)
+      const unauthenticatedSelector = selectIsCardCacheValid(
+        false,
+        testAddress,
+      );
+      expect(unauthenticatedSelector(mockRootState)).toBe(true);
     });
   });
 });

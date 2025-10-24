@@ -14,20 +14,25 @@ import {
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
+import { removeCardBaanxToken } from '../util/cardTokenVault';
 import {
-  getCardBaanxToken,
-  removeCardBaanxToken,
-  storeCardBaanxToken,
-} from '../util/cardTokenVault';
-import Logger from '../../../../util/Logger';
-import { setIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+  setAuthenticatedPriorityToken,
+  setAuthenticatedPriorityTokenLastFetched,
+  setIsAuthenticatedCard,
+  selectUserCardLocation,
+  setUserCardLocation,
+  selectOnboardingId,
+} from '../../../../core/redux/slices/card';
+import { UserResponse } from '../types';
 
 // Types
 export interface ICardSDK {
   sdk: CardSDK | null;
   isLoading: boolean;
+  user: UserResponse | null;
+  setUser: (user: UserResponse | null) => void;
   logoutFromProvider: () => Promise<void>;
-  userCardLocation: 'us' | 'international';
 }
 
 interface ProviderProps<T> {
@@ -39,119 +44,65 @@ interface ProviderProps<T> {
 const CardSDKContext = createContext<ICardSDK | undefined>(undefined);
 
 /**
- * CardSDKProvider manages the Card SDK instance and authentication state.
- * It handles SDK initialization, token validation, and automatic token refresh.
+ * CardSDKProvider manages the Card SDK instance.
+ * It handles SDK initialization. Authentication is handled separately
+ * by the CardAuthenticationVerification component at the app level.
  */
 export const CardSDKProvider = ({
   value,
   ...props
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
+  const userCardLocation = useSelector(selectUserCardLocation);
+  const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const [sdk, setSdk] = useState<CardSDK | null>(null);
-  const [userCardLocation, setUserCardLocation] = useState<
-    'us' | 'international'
-  >('international');
-  const [isLoading, setIsLoading] = useState(false);
+  // Start with true to indicate initialization in progress
+  const [isLoading, setIsLoading] = useState(true);
+  // Add user state management
+  const [user, setUser] = useState<UserResponse | null>(null);
 
-  const isBaanxLoginEnabled = sdk?.isBaanxLoginEnabled ?? false;
+  const removeAuthenticatedData = useCallback(() => {
+    dispatch(setIsAuthenticatedCard(false));
+    dispatch(setAuthenticatedPriorityTokenLastFetched(null));
+    dispatch(setAuthenticatedPriorityToken(null));
+    dispatch(setUserCardLocation(null));
+  }, [dispatch]);
 
   // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
     if (cardFeatureFlag) {
+      setIsLoading(true);
       const cardSDK = new CardSDK({
         cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
+        userCardLocation,
       });
       setSdk(cardSDK);
     } else {
       setSdk(null);
-    }
-  }, [cardFeatureFlag]);
-
-  const attemptTokenRefresh = useCallback(
-    async (
-      refreshToken: string,
-      location: 'us' | 'international',
-    ): Promise<void> => {
-      if (!sdk) {
-        throw new Error('SDK not available for token refresh');
-      }
-
-      try {
-        const newTokens = await sdk.refreshLocalToken(refreshToken, location);
-
-        if (!newTokens?.accessToken || !newTokens?.refreshToken) {
-          throw new Error('Invalid token response from refresh request');
-        }
-
-        await storeCardBaanxToken({
-          accessToken: newTokens.accessToken,
-          refreshToken: newTokens.refreshToken,
-          expiresAt: Date.now() + newTokens.expiresIn * 1000,
-          location,
-        });
-
-        dispatch(setIsAuthenticatedCard(true));
-        setUserCardLocation(location);
-      } catch (error) {
-        Logger.log('Token refresh failed:', error);
-        dispatch(setIsAuthenticatedCard(false));
-      }
-    },
-    [sdk, dispatch],
-  );
-
-  const handleTokenAuthentication = useCallback(async (): Promise<void> => {
-    const tokenResult = await getCardBaanxToken();
-
-    // If token retrieval failed, user is not authenticated
-    if (
-      !tokenResult.success ||
-      !tokenResult.tokenData?.accessToken ||
-      !tokenResult.tokenData?.refreshToken ||
-      !tokenResult.tokenData?.expiresAt ||
-      !tokenResult.tokenData?.location
-    ) {
-      Logger.log('Token retrieval failed:', tokenResult.error);
-      dispatch(setIsAuthenticatedCard(false));
-      return;
+      setIsLoading(false);
     }
 
-    const { refreshToken, expiresAt, location } = tokenResult.tokenData;
+    setIsLoading(false);
+  }, [cardFeatureFlag, userCardLocation]);
 
-    // If token is still valid, user is authenticated
-    if (Date.now() < expiresAt) {
-      dispatch(setIsAuthenticatedCard(true));
-      setUserCardLocation(location);
-      return;
-    }
-
-    await attemptTokenRefresh(refreshToken, location);
-  }, [attemptTokenRefresh, dispatch]);
-
-  // Check authentication status and handle token refresh
+  // Fetch user data on mount if onboardingId exists
   useEffect(() => {
-    const authenticateUser = async () => {
-      setIsLoading(true);
+    const fetchUserData = async () => {
+      if (!sdk || !onboardingId) {
+        return;
+      }
 
       try {
-        await handleTokenAuthentication();
-      } catch (error) {
-        Logger.log('Authentication check failed:', error);
-        dispatch(setIsAuthenticatedCard(false));
-      } finally {
-        setIsLoading(false);
+        const userData = await sdk.getRegistrationStatus(onboardingId);
+        setUser(userData);
+      } catch {
+        // Assume user is not registered
       }
     };
 
-    // Only run authentication check if SDK is available and Baanx login is enabled
-    if (isBaanxLoginEnabled) {
-      authenticateUser();
-    } else {
-      setIsLoading(false);
-      dispatch(setIsAuthenticatedCard(false));
-    }
-  }, [isBaanxLoginEnabled, handleTokenAuthentication, dispatch]);
+    fetchUserData();
+  }, [sdk, onboardingId]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
@@ -159,18 +110,22 @@ export const CardSDKProvider = ({
     }
 
     await removeCardBaanxToken();
-    dispatch(setIsAuthenticatedCard(false));
-  }, [sdk, dispatch]);
+    removeAuthenticatedData();
+
+    // Clear user data from context
+    setUser(null);
+  }, [sdk, removeAuthenticatedData]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     (): ICardSDK => ({
       sdk,
       isLoading,
+      user,
+      setUser,
       logoutFromProvider,
-      userCardLocation,
     }),
-    [sdk, isLoading, logoutFromProvider, userCardLocation],
+    [sdk, isLoading, user, setUser, logoutFromProvider],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;
@@ -201,10 +156,14 @@ export const withCardSDK =
 
 /**
  * Component that performs cardholder verification.
+ * This should be mounted at the app entry level to ensure
+ * cardholder verification is always up-to-date.
  * Returns null as it's just a side-effect component.
  */
 export const CardVerification: React.FC = () => {
   useCardholderCheck();
+  useCardAuthenticationVerification();
+
   return null;
 };
 

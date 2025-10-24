@@ -16,9 +16,6 @@ const createMockSDK = (isBaanxLoginEnabled: boolean): Partial<CardSDK> => ({
   get isCardEnabled() {
     return true;
   },
-  get supportedTokens() {
-    return [];
-  },
   isCardHolder: jest.fn(),
   getGeoLocation: jest.fn(),
   getSupportedTokensAllowances: jest.fn(),
@@ -29,8 +26,9 @@ const mockCardSDKResponse = (sdk: Partial<CardSDK> | null) => {
   mockUseCardSDK.mockReturnValue({
     sdk: sdk as CardSDK | null,
     isLoading: false,
+    user: null,
+    setUser: jest.fn(),
     logoutFromProvider: jest.fn(),
-    userCardLocation: 'international',
   });
 };
 
