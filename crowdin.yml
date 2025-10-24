@@ -8,7 +8,7 @@
 # the uploading of these translation paths is disabled in the .github/workflows/crowdin_action.yml file on line 27.
 files: [
  {
-  "source" : "locales/languages/en.json",
+  "source" : "locales/languages/de.json",
   "translation" : "/locales/languages/%two_letters_code%.json",
  }
 ]
