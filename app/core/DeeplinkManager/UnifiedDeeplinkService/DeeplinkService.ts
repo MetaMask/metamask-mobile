@@ -36,6 +36,9 @@ export class DeeplinkService {
   private static instance: DeeplinkService;
   private actionRegistry: ActionRegistry;
   private deeplinkParser: DeeplinkParser;
+  private initializationStatus: 'pending' | 'success' | 'failed' = 'pending';
+  private initializationError?: Error;
+  private initializationPromise?: Promise<void>;
 
   // Whitelist of actions that should not show the deeplink modal
   private readonly WHITELISTED_ACTIONS = [ACTIONS.WC];
@@ -64,6 +67,30 @@ export class DeeplinkService {
     url: string,
     options: DeeplinkServiceOptions = {},
   ): Promise<DeeplinkResult> {
+    // Check initialization status first
+    if (this.initializationStatus === 'failed') {
+      return {
+        success: false,
+        error: `DeeplinkService initialization failed: ${
+          this.initializationError?.message || 'Unknown error'
+        }`,
+      };
+    }
+
+    // Wait for initialization if still pending
+    if (this.initializationStatus === 'pending') {
+      try {
+        await this.initializationPromise;
+      } catch (error) {
+        return {
+          success: false,
+          error: `DeeplinkService initialization failed: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        };
+      }
+    }
+
     const { navigation, browserCallBack, origin, onHandled } = options;
 
     try {
@@ -277,20 +304,44 @@ export class DeeplinkService {
 
   /**
    * Register all default actions
-   * This should be called during app initialization
+   * Returns a promise that resolves when registration is complete
    */
-  registerDefaultActions(): void {
-    DevLogger.log('DeeplinkService: Registering default actions');
+  async registerDefaultActions(): Promise<void> {
+    // Prevent multiple initialization attempts
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
 
-    // Import and register all actions
-    // Using dynamic import to avoid circular dependencies
-    import('./actions')
-      .then(({ registerAllActions }) => {
-        registerAllActions(this.actionRegistry);
-      })
-      .catch((error) => {
-        DevLogger.log('DeeplinkService: Error registering actions:', error);
-      });
+    this.initializationPromise = this.performRegistration();
+    return this.initializationPromise;
+  }
+
+  private async performRegistration(): Promise<void> {
+    try {
+      DevLogger.log('DeeplinkService: Registering default actions');
+
+      const { registerAllActions } = await import('./actions');
+      registerAllActions(this.actionRegistry);
+
+      // Verify at least some actions were registered
+      const registeredCount = this.actionRegistry.getAllActions().length;
+      if (registeredCount === 0) {
+        throw new Error('No actions were registered');
+      }
+
+      DevLogger.log(
+        `DeeplinkService: Successfully registered ${registeredCount} actions`,
+      );
+      this.initializationStatus = 'success';
+    } catch (error) {
+      this.initializationStatus = 'failed';
+      this.initializationError =
+        error instanceof Error ? error : new Error('Unknown error');
+      DevLogger.log('DeeplinkService: Failed to register actions:', error);
+
+      // Re-throw to ensure calling code knows about the failure
+      throw this.initializationError;
+    }
   }
 }
 

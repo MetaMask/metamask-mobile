@@ -1,4 +1,5 @@
 import DevLogger from '../../SDKConnect/utils/DevLogger';
+import Logger from '../../../util/Logger';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -121,9 +122,17 @@ async function parseDeeplinkUnified({
  * Initialize the deeplink service with all default actions
  * This should be called once during app initialization
  */
-export function initializeDeeplinkService() {
-  DevLogger.log('Initializing unified deeplink service');
-  deeplinkService.registerDefaultActions();
+export async function initializeDeeplinkService() {
+  try {
+    DevLogger.log('Initializing unified deeplink service');
+    await deeplinkService.registerDefaultActions();
+  } catch (error) {
+    // Log error and potentially show user-facing error
+    Logger.error(error as Error, 'Failed to initialize deeplink service');
+
+    // Re-throw to ensure app initialization knows about the failure
+    throw error;
+  }
 }
 
 export default parseDeeplinkUnified;

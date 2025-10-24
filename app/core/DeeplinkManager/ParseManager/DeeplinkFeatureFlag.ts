@@ -14,11 +14,12 @@ export function isUnifiedDeeplinkServiceEnabled(): boolean {
  * Initialize the unified deeplink service if enabled
  * This should be called once during app initialization
  */
-export function initializeDeeplinkServiceIfEnabled(): void {
+export async function initializeDeeplinkServiceIfEnabled(): Promise<void> {
   if (isUnifiedDeeplinkServiceEnabled()) {
     // Dynamic import to avoid loading the service if not needed
-    import('./parseDeeplinkUnified').then(({ initializeDeeplinkService }) => {
-      initializeDeeplinkService();
-    });
+    const { initializeDeeplinkService } = await import(
+      './parseDeeplinkUnified'
+    );
+    await initializeDeeplinkService();
   }
 }
