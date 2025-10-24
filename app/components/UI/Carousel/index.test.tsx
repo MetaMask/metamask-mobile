@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render,
-  fireEvent,
-  waitFor,
-  userEvent,
-} from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
@@ -324,7 +319,7 @@ describe('Carousel Solana Integration', () => {
     const { findByTestId } = render(<Carousel />);
     const slide = await findByTestId('carousel-slide-solana');
     expect(slide).toBeVisible();
-    await userEvent.press(slide);
+    fireEvent.press(slide);
   };
 
   it('switches to existing Solana account when clicked', async () => {
