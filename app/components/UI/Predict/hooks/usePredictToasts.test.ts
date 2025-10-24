@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import {
   TransactionType,
@@ -164,8 +164,10 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockClearTransaction).not.toHaveBeenCalled();
-      expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockClearTransaction).not.toHaveBeenCalled();
+        expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
+      });
     });
 
     it('processes transactions that match the specified transaction type', async () => {
@@ -183,7 +185,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalled();
+      });
     });
 
     it('handles transactions with multiple nested transactions correctly', async () => {
@@ -204,7 +208,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalled();
+      });
     });
   });
 
@@ -224,18 +230,20 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: expect.anything(),
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: 'Processing Transaction',
-              isBold: true,
-            }),
-          ]),
-          startAccessory: expect.anything(),
-        }),
-      );
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: expect.anything(),
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Processing Transaction',
+                isBold: true,
+              }),
+            ]),
+            startAccessory: expect.anything(),
+          }),
+        );
+      });
     });
 
     it('calls getAmount with transaction metadata when showing pending toast', async () => {
@@ -254,7 +262,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockGetAmount).toHaveBeenCalledWith(transactionMeta);
+      await waitFor(() => {
+        expect(mockGetAmount).toHaveBeenCalledWith(transactionMeta);
+      });
     });
 
     it('shows pending toast without amount when getAmount is not provided', async () => {
@@ -281,16 +291,18 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: 'Processing',
-              isBold: true,
-            }),
-          ]),
-        }),
-      );
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Processing',
+                isBold: true,
+              }),
+            ]),
+          }),
+        );
+      });
     });
 
     it('does not clear transaction when status is approved', async () => {
@@ -308,7 +320,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockClearTransaction).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockClearTransaction).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -328,17 +342,19 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: expect.anything(),
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: 'Transaction Confirmed',
-              isBold: true,
-            }),
-          ]),
-        }),
-      );
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: expect.anything(),
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Transaction Confirmed',
+                isBold: true,
+              }),
+            ]),
+          }),
+        );
+      });
     });
 
     it('calls getAmount with transaction metadata when showing confirmed toast', async () => {
@@ -357,7 +373,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockGetAmount).toHaveBeenCalledWith(transactionMeta);
+      await waitFor(() => {
+        expect(mockGetAmount).toHaveBeenCalledWith(transactionMeta);
+      });
     });
 
     it('replaces {amount} placeholder in confirmed toast description', async () => {
@@ -375,15 +393,17 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: 'Your transaction was successful for $100',
-            }),
-          ]),
-        }),
-      );
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Your transaction was successful for $100',
+              }),
+            ]),
+          }),
+        );
+      });
     });
 
     it('clears transaction when transaction is confirmed', async () => {
@@ -401,7 +421,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockClearTransaction).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockClearTransaction).toHaveBeenCalled();
+      });
     });
 
     it('calls onConfirmed callback when transaction is confirmed', async () => {
@@ -419,7 +441,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockOnConfirmed).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockOnConfirmed).toHaveBeenCalled();
+      });
     });
 
     it('does not call onConfirmed callback when it is not provided', async () => {
@@ -443,7 +467,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockOnConfirmed).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockOnConfirmed).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -463,25 +489,27 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: expect.anything(),
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: 'Transaction Failed',
-              isBold: true,
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: expect.anything(),
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Transaction Failed',
+                isBold: true,
+              }),
+              expect.objectContaining({
+                label: 'Something went wrong',
+                isBold: false,
+              }),
+            ]),
+            linkButtonOptions: expect.objectContaining({
+              label: 'Try Again',
+              onPress: mockOnRetry,
             }),
-            expect.objectContaining({
-              label: 'Something went wrong',
-              isBold: false,
-            }),
-          ]),
-          linkButtonOptions: expect.objectContaining({
-            label: 'Try Again',
-            onPress: mockOnRetry,
           }),
-        }),
-      );
+        );
+      });
     });
 
     it('clears transaction when transaction fails', async () => {
@@ -499,7 +527,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockClearTransaction).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockClearTransaction).toHaveBeenCalled();
+      });
     });
 
     it('does not call onConfirmed callback when transaction fails', async () => {
@@ -517,7 +547,9 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockOnConfirmed).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockOnConfirmed).not.toHaveBeenCalled();
+      });
     });
 
     it('calls retry function when error toast retry button is pressed', async () => {
@@ -535,11 +567,12 @@ describe('usePredictToasts', () => {
       });
 
       // Assert - Get the onPress function from the linkButtonOptions
-      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
-        .calls[0][0];
-      const onPressRetry = toastCall.linkButtonOptions?.onPress;
+      await waitFor(() => {
+        const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
+        const onPressRetry = toastCall.linkButtonOptions?.onPress;
 
-      expect(onPressRetry).toBe(mockOnRetry);
+        expect(onPressRetry).toBe(mockOnRetry);
+      });
     });
   });
 
@@ -563,8 +596,10 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).toHaveBeenCalled();
-      expect(mockClearTransaction).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalled();
+        expect(mockClearTransaction).toHaveBeenCalled();
+      });
     });
 
     it('ignores predictClaim transactions when configured for predictDeposit', async () => {
@@ -582,8 +617,10 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
-      expect(mockClearTransaction).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
+        expect(mockClearTransaction).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -603,9 +640,10 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
-        .calls[0][0];
-      expect(toastCall.startAccessory).toBeDefined();
+      await waitFor(() => {
+        const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
+        expect(toastCall.startAccessory).toBeDefined();
+      });
     });
 
     it('uses success icon color for confirmed toast', async () => {
@@ -623,9 +661,10 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
-        .calls[0][0];
-      expect(toastCall.iconColor).toBe('#457a39'); // success.default
+      await waitFor(() => {
+        const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
+        expect(toastCall.iconColor).toBe('#457a39'); // success.default
+      });
     });
 
     it('uses error icon color for failed toast', async () => {
@@ -643,9 +682,10 @@ describe('usePredictToasts', () => {
       });
 
       // Assert
-      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
-        .calls[0][0];
-      expect(toastCall.iconColor).toBe('#ca3542'); // error.default
+      await waitFor(() => {
+        const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
+        expect(toastCall.iconColor).toBe('#ca3542'); // error.default
+      });
     });
   });
 });
