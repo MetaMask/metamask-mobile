@@ -1,6 +1,7 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Network } from '../../components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   BtcScope,
@@ -161,6 +162,25 @@ export const PopularList = [
     },
   },
 ];
+
+/**
+ * Filters the PopularList to exclude networks with blacklisted chain IDs.
+ * Allows to remove a network from the additional network selection.
+ * @param blacklistedChainIds - Array of chain IDs to exclude from the list
+ * @returns Filtered array of network configurations
+ */
+export const getFilteredPopularNetworks = (
+  blacklistedChainIds: string[],
+  baseNetworkList: Network[] = PopularList,
+) => {
+  if (!Array.isArray(blacklistedChainIds) || blacklistedChainIds.length === 0) {
+    return baseNetworkList;
+  }
+
+  return baseNetworkList.filter(
+    (network) => !blacklistedChainIds.includes(network.chainId),
+  );
+};
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
   switch (chainId) {
