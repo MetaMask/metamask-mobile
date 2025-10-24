@@ -7,6 +7,17 @@ import ConfirmEmail from './ConfirmEmail';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 
+// Mock Toast Context values
+const mockToastRef = {
+  current: {
+    showToast: jest.fn(),
+  },
+};
+
+const mockToastContext = {
+  toastRef: mockToastRef,
+};
+
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
@@ -47,7 +58,7 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
       info: {
-        default: '#0376C9',
+        default: '#4459ff',
       },
     },
   })),
@@ -79,20 +90,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock Toast Context
-const mockToastRef = {
-  current: {
-    showToast: jest.fn(),
-  },
-};
-
-jest.mock('../../../../../component-library/components/Toast', () => ({
-  ToastContext: {
-    _currentValue: { toastRef: mockToastRef },
-  },
-  ToastVariants: {
-    Icon: 'icon',
-  },
-}));
+jest.mock('../../../../../component-library/components/Toast', () => {
+  const React = jest.requireActual('react');
+  return {
+    ToastContext: React.createContext(null),
+    ToastVariants: {
+      Icon: 'icon',
+    },
+  };
+});
 
 // Mock Icon
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
@@ -405,15 +411,23 @@ describe('ConfirmEmail Component', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   const renderComponent = (storeState = {}) => {
+    const { ToastContext } = jest.requireMock(
+      '../../../../../component-library/components/Toast',
+    );
     const testStore = createTestStore(storeState);
     return render(
       <Provider store={testStore}>
-        <ConfirmEmail />
+        <ToastContext.Provider value={mockToastContext}>
+          <ConfirmEmail />
+        </ToastContext.Provider>
       </Provider>,
     );
   };
@@ -812,7 +826,7 @@ describe('ConfirmEmail Component', () => {
           variant: 'icon',
           hasNoTimeout: false,
           iconName: 'info',
-          iconColor: '#0376C9',
+          iconColor: '#4459ff',
           labelOptions: [
             {
               label: 'Account already exists',
@@ -857,17 +871,24 @@ describe('ConfirmEmail Component', () => {
 
   describe('handleResendVerification', () => {
     it('returns early when resend cooldown is active', async () => {
+      mockSendHook.sendEmailVerification.mockResolvedValue({
+        contactVerificationId: 'new-verification-id',
+      });
+
       const { getByTestId } = renderComponent();
 
       // Trigger a resend to start cooldown
       fireEvent.press(getByTestId('resend-verification-text'));
 
-      // Try to resend again immediately
-      fireEvent.press(getByTestId('resend-verification-text'));
-
       await waitFor(() => {
         expect(mockSendHook.sendEmailVerification).toHaveBeenCalledTimes(1);
       });
+
+      // Try to resend again immediately (while cooldown is active)
+      fireEvent.press(getByTestId('resend-verification-text'));
+
+      // Should still be 1 call, not 2
+      expect(mockSendHook.sendEmailVerification).toHaveBeenCalledTimes(1);
     });
 
     it('returns early when email is missing', async () => {
@@ -1013,7 +1034,7 @@ describe('ConfirmEmail Component', () => {
         contactVerificationId: 'new-verification-id',
       });
 
-      const { getByTestId, getByText } = renderComponent();
+      const { getByTestId, getByText, queryByText } = renderComponent();
 
       fireEvent.press(getByTestId('resend-verification-text'));
 
@@ -1021,11 +1042,15 @@ describe('ConfirmEmail Component', () => {
         expect(getByText('Resend in 60s')).toBeTruthy();
       });
 
-      act(() => {
-        jest.advanceTimersByTime(60000);
-      });
+      // Advance timers 60 times (1 second each)
+      for (let i = 0; i < 60; i++) {
+        await act(async () => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
 
       await waitFor(() => {
+        expect(queryByText(/Resend in \d+s/)).toBeNull();
         expect(getByText('Resend verification code')).toBeTruthy();
       });
     });
