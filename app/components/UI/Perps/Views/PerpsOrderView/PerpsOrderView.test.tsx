@@ -2817,11 +2817,10 @@ describe('PerpsOrderView', () => {
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
           availableBalance: '1', // Very low balance
-          totalBalance: '1',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '1',
+          totalBalance: '1',
         },
         isInitialLoading: false,
       });
@@ -2848,11 +2847,10 @@ describe('PerpsOrderView', () => {
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
           availableBalance: '10000', // High balance
-          totalBalance: '10000',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '10000',
+          totalBalance: '10000',
         },
         isInitialLoading: false,
       });

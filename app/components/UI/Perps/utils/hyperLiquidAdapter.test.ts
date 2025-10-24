@@ -56,7 +56,7 @@ describe('hyperLiquidAdapter', () => {
         p: '0', // market order price
         s: '0.1', // size
         r: false, // not reduce only
-        t: { limit: { tif: 'Ioc' } }, // market order type
+        t: { limit: { tif: 'FrontendMarket' } }, // market order type
         c: undefined, // no client order ID
       });
     });
@@ -122,7 +122,7 @@ describe('hyperLiquidAdapter', () => {
       };
 
       expect(() => adaptOrderToSDK(order, coinToAssetId)).toThrow(
-        'Unknown asset: UNKNOWN',
+        'Asset UNKNOWN not found in asset mapping',
       );
     });
   });
@@ -668,11 +668,10 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '700.25',
-        totalBalance: '1000.5', // Perps only
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
         returnOnEquity: '8.0', // Calculated from weighted return and margin
-        totalValue: '1000.50',
+        totalBalance: '1000.5', // Perps only (no spot balance provided)
       });
     });
 
@@ -712,11 +711,10 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '350.0',
-        totalBalance: '1000.5', // 500.0 + 200.0 + 300.5
         marginUsed: '150.0',
         unrealizedPnl: '100',
         returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
-        totalValue: '500.0',
+        totalBalance: '1000.5', // Spot (200.0 + 300.5 = 500.5) + Perps (500.0) = 1000.5
       });
     });
 
@@ -751,11 +749,10 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '800.0',
-        totalBalance: '1000', // Spot balances default to 0
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0.0',
-        totalValue: '1000.0',
+        totalBalance: '1000', // Perps only (spot balances array is empty)
       });
     });
 
@@ -793,7 +790,10 @@ describe('hyperLiquidAdapter', () => {
         { name: 'SOL', szDecimals: 3, maxLeverage: 20, marginTableId: 3 },
       ];
 
-      const result = buildAssetMapping(metaUniverse);
+      const result = buildAssetMapping({
+        metaUniverse,
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.get('BTC')).toBe(0);
       expect(result.coinToAssetId.get('ETH')).toBe(1);
@@ -805,7 +805,10 @@ describe('hyperLiquidAdapter', () => {
     });
 
     it('should handle empty universe', () => {
-      const result = buildAssetMapping([]);
+      const result = buildAssetMapping({
+        metaUniverse: [],
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.size).toBe(0);
       expect(result.assetIdToCoin.size).toBe(0);

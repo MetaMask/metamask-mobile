@@ -1,4 +1,54 @@
 import type { CandleData, CandleStick } from '../types/perps-types';
+import type { PerpsMarketData } from '../controllers/types';
+import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
+
+/**
+ * Extract the display symbol from a full symbol string
+ * Strips DEX prefix for HIP-3 markets (e.g., "xyz:XYZ100" -> "XYZ100")
+ * Returns the symbol unchanged if no DEX prefix is present
+ *
+ * @param symbol - Full symbol (e.g., "BTC" or "xyz:XYZ100")
+ * @returns Display symbol without DEX prefix (e.g., "BTC" or "XYZ100")
+ */
+export const getPerpsDisplaySymbol = (symbol: string): string => {
+  if (!symbol || typeof symbol !== 'string') {
+    return symbol;
+  }
+
+  // Check for DEX prefix pattern (dex:symbol)
+  const colonIndex = symbol.indexOf(':');
+  if (colonIndex > 0 && colonIndex < symbol.length - 1) {
+    // Return everything after the colon
+    return symbol.substring(colonIndex + 1);
+  }
+
+  // No DEX prefix found, return original symbol
+  return symbol;
+};
+
+/**
+ * Extract the DEX identifier from a full symbol string
+ * Returns the DEX prefix for HIP-3 markets (e.g., "xyz:XYZ100" -> "xyz")
+ * Returns null if no DEX prefix is present (main DEX market)
+ *
+ * @param symbol - Full symbol (e.g., "BTC" or "xyz:XYZ100")
+ * @returns DEX identifier or null if main DEX (e.g., "xyz" or null)
+ */
+export const getPerpsDexFromSymbol = (symbol: string): string | null => {
+  if (!symbol || typeof symbol !== 'string') {
+    return null;
+  }
+
+  // Check for DEX prefix pattern (dex:symbol)
+  const colonIndex = symbol.indexOf(':');
+  if (colonIndex > 0 && colonIndex < symbol.length - 1) {
+    // Return the DEX prefix (everything before the colon)
+    return symbol.substring(0, colonIndex);
+  }
+
+  // No DEX prefix found, this is a main DEX market
+  return null;
+};
 
 interface FundingCountdownParams {
   /**
@@ -111,3 +161,27 @@ export const calculate24hHighLow = (
     low: Math.min(...lows),
   };
 };
+
+/**
+ * Determine badge type for a market based on its metadata
+ * Prioritizes explicit marketType over generic experimental badge
+ *
+ * @param market - Market data object (only needs marketType and marketSource fields)
+ * @returns Badge type to display, or undefined for no badge (main DEX)
+ *
+ * @example Main DEX
+ * getMarketBadgeType({ symbol: 'BTC', marketSource: null }) // → undefined
+ *
+ * @example Mapped HIP-3 DEX
+ * getMarketBadgeType({ symbol: 'xyz:XYZ100', marketSource: 'xyz', marketType: 'equity' }) // → 'equity'
+ *
+ * @example Unmapped HIP-3 DEX
+ * getMarketBadgeType({ symbol: 'abc:ABC100', marketSource: 'abc' }) // → 'experimental'
+ */
+export const getMarketBadgeType = (
+  market: Pick<PerpsMarketData, 'marketType' | 'marketSource'>,
+): BadgeType | undefined =>
+  // Prioritize explicit marketType (e.g., 'equity' for xyz DEX)
+  // Fall back to 'experimental' for unmapped HIP-3 DEXs
+  // Main DEX markets without marketType show no badge
+  market.marketType || (market.marketSource ? 'experimental' : undefined);

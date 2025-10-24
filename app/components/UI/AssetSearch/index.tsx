@@ -23,7 +23,6 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import { selectChainId } from '../../../selectors/networkController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -104,44 +103,34 @@ interface Props {
   onBlur: () => void;
 
   /**
-   * Whether all networks are enabled
+   * The selected network chain ID
    */
-  allNetworksEnabled: boolean;
+  selectedChainId: Hex | null;
 }
 
 // eslint-disable-next-line react/display-name
-const AssetSearch = ({
-  onSearch,
-  onFocus,
-  onBlur,
-  allNetworksEnabled,
-}: Props) => {
+const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [inputDimensions, setInputDimensions] = useState<DimensionValue>('85%');
   const [isFocus, setIsFocus] = useState(false);
-  const chainId = useSelector(selectChainId);
   const tokenListForAllChains = useSelector(selectERC20TokensByChain);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const tokenList = useMemo(() => {
-    if (allNetworksEnabled) {
-      return Object.entries(tokenListForAllChains).flatMap(
-        ([networkId, { data }]) =>
-          Object.values(data).map((item) => ({
-            ...item,
-            chainId: networkId,
-          })),
-      );
+    // If no network is selected, return empty list
+    if (!selectedChainId) {
+      return [];
     }
 
+    // Use the selected network's tokens
     return Object.values(
-      tokenListForAllChains?.[chainId as Hex]?.data ?? [],
+      tokenListForAllChains?.[selectedChainId]?.data ?? [],
     ).map((item) => ({
       ...item,
-      chainId: chainId as Hex,
+      chainId: selectedChainId,
     }));
-  }, [allNetworksEnabled, tokenListForAllChains, chainId]);
+  }, [selectedChainId, tokenListForAllChains]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -173,7 +162,7 @@ const AssetSearch = ({
     setSearchQuery('');
     handleSearch('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allNetworksEnabled]);
+  }, [selectedChainId]);
 
   return (
     <View

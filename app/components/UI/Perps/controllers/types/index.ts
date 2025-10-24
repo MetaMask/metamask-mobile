@@ -11,8 +11,40 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// Import adapter types
+import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+
+// User history item for deposits and withdrawals
+export interface UserHistoryItem {
+  id: string;
+  timestamp: number;
+  type: 'deposit' | 'withdrawal';
+  amount: string;
+  asset: string;
+  txHash: string;
+  status: 'completed' | 'failed' | 'pending';
+  details: {
+    source: string;
+    bridgeContract?: string;
+    recipient?: string;
+    blockNumber?: string;
+    chainId?: string;
+    synthetic?: boolean;
+  };
+}
+
+// Parameters for getting user history
+export interface GetUserHistoryParams {
+  startTime?: number;
+  endTime?: number;
+  accountId?: CaipAccountId;
+}
+
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
+
+// Market asset type classification (reusable across components)
+export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -99,13 +131,32 @@ export type Position = {
   stopLossCount: number; // Stop loss count, how many sls can affect the position
 };
 
+// Using 'type' instead of 'interface' for BaseController Json compatibility
 export type AccountState = {
   availableBalance: string; // Based on HyperLiquid: withdrawable
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
   returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
-  totalValue: string; // Based on HyperLiquid: accountValue
+  /**
+   * Per-sub-account balance breakdown (protocol-specific, optional)
+   * Maps sub-account identifier to its balance details.
+   *
+   * Protocol examples:
+   * - HyperLiquid HIP-3: '' or 'main' (main DEX), 'xyz' (HIP-3 builder DEX)
+   * - dYdX: Sub-account numbers (e.g., '0', '1', '2')
+   * - Other protocols: Vault IDs, pool IDs, margin account IDs, etc.
+   *
+   * Key: Sub-account identifier (protocol-specific string)
+   * Value: Balance details for that sub-account
+   */
+  subAccountBreakdown?: Record<
+    string,
+    {
+      availableBalance: string;
+      totalBalance: string;
+    }
+  >;
 };
 
 export type ClosePositionParams = {
@@ -191,6 +242,20 @@ export interface PerpsMarketData {
    * Current funding rate as decimal (optional, from predictedFundings API)
    */
   fundingRate?: number;
+  /**
+   * Market source DEX identifier (HIP-3 support)
+   * - null or undefined: Main validator DEX
+   * - "xyz", "abc", etc: HIP-3 builder-deployed DEX
+   */
+  marketSource?: string | null;
+  /**
+   * Market asset type classification (optional)
+   * - crypto: Cryptocurrency (default for most markets)
+   * - equity: Stock/equity markets (HIP-3)
+   * - commodity: Commodity markets (HIP-3)
+   * - forex: Foreign exchange pairs (HIP-3)
+   */
+  marketType?: MarketType;
 }
 
 export interface ToggleTestnetResult {
@@ -289,6 +354,18 @@ export interface WithdrawResult {
   estimatedArrivalTime?: number; // Provider-specific arrival time
 }
 
+export interface TransferBetweenDexsParams {
+  sourceDex: string; // Source DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
+  destinationDex: string; // Destination DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
+  amount: string; // USDC amount to transfer
+}
+
+export interface TransferBetweenDexsResult {
+  success: boolean;
+  txHash?: string;
+  error?: string;
+}
+
 export interface GetHistoricalPortfolioParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
@@ -310,6 +387,17 @@ export interface PerpsControllerConfig {
    * The fallback is set by default if defined and replaced with remote block list once available.
    */
   fallbackBlockedRegions?: string[];
+  /**
+   * HIP-3 equity perps master switch passed from client
+   * Controls whether HIP-3 (builder-deployed) DEXs are enabled
+   */
+  equityEnabled?: boolean;
+  /**
+   * HIP-3 DEX whitelist passed from client
+   * Empty array = auto-discover all DEXs, non-empty = whitelist specific DEXs
+   * Only applies when equityEnabled === true
+   */
+  enabledDexs?: string[];
 }
 
 export interface PriceUpdate {
@@ -363,7 +451,7 @@ export interface GetAccountStateParams {
 
 export interface GetOrderFillsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
-  user: Hex; // Optional: user address
+  user?: Hex; // Optional: user address (defaults to selected account)
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
@@ -391,6 +479,15 @@ export interface GetSupportedPathsParams {
   assetId?: CaipAssetId; // Optional: filter by specific asset
   symbol?: string; // Optional: filter by asset symbol (e.g., 'USDC')
   chainId?: CaipChainId; // Optional: filter by chain (CAIP-2 format)
+}
+
+export interface GetAvailableDexsParams {
+  // Reserved for future extensibility (filters, pagination, etc.)
+}
+
+export interface GetMarketsParams {
+  symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
+  dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
 }
 
 export interface SubscribePricesParams {
@@ -515,7 +612,7 @@ export interface IPerpsProvider {
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
-  getMarkets(): Promise<MarketInfo[]>;
+  getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;
   getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
@@ -572,6 +669,24 @@ export interface IPerpsProvider {
    */
   getFunding(params?: GetFundingParams): Promise<Funding[]>;
 
+  /**
+   * Get user non-funding ledger updates (deposits, transfers, withdrawals)
+   */
+  getUserNonFundingLedgerUpdates(params?: {
+    accountId?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<RawHyperLiquidLedgerUpdate[]>;
+
+  /**
+   * Get user history (deposits, withdrawals, transfers)
+   */
+  getUserHistory(params?: {
+    accountId?: CaipAccountId;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<UserHistoryItem[]>;
+
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
@@ -600,4 +715,12 @@ export interface IPerpsProvider {
 
   // Fee discount context (optional - for MetaMask reward discounts)
   setUserFeeDiscount?(discountBips: number | undefined): void;
+
+  // HIP-3 (Builder-deployed DEXs) operations - optional for backward compatibility
+  /**
+   * Get list of available HIP-3 builder-deployed DEXs
+   * @param params - Optional parameters (reserved for future filters/pagination)
+   * @returns Array of DEX names (empty string '' represents main DEX)
+   */
+  getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
 }
