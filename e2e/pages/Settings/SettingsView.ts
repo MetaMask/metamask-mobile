@@ -27,10 +27,6 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get networksButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
-  }
-
   get notificationsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
