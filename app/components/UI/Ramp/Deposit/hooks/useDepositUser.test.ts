@@ -271,7 +271,7 @@ describe('useDepositUser', () => {
       expect(mockFetchUserDetails).toHaveBeenCalled();
     });
 
-    it('logs out and throws on 401 error', async () => {
+    it('logs out but does not throw on 401 error', async () => {
       const error401 = Object.assign(new Error('Unauthorized'), {
         status: 401,
       }) as AxiosError;
@@ -284,13 +284,11 @@ describe('useDepositUser', () => {
       );
 
       mockFetchUserDetails.mockRejectedValue(error401);
-      setupMockSdkMethod({ data: mockUserDetails });
+      setupMockSdkMethod();
 
       const { result } = renderHook(() => useDepositUser());
 
-      await expect(result.current.fetchUserDetails()).rejects.toThrow(
-        'Unauthorized',
-      );
+      await result.current.fetchUserDetails();
 
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
     });
