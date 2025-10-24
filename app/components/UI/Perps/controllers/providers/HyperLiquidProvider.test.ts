@@ -3851,6 +3851,77 @@ describe('HyperLiquidProvider', () => {
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Unexpected error');
     });
+
+    describe('existing position leverage validation', () => {
+      it('allows order when leverage equals existing position leverage', async () => {
+        const params: OrderParams = {
+          coin: 'BTC',
+          size: '0.1',
+          isBuy: true,
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+          existingPositionLeverage: 10,
+        };
+
+        const result = await provider.validateOrder(params);
+
+        expect(result.isValid).toBe(true);
+        expect(result.error).toBeUndefined();
+      });
+
+      it('allows order when leverage exceeds existing position leverage', async () => {
+        const params: OrderParams = {
+          coin: 'BTC',
+          size: '0.1',
+          isBuy: true,
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 15,
+          existingPositionLeverage: 10,
+        };
+
+        const result = await provider.validateOrder(params);
+
+        expect(result.isValid).toBe(true);
+        expect(result.error).toBeUndefined();
+      });
+
+      it('rejects order when leverage below existing position leverage', async () => {
+        const params: OrderParams = {
+          coin: 'BTC',
+          size: '0.1',
+          isBuy: true,
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 5,
+          existingPositionLeverage: 10,
+        };
+
+        const result = await provider.validateOrder(params);
+
+        expect(result.isValid).toBe(false);
+        expect(result.error).toBe(
+          'perps.order.validation.leverage_below_position',
+        );
+      });
+
+      it('allows any leverage when no existing position', async () => {
+        const params: OrderParams = {
+          coin: 'BTC',
+          size: '0.1',
+          isBuy: true,
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 3,
+        };
+
+        const result = await provider.validateOrder(params);
+
+        expect(result.isValid).toBe(true);
+        expect(result.error).toBeUndefined();
+      });
+    });
   });
 
   describe('Builder Fee and Referral Integration', () => {
