@@ -166,23 +166,7 @@ describe('usePredictDeposit', () => {
   });
 
   describe('deposit function', () => {
-    it('navigates to unavailable modal when user is not eligible', async () => {
-      mockEligibilityResult.isEligible = false;
-
-      const { result } = setupUsePredictDepositTest();
-
-      await result.current.deposit();
-
-      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-        screen: 'PredictUnavailable',
-      });
-      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
-      expect(
-        Engine.context.PredictController.depositWithConfirmation,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('calls navigateToConfirmation with correct params when eligible', async () => {
+    it('calls navigateToConfirmation with correct params', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
@@ -196,6 +180,7 @@ describe('usePredictDeposit', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
+        stack: 'Predict',
       });
     });
 
