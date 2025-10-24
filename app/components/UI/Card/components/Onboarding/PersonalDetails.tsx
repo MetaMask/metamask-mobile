@@ -271,7 +271,7 @@ const PersonalDetails = () => {
       />
 
       {/* Nationality */}
-      <Box>
+      <Box twClassName="mt-[-14px]">
         <Label>
           {strings('card.card_onboarding.personal_details.nationality_label')}
         </Label>
