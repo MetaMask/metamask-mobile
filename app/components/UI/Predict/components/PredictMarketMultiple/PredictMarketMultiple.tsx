@@ -27,7 +27,11 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PredictMarket, PredictOutcome } from '../../types';
+import {
+  PredictMarket,
+  PredictOutcome,
+  PredictOutcomeToken,
+} from '../../types';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
