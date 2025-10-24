@@ -6,7 +6,9 @@ export const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     optionsList: {
+      paddingHorizontal: 16,
       paddingBottom: 32,
+      gap: 8,
     },
     optionRow: {
       flexDirection: 'row',
@@ -15,9 +17,8 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       paddingHorizontal: 16,
       minHeight: 56,
-    },
-    optionRowSelected: {
-      backgroundColor: theme.colors.background.muted,
+      backgroundColor: theme.colors.background.alternative,
+      borderRadius: 8,
     },
   });
 };

@@ -21,7 +21,6 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsMarketSortDropdowns from '../../components/PerpsMarketSortDropdowns';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
-import PerpsMarketSortDirectionBottomSheet from '../../components/PerpsMarketSortDirectionBottomSheet';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsSearch } from '../../hooks/usePerpsSearch';
@@ -97,28 +96,6 @@ const PerpsMarketRowItemSkeleton = () => {
   );
 };
 
-const PerpsMarketListHeader = () => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View
-      style={styles.listHeader}
-      testID={PerpsMarketListViewSelectorsIDs.LIST_HEADER}
-    >
-      <View style={styles.listHeaderLeft}>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings('perps.volume')}
-        </Text>
-      </View>
-      <View style={styles.listHeaderRight}>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings('perps.price_24h_change')}
-        </Text>
-      </View>
-    </View>
-  );
-};
-
 const PerpsMarketListView = ({
   onMarketSelect,
   protocolId: _protocolId,
@@ -154,8 +131,6 @@ const PerpsMarketListView = ({
   };
   const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
-  const [isSortDirectionSheetVisible, setIsSortDirectionSheetVisible] =
-    useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
@@ -201,13 +176,8 @@ const PerpsMarketListView = ({
   });
 
   // Use sorting hook for sort state and sorting logic
-  const {
-    sortBy,
-    direction,
-    handleSortChange,
-    handleDirectionToggle,
-    sortMarketsList,
-  } = usePerpsSorting();
+  const { selectedOptionId, sortBy, handleOptionChange, sortMarketsList } =
+    usePerpsSorting();
 
   // Apply favorites filter if enabled
   const favoritesFilteredMarkets = useMemo(() => {
@@ -307,7 +277,6 @@ const PerpsMarketListView = ({
     if (isLoadingMarkets) {
       return (
         <View>
-          <PerpsMarketListHeader />
           {Array.from({ length: 8 }).map((_, index) => (
             //Using index as key is fine here because the list is static
             // eslint-disable-next-line react/no-array-index-key
@@ -398,7 +367,6 @@ const PerpsMarketListView = ({
     // Use reusable PerpsMarketList component
     return (
       <>
-        <PerpsMarketListHeader />
         <Animated.View
           style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
         >
@@ -591,12 +559,8 @@ const PerpsMarketListView = ({
         !error &&
         (filteredMarkets.length > 0 || showFavoritesOnly) && (
           <PerpsMarketSortDropdowns
-            sortBy={sortBy}
-            direction={direction}
+            selectedOptionId={selectedOptionId}
             onSortPress={() => setIsSortFieldSheetVisible(true)}
-            onDirectionPress={() => setIsSortDirectionSheetVisible(true)}
-            showFavoritesOnly={showFavoritesOnly}
-            onFavoritesToggle={handleFavoritesToggle}
             testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
           />
         )}
@@ -612,18 +576,11 @@ const PerpsMarketListView = ({
       <PerpsMarketSortFieldBottomSheet
         isVisible={isSortFieldSheetVisible}
         onClose={() => setIsSortFieldSheetVisible(false)}
-        selectedSort={sortBy}
-        onSortSelect={handleSortChange}
+        selectedOptionId={selectedOptionId}
+        onOptionSelect={handleOptionChange}
+        showFavoritesOnly={showFavoritesOnly}
+        onFavoritesToggle={handleFavoritesToggle}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
-      />
-
-      {/* Sort Direction Bottom Sheet */}
-      <PerpsMarketSortDirectionBottomSheet
-        isVisible={isSortDirectionSheetVisible}
-        onClose={() => setIsSortDirectionSheetVisible(false)}
-        selectedDirection={direction}
-        onDirectionSelect={handleDirectionToggle}
-        testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-direction-sheet`}
       />
     </SafeAreaView>
   );

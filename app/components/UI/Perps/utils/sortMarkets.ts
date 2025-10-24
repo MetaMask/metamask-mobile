@@ -2,7 +2,11 @@ import type { PerpsMarketData } from '../controllers/types';
 import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
 import { parseVolume } from '../hooks/usePerpsMarkets';
 
-export type SortField = 'volume' | 'priceChange' | 'fundingRate';
+export type SortField =
+  | 'volume'
+  | 'priceChange'
+  | 'fundingRate'
+  | 'openInterest';
 export type SortDirection = 'asc' | 'desc';
 
 interface SortMarketsParams {
@@ -52,6 +56,14 @@ export const sortMarkets = ({
         const fundingA = a.fundingRate ?? 0;
         const fundingB = b.fundingRate ?? 0;
         compareValue = fundingA - fundingB;
+        break;
+      }
+
+      case MARKET_SORTING_CONFIG.SORT_FIELDS.OPEN_INTEREST: {
+        // Parse open interest strings (similar to volume)
+        const openInterestA = parseVolume(a.openInterest);
+        const openInterestB = parseVolume(b.openInterest);
+        compareValue = openInterestA - openInterestB;
         break;
       }
 

@@ -319,28 +319,51 @@ export const HOME_SCREEN_CONFIG = {
  */
 export const MARKET_SORTING_CONFIG = {
   // Default sort settings
-  DEFAULT_SORT_FIELD: 'volume' as const,
-  DEFAULT_TIME_FRAME: '24h' as const,
+  DEFAULT_SORT_OPTION_ID: 'volume' as const,
   DEFAULT_DIRECTION: 'desc' as const,
 
   // Available sort fields (only includes fields supported by PerpsMarketData)
   SORT_FIELDS: {
     VOLUME: 'volume',
     PRICE_CHANGE: 'priceChange',
+    OPEN_INTEREST: 'openInterest',
     FUNDING_RATE: 'fundingRate',
   } as const,
 
-  // Available time frames for time-dependent metrics
-  // Note: Only 24h is supported, 1h data not available from API
-  TIME_FRAMES: {
-    TWENTY_FOUR_HOURS: '24h',
-  } as const,
-
-  // Sort button presets (displayed as chips similar to TP/SL percentage buttons)
-  SORT_BUTTON_PRESETS: [
-    { field: 'volume', labelKey: 'perps.sort.volume' },
-    { field: 'priceChange', labelKey: 'perps.sort.price_change' },
-    { field: 'fundingRate', labelKey: 'perps.sort.funding_rate' },
+  // Sort options for the bottom sheet
+  // Each option combines field + direction into a single selectable item
+  // Only Price Change has both directions as separate options
+  SORT_OPTIONS: [
+    {
+      id: 'volume',
+      labelKey: 'perps.sort.volume',
+      field: 'volume',
+      direction: 'desc',
+    },
+    {
+      id: 'priceChange-desc',
+      labelKey: 'perps.sort.price_change_high_to_low',
+      field: 'priceChange',
+      direction: 'desc',
+    },
+    {
+      id: 'priceChange-asc',
+      labelKey: 'perps.sort.price_change_low_to_high',
+      field: 'priceChange',
+      direction: 'asc',
+    },
+    {
+      id: 'openInterest',
+      labelKey: 'perps.sort.open_interest',
+      field: 'openInterest',
+      direction: 'desc',
+    },
+    {
+      id: 'fundingRate',
+      labelKey: 'perps.sort.funding_rate',
+      field: 'fundingRate',
+      direction: 'desc',
+    },
   ] as const,
 } as const;
 

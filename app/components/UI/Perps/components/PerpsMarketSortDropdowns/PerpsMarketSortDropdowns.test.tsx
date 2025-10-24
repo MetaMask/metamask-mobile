@@ -49,9 +49,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -64,9 +62,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           testID="custom-sort-dropdowns"
         />,
       );
@@ -78,9 +74,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -89,28 +83,11 @@ describe('PerpsMarketSortDropdowns', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders direction button', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          direction="desc"
-          onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-direction'),
-      ).toBeOnTheScreen();
-    });
-
     it('renders favorites button when onFavoritesToggle is provided', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
       );
@@ -124,9 +101,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -141,9 +116,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -157,18 +130,14 @@ describe('PerpsMarketSortDropdowns', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="priceChange"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -182,18 +151,14 @@ describe('PerpsMarketSortDropdowns', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="fundingRate"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -209,9 +174,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -225,18 +188,14 @@ describe('PerpsMarketSortDropdowns', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="asc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -252,9 +211,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -270,9 +227,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -288,9 +243,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
       );
@@ -307,9 +260,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -327,9 +278,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -346,9 +295,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
       );
@@ -368,9 +315,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           showFavoritesOnly={false}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
@@ -385,9 +330,7 @@ describe('PerpsMarketSortDropdowns', () => {
       render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           showFavoritesOnly
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
@@ -402,9 +345,7 @@ describe('PerpsMarketSortDropdowns', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           showFavoritesOnly={false}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
@@ -413,9 +354,7 @@ describe('PerpsMarketSortDropdowns', () => {
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           showFavoritesOnly
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
@@ -433,9 +372,7 @@ describe('PerpsMarketSortDropdowns', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           showFavoritesOnly={false}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
@@ -448,9 +385,7 @@ describe('PerpsMarketSortDropdowns', () => {
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="priceChange"
-          direction="asc"
           onSortPress={newOnSortPress}
-          onDirectionPress={newOnDirectionPress}
           showFavoritesOnly
           onFavoritesToggle={newOnFavoritesToggle}
         />,
@@ -487,9 +422,7 @@ describe('PerpsMarketSortDropdowns', () => {
         const { unmount } = render(
           <PerpsMarketSortDropdowns
             sortBy={sortBy}
-            direction="desc"
             onSortPress={mockOnSortPress}
-            onDirectionPress={mockOnDirectionPress}
           />,
         );
 
@@ -510,7 +443,6 @@ describe('PerpsMarketSortDropdowns', () => {
             sortBy="volume"
             direction={direction}
             onSortPress={mockOnSortPress}
-            onDirectionPress={mockOnDirectionPress}
           />,
         );
 
@@ -526,9 +458,7 @@ describe('PerpsMarketSortDropdowns', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -539,9 +469,7 @@ describe('PerpsMarketSortDropdowns', () => {
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
       );
@@ -555,9 +483,7 @@ describe('PerpsMarketSortDropdowns', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           onFavoritesToggle={mockOnFavoritesToggle}
         />,
       );
@@ -569,9 +495,7 @@ describe('PerpsMarketSortDropdowns', () => {
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -586,9 +510,7 @@ describe('PerpsMarketSortDropdowns', () => {
       const { unmount } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -599,9 +521,7 @@ describe('PerpsMarketSortDropdowns', () => {
       const { root, rerender, unmount } = render(
         <PerpsMarketSortDropdowns
           sortBy="volume"
-          direction="desc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
         />,
       );
 
@@ -610,9 +530,7 @@ describe('PerpsMarketSortDropdowns', () => {
       rerender(
         <PerpsMarketSortDropdowns
           sortBy="priceChange"
-          direction="asc"
           onSortPress={mockOnSortPress}
-          onDirectionPress={mockOnDirectionPress}
           showFavoritesOnly
           onFavoritesToggle={mockOnFavoritesToggle}
         />,

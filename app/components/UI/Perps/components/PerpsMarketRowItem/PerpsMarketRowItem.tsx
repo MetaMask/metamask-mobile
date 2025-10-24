@@ -116,6 +116,10 @@ const PerpsMarketRowItem = ({
     switch (displayMetric) {
       case 'priceChange':
         return displayMarket.change24hPercent;
+      case 'openInterest':
+        return (
+          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        );
       case 'fundingRate':
         // Format funding rate as percentage (e.g., 0.0001 → 0.0100%)
         if (

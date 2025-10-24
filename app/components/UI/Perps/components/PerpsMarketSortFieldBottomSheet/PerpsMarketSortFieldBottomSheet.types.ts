@@ -1,4 +1,4 @@
-import type { SortField } from '../../utils/sortMarkets';
+import type { SortField, SortDirection } from '../../utils/sortMarkets';
 
 /**
  * Props for PerpsMarketSortFieldBottomSheet component
@@ -13,13 +13,28 @@ export interface PerpsMarketSortFieldBottomSheetProps {
    */
   onClose: () => void;
   /**
-   * Currently selected sort field
+   * Currently selected option ID (e.g., 'volume', 'priceChange-desc', 'openInterest')
    */
-  selectedSort: SortField;
+  selectedOptionId: string;
   /**
-   * Callback when a sort field is selected
+   * Callback when an option is selected
+   * @param optionId - The ID of the selected option
+   * @param field - The sort field
+   * @param direction - The sort direction
    */
-  onSortSelect: (sort: SortField) => void;
+  onOptionSelect: (
+    optionId: string,
+    field: SortField,
+    direction: SortDirection,
+  ) => void;
+  /**
+   * Whether watchlist filter is active
+   */
+  showFavoritesOnly?: boolean;
+  /**
+   * Callback when watchlist toggle is pressed
+   */
+  onFavoritesToggle?: () => void;
   /**
    * Test ID for E2E testing
    */

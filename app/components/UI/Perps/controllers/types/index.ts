@@ -253,6 +253,10 @@ export interface PerpsMarketData {
    */
   volume: string;
   /**
+   * Open interest as formatted string (e.g., '$24.5M', '$1.2B')
+   */
+  openInterest?: string;
+  /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */
   nextFundingTime?: number;

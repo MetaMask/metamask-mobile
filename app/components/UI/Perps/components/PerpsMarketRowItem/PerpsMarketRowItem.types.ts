@@ -21,6 +21,7 @@ export interface PerpsMarketRowItemProps {
    * Metric to display in the subtitle area
    * - 'volume': Shows 24h trading volume (default)
    * - 'priceChange': Shows 24h price change percentage
+   * - 'openInterest': Shows open interest value
    * - 'fundingRate': Shows current funding rate
    * @default 'volume'
    */

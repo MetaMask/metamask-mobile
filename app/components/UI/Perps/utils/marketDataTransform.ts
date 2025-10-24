@@ -172,6 +172,12 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
+    // Format open interest
+    // If assetCtx is missing or openInterest is not available, use NaN to indicate missing data
+    const openInterest = assetCtx?.openInterest
+      ? parseFloat(assetCtx.openInterest)
+      : NaN;
+
     // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
 
@@ -212,6 +218,9 @@ export function transformMarketData(
       volume: isNaN(volume)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(volume),
+      openInterest: isNaN(openInterest)
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        : formatVolume(openInterest),
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,

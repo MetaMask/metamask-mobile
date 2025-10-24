@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { PerpsMarketData } from '../controllers/types';
 import {
   sortMarkets,
@@ -8,38 +8,48 @@ import {
 import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
 
 interface UsePerpsSortingParams {
-  initialSortBy?: SortField;
-  initialDirection?: SortDirection;
+  initialOptionId?: string;
 }
 
 interface UsePerpsSortingReturn {
+  selectedOptionId: string;
   sortBy: SortField;
   direction: SortDirection;
-  handleSortChange: (field: SortField) => void;
-  handleDirectionToggle: () => void;
+  handleOptionChange: (
+    optionId: string,
+    field: SortField,
+    direction: SortDirection,
+  ) => void;
   sortMarketsList: (markets: PerpsMarketData[]) => PerpsMarketData[];
 }
 
 /**
- * Hook for managing market sorting state and operations
- * Uses object parameters pattern for maintainability
+ * Hook for managing market sorting state
+ * Uses combined option IDs (e.g., 'volume', 'priceChange-desc') for simplified selection
  */
 export const usePerpsSorting = ({
-  initialSortBy = MARKET_SORTING_CONFIG.DEFAULT_SORT_FIELD,
-  initialDirection = MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+  initialOptionId = MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
 }: UsePerpsSortingParams = {}): UsePerpsSortingReturn => {
-  const [sortBy, setSortBy] = useState<SortField>(initialSortBy);
-  const [direction, setDirection] = useState<SortDirection>(initialDirection);
+  const [selectedOptionId, setSelectedOptionId] =
+    useState<string>(initialOptionId);
 
-  const handleSortChange = useCallback((field: SortField) => {
-    setSortBy(field);
-  }, []);
-
-  const handleDirectionToggle = useCallback(() => {
-    setDirection((prev) =>
-      prev === MARKET_SORTING_CONFIG.DEFAULT_DIRECTION ? 'asc' : 'desc',
+  // Derive sortBy and direction from selectedOptionId
+  const { sortBy, direction } = useMemo(() => {
+    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+      (opt) => opt.id === selectedOptionId,
     );
-  }, []);
+    return {
+      sortBy: option?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+      direction: option?.direction ?? MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+    };
+  }, [selectedOptionId]);
+
+  const handleOptionChange = useCallback(
+    (optionId: string, _field: SortField, _direction: SortDirection) => {
+      setSelectedOptionId(optionId);
+    },
+    [],
+  );
 
   const sortMarketsList = useCallback(
     (markets: PerpsMarketData[]) =>
@@ -52,10 +62,10 @@ export const usePerpsSorting = ({
   );
 
   return {
+    selectedOptionId,
     sortBy,
     direction,
-    handleSortChange,
-    handleDirectionToggle,
+    handleOptionChange,
     sortMarketsList,
   };
 };
