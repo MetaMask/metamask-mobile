@@ -75,9 +75,9 @@ const SetPhoneNumber = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.SET_PHONE_NUMBER,
+          screen: CardScreens.SET_PHONE_NUMBER,
         })
         .build(),
     );
@@ -96,7 +96,8 @@ const SetPhoneNumber = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.SET_PHONE_NUMBER_BUTTON_CLICKED,
+            action: CardActions.SET_PHONE_NUMBER_BUTTON,
+            phone_number_country_code: selectedCountryAreaCode,
           })
           .build(),
       );

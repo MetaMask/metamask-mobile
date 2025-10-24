@@ -32,7 +32,7 @@ const CardWelcome = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
           screen: CardScreens.WELCOME,
         })
@@ -64,7 +64,7 @@ const CardWelcome = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          button: CardActions.VERIFY_ACCOUNT_BUTTON,
+          action: CardActions.VERIFY_ACCOUNT_BUTTON,
         })
         .build(),
     );

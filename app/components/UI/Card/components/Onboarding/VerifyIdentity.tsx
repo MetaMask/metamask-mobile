@@ -35,7 +35,7 @@ const VerifyIdentity = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          action: CardActions.VERIFY_IDENTITY_BUTTON_CLICKED,
+          action: CardActions.VERIFY_IDENTITY_BUTTON,
         })
         .build(),
     );
@@ -53,9 +53,9 @@ const VerifyIdentity = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.VERIFY_IDENTITY,
+          screen: CardScreens.VERIFY_IDENTITY,
         })
         .build(),
     );

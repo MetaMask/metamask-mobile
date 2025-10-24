@@ -110,7 +110,7 @@ const ConfirmPhoneNumber = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON_CLICKED,
+            action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
           })
           .build(),
       );
@@ -176,7 +176,7 @@ const ConfirmPhoneNumber = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON_CLICKED,
+            action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON,
           })
           .build(),
       );
@@ -201,9 +201,9 @@ const ConfirmPhoneNumber = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.CONFIRM_PHONE_NUMBER,
+          screen: CardScreens.CONFIRM_PHONE_NUMBER,
         })
         .build(),
     );

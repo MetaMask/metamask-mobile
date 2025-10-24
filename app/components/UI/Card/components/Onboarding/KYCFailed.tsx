@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -8,9 +8,22 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardScreens } from '../../util/metrics';
 
 const KYCFailed = () => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.KYC_FAILED,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const handleContinue = () => {
     navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);

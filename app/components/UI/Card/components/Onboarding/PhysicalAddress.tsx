@@ -314,7 +314,7 @@ const PhysicalAddress = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.PHYSICAL_ADDRESS_BUTTON_CLICKED,
+            action: CardActions.PHYSICAL_ADDRESS_BUTTON,
           })
           .build(),
       );
@@ -380,9 +380,9 @@ const PhysicalAddress = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.PHYSICAL_ADDRESS,
+          screen: CardScreens.RESIDENTIAL_ADDRESS,
         })
         .build(),
     );

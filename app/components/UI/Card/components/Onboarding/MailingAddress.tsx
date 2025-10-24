@@ -43,9 +43,9 @@ const MailingAddress = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.MAILING_ADDRESS,
+          screen: CardScreens.MAILING_ADDRESS,
         })
         .build(),
     );
@@ -135,7 +135,7 @@ const MailingAddress = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.MAILING_ADDRESS_BUTTON_CLICKED,
+            action: CardActions.MAILING_ADDRESS_BUTTON,
           })
           .build(),
       );

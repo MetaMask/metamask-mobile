@@ -147,7 +147,8 @@ const PersonalDetails = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.PERSONAL_DETAILS_BUTTON_CLICKED,
+            action: CardActions.PERSONAL_DETAILS_BUTTON,
+            country_of_residence: selectedCountry,
           })
           .build(),
       );
@@ -179,9 +180,9 @@ const PersonalDetails = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.PERSONAL_DETAILS,
+          screen: CardScreens.PERSONAL_DETAILS,
         })
         .build(),
     );

@@ -51,9 +51,9 @@ const SignUp = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.SIGN_UP,
+          screen: CardScreens.SIGN_UP,
         })
         .build(),
     );
@@ -158,7 +158,7 @@ const SignUp = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.SIGN_UP_BUTTON_CLICKED,
+            action: CardActions.SIGN_UP_BUTTON,
           })
           .build(),
       );

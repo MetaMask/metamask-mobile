@@ -35,7 +35,9 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   useEffect(() => {
-    trackEvent(createEventBuilder(MetaMetricsEvents.CARD_VIEWED).build());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED).build(),
+    );
   }, [trackEvent, createEventBuilder]);
 
   const onPressHandler = () => {

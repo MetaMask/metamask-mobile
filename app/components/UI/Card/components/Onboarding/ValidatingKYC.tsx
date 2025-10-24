@@ -6,13 +6,26 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ActivityIndicator } from 'react-native';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardScreens } from '../../util/metrics';
 
 const ValidatingKYC = () => {
   const navigation = useNavigation();
   const hasNavigatedToWebview = useRef(false);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { verificationState } = useUserRegistrationStatus();
   const { sessionUrl } = useParams<{ sessionUrl: string }>();
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.VALIDATING_KYC,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   useEffect(() => {
     if (verificationState === 'VERIFIED') {

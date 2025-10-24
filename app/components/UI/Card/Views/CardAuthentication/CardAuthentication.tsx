@@ -188,7 +188,7 @@ const CardAuthentication = () => {
         : CardScreens.OTP_AUTHENTICATION;
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
           screen: screenName,
         })
@@ -198,7 +198,7 @@ const CardAuthentication = () => {
 
   const performLogin = useCallback(
     async (otpCode?: string) => {
-      const button =
+      const action =
         step === 'login'
           ? CardActions.AUTHENTICATION_LOGIN_BUTTON
           : CardActions.OTP_AUTHENTICATION_CONFIRM_BUTTON;
@@ -206,7 +206,7 @@ const CardAuthentication = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            button,
+            action,
           })
           .build(),
       );

@@ -20,9 +20,9 @@ const Complete = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.COMPLETE,
+          screen: CardScreens.COMPLETE,
         })
         .build(),
     );
@@ -32,7 +32,7 @@ const Complete = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          action: CardActions.COMPLETE_BUTTON_CLICKED,
+          action: CardActions.COMPLETE_BUTTON,
         })
         .build(),
     );

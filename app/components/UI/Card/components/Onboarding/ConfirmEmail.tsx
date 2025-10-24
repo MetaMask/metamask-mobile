@@ -74,9 +74,9 @@ const ConfirmEmail = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: CardScreens.CONFIRM_EMAIL,
+          screen: CardScreens.CONFIRM_EMAIL,
         })
         .build(),
     );
@@ -101,7 +101,7 @@ const ConfirmEmail = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON_CLICKED,
+          action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON,
         })
         .build(),
     );
@@ -135,7 +135,7 @@ const ConfirmEmail = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.CONFIRM_EMAIL_BUTTON_CLICKED,
+            action: CardActions.CONFIRM_EMAIL_BUTTON,
           })
           .build(),
       );
