@@ -37,6 +37,10 @@ describe('usePredictBalance', () => {
     mockFocusCallback = null;
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initial state', () => {
     it('returns correct initial state when loadOnMount is false', () => {
       // Arrange & Act
@@ -328,9 +332,11 @@ describe('usePredictBalance', () => {
 
       // When screen comes into focus
       mockGetBalance.mockResolvedValue(200);
-      if (mockFocusCallback) {
-        mockFocusCallback();
-      }
+      await act(async () => {
+        if (mockFocusCallback) {
+          await mockFocusCallback();
+        }
+      });
 
       await waitFor(() => {
         expect(result.current.balance).toBe(200);

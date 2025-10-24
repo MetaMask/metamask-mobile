@@ -179,6 +179,10 @@ describe('PredictPositionDetail', () => {
     mockExecuteGuardedAction.mockImplementation((action) => action());
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders open position with current value, percent change and cash out', () => {
     renderComponent();
 

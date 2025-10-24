@@ -97,6 +97,10 @@ describe('usePredictClaim', () => {
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   const wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       ToastContext.Provider,

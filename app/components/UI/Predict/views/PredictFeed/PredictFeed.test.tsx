@@ -103,6 +103,10 @@ describe('PredictFeed', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initial render', () => {
     it('renders container with correct testID', () => {
       // Arrange & Act

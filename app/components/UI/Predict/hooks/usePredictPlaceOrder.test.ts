@@ -118,6 +118,10 @@ describe('usePredictPlaceOrder', () => {
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initial state', () => {
     it('returns initial state with no loading, error, or result', () => {
       const { result } = renderHook(() => usePredictPlaceOrder());

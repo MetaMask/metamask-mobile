@@ -128,6 +128,10 @@ describe('PredictController', () => {
     ).mockImplementation(() => mockPolymarketProvider);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   /**
    * Helper function to create a PredictController with proper messenger setup
    */
@@ -2308,7 +2312,7 @@ describe('PredictController', () => {
   });
 
   describe('previewOrder', () => {
-    it('should preview order successfully', async () => {
+    it('previews order successfully', async () => {
       const mockOrderPreview = createMockOrderPreview({
         marketId: 'market-1',
         outcomeId: 'outcome-1',
@@ -2345,7 +2349,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should throw error when provider is not available', async () => {
+    it('throws error when provider is not available', async () => {
       await withController(async ({ controller }) => {
         await expect(
           controller.previewOrder({
@@ -2360,7 +2364,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle preview errors', async () => {
+    it('handles preview errors', async () => {
       mockPolymarketProvider.previewOrder.mockRejectedValue(
         new Error('Preview failed'),
       );

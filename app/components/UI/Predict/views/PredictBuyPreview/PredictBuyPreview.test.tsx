@@ -312,6 +312,10 @@ describe('PredictBuyPreview', () => {
     // Format mocks are already set up in the jest.mock above
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initial rendering', () => {
     it('renders place bet screen with market and outcome information', () => {
       const { getByText, getByTestId } = renderWithProvider(

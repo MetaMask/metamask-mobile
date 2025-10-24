@@ -375,6 +375,10 @@ describe('MarketsWonCard', () => {
     mockClaimResult.error = false;
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('renders claim button when totalClaimableAmount is provided', () => {
       setupMarketsWonCardTest();

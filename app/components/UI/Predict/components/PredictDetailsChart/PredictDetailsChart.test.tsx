@@ -130,6 +130,10 @@ describe('PredictDetailsChart', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('renders chart with single series data', () => {
       const { getByTestId } = setupTest();
