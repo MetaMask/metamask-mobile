@@ -1,27 +1,27 @@
-import { getLocalHost, getPerpsModifiersServerPort } from './FixtureUtils';
+import { getCommandQueueServerPort, getLocalHost } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { createLogger } from '../logger';
-import { PerpsModifiersType } from '../types';
+import { CommandType } from '../types';
 
 const logger = createLogger({
-  name: 'PerpsModifiersServer',
+  name: 'CommandQueueServer',
 });
 
-interface PerpsModifiersQueueItem {
-  type: PerpsModifiersType;
-  data: Record<string, unknown>;
+interface CommandQueueItem {
+  type: CommandType;
+  args: Record<string, unknown>;
 }
 
-class PerpsModifiersServer {
+class CommandQueueServer {
   private _app: Koa;
   private _server: ReturnType<Koa['listen']> | undefined;
-  private _queue: PerpsModifiersQueueItem[];
+  private _queue: CommandQueueItem[];
   private _port: number;
 
   constructor() {
     this._app = new Koa();
     this._queue = [];
-    this._port = getPerpsModifiersServerPort();
+    this._port = getCommandQueueServerPort();
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
       ctx.set('Access-Control-Allow-Origin', '*');
@@ -49,14 +49,14 @@ class PerpsModifiersServer {
     };
 
     return new Promise((resolve, reject) => {
-      logger.debug('Starting perps modifiers server on port', this._port);
+      logger.debug('Starting command queue server on port', this._port);
       this._server = this._app.listen(options);
       if (!this._server) {
         logger.error(
-          '❌ Failed to start perps modifiers server on port',
+          '❌ Failed to start command queue server on port',
           this._port,
         );
-        throw new Error('Failed to start perps modifiers server');
+        throw new Error('Failed to start command queue server');
       }
       this._server.once('error', reject);
       this._server.once('listening', resolve);
@@ -69,13 +69,13 @@ class PerpsModifiersServer {
     }
 
     await new Promise((resolve, reject) => {
-      logger.debug('Stopping perps modifiers server on port', this._port);
+      logger.debug('Stopping command queue server on port', this._port);
       if (!this._server) {
         logger.error(
-          '❌ Failed to stop perps modifiers server on port',
+          '❌ Failed to stop command queue server on port',
           this._port,
         );
-        throw new Error('Failed to stop perps modifiers server');
+        throw new Error('Failed to stop command queue server');
       }
       this._server.close();
       this._server.once('error', reject);
@@ -84,7 +84,7 @@ class PerpsModifiersServer {
     });
   }
 
-  addToQueue(item: PerpsModifiersQueueItem) {
+  addToQueue(item: CommandQueueItem) {
     this._queue.push(item);
   }
 
@@ -93,4 +93,4 @@ class PerpsModifiersServer {
   }
 }
 
-export default PerpsModifiersServer;
+export default CommandQueueServer;

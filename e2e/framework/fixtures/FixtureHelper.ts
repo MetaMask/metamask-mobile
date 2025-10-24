@@ -11,7 +11,7 @@ import {
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
-  getPerpsModifiersServerPort,
+  getCommandQueueServerPort,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
@@ -42,14 +42,14 @@ import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
 import { type Mockttp } from 'mockttp';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
-import PerpsModifiersServer from './PerpsModifiersServer';
+import CommandQueueServer from './CommandQueueServer';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
 const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
-const PERPS_MODIFIERS_SERVER_URL = `http://localhost:${getPerpsModifiersServerPort()}/queue.json`;
+const COMMAND_QUEUE_SERVER_URL = `http://localhost:${getCommandQueueServerPort()}/queue.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -61,10 +61,10 @@ const isFixtureServerStarted = async () => {
   }
 };
 
-// checks if perps modifiers server has already been started
-const isPerpsModifiersServerStarted = async () => {
+// checks if command queue server has already been started
+const isCommandQueueServerStarted = async () => {
   try {
-    const response = await axios.get(PERPS_MODIFIERS_SERVER_URL);
+    const response = await axios.get(COMMAND_QUEUE_SERVER_URL);
     return response.status === 200;
   } catch (error) {
     return false;
@@ -333,25 +333,25 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
-// Start the perps modifiers server
-export const startPerpsModifiersServer = async (
-  perpsModifiersServer: PerpsModifiersServer,
+// Start the command queue server
+export const startCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
 ) => {
-  if (await isPerpsModifiersServerStarted()) {
-    logger.debug('The perps modifiers server has already been started');
+  if (await isCommandQueueServerStarted()) {
+    logger.debug('The command queue server has already been started');
     return;
   }
 
-  await perpsModifiersServer.start();
-  logger.debug('The perps modifiers server is started');
+  await commandQueueServer.start();
+  logger.debug('The command queue server is started');
 };
 
-// Stop the perps modifiers server
-export const stopPerpsModifiersServer = async (
-  perpsModifiersServer: PerpsModifiersServer,
+// Stop the command queue server
+export const stopCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
 ) => {
-  await perpsModifiersServer.stop();
-  logger.debug('The perps modifiers server is stopped');
+  await commandQueueServer.stop();
+  logger.debug('The command queue server is stopped');
 };
 
 export const createMockAPIServer = async (
@@ -424,7 +424,7 @@ export async function withFixtures(
     permissions = {},
     endTestfn,
     skipReactNativeReload = false,
-    usePerpsModifiersServer = false,
+    useCommandQueueServer = false,
   } = options;
 
   // Prepare android devices for testing to avoid having this in all tests
@@ -443,7 +443,7 @@ export async function withFixtures(
 
   const dappServer: http.Server[] = [];
   const fixtureServer = new FixtureServer();
-  const perpsModifiersServer = new PerpsModifiersServer();
+  const commandQueueServer = new CommandQueueServer();
 
   let testError: Error | null = null;
 
@@ -478,8 +478,8 @@ export async function withFixtures(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
 
-    if (usePerpsModifiersServer) {
-      await startPerpsModifiersServer(perpsModifiersServer);
+    if (useCommandQueueServer) {
+      await startCommandQueueServer(commandQueueServer);
     }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
@@ -502,7 +502,7 @@ export async function withFixtures(
       contractRegistry,
       mockServer,
       localNodes,
-      perpsModifiersServer,
+      commandQueueServer,
     });
   } catch (error) {
     testError = error as Error;
@@ -556,12 +556,12 @@ export async function withFixtures(
       cleanupErrors.push(cleanupError as Error);
     }
 
-    if (usePerpsModifiersServer) {
+    if (useCommandQueueServer) {
       try {
-        await stopPerpsModifiersServer(perpsModifiersServer);
+        await stopCommandQueueServer(commandQueueServer);
       } catch (cleanupError) {
         logger.error(
-          'Error during perps modifiers server cleanup:',
+          'Error during command queue server cleanup:',
           cleanupError,
         );
         cleanupErrors.push(cleanupError as Error);
