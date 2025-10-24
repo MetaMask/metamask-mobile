@@ -24,7 +24,6 @@ module.exports = {
     ],
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
-    '@realm/babel-plugin',
   ],
   overrides: [
     {

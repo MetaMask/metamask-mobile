@@ -11,6 +11,7 @@ import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
 import { UpdateMode } from 'realm';
 import RealmService from '../../realm/service';
+import SnapController from '../../realm/models/snapController';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -92,6 +93,12 @@ export const ControllerStorage = {
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
+            if (isSnapController(controllerName)) {
+              const realm = RealmService.instance;
+              const value = realm.objects('SnapController');
+              console.log('Realm start');
+              // backgroundState[controllerName] = ;
+            }
             const data = await FilesystemStorage.getItem(key);
             if (data) {
               const parsedData = JSON.parse(data);
@@ -112,32 +119,7 @@ export const ControllerStorage = {
 
               const { _persist, ...controllerState } = parsedData;
 
-              // if (isSnapController(controllerName)) {
-              //   const realm = RealmService.instance;
-              //   const value = realm.objects('Snap');
-              //
-              //   const snapDataFromRealm = value.reduce(
-              //     (result, currentValue, idx) => {
-              //       const { name, sourceCode } = JSON.parse(
-              //         JSON.stringify(currentValue),
-              //       );
-              //       return {
-              //         ...result,
-              //         snaps: {
-              //           ...result.snaps,
-              //           [name]: {
-              //             ...result.snaps[name],
-              //             sourceCode,
-              //           },
-              //         },
-              //       };
-              //     },
-              //     controllerState,
-              //   );
-              //   backgroundState[controllerName] = snapDataFromRealm;
-              // } else {
               backgroundState[controllerName] = controllerState;
-              // }
             }
           } catch (error) {
             Logger.error(error as Error, {
@@ -172,41 +154,32 @@ const MigratedStorage = createStorage(true);
 export const createPersistController = (debounceMs: number = 200) =>
   debounce(async (filteredState: unknown, controllerName: string) => {
     try {
-      //
       if (isSnapController(controllerName)) {
         console.log('Realm stop');
         //TODO: types
         const realm = RealmService.instance;
-        const snapCollection = filteredState.snaps;
 
-        Object.keys(snapCollection).forEach((snap) => {
-          const { sourceCode } = snapCollection[snap];
-          realm.write(() => {
-            realm.create(
-              'Snap',
-              {
-                _id: snap,
-                name: snap,
-                sourceCode,
-              },
-              UpdateMode.Modified,
-            );
-          });
-          console.log('Realm snap write done', snap);
-          filteredState.snaps = {
-            ...snapCollection,
-            [snap]: {
-              ...snapCollection[snap],
-              sourceCode: '',
+        realm.write(() => {
+          realm.create(
+            'SnapController',
+            {
+              id: '0',
+              snapState: filteredState,
             },
-          };
+            UpdateMode.Modified,
+          );
         });
+        await ControllerStorage.setItem(
+          `persist:${controllerName}`,
+          JSON.stringify(filteredState),
+        );
+      } else {
+        // Save the filtered state to filesystem storage
+        await ControllerStorage.setItem(
+          `persist:${controllerName}`,
+          JSON.stringify(filteredState),
+        );
       }
-      // Save the filtered state to filesystem storage
-      await ControllerStorage.setItem(
-        `persist:${controllerName}`,
-        JSON.stringify(filteredState),
-      );
 
       Logger.log(`${controllerName} state persisted successfully`);
     } catch (error) {

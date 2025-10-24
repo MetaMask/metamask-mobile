@@ -1,5 +1,5 @@
-import snap from './snap';
+import snapController from './snapController';
 
-const schemas = [snap];
+const schemas = [snapController];
 
 export default schemas;
