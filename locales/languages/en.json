@@ -6100,6 +6100,7 @@
       "change_asset": "Change asset",
       "enable_card_button_label": "Enable Card",
       "enable_assets_button_label": "Enable Assets",
+      "card_button_enabled_toast": "You can now sign up for MetaMask Card!",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
