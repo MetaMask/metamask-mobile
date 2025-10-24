@@ -515,6 +515,11 @@ describe('PredictMarketDetails', () => {
     it('displays market volume correctly', () => {
       setupPredictMarketDetailsTest();
 
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
       expect(
         screen.getByText('predict.market_details.volume'),
       ).toBeOnTheScreen();
@@ -522,6 +527,11 @@ describe('PredictMarketDetails', () => {
 
     it('displays market end date correctly', () => {
       setupPredictMarketDetailsTest();
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
 
       expect(
         screen.getByText('predict.market_details.end_date'),
@@ -532,6 +542,11 @@ describe('PredictMarketDetails', () => {
     it('displays provider information', () => {
       setupPredictMarketDetailsTest();
 
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
       expect(
         screen.getByText('predict.market_details.powered_by'),
       ).toBeOnTheScreen();
@@ -540,6 +555,11 @@ describe('PredictMarketDetails', () => {
 
     it('displays resolver information', () => {
       setupPredictMarketDetailsTest();
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
 
       expect(
         screen.getByText('predict.market_details.resolver'),
@@ -617,6 +637,11 @@ describe('PredictMarketDetails', () => {
     it('displays About tab content', () => {
       setupPredictMarketDetailsTest();
 
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
       expect(
         screen.getByText('predict.market_details.volume'),
       ).toBeOnTheScreen();
@@ -628,18 +653,12 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays Positions tab content', () => {
+    it('hides Positions tab when user has no positions', () => {
       setupPredictMarketDetailsTest();
 
-      // Switch to Positions tab
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
-
       expect(
-        screen.getByText('predict.market_details.no_positions_found'),
-      ).toBeOnTheScreen();
+        screen.queryByText('predict.tabs.positions'),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -771,6 +790,11 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithoutEndDate);
 
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
       expect(screen.getByText('N/A')).toBeOnTheScreen();
     });
 
@@ -835,9 +859,9 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the cash out button
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
@@ -943,9 +967,9 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
@@ -978,9 +1002,9 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
@@ -1013,13 +1037,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(multiOutcomeMarket);
 
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
-
-      // Should render outcomes for multi-outcome markets
+      // Outcomes is the default tab when there are no positions
       expect(screen.getAllByTestId('predict-market-outcome')).toHaveLength(3);
     });
 
@@ -1117,9 +1135,9 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
@@ -1149,9 +1167,9 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
@@ -1181,9 +1199,9 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
@@ -1389,13 +1407,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(closedMarket);
 
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
-
-      // Should render outcomes tab for closed markets
+      // Outcomes is the default tab when there are no positions
       expect(
         screen.getAllByTestId('predict-market-outcome').length,
       ).toBeGreaterThan(0);
@@ -1662,13 +1674,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(closedMarket);
 
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
-
-      // Should render outcomes tab for closed markets
+      // Outcomes is the default tab when there are no positions
       expect(screen.getByTestId('predict-market-outcome')).toBeOnTheScreen();
     });
 
@@ -1814,9 +1820,9 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
