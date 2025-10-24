@@ -12,16 +12,23 @@ import { AddressFields } from './PhysicalAddress';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  setUser,
+  setIsAuthenticatedCard,
+  setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { CardError } from '../../types';
+import { storeCardBaanxToken } from '../../util/cardTokenVault';
+import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import { extractTokenExpiration } from '../../util/extractTokenExpiration';
+import Logger from '../../../../../util/Logger';
+import { useCardSDK } from '../../sdk';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
 
@@ -122,10 +129,31 @@ const MailingAddress = () => {
       });
 
       if (updatedUser) {
-        dispatch(setUser(updatedUser));
+        setUser(updatedUser);
       }
 
       if (accessToken) {
+        // Store the access token for immediate authentication
+        const location = mapCountryToLocation(selectedCountry);
+        const accessTokenExpiresIn = extractTokenExpiration(accessToken);
+
+        const storeResult = await storeCardBaanxToken({
+          accessToken,
+          accessTokenExpiresAt: accessTokenExpiresIn,
+          location,
+        });
+
+        if (storeResult.success) {
+          // Update Redux state to reflect authentication
+          dispatch(setIsAuthenticatedCard(true));
+          dispatch(setUserCardLocation(location));
+        } else {
+          Logger.log(
+            'MailingAddress: Failed to store access token',
+            storeResult.error,
+          );
+        }
+
         // Registration complete
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
       }

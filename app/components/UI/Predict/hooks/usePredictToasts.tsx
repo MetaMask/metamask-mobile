@@ -45,7 +45,7 @@ interface ErrorToastConfig extends ToastConfig {
 
 interface UsePredictToastsParams {
   transactionType: TransactionType;
-  pendingToastConfig: PendingToastConfig;
+  pendingToastConfig?: PendingToastConfig;
   confirmedToastConfig: ConfirmedToastConfig;
   errorToastConfig: ErrorToastConfig;
   clearTransaction: () => void;
@@ -64,10 +64,10 @@ export const usePredictToasts = ({
   const { toastRef } = useContext(ToastContext);
 
   const showPendingToast = useCallback(
-    (amount?: string) => {
+    ({ amount, config }: { amount?: string; config: PendingToastConfig }) => {
       const title = amount
-        ? pendingToastConfig.title.replace('{amount}', amount)
-        : pendingToastConfig.title;
+        ? config.title.replace('{amount}', amount)
+        : config.title;
 
       return toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -75,7 +75,7 @@ export const usePredictToasts = ({
           { label: title, isBold: true },
           { label: '\n', isBold: false },
           {
-            label: pendingToastConfig.description,
+            label: config.description,
             isBold: false,
           },
         ],
@@ -93,13 +93,7 @@ export const usePredictToasts = ({
         ),
       });
     },
-    [
-      pendingToastConfig.description,
-      pendingToastConfig.title,
-      theme.colors.accent04.dark,
-      theme.colors.accent04.normal,
-      toastRef,
-    ],
+    [theme.colors.accent04.dark, theme.colors.accent04.normal, toastRef],
   );
 
   const showConfirmedToast = useCallback(
@@ -179,9 +173,12 @@ export const usePredictToasts = ({
         return;
       }
 
-      if (transactionMeta.status === TransactionStatus.approved) {
+      if (
+        transactionMeta.status === TransactionStatus.approved &&
+        pendingToastConfig
+      ) {
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
-        showPendingToast(amount);
+        showPendingToast({ amount, config: pendingToastConfig });
       }
 
       if (transactionMeta.status === TransactionStatus.confirmed) {
@@ -219,4 +216,6 @@ export const usePredictToasts = ({
     toastRef,
     transactionType,
   ]);
+
+  return { showPendingToast };
 };

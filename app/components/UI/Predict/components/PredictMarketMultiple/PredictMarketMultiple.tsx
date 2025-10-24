@@ -8,7 +8,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -23,9 +25,13 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictEligibility } from '../../hooks/usePredictEligibility';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PredictMarket, PredictOutcome } from '../../types';
+import {
+  PredictMarket,
+  PredictOutcome,
+  PredictOutcomeToken,
+} from '../../types';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
@@ -33,7 +39,6 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
@@ -50,10 +55,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
 
-  const { isEligible } = usePredictEligibility({
+  const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,
+    navigation,
   });
-  const { hasNoBalance } = usePredictBalance();
 
   const getFirstOutcomePrice = (
     outcomePrices?: number[],
@@ -69,7 +74,28 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         return (firstValue * 100).toFixed(2);
       }
     } catch (error) {
-      console.warn('Failed to parse outcomePrices:', outcomePrices, error);
+      DevLogger.log('PredictMarketMultiple: Failed to parse outcomePrices', {
+        outcomePrices,
+        error,
+      });
+
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tags: {
+            component: 'PredictMarketMultiple',
+            action: 'parse_outcome_prices',
+            operation: 'market_display',
+          },
+          extra: {
+            context: {
+              marketId: market.id,
+              marketTitle: market.title,
+              outcomePrices,
+            },
+          },
+        },
+      );
     }
 
     return undefined;
@@ -83,56 +109,24 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     return sum + volume;
   }, 0);
 
-  const handleYes = (outcome: PredictOutcome) => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[0],
-        entryPoint,
+  const handleBuy = (
+    outcome: PredictOutcome,
+    outcomeToken: PredictOutcomeToken,
+  ) => {
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken,
+            entryPoint,
+          },
+        });
       },
-    });
-  };
-
-  const handleNo = (outcome: PredictOutcome) => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[1],
-        entryPoint,
-      },
-    });
+      { checkBalance: true },
+    );
   };
 
   const totalVolumeDisplay = formatVolume(totalVolume);
@@ -221,7 +215,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         {truncateLabel(outcomeLabels[0])}
                       </Text>
                     }
-                    onPress={() => handleYes(outcome)}
+                    onPress={() => handleBuy(outcome, outcome.tokens[0])}
                     style={styles.buttonYes}
                   />
                   <Button
@@ -236,7 +230,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         {truncateLabel(outcomeLabels[1])}
                       </Text>
                     }
-                    onPress={() => handleNo(outcome)}
+                    onPress={() => handleBuy(outcome, outcome.tokens[1])}
                     style={styles.buttonNo}
                   />
                 </Box>
