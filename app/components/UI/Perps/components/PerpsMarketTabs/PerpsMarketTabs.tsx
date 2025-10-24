@@ -345,7 +345,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         onActiveTabChange?.(initialTab);
       }
     }
-  }, [initialTab, tabs, onActiveTabChange, activeTabId]);
+  }, [initialTab, tabs, onActiveTabChange]);
 
   // Set initial tab based on data availability
   // Now we can properly distinguish between loading and empty states
