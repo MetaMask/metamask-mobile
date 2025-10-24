@@ -1,8 +1,8 @@
-import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import TabBar from '../../../../Base/TabBar';
@@ -43,6 +43,15 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
     [scrollCoordinator],
   );
 
+  const tabsAnimatedStyle = useAnimatedStyle(() => {
+    if (!scrollCoordinator) {
+      return {};
+    }
+    return {
+      transform: [{ translateY: scrollCoordinator.balanceCardOffset.value }],
+    };
+  }, [scrollCoordinator]);
+
   return (
     <>
       {isSearchVisible && searchQuery.length > 0 && (
@@ -62,7 +71,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
       )}
 
       {!isSearchVisible && (
-        <Box style={tw.style('flex-1 w-full')}>
+        <Animated.View style={[tw.style('flex-1 w-full'), tabsAnimatedStyle]}>
           <ScrollableTabView
             renderTabBar={() => (
               <TabBar textStyle={tw.style('text-base font-bold')} />
@@ -131,7 +140,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
               />
             </View>
           </ScrollableTabView>
-        </Box>
+        </Animated.View>
       )}
     </>
   );
