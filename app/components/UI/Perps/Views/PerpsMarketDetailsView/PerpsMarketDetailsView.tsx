@@ -331,7 +331,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       // Reset chart to default state (like initial navigation)
-      // Note: selectedCandlePeriod is now derived from persisted state, so no need to reset it
       setVisibleCandleCount(45);
 
       // Reset chart view to default position

@@ -208,7 +208,7 @@ export type PerpsControllerState = {
   };
 
   // Chart preferences
-  preferredCandlePeriod: string; // CandlePeriod enum value
+  preferredCandlePeriod: string;
 
   // Error handling
   lastError: string | null;
