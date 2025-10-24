@@ -1,6 +1,6 @@
 import { typography } from '@metamask/design-tokens';
 import { FontWeight, FontStyle, TextVariant } from './Text.types';
-import { FONT_FAMILIES, GEIST_WEIGHT_MAPPING } from '../../../constants/fonts';
+import { GEIST_WEIGHT_MAPPING } from '../../../../constants/fonts';
 
 export const getFontFamily = (
   variant: TextVariant,
@@ -10,7 +10,8 @@ export const getFontFamily = (
   const resolvedWeight = fontWeight ?? typography[variant].fontWeight;
   const resolvedStyle = fontStyle ?? 'normal';
 
-  const fontSuffix = GEIST_WEIGHT_MAPPING[resolvedWeight as keyof typeof GEIST_WEIGHT_MAPPING];
+  const fontSuffix =
+    GEIST_WEIGHT_MAPPING[resolvedWeight as keyof typeof GEIST_WEIGHT_MAPPING];
   const italicSuffix = resolvedStyle === 'italic' ? '-Italic' : '';
 
   // Return PostScript name format (with hyphens)

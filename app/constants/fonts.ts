@@ -39,9 +39,8 @@ export const FONT_NAME_MAPPING = {
 } as const;
 
 // Helper function to get correct PostScript name
-export const getPostScriptFontName = (fullName: string): string => {
-  return FONT_NAME_MAPPING[fullName as keyof typeof FONT_NAME_MAPPING] || fullName;
-};
+export const getPostScriptFontName = (fullName: string): string =>
+  FONT_NAME_MAPPING[fullName as keyof typeof FONT_NAME_MAPPING] || fullName;
 
 // Weight to font family mapping for Geist fonts
 export const GEIST_WEIGHT_MAPPING = {
@@ -60,4 +59,4 @@ export const GEIST_WEIGHT_MAPPING = {
 
 export type FontWeight = keyof typeof GEIST_WEIGHT_MAPPING;
 export type FontStyle = 'normal' | 'italic';
-export type GeistFontSuffix = typeof GEIST_WEIGHT_MAPPING[FontWeight];
+export type GeistFontSuffix = (typeof GEIST_WEIGHT_MAPPING)[FontWeight];
