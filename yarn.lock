@@ -29300,6 +29300,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-font@npm:^14.0.9":
+  version: 14.0.9
+  resolution: "expo-font@npm:14.0.9"
+  dependencies:
+    fontfaceobserver: "npm:^2.1.0"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/29511a5ba7b8a2c37d7941d6d2908f9a07d7efbf227b507a85582fc9e24ac3eb9e119e0b8329e37835e8250ec10e65fe80076c4f81cac91904c718fd892386c5
+  languageName: node
+  linkType: hard
+
 "expo-font@npm:~13.0.4":
   version: 13.0.4
   resolution: "expo-font@npm:13.0.4"
@@ -36212,6 +36225,7 @@ __metadata:
     expo-build-properties: "npm:~0.13.2"
     expo-dev-client: "npm:~5.0.18"
     expo-file-system: "npm:~18.0.7"
+    expo-font: "npm:^14.0.9"
     expo-haptics: "npm:~14.0.1"
     expo-image: "npm:~2.0.7"
     expo-screen-orientation: "npm:~8.0.4"

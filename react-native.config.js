@@ -8,5 +8,5 @@ module.exports = {
       },
     },
   },
-  assets: ['./app/fonts/'],
+  // Note: Font assets now managed by expo-font plugin instead of React Native assets
 };

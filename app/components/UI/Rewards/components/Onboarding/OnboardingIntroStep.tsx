@@ -318,7 +318,7 @@ const OnboardingIntroStep: React.FC<{
             tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
             {
-              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+              fontFamily: 'MMPoly-Regular',
             },
           ]}
         >

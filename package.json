@@ -369,6 +369,7 @@
     "expo-build-properties": "~0.13.2",
     "expo-dev-client": "~5.0.18",
     "expo-file-system": "~18.0.7",
+    "expo-font": "^14.0.9",
     "expo-haptics": "~14.0.1",
     "expo-image": "~2.0.7",
     "expo-screen-orientation": "~8.0.4",
