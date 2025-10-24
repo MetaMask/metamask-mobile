@@ -22,6 +22,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { strings } from '../../../../../../locales/i18n';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -37,19 +38,28 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   const tw = useTailwind();
   const { icon, initialValue, percentPnl, outcome, avgPrice, currentValue } =
     position;
-  const { navigate } =
+  const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { navigate } = navigation;
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId: position.providerId,
+    navigation,
+  });
 
   const onCashOut = () => {
-    const outcome = market?.outcomes.find((o) => o.id === position.outcomeId);
-    navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-      params: {
-        market,
-        position,
-        outcome,
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-      },
+    executeGuardedAction(() => {
+      const _outcome = market?.outcomes.find(
+        (o) => o.id === position.outcomeId,
+      );
+      navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params: {
+          market,
+          position,
+          outcome: _outcome,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+        },
+      });
     });
   };
 
