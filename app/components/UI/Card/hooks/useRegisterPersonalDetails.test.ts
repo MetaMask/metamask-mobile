@@ -67,6 +67,8 @@ describe('useRegisterPersonalDetails', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: mockLogoutFromProvider,
       userCardLocation: 'us',
     } as ICardSDK);
@@ -146,6 +148,8 @@ describe('useRegisterPersonalDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
         userCardLocation: 'us',
       } as ICardSDK);
@@ -461,6 +465,8 @@ describe('useRegisterPersonalDetails', () => {
       const mockCardSDKUndefined: ICardSDK = {
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       };
 

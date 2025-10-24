@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
+import { useCardSDK } from '../../sdk';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -14,6 +15,11 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock useStartVerification hook
 jest.mock('../../hooks/useStartVerification');
+
+// Mock useCardSDK hook
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(),
+}));
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -191,6 +197,14 @@ describe('VerifyIdentity Component', () => {
       error: null,
     });
 
+    (useCardSDK as jest.Mock).mockReturnValue({
+      sdk: null,
+      isLoading: false,
+      user: null,
+      setUser: jest.fn(),
+      logoutFromProvider: jest.fn(),
+    });
+
     store = createTestStore();
   });
 
@@ -351,12 +365,16 @@ describe('VerifyIdentity Component', () => {
 
   describe('User State Testing', () => {
     it('navigates to validating KYC when user verification state is PENDING', async () => {
-      const storeWithPendingUser = createTestStore({
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: null,
+        isLoading: false,
         user: { verificationState: 'PENDING' },
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
       });
 
       render(
-        <Provider store={storeWithPendingUser}>
+        <Provider store={store}>
           <VerifyIdentity />
         </Provider>,
       );
@@ -369,12 +387,16 @@ describe('VerifyIdentity Component', () => {
     });
 
     it('does not auto-navigate when user verification state is not PENDING', () => {
-      const storeWithNonPendingUser = createTestStore({
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: null,
+        isLoading: false,
         user: { verificationState: 'VERIFIED' },
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
       });
 
       render(
-        <Provider store={storeWithNonPendingUser}>
+        <Provider store={store}>
           <VerifyIdentity />
         </Provider>,
       );
@@ -383,12 +405,16 @@ describe('VerifyIdentity Component', () => {
     });
 
     it('does not auto-navigate when user is null', () => {
-      const storeWithNullUser = createTestStore({
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: null,
+        isLoading: false,
         user: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
       });
 
       render(
-        <Provider store={storeWithNullUser}>
+        <Provider store={store}>
           <VerifyIdentity />
         </Provider>,
       );

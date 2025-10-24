@@ -13,17 +13,15 @@ import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
 import Complete from '../components/Onboarding/Complete';
 import { cardAuthenticationNavigationOptions } from '.';
-import {
-  selectOnboardingId,
-  selectUser,
-} from '../../../../core/redux/slices/card';
+import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
+import { useCardSDK } from '../sdk';
 
 const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
-  const user = useSelector(selectUser);
+  const { user } = useCardSDK();
 
   const getInitialRouteName = () => {
     if (!onboardingId || !user?.id) {
