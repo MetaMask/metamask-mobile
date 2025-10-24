@@ -263,6 +263,8 @@ describe('HyperLiquidProvider', () => {
       subscribeToPositions: jest.fn().mockReturnValue(jest.fn()), // Returns function directly
       subscribeToOrderFills: jest.fn().mockReturnValue(jest.fn()), // Returns function directly
       clearAll: jest.fn(),
+      isPositionsCacheInitialized: jest.fn().mockReturnValue(false),
+      getCachedPositions: jest.fn().mockReturnValue([]),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
