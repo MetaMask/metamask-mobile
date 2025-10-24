@@ -733,4 +733,56 @@ describe('PerpsMarketTabs', () => {
       expect(mockOnOrderCancelled).not.toHaveBeenCalled();
     });
   });
+
+  describe('Navigation', () => {
+    it('navigates to tutorial when tutorial card is pressed', () => {
+      // Arrange
+      const onActiveTabChange = jest.fn();
+      const { getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          marketStats={mockMarketStats}
+          position={mockPosition} // Include position to render full tab view with navigation
+          isLoadingPosition={false}
+          unfilledOrders={[]}
+          onActiveTabChange={onActiveTabChange}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      // Act
+      const tutorialCard = getByTestId('perps-tutorial-card');
+      fireEvent.press(tutorialCard);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith('PerpsTutorial');
+    });
+
+    it('navigates to activity when activity link is pressed', () => {
+      // Arrange
+      const onActiveTabChange = jest.fn();
+      const { getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          marketStats={mockMarketStats}
+          position={mockPosition} // Include position to render full tab view with navigation
+          isLoadingPosition={false}
+          unfilledOrders={[]}
+          onActiveTabChange={onActiveTabChange}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      // Act
+      const activityLink = getByTestId(
+        PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
+      );
+      fireEvent.press(activityLink);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith('TransactionsView');
+    });
+  });
 });

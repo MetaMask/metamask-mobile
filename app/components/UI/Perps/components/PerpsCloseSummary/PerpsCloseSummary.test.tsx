@@ -21,6 +21,14 @@ jest.mock('../../../../hooks/useStyles', () => ({
       summaryTotalRow: {},
       rewardsRow: {},
       rewardsContent: {},
+      loadingContainer: {},
+    },
+    theme: {
+      colors: {
+        icon: {
+          alternative: '#CCCCCC',
+        },
+      },
     },
   })),
 }));
@@ -158,5 +166,43 @@ describe('PerpsCloseSummary', () => {
 
     // Assert - component renders without crashing with focused state
     expect(getByTestId).toBeDefined();
+  });
+
+  it('disables tooltip interactions when enableTooltips is false', () => {
+    // Arrange
+    const props = { ...defaultProps, enableTooltips: false };
+
+    // Act
+    const { queryByTestId } = render(<PerpsCloseSummary {...props} />);
+
+    // Assert - tooltip buttons not rendered when tooltips disabled
+    expect(queryByTestId('fees-tooltip-button')).toBeNull();
+  });
+
+  it('renders loading indicator when fees are calculating', () => {
+    // Arrange
+    const props = { ...defaultProps, isLoadingFees: true };
+
+    // Act
+    const { queryByText } = render(<PerpsCloseSummary {...props} />);
+
+    // Assert - PerpsFeesDisplay not shown when loading
+    expect(queryByText('PerpsFeesDisplay')).toBeNull();
+  });
+
+  it('displays error state when rewards calculation fails', () => {
+    // Arrange
+    const props = {
+      ...defaultProps,
+      shouldShowRewards: true,
+      hasRewardsError: true,
+      estimatedPoints: 0,
+    };
+
+    // Act
+    const { getByText } = render(<PerpsCloseSummary {...props} />);
+
+    // Assert - rewards section still renders with error state
+    expect(getByText('perps.estimated_points')).toBeTruthy();
   });
 });
