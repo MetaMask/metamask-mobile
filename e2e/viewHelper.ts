@@ -377,7 +377,12 @@ export const waitForAppReady = async (timeout?: number) => {
   );
 
   try {
-    await sleep(500);
+    // In CI, give extra time for mMountItemDispatcher to settle after async measure operations
+    // from RN 0.76.9 patch before attempting interactions
+    const initialDelay =
+      process.env.CI && device.getPlatform() === 'android' ? 2000 : 500;
+    await sleep(initialDelay);
+
     await Utilities.executeWithRetry(
       async () => {
         await Assertions.expectElementToBeVisible(LoginView.container, {

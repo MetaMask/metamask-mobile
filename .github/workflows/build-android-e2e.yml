@@ -88,7 +88,7 @@ jobs:
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
-          FINGERPRINT="60951c57f7d44284529cf40308b84becbf3c2123"
+          FINGERPRINT="60951c57f7d44284529cf40308b84becbf3c1124"
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
@@ -132,7 +132,6 @@ jobs:
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
         env:
