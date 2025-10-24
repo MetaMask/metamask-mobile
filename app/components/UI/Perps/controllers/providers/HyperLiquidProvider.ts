@@ -3250,16 +3250,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       }
 
-      // Validate limit orders have a price - REMOVED for better UX
-      // The flow automatically switches to market orders if limit price isn't set,
-      // so this validation is no longer needed
-      // if (params.orderType === 'limit' && !params.price) {
-      //   return {
-      //     isValid: false,
-      //     error: strings('perps.order.validation.limit_price_required'),
-      //   };
-      // }
-
       // Validate order value against max limits
       if (params.currentPrice && params.leverage) {
         try {
