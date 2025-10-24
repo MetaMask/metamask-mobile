@@ -1,6 +1,9 @@
 import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
@@ -22,9 +25,14 @@ import { OrderDirection } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
 import { formatDurationForDisplay } from '../utils/time';
+import { Position } from '../controllers/types';
 
-export type PerpsToastOptions = ToastOptions & {
+export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: NotificationFeedbackType;
+  labelOptions?: {
+    label: string | React.ReactNode;
+    isBold?: boolean;
+  }[];
 };
 
 export interface PerpsToastOptionsConfig {
@@ -99,7 +107,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
-          closeFullPositionSuccess: PerpsToastOptions;
+          closeFullPositionSuccess: (position: Position) => PerpsToastOptions;
           closeFullPositionFailed: PerpsToastOptions;
         };
         partial: {
@@ -150,7 +158,10 @@ export interface PerpsToastOptionsConfig {
   };
 }
 
-const getPerpsToastLabels = (primary: string, secondary?: string) => {
+const getPerpsToastLabels = (
+  primary: string | React.ReactNode,
+  secondary?: string | React.ReactNode,
+) => {
   const labels = [
     {
       label: primary,
@@ -242,14 +253,6 @@ const usePerpsToasts = (): {
     [theme],
   );
 
-  const showToast = useCallback(
-    (config: PerpsToastOptions) => {
-      toastRef?.current?.showToast(config);
-      notificationAsync(config.hapticsType);
-    },
-    [toastRef],
-  );
-
   const navigationHandlers = useMemo(
     () => ({
       goToPerpsTab: () => {
@@ -268,8 +271,44 @@ const usePerpsToasts = (): {
           });
         }, 100);
       },
+      goToPnlHeroCard: (position: Position) => {
+        toastRef?.current?.closeToast();
+        navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
+          position,
+        });
+      },
     }),
     [navigation, toastRef],
+  );
+
+  const perpsToastButtonOptions = useMemo(
+    () => ({
+      pnlHeroCardShareButton: (
+        position: Position,
+      ): ToastOptions['closeButtonOptions'] => ({
+        // label: strings('perps.pnl_hero_card.share_button'),
+        label: (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {strings('perps.pnl_hero_card.share_button')}
+          </Text>
+        ),
+        onPress: () => navigationHandlers.goToPnlHeroCard(position),
+        variant: ButtonVariants.Link,
+        style: {
+          backgroundColor: theme.colors.background.muted,
+        },
+      }),
+    }),
+    [navigationHandlers, theme.colors.background.muted],
+  );
+
+  const showToast = useCallback(
+    (config: PerpsToastOptions) => {
+      const { hapticsType, ...toastOptions } = config;
+      toastRef?.current?.showToast(toastOptions as ToastOptions);
+      notificationAsync(hapticsType);
+    },
+    [toastRef],
   );
 
   // Centralized toast options for Perp
@@ -584,12 +623,37 @@ const usePerpsToasts = (): {
                   ),
                 };
               },
-              closeFullPositionSuccess: {
-                ...perpsBaseToastOptions.success,
-                labelOptions: getPerpsToastLabels(
-                  strings('perps.close_position.position_closed'),
-                  strings('perps.close_position.funds_are_available_to_trade'),
-                ),
+              closeFullPositionSuccess: (position: Position) => {
+                const roeValue = Number.parseFloat(
+                  position.returnOnEquity || '0',
+                );
+                const roe = Number.isNaN(roeValue) ? 0 : roeValue * 100;
+
+                return {
+                  ...perpsBaseToastOptions.success,
+                  closeButtonOptions:
+                    perpsToastButtonOptions.pnlHeroCardShareButton(position),
+                  labelOptions: getPerpsToastLabels(
+                    strings('perps.close_position.position_closed'),
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {strings('perps.close_position.your_pnl_is')}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={
+                          roe >= 0
+                            ? TextColor.SuccessDefault
+                            : TextColor.ErrorDefault
+                        }
+                      >
+                        {' '}
+                        {`${roe.toFixed(1)}%`}
+                      </Text>
+                    </Text>,
+                  ),
+                };
               },
               closeFullPositionFailed: {
                 ...perpsBaseToastOptions.error,
@@ -763,6 +827,7 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.inProgress,
       perpsBaseToastOptions.info,
       perpsBaseToastOptions.success,
+      perpsToastButtonOptions,
     ],
   );
 

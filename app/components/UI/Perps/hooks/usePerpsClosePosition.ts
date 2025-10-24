@@ -109,8 +109,9 @@ export const usePerpsClosePosition = (
             // Market closed full position
             if (isFullClose) {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .full.closeFullPositionSuccess,
+                PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionSuccess(
+                  position,
+                ),
               );
             }
             // Market closed partial position
