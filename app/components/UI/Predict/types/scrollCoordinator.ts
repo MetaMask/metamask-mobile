@@ -3,6 +3,7 @@ import { PredictCategory } from './index';
 
 export interface ScrollCoordinator {
   balanceCardOffset: SharedValue<number>;
+  balanceCardHeight: SharedValue<number>;
   setBalanceCardHeight: (height: number) => void;
   setCurrentCategory: (category: PredictCategory) => void;
   getTabScrollPosition: (category: PredictCategory) => number;

@@ -8,12 +8,17 @@ import { PredictCategory } from '../types';
 
 export const useSharedScrollCoordinator = () => {
   const balanceCardOffset = useSharedValue(0);
+  const balanceCardHeight = useSharedValue(0);
   const balanceCardHeightRef = useRef(0);
   const tabScrollPositionsRef = useRef<Map<PredictCategory, number>>(new Map());
 
-  const setBalanceCardHeight = useCallback((height: number) => {
-    balanceCardHeightRef.current = height;
-  }, []);
+  const setBalanceCardHeight = useCallback(
+    (height: number) => {
+      balanceCardHeightRef.current = height;
+      balanceCardHeight.value = height;
+    },
+    [balanceCardHeight],
+  );
 
   const setCurrentCategory = useCallback((_category: PredictCategory) => {
     // No-op for now, can be used for future enhancements
@@ -39,10 +44,10 @@ export const useSharedScrollCoordinator = () => {
   const trendingScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const scrollY = event.contentOffset.y;
-      const balanceCardHeight = balanceCardHeightRef.current;
+      const cardHeight = balanceCardHeightRef.current;
 
-      if (balanceCardHeight > 0) {
-        const newOffset = Math.max(-balanceCardHeight, Math.min(0, -scrollY));
+      if (cardHeight > 0) {
+        const newOffset = Math.max(-cardHeight, Math.min(0, -scrollY));
         balanceCardOffset.value = newOffset;
       }
 
@@ -53,10 +58,10 @@ export const useSharedScrollCoordinator = () => {
   const newScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const scrollY = event.contentOffset.y;
-      const balanceCardHeight = balanceCardHeightRef.current;
+      const cardHeight = balanceCardHeightRef.current;
 
-      if (balanceCardHeight > 0) {
-        const newOffset = Math.max(-balanceCardHeight, Math.min(0, -scrollY));
+      if (cardHeight > 0) {
+        const newOffset = Math.max(-cardHeight, Math.min(0, -scrollY));
         balanceCardOffset.value = newOffset;
       }
 
@@ -67,10 +72,10 @@ export const useSharedScrollCoordinator = () => {
   const sportsScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const scrollY = event.contentOffset.y;
-      const balanceCardHeight = balanceCardHeightRef.current;
+      const cardHeight = balanceCardHeightRef.current;
 
-      if (balanceCardHeight > 0) {
-        const newOffset = Math.max(-balanceCardHeight, Math.min(0, -scrollY));
+      if (cardHeight > 0) {
+        const newOffset = Math.max(-cardHeight, Math.min(0, -scrollY));
         balanceCardOffset.value = newOffset;
       }
 
@@ -81,10 +86,10 @@ export const useSharedScrollCoordinator = () => {
   const cryptoScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const scrollY = event.contentOffset.y;
-      const balanceCardHeight = balanceCardHeightRef.current;
+      const cardHeight = balanceCardHeightRef.current;
 
-      if (balanceCardHeight > 0) {
-        const newOffset = Math.max(-balanceCardHeight, Math.min(0, -scrollY));
+      if (cardHeight > 0) {
+        const newOffset = Math.max(-cardHeight, Math.min(0, -scrollY));
         balanceCardOffset.value = newOffset;
       }
 
@@ -95,10 +100,10 @@ export const useSharedScrollCoordinator = () => {
   const politicsScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const scrollY = event.contentOffset.y;
-      const balanceCardHeight = balanceCardHeightRef.current;
+      const cardHeight = balanceCardHeightRef.current;
 
-      if (balanceCardHeight > 0) {
-        const newOffset = Math.max(-balanceCardHeight, Math.min(0, -scrollY));
+      if (cardHeight > 0) {
+        const newOffset = Math.max(-cardHeight, Math.min(0, -scrollY));
         balanceCardOffset.value = newOffset;
       }
 
@@ -134,6 +139,7 @@ export const useSharedScrollCoordinator = () => {
 
   return {
     balanceCardOffset,
+    balanceCardHeight,
     setBalanceCardHeight,
     setCurrentCategory,
     getTabScrollPosition,

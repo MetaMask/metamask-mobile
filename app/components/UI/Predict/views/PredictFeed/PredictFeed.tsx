@@ -26,9 +26,16 @@ const PredictFeed = () => {
     scrollCoordinator.setBalanceCardHeight(height);
   };
 
-  const balanceCardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: scrollCoordinator.balanceCardOffset.value }],
-  }));
+  const balanceCardAnimatedStyle = useAnimatedStyle(() => {
+    const offset = scrollCoordinator.balanceCardOffset.value;
+    const height = scrollCoordinator.balanceCardHeight.value;
+    const opacity = height > 0 ? Math.max(0, 1 + offset / height) : 1;
+
+    return {
+      transform: [{ translateY: offset }],
+      opacity,
+    };
+  });
 
   const handleSearchToggle = () => {
     setIsSearchVisible(true);
