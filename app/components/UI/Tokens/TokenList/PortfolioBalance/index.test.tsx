@@ -38,6 +38,14 @@ jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => false),
 }));
 
+jest.mock('../../../../../selectors/networkController', () => ({
+  selectChainId: jest.fn(() => '0x1'), // Default to mainnet
+}));
+
+jest.mock('../../../../../util/networks', () => ({
+  isTestNet: jest.fn(() => false), // Default to mainnet
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
@@ -331,6 +339,53 @@ describe('PortfolioBalance', () => {
     const { getByTestId, queryByTestId } = renderPortfolioBalance(initialState);
 
     // Should render balance text, not empty state
+    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
+    expect(queryByTestId('portfolio-balance-empty-state')).toBeNull();
+  });
+
+  it('does not display BalanceEmptyState when balance is zero and feature flag is enabled but network is testnet', () => {
+    // Mock the feature flag to be enabled
+    const { selectHomepageRedesignV1Enabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/homepage',
+    );
+    const { selectChainId } = jest.requireMock(
+      '../../../../../selectors/networkController',
+    );
+    const { isTestNet } = jest.requireMock('../../../../../util/networks');
+
+    (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(true);
+    // Mock testnet
+    (selectChainId as jest.Mock).mockReturnValue('0xaa36a7'); // Sepolia testnet
+    (isTestNet as jest.Mock).mockReturnValue(true);
+
+    // Mock zero balance
+    const mockSelectedAccountMultichainBalanceZero = {
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
+      totalFiatBalance: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
+      shouldShowAggregatedPercentage: false,
+      isPortfolioVieEnabled: false,
+      aggregatedBalance: {
+        ethFiat: 123.45,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+        ethFiat1dAgo: 100.0,
+      },
+      isLoadingAccount: false,
+      tokenFiatBalancesCrossChains: [],
+    };
+
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance:
+        mockSelectedAccountMultichainBalanceZero,
+    });
+
+    const { getByTestId, queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should render balance text, not empty state (because it's testnet)
     expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
     expect(queryByTestId('portfolio-balance-empty-state')).toBeNull();
   });

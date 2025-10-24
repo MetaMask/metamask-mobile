@@ -70,6 +70,9 @@ export const PortfolioBalance = React.memo(() => {
     selectedAccountMultichainBalance &&
     selectedAccountMultichainBalance.totalFiatBalance === 0;
 
+  const shouldShowEmptyState =
+    hasZeroBalance && isHomepageRedesignV1Enabled && !isTestNet(chainId);
+
   return (
     <View style={styles.portfolioBalance}>
       <View>
@@ -77,9 +80,7 @@ export const PortfolioBalance = React.memo(() => {
           <View style={styles.loaderWrapper}>
             <Loader />
           </View>
-        ) : hasZeroBalance &&
-          isHomepageRedesignV1Enabled &&
-          !isTestNet(chainId) ? (
+        ) : shouldShowEmptyState ? (
           <BalanceEmptyState testID="portfolio-balance-empty-state" />
         ) : (
           <TouchableOpacity
