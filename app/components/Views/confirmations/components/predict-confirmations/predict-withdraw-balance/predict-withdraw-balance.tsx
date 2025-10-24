@@ -11,13 +11,10 @@ import { AlignItems } from '../../../../../UI/Box/box.types';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import styleSheet from './predict-withdraw-balance.styles';
-import { strings } from '../../../../../../../locales/i18n';
 import { PREDICT_CURRENCY } from '../../../constants/predict';
 
 export function PredictWithdrawBalance() {
   const { styles } = useStyles(styleSheet, {});
-  const transactionMeta = useTransactionMetadataRequest();
-  const from = transactionMeta?.txParams?.from as Hex;
   const formatFiat = useFiatFormatter({ currency: PREDICT_CURRENCY });
   const { balance } = usePredictBalance({ loadOnMount: true });
 

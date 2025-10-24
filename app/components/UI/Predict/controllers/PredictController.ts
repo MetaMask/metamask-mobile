@@ -28,11 +28,6 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
-  addTransaction,
-} from '../../../../util/transaction-controller';
-import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { ensureError } from '../utils/predictErrorHandler';
-import {
   PredictEventProperties,
   PredictEventType,
   PredictEventTypeValue,
@@ -68,6 +63,7 @@ import {
   Side,
   UnrealizedPnL,
 } from '../types';
+import { ensureError } from '../utils/predictErrorHandler';
 
 /**
  * Error codes for PredictController

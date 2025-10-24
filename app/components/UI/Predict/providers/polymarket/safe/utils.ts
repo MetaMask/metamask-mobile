@@ -18,16 +18,9 @@ import {
 } from 'ethers/lib/utils';
 import { PredictPosition } from '../../..';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { Signer } from '../../types';
-import {
-  OperationType,
-  SafeFeeAuthorization,
-  SafeTransaction,
-  SplitSignature,
-} from './types';
-import { Hex, numberToHex } from '@metamask/utils';
-import Logger from '../../../../../../util/Logger';
 import {
   CONDITIONAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,

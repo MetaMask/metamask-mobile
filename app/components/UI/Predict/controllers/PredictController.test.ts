@@ -2,11 +2,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Messenger } from '@metamask/base-controller';
 
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   addTransaction,
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import type { OrderPreview } from '../providers/types';
 import {
   PredictClaimStatus,
   PredictDepositStatus,
@@ -18,8 +20,6 @@ import {
   PredictController,
   type PredictControllerState,
 } from './PredictController';
-import type { OrderPreview } from '../providers/types';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
