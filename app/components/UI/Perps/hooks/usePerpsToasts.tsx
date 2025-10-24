@@ -1,27 +1,27 @@
+import {
+  IconColor as ReactNativeDsIconColor,
+  IconSize as ReactNativeDsIconSize,
+} from '@metamask/design-system-react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { useNavigation } from '@react-navigation/native';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
-import { capitalize } from '../../../../util/general';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import { useNavigation } from '@react-navigation/native';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import Routes from '../../../../constants/navigation/Routes';
-import { handlePerpsError } from '../utils/perpsErrorHandler';
+import { capitalize } from '../../../../util/general';
+import { useAppThemeFromContext } from '../../../../util/theme';
 import { OrderDirection } from '../types/perps-types';
-import { formatDurationForDisplay } from '../utils/time';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
-import {
-  IconSize as ReactNativeDsIconSize,
-  IconColor as ReactNativeDsIconColor,
-} from '@metamask/design-system-react-native';
-import { View, StyleSheet } from 'react-native';
+import { handlePerpsError } from '../utils/perpsErrorHandler';
+import { formatDurationForDisplay } from '../utils/time';
 
 export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
@@ -354,7 +354,7 @@ const usePerpsToasts = (): {
               strings('perps.withdrawal.success_toast'),
               strings('perps.withdrawal.success_toast_description', {
                 amount: amount
-                  ? (parseFloat(amount) - 1).toFixed(2)
+                  ? (Number.parseFloat(amount) - 1).toFixed(2)
                   : undefined,
                 symbol: assetSymbol,
                 networkName: 'Arbitrum',
@@ -530,7 +530,7 @@ const usePerpsToasts = (): {
               labels.push(
                 strings('perps.order.order_placement_subtitle', {
                   direction,
-                  amount: Math.abs(parseFloat(amount)),
+                  amount: Math.abs(Number.parseFloat(amount)),
                   assetSymbol,
                 }),
               );
@@ -570,7 +570,7 @@ const usePerpsToasts = (): {
                     'perps.close_position.closing_position_subtitle',
                     {
                       direction,
-                      amount: Math.abs(parseFloat(amount)),
+                      amount: Math.abs(Number.parseFloat(amount)),
                       assetSymbol,
                     },
                   );
@@ -614,7 +614,7 @@ const usePerpsToasts = (): {
                     'perps.close_position.closing_position_subtitle',
                     {
                       direction,
-                      amount: Math.abs(parseFloat(amount)),
+                      amount: Math.abs(Number.parseFloat(amount)),
                       assetSymbol,
                     },
                   );
@@ -658,7 +658,7 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
-                    amount: Math.abs(parseFloat(amount)),
+                    amount: Math.abs(Number.parseFloat(amount)),
                     assetSymbol,
                   }),
                 ),
@@ -675,7 +675,7 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.partial_close_submitted'),
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
-                    amount: Math.abs(parseFloat(amount)),
+                    amount: Math.abs(Number.parseFloat(amount)),
                     assetSymbol,
                   }),
                 ),

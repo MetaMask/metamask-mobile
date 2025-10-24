@@ -18,6 +18,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -57,6 +58,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
