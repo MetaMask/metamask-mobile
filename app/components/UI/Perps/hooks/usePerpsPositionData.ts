@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { isEqual } from 'lodash';
 import Engine from '../../../../core/Engine';
-import type { PriceUpdate } from '../controllers/types';
-import type { CandleData, CandleStick } from '../types/perps-types';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   calculateCandleCount,
-  TimeDuration,
   CandlePeriod,
+  TimeDuration,
 } from '../constants/chartConfig';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import type { PriceUpdate } from '../controllers/types';
+import type { CandleData, CandleStick } from '../types/perps-types';
 
 interface UsePerpsPositionDataProps {
   coin: string;
@@ -199,7 +199,7 @@ export const usePerpsPositionData = ({
     if (!priceData?.price) return;
 
     const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
-    const currentPrice = parseFloat(priceData.price.toString());
+    const currentPrice = Number.parseFloat(priceData.price.toString());
 
     setLiveCandle((prevLive) => {
       // If no previous live candle or time period changed, create new one
@@ -215,8 +215,8 @@ export const usePerpsPositionData = ({
       }
 
       // Update existing live candle with new price
-      const prevHigh = parseFloat(prevLive.high);
-      const prevLow = parseFloat(prevLive.low);
+      const prevHigh = Number.parseFloat(prevLive.high);
+      const prevLow = Number.parseFloat(prevLive.low);
       const newHigh = Math.max(prevHigh, currentPrice).toString();
       const newLow = Math.min(prevLow, currentPrice).toString();
       const newClose = currentPrice.toString();
