@@ -1,6 +1,7 @@
 import { strings } from '../../../../../locales/i18n';
 import { OrderParams, Order } from '../controllers/types';
 import { Position } from '../hooks';
+import { capitalizeFirst } from './textUtils';
 
 /**
  * Get the order direction based on the side and position size
@@ -81,10 +82,10 @@ export const formatOrderLabel = (order: Order): string => {
   let direction: string;
   if (isClosing) {
     // For closing orders: sell closes long, buy closes short
-    direction = side === 'sell' ? 'Long' : 'Short';
+    direction = side === 'sell' ? 'long' : 'short';
   } else {
     // For opening orders: buy is long, sell is short
-    direction = side === 'buy' ? 'Long' : 'Short';
+    direction = side === 'buy' ? 'long' : 'short';
   }
 
   // Get the order type string
@@ -95,10 +96,10 @@ export const formatOrderLabel = (order: Order): string => {
 
   // Build the label: [Type] [Close?] [Direction]
   if (isClosing) {
-    return `${typeString} Close ${direction}`;
+    return capitalizeFirst(`${typeString} close ${direction}`);
   }
 
-  return `${typeString} ${direction}`;
+  return capitalizeFirst(`${typeString} ${direction}`);
 };
 
 /**

@@ -20,7 +20,7 @@ describe('orderUtils', () => {
         isTrigger: false,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market Long');
+      expect(formatOrderLabel(order)).toBe('Market long');
     });
 
     it('should format opening short market order', () => {
@@ -40,7 +40,7 @@ describe('orderUtils', () => {
         isTrigger: false,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market Short');
+      expect(formatOrderLabel(order)).toBe('Market short');
     });
 
     it('should format closing long market order (sell side with reduceOnly)', () => {
@@ -60,7 +60,7 @@ describe('orderUtils', () => {
         isTrigger: false,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market Close Long');
+      expect(formatOrderLabel(order)).toBe('Market close long');
     });
 
     it('should format closing short market order (buy side with reduceOnly)', () => {
@@ -80,7 +80,7 @@ describe('orderUtils', () => {
         isTrigger: false,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market Close Short');
+      expect(formatOrderLabel(order)).toBe('Market close short');
     });
 
     it('should format limit long order', () => {
@@ -100,7 +100,7 @@ describe('orderUtils', () => {
         isTrigger: false,
       };
 
-      expect(formatOrderLabel(order)).toBe('Limit Long');
+      expect(formatOrderLabel(order)).toBe('Limit long');
     });
 
     it('should format limit close short order', () => {
@@ -120,7 +120,7 @@ describe('orderUtils', () => {
         isTrigger: false,
       };
 
-      expect(formatOrderLabel(order)).toBe('Limit Close Short');
+      expect(formatOrderLabel(order)).toBe('Limit close short');
     });
 
     it('should use detailedOrderType when available for Stop Market', () => {
@@ -141,7 +141,7 @@ describe('orderUtils', () => {
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Stop Market Close Long');
+      expect(formatOrderLabel(order)).toBe('Stop market close long');
     });
 
     it('should use detailedOrderType for Take Profit Limit', () => {
@@ -162,7 +162,7 @@ describe('orderUtils', () => {
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Take Profit Limit Close Long');
+      expect(formatOrderLabel(order)).toBe('Take profit limit close long');
     });
 
     it('should handle trigger orders as closing orders', () => {
@@ -182,7 +182,7 @@ describe('orderUtils', () => {
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market Close Short');
+      expect(formatOrderLabel(order)).toBe('Market close short');
     });
   });
 

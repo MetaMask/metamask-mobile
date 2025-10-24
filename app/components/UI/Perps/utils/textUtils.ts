@@ -37,3 +37,12 @@ export const createFontScaleHandler =
       config.setter(newFontSize);
     }
   };
+
+/**
+ * Capitalizes the first letter and lowercases the rest
+ * @param str - String to capitalize
+ * @returns Capitalized string
+ * @example capitalizeFirst('HELLO WORLD') → 'Hello world'
+ */
+export const capitalizeFirst = (str: string): string =>
+  str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
