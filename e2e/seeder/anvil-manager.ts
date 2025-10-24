@@ -7,6 +7,7 @@ import { AnvilPort } from '../framework/fixtures/FixtureUtils';
 import { AnvilNodeOptions } from '../framework/types';
 import { createLogger } from '../framework/logger';
 import { execSync } from 'child_process';
+import fs from 'fs';
 
 const logger = createLogger({
   name: 'AnvilManager',
@@ -160,11 +161,11 @@ class AnvilManager {
       '.bin',
       'anvil',
     );
-    this.anvilBinary = localAnvil;
-    const versionOutput = execSync(`${localAnvil} --version`, {
+    this.anvilBinary = fs.existsSync(localAnvil) ? localAnvil : 'anvil';
+    const versionOutput = execSync(`${this.anvilBinary} --version`, {
       encoding: 'utf-8',
     });
-    logger.debug('CHRIS:: versionOutput', versionOutput);
+    logger.debug('Anvil Version:', versionOutput);
 
     // First try the configured port, then find an available one if it fails
     const initialPort = opts.port || AnvilPort();
