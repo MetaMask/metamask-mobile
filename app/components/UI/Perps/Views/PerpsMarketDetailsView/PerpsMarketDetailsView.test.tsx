@@ -39,6 +39,16 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
+// Mock usePerpsSelector to provide default candle period
+jest.mock('../../hooks/usePerpsSelector', () => ({
+  usePerpsSelector: jest.fn((selector) => {
+    const state = {
+      preferredCandlePeriod: '15m', // Default to 15 minutes
+    };
+    return selector(state);
+  }),
+}));
+
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
