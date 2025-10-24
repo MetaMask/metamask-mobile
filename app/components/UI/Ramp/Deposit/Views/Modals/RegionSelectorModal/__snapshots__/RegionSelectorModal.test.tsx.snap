@@ -4340,7 +4340,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
 </View>
 `;
 
-exports[`RegionSelectorModal Component render matches snapshot with custom isRegionSelectable behavior 1`] = `
+exports[`RegionSelectorModal Component render matches snapshot with allRegionsSelectable set to true 1`] = `
 <View
   style={
     {
@@ -5190,7 +5190,8 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  disabled={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
@@ -5244,7 +5245,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#121314",
                                                   "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -5260,7 +5261,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#121314",
                                                   "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -5285,7 +5286,8 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  disabled={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
@@ -5339,7 +5341,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#121314",
                                                   "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -5355,7 +5357,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#121314",
                                                   "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -5380,7 +5382,8 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
-                                  disabled={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
@@ -5434,7 +5437,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#121314",
                                                   "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -5450,7 +5453,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#121314",
                                                   "fontFamily": "Geist Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -5484,7 +5487,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom isReg
 </View>
 `;
 
-exports[`RegionSelectorModal Component render matches snapshot with custom shouldDisplaySelectedStyles behavior 1`] = `
+exports[`RegionSelectorModal Component render matches snapshot with custom selectedRegion 1`] = `
 <View
   style={
     {
@@ -6173,7 +6176,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom shoul
                                 },
                               ]
                             }
-                            extraData="US"
+                            extraData="DE"
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={-1}

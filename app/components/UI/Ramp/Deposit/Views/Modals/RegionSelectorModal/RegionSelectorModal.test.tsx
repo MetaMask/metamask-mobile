@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { DepositRegion } from '@consensys/native-ramps-sdk';
 import RegionSelectorModal from './RegionSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
@@ -64,7 +63,6 @@ describe('RegionSelectorModal Component', () => {
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: undefined,
-      behavior: undefined,
     });
 
     mockTrackEvent.mockClear();
@@ -197,13 +195,11 @@ describe('RegionSelectorModal Component', () => {
     );
   });
 
-  it('does not update global region when behavior.updateGlobalRegion is false', () => {
+  it('does not update global region when updateGlobalRegion is false', () => {
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: undefined,
-      behavior: {
-        updateGlobalRegion: false,
-      },
+      updateGlobalRegion: false,
     });
 
     const { getByText } = renderWithProvider(RegionSelectorModal);
@@ -214,13 +210,11 @@ describe('RegionSelectorModal Component', () => {
     expect(mockSetSelectedRegion).not.toHaveBeenCalled();
   });
 
-  it('does not track analytics when behavior.trackSelection is false', () => {
+  it('does not track analytics when trackSelection is false', () => {
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: undefined,
-      behavior: {
-        trackSelection: false,
-      },
+      trackSelection: false,
     });
 
     const { getByText } = renderWithProvider(RegionSelectorModal);
@@ -231,13 +225,11 @@ describe('RegionSelectorModal Component', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('render matches snapshot with custom isRegionSelectable behavior', () => {
+  it('render matches snapshot with allRegionsSelectable set to true', () => {
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: undefined,
-      behavior: {
-        isRegionSelectable: (region: DepositRegion) => region.isoCode === 'US',
-      },
+      allRegionsSelectable: true,
     });
 
     const { toJSON } = renderWithProvider(RegionSelectorModal);
@@ -245,14 +237,13 @@ describe('RegionSelectorModal Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('render matches snapshot with custom shouldDisplaySelectedStyles behavior', () => {
+  it('render matches snapshot with custom selectedRegion', () => {
+    const germanyRegion = mockRegions.find((r) => r.isoCode === 'DE');
+
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: undefined,
-      behavior: {
-        shouldDisplaySelectedStyles: (region: DepositRegion) =>
-          region.isoCode === 'DE',
-      },
+      selectedRegion: germanyRegion,
     });
 
     const { toJSON } = renderWithProvider(RegionSelectorModal);
@@ -260,23 +251,27 @@ describe('RegionSelectorModal Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('respects custom isRegionSelectable when selecting regions', () => {
+  it('allows selection of unsupported regions when allRegionsSelectable is true', () => {
     const mockOnRegionSelect = jest.fn();
 
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: mockOnRegionSelect,
-      behavior: {
-        isRegionSelectable: (region: DepositRegion) => region.isoCode === 'US',
-      },
+      allRegionsSelectable: true,
     });
 
     const { getByText } = renderWithProvider(RegionSelectorModal);
-    const germanyRegion = getByText('Germany');
+    const canadaRegion = getByText('Canada');
 
-    fireEvent.press(germanyRegion);
+    fireEvent.press(canadaRegion);
 
-    expect(mockOnRegionSelect).not.toHaveBeenCalled();
-    expect(mockSetSelectedRegion).not.toHaveBeenCalled();
+    expect(mockOnRegionSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isoCode: 'CA',
+        name: 'Canada',
+        supported: false,
+      }),
+    );
+    expect(mockSetSelectedRegion).toHaveBeenCalled();
   });
 });

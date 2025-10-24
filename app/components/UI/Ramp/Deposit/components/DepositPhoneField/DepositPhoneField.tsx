@@ -82,17 +82,13 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         ...createRegionSelectorModalNavigationDetails({
           regions,
           onRegionSelect: setPhoneRegion,
-
-          behavior: {
-            shouldDisplaySelectedStyles: (region: DepositRegion) =>
-              region.isoCode === phoneRegion?.isoCode,
-            isRegionSelectable: (_) => true,
-            updateGlobalRegion: false,
-            trackSelection: false,
-          },
+          selectedRegion: phoneRegion,
+          allRegionsSelectable: true,
+          updateGlobalRegion: false,
+          trackSelection: false,
         }),
       );
-    }, [navigation, regions, setPhoneRegion, phoneRegion?.isoCode]);
+    }, [navigation, regions, setPhoneRegion, phoneRegion]);
 
     const countryPrefixAccessory = (
       <TouchableOpacity

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
 import { DepositRegion } from '@consensys/native-ramps-sdk';
 import {
@@ -122,6 +122,11 @@ describe('DepositPhoneField', () => {
   it('opens region selector modal when flag is pressed', () => {
     const testRegions = [MOCK_US_REGION, MOCK_EUR_REGION];
 
+    (mockUseDepositSDK as jest.Mock).mockReturnValue({
+      selectedRegion: MOCK_US_REGION,
+      setSelectedRegion: mockSetSelectedRegion,
+    });
+
     const { getByRole } = render(
       <DepositPhoneField {...defaultProps} regions={testRegions} />,
     );
@@ -134,12 +139,10 @@ describe('DepositPhoneField', () => {
       params: {
         regions: testRegions,
         onRegionSelect: expect.any(Function),
-        behavior: {
-          isRegionSelectable: expect.any(Function),
-          shouldDisplaySelectedStyles: expect.any(Function),
-          updateGlobalRegion: false,
-          trackSelection: false,
-        },
+        selectedRegion: MOCK_US_REGION,
+        allRegionsSelectable: true,
+        updateGlobalRegion: false,
+        trackSelection: false,
       },
     });
   });
@@ -161,9 +164,11 @@ describe('DepositPhoneField', () => {
     const flagButton = getByRole('button');
     fireEvent.press(flagButton);
 
-    if (capturedOnRegionSelect) {
-      capturedOnRegionSelect(MOCK_EUR_REGION);
-    }
+    act(() => {
+      if (capturedOnRegionSelect) {
+        capturedOnRegionSelect(MOCK_EUR_REGION);
+      }
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -343,12 +348,10 @@ describe('DepositPhoneField', () => {
         params: {
           regions: testRegions,
           onRegionSelect: expect.any(Function),
-          behavior: {
-            isRegionSelectable: expect.any(Function),
-            shouldDisplaySelectedStyles: expect.any(Function),
-            updateGlobalRegion: false,
-            trackSelection: false,
-          },
+          selectedRegion: testRegions[0],
+          allRegionsSelectable: true,
+          updateGlobalRegion: false,
+          trackSelection: false,
         },
       });
     });
@@ -373,12 +376,10 @@ describe('DepositPhoneField', () => {
         params: {
           regions: testRegions,
           onRegionSelect: expect.any(Function),
-          behavior: {
-            isRegionSelectable: expect.any(Function),
-            shouldDisplaySelectedStyles: expect.any(Function),
-            updateGlobalRegion: false,
-            trackSelection: false,
-          },
+          selectedRegion: testRegions[0],
+          allRegionsSelectable: true,
+          updateGlobalRegion: false,
+          trackSelection: false,
         },
       });
     });

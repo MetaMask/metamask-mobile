@@ -1115,7 +1115,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             }
           }
         >
-          🇩🇪
+          🇺🇸
         </Text>
         <Text
           accessibilityRole="text"
@@ -1130,7 +1130,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             }
           }
         >
-          +49
+          +1
         </Text>
       </TouchableOpacity>
     </View>
@@ -1151,7 +1151,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
-        placeholder="30 12345678"
+        placeholder="(555) 123-4567"
         placeholderTextColor="#b7bbc8"
         style={
           {

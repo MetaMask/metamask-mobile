@@ -34,17 +34,26 @@ const MAX_REGION_RESULTS = 20;
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
   onRegionSelect?: (region: DepositRegion) => void;
-
-  behavior?: {
-    /**
-     * Custom filter function to determine if a region is selectable.
-     * If not provided, defaults to checking region.supported
-     */
-    shouldDisplaySelectedStyles?: (region: DepositRegion) => boolean;
-    isRegionSelectable?: (region: DepositRegion) => boolean;
-    updateGlobalRegion?: boolean;
-    trackSelection?: boolean;
-  };
+  /**
+   * Region to display as selected. Overrides the SDK's selectedRegion.
+   * Comparison is done by isoCode.
+   */
+  selectedRegion?: DepositRegion;
+  /**
+   * If true, all regions are selectable regardless of their supported status.
+   * If false/undefined, only regions with supported=true are selectable.
+   */
+  allRegionsSelectable?: boolean;
+  /**
+   * Whether to update the global region in the SDK when a region is selected.
+   * Defaults to true.
+   */
+  updateGlobalRegion?: boolean;
+  /**
+   * Whether to track the region selection event.
+   * Defaults to true.
+   */
+  trackSelection?: boolean;
 }
 
 export const createRegionSelectorModalNavigationDetails =
@@ -57,22 +66,21 @@ function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<DepositRegion>>(null);
 
-  const { selectedRegion, setSelectedRegion, isAuthenticated } =
-    useDepositSDK();
-  const { regions, onRegionSelect, behavior } =
-    useParams<RegionSelectorModalParams>();
+  const {
+    selectedRegion: sdkSelectedRegion,
+    setSelectedRegion,
+    isAuthenticated,
+  } = useDepositSDK();
+  const {
+    regions,
+    onRegionSelect,
+    selectedRegion: selectedRegionParam,
+    allRegionsSelectable = false,
+    updateGlobalRegion = true,
+    trackSelection = true,
+  } = useParams<RegionSelectorModalParams>();
 
-  const behaviorConfig = useMemo(
-    () => ({
-      shouldDisplaySelectedStyles: (region: DepositRegion) =>
-        region.isoCode === selectedRegion?.isoCode,
-      isRegionSelectable: (region: DepositRegion) => region.supported,
-      updateGlobalRegion: true,
-      trackSelection: true,
-      ...behavior,
-    }),
-    [behavior, selectedRegion?.isoCode],
-  );
+  const selectedRegion = selectedRegionParam ?? sdkSelectedRegion;
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -120,23 +128,20 @@ function RegionSelectorModal() {
     }
   }, []);
 
-  const isSelectable = useCallback(
-    (region: DepositRegion) => behaviorConfig.isRegionSelectable(region),
-    [behaviorConfig],
-  );
-
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (isSelectable(region)) {
+      const isSelectable = allRegionsSelectable || region.supported;
+
+      if (isSelectable) {
         if (onRegionSelect) {
           onRegionSelect(region);
         }
 
-        if (behaviorConfig.updateGlobalRegion) {
+        if (updateGlobalRegion) {
           setSelectedRegion(region);
         }
 
-        if (behaviorConfig.trackSelection) {
+        if (trackSelection) {
           trackEvent('RAMPS_REGION_SELECTED', {
             ramp_type: 'DEPOSIT',
             region: region.isoCode,
@@ -149,60 +154,62 @@ function RegionSelectorModal() {
     },
     [
       onRegionSelect,
-      behaviorConfig,
+      allRegionsSelectable,
+      updateGlobalRegion,
+      trackSelection,
       trackEvent,
       isAuthenticated,
       setSelectedRegion,
-      isSelectable,
     ],
   );
 
   const renderRegionItem = useCallback(
-    ({ item: region }: { item: DepositRegion }) => (
-      <ListItemSelect
-        shouldEnableAndroidPressIn
-        isSelected={behaviorConfig.shouldDisplaySelectedStyles(region)}
-        onPress={() => {
-          handleOnRegionPressCallback(region);
-        }}
-        accessibilityRole="button"
-        accessible
-        disabled={!isSelectable(region)}
-      >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.region}>
-            <View style={styles.emoji}>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  isSelectable(region)
-                    ? TextColor.Default
-                    : TextColor.Alternative
-                }
-              >
-                {region.flag}
-              </Text>
+    ({ item: region }: { item: DepositRegion }) => {
+      const isSelected = region.isoCode === selectedRegion?.isoCode;
+      const isSelectable = allRegionsSelectable || region.supported;
+
+      return (
+        <ListItemSelect
+          shouldEnableAndroidPressIn
+          isSelected={isSelected}
+          onPress={() => {
+            handleOnRegionPressCallback(region);
+          }}
+          accessibilityRole="button"
+          accessible
+          disabled={!isSelectable}
+        >
+          <ListItemColumn widthType={WidthType.Fill}>
+            <View style={styles.region}>
+              <View style={styles.emoji}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={
+                    isSelectable ? TextColor.Default : TextColor.Alternative
+                  }
+                >
+                  {region.flag}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={
+                    isSelectable ? TextColor.Default : TextColor.Alternative
+                  }
+                >
+                  {region.name}
+                </Text>
+              </View>
             </View>
-            <View>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  isSelectable(region)
-                    ? TextColor.Default
-                    : TextColor.Alternative
-                }
-              >
-                {region.name}
-              </Text>
-            </View>
-          </View>
-        </ListItemColumn>
-      </ListItemSelect>
-    ),
+          </ListItemColumn>
+        </ListItemSelect>
+      );
+    },
     [
-      behaviorConfig,
+      selectedRegion?.isoCode,
+      allRegionsSelectable,
       handleOnRegionPressCallback,
-      isSelectable,
       styles.region,
       styles.emoji,
     ],
