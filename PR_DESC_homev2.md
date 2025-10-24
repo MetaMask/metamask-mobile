@@ -1,6 +1,6 @@
 ## **Description**
 
-This PR implements six major improvements to the Perps trading interface, delivered as a cohesive enhancement to the user experience:
+This PR implements seven major improvements to the Perps trading interface, delivered as a cohesive enhancement to the user experience:
 
 ### 1. **Perps Home Screen v2** (TAT-1538)
 
@@ -21,6 +21,7 @@ Added comprehensive market sorting capabilities accessible via the "See all" but
 - **Search**: Real-time market search by symbol/name
 - **Watchlist Filter**: Optional toggle to show only favorited markets
 - **Bottom Sheet Selection**: Native bottom sheet with checkmark indicators for selected options
+- **Persistent Preferences**: User's sort field and direction preferences saved per network (testnet/mainnet) in controller state, applied automatically on next visit
 
 #### Design Decision: 24h Timeframe Only
 
@@ -87,6 +88,17 @@ Implemented smart leverage defaults that remember user preferences per market:
 - **Protocol Awareness**: Existing position logic unchanged - HyperLiquid still enforces new orders >= existing position leverage to prevent failures
 - **Extensible Structure**: State structure allows future additions (e.g., size, TP/SL presets)
 
+### 7. **WebSocket Cache Optimization**
+
+Implemented cache-first pattern for position and order data to eliminate redundant API calls:
+
+- **Cache-First Pattern**: `getPositions()` and `getOpenOrders()` methods now check WebSocket cache before making API calls
+- **Real-Time Data**: Cache maintained by active WebSocket subscriptions provides fresher data than REST API
+- **Performance Impact**: Reduces API load and improves response times across home screen, positions list, and order views
+- **Smart Fallback**: Optional `skipCache` parameter available for scenarios requiring guaranteed fresh data from API
+- **Architecture**: Subscription service maintains synchronized caches (`cachedPositions`, `cachedOrders`) updated in real-time via WebSocket events
+- **Benefits All Features**: Optimization benefits every feature in this PR - home carousels, batch operations, and navigation all leverage instant cached data
+
 ### Technical Improvements
 
 - **No Breaking Changes**: Maintained all existing routes and component APIs
@@ -94,8 +106,7 @@ Implemented smart leverage defaults that remember user preferences per market:
 - **Performance**: Parallel execution for batch operations with partial success handling
 - **Type Safety**: Complete TypeScript types for all new hooks, components, and controller methods
 - **Consistent Patterns**: All hooks use object parameter pattern for extensibility
-- **No Pull-to-Refresh**: Intentionally omitted from PerpsHomeView because 95% of data (positions, orders, activity) auto-updates via WebSocket. Only markets data uses REST API and changes infrequently. This prevents false expectations where users pull-to-refresh but see no visible change since data is already live.
-- **WebSocket Cache Optimization**: Implemented cache-first pattern for `getPositions()` and `getOpenOrders()` methods to leverage real-time WebSocket subscription data instead of making redundant API calls. Both methods now check the WebSocket cache first (when initialized) and fall back to API calls only when needed. Added optional `skipCache` parameter to both methods for scenarios requiring fresh data. This optimization reduces API load, improves response times, and provides more up-to-date data since the cache is maintained by active WebSocket subscriptions.
+- **No Pull-to-Refresh**: Intentionally omitted from PerpsHomeView because 95% of data (positions, orders, activity) auto-updates via WebSocket (see Section 7). Only markets data uses REST API and changes infrequently. This prevents false expectations where users pull-to-refresh but see no visible change since data is already live.
 
 ## **Changelog**
 
