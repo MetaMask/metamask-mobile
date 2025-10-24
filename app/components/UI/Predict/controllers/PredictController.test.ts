@@ -20,8 +20,6 @@ import {
   PredictController,
   type PredictControllerState,
 } from './PredictController';
-import type { OrderPreview } from '../providers/types';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
