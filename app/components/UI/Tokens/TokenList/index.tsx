@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { View, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList, FlashListRef, FlashListProps } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -13,7 +13,6 @@ import TextComponent, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem, TokenListItemBip44 } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
@@ -33,6 +32,7 @@ interface TokenListProps {
   showRemoveMenu: (arg: TokenI) => void;
   showPercentageChange?: boolean;
   setShowScamWarningModal: () => void;
+  flashListProps?: Partial<FlashListProps<FlashListAssetKey>>;
 }
 
 const TokenListComponent = ({
@@ -42,6 +42,7 @@ const TokenListComponent = ({
   showRemoveMenu,
   showPercentageChange = true,
   setShowScamWarningModal,
+  flashListProps,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -107,7 +108,6 @@ const TokenListComponent = ({
         return `${item.address}-${item.chainId}-${staked}-${idx}`;
       }}
       decelerationRate="fast"
-      ListFooterComponent={<TokenListFooter />}
       refreshControl={
         <RefreshControl
           colors={[colors.primary.default]}
@@ -117,7 +117,7 @@ const TokenListComponent = ({
         />
       }
       extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
-      scrollEnabled
+      {...flashListProps}
     />
   ) : (
     <View style={styles.emptyView}>
