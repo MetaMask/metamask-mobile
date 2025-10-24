@@ -32,6 +32,7 @@ const mainFeatureSet = new Set([
   'multi-srp',
   'solana',
   'bitcoin',
+  'tron',
 ]);
 const betaFeatureSet = new Set([
   'beta',

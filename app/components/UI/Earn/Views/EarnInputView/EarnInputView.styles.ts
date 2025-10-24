@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
+import { BackgroundColor } from '../../../Box/box.types';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -61,7 +62,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     toggleButtonBase: {
-      backgroundColor: 'transparent',
+      backgroundColor: BackgroundColor.transparent,
       borderWidth: 0,
     },
     toggleSlider: {
