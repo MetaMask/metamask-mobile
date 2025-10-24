@@ -33,6 +33,16 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   },
 }));
 
+// Mock usePredictActionGuard hook
+const mockExecuteGuardedAction = jest.fn((action) => action());
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+    isEligible: true,
+    hasNoBalance: false,
+  }),
+}));
+
 // Mock Clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -62,6 +72,9 @@ describe('PredictBalance', () => {
       deposit: jest.fn(),
       status: 'IDLE',
     });
+
+    // Reset executeGuardedAction mock to default behavior
+    mockExecuteGuardedAction.mockImplementation((action) => action());
   });
 
   afterEach(() => {

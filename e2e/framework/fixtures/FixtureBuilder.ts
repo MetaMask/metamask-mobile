@@ -6,7 +6,7 @@ import {
   getTestDappLocalUrlByDappCounter,
 } from './FixtureUtils';
 import { merge } from 'lodash';
-import { encryptVault } from './FixtureHelper';
+import { encryptVault } from './helpers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import {
@@ -1345,6 +1345,43 @@ class FixtureBuilder {
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
     // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
+  }
+
+  /**
+   * Configure Polygon network to route through mock server proxy
+   * This allows RPC calls to be intercepted by the mock server
+   */
+  withPolygon(chainId = CHAIN_IDS.POLYGON) {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    const polygonNetworkConfig = {
+      chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: `http://localhost:${getMockServerPort()}/proxy?url=https://polygon-rpc.com`,
+          type: 'custom',
+          name: 'Polygon Localhost',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      blockExplorerUrls: ['https://polygonscan.com'],
+      name: 'Polygon Localhost',
+      nativeCurrency: 'MATIC',
+    };
+
+    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
+      polygonNetworkConfig;
+
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
     return this.ensureSolanaModalSuppressed();
   }
 
