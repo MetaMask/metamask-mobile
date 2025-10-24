@@ -49,16 +49,6 @@ export class AuthorizationFailedError extends Error {
   }
 }
 
-/**
- * Custom error for account already registered (409 conflict)
- */
-export class AccountAlreadyRegisteredError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AccountAlreadyRegisteredError';
-  }
-}
-
 const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
@@ -376,27 +366,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Check if the error response is a 409 conflict with "already registered" message
-   * and throw AccountAlreadyRegisteredError if so.
-   * @param response - The HTTP response object
-   * @param errorData - The parsed error data from the response
-   * @private
-   */
-  private checkForAccountAlreadyRegisteredError(
-    response: Response,
-    errorData: { message?: string },
-  ): void {
-    if (
-      response.status === 409 &&
-      errorData?.message?.toLowerCase().includes('already registered')
-    ) {
-      throw new AccountAlreadyRegisteredError(
-        errorData.message || 'Account is already registered',
-      );
-    }
-  }
-
-  /**
    * Perform login via signature for the current account.
    * @param body - The login request body containing account, timestamp, and signature.
    * @returns The login response DTO.
@@ -423,9 +392,6 @@ export class RewardsDataService {
           Math.floor(Number(errorData.serverTimestamp) / 1000),
         );
       }
-
-      this.checkForAccountAlreadyRegisteredError(response, errorData);
-
       throw new Error(`Login failed: ${response.status}`);
     }
 
@@ -571,9 +537,6 @@ export class RewardsDataService {
           Math.floor(Number(errorData.serverTimestamp) / 1000),
         );
       }
-
-      this.checkForAccountAlreadyRegisteredError(response, errorData);
-
       throw new Error(`Optin failed: ${response.status}`);
     }
 
@@ -743,9 +706,6 @@ export class RewardsDataService {
           Math.floor(Number(errorData.serverTimestamp) / 1000),
         );
       }
-
-      this.checkForAccountAlreadyRegisteredError(response, errorData);
-
       throw new Error(
         `Mobile join failed: ${response.status} ${errorData?.message || ''}`,
       );

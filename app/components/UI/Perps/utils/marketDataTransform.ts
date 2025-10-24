@@ -5,18 +5,14 @@ import type {
   PredictedFunding,
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import {
-  HYPERLIQUID_CONFIG,
-  HIP3_DEX_MARKET_TYPES,
-} from '../constants/hyperLiquidConfig';
-import type { PerpsMarketData, MarketType } from '../controllers/types';
+import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
+import type { PerpsMarketData } from '../controllers/types';
 import {
   formatVolume,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import { parseAssetName } from './hyperLiquidAdapter';
 
 /**
  * HyperLiquid-specific market data structure
@@ -141,13 +137,14 @@ export function transformMarketData(
 ): PerpsMarketData[] {
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
-  return universe.map((asset, index) => {
+  return universe.map((asset) => {
     const symbol = asset.name;
     const currentPrice = parseFloat(allMids[symbol]);
 
     // Find matching asset context for additional data
-    // The assetCtxs array is aligned with universe array by index
-    const assetCtx = assetCtxs[index];
+    // Note: assetCtxs array from metaAndAssetCtxs might have different structure
+    // The array index should correspond to the universe array index
+    const assetCtx = assetCtxs[universe.indexOf(asset)];
 
     // Calculate 24h change
     const prevDayPrice = assetCtx ? parseFloat(assetCtx.prevDayPx) : 0;
@@ -191,19 +188,12 @@ export function transformMarketData(
       fundingRate = fundingData.predictedFundingRate;
     }
 
-    // Extract DEX and determine market type for badge display
-    const { dex } = parseAssetName(symbol);
-    const marketSource = dex || undefined;
-    const marketType: MarketType | undefined = dex
-      ? HIP3_DEX_MARKET_TYPES[dex as keyof typeof HIP3_DEX_MARKET_TYPES]
-      : undefined;
-
     return {
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
-        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        ? '$0.00'
         : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
       change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
@@ -215,8 +205,6 @@ export function transformMarketData(
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,
-      marketSource,
-      marketType,
     };
   });
 }

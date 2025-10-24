@@ -17,7 +17,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
@@ -28,14 +27,15 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import type { PerpsNavigationParamList } from '../../controllers/types';
+import { TraceName } from '../../../../../util/trace';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
 } from '../../hooks';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
@@ -119,7 +119,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       style={styles.startTradeCTA}
       onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
-      shouldEnableAndroidPressIn
     >
       <View style={styles.startTradeContent}>
         <View style={styles.startTradeIconContainer}>

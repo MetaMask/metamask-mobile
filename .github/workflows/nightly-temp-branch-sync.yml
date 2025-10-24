@@ -6,9 +6,9 @@ permissions:
 
 on:
   schedule:
-    # Run at 4 AM UTC
+    # Run at 11 PM UTC daily (adjust timezone as needed)
     # NOTE: Scheduled workflows ALWAYS run from the default branch (main)
-    - cron: '0 4 * * *'
+    - cron: '0 23 * * *'
   
   # Allow manual trigger for testing from ANY branch
   workflow_dispatch:

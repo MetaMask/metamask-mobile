@@ -8,7 +8,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import { PerpsTestnetToggle } from './PerpsTestnetToggle';
 import { PerpsConnectionErrorButton } from './PerpsConnectionErrorButton';
-import { PerpsHIP3DebugButton } from './PerpsHIP3DebugButton';
 
 const PerpsDeveloperOptionsSectionStyles = () =>
   StyleSheet.create({
@@ -35,7 +34,6 @@ export const PerpsDeveloperOptionsSection = () => {
       </Text>
       <PerpsTestnetToggle />
       <PerpsConnectionErrorButton />
-      <PerpsHIP3DebugButton />
     </View>
   );
 };

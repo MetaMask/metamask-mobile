@@ -108,7 +108,6 @@ import {
 import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 
 // Navigation params interface
@@ -835,11 +834,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
+  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
   const orderButtonKey =
     orderForm.direction === 'long'
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
-  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, { asset: orderForm.asset });
@@ -853,18 +852,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
       ),
   );
 
-  let rewardAnimationState = RewardAnimationState.Idle;
-  if (rewardsState.isLoading) {
-    rewardAnimationState = RewardAnimationState.Loading;
-  } else if (rewardsState.hasError) {
-    rewardAnimationState = RewardAnimationState.ErrorState;
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
       <PerpsOrderHeader
-        asset={getPerpsDisplaySymbol(orderForm.asset)}
+        asset={orderForm.asset}
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderForm.type}
@@ -883,7 +875,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
-          tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
+          tokenSymbol={orderForm.asset}
           hasError={availableBalance > 0 && !!filteredErrors.length}
         />
 
@@ -1161,7 +1153,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
                       strings('perps.points_error_content'),
                     )
                   }
-                  state={rewardAnimationState}
+                  state={(() => {
+                    if (rewardsState.isLoading)
+                      return RewardAnimationState.Loading;
+                    if (rewardsState.hasError)
+                      return RewardAnimationState.ErrorState;
+                    return RewardAnimationState.Idle;
+                  })()}
                 />
               </View>
             </View>

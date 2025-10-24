@@ -40,8 +40,14 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
         onPress={() =>
-          navigation.navigate(Routes.PREDICT.ROOT, {
-            screen: Routes.PREDICT.MARKET_LIST,
+          navigation.navigate(Routes.WALLET.HOME, {
+            screen: Routes.WALLET.TAB_STACK_FLOW,
+            params: {
+              screen: Routes.PREDICT.ROOT,
+              params: {
+                screen: Routes.PREDICT.MARKET_LIST,
+              },
+            },
           })
         }
         label={strings('predict.tab.explore')}

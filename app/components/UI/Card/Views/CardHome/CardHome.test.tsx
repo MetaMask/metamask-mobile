@@ -52,7 +52,6 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
 import useCardDetails from '../../hooks/useCardDetails';
-import { useCardProvision } from '../../hooks/useCardProvision';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -110,8 +109,6 @@ const mockDispatch = jest.fn();
 const mockOpenSwaps = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-const mockProvisionCard = jest.fn();
-const mockPollCardStatusUntilProvisioned = jest.fn();
 
 const mockEventBuilder = {
   addProperties: jest.fn().mockReturnThis(),
@@ -166,10 +163,6 @@ jest.mock('../../hooks/useIsCardholder', () => ({
 jest.mock('../../hooks/useCardDetails', () => ({
   __esModule: true,
   default: jest.fn(),
-}));
-
-jest.mock('../../hooks/useCardProvision', () => ({
-  useCardProvision: jest.fn(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -301,15 +294,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.error_title': 'Unable to load card',
       'card.card_home.error_description': 'Please try again later',
       'card.card_home.try_again': 'Try again',
-      'card.card_home.enable_card_button_label': 'Enable card',
-      'card.card_home.enable_assets_button_label': 'Enable assets',
-      'card.card_home.change_asset': 'Change asset',
-      'card.card_home.manage_card_options.manage_spending_limit':
-        'Manage spending limit',
-      'card.card_home.manage_card_options.manage_spending_limit_description_full':
-        'Full spending access',
-      'card.card_home.manage_card_options.manage_spending_limit_description_restricted':
-        'Restricted spending',
     };
     return strings[key] || key;
   },
@@ -481,16 +465,8 @@ describe('CardHome Component', () => {
     (useCardDetails as jest.Mock).mockReturnValue({
       cardDetails: { type: 'virtual' },
       fetchCardDetails: jest.fn(),
-      pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
       isLoading: false,
-      isLoadingPollCardStatusUntilProvisioned: false,
       error: null,
-      warning: null,
-    });
-
-    (useCardProvision as jest.Mock).mockReturnValue({
-      provisionCard: mockProvisionCard,
-      isLoading: false,
     });
 
     (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
@@ -1327,11 +1303,8 @@ describe('CardHome Component', () => {
       (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: { type: CardType.PHYSICAL },
         fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: null,
-        warning: null,
       });
 
       // When: component renders
@@ -1347,11 +1320,8 @@ describe('CardHome Component', () => {
       (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
         fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: null,
-        warning: null,
       });
 
       // When: component renders
@@ -1366,11 +1336,8 @@ describe('CardHome Component', () => {
       (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
         fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: 'Failed to fetch card details',
-        warning: null,
       });
 
       // When: component renders
@@ -1387,11 +1354,8 @@ describe('CardHome Component', () => {
       (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: 'Failed to fetch card details',
-        warning: null,
       });
 
       render();
@@ -1421,11 +1385,8 @@ describe('CardHome Component', () => {
       (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
         fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: true,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: null,
-        warning: null,
       });
 
       // When: component renders
@@ -1453,11 +1414,8 @@ describe('CardHome Component', () => {
       (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
         fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: true,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: null,
-        warning: null,
       });
 
       // When: component renders
@@ -1483,11 +1441,8 @@ describe('CardHome Component', () => {
       (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
         fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: 'Card details error',
-        warning: null,
       });
 
       // When: component renders
@@ -1567,277 +1522,6 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByText('Limited spending allowance'),
       ).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('Card Provisioning', () => {
-    it('shows enable card button when card warning is NoCard', () => {
-      // Given: no card warning
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: should show enable card button
-      expect(
-        screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-      ).toBeTruthy();
-      expect(screen.getByText('Enable card')).toBeTruthy();
-    });
-
-    it('calls provision flow when enable card button is pressed', async () => {
-      // Given: no card warning and provision will succeed
-      mockProvisionCard.mockResolvedValue({ success: true });
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      render();
-
-      // When: user presses enable card button
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should call provision and polling
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalled();
-        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
-      });
-    });
-
-    it('fetches priority token after successful provisioning', async () => {
-      // Given: provision succeeds
-      mockProvisionCard.mockResolvedValue({ success: true });
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
-      mockFetchPriorityToken.mockClear();
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      render();
-
-      // When: user successfully provisions card
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should fetch priority token after provisioning
-      await waitFor(() => {
-        expect(mockFetchPriorityToken).toHaveBeenCalled();
-      });
-    });
-
-    it('does not fetch priority token when provisioning fails', async () => {
-      // Given: provision fails
-      mockProvisionCard.mockResolvedValue({ success: true });
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(false);
-      mockFetchPriorityToken.mockClear();
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      render();
-
-      // When: provisioning fails
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should not fetch priority token
-      await waitFor(() => {
-        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
-      });
-
-      await new Promise((r) => setTimeout(r, 100));
-      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
-    });
-
-    it('disables enable card button during provisioning', () => {
-      // Given: provision is in progress
-      (useCardProvision as jest.Mock).mockReturnValueOnce({
-        provisionCard: mockProvisionCard,
-        isLoading: true,
-      });
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      // When: component renders during provisioning
-      render();
-
-      // Then: enable card button should be disabled and show loading
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      expect(enableCardButton.props.disabled).toBe(true);
-    });
-
-    it('disables enable card button during polling', () => {
-      // Given: polling is in progress
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: true,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      // When: component renders during polling
-      render();
-
-      // Then: enable card button should be disabled
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      expect(enableCardButton.props.disabled).toBe(true);
-    });
-
-    it('shows enable assets button when priority token warning is NeedDelegation', () => {
-      // Given: need delegation warning
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-        priorityToken: mockPriorityToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
-        warning: CardWarning.NeedDelegation,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: should show enable assets button
-      expect(
-        screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
-      ).toBeTruthy();
-      expect(screen.getByText('Enable assets')).toBeTruthy();
-    });
-
-    it('calls change asset action when enable assets button is pressed', async () => {
-      // Given: need delegation warning
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-        priorityToken: mockPriorityToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
-        warning: CardWarning.NeedDelegation,
-      });
-
-      render();
-
-      // When: user presses enable assets button
-      const enableAssetsButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_ASSETS_BUTTON,
-      );
-      fireEvent.press(enableAssetsButton);
-
-      // Then: should navigate to welcome (since not authenticated by default)
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
-      });
-    });
-  });
-
-  describe('Card Warning Display', () => {
-    it('displays CardWarningBox when card details has frozen warning', () => {
-      // Given: frozen card warning
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: { type: CardType.VIRTUAL },
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.Frozen,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: CardWarningBox should be displayed
-      // Note: The actual warning box content depends on CardWarningBox component
-      expect(useCardDetails).toHaveBeenCalled();
-    });
-
-    it('displays CardWarningBox when card details has blocked warning', () => {
-      // Given: blocked card warning
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: { type: CardType.VIRTUAL },
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.Blocked,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: CardWarningBox should be displayed
-      expect(useCardDetails).toHaveBeenCalled();
-    });
-
-    it('does not display CardWarningBox when no warning exists', () => {
-      // Given: no warnings
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: { type: CardType.VIRTUAL },
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: null,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: CardWarningBox should not be rendered
-      // Note: Without testID, we verify through the hook being called correctly
-      expect(useCardDetails).toHaveBeenCalled();
     });
   });
 });

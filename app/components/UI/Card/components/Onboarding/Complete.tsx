@@ -8,15 +8,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-import { useDispatch } from 'react-redux';
 
 const Complete = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
 
   const handleContinue = () => {
-    dispatch(resetOnboardingState());
     navigation.navigate(Routes.CARD.HOME);
   };
 
@@ -29,7 +25,6 @@ const Complete = () => {
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
-      testID="complete-confirm-button"
     />
   );
 

@@ -33,7 +33,7 @@ import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { AllowanceState, CardStatus, CardType, CardWarning } from '../../types';
+import { AllowanceState, CardType, CardWarning } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
@@ -54,9 +54,8 @@ import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
 import useCardDetails from '../../hooks/useCardDetails';
-import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
-import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
+import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 
 /**
@@ -99,15 +98,10 @@ const CardHome = () => {
     useAssetBalance(priorityToken);
   const {
     cardDetails,
-    pollCardStatusUntilProvisioned,
     fetchCardDetails,
     isLoading: isLoadingCardDetails,
     error: cardDetailsError,
-    warning: cardDetailsWarning,
-    isLoadingPollCardStatusUntilProvisioned,
   } = useCardDetails();
-  const { provisionCard, isLoading: isLoadingProvisionCard } =
-    useCardProvision();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken,
@@ -265,21 +259,6 @@ const CardHome = () => {
     [isLoadingPriorityToken, isLoadingCardDetails],
   );
 
-  const enableCardAction = useCallback(async () => {
-    await provisionCard();
-    const isProvisioned = await pollCardStatusUntilProvisioned();
-
-    if (isProvisioned) {
-      fetchPriorityToken();
-      changeAssetAction();
-    }
-  }, [
-    provisionCard,
-    pollCardStatusUntilProvisioned,
-    fetchPriorityToken,
-    changeAssetAction,
-  ]);
-
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
       return (
@@ -293,45 +272,7 @@ const CardHome = () => {
     }
 
     if (isBaanxLoginEnabled) {
-      if (cardDetailsWarning === CardWarning.NoCard) {
-        return (
-          <Button
-            variant={ButtonVariants.Primary}
-            style={styles.defaultMarginTop}
-            label={strings('card.card_home.enable_card_button_label')}
-            size={ButtonSize.Lg}
-            onPress={enableCardAction}
-            width={ButtonWidthTypes.Full}
-            disabled={
-              isLoading ||
-              isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard
-            }
-            loading={
-              isLoading ||
-              isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard
-            }
-            testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
-          />
-        );
-      }
-
-      if (priorityTokenWarning === CardWarning.NeedDelegation) {
-        return (
-          <Button
-            variant={ButtonVariants.Primary}
-            style={styles.defaultMarginTop}
-            label={strings('card.card_home.enable_assets_button_label')}
-            size={ButtonSize.Lg}
-            onPress={changeAssetAction}
-            width={ButtonWidthTypes.Full}
-            disabled={isLoading}
-            loading={isLoading}
-            testID={CardHomeSelectors.ENABLE_ASSETS_BUTTON}
-          />
-        );
-      }
+      if (priorityTokenWarning === CardWarning.NeedDelegation) return null;
 
       return (
         <View style={styles.buttonsContainer}>
@@ -439,7 +380,12 @@ const CardHome = () => {
       alwaysBounceVertical={false}
       contentContainerStyle={styles.contentContainer}
     >
-      {cardDetailsWarning && <CardWarningBox warning={cardDetailsWarning} />}
+      {priorityTokenWarning && (
+        <CardWarningBox
+          warning={priorityTokenWarning}
+          onConfirm={addFundsAction}
+        />
+      )}
       <View style={styles.cardBalanceContainer}>
         <View
           style={[
@@ -521,7 +467,6 @@ const CardHome = () => {
           ) : (
             <CardImage
               type={cardDetails?.type ?? CardType.VIRTUAL}
-              status={cardDetails?.status ?? CardStatus.ACTIVE}
               address={priorityToken?.walletAddress}
             />
           )}

@@ -2082,11 +2082,6 @@ describe('PredictController', () => {
           outcomeTokenId: 'token-1',
           side: Side.BUY,
           size: 100,
-          signer: expect.objectContaining({
-            address: '0x1234567890123456789012345678901234567890',
-            signTypedMessage: expect.any(Function),
-            signPersonalMessage: expect.any(Function),
-          }),
         });
       });
     });
