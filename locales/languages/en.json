@@ -2766,7 +2766,7 @@
     },
     "feature_flag_override":  {
       "title": "Feature Flag Override",
-      "description": "Override the feature flags for the app locally.",
+      "description": "Override the feature flags for the app locally."
     }
   },
   "aes_crypto_test_form": {
