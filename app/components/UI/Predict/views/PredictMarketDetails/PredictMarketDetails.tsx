@@ -51,8 +51,8 @@ import {
 } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -90,11 +90,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const [activeTab, setActiveTab] = useState(0);
   const insets = useSafeAreaInsets();
-  const { hasNoBalance } = usePredictBalance();
 
   const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
+
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId,
+    navigation,
+  });
 
   const { market, isFetching: isMarketFetching } = usePredictMarket({
     id: resolvedMarketId,
@@ -267,44 +271,27 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     return 0;
   };
 
-  const handleYesPress = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome: market?.outcomes?.[0],
-        outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+  const handleBuyPress = (token: PredictOutcomeToken) => {
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome: market?.outcomes?.[0],
+            outcomeToken: token,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          },
+        });
       },
-    });
-  };
-
-  const handleNoPress = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome: market?.outcomes?.[0],
-        outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-      },
-    });
+      { checkBalance: true },
+    );
   };
 
   const handleClaimPress = async () => {
-    await claim();
+    await executeGuardedAction(async () => {
+      await claim();
+    });
   };
 
   const handleTabPress = (tabIndex: number) => {
@@ -686,7 +673,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {getYesPercentage()}¢
                   </Text>
                 }
-                onPress={handleYesPress}
+                onPress={() => handleBuyPress(market?.outcomes[0].tokens[0])}
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -699,7 +686,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {100 - getYesPercentage()}¢
                   </Text>
                 }
-                onPress={handleNoPress}
+                onPress={() => handleBuyPress(market?.outcomes[0].tokens[1])}
               />
             </Box>
           );

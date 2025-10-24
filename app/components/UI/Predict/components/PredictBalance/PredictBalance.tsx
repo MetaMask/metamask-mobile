@@ -32,16 +32,26 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { PredictDepositStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { PredictNavigationParamList } from '../../types/navigation';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 const PredictBalance: React.FC = () => {
   const tw = useTailwind();
+
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const { balance, isLoading, loadBalance } = usePredictBalance({
     loadOnMount: true,
     refreshOnFocus: true,
   });
   const { deposit, status } = usePredictDeposit();
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId: 'polymarket',
+    navigation,
+  });
 
   const isAddingFunds = status === PredictDepositStatus.PENDING;
   const hasBalance = balance > 0;
@@ -51,6 +61,12 @@ const PredictBalance: React.FC = () => {
       loadBalance({ isRefresh: true });
     }
   }, [status, loadBalance]);
+
+  const handleAddFunds = useCallback(() => {
+    executeGuardedAction(() => {
+      deposit();
+    });
+  }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
     // TODO: implement withdraw
@@ -152,7 +168,7 @@ const PredictBalance: React.FC = () => {
             }
             style={tw.style('flex-1')}
             label={strings('predict.deposit.add_funds')}
-            onPress={deposit}
+            onPress={handleAddFunds}
           />
           {hasBalance && (
             <Button
