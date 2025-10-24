@@ -14,21 +14,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../locales/i18n';
 import NftGrid from '../../UI/NftGrid/NftGrid';
-import { FlashListProps } from '@shopify/flash-list';
-import { Nft } from '@metamask/assets-controllers';
-
 interface NFTNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
 }
 
-interface NftsFullViewProps {
-  flashListProps?: Partial<FlashListProps<Nft[]>>;
-}
-
-const NftsFullView = ({
-  flashListProps: _flashListProps,
-}: NftsFullViewProps) => {
+const NftsFullView = () => {
   const navigation =
     useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
   const tw = useTailwind();

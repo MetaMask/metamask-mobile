@@ -133,24 +133,6 @@ describe('NftsFullView', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('applies custom flashListProps when provided', () => {
-    // Arrange
-    const customFlashListProps = {
-      contentContainerStyle: { padding: 20 },
-      scrollEnabled: false,
-    };
-
-    // Act
-    renderScreen(NftsFullView, {
-      name: 'NftsFullView',
-      initialParams: { flashListProps: customFlashListProps },
-    });
-
-    // Assert - The component should render without errors with custom props
-    // The actual prop passing is tested through the NftGrid component
-    expect(true).toBe(true);
-  });
-
   it('renders with safe area view', () => {
     // Arrange
     const { getByTestId } = renderScreen(NftsFullView, {

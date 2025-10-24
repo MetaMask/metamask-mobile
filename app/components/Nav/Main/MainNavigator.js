@@ -622,15 +622,6 @@ const HomeTabs = () => {
       return null;
     }
 
-    // Hide tab bar for AddAsset screen
-    if (
-      currentRoute.name === 'AddAsset' ||
-      currentRoute.name?.includes('AddAsset') ||
-      currentRoute.params?.assetType
-    ) {
-      return null;
-    }
-
     // Hide tab bar when browser is in fullscreen mode
     if (
       isBrowserFullscreen &&
