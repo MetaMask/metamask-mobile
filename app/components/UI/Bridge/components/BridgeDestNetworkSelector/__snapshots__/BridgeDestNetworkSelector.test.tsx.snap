@@ -468,10 +468,12 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                 style={
                                   {
                                     "color": "#121314",
+                                    "flex": 1,
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
                               >
