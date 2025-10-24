@@ -34,12 +34,12 @@ export function useIsGaslessSupported() {
     [chainId],
   );
 
-  const isSmartTransactionsSupported = Boolean(
+  const isSmartTransactionAndBundleSupported = Boolean(
     isSmartTransaction && sendBundleSupportsChain,
   );
 
   const { value: atomicBatchSupportResult } = useAsyncResult(async () => {
-    if (isSmartTransactionsSupported) {
+    if (isSmartTransactionAndBundleSupported) {
       return undefined;
     }
 
@@ -47,15 +47,15 @@ export function useIsGaslessSupported() {
       address: from as Hex,
       chainIds: [chainId as Hex],
     });
-  }, [chainId, from, isSmartTransactionsSupported]);
+  }, [chainId, from, isSmartTransactionAndBundleSupported]);
 
   const { value: relaySupportsChain } = useAsyncResult(async () => {
-    if (isSmartTransactionsSupported) {
+    if (isSmartTransactionAndBundleSupported) {
       return undefined;
     }
 
     return isRelaySupported(chainId as Hex);
-  }, [chainId, isSmartTransactionsSupported]);
+  }, [chainId, isSmartTransactionAndBundleSupported]);
 
   const atomicBatchChainSupport = atomicBatchSupportResult?.find(
     (result) => result.chainId.toLowerCase() === chainId?.toLowerCase(),
@@ -69,7 +69,9 @@ export function useIsGaslessSupported() {
       txParams?.to !== undefined,
   );
 
-  const isSupported = Boolean(isSmartTransactionsSupported || is7702Supported);
+  const isSupported = Boolean(
+    isSmartTransactionAndBundleSupported || is7702Supported,
+  );
 
   return {
     isSupported,
