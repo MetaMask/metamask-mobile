@@ -1,5 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { View, TouchableOpacity, type ViewStyle } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  type ViewStyle,
+} from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -49,6 +54,8 @@ export interface PerpsCloseSummaryProps {
   estimatedPoints?: number;
   /** Bonus multiplier in basis points */
   bonusBips?: number;
+  /** Whether fees calculation is loading */
+  isLoadingFees?: boolean;
   /** Whether rewards calculation is loading */
   isLoadingRewards?: boolean;
   /** Whether there was an error calculating rewards */
@@ -94,6 +101,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   shouldShowRewards,
   estimatedPoints = 0,
   bonusBips = 0,
+  isLoadingFees = false,
   isLoadingRewards = false,
   hasRewardsError = false,
   style,
@@ -101,7 +109,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   enableTooltips = true,
   testIDs,
 }) => {
-  const { styles } = useStyles(createStyles, {});
+  const { styles, theme } = useStyles(createStyles, {});
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
@@ -166,7 +174,10 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                 style={styles.labelWithTooltip}
                 testID={testIDs?.feesTooltip}
               >
-                <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.close_position.fees')}
                 </Text>
                 <Icon
@@ -182,13 +193,22 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             )}
           </View>
           <View style={styles.summaryValue}>
-            <PerpsFeesDisplay
-              feeDiscountPercentage={feeDiscountPercentage}
-              formatFeeText={`-${formatPerpsFiat(totalFees, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}`}
-              variant={TextVariant.BodyMD}
-            />
+            {isLoadingFees ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator
+                  size="small"
+                  color={theme.colors.icon.alternative}
+                />
+              </View>
+            ) : (
+              <PerpsFeesDisplay
+                feeDiscountPercentage={feeDiscountPercentage}
+                formatFeeText={`-${formatPerpsFiat(totalFees, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                })}`}
+                variant={TextVariant.BodyMD}
+              />
+            )}
           </View>
         </View>
 

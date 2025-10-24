@@ -41,6 +41,11 @@ const styleSheet = (_params: { theme: Theme }) => {
       flexDirection: 'row',
       gap: 4,
     },
+    loadingContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
   });
 };
 

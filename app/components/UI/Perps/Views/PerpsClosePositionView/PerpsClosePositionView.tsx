@@ -451,6 +451,7 @@ const PerpsClosePositionView: React.FC = () => {
       shouldShowRewards={rewardsState.shouldShowRewardsRow}
       estimatedPoints={rewardsState.estimatedPoints}
       bonusBips={rewardsState.bonusBips}
+      isLoadingFees={feeResults.isLoadingMetamaskFee}
       isLoadingRewards={rewardsState.isLoading}
       hasRewardsError={rewardsState.hasError}
       isInputFocused={isInputFocused}
