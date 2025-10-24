@@ -10,7 +10,7 @@ export interface AdditionalNetworksBlacklistFeatureFlag {
  * Allows to remove a network from the additional network selection.
  * Returns an array of chain IDs that should be hidden from the Additional Networks list.
  *
- * Supports local environment variable override via MM_ADDITIONAL_NETWORKS_BLACKLIST
+ * Supports local environment variable override via MM_ADDITIONAL_NETWORK_BLACKLIST
  * (comma-separated chain IDs, e.g., "0x8f,0x531")
  *
  * @param state - The Redux state
