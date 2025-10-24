@@ -16,11 +16,12 @@ class PerpsModifiersServer {
   private _app: Koa;
   private _server: ReturnType<Koa['listen']> | undefined;
   private _queue: PerpsModifiersQueueItem[];
+  private _port: number;
 
   constructor() {
     this._app = new Koa();
     this._queue = [];
-
+    this._port = getPerpsModifiersServerPort();
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
       ctx.set('Access-Control-Allow-Origin', '*');
@@ -43,14 +44,18 @@ class PerpsModifiersServer {
   async start() {
     const options = {
       host: getLocalHost(),
-      port: getPerpsModifiersServerPort(),
+      port: this._port,
       exclusive: true,
     };
 
     return new Promise((resolve, reject) => {
-      logger.debug('Starting perps modifiers server...');
+      logger.debug('Starting perps modifiers server on port', this._port);
       this._server = this._app.listen(options);
       if (!this._server) {
+        logger.error(
+          '❌ Failed to start perps modifiers server on port',
+          this._port,
+        );
         throw new Error('Failed to start perps modifiers server');
       }
       this._server.once('error', reject);
@@ -64,8 +69,12 @@ class PerpsModifiersServer {
     }
 
     await new Promise((resolve, reject) => {
-      logger.debug('Stopping perps modifiers server...');
+      logger.debug('Stopping perps modifiers server on port', this._port);
       if (!this._server) {
+        logger.error(
+          '❌ Failed to stop perps modifiers server on port',
+          this._port,
+        );
         throw new Error('Failed to stop perps modifiers server');
       }
       this._server.close();
