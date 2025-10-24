@@ -1181,6 +1181,53 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('placeOrder edge cases', () => {
+    it('places order without fee authorization when totalFee is zero', async () => {
+      // Clear mock to ensure clean state for this test
+      mockCreateSafeFeeAuthorization.mockClear();
+
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: { metamaskFee: 0, providerFee: 0, totalFee: 0 },
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.any(Object),
+          headers: expect.any(Object),
+          feeAuthorization: undefined,
+        }),
+      );
+    });
+
+    it('returns error result when submitClobOrder returns no response', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      mockSubmitClobOrder.mockResolvedValue({
+        success: false,
+        response: null,
+        error: 'Submission failed',
+      });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Submission failed');
+      expect(result.response).toBeUndefined();
+    });
+  });
+
   describe('getActivity', () => {
     it('fetches activity and resolves without throwing', async () => {
       const provider = createProvider();
@@ -2273,6 +2320,30 @@ describe('PolymarketProvider', () => {
         });
 
         expect(preview.rateLimited).toBeUndefined();
+      });
+
+      it('sets rateLimited to true when BUY order is rate limited', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        // Place a BUY order first to set rate limit state
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        // Try to preview another BUY order immediately - should be rate limited
+        const secondPreview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(secondPreview.rateLimited).toBe(true);
       });
     });
 
