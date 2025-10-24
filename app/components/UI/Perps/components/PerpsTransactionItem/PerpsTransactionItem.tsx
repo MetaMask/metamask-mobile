@@ -154,7 +154,7 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
           {fillTag}
         </View>
 
-        {item.subtitle && (
+        {!!item.subtitle && (
           <Text style={styles.transactionSubtitle}>{item.subtitle}</Text>
         )}
       </View>

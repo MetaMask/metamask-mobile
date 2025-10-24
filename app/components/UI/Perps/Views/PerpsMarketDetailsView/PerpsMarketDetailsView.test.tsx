@@ -113,6 +113,7 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 // Mock the selector module first
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
+  createSelectIsWatchlistMarket: jest.fn(() => jest.fn(() => false)),
 }));
 
 // Mock react-redux

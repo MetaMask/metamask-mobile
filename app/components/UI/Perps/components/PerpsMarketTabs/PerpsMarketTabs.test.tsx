@@ -1019,4 +1019,8 @@ describe('PerpsMarketTabs', () => {
       expect(mockOnOrderCancelled).not.toHaveBeenCalled();
     });
   });
+
+  // Note: Navigation tests (tutorial card, activity link) removed as these elements
+  // have been relocated to other components as part of the home screen refactor.
+  // See PR description: "Activity Link Relocation" and "Learn More Component" sections.
 });

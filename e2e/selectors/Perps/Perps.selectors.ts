@@ -107,9 +107,13 @@ export const PerpsMarketListViewSelectorsIDs = {
   CLOSE_BUTTON: 'perps-market-list-close-button',
   BACK_HEADER_BUTTON: 'perps-market-header-back-button',
   BACK_LIST_BUTTON: 'perps-market-list-back-button',
-  SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
+  BACK_BUTTON: 'perps-market-list-back-button',
+  SEARCH_CLEAR_BUTTON: 'perps-market-list-search-bar-clear',
+  SEARCH_BAR: 'perps-market-list-search-bar',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
   LIST_HEADER: 'perps-market-list-header',
+  MARKET_LIST: 'perps-market-list',
+  SORT_FILTERS: 'perps-market-list-sort-filters',
 };
 
 // ========================================
@@ -177,9 +181,21 @@ export const PerpsTabViewSelectorsIDs = {
   SCROLL_VIEW: 'perps-tab-scroll-view',
 };
 
+export const PerpsHomeViewSelectorsIDs = {
+  BACK_BUTTON: 'back-button',
+  SEARCH_TOGGLE: 'perps-home-search-toggle',
+  SEARCH_INPUT: 'perps-home-search',
+  SCROLL_CONTENT: 'scroll-content',
+  // TabBar mock items (for testing)
+  TAB_BAR_WALLET: 'tab-bar-item-wallet',
+  TAB_BAR_BROWSER: 'tab-bar-item-browser',
+  TAB_BAR_ACTIONS: 'tab-bar-item-actions',
+  TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
-  BACK_BUTTON: 'button-icon-arrow-left',
+  BACK_BUTTON: 'back-button',
   POSITION_ITEM: 'perps-positions-item',
   POSITIONS_SECTION: 'perps-positions-section',
   POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
@@ -205,6 +221,7 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 // ========================================
 
 export const PerpsTPSLViewSelectorsIDs = {
+  BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
   SET_BUTTON: 'bottomsheetfooter-button',
 } as const;
@@ -475,6 +492,9 @@ export const PerpsMarketTabsSelectorsIDs = {
 
   // Statistics-only view
   STATISTICS_ONLY_TITLE: 'perps-market-tabs-statistics-only-title',
+
+  // Activity link
+  ACTIVITY_LINK: 'perps-market-tabs-activity-link',
 
   // Loading states
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',

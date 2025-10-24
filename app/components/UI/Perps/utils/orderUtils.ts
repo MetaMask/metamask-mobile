@@ -1,6 +1,7 @@
 import { strings } from '../../../../../locales/i18n';
 import { OrderParams, Order } from '../controllers/types';
 import { Position } from '../hooks';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { capitalize } from 'lodash';
 
 /**
@@ -123,3 +124,57 @@ export const getOrderLabelDirection = (order: Order): string => {
   // For opening orders: buy is long, sell is short
   return side === 'buy' ? 'long' : 'short';
 };
+
+/**
+ * Determines if a limit order will likely be a maker or taker
+ *
+ * Logic:
+ * 1. Validates price data freshness and market state
+ * 2. Market orders are always taker
+ * 3. Limit orders that would execute immediately are taker
+ * 4. Limit orders that go into order book are maker
+ *
+ * @param params Order parameters
+ * @returns boolean - true if maker, false if taker
+ */
+export function determineMakerStatus(params: {
+  orderType: 'market' | 'limit';
+  limitPrice?: string;
+  direction: 'long' | 'short';
+  bestAsk?: number;
+  bestBid?: number;
+  coin?: string;
+}): boolean {
+  const { orderType, limitPrice, direction, bestAsk, bestBid, coin } = params;
+  // Market orders are always taker
+  if (orderType === 'market') {
+    return false;
+  }
+
+  // Default to taker when limit price is not specified
+  if (!limitPrice || limitPrice === '') {
+    return false;
+  }
+
+  const limitPriceNum = Number.parseFloat(limitPrice);
+
+  if (Number.isNaN(limitPriceNum) || limitPriceNum <= 0) {
+    return false;
+  }
+
+  if (bestBid !== undefined && bestAsk !== undefined) {
+    if (direction === 'long') {
+      return limitPriceNum < bestAsk;
+    }
+
+    // Short direction
+    return limitPriceNum > bestBid;
+  }
+
+  // Default to taker when no bid/ask data is available
+  DevLogger.log(
+    'Fee Calculation: No bid/ask data available, using conservative taker fee',
+    { coin },
+  );
+  return false;
+}

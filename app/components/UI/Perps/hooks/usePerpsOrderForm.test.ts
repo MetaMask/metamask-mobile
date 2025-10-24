@@ -1,4 +1,7 @@
+/* eslint-disable react/no-children-prop */
 import React from 'react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsOrderForm } from './usePerpsOrderForm';
 import { usePerpsNetwork } from './usePerpsNetwork';
@@ -59,13 +62,32 @@ const createMockStreamManager = (): PerpsStreamManager => {
   return mockStreamManager;
 };
 
-// Test wrapper component
-function TestWrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(PerpsStreamProvider, {
-    testStreamManager: createMockStreamManager(),
-    children,
-  } as React.ComponentProps<typeof PerpsStreamProvider>);
-}
+// Test wrapper with Redux Provider using configureStore pattern
+const createWrapper = () => {
+  const mockStore = configureStore({
+    reducer: {
+      engine: (
+        state = {
+          backgroundState: {
+            PerpsController: {},
+          },
+        },
+      ) => state,
+    },
+  });
+
+  return function TestWrapper({ children }: { children: React.ReactNode }) {
+    const streamProvider = React.createElement(PerpsStreamProvider, {
+      testStreamManager: createMockStreamManager(),
+      children,
+    } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+    return React.createElement(Provider, {
+      store: mockStore,
+      children: streamProvider,
+    });
+  };
+};
 
 describe('usePerpsOrderForm', () => {
   const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
@@ -114,7 +136,7 @@ describe('usePerpsOrderForm', () => {
   describe('initialization', () => {
     it('should initialize with default values', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result.current.orderForm).toEqual({
@@ -140,7 +162,7 @@ describe('usePerpsOrderForm', () => {
             initialLeverage: 20,
             initialType: 'limit',
           }),
-        { wrapper: TestWrapper },
+        { wrapper: createWrapper() },
       );
 
       expect(result.current.orderForm).toEqual({
@@ -160,7 +182,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result.current.orderForm.amount).toBe(
@@ -183,7 +205,7 @@ describe('usePerpsOrderForm', () => {
 
       // Act
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       // Assert
@@ -207,7 +229,7 @@ describe('usePerpsOrderForm', () => {
 
       // Act
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       // Assert
@@ -234,7 +256,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLiveAccount.mockReturnValue(mockAccount);
 
       const { result, rerender } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       // Verify initial amount is set correctly
@@ -274,7 +296,7 @@ describe('usePerpsOrderForm', () => {
       });
 
       const { result: result1 } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result1.current.orderForm.amount).toBe('6'); // Should use maxPossibleAmount
@@ -292,7 +314,7 @@ describe('usePerpsOrderForm', () => {
       });
 
       const { result: result2 } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result2.current.orderForm.amount).toBe(
@@ -304,7 +326,7 @@ describe('usePerpsOrderForm', () => {
   describe('form updates', () => {
     it('should update amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -316,7 +338,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update leverage', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -328,7 +350,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update direction', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -340,7 +362,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update asset', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -352,7 +374,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update take profit price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -364,7 +386,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update stop loss price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -376,7 +398,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update limit price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -388,7 +410,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update order type', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -400,7 +422,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update multiple fields at once', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -420,7 +442,7 @@ describe('usePerpsOrderForm', () => {
   describe('percentage handlers', () => {
     it('should handle percentage amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -432,7 +454,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should handle max amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -444,7 +466,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should handle min amount for mainnet', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -459,7 +481,7 @@ describe('usePerpsOrderForm', () => {
     it('should handle min amount for testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -484,7 +506,7 @@ describe('usePerpsOrderForm', () => {
       });
 
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
       const initialAmount = result.current.orderForm.amount;
 
@@ -499,7 +521,7 @@ describe('usePerpsOrderForm', () => {
   describe('empty amount handling', () => {
     it('should convert empty string to 0', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -513,7 +535,7 @@ describe('usePerpsOrderForm', () => {
   describe('optimizeOrderAmount', () => {
     it('should not optimize when amount is empty', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -526,7 +548,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should not optimize when amount is zero', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -539,7 +561,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should optimize amount when valid amount is provided', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -553,7 +575,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should not update amount if optimized amount exceeds maxPossibleAmount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       const initialAmount = '100';
@@ -570,7 +592,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should only update amount if optimized amount is different from current', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -591,7 +613,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should handle undefined szDecimals parameter', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {

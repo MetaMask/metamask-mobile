@@ -139,16 +139,18 @@ setMeasurement(
 
 **Purpose:** Track screen load times and user-perceived performance.
 
-| TraceName                   | Conditions Tracked                            | Notes              |
-| --------------------------- | --------------------------------------------- | ------------------ |
-| `PerpsTabView`              | Tab visible, markets loaded, connection ready | Main perps landing |
-| `PerpsMarketListView`       | Markets data, prices available                | Market browser     |
-| `PerpsPositionDetailsView`  | Position data, market stats, history loaded   | Position details   |
-| `PerpsOrderView`            | Current price, market data, account available | Trade entry        |
-| `PerpsClosePositionView`    | Position data, current price                  | Position exit      |
-| `PerpsWithdrawView`         | Account balance, destination token            | Withdrawal form    |
-| `PerpsTransactionsView`     | Order fills loaded                            | History view       |
-| `PerpsOrderSubmissionToast` | Immediate (shows when toast appears)          | Order feedback     |
+| TraceName                   | Conditions Tracked                            | Notes                                                    |
+| --------------------------- | --------------------------------------------- | -------------------------------------------------------- |
+| `PerpsTabView`              | Tab visible, markets loaded, connection ready | Main perps landing                                       |
+| `PerpsMarketListView`       | Markets data, prices available                | Market browser (also used for home view for consistency) |
+| `PerpsPositionDetailsView`  | Position data, market stats, history loaded   | Position details                                         |
+| `PerpsOrderView`            | Current price, market data, account available | Trade entry                                              |
+| `PerpsClosePositionView`    | Position data, current price                  | Position exit                                            |
+| `PerpsWithdrawView`         | Account balance, destination token            | Withdrawal form                                          |
+| `PerpsTransactionsView`     | Order fills loaded                            | History view                                             |
+| `PerpsOrderSubmissionToast` | Immediate (shows when toast appears)          | Order feedback                                           |
+
+**Note on PerpsHomeView:** The new home view introduced in TAT-1538 uses `PerpsMarketListView` trace name for consistency with existing metrics, as it replaced the previous market list view. This maintains historical performance comparison capability.
 
 **Measurements (sub-operations):**
 | PerpsMeasurementName | Unit | Description |
@@ -170,15 +172,23 @@ setMeasurement(
 
 **Purpose:** Track order execution, position management, and transaction completion.
 
-| TraceName            | Operation                 | Tags                                             | Data Attributes                         |
-| -------------------- | ------------------------- | ------------------------------------------------ | --------------------------------------- |
-| `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet | isBuy, orderPrice, success, orderId     |
-| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet | isBuy, orderPrice, success, orderId     |
-| `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet                      | orderId, success                        |
-| `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet             | success, filledSize                     |
-| `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                      | takeProfitPrice, stopLossPrice, success |
-| `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                     | success, txHash, withdrawalId           |
-| `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                     | success, txHash                         |
+| TraceName            | Operation                 | Tags                                                      | Data Attributes                                                   |
+| -------------------- | ------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------- |
+| `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet          | isBuy, orderPrice, success, orderId                               |
+| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet          | isBuy, orderPrice, success, orderId                               |
+| `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only) | orderId, success, **coinCount** (batch), **successCount** (batch) |
+| `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch) | success, filledSize, **closeAll** (batch), **coinCount** (batch)  |
+| `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                               | takeProfitPrice, stopLossPrice, success                           |
+| `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                              | success, txHash, withdrawalId                                     |
+| `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                              | success, txHash                                                   |
+
+**Batch Operations Pattern:**
+
+- `closePositions()` and `cancelOrders()` use the same trace names as single operations
+- Add `isBatch: 'true'` tag to distinguish batch from single operations
+- Include `coinCount` or order count in data attributes
+- Add `closeAll: 'true'` data attribute when closing all positions
+- Batch operations execute individual traces in parallel and aggregate results
 
 ### WebSocket Performance (6 events)
 

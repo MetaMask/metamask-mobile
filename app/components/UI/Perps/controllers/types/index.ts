@@ -40,6 +40,11 @@ export interface GetUserHistoryParams {
   accountId?: CaipAccountId;
 }
 
+// Trade configuration saved per market per network
+export interface TradeConfiguration {
+  leverage?: number; // Last used leverage for this market
+}
+
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
@@ -91,6 +96,7 @@ export type OrderParams = {
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+  existingPositionLeverage?: number; // Existing position leverage for validation (protocol constraint)
 
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
@@ -169,6 +175,22 @@ export type ClosePositionParams = {
   trackingData?: TrackingData;
 };
 
+export type ClosePositionsParams = {
+  coins?: string[]; // Optional: specific coins to close (omit or empty array to close all)
+  closeAll?: boolean; // Explicitly close all positions
+};
+
+export type ClosePositionsResult = {
+  success: boolean; // Overall success (true if at least one position closed)
+  successCount: number; // Number of positions closed successfully
+  failureCount: number; // Number of positions that failed to close
+  results: {
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
+
 export interface InitializeResult {
   success: boolean;
   error?: string;
@@ -230,6 +252,10 @@ export interface PerpsMarketData {
    * Trading volume as formatted string (e.g., '$1.2B', '$850M')
    */
   volume: string;
+  /**
+   * Open interest as formatted string (e.g., '$24.5M', '$1.2B')
+   */
+  openInterest?: string;
   /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */
@@ -296,6 +322,24 @@ export interface CancelOrderResult {
   orderId?: string; // Cancelled order ID
   error?: string;
 }
+
+export type CancelOrdersParams = {
+  coins?: string[]; // Optional: specific coins (omit to cancel all orders)
+  orderIds?: string[]; // Optional: specific order IDs (omit to cancel all orders for specified coins)
+  cancelAll?: boolean; // Explicitly cancel all orders
+};
+
+export type CancelOrdersResult = {
+  success: boolean; // Overall success (true if at least one order cancelled)
+  successCount: number; // Number of orders cancelled successfully
+  failureCount: number; // Number of orders that failed to cancel
+  results: {
+    orderId: string;
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
 
 export interface EditOrderParams {
   orderId: string | number; // Order ID or client order ID to modify
@@ -442,6 +486,7 @@ export interface OrderFill {
 export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetAccountStateParams {
@@ -464,6 +509,7 @@ export interface GetOrdersParams {
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetFundingParams {

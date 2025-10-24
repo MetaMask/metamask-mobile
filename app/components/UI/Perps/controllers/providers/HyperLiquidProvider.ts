@@ -2184,7 +2184,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
-      DevLogger.log('Getting positions via HyperLiquid SDK');
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isPositionsCacheInitialized()
+      ) {
+        const cachedPositions =
+          this.subscriptionService.getCachedPositions() || [];
+        DevLogger.log('Using cached positions from WebSocket', {
+          count: cachedPositions.length,
+        });
+        return cachedPositions;
+      }
+
+      // Fallback to API call
+      DevLogger.log(
+        'Fetching positions via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
+      );
 
       await this.ensureReady();
 
@@ -2490,9 +2507,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isOrdersCacheInitialized()
+      ) {
+        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
+        DevLogger.log('Using cached open orders from WebSocket', {
+          count: cachedOrders.length,
+        });
+        return cachedOrders;
+      }
+
+      // Fallback to API call
       DevLogger.log(
-        'Getting currently open orders via HyperLiquid SDK',
-        params || '(no params)',
+        'Fetching open orders via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
       );
       await this.ensureReady();
 
@@ -3248,6 +3278,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
             };
           }
         }
+      }
+
+      // Check if order leverage meets existing position requirement (HyperLiquid protocol constraint)
+      if (
+        params.leverage &&
+        params.existingPositionLeverage &&
+        params.leverage < params.existingPositionLeverage
+      ) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.leverage_below_position', {
+            required: params.existingPositionLeverage.toString(),
+            provided: params.leverage.toString(),
+          }),
+        };
       }
 
       // Validate limit orders have a price

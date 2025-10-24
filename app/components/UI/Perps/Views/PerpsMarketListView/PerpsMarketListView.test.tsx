@@ -11,7 +11,6 @@ import type { PerpsMarketData } from '../../controllers/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -21,7 +20,20 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
+  ...jest.requireActual('../../hooks/usePerpsMarkets'),
   usePerpsMarkets: jest.fn(),
+}));
+
+// Don't mock usePerpsMarketListView - test the real implementation
+// Instead, mock its dependencies below
+
+// Mock Engine for PerpsController
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      saveMarketSortPreference: jest.fn(),
+    },
+  },
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -104,6 +116,46 @@ jest.mock('../../components/PerpsMarketBalanceActions', () => {
   };
 });
 
+jest.mock(
+  '../../../../../component-library/components/Form/TextFieldSearch',
+  () => {
+    const { TextInput, TouchableOpacity, View } =
+      jest.requireActual('react-native');
+    return function MockTextFieldSearch({
+      value,
+      onChangeText,
+      placeholder,
+      testID,
+      showClearButton,
+      onPressClearButton,
+    }: {
+      value: string;
+      onChangeText: (text: string) => void;
+      placeholder: string;
+      testID: string;
+      showClearButton?: boolean;
+      onPressClearButton?: () => void;
+    }) {
+      return (
+        <View>
+          <TextInput
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            testID={testID}
+          />
+          {showClearButton && (
+            <TouchableOpacity
+              onPress={onPressClearButton}
+              testID={`${testID}-clear`}
+            />
+          )}
+        </View>
+      );
+    };
+  },
+);
+
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(() => ({
     navigateToConfirmation: jest.fn(),
@@ -112,6 +164,8 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
+  selectPerpsWatchlistMarkets: jest.fn(() => []),
+  selectPerpsMarketSortPreference: jest.fn(() => 'volume'),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -129,7 +183,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View, Text: RNText } = jest.requireActual('react-native');
   return {
     Box: ({
       children,
@@ -144,6 +198,14 @@ jest.mock('@metamask/design-system-react-native', () => {
         {children}
       </View>
     ),
+    Text: RNText,
+    TextVariant: {
+      BodySm: 'sBodySM',
+      BodyMD: 'sBodyMD',
+      BodyMDMedium: 'sBodyMDMedium',
+      HeadingSM: 'sHeadingSM',
+      HeadingLG: 'sHeadingLG',
+    },
     BoxFlexDirection: {
       Row: 'row',
     },
@@ -366,6 +428,20 @@ describe('PerpsMarketListView', () => {
     },
   ];
 
+  // Mock Redux state with perpsController
+  const mockState = {
+    engine: {
+      backgroundState: {
+        PerpsController: {
+          watchlistMarkets: {
+            testnet: [],
+            mainnet: [],
+          },
+        },
+      },
+    },
+  };
+
   let originalConsoleError: typeof console.error;
 
   beforeEach(() => {
@@ -392,6 +468,7 @@ describe('PerpsMarketListView', () => {
       params: {},
     });
 
+    // Mock usePerpsMarkets - this is the data source for the real hook
     mockUsePerpsMarkets.mockReturnValue({
       markets: mockMarketData,
       isLoading: false,
@@ -410,7 +487,7 @@ describe('PerpsMarketListView', () => {
 
   describe('Component Rendering', () => {
     it('renders the component with header and search button', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(screen.getByText('Perps')).toBeOnTheScreen();
       expect(
@@ -419,11 +496,10 @@ describe('PerpsMarketListView', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
     });
 
     it('renders market list when data is available', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
@@ -431,7 +507,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('renders interactive elements', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Should have search toggle button and market rows
       expect(
@@ -447,7 +523,7 @@ describe('PerpsMarketListView', () => {
 
   describe('Search Functionality', () => {
     it('shows search input when search button is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Initially search should not be visible
       expect(
@@ -468,15 +544,13 @@ describe('PerpsMarketListView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows no markets when search is visible with empty query', () => {
-      renderWithProvider(<PerpsMarketListView />);
+    it('shows all markets when search is visible with empty query', () => {
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Initially all markets should be visible
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
 
-      // Click search toggle button to show search
       const searchButton = screen.getByTestId(
         PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
       );
@@ -484,48 +558,17 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      // Search input should be visible
       expect(
         screen.getByPlaceholderText('Search by token symbol'),
       ).toBeOnTheScreen();
 
-      // No markets should be visible when search is open with empty query
-      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
-    });
-
-    it('shows empty state with search prompt when search is visible with empty query', () => {
-      renderWithProvider(<PerpsMarketListView />);
-
-      // Click search toggle button to show search
-      const searchButton = screen.getByTestId(
-        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
-      );
-      act(() => {
-        fireEvent.press(searchButton);
-      });
-
-      // Empty state should be visible with search prompt
-      expect(screen.getByText('No tokens found')).toBeOnTheScreen();
-      expect(screen.getByText('Search by token symbol')).toBeOnTheScreen();
-
-      // Search icon should be visible in empty state
-      const icons = screen.root.findAllByProps({ name: IconName.Search });
-      expect(icons.length).toBeGreaterThan(0);
-
-      // No markets should be visible
-      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
-
-      // Should not show list header when empty state is shown
-      expect(screen.queryByText('Volume')).not.toBeOnTheScreen();
-      expect(screen.queryByText('Price / 24h change')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
     });
 
     it('hides PerpsMarketBalanceActions when search is visible', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Initially balance actions should be visible
       expect(
@@ -552,7 +595,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('filters markets based on symbol search', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // First toggle search visibility
       const searchButton = screen.getByTestId(
@@ -573,7 +616,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('filters markets based on name search', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // First toggle search visibility
       const searchButton = screen.getByTestId(
@@ -594,7 +637,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('shows clear button when search has text', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // First toggle search visibility
       const searchButton = screen.getByTestId(
@@ -622,7 +665,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('clears search when clear button is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // First toggle search visibility
       const searchButton = screen.getByTestId(
@@ -651,17 +694,15 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(clearButton);
       });
 
-      // After pressing clear button, the search input should be empty
       expect(searchInput.props.value).toBe('');
 
-      // No markets should be visible when search is open with empty query
-      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
     });
 
     it('handles case-insensitive search', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // First toggle search visibility
       const searchButton = screen.getByTestId(
@@ -681,7 +722,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('hides tab bar when search is visible', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Initially tab bar should be visible
       expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
@@ -716,7 +757,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('shows navbar when close icon is pressed while search is visible', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Initially tab bar should be visible
       expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
@@ -760,7 +801,7 @@ describe('PerpsMarketListView', () => {
       const mockDismiss = jest.fn();
       jest.spyOn(Keyboard, 'dismiss').mockImplementation(mockDismiss);
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Click search toggle button to show search
       const searchButton = screen.getByTestId(
@@ -806,7 +847,7 @@ describe('PerpsMarketListView', () => {
       const { Keyboard } = jest.requireActual('react-native');
       jest.spyOn(Keyboard, 'addListener').mockImplementation(mockAddListener);
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Initially tab bar should be visible
       expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
@@ -851,50 +892,94 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
       expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
     });
+  });
 
-    it('hides navbar when search input is pressed again after keyboard dismissal', () => {
-      // Mock keyboard listener
-      let keyboardHideCallback: (() => void) | null = null;
-      const mockAddListener = jest.fn((event, callback) => {
-        if (event === 'keyboardDidHide') {
-          keyboardHideCallback = callback;
-        }
-        return { remove: jest.fn() };
-      });
-      const { Keyboard } = jest.requireActual('react-native');
-      jest.spyOn(Keyboard, 'addListener').mockImplementation(mockAddListener);
-
-      renderWithProvider(<PerpsMarketListView />);
-
-      // Open search
-      const searchButton = screen.getByTestId(
-        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+  describe('Watchlist Filtering', () => {
+    it('filters markets by watchlist when showWatchlistOnly is true via route params', () => {
+      // Mock watchlistMarkets to only include BTC
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
       );
-      act(() => {
-        fireEvent.press(searchButton);
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+
+      // Mock route params to set showWatchlistOnly
+      mockUseRoute.mockReturnValue({
+        name: 'PerpsMarketListView',
+        params: { showWatchlistOnly: true },
       });
 
-      // Navbar should be hidden
-      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Simulate keyboard dismissal
-      act(() => {
-        if (keyboardHideCallback) {
-          keyboardHideCallback();
-        }
+      // Should only show BTC from watchlist
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+    });
+
+    it('shows all markets when showWatchlistOnly is false', () => {
+      // Mock watchlistMarkets to only include BTC
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+
+      // Mock route params without showWatchlistOnly
+      mockUseRoute.mockReturnValue({
+        name: 'PerpsMarketListView',
+        params: {},
       });
 
-      // Navbar should be visible
-      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Press the search input again
-      const searchInput = screen.getByPlaceholderText('Search by token symbol');
-      act(() => {
-        fireEvent(searchInput, 'pressIn');
+      // Should show all markets
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
+    });
+
+    it('shows empty state when watchlist filter is active but no matches found', () => {
+      // Mock empty watchlistMarkets
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue([]);
+
+      // Mock route params to set showWatchlistOnly
+      mockUseRoute.mockReturnValue({
+        name: 'PerpsMarketListView',
+        params: { showWatchlistOnly: true },
       });
 
-      // Navbar should be hidden again
-      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Should show favorites empty state
+      expect(screen.getByText('No markets in watchlist')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Tap the star icon on any market to add it to your watchlist',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('filters markets by watchlist with multiple symbols', () => {
+      // Mock watchlistMarkets with multiple symbols
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC', 'SOL']);
+
+      // Mock route params to set showWatchlistOnly
+      mockUseRoute.mockReturnValue({
+        name: 'PerpsMarketListView',
+        params: { showWatchlistOnly: true },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Should show BTC and SOL, but not ETH
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
     });
   });
 
@@ -912,7 +997,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('does not throw error when onMarketSelect is not provided', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       const btcRow = screen.getByTestId('market-row-BTC');
       expect(() => fireEvent.press(btcRow)).not.toThrow();
@@ -929,7 +1014,7 @@ describe('PerpsMarketListView', () => {
         isRefreshing: false,
       });
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(
         screen.getAllByTestId('perps-market-list-skeleton-row'),
@@ -945,10 +1030,10 @@ describe('PerpsMarketListView', () => {
         isRefreshing: false,
       });
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
+      // During loading, sort dropdowns are hidden, so don't check for them
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
     });
   });
 
@@ -962,28 +1047,12 @@ describe('PerpsMarketListView', () => {
         isRefreshing: false,
       });
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(screen.getByText('Failed to load market data')).toBeOnTheScreen();
-      expect(screen.getByText('Tap to retry')).toBeOnTheScreen();
-    });
-
-    it('calls refresh when retry button is pressed', () => {
-      const mockRefresh = jest.fn().mockResolvedValue(undefined);
-      mockUsePerpsMarkets.mockReturnValue({
-        markets: [],
-        isLoading: false,
-        error: 'Network error',
-        refresh: mockRefresh,
-        isRefreshing: false,
-      });
-
-      renderWithProvider(<PerpsMarketListView />);
-
-      const retryButton = screen.getByText('Tap to retry');
-      fireEvent.press(retryButton);
-
-      expect(mockRefresh).toHaveBeenCalled();
+      expect(
+        screen.getByText('Data updates automatically every few seconds'),
+      ).toBeOnTheScreen();
     });
 
     it('shows error only when no markets are available', () => {
@@ -995,7 +1064,7 @@ describe('PerpsMarketListView', () => {
         isRefreshing: false,
       });
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(
         screen.queryByText('Failed to load market data'),
@@ -1004,29 +1073,9 @@ describe('PerpsMarketListView', () => {
     });
   });
 
-  describe('Pull to Refresh', () => {
-    it('handles pull to refresh', () => {
-      const mockRefresh = jest.fn().mockResolvedValue(undefined);
-      mockUsePerpsMarkets.mockReturnValue({
-        markets: mockMarketData,
-        isLoading: false,
-        error: null,
-        refresh: mockRefresh,
-        isRefreshing: false,
-      });
-
-      renderWithProvider(<PerpsMarketListView />);
-
-      const flashList = screen.getByTestId('flash-list');
-      fireEvent(flashList, 'onRefresh');
-
-      expect(mockRefresh).toHaveBeenCalled();
-    });
-  });
-
   describe('Navigation', () => {
     it('navigates back when close button is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Find close button (first TouchableOpacity after the market rows)
       const touchableElements = screen.root.findAllByType(TouchableOpacity);
@@ -1038,7 +1087,7 @@ describe('PerpsMarketListView', () => {
 
     it('does not navigate back when canGoBack returns false', () => {
       mockNavigation.canGoBack.mockReturnValue(false);
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Find close button (first TouchableOpacity after the market rows)
       const touchableElements = screen.root.findAllByType(TouchableOpacity);
@@ -1051,7 +1100,7 @@ describe('PerpsMarketListView', () => {
 
   describe('Market Data Display', () => {
     it('displays market data correctly', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(screen.getByTestId('market-symbol-BTC')).toHaveTextContent('BTC');
       expect(screen.getByTestId('market-name-BTC')).toHaveTextContent(
@@ -1066,7 +1115,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('displays all provided markets', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       mockMarketData.forEach((market) => {
         expect(
@@ -1078,7 +1127,7 @@ describe('PerpsMarketListView', () => {
 
   describe('TabBar Navigation', () => {
     it('renders all TabBar items', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
       expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
@@ -1088,7 +1137,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('navigates to wallet when home tab is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       const walletTab = screen.getByTestId('tab-bar-item-wallet');
       fireEvent.press(walletTab);
@@ -1102,7 +1151,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('navigates to browser when browser tab is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       const browserTab = screen.getByTestId('tab-bar-item-browser');
       fireEvent.press(browserTab);
@@ -1116,7 +1165,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('navigates to wallet actions when actions tab is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       const actionsTab = screen.getByTestId('tab-bar-item-actions');
       fireEvent.press(actionsTab);
@@ -1130,7 +1179,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('navigates to activity when activity tab is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       const activityTab = screen.getByTestId('tab-bar-item-activity');
       fireEvent.press(activityTab);
@@ -1141,7 +1190,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('navigates to rewards when rewards tab is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       const rewardsTab = screen.getByTestId('tab-bar-item-rewards');
       fireEvent.press(rewardsTab);
@@ -1155,7 +1204,7 @@ describe('PerpsMarketListView', () => {
       );
       selectRewardsEnabledFlag.mockReturnValue(false);
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       const settingsTab = screen.getByTestId('tab-bar-item-settings');
       fireEvent.press(settingsTab);
@@ -1182,15 +1231,14 @@ describe('PerpsMarketListView', () => {
         isRefreshing: false,
       });
 
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
+      // When there are no markets and not loading/error, just shows empty list
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
     });
 
     it('handles search with no results', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // First toggle search visibility
       const searchButton = screen.getByTestId(
@@ -1212,7 +1260,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('shows empty state when search returns no results', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // First toggle search visibility
       const searchButton = screen.getByTestId(
@@ -1247,9 +1295,8 @@ describe('PerpsMarketListView', () => {
     });
 
     it('handles search with whitespace', () => {
-      renderWithProvider(<PerpsMarketListView />);
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // First toggle search visibility
       const searchButton = screen.getByTestId(
         PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
       );
@@ -1262,14 +1309,9 @@ describe('PerpsMarketListView', () => {
         fireEvent.changeText(searchInput, '   ');
       });
 
-      // Should show no markets when search is visible but query is empty/whitespace
-      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
-
-      // Should show empty state with search prompt (not query-specific message)
-      expect(screen.getByText('No tokens found')).toBeOnTheScreen();
-      expect(screen.getByText('Search by token symbol')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
     });
   });
 });

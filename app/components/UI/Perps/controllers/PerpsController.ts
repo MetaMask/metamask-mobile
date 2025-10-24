@@ -48,15 +48,25 @@ import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DATA_LAKE_API_CONFIG,
   PERPS_CONSTANTS,
+  MARKET_SORTING_CONFIG,
+  type SortOptionId,
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import {
+  getStreamManagerInstance,
+  type PerpsStreamManager,
+} from '../providers/PerpsStreamManager';
 import type {
   AccountState,
   AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
+  CancelOrdersParams,
+  CancelOrdersResult,
   ClosePositionParams,
+  ClosePositionsParams,
+  ClosePositionsResult,
   EditOrderParams,
   FeeCalculationResult,
   Funding,
@@ -207,6 +217,29 @@ export type PerpsControllerState = {
     mainnet: boolean;
   };
 
+  // Watchlist markets tracking (per network)
+  watchlistMarkets: {
+    testnet: string[]; // Array of watchlist market symbols for testnet
+    mainnet: string[]; // Array of watchlist market symbols for mainnet
+  };
+
+  // Trade configurations per market (per network)
+  tradeConfigurations: {
+    testnet: {
+      [marketSymbol: string]: {
+        leverage?: number; // Last used leverage for this market
+      };
+    };
+    mainnet: {
+      [marketSymbol: string]: {
+        leverage?: number;
+      };
+    };
+  };
+
+  // Market sort preference (network-independent)
+  marketSortPreference: SortOptionId;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -246,6 +279,15 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: false,
     mainnet: false,
   },
+  watchlistMarkets: {
+    testnet: [],
+    mainnet: [],
+  },
+  tradeConfigurations: {
+    testnet: {},
+    mainnet: {},
+  },
+  marketSortPreference: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
 });
 
 /**
@@ -372,6 +414,24 @@ const metadata = {
     anonymous: false,
     usedInUi: true,
   },
+  watchlistMarkets: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  tradeConfigurations: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  marketSortPreference: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -403,8 +463,16 @@ export type PerpsControllerActions =
       handler: PerpsController['cancelOrder'];
     }
   | {
+      type: 'PerpsController:cancelOrders';
+      handler: PerpsController['cancelOrders'];
+    }
+  | {
       type: 'PerpsController:closePosition';
       handler: PerpsController['closePosition'];
+    }
+  | {
+      type: 'PerpsController:closePositions';
+      handler: PerpsController['closePositions'];
     }
   | {
       type: 'PerpsController:withdraw';
@@ -469,6 +537,22 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:resetFirstTimeUserState';
       handler: PerpsController['resetFirstTimeUserState'];
+    }
+  | {
+      type: 'PerpsController:saveTradeConfiguration';
+      handler: PerpsController['saveTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getTradeConfiguration';
+      handler: PerpsController['getTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:saveMarketSortPreference';
+      handler: PerpsController['saveMarketSortPreference'];
+    }
+  | {
+      type: 'PerpsController:getMarketSortPreference';
+      handler: PerpsController['getMarketSortPreference'];
     };
 
 /**
@@ -546,6 +630,14 @@ export class PerpsController extends BaseController<
   private readonly equityEnabled: boolean;
   private readonly enabledDexs: string[];
 
+  // Guard to prevent concurrent cancelOrders calls
+  // Using Promise tracking for proper atomicity instead of simple boolean flag
+  private cancelOrdersOperation: Promise<CancelOrdersResult> | null = null;
+
+  // Guard to prevent concurrent closePositions calls
+  // Using Promise tracking for proper atomicity instead of simple boolean flag
+  private closePositionsOperation: Promise<ClosePositionsResult> | null = null;
+
   constructor({
     messenger,
     state = {},
@@ -559,8 +651,9 @@ export class PerpsController extends BaseController<
     });
 
     // Store HIP-3 configuration from client (immutable after construction)
+    // Clone array to prevent external mutations
     this.equityEnabled = clientConfig.equityEnabled ?? false;
-    this.enabledDexs = clientConfig.enabledDexs ?? [];
+    this.enabledDexs = [...(clientConfig.enabledDexs ?? [])];
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
@@ -645,6 +738,81 @@ export class PerpsController extends BaseController<
 
     if (Array.isArray(remoteBlockedRegions)) {
       this.setBlockedRegionList(remoteBlockedRegions, 'remote');
+    }
+  }
+
+  /**
+   * Execute an operation while temporarily pausing specified stream channels
+   * to prevent WebSocket updates from triggering UI re-renders during operations.
+   *
+   * WebSocket connections remain alive but updates are not emitted to subscribers.
+   * This prevents race conditions where UI re-renders fetch stale data during operations.
+   *
+   * @param operation - The async operation to execute
+   * @param channels - Array of stream channel names to pause
+   * @returns The result of the operation
+   *
+   * @example
+   * ```typescript
+   * // Cancel orders without stream interference
+   * await this.withStreamPause(
+   *   async () => this.provider.cancelOrders({ cancelAll: true }),
+   *   ['orders']
+   * );
+   *
+   * // Close positions and pause multiple streams
+   * await this.withStreamPause(
+   *   async () => this.provider.closePositions(positions),
+   *   ['positions', 'account', 'orders']
+   * );
+   * ```
+   */
+  private async withStreamPause<T>(
+    operation: () => Promise<T>,
+    channels: (keyof PerpsStreamManager)[],
+  ): Promise<T> {
+    const streamManager = getStreamManagerInstance();
+    const pausedChannels: (keyof PerpsStreamManager)[] = [];
+
+    // Pause emission on specified channels (WebSocket stays connected)
+    // Track which channels successfully paused to ensure proper cleanup
+    for (const channel of channels) {
+      try {
+        streamManager[channel].pause();
+        pausedChannels.push(channel);
+      } catch (err) {
+        // Log error to Sentry but continue pausing remaining channels
+        Logger.error(
+          ensureError(err),
+          this.getErrorContext('withStreamPause', {
+            operation: 'pause',
+            channel: String(channel),
+            pausedChannels: pausedChannels.join(','),
+          }),
+        );
+      }
+    }
+
+    try {
+      // Execute operation without stream interference
+      return await operation();
+    } finally {
+      // Resume only channels that were successfully paused
+      for (const channel of pausedChannels) {
+        try {
+          streamManager[channel].resume();
+        } catch (err) {
+          // Log error to Sentry but continue resuming remaining channels
+          Logger.error(
+            ensureError(err),
+            this.getErrorContext('withStreamPause', {
+              operation: 'resume',
+              channel: String(channel),
+              pausedChannels: pausedChannels.join(','),
+            }),
+          );
+        }
+      }
     }
   }
 
@@ -1005,6 +1173,11 @@ export class PerpsController extends BaseController<
           );
           state.lastUpdateTimestamp = Date.now();
         });
+
+        // Save executed trade configuration for this market
+        if (params.leverage) {
+          this.saveTradeConfiguration(params.coin, params.leverage);
+        }
 
         // Track trade transaction executed
         const completionDuration = performance.now() - startTime;
@@ -1394,6 +1567,174 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Cancel multiple orders in parallel
+   * Batch version of cancelOrder() that cancels multiple orders simultaneously
+   */
+  async cancelOrders(params: CancelOrdersParams): Promise<CancelOrdersResult> {
+    DevLogger.log('[cancelOrders] === ENTRY ===', {
+      timestamp: Date.now(),
+      cancelAll: params.cancelAll,
+      hasOngoingOperation: this.cancelOrdersOperation !== null,
+    });
+
+    // Guard: Prevent concurrent calls by returning the existing operation's promise
+    // This ensures atomicity and allows subsequent calls to wait for the result
+    if (this.cancelOrdersOperation) {
+      DevLogger.log('[cancelOrders] === WAITING for existing operation ===', {
+        timestamp: Date.now(),
+        cancelAll: params.cancelAll,
+      });
+      return this.cancelOrdersOperation;
+    }
+
+    // Create the operation promise and store it before any await
+    // This assignment is effectively atomic in JavaScript's single-threaded execution
+    const operationPromise = (async (): Promise<CancelOrdersResult> => {
+      const traceId = uuidv4();
+      const startTime = performance.now();
+      let operationResult: CancelOrdersResult | null = null;
+      let operationError: Error | null = null;
+
+      try {
+        trace({
+          name: TraceName.PerpsCancelOrder,
+          id: traceId,
+          op: TraceOperation.PerpsOrderSubmission,
+          tags: {
+            provider: this.state.activeProvider,
+            isBatch: 'true',
+            isTestnet: this.state.isTestnet,
+          },
+          data: {
+            cancelAll: params.cancelAll ? 'true' : 'false',
+            coinCount: params.coins?.length || 0,
+            orderIdCount: params.orderIds?.length || 0,
+          },
+        });
+
+        // Pause orders stream to prevent WebSocket updates during cancellation
+        operationResult = await this.withStreamPause(async () => {
+          // Get all open orders (using getOpenOrders to avoid duplicates from historicalOrders)
+          const orders = await this.getOpenOrders();
+
+          // Filter orders based on params
+          let ordersToCancel = orders;
+          if (params.cancelAll || (!params.coins && !params.orderIds)) {
+            // Cancel all orders
+            ordersToCancel = orders;
+          } else if (params.orderIds && params.orderIds.length > 0) {
+            // Cancel specific order IDs
+            ordersToCancel = orders.filter((o) =>
+              params.orderIds?.includes(o.orderId),
+            );
+          } else if (params.coins && params.coins.length > 0) {
+            // Cancel orders for specific coins
+            ordersToCancel = orders.filter((o) =>
+              params.coins?.includes(o.symbol),
+            );
+          }
+
+          if (ordersToCancel.length === 0) {
+            return {
+              success: false,
+              successCount: 0,
+              failureCount: 0,
+              results: [],
+            };
+          }
+
+          // Cancel all orders in parallel using Promise.allSettled
+          const results = await Promise.allSettled(
+            ordersToCancel.map((order) =>
+              this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
+            ),
+          );
+
+          // Aggregate results
+          const successCount = results.filter(
+            (r) => r.status === 'fulfilled' && r.value.success,
+          ).length;
+          const failureCount = results.length - successCount;
+
+          return {
+            success: successCount > 0,
+            successCount,
+            failureCount,
+            results: results.map((result, index) => {
+              let error: string | undefined;
+              if (result.status === 'rejected') {
+                error =
+                  result.reason instanceof Error
+                    ? result.reason.message
+                    : 'Unknown error';
+              } else if (
+                result.status === 'fulfilled' &&
+                !result.value.success
+              ) {
+                error = result.value.error;
+              }
+
+              return {
+                orderId: ordersToCancel[index].orderId,
+                coin: ordersToCancel[index].symbol,
+                success: !!(
+                  result.status === 'fulfilled' && result.value.success
+                ),
+                error,
+              };
+            }),
+          };
+        }, ['orders']); // Disconnect orders stream during operation
+
+        return operationResult;
+      } catch (error) {
+        operationError =
+          error instanceof Error ? error : new Error(String(error));
+        throw error;
+      } finally {
+        const completionDuration = performance.now() - startTime;
+
+        // Track batch cancel event (success or failure)
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]:
+                operationResult?.success && operationResult.successCount > 0
+                  ? PerpsEventValues.STATUS.EXECUTED
+                  : PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              ...(operationError && {
+                [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
+              }),
+              // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
+              // can be added to PerpsEventProperties if needed for analytics
+            })
+            .build(),
+        );
+
+        DevLogger.log('[cancelOrders] === EXIT ===', {
+          timestamp: Date.now(),
+        });
+        endTrace({
+          name: TraceName.PerpsCancelOrder,
+          id: traceId,
+        });
+      }
+    })();
+
+    // Store the promise and ensure cleanup happens after completion
+    this.cancelOrdersOperation = operationPromise;
+    try {
+      return await operationPromise;
+    } finally {
+      // Clear the operation only after it completes
+      this.cancelOrdersOperation = null;
+    }
+  }
+
+  /**
    * Close a position (partial or full)
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
@@ -1699,6 +2040,155 @@ export class PerpsController extends BaseController<
         id: traceId,
         data: traceData,
       });
+    }
+  }
+
+  /**
+   * Close multiple positions in parallel
+   * Batch version of closePosition() that closes multiple positions simultaneously
+   */
+  async closePositions(
+    params: ClosePositionsParams,
+  ): Promise<ClosePositionsResult> {
+    DevLogger.log('[closePositions] === ENTRY ===', {
+      timestamp: Date.now(),
+      closeAll: params.closeAll,
+      hasOngoingOperation: this.closePositionsOperation !== null,
+    });
+
+    // Guard: Prevent concurrent calls by returning the existing operation's promise
+    // This ensures atomicity and allows subsequent calls to wait for the result
+    if (this.closePositionsOperation) {
+      DevLogger.log('[closePositions] === WAITING for existing operation ===', {
+        timestamp: Date.now(),
+        closeAll: params.closeAll,
+      });
+      return this.closePositionsOperation;
+    }
+
+    // Create the operation promise and store it before any await
+    // This assignment is effectively atomic in JavaScript's single-threaded execution
+    const operationPromise = (async (): Promise<ClosePositionsResult> => {
+      const traceId = uuidv4();
+      const startTime = performance.now();
+      let operationResult: ClosePositionsResult | null = null;
+      let operationError: Error | null = null;
+
+      try {
+        trace({
+          name: TraceName.PerpsClosePosition,
+          id: traceId,
+          op: TraceOperation.PerpsPositionManagement,
+          tags: {
+            provider: this.state.activeProvider,
+            isBatch: 'true',
+            isTestnet: this.state.isTestnet,
+          },
+          data: {
+            closeAll: params.closeAll ? 'true' : 'false',
+            coinCount: params.coins?.length || 0,
+          },
+        });
+
+        // Get all positions
+        const positions = await this.getPositions();
+
+        // Filter positions based on params
+        const positionsToClose =
+          params.closeAll || !params.coins || params.coins.length === 0
+            ? positions
+            : positions.filter((p) => params.coins?.includes(p.coin));
+
+        if (positionsToClose.length === 0) {
+          operationResult = {
+            success: false,
+            successCount: 0,
+            failureCount: 0,
+            results: [],
+          };
+          return operationResult;
+        }
+
+        // Close all positions in parallel using Promise.allSettled
+        const results = await Promise.allSettled(
+          positionsToClose.map((position) =>
+            this.closePosition({ coin: position.coin }),
+          ),
+        );
+
+        // Aggregate results
+        const successCount = results.filter(
+          (r) => r.status === 'fulfilled' && r.value.success,
+        ).length;
+        const failureCount = results.length - successCount;
+
+        operationResult = {
+          success: successCount > 0,
+          successCount,
+          failureCount,
+          results: results.map((result, index) => {
+            let error: string | undefined;
+            if (result.status === 'rejected') {
+              error =
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : 'Unknown error';
+            } else if (result.status === 'fulfilled' && !result.value.success) {
+              error = result.value.error;
+            }
+
+            return {
+              coin: positionsToClose[index].coin,
+              success: !!(
+                result.status === 'fulfilled' && result.value.success
+              ),
+              error,
+            };
+          }),
+        };
+
+        return operationResult;
+      } catch (error) {
+        operationError =
+          error instanceof Error ? error : new Error(String(error));
+        throw error;
+      } finally {
+        const completionDuration = performance.now() - startTime;
+
+        // Track batch close event (success or failure)
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]:
+                operationResult?.success && operationResult.successCount > 0
+                  ? PerpsEventValues.STATUS.EXECUTED
+                  : PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              ...(operationError && {
+                [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
+              }),
+              // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
+              // can be added to PerpsEventProperties if needed for analytics
+            })
+            .build(),
+        );
+
+        endTrace({
+          name: TraceName.PerpsClosePosition,
+          id: traceId,
+        });
+      }
+    })();
+
+    // Store the promise and ensure cleanup happens after completion
+    this.closePositionsOperation = operationPromise;
+    try {
+      return await operationPromise;
+    } finally {
+      // Clear the operation only after it completes
+      this.closePositionsOperation = null;
     }
   }
 
@@ -3500,6 +3990,120 @@ export class PerpsController extends BaseController<
         mainnet: false,
       };
     });
+  }
+
+  /**
+   * Get saved trade configuration for a market
+   */
+  getTradeConfiguration(coin: string): { leverage?: number } | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const config = this.state.tradeConfigurations[network]?.[coin];
+
+    if (!config?.leverage) return undefined;
+
+    DevLogger.log('PerpsController: Retrieved trade config', {
+      coin,
+      network,
+      leverage: config.leverage,
+    });
+
+    return { leverage: config.leverage };
+  }
+
+  /**
+   * Save trade configuration for a market
+   * @param coin - Market symbol
+   * @param leverage - Leverage value
+   */
+  saveTradeConfiguration(coin: string, leverage: number): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving trade configuration', {
+      coin,
+      network,
+      leverage,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      state.tradeConfigurations[network][coin] = {
+        leverage,
+      };
+    });
+  }
+
+  /**
+   * Get saved market sort preference
+   */
+  getMarketSortPreference(): SortOptionId {
+    return (
+      this.state.marketSortPreference ??
+      MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID
+    );
+  }
+
+  /**
+   * Save market sort preference
+   * @param optionId - Sort option ID
+   */
+  saveMarketSortPreference(optionId: SortOptionId): void {
+    DevLogger.log('PerpsController: Saving market sort preference', {
+      optionId,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      state.marketSortPreference = optionId;
+    });
+  }
+
+  /**
+   * Toggle watchlist status for a market
+   * Watchlist markets are stored per network (testnet/mainnet)
+   */
+  toggleWatchlistMarket(symbol: string): void {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const currentWatchlist = this.state.watchlistMarkets[currentNetwork];
+    const isWatchlisted = currentWatchlist.includes(symbol);
+
+    DevLogger.log('PerpsController: Toggling watchlist market', {
+      timestamp: new Date().toISOString(),
+      network: currentNetwork,
+      symbol,
+      action: isWatchlisted ? 'remove' : 'add',
+    });
+
+    this.update((state) => {
+      if (isWatchlisted) {
+        // Remove from watchlist
+        state.watchlistMarkets[currentNetwork] = currentWatchlist.filter(
+          (s) => s !== symbol,
+        );
+      } else {
+        // Add to watchlist
+        state.watchlistMarkets[currentNetwork] = [...currentWatchlist, symbol];
+      }
+    });
+  }
+
+  /**
+   * Check if a market is in the watchlist on the current network
+   */
+  isWatchlistMarket(symbol: string): boolean {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    return this.state.watchlistMarkets[currentNetwork].includes(symbol);
+  }
+
+  /**
+   * Get all watchlist markets for the current network
+   */
+  getWatchlistMarkets(): string[] {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    return this.state.watchlistMarkets[currentNetwork];
   }
 
   /**

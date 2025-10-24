@@ -75,26 +75,31 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `screen_type` (required): `'homescreen' | 'markets' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'asset_details'`
+- `screen_type` (required): `'homescreen' | 'markets' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`)
+- `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
 
 ### 2. PERPS_UI_INTERACTION
 
 **Properties:**
 
-- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed'`
-- `action_type` (optional): `'start_trading' | 'skip' | 'stop_loss_set' | 'take_profit_set'`
+- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'sort_field_changed' | 'sort_direction_changed' | 'favorite_toggled'` (Note: `favorite_toggled` = watchlist toggle)
+- `action_type` (optional): `'start_trading' | 'skip' | 'stop_loss_set' | 'take_profit_set' | 'close_all_positions' | 'cancel_all_orders' | 'learn_more' | 'favorite_market' | 'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `order_size` (optional): Size of the order in tokens (number)
 - `leverage_used` (optional): Leverage value being used (number)
 - `order_type` (optional): `'market' | 'limit'`
-- `setting_type` (optional): Type of setting changed (e.g., `'leverage'`)
+- `setting_type` (optional): Type of setting changed (e.g., `'leverage'`, `'sort_field'`, `'sort_direction'`)
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `component_name` (optional): Name of the component interacted with
+- `sort_field` (optional): Market sort field selected: `'volume' | 'price_change' | 'market_cap' | 'funding_rate' | 'new'`
+- `sort_direction` (optional): Sort direction: `'asc' | 'desc'`
+- `search_query` (optional): Search query text (when search_clicked)
+- `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
 
 ### 3. PERPS_TRADE_TRANSACTION
 
@@ -123,28 +128,35 @@ MetaMetrics.getInstance().trackEvent(
 **Properties:**
 
 - `status` (required): `'submitted' | 'executed' | 'partially_filled' | 'failed'`
-- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`)
-- `direction` (required): `'long' | 'short'`
+- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`) - For batch operations, use `'MULTIPLE'`
+- `direction` (required): `'long' | 'short'` - For batch operations with mixed directions, use `'mixed'`
 - `order_type` (required): `'market' | 'limit'`
 - `open_position_size` (required): Size of the open position (number)
 - `order_size` (required): Size being closed (number)
 - `completion_duration` (required): Duration in milliseconds (number)
-- `close_type` (optional): `'full' | 'partial'`
+- `close_type` (optional): `'full' | 'partial' | 'batch'` - Use `'batch'` for close all operations
 - `percentage_closed` (optional): Percentage of position closed (number)
 - `dollar_pnl` (optional): Profit/loss in dollars (number)
 - `percent_pnl` (optional): Profit/loss as percentage (number)
 - `fee` (optional): Fee paid in USDC (number)
 - `received_amount` (optional): Amount received after close (number)
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
+- `positions_count` (optional): Number of positions closed in batch operation (number)
+- `success_count` (optional): Number of positions successfully closed in batch (number)
+- `failure_count` (optional): Number of positions that failed to close in batch (number)
 
 ### 5. PERPS_ORDER_CANCEL_TRANSACTION
 
 **Properties:**
 
 - `status` (required): `'submitted' | 'executed' | 'failed'`
-- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`)
+- `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`) - For batch operations, use `'MULTIPLE'`
 - `completion_duration` (required): Duration in milliseconds (number)
 - `order_type` (optional): `'market' | 'limit'`
+- `cancel_type` (optional): `'single' | 'batch'` - Use `'batch'` for cancel all operations
+- `orders_count` (optional): Number of orders cancelled in batch operation (number)
+- `success_count` (optional): Number of orders successfully cancelled in batch (number)
+- `failure_count` (optional): Number of orders that failed to cancel in batch (number)
 
 ### 6. PERPS_WITHDRAWAL_TRANSACTION
 
