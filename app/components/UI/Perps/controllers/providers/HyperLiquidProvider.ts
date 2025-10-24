@@ -3261,6 +3261,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       }
 
+      // Check if order leverage meets existing position requirement (HyperLiquid protocol constraint)
+      if (
+        params.leverage &&
+        params.existingPositionLeverage &&
+        params.leverage < params.existingPositionLeverage
+      ) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.leverage_below_position', {
+            required: params.existingPositionLeverage.toString(),
+            provided: params.leverage.toString(),
+          }),
+        };
+      }
+
       // Validate limit orders have a price
       if (params.orderType === 'limit' && !params.price) {
         return {

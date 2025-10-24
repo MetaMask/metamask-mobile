@@ -120,6 +120,10 @@ describe('perps controller init', () => {
         testnet: [],
         mainnet: [],
       },
+      tradeConfigurations: {
+        testnet: {},
+        mainnet: {},
+      },
       withdrawInProgress: false,
       lastWithdrawResult: null,
       withdrawalRequests: [],

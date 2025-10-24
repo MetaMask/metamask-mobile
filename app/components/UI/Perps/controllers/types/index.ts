@@ -40,6 +40,11 @@ export interface GetUserHistoryParams {
   accountId?: CaipAccountId;
 }
 
+// Trade configuration saved per market per network
+export interface TradeConfiguration {
+  leverage?: number; // Last used leverage for this market
+}
+
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
@@ -91,6 +96,7 @@ export type OrderParams = {
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+  existingPositionLeverage?: number; // Existing position leverage for validation (protocol constraint)
 
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;

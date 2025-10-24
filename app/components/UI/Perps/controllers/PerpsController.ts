@@ -221,6 +221,20 @@ export type PerpsControllerState = {
     mainnet: string[]; // Array of watchlist market symbols for mainnet
   };
 
+  // Trade configurations per market (per network)
+  tradeConfigurations: {
+    testnet: {
+      [marketSymbol: string]: {
+        leverage?: number; // Last used leverage for this market
+      };
+    };
+    mainnet: {
+      [marketSymbol: string]: {
+        leverage?: number;
+      };
+    };
+  };
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -263,6 +277,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   watchlistMarkets: {
     testnet: [],
     mainnet: [],
+  },
+  tradeConfigurations: {
+    testnet: {},
+    mainnet: {},
   },
 });
 
@@ -396,6 +414,12 @@ const metadata = {
     anonymous: false,
     usedInUi: true,
   },
+  tradeConfigurations: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -501,6 +525,14 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:resetFirstTimeUserState';
       handler: PerpsController['resetFirstTimeUserState'];
+    }
+  | {
+      type: 'PerpsController:saveTradeConfiguration';
+      handler: PerpsController['saveTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:getTradeConfiguration';
+      handler: PerpsController['getTradeConfiguration'];
     };
 
 /**
@@ -1121,6 +1153,11 @@ export class PerpsController extends BaseController<
           );
           state.lastUpdateTimestamp = Date.now();
         });
+
+        // Save executed trade configuration for this market
+        if (params.leverage) {
+          this.saveTradeConfiguration(params.coin, params.leverage);
+        }
 
         // Track trade transaction executed
         const completionDuration = performance.now() - startTime;
@@ -3916,6 +3953,50 @@ export class PerpsController extends BaseController<
       state.hasPlacedFirstOrder = {
         testnet: false,
         mainnet: false,
+      };
+    });
+  }
+
+  /**
+   * Get saved trade configuration for a market
+   */
+  getTradeConfiguration(coin: string): { leverage?: number } | undefined {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+    const config = this.state.tradeConfigurations[network]?.[coin];
+
+    if (!config?.leverage) return undefined;
+
+    DevLogger.log('PerpsController: Retrieved trade config', {
+      coin,
+      network,
+      leverage: config.leverage,
+    });
+
+    return { leverage: config.leverage };
+  }
+
+  /**
+   * Save trade configuration for a market
+   * @param coin - Market symbol
+   * @param leverage - Leverage value
+   */
+  saveTradeConfiguration(coin: string, leverage: number): void {
+    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Saving trade configuration', {
+      coin,
+      network,
+      leverage,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      if (!state.tradeConfigurations[network]) {
+        state.tradeConfigurations[network] = {};
+      }
+
+      state.tradeConfigurations[network][coin] = {
+        leverage,
       };
     });
   }

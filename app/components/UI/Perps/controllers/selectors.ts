@@ -55,3 +55,21 @@ export const selectIsWatchlistMarket = (
   const watchlist = selectWatchlistMarkets(state);
   return watchlist.includes(symbol);
 };
+
+/**
+ * Select trade configuration for a specific market on the current network
+ * @param state - PerpsController state
+ * @param coin - Market symbol (e.g., 'BTC', 'ETH')
+ * @returns Trade configuration object or undefined
+ */
+export const selectTradeConfiguration = (
+  state: PerpsControllerState,
+  coin: string,
+): { leverage?: number } | undefined => {
+  const network = state?.isTestnet ? 'testnet' : 'mainnet';
+  const config = state?.tradeConfigurations?.[network]?.[coin];
+
+  if (!config?.leverage) return undefined;
+
+  return { leverage: config.leverage };
+};

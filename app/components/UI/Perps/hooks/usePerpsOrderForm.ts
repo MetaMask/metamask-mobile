@@ -11,6 +11,8 @@ import {
 import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { selectTradeConfiguration } from '../controllers/selectors';
+import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -62,6 +64,11 @@ export function usePerpsOrderForm(
   const currentPrice = prices[initialAsset];
   const { marketData } = usePerpsMarketData(initialAsset);
 
+  // Get saved trade configuration for this asset (user preference for new positions)
+  const savedConfig = usePerpsSelector((state) =>
+    selectTradeConfiguration(state, initialAsset),
+  );
+
   // Get available balance from live account data
   const availableBalance = parseFloat(
     account?.availableBalance?.toString() || '0',
@@ -73,8 +80,9 @@ export function usePerpsOrderForm(
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
 
-  // Calculate the maximum possible amount based on available balance and leverage
-  const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
+  // Priority: navigation param > saved config > default (3x)
+  const defaultLeverage =
+    initialLeverage || savedConfig?.leverage || TRADING_DEFAULTS.leverage;
 
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
   const initialAmountValue = useMemo(() => {
