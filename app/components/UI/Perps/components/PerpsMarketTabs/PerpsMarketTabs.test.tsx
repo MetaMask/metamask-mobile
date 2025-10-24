@@ -243,7 +243,7 @@ describe('PerpsMarketTabs', () => {
   });
 
   describe('Tab Switching', () => {
-    it('switches tabs when clicked', () => {
+    it('switches tabs when clicked', async () => {
       const onActiveTabChange = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, coin: 'BTC' }],
@@ -259,10 +259,14 @@ describe('PerpsMarketTabs', () => {
         />,
       );
 
-      const positionTab = getAllByText('perps.market.position')[0];
-      fireEvent.press(positionTab);
+      await waitFor(() => {
+        expect(getAllByText('perps.market.orders').length).toBeGreaterThan(0);
+      });
 
-      expect(onActiveTabChange).toHaveBeenCalledWith('position');
+      const ordersTab = getAllByText('perps.market.orders')[0];
+      fireEvent.press(ordersTab);
+
+      expect(onActiveTabChange).toHaveBeenCalledWith('orders');
     });
 
     it('displays correct content for active tab', async () => {
