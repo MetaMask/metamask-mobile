@@ -2,6 +2,7 @@
 import {
   SamplePetnamesController,
   SamplePetnamesControllerState,
+  SamplePetnamesControllerActions,
   SamplePetnamesControllerEvents,
 } from '@metamask/sample-controllers';
 ///: END:ONLY_INCLUDE_IF
@@ -313,6 +314,7 @@ import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
+  SeedlessOnboardingControllerActions,
 } from '@metamask/seedless-onboarding-controller';
 import { EncryptionKey } from '../Encryptor/types';
 
@@ -406,6 +408,9 @@ type SnapsGlobalEvents =
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  | SamplePetnamesControllerActions
+  ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
   | NftControllerActions
   | SwapsControllerActions
@@ -469,7 +474,8 @@ type GlobalActions =
   | MultichainRouterActions
   | DeFiPositionsControllerActions
   | ErrorReportingServiceActions
-  | DelegationControllerActions;
+  | DelegationControllerActions
+  | SeedlessOnboardingControllerActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

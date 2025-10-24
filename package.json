@@ -230,7 +230,8 @@
     "@metamask/token-search-discovery-controller": "npm:@metamask-previews/token-search-discovery-controller@3.5.0-preview-5cda4487",
     "@metamask/transaction-controller": "npm:@metamask-previews/transaction-controller@60.9.0-preview-5cda4487",
     "@metamask/user-operation-controller": "npm:@metamask-previews/user-operation-controller@39.2.0-preview-5cda4487",
-    "@metamask/ppom-validator": "npm:@metamask-previews/ppom-validator@0.38.0-preview-a101cca"
+    "@metamask/ppom-validator": "npm:@metamask-previews/ppom-validator@0.38.0-preview-a101cca",
+    "@metamask/sample-controllers": "npm:@metamask-previews/sample-controllers@2.0.1-preview-5cda4487"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",

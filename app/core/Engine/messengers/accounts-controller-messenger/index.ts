@@ -1,11 +1,16 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { SnapControllerStateChangeEvent } from '../../controllers/snaps';
-import { RootExtendedMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   SnapKeyringAccountAssetListUpdatedEvent,
   SnapKeyringAccountBalancesUpdatedEvent,
   SnapKeyringAccountTransactionsUpdatedEvent,
 } from '../../../SnapKeyring/constants';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
 
 // Export the types
 export * from './types';
@@ -17,12 +22,24 @@ export * from './types';
  * @returns The AccountsControllerMessenger.
  */
 export function getAccountsControllerMessenger(
-  baseControllerMessenger: RootExtendedMessenger,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): AccountsControllerMessenger {
-  return baseControllerMessenger.getRestricted({
-    name: 'AccountsController',
-    allowedEvents: [
-      'KeyringController:accountRemoved',
+  const messenger = new Messenger<
+    'AccountsController',
+    MessengerActions<AccountsControllerMessenger>,
+    MessengerEvents<AccountsControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'AccountsController',
+    parent: rootExtendedMessenger,
+  });
+
+  rootExtendedMessenger.delegate({
+    actions: [
+      'KeyringController:getState',
+      'KeyringController:getKeyringsByType',
+    ],
+    events: [
       'KeyringController:stateChange',
       SnapControllerStateChangeEvent,
       SnapKeyringAccountAssetListUpdatedEvent,
@@ -30,11 +47,7 @@ export function getAccountsControllerMessenger(
       SnapKeyringAccountTransactionsUpdatedEvent,
       'MultichainNetworkController:networkDidChange',
     ],
-    allowedActions: [
-      'KeyringController:getState',
-      'KeyringController:getAccounts',
-      'KeyringController:getKeyringsByType',
-      'KeyringController:getKeyringForAccount',
-    ],
+    messenger,
   });
+  return messenger;
 }

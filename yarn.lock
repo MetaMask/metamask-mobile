@@ -8382,15 +8382,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/sample-controllers@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "@metamask/sample-controllers@npm:2.0.1"
+"@metamask/sample-controllers@npm:@metamask-previews/sample-controllers@2.0.1-preview-5cda4487":
+  version: 2.0.1-preview-5cda4487
+  resolution: "@metamask-previews/sample-controllers@npm:2.0.1-preview-5cda4487"
   dependencies:
-    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/base-controller": "npm:^8.4.2"
+    "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
   peerDependencies:
     "@metamask/network-controller": ^24.0.0
-  checksum: 10/3a76e79560caaeba03f0def0039c1016d33c60f998267d7783539f1a7bc7c4f16c8422c6a3e24ecf31bd15bf93c52737b584694692070d9051b3080daa98ee45
+  checksum: 10/e9f6283097a2502e6aedb9af5752bdf2649dd626d893d2d3360ee085289e8a7722e089965dcef9ec953f527f0981ca47bfee54180d50ceb8c19c9230e00afce8
   languageName: node
   linkType: hard
 
