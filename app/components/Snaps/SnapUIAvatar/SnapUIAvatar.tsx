@@ -46,7 +46,7 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
 
   // Display the account group address if it exists as the default.
   const displayAddress =
-    useAccountGroups && accountGroupAddress ? accountGroupAddress : caipAddress;
+    useAccountGroups && accountGroupAddress ? accountGroupAddress : address;
 
   return (
     <AvatarAccount
