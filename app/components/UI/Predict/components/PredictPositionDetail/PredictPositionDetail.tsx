@@ -48,7 +48,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   const onCashOut = () => {
     executeGuardedAction(() => {
-      const _outcome = market?.outcomes.find((o) => o.id === position.outcomeId);
+      const _outcome = market?.outcomes.find(
+        (o) => o.id === position.outcomeId,
+      );
       navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
         params: {

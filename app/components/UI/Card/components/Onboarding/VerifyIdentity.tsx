@@ -11,11 +11,13 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
   const { user } = useCardSDK();
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
@@ -30,6 +32,14 @@ const VerifyIdentity = () => {
       return;
     }
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        .addProperties({
+          action: OnboardingActions.VERIFY_IDENTITY_BUTTON_CLICKED,
+        })
+        .build(),
+    );
+
     navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
       sessionUrl,
     });
@@ -40,6 +50,16 @@ const VerifyIdentity = () => {
       navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
     }
   }, [navigation, user?.verificationState]);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+        .addProperties({
+          page: OnboardingScreens.VERIFY_IDENTITY,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
     <>
