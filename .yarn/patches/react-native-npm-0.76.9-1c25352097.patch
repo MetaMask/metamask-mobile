@@ -531,6 +531,18 @@ index 4b196f4101c4cb2e24cfd08f86e54a610548d285..bec908c866667bba10b50691099e64c5
    virtual ~UIManagerDelegate() noexcept = default;
  };
  
+diff --git a/jest/setup.js b/jest/setup.js
+index a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0..b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1 100644
+--- a/jest/setup.js
++++ b/jest/setup.js
+@@ -99,6 +99,7 @@ jest
+     measure: jest.fn(),
+     manageChildren: jest.fn(),
+     setChildren: jest.fn(),
++    measureAsyncOnUI: jest.fn(),
+     updateView: jest.fn(),
+     AndroidDrawerLayout: {
+       Constants: {
 diff --git a/src/private/webapis/dom/nodes/ReactNativeElement.js b/src/private/webapis/dom/nodes/ReactNativeElement.js
 index f091f3555b7be5f74178eca2ee7f4ded2f9b55e2..3e2b437b8c5dac042391b064b471587c1dc8ab11 100644
 --- a/src/private/webapis/dom/nodes/ReactNativeElement.js
