@@ -54,7 +54,7 @@ import {
   handleSkipBackup,
   showSeedphraseDefinition,
   showSkipAccountSecurityBottomsheet,
-} from './utils';
+} from '../../../util/onboarding/backupUtils';
 
 /**
  * View that's shown during the second step of

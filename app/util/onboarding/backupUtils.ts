@@ -1,14 +1,14 @@
 import { CommonActions } from '@react-navigation/native';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import Routes from '../../../constants/navigation/Routes';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
-import { TraceName, endTrace } from '../../../util/trace';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import trackOnboarding from '../metrics/TrackOnboarding/trackOnboarding';
+import Routes from '../../constants/navigation/Routes';
+import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
+import { TraceName, endTrace } from '../trace';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import {
   ITrackingEvent,
   IMetaMetricsEvent,
-} from '../../../core/Analytics/MetaMetrics.types';
+} from '../../core/Analytics/MetaMetrics.types';
 
 /**
  * Type for the track function
