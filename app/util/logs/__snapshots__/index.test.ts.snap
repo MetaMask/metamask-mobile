@@ -67,6 +67,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
         "currentCurrency": "usd",
       },
+      "DelegationController": {
+        "delegations": {},
+      },
       "EarnController": {
         "lastUpdated": 0,
         "lending": {
@@ -502,6 +505,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+      },
+      "SamplePetnamesController": {
+        "namesByChainIdAndAddress": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": true,
@@ -746,6 +752,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "currentCurrency": "usd",
       },
+      "DelegationController": {
+        "delegations": {},
+      },
       "EarnController": {
         "lastUpdated": 0,
         "lending": {
@@ -1181,6 +1190,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+      },
+      "SamplePetnamesController": {
+        "namesByChainIdAndAddress": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": false,

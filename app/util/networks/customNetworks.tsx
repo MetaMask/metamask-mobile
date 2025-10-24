@@ -312,6 +312,10 @@ export const NETWORK_CHAIN_ID: {
   readonly XDC: '0x32';
   readonly MEGAETH_MAINNET: '0x10e6';
   readonly HEMI: '0xa867';
+  readonly LUKSO: '0x2a';
+  readonly INJECTIVE: '0x6f0';
+  readonly PLASMA: '0x2611';
+  readonly CRONOS: '0x19';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -341,6 +345,10 @@ export const NETWORK_CHAIN_ID: {
   XDC: '0x32',
   MEGAETH_MAINNET: '0x10e6',
   HEMI: '0xa867',
+  LUKSO: '0x2a',
+  INJECTIVE: '0x6f0',
+  PLASMA: '0x2611',
+  CRONOS: '0x19',
   ...CHAIN_IDS,
 };
 
@@ -376,4 +384,8 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
   [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
+  [NETWORK_CHAIN_ID.LUKSO]: require('../../images/lukso.png'),
+  [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),
+  [NETWORK_CHAIN_ID.PLASMA]: require('../../images/plasma.png'),
+  [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
 };

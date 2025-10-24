@@ -39,27 +39,9 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -1080,7 +1062,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1116,7 +1097,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1154,7 +1134,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1240,27 +1219,9 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -2281,7 +2242,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2317,7 +2277,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2355,7 +2314,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2441,27 +2399,9 @@ exports[`Wallet should render correctly 1`] = `
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -3482,7 +3422,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3518,7 +3457,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3556,7 +3494,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3642,27 +3579,9 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -4683,7 +4602,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4719,7 +4637,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4757,7 +4674,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4843,27 +4759,9 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -5884,7 +5782,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5920,7 +5817,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5958,7 +5854,6 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
-                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",

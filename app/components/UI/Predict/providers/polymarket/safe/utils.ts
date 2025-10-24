@@ -5,6 +5,9 @@ import {
   Interface,
   parseUnits,
   splitSignature,
+  keccak256,
+  AbiCoder,
+  solidityPack,
 } from 'ethers/lib/utils';
 import { multisendAbi, safeAbi, safeFactoryAbi } from './abi';
 import {
@@ -14,6 +17,7 @@ import {
   SplitSignature,
 } from './types';
 import { Hex, numberToHex } from '@metamask/utils';
+import Logger from '../../../../../../util/Logger';
 import {
   CONDITIONAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,
@@ -21,10 +25,12 @@ import {
 } from '../constants';
 import { Signer } from '../../types';
 import {
+  DOMAIN_SEPARATOR_TYPEHASH,
   outcomeTokenSpenders,
   SAFE_FACTORY_ADDRESS,
   SAFE_FACTORY_NAME,
   SAFE_MULTISEND_ADDRESS,
+  SAFE_TX_TYPEHASH,
   usdcSpenders,
 } from './constants';
 import EthQuery from '@metamask/eth-query';
@@ -41,6 +47,7 @@ import {
   getIsApprovedForAll,
 } from '../utils';
 import { PredictPosition } from '../../..';
+import { TransactionType } from '@metamask/transaction-controller';
 
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
@@ -153,7 +160,7 @@ const getNonce = async ({
   return BigInt(res);
 };
 
-const getTransactionHash = async ({
+const getTransactionHash = ({
   safeAddress,
   to,
   value,
@@ -170,30 +177,44 @@ const getTransactionHash = async ({
   to: string;
   value: string;
   data: string;
-  operation: OperationType;
+  operation: number;
   safeTxGas?: string;
   baseGas?: string;
   gasPrice?: string;
   gasToken?: string;
   refundReceiver?: string;
   nonce: bigint;
-}): Promise<Hex> => {
-  const { NetworkController } = Engine.context;
-  const networkClientId = NetworkController.findNetworkClientIdByChainId(
-    numberToHex(POLYGON_MAINNET_CHAIN_ID),
-  );
-  const ethQuery = new EthQuery(
-    NetworkController.getNetworkClientById(networkClientId).provider,
+}) => {
+  const encoder = new AbiCoder();
+  // Step 1: Calculate domain separator
+  const domainSeparator = keccak256(
+    encoder.encode(
+      ['bytes32', 'uint256', 'address'],
+      [DOMAIN_SEPARATOR_TYPEHASH, POLYGON_MAINNET_CHAIN_ID, safeAddress],
+    ),
   );
 
-  // Call the getTransactionHash function on the Safe contract
-  const txHash = (await query(ethQuery, 'call', [
-    {
-      to: safeAddress,
-      data: new Interface(safeAbi).encodeFunctionData('getTransactionHash', [
+  // Step 2: Calculate safe tx hash
+  const safeTxHash = keccak256(
+    encoder.encode(
+      [
+        'bytes32',
+        'address',
+        'uint256',
+        'bytes32',
+        'uint8',
+        'uint256',
+        'uint256',
+        'uint256',
+        'address',
+        'address',
+        'uint256',
+      ],
+      [
+        SAFE_TX_TYPEHASH,
         to,
         value,
-        data,
+        keccak256(data),
         operation,
         safeTxGas,
         baseGas,
@@ -201,11 +222,17 @@ const getTransactionHash = async ({
         gasToken,
         refundReceiver,
         nonce,
-      ]),
-    },
-  ])) as Hex;
+      ],
+    ),
+  );
 
-  return txHash;
+  // Step 3: Encode final transaction data (EIP-712)
+  return keccak256(
+    solidityPack(
+      ['bytes1', 'bytes1', 'bytes32', 'bytes32'],
+      ['0x19', '0x01', domainSeparator, safeTxHash],
+    ),
+  ) as Hex;
 };
 
 const signSafetransaction = async (
@@ -215,7 +242,7 @@ const signSafetransaction = async (
 ) => {
   const nonce = await getNonce({ safeAddress });
 
-  const txHash = await getTransactionHash({
+  const txHash = getTransactionHash({
     safeAddress,
     to: safeTx.to,
     value: safeTx.value,
@@ -385,6 +412,12 @@ export const getDeployProxyWalletTransaction = async ({
     };
   } catch (error) {
     console.error('Error creating proxy wallet', error);
+
+    // Log to Sentry with proxy wallet deployment context (no user address)
+    Logger.error(error as Error, {
+      message: 'Predict: Failed to create proxy wallet transaction',
+      context: 'safeUtils.getDeployProxyWalletTransaction',
+    });
   }
 };
 
@@ -500,7 +533,7 @@ export const getSafeTransactionCallData = async ({
   const gasToken = ethers.constants.AddressZero;
   const refundReceiver = ethers.constants.AddressZero;
 
-  const txHash = await getTransactionHash({
+  const txHash = getTransactionHash({
     safeAddress,
     to: txn.to,
     value: txn.value,
@@ -635,9 +668,13 @@ export const getClaimTransaction = async ({
     safeAddress,
     txn: safeTxn,
   });
-  return {
-    from: signer.address as Hex,
-    to: safeAddress as Hex,
-    data: callData as Hex,
-  };
+  return [
+    {
+      params: {
+        to: safeAddress as Hex,
+        data: callData as Hex,
+      },
+      type: TransactionType.predictClaim,
+    },
+  ];
 };

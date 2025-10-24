@@ -18,11 +18,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
-  formatPrice,
   formatPositionSize,
-  PRICE_RANGES_DETAILED_VIEW,
+  PRICE_RANGES_UNIVERSAL,
   formatPerpsFiat,
   formatOrderCardDate,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -236,7 +236,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         <View style={styles.headerRight}>
           <View style={styles.headerRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {formatPrice(derivedData.sizeInUSD)}
+              {formatPerpsFiat(derivedData.sizeInUSD, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -262,7 +264,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPerpsFiat(order.price, {
-                  ranges: PRICE_RANGES_DETAILED_VIEW,
+                  ranges: PRICE_RANGES_UNIVERSAL,
                 })}
               </Text>
             </View>
@@ -277,9 +279,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                     {strings('perps.order.take_profit')}
                   </Text>
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {order.takeProfitPrice
+                    {order.takeProfitPrice !== undefined &&
+                    order.takeProfitPrice !== null
                       ? formatPerpsFiat(order.takeProfitPrice, {
-                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                          ranges: PRICE_RANGES_UNIVERSAL,
                         })
                       : strings('perps.position.card.not_set')}
                   </Text>
@@ -292,9 +295,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                     {strings('perps.order.stop_loss')}
                   </Text>
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {order.stopLossPrice
+                    {order.stopLossPrice !== undefined &&
+                    order.stopLossPrice !== null
                       ? formatPerpsFiat(order.stopLossPrice, {
-                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                          ranges: PRICE_RANGES_UNIVERSAL,
                         })
                       : strings('perps.position.card.not_set')}
                   </Text>

@@ -13,6 +13,7 @@ import {
   PredictController,
   type PredictControllerState,
 } from './PredictController';
+import type { OrderPreview } from '../providers/types';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -69,6 +70,26 @@ type UnrestrictedMessenger = Messenger<any, any>;
 describe('PredictController', () => {
   let mockPolymarketProvider: jest.Mocked<PolymarketProvider>;
 
+  function createMockOrderPreview(
+    overrides?: Partial<OrderPreview>,
+  ): OrderPreview {
+    return {
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      timestamp: Date.now(),
+      side: Side.BUY,
+      sharePrice: 0.5,
+      maxAmountSpent: 1,
+      minAmountReceived: 2,
+      slippage: 0.005,
+      tickSize: 0.01,
+      minOrderSize: 0.01,
+      negRisk: false,
+      ...overrides,
+    };
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -84,8 +105,11 @@ describe('PredictController', () => {
       prepareClaim: jest.fn(),
       prepareDeposit: jest.fn(),
       getAccountState: jest.fn(),
+      getBalance: jest.fn(),
       isEligible: jest.fn(),
       providerId: 'polymarket',
+      getUnrealizedPnL: jest.fn(),
+      previewOrder: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Mock the PolymarketProvider constructor
@@ -638,25 +662,33 @@ describe('PredictController', () => {
 
   describe('placeOrder', () => {
     it('place order successfully via provider', async () => {
-      const mockResult = { success: true, response: 'order-placed' };
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
       await withController(async ({ controller }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
 
-        const result = await controller.placeOrder({
-          providerId: 'polymarket',
+        const preview = createMockOrderPreview({
+          marketId: 'market-1',
           outcomeId: 'outcome-1',
           outcomeTokenId: 'token-1',
           side: Side.BUY,
-          size: 1,
+        });
+
+        const result = await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
         });
 
         expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledWith(
           expect.objectContaining({
             providerId: 'polymarket',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'token-1',
-            side: 'BUY',
-            size: 1,
+            preview,
             signer: expect.objectContaining({
               address: '0x1234567890123456789012345678901234567890',
             }),
@@ -674,12 +706,11 @@ describe('PredictController', () => {
           Promise.reject(new Error('Order placement failed')),
         );
 
+        const preview = createMockOrderPreview({ side: Side.SELL });
+
         const result = await controller.placeOrder({
           providerId: 'polymarket',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.SELL,
-          size: 2,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -694,12 +725,11 @@ describe('PredictController', () => {
           Promise.reject('String error'),
         );
 
+        const preview = createMockOrderPreview({ side: Side.SELL });
+
         const result = await controller.placeOrder({
           providerId: 'polymarket',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.SELL,
-          size: 2,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -709,12 +739,11 @@ describe('PredictController', () => {
 
     it('handle provider not available error', async () => {
       await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
         const result = await controller.placeOrder({
           providerId: 'nonexistent',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.BUY,
-          size: 1,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -751,12 +780,15 @@ describe('PredictController', () => {
           transactionMeta: mockTxMeta,
         });
 
-        await controller.placeOrder({
-          providerId: 'polymarket',
+        const preview = createMockOrderPreview({
           outcomeId: 'outcome-1',
           outcomeTokenId: 'outcome-token-1',
           side: Side.SELL,
-          size: 2,
+        });
+
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
         });
 
         // Verify that signPersonalMessage is included in the signer object
@@ -772,357 +804,14 @@ describe('PredictController', () => {
     });
   });
 
-  describe('calculateBetAmounts', () => {
-    it('calculate bet amounts successfully', async () => {
-      const mockResponse = {
-        toWin: 150,
-        sharePrice: 0.5,
-      };
-
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.calculateBetAmounts.mockResolvedValue(
-          mockResponse,
-        );
-
-        const result = await controller.calculateBetAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-1',
-          userBetAmount: 100,
-        });
-
-        expect(result).toEqual(mockResponse);
-        expect(mockPolymarketProvider.calculateBetAmounts).toHaveBeenCalledWith(
-          {
-            providerId: 'polymarket',
-            outcomeTokenId: 'token-1',
-            userBetAmount: 100,
-          },
-        );
-      });
-    });
-
-    it('handle provider not available error', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.calculateBetAmounts({
-            providerId: 'nonexistent',
-            outcomeTokenId: 'token-1',
-            userBetAmount: 100,
-          }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-      });
-    });
-  });
-
-  describe('calculateCashOutAmounts', () => {
-    it('calculate cash out amounts successfully', async () => {
-      const mockResponse = {
-        currentValue: 120,
-        cashPnl: 20,
-        percentPnl: 20,
-      };
-
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.calculateCashOutAmounts.mockResolvedValue(
-          mockResponse,
-        );
-
-        const result = await controller.calculateCashOutAmounts({
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-          marketId: 'market-1',
-          outcomeTokenId: 'token-1',
-        });
-
-        expect(result).toEqual(mockResponse);
-        expect(
-          mockPolymarketProvider.calculateCashOutAmounts,
-        ).toHaveBeenCalledWith({
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-          marketId: 'market-1',
-          outcomeTokenId: 'token-1',
-        });
-      });
-    });
-
-    it('handle provider not available error', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.calculateCashOutAmounts({
-            address: '0x1234567890123456789012345678901234567890',
-            providerId: 'nonexistent',
-            marketId: 'market-1',
-            outcomeTokenId: 'token-1',
-          }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-      });
-    });
-  });
-
-  describe('transaction event handlers', () => {
-    it('update claim transaction status to CONFIRMED on transactionConfirmed', () => {
-      withController(({ controller, messenger }) => {
-        const txId = 'tx1';
-        const txData = '0xclaimdata';
-
-        // Set up claim transaction with matching transaction ID
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            transactionId: txId,
-            chainId: 1,
-            txParams: { to: '0xclaim', data: txData, value: '0x0' },
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const event = {
-          id: txId,
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xclaim',
-            data: txData,
-            value: '0x0',
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the claim transaction was updated to CONFIRMED
-        expect(controller.state.claimTransaction?.status).toBe(
-          PredictClaimStatus.CONFIRMED,
-        );
-      });
-    });
-
-    it('not modify state when claim transaction data does not match on transactionConfirmed', () => {
-      withController(({ controller, messenger }) => {
-        const claimTxId = 'claim-tx-2';
-
-        // Set up claim transaction
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            transactionId: claimTxId,
-            chainId: 1,
-            txParams: { to: '0xclaim', data: '0xclaimdata', value: '0x0' },
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const initialState = { ...controller.state };
-
-        const event = {
-          id: 'tx1', // Different transaction ID that won't match
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xclaim',
-            data: '0xdifferentdata', // Different data that won't match
-            value: '0x0',
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        // State should remain unchanged since no matching transaction was found
-        expect(controller.state).toEqual(initialState);
-      });
-    });
-
-    it('update claim transaction status to ERROR on transactionFailed', () => {
-      withController(({ controller, messenger }) => {
-        const txId = 'tx-failed';
-        const txData = '0xclaimdata';
-
-        // Set up claim transaction
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            transactionId: txId,
-            chainId: 1,
-            txParams: { to: '0xclaim', data: txData, value: '0x0' },
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            id: txId,
-            hash: '0xabc',
-            status: 'failed',
-            error: { message: 'Transaction failed' },
-            txParams: {
-              from: '0x1',
-              to: '0xclaim',
-              data: txData,
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionFailed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the claim transaction was updated to ERROR
-        expect(controller.state.claimTransaction?.status).toBe(
-          PredictClaimStatus.ERROR,
-        );
-      });
-    });
-
-    it('update claim transaction status to CANCELLED on transactionRejected', () => {
-      withController(({ controller, messenger }) => {
-        const txId = 'tx-rejected';
-        const txData = '0xclaimdata';
-
-        // Set up claim transaction
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            transactionId: txId,
-            chainId: 1,
-            txParams: { to: '0xclaim', data: txData, value: '0x0' },
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            id: txId,
-            hash: '0xdef',
-            status: 'rejected',
-            txParams: {
-              from: '0x1',
-              to: '0xclaim',
-              data: txData,
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionRejected',
-          // @ts-ignore
-          event,
-        );
-
-        // State should be updated with CANCELLED status
-        expect(controller.state.claimTransaction?.status).toBe(
-          PredictClaimStatus.CANCELLED,
-        );
-      });
-    });
-
-    it('not modify state on transactionConfirmed for unknown transaction', () => {
-      withController(({ controller, messenger }) => {
-        const initial = { ...controller.state };
-        const event = {
-          id: 'unknown-tx',
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: { from: '0x1', to: '0x2', value: '0x0' },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        expect(controller.state).toEqual(initial);
-      });
-    });
-
-    it('not modify state when transactionConfirmed event has no batchId or txId', () => {
-      withController(({ controller, messenger }) => {
-        const initial = { ...controller.state };
-        const event = {
-          batchId: undefined,
-          id: undefined,
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: { from: '0x1', to: '0x2', value: '0x0' },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        expect(controller.state).toEqual(initial);
-      });
-    });
-
-    it('not modify state when transactionFailed event has no batchId or txId', () => {
-      withController(({ controller, messenger }) => {
-        const initial = { ...controller.state };
-        const event = {
-          transactionMeta: {
-            batchId: undefined,
-            id: undefined,
-            hash: '0xabc',
-            status: 'failed',
-            error: { message: 'Transaction failed' },
-            txParams: { from: '0x1', to: '0x2', value: '0x0' },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionFailed',
-          // @ts-ignore
-          event,
-        );
-
-        expect(controller.state).toEqual(initial);
-      });
-    });
-
-    it('not modify state when transactionRejected event has no batchId or txId', () => {
-      withController(({ controller, messenger }) => {
-        const initial = { ...controller.state };
-        const event = {
-          transactionMeta: {
-            batchId: undefined,
-            id: undefined,
-            hash: '0xdef',
-            status: 'rejected',
-            txParams: { from: '0x1', to: '0x2', value: '0x0' },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionRejected',
-          // @ts-ignore
-          event,
-        );
-
-        expect(controller.state).toEqual(initial);
-      });
-    });
-  });
-
   describe('provider error handling', () => {
     it('throw PROVIDER_NOT_AVAILABLE when provider is missing in placeOrder', async () => {
       await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
         const result = await controller.placeOrder({
           providerId: 'nonexistent',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'token-1',
-          side: Side.BUY,
-          size: 1,
+          preview,
         });
 
         expect(result.success).toBe(false);
@@ -1150,45 +839,6 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
         expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
-      });
-    });
-
-    it('handle missing provider in transaction confirmed handler', () => {
-      withController(({ controller, messenger }) => {
-        // Set up claim transaction
-        const txId = 'tx-missing-provider';
-        const txData = '0xclaimdata';
-        controller.updateStateForTesting((state) => {
-          state.claimTransaction = {
-            transactionId: txId,
-            chainId: 1,
-            txParams: { to: '0xclaim', data: txData, value: '0x0' },
-            status: PredictClaimStatus.PENDING,
-          };
-        });
-
-        const event = {
-          id: txId,
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xclaim',
-            data: txData,
-            value: '0x0',
-          },
-        };
-
-        // Transaction confirmed handler should update claim transaction status
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        expect(controller.state.claimTransaction?.status).toBe(
-          PredictClaimStatus.CONFIRMED,
-        );
       });
     });
   });
@@ -1476,17 +1126,14 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.claimTransaction = {
-            transactionId: 'test-tx',
+            batchId: 'test-tx',
             chainId: 1,
-            txParams: { to: '0xclaim', data: '0xdata', value: '0x0' },
             status: PredictClaimStatus.PENDING,
           };
           state.isOnboarded = { '0x123': true };
         });
 
-        expect(controller.state.claimTransaction?.transactionId).toBe(
-          'test-tx',
-        );
+        expect(controller.state.claimTransaction?.batchId).toBe('test-tx');
         expect(controller.state.isOnboarded['0x123']).toBe(true);
       });
     });
@@ -1562,9 +1209,8 @@ describe('PredictController', () => {
         // Set up claim transaction
         controller.updateStateForTesting((state) => {
           state.claimTransaction = {
-            transactionId: txId,
+            batchId: txId,
             chainId: 1,
-            txParams: { to: '0xclaim', data: '0xdata', value: '0x0' },
             status: PredictClaimStatus.PENDING,
           };
         });
@@ -1599,86 +1245,90 @@ describe('PredictController', () => {
   });
 
   describe('claim', () => {
-    const mockPosition = {
-      marketId: 'market-1',
-      providerId: 'polymarket',
-      outcomeId: 'outcome-1',
-      outcomeTokenId: 'outcome-token-1',
-    };
-
     const mockClaim = {
       chainId: 1,
-      txParams: {
-        to: '0xclaim',
-        data: '0xclaimdata',
-        value: '0x0',
-      },
+      transactions: [
+        {
+          params: {
+            to: '0xclaim' as `0x${string}`,
+            data: '0xclaimdata' as `0x${string}`,
+            value: '0x0',
+          },
+        },
+      ],
     };
 
     it('claim a single position successfully', async () => {
-      const mockTxMeta = { id: 'claim-tx-1' } as any;
+      const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
         mockPolymarketProvider.prepareClaim = jest
           .fn()
-          .mockReturnValue(mockClaim);
-        (addTransaction as jest.Mock).mockResolvedValue({
-          transactionMeta: mockTxMeta,
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
         });
 
-        const result = await controller.claim({
-          positions: [mockPosition as any],
+        const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
-        expect(result.transactionId).toBe(mockTxMeta.id);
+        expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
-        expect(controller.state.claimTransaction?.transactionId).toBe(
-          mockTxMeta.id,
-        );
+        expect(controller.state.claimTransaction?.batchId).toBe(mockBatchId);
         expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith({
-          positions: [mockPosition],
+          positions: expect.any(Array),
           signer: expect.objectContaining({
             address: '0x1234567890123456789012345678901234567890',
           }),
         });
-        expect(addTransaction).toHaveBeenCalled();
+        expect(addTransactionBatch).toHaveBeenCalled();
       });
     });
 
     it('claim multiple positions successfully using batch transaction', async () => {
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
+        const mockMultipleClaims = {
+          chainId: 1,
+          transactions: [
+            {
+              params: {
+                to: '0xclaim' as `0x${string}`,
+                data: '0xclaimdata' as `0x${string}`,
+                value: '0x0',
+              },
+            },
+            {
+              params: {
+                to: '0xclaim' as `0x${string}`,
+                data: '0xclaimdata2' as `0x${string}`,
+                value: '0x0',
+              },
+            },
+          ],
+        };
         mockPolymarketProvider.prepareClaim = jest
           .fn()
-          .mockReturnValueOnce(mockClaim)
-          .mockReturnValueOnce({
-            ...mockClaim,
-            txParams: { ...mockClaim.txParams, data: '0xclaimdata2' },
-          });
+          .mockResolvedValue(mockMultipleClaims);
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,
         });
 
-        const result = await controller.claim({
-          positions: [
-            mockPosition as any,
-            { ...mockPosition, outcomeId: 'outcome-2' } as any,
-          ],
+        const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
-        expect(result.transactionId).toBeDefined();
+        expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
-        expect(controller.state.claimTransaction?.transactionId).toBeDefined();
-        expect(addTransaction).toHaveBeenCalled();
+        expect(controller.state.claimTransaction?.batchId).toBe(mockBatchId);
+        expect(addTransactionBatch).toHaveBeenCalled();
       });
     });
 
     it('handle claim error when provider is not available', async () => {
       await withController(async ({ controller }) => {
         await expect(
-          controller.claim({
-            positions: [mockPosition as any],
+          controller.claimWithConfirmation({
             providerId: 'nonexistent',
           }),
         ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
@@ -1694,11 +1344,144 @@ describe('PredictController', () => {
           });
 
         await expect(
-          controller.claim({
-            positions: [mockPosition as any],
+          controller.claimWithConfirmation({
             providerId: 'polymarket',
           }),
         ).rejects.toThrow('Claim preparation failed');
+      });
+    });
+  });
+
+  describe('getUnrealizedPnL', () => {
+    it('successfully fetches unrealized P&L data', async () => {
+      await withController(async ({ controller }) => {
+        const mockUnrealizedPnL = {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: -7.337110036077004,
+          percentUpnl: -31.32290842628039,
+        };
+
+        mockPolymarketProvider.getUnrealizedPnL.mockResolvedValue(
+          mockUnrealizedPnL,
+        );
+
+        const result = await controller.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockUnrealizedPnL);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getUnrealizedPnL).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('uses selected account address when no address provided', async () => {
+      await withController(async ({ controller }) => {
+        const mockUnrealizedPnL = {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: 0,
+          percentUpnl: 0,
+        };
+
+        mockPolymarketProvider.getUnrealizedPnL.mockResolvedValue(
+          mockUnrealizedPnL,
+        );
+
+        await controller.getUnrealizedPnL({});
+
+        expect(mockPolymarketProvider.getUnrealizedPnL).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('throws error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles provider errors gracefully', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('Failed to fetch unrealized P&L'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('Failed to fetch unrealized P&L');
+
+        expect(controller.state.lastError).toBe(
+          'Failed to fetch unrealized P&L',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles provider returning empty data', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('No unrealized P&L data found'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('No unrealized P&L data found');
+
+        expect(controller.state.lastError).toBe('No unrealized P&L data found');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles network errors from provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('Network error'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('Network error');
+
+        expect(controller.state.lastError).toBe('Network error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles non-Error exceptions from provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          'String error',
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe(
+          'Failed to fetch unrealized P&L',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
   });
@@ -1709,23 +1492,21 @@ describe('PredictController', () => {
         // Set up initial claim transaction
         controller.updateStateForTesting((state) => {
           state.claimTransaction = {
-            transactionId: 'test-tx',
+            batchId: 'test-tx',
             chainId: 1,
-            txParams: { to: '0x1', data: '0xdata1', value: '0x0' },
             status: PredictClaimStatus.PENDING,
           };
         });
 
         // Verify transaction exists
         expect(controller.state.claimTransaction).toEqual({
-          transactionId: 'test-tx',
+          batchId: 'test-tx',
           chainId: 1,
-          txParams: { to: '0x1', data: '0xdata1', value: '0x0' },
           status: PredictClaimStatus.PENDING,
         });
 
         // Clear claim transaction
-        controller.clearClaimTransactions();
+        controller.clearClaimTransaction();
 
         // Verify transaction is cleared
         expect(controller.state.claimTransaction).toBeNull();
@@ -1740,7 +1521,7 @@ describe('PredictController', () => {
         });
 
         // Clear should work without error
-        expect(() => controller.clearClaimTransactions()).not.toThrow();
+        expect(() => controller.clearClaimTransaction()).not.toThrow();
 
         // Should remain null
         expect(controller.state.claimTransaction).toBeNull();
@@ -2026,130 +1807,8 @@ describe('PredictController', () => {
   });
 
   describe('deposit transaction event handlers', () => {
-    it('update deposit transaction status to CONFIRMED on transactionConfirmed with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-1';
-
-        // Set up deposit transaction with matching batch ID
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          batchId,
-          id: 'tx-in-batch-1',
-          hash: '0xabc',
-          status: 'confirmed',
-          txParams: {
-            from: '0x1',
-            to: '0xToken',
-            data: '0xapprove',
-            value: '0x0',
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionConfirmed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to CONFIRMED
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.CONFIRMED,
-        );
-      });
-    });
-
-    it('update deposit transaction status to ERROR on transactionFailed with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-failed';
-
-        // Set up deposit transaction
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            batchId,
-            id: 'tx-failed',
-            hash: '0xabc',
-            status: 'failed',
-            error: { message: 'Transaction failed' },
-            txParams: {
-              from: '0x1',
-              to: '0xToken',
-              data: '0xapprove',
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionFailed',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to ERROR
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.ERROR,
-        );
-      });
-    });
-
-    it('update deposit transaction status to CANCELLED on transactionRejected with batchId', () => {
-      withController(({ controller, messenger }) => {
-        const batchId = 'deposit-batch-rejected';
-
-        // Set up deposit transaction
-        controller.updateStateForTesting((state) => {
-          state.depositTransaction = {
-            batchId,
-            chainId: 137,
-            status: PredictDepositStatus.PENDING,
-            providerId: 'polymarket',
-          };
-        });
-
-        const event = {
-          transactionMeta: {
-            batchId,
-            id: 'tx-rejected',
-            hash: '0xdef',
-            status: 'rejected',
-            txParams: {
-              from: '0x1',
-              to: '0xToken',
-              data: '0xapprove',
-              value: '0x0',
-            },
-          },
-        };
-
-        messenger.publish(
-          'TransactionController:transactionRejected',
-          // @ts-ignore
-          event,
-        );
-
-        // Verify the deposit transaction was updated to CANCELLED
-        expect(controller.state.depositTransaction?.status).toBe(
-          PredictDepositStatus.CANCELLED,
-        );
-      });
-    });
+    // Deposit transaction status updates are now handled by usePredictDepositToasts hook
+    // rather than the controller's event handlers
 
     it('not modify deposit state when different batchId', () => {
       withController(({ controller, messenger }) => {
@@ -2314,6 +1973,155 @@ describe('PredictController', () => {
             providerId: 'invalid-provider',
           }),
         ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+  });
+
+  describe('getBalance', () => {
+    it('get balance successfully with default address', async () => {
+      // Given
+      const mockBalance = 1000;
+      mockPolymarketProvider.getBalance.mockResolvedValue(mockBalance);
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance
+        const result = await controller.getBalance({
+          providerId: 'polymarket',
+        });
+
+        // Then it should return the balance
+        expect(result).toBe(mockBalance);
+
+        // And provider should be called with default address
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('get balance successfully with custom address', async () => {
+      // Given
+      const mockBalance = 500;
+      mockPolymarketProvider.getBalance.mockResolvedValue(mockBalance);
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance with custom address
+        const result = await controller.getBalance({
+          providerId: 'polymarket',
+          address: '0x9876543210987654321098765432109876543210',
+        });
+
+        // Then it should return the balance
+        expect(result).toBe(mockBalance);
+
+        // And provider should be called with custom address
+        expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          address: '0x9876543210987654321098765432109876543210',
+        });
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        // When calling getBalance with invalid provider
+        // Then it should throw an error
+        await expect(
+          controller.getBalance({
+            providerId: 'invalid-provider',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('handle error when getBalance throws', async () => {
+      // Given
+      mockPolymarketProvider.getBalance.mockRejectedValue(
+        new Error('Balance fetch failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling getBalance
+        // Then it should throw an error
+        await expect(
+          controller.getBalance({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Balance fetch failed');
+      });
+    });
+  });
+
+  describe('previewOrder', () => {
+    it('should preview order successfully', async () => {
+      const mockOrderPreview = createMockOrderPreview({
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        side: Side.BUY,
+      });
+
+      mockPolymarketProvider.previewOrder.mockResolvedValue(mockOrderPreview);
+
+      await withController(async ({ controller }) => {
+        const result = await controller.previewOrder({
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 100,
+        });
+
+        expect(result).toEqual(mockOrderPreview);
+        expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.BUY,
+          size: 100,
+          signer: expect.objectContaining({
+            address: '0x1234567890123456789012345678901234567890',
+            signTypedMessage: expect.any(Function),
+            signPersonalMessage: expect.any(Function),
+          }),
+        });
+      });
+    });
+
+    it('should throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewOrder({
+            providerId: 'invalid-provider',
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('should handle preview errors', async () => {
+      mockPolymarketProvider.previewOrder.mockRejectedValue(
+        new Error('Preview failed'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewOrder({
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          }),
+        ).rejects.toThrow('Preview failed');
       });
     });
   });

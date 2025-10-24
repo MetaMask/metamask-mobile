@@ -164,7 +164,12 @@ function RegionSelectorModal() {
 
       return (
         <ListItemSelect
-          isSelected={selectedRegion?.id === region.id}
+          shouldEnableAndroidPressIn
+          isSelected={
+            selectedRegion?.id === region.id ||
+            (selectedRegion?.id.includes('-') &&
+              selectedRegion.id.split('-')[0] === region.id)
+          }
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible

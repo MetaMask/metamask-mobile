@@ -2,7 +2,6 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
@@ -18,34 +17,29 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { TraceName } from '../../../../../util/trace';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
 } from '../../hooks';
-import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
-import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -75,8 +69,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
-  const isEligible = useSelector(selectPerpsEligibility);
-
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
   const hasPositions = positions && positions.length > 0;
@@ -98,22 +90,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     },
   });
 
-  const { isDepositInProgress } = usePerpsDepositProgress();
-
   const handleManageBalancePress = useCallback(() => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    if (isDepositInProgress) {
-      return;
-    }
-
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.BALANCE_MODAL,
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKETS,
+      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
     });
-  }, [navigation, isEligible, isDepositInProgress]);
+  }, [navigation]);
 
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
@@ -128,17 +110,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
-  const coordinatedPress = useCoordinatedPress();
-
   const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handleNewTrade);
-  }, [coordinatedPress, handleNewTrade]);
+    handleNewTrade();
+  }, [handleNewTrade]);
 
   const renderStartTradeCTA = () => (
-    <TouchablePerpsComponent
+    <TempTouchableOpacity
       style={styles.startTradeCTA}
       onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
+      shouldEnableAndroidPressIn
     >
       <View style={styles.startTradeContent}>
         <View style={styles.startTradeIconContainer}>
@@ -152,7 +133,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchablePerpsComponent>
+    </TempTouchableOpacity>
   );
 
   const renderOrdersSection = () => {

@@ -28,6 +28,30 @@ import { PredictPosition, PredictPositionStatus } from '../../../types';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { getAllowance, getIsApprovedForAll } from '../utils';
 
+jest.mock('@metamask/transaction-controller', () => ({
+  TransactionType: {
+    cancel: 'cancel',
+    contractInteraction: 'contractInteraction',
+    deployContract: 'deployContract',
+    incoming: 'incoming',
+    personalSign: 'personalSign',
+    retry: 'retry',
+    sign: 'sign',
+    signTypedData: 'signTypedData',
+    simpleSend: 'simpleSend',
+    smart: 'smart',
+    swap: 'swap',
+    swapAndSend: 'swapAndSend',
+    swapApproval: 'swapApproval',
+    tokenMethodApprove: 'tokenMethodApprove',
+    tokenMethodIncreaseAllowance: 'tokenMethodIncreaseAllowance',
+    tokenMethodSetApprovalForAll: 'tokenMethodSetApprovalForAll',
+    tokenMethodTransfer: 'tokenMethodTransfer',
+    tokenMethodTransferFrom: 'tokenMethodTransferFrom',
+    tokenMethodSafeTransferFrom: 'tokenMethodSafeTransferFrom',
+  },
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
@@ -81,7 +105,7 @@ const mockGetIsApprovedForAll = getIsApprovedForAll as jest.MockedFunction<
 
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890' as const;
 const TEST_SAFE_ADDRESS = '0x9999999999999999999999999999999999999999' as const;
-const TEST_TO_ADDRESS = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382' as const;
+const TEST_TO_ADDRESS = '0x100c7b833bbd604a77890783439bbb9d65e31de7' as const;
 
 function buildSigner({
   address = TEST_ADDRESS,
@@ -288,16 +312,6 @@ describe('safe utils', () => {
 
       expect(feeAuth).toHaveProperty('type', 'safe-transaction');
       expect(feeAuth.authorization.tx).toBeDefined();
-    });
-
-    it('calls Safe contract for transaction hash', async () => {
-      setupMocksForFeeAuth();
-
-      await createSafeFeeAuthorization(testParams);
-
-      expect(mockQuery).toHaveBeenCalledTimes(2);
-      const secondCallArgs = mockQuery.mock.calls[1];
-      expect(secondCallArgs[2][0].to).toBe(TEST_SAFE_ADDRESS);
     });
 
     it('handles signature v value adjustment for 0 and 1', async () => {
@@ -983,17 +997,19 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions,
         safeAddress: TEST_SAFE_ADDRESS,
       });
 
       // Then transaction is returned with correct structure
-      expect(tx).toHaveProperty('from', signer.address);
-      expect(tx).toHaveProperty('to', TEST_SAFE_ADDRESS);
-      expect(tx).toHaveProperty('data');
-      expect(tx.data).toMatch(/^0x[a-f0-9]+$/);
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+      expect(txs[0].params).toHaveProperty('to', TEST_SAFE_ADDRESS);
+      expect(txs[0].params).toHaveProperty('data');
+      expect(txs[0].params.data).toMatch(/^0x[a-f0-9]+$/);
     });
 
     it('handles multiple positions in one transaction', async () => {
@@ -1007,16 +1023,18 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions,
         safeAddress: TEST_SAFE_ADDRESS,
       });
 
       // Then single transaction is returned with all claims
-      expect(tx).toHaveProperty('from');
-      expect(tx).toHaveProperty('to');
-      expect(tx).toHaveProperty('data');
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0]).toHaveProperty('params');
+      expect(txs[0].params).toHaveProperty('to');
+      expect(txs[0].params).toHaveProperty('data');
     });
 
     it('signs the claim transaction', async () => {
@@ -1046,14 +1064,14 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions,
         safeAddress: customSafeAddress,
       });
 
       // Then transaction is sent to the provided Safe address
-      expect(tx.to).toBe(customSafeAddress);
+      expect(txs[0].params.to).toBe(customSafeAddress);
     });
 
     it('creates transaction for negRisk positions', async () => {
@@ -1064,15 +1082,17 @@ describe('safe utils', () => {
       setupMocksForFeeAuth();
 
       // When generating claim transaction
-      const tx = await getClaimTransaction({
+      const txs = await getClaimTransaction({
         signer,
         positions: [negRiskPosition],
         safeAddress: TEST_SAFE_ADDRESS,
       });
 
       // Then transaction is generated successfully
-      expect(tx).toBeDefined();
-      expect(tx.data).toMatch(/^0x[a-f0-9]+$/);
+      expect(txs).toBeDefined();
+      expect(Array.isArray(txs)).toBe(true);
+      expect(txs).toHaveLength(1);
+      expect(txs[0].params.data).toMatch(/^0x[a-f0-9]+$/);
     });
   });
 });

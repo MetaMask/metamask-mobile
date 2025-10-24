@@ -17,13 +17,17 @@ import {
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceOptOutAction,
 } from '../../controllers/rewards-controller/services';
+
+import type {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
 import {
   RewardsControllerActions,
   RewardsControllerEvents,
 } from '../../controllers/rewards-controller/types';
 import {
   AccountsControllerGetSelectedMultichainAccountAction,
-  AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
 import {
@@ -33,6 +37,8 @@ import {
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
   RewardsDataServiceGetPointsEventsLastUpdatedAction,
+  RewardsDataServiceGetDiscoverSeasonsAction,
+  RewardsDataServiceGetSeasonMetadataAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
@@ -41,6 +47,7 @@ const name = 'RewardsController';
 type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | AccountsControllerListMultichainAccountsAction
+  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -58,11 +65,13 @@ type AllowedActions =
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
   | RewardsDataServiceGetUnlockedRewardsAction
-  | RewardsDataServiceClaimRewardAction;
+  | RewardsDataServiceClaimRewardAction
+  | RewardsDataServiceGetDiscoverSeasonsAction
+  | RewardsDataServiceGetSeasonMetadataAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
-  | AccountsControllerSelectedAccountChangeEvent
+  | AccountTreeControllerSelectedAccountGroupChangeEvent
   | KeyringControllerUnlockEvent;
 
 export type RewardsControllerMessenger = RestrictedMessenger<
@@ -83,6 +92,7 @@ export function getRewardsControllerMessenger(
     name,
     allowedActions: [
       'AccountsController:getSelectedMultichainAccount',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
@@ -102,9 +112,11 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getActivePointsBoosts',
       'RewardsDataService:getUnlockedRewards',
       'RewardsDataService:claimReward',
+      'RewardsDataService:getDiscoverSeasons',
+      'RewardsDataService:getSeasonMetadata',
     ],
     allowedEvents: [
-      'AccountsController:selectedAccountChange',
+      'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
     ],
   });
