@@ -55,12 +55,11 @@ export function getMultichainAccountServiceMessenger(
   return messenger;
 }
 
-export type AllowedInitializationEvents =
+type AllowedInitializationEvents =
   | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
   | RemoteFeatureFlagControllerStateChangeEvent;
 
-export type AllowedInitializationActions =
-  RemoteFeatureFlagControllerGetStateAction;
+type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
 
 export type MultichainAccountServiceInitMessenger = ReturnType<
   typeof getMultichainAccountServiceInitMessenger

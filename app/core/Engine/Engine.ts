@@ -81,7 +81,6 @@ import {
   toHex,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
-import { ExtendedMessenger } from '../ExtendedMessenger';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
@@ -107,6 +106,8 @@ import {
   EngineState,
   EngineContext,
   StatefulControllers,
+  getRootExtendedMessenger,
+  RootMessenger,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
@@ -173,6 +174,7 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
+import { Messenger } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -260,7 +262,7 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
-    this.controllerMessenger = new ExtendedMessenger();
+    this.controllerMessenger = getRootExtendedMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -548,14 +550,25 @@ export class Engine {
         delete childControllers[name];
       }
     });
+    const composableControllerMessenger = new Messenger<
+      'ComposableController',
+      never,
+      never,
+      RootMessenger
+    >({
+      namespace: 'ComposableController',
+    });
+
+    this.controllerMessenger.delegate({
+      actions: [],
+      events: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
+      messenger: composableControllerMessenger,
+    });
+
     this.datamodel = new ComposableController<EngineState, StatefulControllers>(
       {
         controllers: childControllers as StatefulControllers,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ComposableController',
-          allowedActions: [],
-          allowedEvents: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
-        }),
+        messenger: composableControllerMessenger,
       },
     );
 

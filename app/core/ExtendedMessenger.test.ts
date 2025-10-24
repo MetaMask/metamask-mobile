@@ -1,3 +1,4 @@
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { ExtendedMessenger } from './ExtendedMessenger';
 
 const EVENT_TYPE_MOCK = 'TestController:testEvent';
@@ -11,7 +12,13 @@ interface EventMock {
 describe('ExtendedMessenger', () => {
   describe('subscribeOnceIf', () => {
     it('calls handler once and only if criteria matches', () => {
-      const messenger = new ExtendedMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        EventMock
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
       const handler = jest.fn();
 
       const criteria = jest
@@ -34,7 +41,13 @@ describe('ExtendedMessenger', () => {
 
   describe('tryUnsubscribe', () => {
     it('unsubscribes handler', () => {
-      const messenger = new ExtendedMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        EventMock
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
       const handler = jest.fn();
 
       messenger.subscribe(EVENT_TYPE_MOCK, handler);
@@ -45,12 +58,24 @@ describe('ExtendedMessenger', () => {
     });
 
     it('does nothing if no handler', () => {
-      const messenger = new ExtendedMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        EventMock
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
       messenger.tryUnsubscribe(EVENT_TYPE_MOCK, undefined);
     });
 
     it('does nothing if already unsubscribed', () => {
-      const messenger = new ExtendedMessenger<never, EventMock>();
+      const messenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        EventMock
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
       const handler = jest.fn();
 
       messenger.subscribe(EVENT_TYPE_MOCK, handler);

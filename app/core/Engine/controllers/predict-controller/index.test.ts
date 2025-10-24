@@ -7,6 +7,7 @@ import {
   PredictControllerState,
 } from '../../../../components/UI/Predict/controllers/PredictController';
 import { predictControllerInit } from '.';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock(
   '../../../../components/UI/Predict/controllers/PredictController',
@@ -32,7 +33,9 @@ describe('predict controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });

@@ -1,19 +1,22 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import {
-  getLoggingControllerMessenger,
-  type LoggingControllerMessenger,
-} from '../messengers/logging-controller-messenger';
+import { getLoggingControllerMessenger } from '../messengers/logging-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { loggingControllerInit } from './logging-controller-init';
-import { LoggingController } from '@metamask/logging-controller';
+import {
+  LoggingController,
+  LoggingControllerMessenger,
+} from '@metamask/logging-controller';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/logging-controller');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<LoggingControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

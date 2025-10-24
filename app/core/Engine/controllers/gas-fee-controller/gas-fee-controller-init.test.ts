@@ -1,4 +1,7 @@
-import { GasFeeController } from '@metamask/gas-fee-controller';
+import {
+  GasFeeController,
+  GasFeeMessenger,
+} from '@metamask/gas-fee-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { NetworkController } from '@metamask/network-controller';
 
@@ -7,9 +10,9 @@ import { isMainnetByChainId } from '../../../../util/networks';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import AppConstants from '../../../AppConstants';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import type { GasFeeControllerMessenger } from '../../messengers/gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { ControllerInitRequest } from '../../types';
 import { GasFeeControllerInit } from './gas-fee-controller-init';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/gas-fee-controller');
 jest.mock('../../../../util/networks');
@@ -39,12 +42,13 @@ function buildControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
-): jest.Mocked<ControllerInitRequest<GasFeeControllerMessenger>> {
-  const baseControllerMessenger = new ExtendedMessenger();
+): jest.Mocked<ControllerInitRequest<GasFeeMessenger>> {
+  const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
-    controllerMessenger:
-      baseControllerMessenger as unknown as GasFeeControllerMessenger,
+    controllerMessenger: baseControllerMessenger as unknown as GasFeeMessenger,
     getGlobalChainId: jest.fn().mockReturnValue('0x1'),
     ...initRequestProperties,
   };

@@ -9,6 +9,7 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import * as createNotificationServicesControllerModule from './create-notification-services-controller';
 import { notificationServicesControllerInit } from './notification-services-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 describe('notificationServicesControllerInit', () => {
   const arrangeMocks = () => {
@@ -20,7 +21,9 @@ describe('notificationServicesControllerInit', () => {
       )
       .mockReturnValue({} as NotificationServicesController);
 
-    const baseControllerMessenger = new ExtendedMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
 
     const initRequestMock = buildControllerInitRequestMock(
       baseControllerMessenger,

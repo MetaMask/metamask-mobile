@@ -9,12 +9,14 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import ReduxService from '../../../redux';
 import configureStore from '../../../../util/test/configureStore';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<CronjobControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<never, never>();
-
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getCronjobControllerMessenger(baseMessenger),

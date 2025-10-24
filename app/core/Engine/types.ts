@@ -550,6 +550,11 @@ export type RootExtendedMessenger = ExtendedMessenger<
   GlobalEvents
 >;
 
+export const getRootExtendedMessenger = (): RootExtendedMessenger =>
+  new ExtendedMessenger<'Root', GlobalActions, GlobalEvents>({
+    namespace: 'Root',
+  });
+
 /**
  * Type definition for the root messenger used in the Engine.
  * It extends the root messenger with global actions and events.

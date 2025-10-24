@@ -2,7 +2,11 @@ import {
   DelegationController,
   DelegationControllerMessenger,
 } from '@metamask/delegation-controller';
-import { Messenger } from '@metamask/messenger';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   type TransactionMeta,
   TransactionStatus,
@@ -30,14 +34,18 @@ function buildInitRequestMock(): jest.Mocked<
     DelegationControllerInitMessenger
   >
 > {
-  const baseControllerMessenger = new Messenger();
+  const baseControllerMessenger = new Messenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
   const controllerMessenger = getDelegationControllerMessenger(
     baseControllerMessenger,
   );
   const initMessenger = getDelegationControllerInitMessenger(
     baseControllerMessenger,
   );
-  const extendedControllerMessenger = new ExtendedMessenger();
+  const extendedControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   return {
     ...buildControllerInitRequestMock(extendedControllerMessenger),
@@ -120,7 +128,11 @@ describe('DelegationController:awaitDeleteDelegationEntry', () => {
 
   beforeEach(() => {
     controller = new DelegationController({
-      messenger: getDelegationControllerMessenger(new Messenger()),
+      messenger: getDelegationControllerMessenger(
+        new Messenger<MockAnyNamespace>({
+          namespace: MOCK_ANY_NAMESPACE,
+        }),
+      ),
       state: {},
       hashDelegation: () => '0x123' as Hex,
       getDelegationEnvironment: () => ({

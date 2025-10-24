@@ -1,23 +1,26 @@
-import { BaseControllerMessenger } from '../../types';
+import { RootExtendedMessenger } from '../../types';
 import { getNotificationServicesControllerMessenger } from './notification-services-controller-messenger';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 describe('getNotificationServicesControllerMessenger', () => {
   const arrangeMocks = () => {
-    const baseMessenger: BaseControllerMessenger = new ExtendedMessenger();
-    const mockGetRestricted = jest.spyOn(baseMessenger, 'getRestricted');
-    return { baseMessenger, mockGetRestricted };
+    const baseMessenger: RootExtendedMessenger =
+      new ExtendedMessenger<MockAnyNamespace>({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+    const mockDelegate = jest.spyOn(baseMessenger, 'delegate');
+    return { baseMessenger, mockDelegate };
   };
 
-  it('returns a restricted messenger with the correct configuration', () => {
-    const { baseMessenger, mockGetRestricted } = arrangeMocks();
+  it('returns a delegated messenger with the correct configuration', () => {
+    const { baseMessenger, mockDelegate } = arrangeMocks();
 
-    const restrictedMessenger =
+    const delegatedMessenger =
       getNotificationServicesControllerMessenger(baseMessenger);
 
-    expect(mockGetRestricted).toHaveBeenCalledWith({
-      name: 'NotificationServicesController',
-      allowedActions: [
+    expect(mockDelegate).toHaveBeenCalledWith({
+      actions: [
         // Keyring Actions
         'KeyringController:getState',
         // Auth Actions
@@ -29,7 +32,7 @@ describe('getNotificationServicesControllerMessenger', () => {
         'NotificationServicesPushController:disablePushNotifications',
         'NotificationServicesPushController:subscribeToPushNotifications',
       ],
-      allowedEvents: [
+      events: [
         // Keyring Events
         'KeyringController:stateChange',
         'KeyringController:lock',
@@ -38,8 +41,9 @@ describe('getNotificationServicesControllerMessenger', () => {
         'NotificationServicesPushController:onNewNotifications',
         'NotificationServicesPushController:stateChange',
       ],
+      messenger: delegatedMessenger,
     });
 
-    expect(restrictedMessenger).toBeDefined();
+    expect(delegatedMessenger).toBeDefined();
   });
 });

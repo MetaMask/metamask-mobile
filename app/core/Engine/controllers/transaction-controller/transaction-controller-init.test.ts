@@ -30,6 +30,7 @@ import { Hex } from '@metamask/utils';
 import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -92,8 +93,12 @@ function buildInitRequestMock(
     TransactionControllerInitMessenger
   >
 > {
-  const initMessenger = new ExtendedMessenger();
-  const baseControllerMessenger = new ExtendedMessenger();
+  const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     initMessenger:

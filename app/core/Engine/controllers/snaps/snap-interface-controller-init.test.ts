@@ -7,13 +7,16 @@ import {
 import { snapInterfaceControllerInit } from './snap-interface-controller-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/snaps-controllers');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SnapInterfaceControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

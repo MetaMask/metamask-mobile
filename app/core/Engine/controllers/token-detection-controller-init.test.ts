@@ -4,11 +4,14 @@ import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
   TokenDetectionControllerInitMessenger,
-  type TokenDetectionControllerMessenger,
 } from '../messengers/token-detection-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { tokenDetectionControllerInit } from './token-detection-controller-init';
-import { TokenDetectionController } from '@metamask/assets-controllers';
+import {
+  TokenDetectionController,
+  TokenDetectionControllerMessenger,
+} from '@metamask/assets-controllers';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
 
@@ -18,7 +21,9 @@ function getInitRequestMock(): jest.Mocked<
     TokenDetectionControllerInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

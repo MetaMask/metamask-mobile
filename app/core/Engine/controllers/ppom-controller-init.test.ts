@@ -4,19 +4,24 @@ import {
   getPPOMControllerInitMessenger,
   getPPOMControllerMessenger,
   PPOMControllerInitMessenger,
-  type PPOMControllerMessenger,
 } from '../messengers/ppom-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { ppomControllerInit } from './ppom-controller-init';
-import { PPOMController } from '@metamask/ppom-validator';
+import {
+  PPOMController,
+  PPOMControllerMessenger,
+} from '@metamask/ppom-validator';
 import Crypto from 'react-native-quick-crypto';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/ppom-validator');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<PPOMControllerMessenger, PPOMControllerInitMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

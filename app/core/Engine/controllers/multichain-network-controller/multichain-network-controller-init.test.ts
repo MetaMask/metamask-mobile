@@ -9,6 +9,7 @@ import { multichainNetworkControllerInit } from './multichain-network-controller
 import { BtcScope } from '@metamask/keyring-api';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/multichain-network-controller');
 
@@ -22,7 +23,9 @@ describe('multichain network controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     // Create controller init request mock
     initRequestMock = {
       ...buildControllerInitRequestMock(baseControllerMessenger),

@@ -9,6 +9,7 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainTransactionsControllerInit } from './multichain-transactions-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_SOLANA_ACCOUNT } from '../../../../util/test/accountsControllerTestUtils';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/multichain-transactions-controller');
 
@@ -22,7 +23,9 @@ describe('multichain transactions controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
 
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
