@@ -88,7 +88,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
               >
                 {item.title}
               </Text>
-              {item.subtitle && (
+              {!!item.subtitle && (
                 <Text
                   variant={TextVariant.BodySM}
                   style={styles.activityAmount}

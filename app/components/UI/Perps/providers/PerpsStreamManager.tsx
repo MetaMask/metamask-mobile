@@ -838,10 +838,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
 
-  protected async connect() {
-    // Wait for connection to complete if in progress
-    while (PerpsConnectionManager.isCurrentlyConnecting()) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+  protected connect() {
+    // Check if connection manager is still connecting - retry later if so
+    if (PerpsConnectionManager.isCurrentlyConnecting()) {
+      setTimeout(() => this.connect(), 200);
+      return;
     }
 
     // Fetch if cache is stale or empty

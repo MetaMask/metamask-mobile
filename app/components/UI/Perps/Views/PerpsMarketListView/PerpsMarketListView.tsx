@@ -336,18 +336,16 @@ const PerpsMarketListView = ({
 
     // Use reusable PerpsMarketList component
     return (
-      <>
-        <Animated.View
-          style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
-        >
-          <PerpsMarketList
-            markets={filteredMarkets}
-            onMarketPress={handleMarketPress}
-            sortBy={sortBy}
-            testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
-          />
-        </Animated.View>
-      </>
+      <Animated.View
+        style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
+      >
+        <PerpsMarketList
+          markets={filteredMarkets}
+          onMarketPress={handleMarketPress}
+          sortBy={sortBy}
+          testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
+        />
+      </Animated.View>
     );
   };
 

@@ -126,6 +126,19 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
     setSelectedTooltip(null);
   }, []);
 
+  // Determine reward animation state based on loading and error states
+  const getRewardAnimationState = () => {
+    if (isLoadingRewards) {
+      return RewardAnimationState.Loading;
+    }
+    if (hasRewardsError) {
+      return RewardAnimationState.ErrorState;
+    }
+    return RewardAnimationState.Idle;
+  };
+
+  const rewardAnimationState = getRewardAnimationState();
+
   return (
     <>
       <View
@@ -275,13 +288,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                 value={estimatedPoints}
                 bonusBips={bonusBips}
                 shouldShow={shouldShowRewards}
-                state={
-                  isLoadingRewards
-                    ? RewardAnimationState.Loading
-                    : hasRewardsError
-                    ? RewardAnimationState.ErrorState
-                    : RewardAnimationState.Idle
-                }
+                state={rewardAnimationState}
               />
             </View>
           </View>
