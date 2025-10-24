@@ -241,6 +241,16 @@ describe('Engine', () => {
         isFetchingGatorPermissions: false,
         isGatorPermissionsEnabled: false,
       },
+      PerpsController: {
+        ...backgroundState.PerpsController,
+        depositRequests: [],
+        withdrawalRequests: [],
+        withdrawalProgress: {
+          progress: 0,
+          lastUpdated: 0,
+          activeWithdrawalId: undefined,
+        },
+      },
     };
 
     expect(initialBackgroundState).toStrictEqual(expectedState);
